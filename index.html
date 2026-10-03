@@ -242,6 +242,26 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .carta-prev svg { width: 112px; height: 52px; display: block; border-radius: 8px; }
 .carta-prev p { margin: 0; font-size: 11.5px; line-height: 1.3; opacity: .92; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .carta-prev b { display: block; color: var(--gold); font-size: 12px; letter-spacing: .02em; }
+/* en la carta la habilidad es un botón: la flechita avisa que se abre entera */
+button.carta-prev { width: 100%; border: 0; font: inherit; text-align: left; cursor: pointer; grid-template-columns: 112px 1fr 26px; -webkit-tap-highlight-color: transparent; transition: transform .12s ease, background .12s ease; }
+button.carta-prev:active { transform: scale(.98); background: #0f3a26; }
+.carta-prev .mas { width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: var(--green-900); display: grid; place-items: center; font-size: 18px; font-weight: 800; line-height: 1; padding-bottom: 2px; box-sizing: border-box; }
+/* el modal de la habilidad: una tarjetita sobre el mazo, no toda la pantalla */
+.hab-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; }
+.hab-modal[hidden] { display: none; }
+.hab-fondo { position: absolute; inset: 0; background: rgba(8, 26, 16, .62); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); animation: hab-in .18s ease-out; }
+.hab-caja { position: relative; width: min(100%, 360px); max-height: calc(100dvh - 32px); overflow-y: auto; box-sizing: border-box; background: var(--green-900); color: var(--cream); border-radius: 20px; padding: 14px 16px 16px; box-shadow: 0 18px 48px rgba(0, 0, 0, .5); display: grid; gap: 10px; animation: hab-pop .22s cubic-bezier(.2, .9, .3, 1.2); }
+.hab-caja svg { width: 100%; height: auto; aspect-ratio: 112 / 52; display: block; border-radius: 12px; }
+.hab-de { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(244, 238, 218, .65); }
+.hab-caja h3 { margin: -6px 0 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; line-height: 1.05; color: var(--gold); padding-right: 36px; }
+.hab-caja p.hab-texto { margin: 0; font-size: 15px; line-height: 1.45; }
+.hab-extra { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.hab-extra li { background: rgba(244, 238, 218, .08); border-radius: 10px; padding: 7px 10px; font-size: 13px; line-height: 1.35; }
+.hab-extra li b { color: var(--gold); }
+.hab-x { position: absolute; right: 10px; top: 10px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(8, 26, 16, .75); color: var(--cream); font-size: 22px; line-height: 1; cursor: pointer; z-index: 1; }
+.hab-caja .carta-jugar { background: var(--gold); color: var(--green-900); height: 42px; }
+@keyframes hab-in { from { opacity: 0; } }
+@keyframes hab-pop { from { opacity: 0; transform: translateY(14px) scale(.94); } }
 .carta dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
 .carta dt { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .carta dd { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.15; color: #0c2b1c; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -462,6 +482,19 @@ input { -webkit-user-select: text; user-select: text; }
   <p class="todos-sub">Del más fácil al más difícil (medido jugando 60 vueltas con cada uno). Cada uno con su habilidad.</p>
   <ol class="todos-lista" id="todos-lista"></ol>
 </section>
+
+<div class="hab-modal" id="hab-modal" hidden>
+  <div class="hab-fondo" data-cerrar></div>
+  <div class="hab-caja" role="dialog" aria-modal="true" aria-labelledby="hab-tit">
+    <button class="hab-x" type="button" data-cerrar aria-label="Cerrar">×</button>
+    <div id="hab-prev"></div>
+    <p class="hab-de" id="hab-de"></p>
+    <h3 id="hab-tit"></h3>
+    <p class="hab-texto" id="hab-texto"></p>
+    <ul class="hab-extra" id="hab-extra"></ul>
+    <button class="carta-jugar" type="button" data-cerrar>Entendido</button>
+  </div>
+</div>
 
 <section class="pantalla" id="fin" hidden>
   <div class="card tarjeta">
@@ -764,7 +797,9 @@ function actualizar(dt) {
     sonarEventos(tiro)
     estela.push([tiro.pos[0], tiro.pos[1], tiro.alt])
     if (estela.length > 70) estela.shift()
-    seguir(tiro.pos)
+    // la corbata: la cámara se acerca al hoyo para que se vea la vuelta
+    if (tiro.vuelta && !tiro.vuelta.hecha) { obj = { ...obj, cx: h.pin[0], cy: h.pin[1], esc: Math.max(obj.esc, 30) }; velCam = 4 }
+    else seguir(tiro.pos)
     if (tiro.fase === 'quieta') { acc = 0; alReposo() }
   }
   if (ronda && estado !== 'tiro') {
@@ -806,6 +841,7 @@ function sonarEventos(t) {
     if (e.tipo === 'pique') S.pique(e.terreno, (t.carry || 100) / 200)
     else if (e.tipo === 'palo') S.palo()
     else if (e.tipo === 'labio') S.labio()
+    else if (e.tipo === 'vuelta') S.vuelta()
     else if (e.tipo === 'robo') S.robo()
   }
 }
@@ -1452,7 +1488,7 @@ function cajonTee(h) {
 }
 /** El hoyo dibujado encima del dibujo (vectorial, nítido): 3 veces el real (y más grande que la pelota), con borde claro. */
 function hoyoNitido([x, y]) {
-  const r = Math.max(M.FISICA.radioHoyo * 3 * cam.esc, 5.4) // el doble de antes: más grande que la pelota
+  const r = Math.max(M.FISICA.bocaHoyo * cam.esc, 5.4) // el doble de antes: más grande que la pelota
   ctx.fillStyle = 'rgba(244,238,218,.9)'
   ctx.beginPath()
   ctx.arc(x, y, r + Math.max(1, r * 0.22), 0, 7)
@@ -1497,7 +1533,7 @@ function pelotaQuieta() {
   const d = M.dist(ronda.pelota, pin)
   const [hx, hy] = w2s(pin)
   const [px, py] = w2s(ronda.pelota)
-  const rHoyo = Math.max(M.FISICA.radioHoyo * 3 * cam.esc, 5.4)
+  const rHoyo = Math.max(M.FISICA.bocaHoyo * cam.esc, 5.4)
   const rPelota = Math.max(3.2, Math.min(6, cam.esc * 0.42))
   const enPantalla = Math.hypot(px - hx, py - hy)
   const borde = rHoyo + rPelota + 2
@@ -2077,7 +2113,7 @@ function cartaDe(j) {
     </div>
     <div class="carta-cuerpo">
       ${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
-      ${hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
+      ${hab ? `<button class="carta-prev" type="button" aria-label="Ver la habilidad ${esc(hab.nombre)} entera">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p><span class="mas" aria-hidden="true">›</span></button>` : ''}
       <dl>
         <div><dt>HCP</dt><dd>${dif.cargado ? hcpTxt(j) : `—<span class="sub">juega ${dif.hcp}</span>`}</dd></div>
         <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span>${dif.prom != null ? `<span class="sub">${M.formatoPar(Math.round(dif.prom))} prom.</span>` : ''}</dd></div>
@@ -2090,6 +2126,7 @@ function cartaDe(j) {
     </div>
   </article>`
   el.querySelector('.carta-jugar').addEventListener('click', () => empezar(j))
+  el.querySelector('button.carta-prev')?.addEventListener('click', () => verHabilidad(j))
   el.addEventListener('pointerdown', mazoDown)
   el.addEventListener('pointermove', mazoMove)
   el.addEventListener('pointerup', mazoUp)
@@ -2199,6 +2236,7 @@ $('#mazo-cerrar').addEventListener('click', () => {
   estado = 'portada'
 })
 window.addEventListener('keydown', (e) => {
+  if (!$('#hab-modal').hidden) { if (e.key === 'Escape') cerrarHabilidad(); return }
   if (!$('#ranking').hidden && e.key === 'Escape') { $('#ranking').hidden = true; return }
   if (!$('#todos').hidden) { if (e.key === 'Escape') $('#todos').hidden = true; return }
   if ($('#elegir').hidden) return
@@ -2231,6 +2269,24 @@ $('#usuario').addEventListener('input', (e) => {
   guardar(datos)
   if (datos.usuario) $('#quien-juega').classList.remove('falta')
 })
+// ── la habilidad entera, en un modal chiquito (en la carta el texto se corta) ──
+function verHabilidad(j) {
+  const hab = M.habilidadDe(j)
+  if (!hab) return
+  $('#hab-prev').innerHTML = previewHab(hab.id)
+  $('#hab-de').textContent = `La habilidad de ${j.apodo} ${j.emoji}`
+  $('#hab-tit').textContent = `✨ ${hab.nombre}`
+  $('#hab-texto').textContent = hab.texto
+  // el Mago: los 5 golpes que le pueden tocar
+  const extra = hab.id === 'comba' ? M.GOLPES_MAGO.map((g) => `<li>${g.emoji} <b>${esc(g.nombre)}</b> · ${esc(g.texto)}</li>`).join('') : ''
+  $('#hab-extra').innerHTML = extra
+  $('#hab-extra').hidden = !extra
+  $('#hab-modal').hidden = false
+  $('#hab-modal .carta-jugar').focus({ preventScroll: true })
+}
+const cerrarHabilidad = () => { $('#hab-modal').hidden = true }
+$('#hab-modal').addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) cerrarHabilidad() })
+
 // ── ver todos: la lista de players con su habilidad ──
 function mostrarTodos() {
   $('#todos-lista').innerHTML = PLANTEL.map((j, i) => {

@@ -283,6 +283,14 @@ export function palo() {
   ruido(0.4, { filtro: 'highpass', f: 3500, vol: 0.08, at: 0.03, ataque: 0.05 })
 }
 export const labio = () => { tono(1900, 0.25, { vol: 0.14, tipo: 'triangle' }); tono(2850, 0.18, { vol: 0.06 }) }
+/** La corbata: la pelota raspa el borde mientras da la vuelta, cada vez más lento. */
+export function vuelta() {
+  let at = 0
+  for (let i = 0; i < 9; i++) {
+    tono(2100 - i * 90, 0.05, { vol: 0.09 - i * 0.006, tipo: 'triangle', at, ataque: 0.002 })
+    at += 0.07 + i * 0.012
+  }
+}
 /** Adentro: el traqueteo de la taza y unas campanas. */
 export function embocada() {
   agachar(2)
