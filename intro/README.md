@@ -16,8 +16,10 @@ con "Caminás tranquilo por el fairway…".
 - `index.html` — la composición horizontal (16:9): capas de texto (la letra) y el logo.
 - `compositions/vertical.html` — la misma composición en vertical (9:16): misma escena y mismos tiempos, otro encuadre y otra diagramación.
 - `textos.js` — el timeline GSAP de los textos y el logo, compartido por los dos formatos.
-- `escena.js` — la escena 3D (Three.js): jugador, fairway infinito, árboles con ojos, monos, pelota, cartel del 15, cámara.
-  Todo se calcula a partir del tiempo que manda HyperFrames (`hf-seek`), así que cada cuadro sale igual siempre.
+- `escena-core.js` — la escena 3D (Three.js): jugador, fairway infinito, árboles con ojos, monos, pelota, cartel del 15, cámara.
+  Todo se calcula a partir de un tiempo t, así que cada cuadro sale igual siempre. `escena.js` la conecta con HyperFrames (`hf-seek`).
+- `app.js` — la intro dentro de la app (en vivo, al ritmo de la canción), con EMPEZAR/SALTAR y la pantalla de inicio en loop.
+  `app-overlay.js` lo genera `armar-app.mjs` (lo corre `node build-web.mjs`) con los textos y el logo de las composiciones.
 - `cues.js` — **los tiempos**, medidos sobre la canción (180,7 bpm; un compás = 1,3285 s). Si se cambia el mp3, se toca acá.
 - `assets/trampa-del-mono.mp3` — la canción (Suno). `assets/sdga-logo.svg` — el logo oficial del design system.
 - `assets/fonts/` — Anton y Archivo (OFL). `assets/vendor/` — three.js 0.181.2 y GSAP 3.14.2, locales para que el render no dependa de la red.

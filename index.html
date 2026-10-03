@@ -306,10 +306,14 @@ input { -webkit-user-select: text; user-select: text; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 1ms !important; animation: none !important; }
 }
+/* Intro (intro/app.js): tapa todo desde el primer cuadro, así la portada no se ve antes de tiempo */
+#intro-app { position: fixed; inset: 0; z-index: 60; background: linear-gradient(160deg, #1F5F3E, #17492F); }
+#intro-app[hidden] { display: none; }
 </style>
 </head>
 <body>
 <canvas id="cancha" aria-label="La cancha: hoyos 15, 16 y 17 de San Diego"></canvas>
+<div id="intro-app" aria-label="Intro: La Trampa del Mono"></div>
 
 <div id="hud-top" hidden>
   <div class="card">
@@ -368,6 +372,7 @@ input { -webkit-user-select: text; user-select: text; }
   <div class="portada-botones">
     <button class="btn" id="jugar" type="button">JUGAR</button>
     <button class="btn ghost" id="ver-ranking" type="button">RANKING 🏆</button>
+    <button class="btn ghost" id="ver-intro" type="button">INTRO ▶</button>
   </div>
   <span id="frase"></span>
 </section>
@@ -1528,6 +1533,7 @@ obj = vistaGeneral()
 Object.assign(cam, obj)
 requestAnimationFrame(cuadro)
 </script>
+<script type="module" src="intro/app.js"></script>
 
 </body>
 </html>

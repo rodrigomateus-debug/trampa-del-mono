@@ -82,6 +82,7 @@
         height: 100%;
         display: block;
       }
+      /* overlay:desde */
       .capa {
         position: absolute;
         inset: 0;
@@ -116,7 +117,7 @@
       #negro {
         background: #050d08;
       }
-      #fin {
+      #fundido {
         background: var(--green-950);
         opacity: 0;
       }
@@ -361,6 +362,8 @@
         margin-left: -88px;
         display: block;
       }
+      /* overlay:hasta */
+      /* vertical:desde */
       /* ---------- 9:16 (celular) ---------- */
       .franja {
         display: none;
@@ -432,11 +435,13 @@
       #logo-sdga {
         bottom: 190px;
       }
+      /* vertical:hasta */
     </style>
   </head>
   <body>
     <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="36.8">
       <canvas id="escena" width="1080" height="1920"></canvas>
+      <!-- overlay:desde -->
 
       <!-- SDGA PRESENTA -->
       <section id="presenta" class="clip" data-start="0.6" data-duration="3.3" data-track-index="1">
@@ -554,8 +559,9 @@
 
       <div id="flash" class="capa"></div>
       <div id="negro" class="capa"></div>
-      <div id="fin" class="capa"></div>
+      <div id="fundido" class="capa"></div>
 
+      <!-- overlay:hasta -->
       <audio
         id="musica"
         src="assets/trampa-del-mono.mp3"

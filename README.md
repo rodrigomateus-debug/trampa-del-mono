@@ -15,6 +15,7 @@ y queda como app.
 - `ranking.js` — dónde se guardan las marcas del ranking (el teléfono, o Supabase si se completa la config); `supabase.sql` — la tabla.
 - `plantel.js` — los jugadores (handicap, frase, emoji) y `EN_PRUEBA`, los que aparecen por ahora.
 - `jugadores/` — fotos; `iconos/` y `manifest.webmanifest` — la app instalable.
+- `intro/` — la intro animada (HyperFrames + Three.js) y su versión en vivo para la app (`intro/app.js`); ver `intro/README.md`.
 - `SPEC.md` — reglas y decisiones.
 
 Después de tocar el juego:

@@ -138,7 +138,7 @@ window.armarTextos = function () {
   // empuje lento del logo
   tl.fromTo("#logo-caja", { scale: 1 }, { scale: 1.045, duration: Q.FIN - L - 0.4, ease: "none" }, L + 0.4);
   // cierre a verde
-  tl.to("#fin", { opacity: 1, duration: 0.6, ease: "power2.in" }, Q.FIN - 0.6);
+  tl.to("#fundido", { opacity: 1, duration: 0.6, ease: "power2.in" }, Q.FIN - 0.6);
 
   return tl;
 };

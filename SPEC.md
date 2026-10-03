@@ -79,3 +79,13 @@ Intro de cada hoyo con un verso de la canción de Fito. Frases de carga del desi
 
 ## Afuera por ahora
 Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu. La tabla en Supabase está lista (`supabase.sql`) pero sin conectar.
+
+## Intro y pantalla de inicio (2026-10-03)
+- `intro/`: la intro animada con la canción (proyecto HyperFrames; videos 9:16 y 16:9 en `intro/*.mp4`). Ver `intro/README.md`.
+- En la app la intro corre en vivo (`intro/app.js`, misma escena 3D y mismos textos que el video, al ritmo de la canción):
+  - Primera vez: pantalla de entrada con EMPEZAR (intro con sonido) o SALTAR. Durante la intro, SALTAR arriba a la derecha y 🔊/🔇 arriba a la izquierda.
+  - Al final queda la pantalla de inicio en loop: el logo LA TRAMPA DEL MONO con los ojos, el jugador caminando para siempre y el riff de la canción (compases 16 a 23) sin cortes. EMPEZAR lleva a la portada.
+  - Las veces siguientes abre directo en la pantalla de inicio (sin sonido hasta tocar 🔇), con "VER INTRO". En la portada, INTRO ▶ la vuelve a pasar.
+  - `?sinintro` la saltea; sin WebGL no aparece.
+- Ícono de la app y favicon nuevos: el título con los ojos de MONO (`iconos/icono-fuente.html`); el favicon de 32 px son los dos ojos.
+
