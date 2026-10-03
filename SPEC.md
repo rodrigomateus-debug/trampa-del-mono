@@ -47,6 +47,9 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - Si los monos llegan a la pelota antes del golpe: vuelta al tee del hoyo con un golpe de multa (se conservan los golpes que ya llevabas).
 - Rodal: LG solo lo adula, pegue como pegue (sin excusas ni versos; los resultados también).
 - Fito (🦅 El Águila) — Chip in: en drives y hierros la línea de tiro se sacude ±25° (período 0,7 s); si suelta con el desvío dentro de ±5° (el embudo dibujado en la pelota) sale derecha. A 40 yd o menos del hoyo, si la pelota llega al green, un imán la deja a 0,7 yd del hoyo; si el tiro fue perfecto y apuntado a la bandera, entra.
+- Mati (🇸🇪 El Sueco) — Siempre derecho: sin error de dirección (ni en el putt) y drive de hasta ~280 yd (vuela 255). HCP 1.5 = dificultad Paseo.
+- Por ahora el mazo muestra solo 4 jugadores (`EN_PRUEBA` en plantel.js): El Sueco, Miguelón, Rodal y Fito.
+- Web app: GitHub Pages en https://rodrigomateus-debug.github.io/trampa-del-mono/ (index.html se genera con `node build-web.mjs` desde juego.html; manifest + íconos con el green del 16 del dibujo, el Mono y el SDGA chiquito).
 
 ## Voz
 LG 📺 relata con las frases del chat ("Tremendo", "Uff", "Hermoso", "QUE HOMBRE"); en tiros malos sale una excusa.
