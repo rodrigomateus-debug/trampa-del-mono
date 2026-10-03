@@ -137,7 +137,14 @@ body {
 #voz.alerta .quien { background: var(--cream); color: var(--red); }
 /* debajo del marcador: dónde estás (izq.), reloj (centro) y LP (der.); la parte de abajo queda libre para la cancha */
 #lie { justify-self: start; display: block; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 30px; }
-#lp { justify-self: end; height: 30px; padding: 0 12px; font-size: 14px; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1.5px rgba(244, 238, 218, .6); pointer-events: auto; }
+/* LP: un botón de verdad (crema, con sombra), abajo del reloj y el viento */
+#lp { height: 38px; padding: 0 16px; font-size: 16px; background: var(--cream); color: var(--green-900); border: 2px solid var(--green-900); box-shadow: 0 3px 0 var(--green-950), 0 6px 14px rgba(12, 43, 28, .45); pointer-events: auto; }
+#lp:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--green-950); }
+#lp[disabled] { opacity: .5; }
+/* mientras apretás para pegar, el marcador de arriba se vuelve transparente: se ve la cancha */
+#hud-top .card { transition: opacity 180ms; }
+body.apuntando #hud-top .card { opacity: .18; }
+body.apuntando #crono, body.apuntando #viento, body.apuntando #efecto { opacity: .45; }
 #hud-chips > * { transition: opacity 150ms; }
 body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho { opacity: .25; pointer-events: none; }
 
@@ -288,9 +295,9 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 .comunicado .firma-m { font-weight: 800; }
 
 /* ── cronómetro y golpe del Mago: debajo del marcador ── */
-#hud-chips { width: 100%; max-width: 520px; justify-self: center; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: start; }
-#hud-chips .centro { display: grid; gap: 6px; justify-items: center; }
-#hud-chips .der { justify-self: end; display: grid; gap: 6px; justify-items: end; }
+#hud-chips { width: 100%; max-width: 520px; justify-self: center; display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+#hud-chips .izq { min-width: 0; display: grid; gap: 6px; justify-items: start; }
+#hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
 #pancho { position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--cream); background: var(--gold); color: var(--green-900); box-shadow: 0 6px 18px rgba(12, 43, 28, .5); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; cursor: pointer; font-family: var(--font-display); transition: transform 120ms var(--ease-snap), opacity 150ms; }
 #pancho:active { transform: scale(.93); }
@@ -373,14 +380,14 @@ input { -webkit-user-select: text; user-select: text; }
     <div id="voz" class="vacia" aria-live="polite"><span class="quien">📺 LG</span><span class="dice" id="r-dice"></span><span class="extra" id="r-extra"></span></div>
   </div>
   <div id="hud-chips">
-    <span class="chip" id="lie">TEE</span>
-    <div class="centro">
-      <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
-      <div class="viento" id="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="v-txt"><b id="v-kmh">0</b><small id="v-uni">KM/H</small></span></div>
+    <div class="izq">
+      <span class="chip" id="lie">TEE</span>
       <span class="chip" id="efecto" hidden></span>
     </div>
     <div class="der">
-      <button class="btn ghost" id="lp" type="button">LP 💅</button>
+      <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
+      <div class="viento" id="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="v-txt"><b id="v-kmh">0</b><small id="v-uni">KM/H</small></span></div>
+      <button class="btn" id="lp" type="button">LP 💅</button>
     </div>
   </div>
 </div>
@@ -1579,13 +1586,14 @@ function dibujarApunte(a) {
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
   const w = ctx.measureText(txt).width + 16
-  const ly = Math.max(dy - Math.max(largo, ancho) - 18, zona().top - 10) // que no lo tape el marcador
+  const ly = Math.max(dy - Math.max(largo, ancho) - 18, 40) // con el marcador transparente, puede subir
   ctx.fillStyle = 'rgba(12,43,28,.85)'
   ctx.beginPath()
-  ctx.roundRect(dx - w / 2, ly - 16, w, 24, 12)
+  const lx = Math.max(w / 2 + 8, Math.min(W - w / 2 - 8, dx)) // siempre adentro de la pantalla
+  ctx.roundRect(lx - w / 2, ly - 16, w, 24, 12)
   ctx.fill()
   ctx.fillStyle = col
-  ctx.fillText(txt, dx, ly + 2)
+  ctx.fillText(txt, lx, ly + 2)
 }
 
 // ── tarjeta final ──

@@ -102,6 +102,10 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - La cuenta regresiva y el arranque de cada hoyo terminan en esa vista de apuntar.
 - Guía: sobre la pelota late un anillo dorado (dónde poner el dedo). Las primeras 6 veces que pegás (en el teléfono), o si tardás más de 5 s, además un 👆 muestra el gesto: apoyar en la pelota y tirar para atrás.
 
+## Cambios del 2026-10-04 (2)
+- Debajo del marcador: a la izquierda, dónde estás (y el golpe del Mago); a la derecha, en columna, el reloj, el viento y LP. LP es un botón de verdad (crema con borde y sombra).
+- Mientras apretás para pegar, el marcador de arriba se vuelve casi transparente (y el reloj y el viento a medias) para ver la cancha. El cartel de yardas nunca se sale de la pantalla.
+
 ## Voz
 LG 📺 relata con las frases del chat ("Tremendo", "Uff", "Hermoso", "QUE HOMBRE"); en tiros malos sale una excusa.
 Intro de cada hoyo con un verso de la canción de Fito. Frases de carga del design system.
