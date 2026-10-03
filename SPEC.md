@@ -84,6 +84,12 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - Celu: sin zoom con doble toque ni pellizco (viewport + `touch-action: manipulation` + gesturestart), sin rebote al tirar para abajo, sin menú de "mantener apretado" en fotos. Un segundo dedo no pisa el tiro que estás armando. Si el tiro se corta (monos, LP), los botones vuelven. FIRMAR con doble toque anota una sola vez en el ranking. El LP no se confirma con un doble toque sin querer (el segundo toque tiene que llegar después de 0,45 s).
 - Cartas del mazo: debajo de la frase, un preview animado (SVG) de la habilidad con su nombre y texto.
 
+## Cambios del 2026-10-03 (noche, 3)
+- Marcador: debajo de la tarjeta, una fila con dónde estás (TEE, FAIRWAY, ROUGH · 70%…) a la izquierda, el reloj (y el golpe del Mago) al centro y LP a la derecha. Abajo de la pantalla no queda nada: es todo cancha.
+- Afuera del dibujo: en vez del crema, el verde del SDGA con rayas diagonales de pasto cortado, sutiles. El crema de `cancha.webp` que rodea la cancha se volvió transparente (con el borde difuminado); bunkers y lo de adentro, intactos.
+- Mono bueno: dorado (la banda del SDGA), con brillo y la Boina Verde ladeada, para que se distinga del Mono malo.
+- Cuenta regresiva: durante el 3, 2, 1 la cámara está de cerca sobre el tee del 15 (de dónde salís); en el ¡YA! se abre al hoyo.
+
 ## Voz
 LG 📺 relata con las frases del chat ("Tremendo", "Uff", "Hermoso", "QUE HOMBRE"); en tiros malos sale una excusa.
 Intro de cada hoyo con un verso de la canción de Fito. Frases de carga del design system.
