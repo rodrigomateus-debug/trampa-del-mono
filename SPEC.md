@@ -76,7 +76,10 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - 🗽 Liberty (Fede Bal) — Si no era por el approach: desde el tee sale derecho siempre; de 30 a 100 yd del hoyo, triple de error ("Los wedges ya van a funcionar").
 - 📺 LG (Lucas) — El que se enoja pierde: después de un mal tiro (rough, bunker, palo, afuera o mono) el próximo sale sin error, putt incluido. LG no pone excusas y a veces se relata a sí mismo.
 - El emoji del jugador camina de pelota a pelota: sale del tee, se queda donde pegó mientras vuela la pelota y después va hasta ella (≈1 s, saltando).
-- Apuntar: la pelota queda siempre lo bastante arriba como para arrastrar un tiro a fondo para abajo (también en celus chicos), y mientras arrastrás los botones de abajo se apagan y no se pueden tocar.
+- Apuntar: mientras arrastrás, los botones de abajo se apagan y no se pueden tocar. El encuadre es el de siempre; "a fondo" es arrastrar hasta 164 px o lo que haya de lugar debajo del dedo (mínimo 90 px), así que siempre se llega al 100%.
+- Desde el tee, a medida que tirás para atrás, la cámara se aleja (hasta un 22%, o lo justo para que entre el pique) y la pelota sube en la pantalla. Si no pegás, vuelve. En los demás tiros, el zoom de siempre.
+- Hoyo: dibujado encima del dibujo (vectorial, nítido), 50% más grande que el real (el real sigue siendo 0,22 yd) con borde crema. Las banderas pintadas en `cancha.webp` se borraron (inpainting) y las tres banderas las dibuja el juego (la del hoyo que se juega, dorada).
+- Cartas del mazo: debajo de la frase, un preview animado (SVG) de la habilidad con su nombre y texto.
 
 ## Voz
 LG 📺 relata con las frases del chat ("Tremendo", "Uff", "Hermoso", "QUE HOMBRE"); en tiros malos sale una excusa.

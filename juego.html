@@ -190,6 +190,10 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .carta-cuerpo { display: grid; gap: 12px; padding: 12px 16px 16px; }
 .carta-frase { margin: 0; font-size: 15px; font-weight: 600; font-style: italic; line-height: 1.35; color: #0c2b1c; }
 .carta-frase.vacia { font-size: 14px; font-weight: 400; color: var(--text-muted); }
+.carta-prev { display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: center; background: var(--green-900); color: var(--cream); border-radius: 12px; padding: 6px 10px 6px 6px; }
+.carta-prev svg { width: 112px; height: 52px; display: block; border-radius: 8px; }
+.carta-prev p { margin: 0; font-size: 11.5px; line-height: 1.3; opacity: .92; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.carta-prev b { display: block; color: var(--gold); font-size: 12px; letter-spacing: .02em; }
 .carta dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
 .carta dt { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .carta dd { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.15; color: #0c2b1c; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -488,7 +492,7 @@ function zona() {
   const top = $('#hud-top').hidden ? 20 : $('#hud-top').getBoundingClientRect().bottom
   const bot = $('#hud-bot').hidden ? H - 20 : $('#hud-bot').getBoundingClientRect().top
   // la pelota queda lo bastante arriba como para arrastrar para abajo un tiro a fondo
-  return { top: top + 36, bot: Math.max(top + 120, Math.min(bot - 34, H - largoMax() - 16)) }
+  return { top: top + 36, bot: bot - 34 }
 }
 function vistaGeneral() {
   const esc = Math.min(W / (M.MUNDO.w + 20), H / (M.MUNDO.h + 20)) * 1.6
@@ -499,9 +503,7 @@ function encuadre(a, b) {
   const { top, bot } = zona()
   const d = Math.max(M.dist(a, b), 1)
   const esc = Math.min(10, Math.max(1.1, (bot - top) / d)) // más zoom y el dibujo se ve borroso
-  // si no entra todo, manda la pelota: queda en `bot` (con lugar abajo para arrastrar) y la bandera se va para arriba
-  const sy = Math.min((top + bot) / 2, bot - (d / 2) * esc)
-  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, esc, rot: -Math.PI / 2 - Math.atan2(b[1] - a[1], b[0] - a[0]), sy }
+  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, esc, rot: -Math.PI / 2 - Math.atan2(b[1] - a[1], b[0] - a[0]), sy: (top + bot) / 2 }
 }
 function w2s(p, k = cam) {
   const dx = p[0] - k.cx, dy = p[1] - k.cy, c = Math.cos(k.rot), s = Math.sin(k.rot)
@@ -538,7 +540,7 @@ function apunte() {
   const len = Math.hypot(px, py)
   if (len < 8) return null
   const putt = M.enModoPutt(campo, ronda)
-  const p = Math.min(1, Math.pow(len / largoMax(), putt ? 1.6 : 1.35))
+  const p = Math.min(1, Math.pow(len / drag.largo, putt ? 1.6 : 1.35))
   const [wx, wy] = s2wVec(px, py)
   const ang = Math.atan2(wy, wx)
   let q = 0
@@ -555,7 +557,11 @@ function apunte() {
 
 lienzo.addEventListener('pointerdown', (e) => {
   if (estado !== 'apuntar') return
-  drag = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, id: e.pointerId, t0: performance.now() }
+  // a fondo = arrastrar `largo` px; si abajo del dedo no hay tanto lugar, alcanza con menos
+  const largo = Math.max(90, Math.min(largoMax(), H - e.clientY - 14))
+  drag = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, id: e.pointerId, t0: performance.now(), largo }
+  // desde el tee: a medida que tirás para atrás, la cámara se aleja para ver hasta dónde llega
+  if (ronda.lie === 'tee' && !M.enModoPutt(campo, ronda)) drag.base = { ...obj }
   lienzo.setPointerCapture(e.pointerId)
   document.body.classList.add('apuntando') // los botones de abajo se apagan mientras apuntás
   if (!datos.vistoTip) { datos.vistoTip = true; guardar(datos) }
@@ -564,11 +570,27 @@ lienzo.addEventListener('pointermove', (e) => { if (drag && e.pointerId === drag
 lienzo.addEventListener('pointerup', (e) => {
   if (!drag || e.pointerId !== drag.id) return
   const a = apunte()
+  const base = drag.base
   drag = null
   document.body.classList.remove('apuntando')
   if (a && estado === 'apuntar') pegar(a)
+  else if (base) obj = base // no pegó: vuelve el zoom de antes
 })
-lienzo.addEventListener('pointercancel', () => { drag = null; document.body.classList.remove('apuntando') })
+lienzo.addEventListener('pointercancel', () => {
+  if (drag?.base) obj = drag.base
+  drag = null
+  document.body.classList.remove('apuntando')
+})
+/** Zoom out del tee: con la potencia, la cámara se aleja (la pelota sube en la pantalla) para que se vea el pique. */
+function zoomDelTee() {
+  if (!drag?.base || estado !== 'apuntar') return
+  const a = apunte()
+  if (!a) { obj = drag.base; return }
+  // se aleja de a poco con la potencia (hasta un 22%), y más si hace falta para que entre el pique
+  const { top, bot } = zona()
+  const esc = Math.min(drag.base.esc * (1 - 0.22 * a.p), (bot - top) / (a.alcance + 25))
+  obj = { ...drag.base, esc }
+}
 
 function pegar(a) {
   tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo)
@@ -602,6 +624,7 @@ function actualizar(dt) {
     if (llego && estado === 'apuntar') llegaronMonos(llego)
   }
   moverCaminante(dt)
+  zoomDelTee()
   pintarVoz()
   pintarCrono()
   if (firmaHasta) $('#reloj').style.width = `${Math.max(0, (firmaHasta - performance.now()) / (M.SEGUNDOS_FIRMA * 10))}%`
@@ -970,10 +993,6 @@ function dibujar() {
     }
   }
 
-  // hoyos
-  ctx.fillStyle = '#0a1f14'
-  const rHoyo = Math.max(M.FISICA.radioHoyo, 1.8 / cam.esc)
-  for (const h of M.HOYOS) { ctx.beginPath(); ctx.arc(h.pin[0], h.pin[1], rHoyo, 0, 7); ctx.fill() }
 
   // ── encima, derecho ──
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -983,7 +1002,8 @@ function dibujar() {
     ctx.font = '13px Anton, "Arial Narrow", sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(`TEE ${h.n}`, tx, ty + 22)
-    if (hoyo && h.n === hoyo.n) bandera(w2s(h.pin), h.n, true) // las otras banderas ya están en el dibujo
+    hoyoNitido(w2s(h.pin))
+    bandera(w2s(h.pin), h.n, !hoyo || h.n === hoyo.n) // las del dibujo se borraron: van todas acá
   }
 
   // estela
@@ -1057,6 +1077,22 @@ function dibujarMonos() {
   ctx.textBaseline = 'alphabetic'
 }
 
+/** El hoyo dibujado encima del dibujo (vectorial, nítido): 50% más grande que el real, con borde claro. */
+function hoyoNitido([x, y]) {
+  const r = Math.max(M.FISICA.radioHoyo * 1.5 * cam.esc, 2.7)
+  ctx.fillStyle = 'rgba(244,238,218,.9)'
+  ctx.beginPath()
+  ctx.arc(x, y, r + Math.max(1, r * 0.22), 0, 7)
+  ctx.fill()
+  ctx.fillStyle = '#081a10'
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, 7)
+  ctx.fill()
+  ctx.fillStyle = 'rgba(255,255,255,.18)' // un brillo adentro, para que se lea como pozo
+  ctx.beginPath()
+  ctx.arc(x - r * 0.25, y + r * 0.3, r * 0.45, 0, 7)
+  ctx.fill()
+}
 function bandera([x, y], n, actual) {
   ctx.globalAlpha = actual ? 1 : 0.55
   ctx.strokeStyle = C.cream
@@ -1413,6 +1449,41 @@ const hcpTxt = (j) => (j.hcp == null ? '—' : `${j.aprox ? '≈' : ''}${j.hcp}`
 const fmtNeto = (v) => (v == null ? '—' : v === 0 ? 'E' : v > 0 ? `+${v}` : `−${-v}`)
 const enMazo = (k) => PLANTEL[((k % PLANTEL.length) + PLANTEL.length) % PLANTEL.length]
 
+// ── preview de la habilidad (en la carta): una mini cancha animada en SVG ──
+function previewHab(id) {
+  const D = 3.6 // segundos por vuelta
+  const fondo = `<rect width="112" height="52" fill="#2e7d4f"/>
+    <rect x="4" y="19" width="92" height="14" rx="7" fill="#8fc45a"/>
+    <circle cx="96" cy="26" r="11" fill="#b8e070"/>`
+  const bandera = `<circle cx="97" cy="27" r="1.6" fill="#081a10"/><line x1="97" y1="27" x2="97" y2="13" stroke="#f4eeda" stroke-width="1"/><path d="M97 13 L105 15.5 L97 18 Z" fill="#e8c34a"/>`
+  const arboles = (x, y) => `<g fill="#0f3624"><circle cx="${x}" cy="${y}" r="5"/><circle cx="${x + 7}" cy="${y + 2}" r="4.5"/><circle cx="${x - 6}" cy="${y + 3}" r="4"/></g>`
+  // pelota que recorre `path`; `kt` = keyTimes y `kp` = keyPoints (para pausas); `ver` = opacidad animada
+  const bola = (path, { kt = '0;0.6;1', kp = '0;1;1', ver = '' } = {}) => `<circle r="2.2" fill="#fff" stroke="#0c2b1c" stroke-width=".5">
+      <animateMotion dur="${D}s" repeatCount="indefinite" path="${path}" keyTimes="${kt}" keyPoints="${kp}" calcMode="linear"/>${ver}</circle>`
+  const emo = (e, path, { kt = '0;0.6;1', kp = '0;1;1', tam = 11, ver = '' } = {}) => `<text font-size="${tam}" text-anchor="middle" dominant-baseline="central">${e}
+      <animateMotion dur="${D}s" repeatCount="indefinite" path="${path}" keyTimes="${kt}" keyPoints="${kp}" calcMode="linear"/>${ver}</text>`
+  const aparece = (desde, hasta = 1) => `<animate attributeName="opacity" dur="${D}s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;${desde};${Math.min(hasta, desde + 0.05)};1"/>`
+  const linea = (d, color = '#f4eeda') => `<path d="${d}" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="1.5 2.5" opacity=".8"/>`
+  const txt = (t, x, y, desde, color = '#e8c34a') => `<text x="${x}" y="${y}" font-size="8" font-family="Anton, sans-serif" fill="${color}" text-anchor="middle" opacity="0">${t}${aparece(desde)}</text>`
+  const escenas = {
+    derecho: linea('M8 26 L96 26') + bola('M8 26 L96 26'),
+    bomba: txt('BOMBA', 22, 13, 0.05) + linea('M8 26 L96 26', '#e8c34a') + bola('M8 26 L96 26', { kt: '0;0.45;1' }),
+    comba: linea('M8 26 L52 4') + linea('M8 26 Q46 -2 92 24', '#e8c34a') + bola('M8 26 Q46 -2 92 24'),
+    aguila: `<line x1="8" y1="26" x2="40" y2="26" stroke="#f4eeda" stroke-width="1" stroke-dasharray="1.5 2.5"><animateTransform attributeName="transform" type="rotate" values="-22 8 26;22 8 26;-22 8 26" dur=".7s" repeatCount="indefinite"/></line>`
+      + emo('🧲', 'M88 40 L88 40', { tam: 9 }) + bola('M8 26 L84 30 L97 27', { kt: '0;0.45;0.7;1', kp: '0;0.75;1;1' }) + txt('CHIP IN', 70, 47, 0.7),
+    dadas: `<rect width="112" height="52" fill="#b8e070"/><circle cx="74" cy="26" r="2.4" fill="#081a10"/>`
+      + bola('M50 30 L74 26', { kt: '0;0.5;1' }) + txt('DADA', 74, 13, 0.5, '#14402a'),
+    tradicion: arboles(50, 8) + bola('M8 26 L50 10', { kt: '0;0.3;1', ver: '<animate attributeName="opacity" dur="3.6s" repeatCount="indefinite" values="1;1;0;0" keyTimes="0;0.35;0.4;1"/>' })
+      + `<circle cx="50" cy="26" r="2.2" fill="#fff" stroke="#0c2b1c" stroke-width=".5" opacity="0">${aparece(0.55)}</circle>` + txt('LP 🥷 +1', 50, 46, 0.55),
+    perro: arboles(50, 8) + bola('M8 26 L50 10 L50 10 L56 26', { kt: '0;0.25;0.6;1', kp: '0;0.5;0.5;1' })
+      + emo('🐕', 'M58 30 L51 14 L57 28', { kt: '0;0.4;0.95;1', kp: '0;0.5;1;1' }),
+    panchitos: bola('M8 26 L60 26') + emo('🐒', 'M84 42 L66 30 L66 30 L96 46', { kt: '0;0.4;0.6;1', kp: '0;0.4;0.4;1' }) + `<text x="70" y="38" font-size="9" opacity="0">🌭${aparece(0.42)}</text>`,
+    approach: bola('M8 26 L62 26 L62 26 Q76 40 86 10', { kt: '0;0.3;0.45;1', kp: '0;0.55;0.55;1' }) + txt('APPROACH…', 74, 48, 0.75, '#f0a497'),
+    calma: arboles(40, 6) + bola('M8 26 Q20 8 38 9 L38 9 L96 26', { kt: '0;0.3;0.45;1', kp: '0;0.35;0.35;1' }) + txt('NO SE ENOJA', 66, 47, 0.45),
+  }
+  return `<svg viewBox="0 0 112 52" aria-hidden="true">${fondo}${id === 'dadas' ? '' : bandera}${escenas[id] ?? ''}</svg>`
+}
+
 function cartaDe(j) {
   if (cartasDom.has(j.apodo)) return cartasDom.get(j.apodo)
   const dif = M.dificultad(j.hcp)
@@ -1435,6 +1506,7 @@ function cartaDe(j) {
     </div>
     <div class="carta-cuerpo">
       ${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
+      ${hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
       <dl>
         <div><dt>HCP</dt><dd>${dif.cargado ? hcpTxt(j) : `—<span class="sub">juega ${dif.hcp}</span>`}</dd></div>
         <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span></dd></div>
