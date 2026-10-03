@@ -1,5 +1,5 @@
-// El sonido del juego (Web Audio). La música es la canción de la intro (intro/assets/trampa-del-mono.mp3):
-// durante la vuelta suena bajito el loop 16–23 (el mismo que pega la intro) y en la tarjeta, la canción.
+// El sonido del juego (Web Audio). Mientras jugás, casi nada: acordes muy suaves, alguna nota suelta y pajaritos
+// (para concentrarse). La canción de la intro (intro/assets/trampa-del-mono.mp3) suena solo en la tarjeta final.
 // Los efectos se sintetizan acá (sin archivos): carga del tiro, golpe, pique según el terreno, embocada,
 // monos, viento… Todo pasa por un master con mute (se recuerda en el teléfono).
 // Celu en silencio: por defecto el audio web respeta la tecla de silencio, así que el juego no suena. Si el jugador
@@ -7,7 +7,6 @@
 const CANCION = 'intro/assets/trampa-del-mono.mp3'
 const COMPAS = 1.3285, C0 = 0.92
 const c = (n) => C0 + COMPAS * n
-const LOOP = [c(16), c(23)] // 22,18 → 31,48 s: la banda entera, pega sin cortes
 const CLAVE = 'sdga-trampa-sonido'
 
 let ctx = null, master = null, musicaGain = null, sfx = null, ruidoBuf = null
@@ -96,28 +95,88 @@ export function musica(modo, forzar = false) {
     setTimeout(() => { try { vieja.stop() } catch {} }, 900)
     fuenteMusica = null
   }
-  if (!modo || !buffer) return
+  ambiente(modo === 'juego')
+  if (modo !== 'final' || !buffer) return
+  // la canción, solo en la tarjeta final (desde que vuelve la banda)
   const f = ctx.createBufferSource()
   f.buffer = buffer
-  if (modo === 'juego') {
-    f.loop = true
-    f.loopStart = LOOP[0]
-    f.loopEnd = LOOP[1]
-    f.start(t + 0.05, LOOP[0])
-  } else f.start(t + 0.05, c(24))
+  f.start(t + 0.05, c(24))
   f.connect(musicaGain)
   fuenteMusica = f
   musicaGain.gain.cancelScheduledValues(t)
   musicaGain.gain.setValueAtTime(0, t)
-  musicaGain.gain.linearRampToValueAtTime(modo === 'juego' ? 0.16 : 0.38, t + 1.2)
+  musicaGain.gain.linearRampToValueAtTime(0.38, t + 1.2)
 }
 /** Baja la música un momento (para que se escuche un efecto grande). */
 export function agachar(seg = 1.5) {
-  if (!ctx || !modoMusica) return
-  const t = ctx.currentTime, base = modoMusica === 'juego' ? 0.16 : 0.38
-  musicaGain.gain.cancelScheduledValues(t)
-  musicaGain.gain.setTargetAtTime(base * 0.3, t, 0.05)
-  musicaGain.gain.setTargetAtTime(base, t + seg, 0.4)
+  if (!ctx) return
+  const t = ctx.currentTime
+  if (modoMusica === 'final') {
+    musicaGain.gain.cancelScheduledValues(t)
+    musicaGain.gain.setTargetAtTime(0.38 * 0.3, t, 0.05)
+    musicaGain.gain.setTargetAtTime(0.38, t + seg, 0.4)
+  }
+  if (ambGain) {
+    ambGain.gain.cancelScheduledValues(t)
+    ambGain.gain.setTargetAtTime(0.0001, t, 0.05)
+    ambGain.gain.setTargetAtTime(AMB_VOL, t + seg, 0.6)
+  }
+}
+
+// ── el fondo mientras jugás: casi nada, para concentrarse ──
+// Como los juegos de golf: acordes muy suaves y lentos (un acorde cada ~7 s, con ataque y caída larguísimos),
+// alguna nota suelta de vez en cuando y pajaritos de la cancha. Nada de ritmo ni melodía que distraiga.
+const AMB_VOL = 0.55
+let ambGain = null, ambTimer = 0, ambPaso = 0, pajaroTimer = 0
+// Do mayor 7 → La menor 9 → Fa mayor 7 → Sol sus (en registro medio-grave, todo con triángulos filtrados)
+const ACORDES = [[130.81, 196, 246.94, 329.63], [110, 164.81, 246.94, 261.63], [87.31, 174.61, 220, 329.63], [98, 146.83, 196, 261.63]]
+const NOTAS = [523.25, 587.33, 659.25, 783.99, 880, 1046.5] // pentatónica de Do, para las notas sueltas
+function ambiente(prender) {
+  clearInterval(ambTimer)
+  clearTimeout(pajaroTimer)
+  if (!prender) {
+    if (ambGain) { ambGain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.8); const g = ambGain; setTimeout(() => g.disconnect(), 4000); ambGain = null }
+    return
+  }
+  ambGain = ctx.createGain()
+  ambGain.gain.value = 0.0001
+  const fl = ctx.createBiquadFilter()
+  fl.type = 'lowpass'; fl.frequency.value = 1400; fl.Q.value = 0.3
+  ambGain.connect(fl).connect(musicaGain)
+  musicaGain.gain.cancelScheduledValues(ctx.currentTime)
+  musicaGain.gain.setTargetAtTime(1, ctx.currentTime, 0.1)
+  ambGain.gain.setTargetAtTime(AMB_VOL, ctx.currentTime, 2)
+  const destino = ambGain
+  const acorde = () => {
+    if (!ambGain || ambGain !== destino) return
+    const notas = ACORDES[ambPaso++ % ACORDES.length]
+    const t = ctx.currentTime
+    notas.forEach((f, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain()
+      o.type = i === 0 ? 'sine' : 'triangle'
+      o.frequency.value = f
+      o.detune.value = (Math.random() - 0.5) * 8
+      g.gain.setValueAtTime(0.0001, t)
+      g.gain.linearRampToValueAtTime(i === 0 ? 0.035 : 0.018, t + 2.5) // entra despacito
+      g.gain.linearRampToValueAtTime(0.0001, t + 8.5) // y se va solo
+      o.connect(g).connect(destino)
+      o.start(t); o.stop(t + 8.6)
+    })
+    // a veces, una nota suelta arriba (como una gota)
+    if (Math.random() < 0.55) {
+      const f = NOTAS[Math.floor(Math.random() * NOTAS.length)]
+      tono(f, 2.2, { vol: 0.02, at: 2 + Math.random() * 3, ataque: 0.01, destino })
+    }
+  }
+  acorde()
+  ambTimer = setInterval(acorde, 7000)
+  const pajaro = () => {
+    if (!ambGain || ambGain !== destino) return
+    const t = ctx.currentTime, n = 2 + Math.floor(Math.random() * 3), base = 2600 + Math.random() * 1400
+    for (let i = 0; i < n; i++) tono(base, 0.09, { vol: 0.012, f2: base * (1.25 + Math.random() * 0.2), at: i * 0.13, ataque: 0.01, destino: sfx })
+    pajaroTimer = setTimeout(pajaro, 4000 + Math.random() * 9000)
+  }
+  pajaroTimer = setTimeout(pajaro, 3000)
 }
 
 // ── piezas ──
