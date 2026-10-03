@@ -306,5 +306,5 @@ export const PLANTEL = [
   }
 ]
 
-// Por ahora, para probar, solo estos cuatro (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['El Sueco', 'Mike Queboni (Đ)', 'El Mago Rodal', 'Fito (Đ)']
+// Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
+export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)']

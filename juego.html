@@ -117,7 +117,8 @@ body {
   display: flex; justify-content: center; align-items: flex-end; gap: 10px;
   pointer-events: none;
 }
-#hud-bot > * { pointer-events: auto; }
+#hud-bot > * { pointer-events: auto; transition: opacity 150ms; }
+body.apuntando #hud-bot > * { opacity: .2; pointer-events: none; }
 #lie { font-family: var(--font-display); font-size: 15px; letter-spacing: .05em; background: rgba(12, 43, 28, .88); border-radius: 999px; padding: 0 16px; height: 46px; display: inline-flex; align-items: center; }
 
 /* ── banda central (intro de hoyo y resultado) ── */
@@ -467,6 +468,8 @@ let W = 0, H = 0, dpr = 1
 
 let estado = 'portada' // portada | elegir | intro | apuntar | tiro | anim | resultado | fin
 let ronda = null, tiro = null, anim = null, drag = null
+// el jugador (su emoji) camina de pelota a pelota
+const caminante = { pos: null, paso: 0 }
 let estela = []
 const cam = { cx: M.MUNDO.w / 2, cy: M.MUNDO.h / 2, esc: 1, rot: 0, sy: 300 }
 let obj = { ...cam }
@@ -484,7 +487,8 @@ function medir() {
 function zona() {
   const top = $('#hud-top').hidden ? 20 : $('#hud-top').getBoundingClientRect().bottom
   const bot = $('#hud-bot').hidden ? H - 20 : $('#hud-bot').getBoundingClientRect().top
-  return { top: top + 36, bot: bot - 34 }
+  // la pelota queda lo bastante arriba como para arrastrar para abajo un tiro a fondo
+  return { top: top + 36, bot: Math.max(top + 120, Math.min(bot - 34, H - largoMax() - 16)) }
 }
 function vistaGeneral() {
   const esc = Math.min(W / (M.MUNDO.w + 20), H / (M.MUNDO.h + 20)) * 1.6
@@ -495,7 +499,9 @@ function encuadre(a, b) {
   const { top, bot } = zona()
   const d = Math.max(M.dist(a, b), 1)
   const esc = Math.min(10, Math.max(1.1, (bot - top) / d)) // más zoom y el dibujo se ve borroso
-  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, esc, rot: -Math.PI / 2 - Math.atan2(b[1] - a[1], b[0] - a[0]), sy: (top + bot) / 2 }
+  // si no entra todo, manda la pelota: queda en `bot` (con lugar abajo para arrastrar) y la bandera se va para arriba
+  const sy = Math.min((top + bot) / 2, bot - (d / 2) * esc)
+  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, esc, rot: -Math.PI / 2 - Math.atan2(b[1] - a[1], b[0] - a[0]), sy }
 }
 function w2s(p, k = cam) {
   const dx = p[0] - k.cx, dy = p[1] - k.cy, c = Math.cos(k.rot), s = Math.sin(k.rot)
@@ -551,6 +557,7 @@ lienzo.addEventListener('pointerdown', (e) => {
   if (estado !== 'apuntar') return
   drag = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, id: e.pointerId, t0: performance.now() }
   lienzo.setPointerCapture(e.pointerId)
+  document.body.classList.add('apuntando') // los botones de abajo se apagan mientras apuntás
   if (!datos.vistoTip) { datos.vistoTip = true; guardar(datos) }
 })
 lienzo.addEventListener('pointermove', (e) => { if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY } })
@@ -558,9 +565,10 @@ lienzo.addEventListener('pointerup', (e) => {
   if (!drag || e.pointerId !== drag.id) return
   const a = apunte()
   drag = null
+  document.body.classList.remove('apuntando')
   if (a && estado === 'apuntar') pegar(a)
 })
-lienzo.addEventListener('pointercancel', () => { drag = null })
+lienzo.addEventListener('pointercancel', () => { drag = null; document.body.classList.remove('apuntando') })
 
 function pegar(a) {
   tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo)
@@ -593,6 +601,7 @@ function actualizar(dt) {
     const llego = M.moverMonos(ronda.monos, dt, estado === 'apuntar' ? ronda.pelota : null)
     if (llego && estado === 'apuntar') llegaronMonos(llego)
   }
+  moverCaminante(dt)
   pintarVoz()
   pintarCrono()
   if (firmaHasta) $('#reloj').style.width = `${Math.max(0, (firmaHasta - performance.now()) / (M.SEGUNDOS_FIRMA * 10))}%`
@@ -608,6 +617,44 @@ function actualizar(dt) {
   cam.rot += difAng(obj.rot, cam.rot) * k
 }
 
+/** El emoji del jugador va caminando hasta la pelota (mientras vuela, se queda donde pegó). */
+function moverCaminante(dt) {
+  if (!ronda || ronda.terminada) return
+  const meta = estado === 'tiro' ? null : ronda.pelota
+  if (!caminante.pos) caminante.pos = [...ronda.pelota]
+  if (!meta) return
+  const d = M.dist(caminante.pos, meta)
+  if (d < 0.05) { caminante.paso = 0; return }
+  const vel = Math.max(25, d / 1.1) // llega en algo más de un segundo, camine lo que camine
+  const k = Math.min(1, (vel * dt) / d)
+  caminante.pos = [caminante.pos[0] + (meta[0] - caminante.pos[0]) * k, caminante.pos[1] + (meta[1] - caminante.pos[1]) * k]
+  caminante.paso += dt
+}
+function dibujarCaminante() {
+  if (!ronda || ronda.terminada || !caminante.pos) return
+  const [x, y] = w2s(caminante.pos)
+  const tam = Math.max(22, Math.min(34, cam.esc * 3))
+  const camina = M.dist(caminante.pos, ronda.pelota) > 0.3 && estado !== 'tiro'
+  const salto = camina ? Math.abs(Math.sin(caminante.paso * 13)) * 5 : 0
+  const ladeo = camina ? Math.sin(caminante.paso * 13) * 0.15 : 0
+  // al costado de la pelota, como parado para pegar
+  const cx = x - tam * 0.75, cy = y - tam * 0.25 - salto
+  ctx.save()
+  ctx.globalAlpha = 0.3
+  ctx.fillStyle = '#000'
+  ctx.beginPath()
+  ctx.ellipse(x - tam * 0.75, y + tam * 0.3, tam * 0.32, tam * 0.12, 0, 0, 7)
+  ctx.fill()
+  ctx.globalAlpha = 1
+  ctx.translate(cx, cy)
+  ctx.rotate(ladeo)
+  ctx.font = `${tam}px ${EMOJI}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(ronda.jugador.emoji, 0, 0)
+  ctx.restore()
+}
+
 function alReposo() {
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
@@ -615,11 +662,9 @@ function alReposo() {
   const res = M.resolverReposo(campo, ronda, tiro, rng)
   const dicho = M.comentar(rng, res, tiro, h, ronda.jugador)
   if (res.tipo === 'embocada') {
-    // el último putt para el reloj
-    if (ronda.idx === M.HOYOS.length - 1 && ronda.t0 != null) ronda.ms = performance.now() - ronda.t0
-    const adulado = M.habilidadDe(ronda.jugador)?.adulado
-    const frase = adulado ? null : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
-    cerrar(frase)
+    const hab = M.habilidadDe(ronda.jugador)
+    const frase = hab?.adulado ? null : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
+    embocar(frase)
     return
   }
   relatar(dicho)
@@ -633,6 +678,12 @@ function alReposo() {
     anim = { tipo: 'ladron', mono: res.mono, hasta: [...ronda.pelota], t: 0, T: 2.2, fin: siguienteTiro }
     return
   }
+  if (res.tipo === 'perro') {
+    // el perro sale del fairway, la busca en el bosque y la trae (tarda: el reloj corre)
+    estado = 'anim'
+    anim = { tipo: 'perro', desde: donde, hasta: [...ronda.pelota], t: 0, T: M.PERRO.segundos, fin: siguienteTiro }
+    return
+  }
   if (res.tipo === 'afuera') {
     estado = 'anim'
     anim = { tipo: 'afuera', desde: donde, hasta: [...ronda.pelota], t: 0, T: 1.2, fin: siguienteTiro }
@@ -644,11 +695,26 @@ function siguienteTiro() {
   tiro = null
   estela = []
   if (M.necesitaLP(ronda)) { levantarVuelta(); return }
+  if (M.esDada(campo, ronda)) {
+    // Lechu: contando todas las dadas
+    M.darDada(ronda)
+    embocar(M.elegir(rng, M.RELATO.dada))
+    return
+  }
   estado = 'apuntar'
   obj = encuadre(ronda.pelota, M.hoyoActual(ronda).pin)
   velCam = 3.5
-  M.despertarMonos(ronda.monos, ronda.pelota)
+  despertar()
   hud()
+}
+/** Pelota quieta: los monos cercanos salen a buscarla (a Mugre no: les tira panchitos). */
+function despertar() {
+  M.despertarMonos(ronda.monos, ronda.pelota, M.habilidadDe(ronda.jugador)?.id === 'panchitos')
+}
+/** Embocó: el último putt del 17 para el reloj. */
+function embocar(frase) {
+  if (ronda.idx === M.HOYOS.length - 1 && ronda.t0 != null) ronda.ms = performance.now() - ronda.t0
+  cerrar(frase)
 }
 
 /** Los monos llegaron antes del golpe: se la llevan corriendo y volvés al tee del hoyo con un golpe de multa. */
@@ -688,6 +754,7 @@ function empezar(jugador) {
 }
 function introHoyo() {
   const h = M.hoyoActual(ronda)
+  caminante.pos = [...h.tee]
   estado = 'intro'
   tiro = null
   estela = []
@@ -699,7 +766,7 @@ function introHoyo() {
   const arrancar = () => {
     estado = 'apuntar'
     velCam = 3.5
-    M.despertarMonos(ronda.monos, ronda.pelota)
+    despertar()
     hud()
     const hab = M.habilidadDe(ronda.jugador)
     if (hab && ronda.idx === 0) relatar({ lg: `✨ ${hab.nombre}`, verso: hab.texto })
@@ -793,6 +860,8 @@ function pintarVoz() {
     clase = ''; dice = voz.lg; extra = voz.extra
   } else if (estado === 'apuntar' && !datos.vistoTip) {
     clase = ''; dice = '👆 Arrastrá para atrás y soltá'; extra = 'El óvalo es donde puede caer'
+  } else if (estado === 'apuntar' && ronda?.calma) {
+    clase = ''; dice = '📺 LG no se enoja'; extra = 'El que se enoja pierde: este golpe sale sin error'
   } else if (estado === 'apuntar' && golpeMago()) {
     const g = golpeMago()
     clase = ''; dice = `${g.emoji} Te toca: ${g.nombre}`; extra = g.texto
@@ -828,6 +897,7 @@ function hud() {
   $('#j-hcp').textContent = `HCP ${hcpTxt(ronda.jugador)}`
   $('#j-total').textContent = M.formatoPar(M.totales(ronda.tarjeta).vsPar)
   $('#lp').disabled = estado !== 'apuntar'
+  if (!lpArmado) $('#lp').textContent = textoLP()
   // el golpe del Mago: el que le toca (o, mientras vuela, el que pegó)
   const g = !ronda.golpeMago ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? PUTT_MAGO : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
   $('#efecto').hidden = !g
@@ -835,6 +905,14 @@ function hud() {
 }
 const PUTT_MAGO = { emoji: '🪄', nombre: 'Putt con comba', texto: 'Siempre dobla hacia el hoyo: apuntá afuera' }
 /** Lo que le toca al Mago en el próximo golpe (null si no es Rodal). En el green, el putt con comba. */
+const textoLP = () => (ronda && M.tieneLPNinja(ronda) ? 'LP 🥷 +1' : 'LP 💅')
+/** El Ninja levanta (la tradición): +1, al fairway y sigue la vuelta. */
+function lpDelNinja() {
+  drag = null
+  M.lpNinja(campo, ronda)
+  relatar({ lg: M.elegir(rng, M.RELATO.ninjaLP), verso: 'El próximo LP sí te hace perder la vuelta' })
+  siguienteTiro()
+}
 function golpeMago() {
   if (!ronda?.golpeMago) return null
   return M.enModoPutt(campo, ronda) ? PUTT_MAGO : M.golpeMagoDe(ronda)
@@ -842,16 +920,18 @@ function golpeMago() {
 let lpArmado = 0
 $('#lp').addEventListener('click', () => {
   if (estado !== 'apuntar') return
+  const ninja = M.tieneLPNinja(ronda)
   if (lpArmado && performance.now() - lpArmado < 2500) {
     lpArmado = 0
-    $('#lp').textContent = 'LP 💅'
-    levantarVuelta()
+    $('#lp').textContent = textoLP()
+    if (ninja) lpDelNinja()
+    else levantarVuelta()
     return
   }
   lpArmado = performance.now()
-  $('#lp').textContent = '¿PERDÉS LA VUELTA?'
+  $('#lp').textContent = ninja ? '¿LP NINJA? +1' : '¿PERDÉS LA VUELTA?'
   setTimeout(() => {
-    if (lpArmado && performance.now() - lpArmado >= 2400) { lpArmado = 0; $('#lp').textContent = 'LP 💅' }
+    if (lpArmado && performance.now() - lpArmado >= 2400) { lpArmado = 0; $('#lp').textContent = textoLP() }
   }, 2500)
 })
 
@@ -871,7 +951,7 @@ function dibujar() {
   }
 
   // caída del green cuando hay que patear
-  if (hoyo && estado === 'apuntar' && M.enModoPutt(campo, ronda)) {
+  if (hoyo && estado === 'apuntar' && M.enModoPutt(campo, ronda) && M.habilidadDe(ronda.jugador)?.id !== 'perro') {
     const [gx, gy] = hoyo.pin
     const ca = Math.atan2(hoyo.caida[1], hoyo.caida[0])
     ctx.strokeStyle = 'rgba(20,64,42,.45)'
@@ -917,6 +997,7 @@ function dibujar() {
   }
 
   dibujarMonos()
+  dibujarCaminante()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
     else if (tiro) pelota(tiro.pos, tiro.alt)
@@ -1033,6 +1114,24 @@ function dibujarAnim() {
     } else if (!anim.lp) pelota(anim.hasta, 0, Math.min(1, (t - 1.3) / 0.4))
     return
   }
+  if (anim.tipo === 'perro') {
+    // sale del fairway, va al bosque y vuelve con la pelota
+    const u = t / anim.T
+    const ida = Math.min(1, u / 0.45)
+    const vuelta = Math.max(0, (u - 0.55) / 0.45)
+    const a = anim.hasta, b = anim.desde
+    const p = u < 0.55 ? [a[0] + (b[0] - a[0]) * ida, a[1] + (b[1] - a[1]) * ida] : [b[0] + (a[0] - b[0]) * vuelta, b[1] + (a[1] - b[1]) * vuelta]
+    const [px, py] = w2s(p)
+    if (u < 0.55) pelota(b, 0)
+    ctx.font = `${tamMono()}px ${EMOJI}`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('🐕', px, py - Math.abs(Math.sin(t * 14)) * 4)
+    ctx.textBaseline = 'alphabetic'
+    if (u >= 0.55) pelota([p[0] + 1.2, p[1]], 0)
+    if (u >= 1) pelota(a, 0)
+    return
+  }
   if (anim.tipo === 'afuera') {
     if (t < 0.55) pelota(anim.desde, 0, 1 - t / 0.55)
     else pelota(anim.hasta, 0, Math.min(1, (t - 0.55) / 0.4))
@@ -1133,7 +1232,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
+  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(a.alcance)} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'

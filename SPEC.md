@@ -67,6 +67,17 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
   - Todos (menos la viborita) vuelan por arriba de los pinos y tienen la mitad del error lateral, como antes.
 - Putt de Rodal: siempre con comba. Dobla hacia el hoyo mientras rueda (`PUTT_MAGO.giro` = 0,3 rad/s): derecho al hoyo no entra desde 3 yd; hay que apuntar afuera (≈7° a 3 yd, 12° a 6 yd, 16° a 10 yd). La línea del putt muestra para dónde dobla.
 
+## Cambios del 2026-10-03 (noche, 2): seis jugadores más, con habilidades sacadas del chat del SDGA
+- Mazo (`EN_PRUEBA`): El Sueco, El Ninja, El Perro, Miguelón, Lechu, Mugre, Rodal, LG, Liberty y Fito.
+- 🦉 Lechu (Joaquín "La Lechuza" Castelli, campeón de la Boina Verde) — Contando todas las dadas: en el green, a 1,5 yd o menos, es dada (cuenta el golpe y entra sola).
+- 🥷 El Ninja — La tradición ("manteniendo viva la tradición de un LP por finde"): el primer LP de la vuelta no la pierde: +1 y drop en la calle sin acercarse al hoyo (desde el tee, ahí mismo). El botón dice "LP 🥷 +1". El segundo LP sí pierde la vuelta.
+- 🐕 El Perro (Gonza) — Va a buscarla: los greens están habilitados (sin caída, ni flechas) y si la pelota va al bosque el perro la trae a la calle sin multa. Tarda 4 s y el reloj corre. LG: "La vida no es mucho más que esto".
+- 💩 Mugre (Alan, "Lurrrrpin") — Panchitos: los monos no se la roban al vuelo ni salen a buscarla. El Mono del bosque sigue igual. Cuando emboca, LG dice "Lurrrrrrpin".
+- 🗽 Liberty (Fede Bal) — Si no era por el approach: desde el tee sale derecho siempre; de 30 a 100 yd del hoyo, triple de error ("Los wedges ya van a funcionar").
+- 📺 LG (Lucas) — El que se enoja pierde: después de un mal tiro (rough, bunker, palo, afuera o mono) el próximo sale sin error, putt incluido. LG no pone excusas y a veces se relata a sí mismo.
+- El emoji del jugador camina de pelota a pelota: sale del tee, se queda donde pegó mientras vuela la pelota y después va hasta ella (≈1 s, saltando).
+- Apuntar: la pelota queda siempre lo bastante arriba como para arrastrar un tiro a fondo para abajo (también en celus chicos), y mientras arrastrás los botones de abajo se apagan y no se pueden tocar.
+
 ## Voz
 LG 📺 relata con las frases del chat ("Tremendo", "Uff", "Hermoso", "QUE HOMBRE"); en tiros malos sale una excusa.
 Intro de cada hoyo con un verso de la canción de Fito. Frases de carga del design system.
