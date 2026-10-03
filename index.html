@@ -403,7 +403,7 @@ input { -webkit-user-select: text; user-select: text; }
   <div class="mazo-cab">
     <div>
       <p class="mazo-tit">Elegí tu nivel de dificultad</p>
-      <p class="mazo-sub" id="mazo-sub">1 de 24 · ↔ pasar · más handicap, más difícil</p>
+      <p class="mazo-sub" id="mazo-sub">1 de 24 · ↔ pasar · de más fácil a más difícil</p>
     </div>
     <button class="pill" id="ver-todos" type="button">VER TODOS</button>
     <button class="redondo" id="mazo-cerrar" type="button" aria-label="Volver a la portada">×</button>
@@ -418,7 +418,7 @@ input { -webkit-user-select: text; user-select: text; }
 
 <section class="pantalla" id="todos" hidden aria-labelledby="todos-tit">
   <div class="todos-cab"><h2 id="todos-tit">TODOS LOS PLAYERS</h2><button class="redondo" id="todos-cerrar" type="button" aria-label="Volver al mazo">×</button></div>
-  <p class="todos-sub">Ordenados por handicap: más arriba, más fácil. Cada uno con su habilidad.</p>
+  <p class="todos-sub">Del más fácil al más difícil (medido jugando 60 vueltas con cada uno). Cada uno con su habilidad.</p>
   <ol class="todos-lista" id="todos-lista"></ol>
 </section>
 
@@ -480,11 +480,19 @@ input { -webkit-user-select: text; user-select: text; }
 
 <script type="module">
 import * as M from './motor.js'
-import { PLANTEL as TODOS, EN_PRUEBA } from './plantel.js'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js'
 import { CANCHA } from './cancha-grid.js'
 import * as R from './ranking.js'
 // por ahora, para probar, solo los de EN_PRUEBA
-const PLANTEL = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo))
+// ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
+const promReal = (j) => DIFICULTAD_REAL[j.apodo]?.prom ?? 10 + (j.hcp ?? M.HCP_SIN_CARGAR) / 10
+const PLANTEL = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo)).sort((a, b) => promReal(a) - promReal(b))
+/** Nivel y nombre de dificultad para mostrar: el medido si lo hay; si no, el del handicap. */
+function difDe(j) {
+  const base = M.dificultad(j.hcp)
+  const real = DIFICULTAD_REAL[j.apodo]
+  return real ? { ...base, ...M.dificultadReal(real.prom) } : base
+}
 
 const C = {
   g950: '#0c2b1c', g900: '#14402a', g700: '#1c5638', g500: '#2e7d4f', g300: '#6fae87',
@@ -1342,7 +1350,7 @@ function tarjetaFinal() {
   const j = ronda.jugador
   $('#t-emoji').textContent = j.emoji
   $('#t-apodo').textContent = j.apodo.toUpperCase()
-  const dif = M.dificultad(j.hcp)
+  const dif = difDe(j)
   $('#t-nivel').textContent = `HCP ${hcpTxt(j)} · ${dif.nombre}`
   const filas = ronda.tarjeta.map((f) => {
     const nombre = M.nombreResultado(f.golpes, f.par, f.lp)
@@ -1535,7 +1543,7 @@ function previewHab(id) {
 
 function cartaDe(j) {
   if (cartasDom.has(j.apodo)) return cartasDom.get(j.apodo)
-  const dif = M.dificultad(j.hcp)
+  const dif = difDe(j)
   const hab = M.habilidadDe(j)
   const rec = datos.records[j.apodo]
   const s = j.stats
@@ -1558,7 +1566,7 @@ function cartaDe(j) {
       ${hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
       <dl>
         <div><dt>HCP</dt><dd>${dif.cargado ? hcpTxt(j) : `—<span class="sub">juega ${dif.hcp}</span>`}</dd></div>
-        <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span></dd></div>
+        <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span>${dif.prom != null ? `<span class="sub">${M.formatoPar(Math.round(dif.prom))} prom.</span>` : ''}</dd></div>
         <div><dt>Récord</dt><dd>${rec === undefined ? '—' : M.formatoPar(rec)}</dd></div>
         <div><dt>Rondas</dt><dd>${s ? s.tarjetas : '—'}</dd></div>
         <div><dt>Prom. neto</dt><dd>${fmtNeto(s?.netoPromedio)}</dd></div>
@@ -1591,7 +1599,7 @@ function pintarMazo() {
   for (const el of [top, back]) if (el) el.style.transition = 'none'
   pintarArrastre(0)
   const i = ((mazoI % n) + n) % n
-  $('#mazo-sub').textContent = `${i + 1} de ${n} · ↔ pasar · más handicap, más difícil`
+  $('#mazo-sub').textContent = `${i + 1} de ${n} · ↔ pasar · de más fácil a más difícil`
   $('#mazo-puntos').innerHTML = PLANTEL.map((_, k) => `<span class="${k === i ? 'activo' : ''}"></span>`).join('')
 }
 function cartasActivas() {
@@ -1709,7 +1717,7 @@ $('#usuario').addEventListener('input', (e) => {
 function mostrarTodos() {
   $('#todos-lista').innerHTML = PLANTEL.map((j, i) => {
     const hab = M.habilidadDe(j)
-    const dif = M.dificultad(j.hcp)
+    const dif = difDe(j)
     const cara = j.foto ? `<img class="foto" src="${j.foto}" alt="" draggable="false">` : `<span class="foto sin-foto">${j.emoji}</span>`
     return `<li class="todo">
       <div class="todo-cab">

@@ -59,6 +59,11 @@ export function dificultad(hcp) {
   const nivel = h < 5 ? 1 : h < 10 ? 2 : h < 15 ? 3 : h < 20 ? 4 : 5
   return { hcp: h, cargado: hcp != null, error: 0.75 + h * 0.035, distancia: 1.05 - h * 0.006, nivel, nombre: NIVELES[nivel - 1] }
 }
+/** La dificultad medida (promedio vs. par del bot de calibrar.mjs) en los mismos 5 niveles. */
+export function dificultadReal(prom) {
+  const nivel = prom < 3 ? 1 : prom < 4.6 ? 2 : prom < 5.3 ? 3 : prom < 6 ? 4 : 5
+  return { nivel, nombre: NIVELES[nivel - 1], prom }
+}
 // la comba de Rodal: cuánto se cierra la curva (grados entre la salida y dónde cae) y qué parte del error lateral le queda
 export const COMBA = { angulo: 30, error: 0.5 }
 // Los golpes del Mago: nunca derecho. A cada golpe (menos el putt) le toca uno al azar, y se ve antes de pegar.

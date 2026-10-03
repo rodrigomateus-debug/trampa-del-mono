@@ -308,3 +308,18 @@ export const PLANTEL = [
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
 export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)']
+
+// La dificultad real de cada uno con su habilidad: promedio vs. par y % de LP de un bot que juega 60 vueltas
+// (`node calibrar.mjs 60`, 2026-10-03). El mazo se ordena por esto, no por el handicap.
+export const DIFICULTAD_REAL = {
+  'El Sueco': { prom: 1.82, lp: 8 },
+  'El Perro': { prom: 2.62, lp: 3 },
+  'Mike Queboni (Đ)': { prom: 4.41, lp: 10 },
+  Lechu: { prom: 4.71, lp: 7 },
+  'Fito (Đ)': { prom: 5.06, lp: 13 },
+  LG: { prom: 5.14, lp: 2 },
+  'El Ninja (Đ)': { prom: 5.23, lp: 13 },
+  'El Mago Rodal': { prom: 5.48, lp: 10 },
+  Liberty: { prom: 6.49, lp: 12 },
+  Mugre: { prom: 6.69, lp: 18 },
+}
