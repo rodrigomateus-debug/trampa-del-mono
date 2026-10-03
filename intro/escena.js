@@ -4,8 +4,10 @@
 import * as THREE from "three";
 
 const CUE = window.CUES;
-const W = 1920;
-const H = 1080;
+// mismo código para la versión horizontal (index.html) y la vertical (vertical.html)
+const VERTICAL = window.FORMATO === "vertical";
+const W = VERTICAL ? 1080 : 1920;
+const H = VERTICAL ? 1920 : 1080;
 
 // ---------- utilidades deterministas ----------
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -567,7 +569,8 @@ function armarCartel() {
   poste.position.y = 0.6;
   cartel.add(placa, poste);
   // marcas blancas del tee del 15 (el del dibujo de Rorro)
-  for (const x of [1.2, 4.6]) {
+  // en vertical la cámara pasa encima de las marcas: ahí no se ponen
+  for (const x of VERTICAL ? [] : [1.2, 4.6]) {
     const marca = caja(0.22, 0.2, 0.22, toon("#ffffff"));
     marca.position.set(x, 0.1, -1.6);
     cartel.add(marca);
@@ -1056,7 +1059,8 @@ function posarMonos(t, d, FW) {
     const u = clamp((t - CUE.susto) / 0.28);
     const caida = EASE.back(u);
     const pendulo = Math.sin((t - CUE.susto) * 7.5) * 0.22 * Math.exp(-(t - CUE.susto) * 1.8);
-    c.g.position.set(0.52, lerp(1.9, 0.84, caida), -1.75);
+    if (VERTICAL) c.g.position.set(0.22, lerp(2.3, 1.1, caida), -1.75);
+    else c.g.position.set(0.52, lerp(1.9, 0.84, caida), -1.75);
     c.g.scale.setScalar(0.82);
     c.g.rotation.set(0.1, 0.35, Math.PI + pendulo);
     c.miembros.forEach((j, n) => {
@@ -1100,8 +1104,16 @@ function posarPelota(t, d) {
 
 function camara(t, d) {
   const plano = PLANOS.find((p) => t < p.hasta) || PLANOS[PLANOS.length - 1];
-  const off = kf(plano.off, t);
-  const mira = kf(plano.mira, t);
+  const off = kf(plano.off, t).slice();
+  const mira = kf(plano.mira, t).slice();
+  if (VERTICAL && t < CUE.logo) {
+    mira[0] *= 0.15; // en vertical el jugador va al centro…
+    mira[1] -= 0.25 * (1 - ramp(t, CUE.cara, CUE.cara + 1)); // …y más arriba, con el pasto libre para la letra (menos en el primer plano final)
+  }
+  if (VERTICAL && t >= CUE.logo) {
+    off[1] *= 0.72; // gran plano más cerca: el jugador se ve más
+    off[2] *= 0.72;
+  }
   const tens = tension(t);
   // cámara en mano: el camarógrafo camina para atrás
   const fase = faseEn(t);
@@ -1124,7 +1136,7 @@ function camara(t, d) {
   _v.set(gx + mira[0] + 0.02 * mano * ruido(t, 4), mira[1] + 0.015 * mano * ruido(t, 5), gz + mira[2]);
   camera.lookAt(_v);
   camera.rotateZ(kf(plano.roll, t) + 0.006 * mano * ruido(t, 6));
-  camera.fov = kf(plano.fov, t);
+  camera.fov = VERTICAL ? Math.min(62, kf(plano.fov, t) * 1.32) : kf(plano.fov, t);
   camera.updateProjectionMatrix();
 }
 

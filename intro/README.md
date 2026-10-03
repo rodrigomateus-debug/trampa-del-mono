@@ -2,7 +2,7 @@
 
 ![La Trampa del Mono](poster.jpg)
 
-Video de 36,8 s (1920×1080) para la intro de la canción, hecho con [HyperFrames](https://github.com/heygen-com/hyperframes)
+Video de 36,8 s para la intro de la canción, en dos formatos: **vertical 9:16 (1080×1920)** para el celu y horizontal 16:9 (1920×1080). Está hecho con [HyperFrames](https://github.com/heygen-com/hyperframes)
 (HTML + GSAP + Three.js) y el design system del SDGA: verde del campo, crema, banda dorada, Anton + Archivo.
 
 Un jugador con la Boina Verde camina sin fin por el fairway del 15. La cámara va adelante, en diagonal, caminando para atrás.
@@ -13,13 +13,15 @@ con "Caminás tranquilo por el fairway…".
 
 ## Archivos
 
-- `index.html` — la composición: capas de texto (la letra), el logo y el timeline GSAP.
+- `index.html` — la composición horizontal (16:9): capas de texto (la letra) y el logo.
+- `compositions/vertical.html` — la misma composición en vertical (9:16): misma escena y mismos tiempos, otro encuadre y otra diagramación.
+- `textos.js` — el timeline GSAP de los textos y el logo, compartido por los dos formatos.
 - `escena.js` — la escena 3D (Three.js): jugador, fairway infinito, árboles con ojos, monos, pelota, cartel del 15, cámara.
   Todo se calcula a partir del tiempo que manda HyperFrames (`hf-seek`), así que cada cuadro sale igual siempre.
 - `cues.js` — **los tiempos**, medidos sobre la canción (180,7 bpm; un compás = 1,3285 s). Si se cambia el mp3, se toca acá.
 - `assets/trampa-del-mono.mp3` — la canción (Suno). `assets/sdga-logo.svg` — el logo oficial del design system.
 - `assets/fonts/` — Anton y Archivo (OFL). `assets/vendor/` — three.js 0.181.2 y GSAP 3.14.2, locales para que el render no dependa de la red.
-- `trampa-del-mono-intro.mp4` — el video ya renderizado (versión liviana, 11 MB); `poster.jpg` — el cuadro del logo.
+- `trampa-del-mono-intro-vertical.mp4` y `trampa-del-mono-intro.mp4` — los videos ya renderizados (versión liviana); `poster.jpg` — el cuadro del logo.
 
 ## Mapa de la canción (0–36,8 s)
 
@@ -49,7 +51,9 @@ cd intro
 npx hyperframes@0.8.114 lint                      # chequeo rápido
 npx hyperframes@0.8.114 snapshot --at 6,22.5,33   # cuadros sueltos para mirar
 npx hyperframes@0.8.114 preview                   # Studio con el timeline (abre el navegador)
-npx hyperframes@0.8.114 render --output trampa-del-mono-intro.mp4
+npx hyperframes@0.8.114 render --output trampa-del-mono-intro.mp4                              # 16:9
+npx hyperframes@0.8.114 render -c compositions/vertical.html --output trampa-del-mono-intro-vertical.mp4   # 9:16
 ```
 
-El render usa WebGL por software si no hay GPU: tarda ~1 s por cuadro.
+El render usa WebGL por software si no hay GPU: tarda ~1 s por cuadro. `snapshot` y `preview` miran `index.html`;
+para revisar la vertical rápido: `render -c compositions/vertical.html --fps 2 --quality draft`.

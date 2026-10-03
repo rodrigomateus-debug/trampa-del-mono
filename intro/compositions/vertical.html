@@ -2,8 +2,8 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
-    <title>La Trampa del Mono — Intro</title>
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>La Trampa del Mono — Intro (vertical)</title>
     <script src="assets/vendor/gsap.min.js"></script>
     <script src="cues.js"></script>
     <script>
@@ -13,6 +13,9 @@
       window.__hf.buildReady["escena-trampa"] = new Promise(function (resolve) {
         window.__resolverEscena = resolve;
       });
+    </script>
+    <script>
+      window.FORMATO = "vertical"; // escena.js encuadra para 9:16
     </script>
     <script type="importmap">
       { "imports": { "three": "./assets/vendor/three.module.min.js" } }
@@ -58,8 +61,8 @@
       }
       html,
       body {
-        width: 1920px;
-        height: 1080px;
+        width: 1080px;
+        height: 1920px;
         overflow: hidden;
         background: var(--green-950);
       }
@@ -358,11 +361,82 @@
         margin-left: -88px;
         display: block;
       }
+      /* ---------- 9:16 (celular) ---------- */
+      .franja {
+        display: none;
+      }
+      #presenta {
+        right: 0;
+        padding-top: 760px;
+      }
+      .cap {
+        padding: 0 72px 280px 72px;
+      }
+      .cap-grande {
+        font-size: 116px;
+      }
+      .cap-chica {
+        font-size: 21px;
+        letter-spacing: 0.16em;
+      }
+      #cap-quince .cap-chica {
+        font-size: 24px;
+      }
+      #cap-silencio {
+        padding: 0 0 280px 0;
+      }
+      #cap-silencio .cap-chica {
+        font-size: 22px;
+        letter-spacing: 0.34em;
+        padding-left: calc(0.34em + 16px);
+      }
+      #cap-tension {
+        justify-content: flex-end;
+        padding: 0 72px 280px 72px;
+      }
+      #cap-tension .cap-grande {
+        font-size: 150px;
+      }
+      #cap-escape .cap-grande {
+        font-size: 150px;
+      }
+      #cap-ficha {
+        padding: 230px 0 0 72px;
+      }
+      #logo-fondo {
+        background: radial-gradient(95% 42% at 50% 33%, rgba(12, 43, 28, 0.86) 0%, rgba(12, 43, 28, 0.6) 50%, rgba(12, 43, 28, 0) 82%);
+      }
+      #logo-caja {
+        margin-top: -470px;
+      }
+      #logo-l1 {
+        font-size: 132px;
+      }
+      #logo-l2 {
+        font-size: 214px;
+      }
+      #logo-banda {
+        margin-top: 22px;
+        padding: 8px 26px 6px;
+      }
+      #banda-txt {
+        font-size: 44px;
+      }
+      #logo-tag {
+        max-width: 760px;
+        font-size: 20px;
+        line-height: 1.6;
+        letter-spacing: 0.26em;
+        text-align: center;
+      }
+      #logo-sdga {
+        bottom: 190px;
+      }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="36.8">
-      <canvas id="escena" width="1920" height="1080"></canvas>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="36.8">
+      <canvas id="escena" width="1080" height="1920"></canvas>
 
       <!-- SDGA PRESENTA -->
       <section id="presenta" class="clip" data-start="0.6" data-duration="3.3" data-track-index="1">
