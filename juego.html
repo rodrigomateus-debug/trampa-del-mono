@@ -1,0 +1,1293 @@
+<title>La Trampa del Mono</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:ital,wght@0,400;0,600;0,800;1,400&display=swap">
+<style>
+/* Juego a pantalla completa: la cancha en canvas detrás; HUD crema arriba, acciones abajo, pantallas encima. */
+:root {
+  --green-950: #0c2b1c;
+  --green-900: #14402a;
+  --green-700: #1c5638;
+  --green-500: #2e7d4f;
+  --green-300: #6fae87;
+  --cream: #f4eeda;
+  --cream-dark: #e7dfc2;
+  --gold: #e8c34a;
+  --red: #bc4b3c;
+  --text-muted: #5e6e5f;
+  --border-subtle: rgba(20, 64, 42, .18);
+  --veil: rgba(12, 43, 28, .8);
+  --font-display: "Anton", "Arial Narrow", sans-serif;
+  --font-body: "Archivo", "Helvetica Neue", sans-serif;
+  --shadow-card: 0 2px 0 rgba(12, 43, 28, .25);
+  --shadow-pop: 0 6px 20px rgba(12, 43, 28, .35);
+  --ease-snap: cubic-bezier(.2, .9, .3, 1.2);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--green-950);
+  color: var(--cream);
+  font-family: var(--font-body);
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#cancha { position: fixed; inset: 0; display: block; touch-action: none; }
+
+/* ── piezas comunes ── */
+.card { background: var(--cream); color: var(--green-900); border-radius: 16px; box-shadow: var(--shadow-card); }
+.band {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--green-900);
+  font-family: var(--font-display);
+  letter-spacing: .04em;
+  padding: .1em .5em .05em;
+  line-height: 1.15;
+}
+.btn {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: .05em;
+  height: 46px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--green-900);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: transform 120ms var(--ease-snap), background 120ms;
+}
+.btn:active { transform: scale(.97); }
+.btn:focus-visible, .redondo:focus-visible { outline: 3px solid var(--cream); outline-offset: 2px; }
+.btn.ghost { background: transparent; color: var(--cream); box-shadow: inset 0 0 0 2px rgba(244, 238, 218, .6); }
+.btn.oscuro { background: var(--green-900); color: var(--cream); }
+.btn[disabled] { opacity: .45; pointer-events: none; }
+.kicker { font-weight: 800; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; }
+
+/* ── HUD ── */
+#hud-top {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: calc(var(--safe-top) + 10px) 12px 0;
+  display: grid; gap: 8px; justify-items: start;
+  pointer-events: none;
+}
+#hud-top .card { width: 100%; max-width: 520px; justify-self: center; padding: 10px 14px 0; display: grid; box-sizing: border-box; overflow: hidden; }
+.fila { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#h-num { font-family: var(--font-display); font-size: 28px; line-height: 1.1; letter-spacing: .01em; }
+#h-par { font-family: var(--font-display); font-size: 18px; color: var(--green-500); margin-left: 8px; }
+.meta { font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.viento { display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 18px; }
+#v-flecha { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--green-900); color: var(--cream); }
+#v-flecha svg { width: 14px; height: 14px; }
+/* la cara del jugador, grande, con su emoji en un circulito arriba */
+.hud-fila { display: flex; align-items: center; gap: 12px; }
+.cara { position: relative; flex: none; width: 66px; height: 66px; }
+.cara .foto { width: 66px; height: 66px; border-radius: 50%; object-fit: cover; object-position: top; background: var(--green-700); border: 3px solid var(--green-900); box-sizing: border-box; display: block; }
+.cara .sin-foto { display: grid; place-items: center; font-size: 34px; }
+.cara .emo { position: absolute; top: -5px; right: -7px; width: 28px; height: 28px; border-radius: 50%; background: var(--cream); border: 2px solid var(--green-900); display: grid; place-items: center; font-size: 15px; line-height: 1; }
+.hud-datos { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.hud-jugador { display: flex; align-items: center; gap: 8px; min-width: 0; font-family: var(--font-display); font-size: 16px; letter-spacing: .03em; }
+.hud-jugador #j-apodo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.hud-jugador .hcp { flex: none; font-family: var(--font-body); font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.hud-jugador .band { flex: none; margin-left: auto; font-size: 14px; }
+/* la voz de LG: una franja fija dentro del marcador, así nunca tapa la cancha */
+#voz { margin: 8px -14px 0; padding: 5px 14px 6px; height: 36px; border-top: 1px solid var(--border-subtle); border-radius: 0 0 16px 16px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: 1fr 1fr; column-gap: 8px; align-items: center; font-size: 13px; line-height: 1.2; transition: background 150ms; }
+#voz .quien { grid-row: 1 / 3; font-family: var(--font-display); font-size: 12px; letter-spacing: .05em; background: var(--gold); color: var(--green-900); padding: 3px 6px 2px; align-self: center; }
+#voz .dice { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+#voz .extra { font-style: italic; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+#voz.vacia .dice { font-weight: 600; color: var(--text-muted); }
+#voz.alerta { background: var(--red); }
+#voz.alerta .dice, #voz.alerta .extra { color: var(--cream); }
+#voz.alerta .quien { background: var(--cream); color: var(--red); }
+#hud-bot {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  padding: 0 12px calc(var(--safe-bot) + 12px);
+  display: flex; justify-content: center; align-items: flex-end; gap: 10px;
+  pointer-events: none;
+}
+#hud-bot > * { pointer-events: auto; }
+#lie { font-family: var(--font-display); font-size: 15px; letter-spacing: .05em; background: rgba(12, 43, 28, .88); border-radius: 999px; padding: 0 16px; height: 46px; display: inline-flex; align-items: center; }
+
+/* ── banda central (intro de hoyo y resultado) ── */
+#banda {
+  position: fixed; inset: 0;
+  display: grid; place-items: center; text-align: center;
+  padding-inline: 16px;
+  background: radial-gradient(closest-side, rgba(12, 43, 28, .78), rgba(12, 43, 28, 0));
+  opacity: 0; pointer-events: none; transition: opacity 200ms;
+}
+#banda.ver { opacity: 1; pointer-events: auto; }
+#banda .caja { display: grid; gap: 10px; justify-items: center; transform: scale(.96); transition: transform 260ms var(--ease-snap); }
+#banda.ver .caja { transform: none; }
+#b-grande { font-family: var(--font-display); font-size: clamp(44px, 14vw, 76px); line-height: 1.02; padding-block: 4px; text-shadow: 0 3px 0 rgba(12, 43, 28, .55); text-wrap: balance; }
+#b-banda { font-size: 22px; }
+#b-verso { font-style: italic; font-size: 16px; max-width: 30ch; line-height: 1.4; text-wrap: balance; }
+
+/* ── pantallas ── */
+.pantalla {
+  position: fixed; inset: 0;
+  overflow-y: auto;
+  background: var(--veil);
+  display: flex; flex-direction: column; align-items: center;
+  padding: calc(var(--safe-top) + 28px) 16px calc(var(--safe-bot) + 28px);
+  gap: 18px; text-align: center;
+}
+.portada > :first-child, #fin > :first-child { margin-top: auto; }
+.portada > :last-child, #fin > :last-child { margin-bottom: auto; }
+.mono-teja { width: 76px; height: 76px; border-radius: 20px; background: var(--cream); display: grid; place-items: center; font-size: 46px; box-shadow: var(--shadow-card); }
+.logo { width: 150px; color: var(--cream); }
+.logo svg { width: 100%; height: auto; display: block; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(54px, 17vw, 104px); line-height: .98; margin: 0; padding-block: 6px; letter-spacing: .01em; text-wrap: balance; }
+.portada .band { font-size: 22px; }
+.bajada { max-width: 34ch; line-height: 1.5; font-size: 15px; margin: 0; text-wrap: pretty; }
+#frase { font-style: italic; font-size: 13px; opacity: .85; min-height: 1.4em; }
+h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin: 0; letter-spacing: .02em; }
+/* ── mazo para elegir nivel: las cartas de los Playoffs de la FedE Cup ── */
+.mazo {
+  position: fixed; inset: 0; display: flex; flex-direction: column; color: var(--cream);
+  background: radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, .06), transparent 60%), linear-gradient(160deg, #1f5f3e, #17492f);
+  padding-top: var(--safe-top); padding-bottom: var(--safe-bot);
+}
+.mazo-cab, .mazo-pie { width: 100%; max-width: 440px; margin: 0 auto; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mazo-cab { padding: 12px 16px 8px; }
+.mazo-pie { padding: 4px 16px 16px; }
+.mazo-tit { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.05; letter-spacing: .04em; text-transform: uppercase; }
+.mazo-sub { margin: 4px 0 0; font-size: 12px; opacity: .75; }
+.redondo { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(244, 238, 218, .25); background: transparent; color: var(--cream); font-size: 22px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
+.redondo.claro { width: 44px; height: 44px; border: 0; background: rgba(244, 238, 218, .1); font-size: 26px; }
+.mazo-pila { position: relative; flex: 1; min-height: 0; width: 100%; max-width: 440px; margin: 0 auto; padding: 0 16px 8px; box-sizing: border-box; }
+.mazo-cartas { position: relative; width: 100%; height: 100%; }
+.envoltorio { position: absolute; inset: 0; will-change: transform; -webkit-user-select: none; user-select: none; }
+.envoltorio.arriba { z-index: 1; touch-action: none; }
+.envoltorio.atras { pointer-events: none; }
+.carta { display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 24px; background: var(--cream); color: var(--green-900); box-shadow: 0 10px 30px rgba(12, 43, 28, .45); }
+.atras .carta { box-shadow: none; }
+.carta-foto { position: relative; flex: 1; min-height: 0; background: var(--green-700); }
+.carta-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; -webkit-user-drag: none; }
+.carta-emoji { position: absolute; inset: 0; display: grid; place-items: center; font-size: 120px; line-height: 1; }
+.carta-degrade { position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: linear-gradient(to top, rgba(12, 43, 28, .9), transparent); }
+.carta-marcas { position: absolute; left: 12px; top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.carta-nivel { background: var(--gold); color: var(--green-900); font-family: var(--font-display); font-size: 15px; line-height: 1; letter-spacing: .04em; text-transform: uppercase; padding: 5px 10px 4px; }
+.carta-hab { border-radius: 999px; background: rgba(20, 64, 42, .9); color: var(--gold); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; }
+.carta-dif { position: absolute; right: 12px; top: 12px; border-radius: 999px; background: rgba(20, 64, 42, .85); color: var(--cream); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; }
+.carta-dif.d4, .carta-dif.d5 { background: var(--red); }
+.carta-nombre { position: absolute; left: 16px; right: 16px; bottom: 12px; display: flex; align-items: flex-end; gap: 8px; }
+.carta-nombre h3 { flex: 1; min-width: 0; margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 34px; line-height: .98; padding-top: 4px; color: var(--cream); overflow-wrap: anywhere; text-wrap: balance; }
+.carta-nombre .teja { flex: none; width: 42px; height: 42px; border-radius: 11px; background: var(--cream); display: grid; place-items: center; font-size: 25px; }
+.carta-cuerpo { display: grid; gap: 12px; padding: 12px 16px 16px; }
+.carta-frase { margin: 0; font-size: 15px; font-weight: 600; font-style: italic; line-height: 1.35; color: #0c2b1c; }
+.carta-frase.vacia { font-size: 14px; font-weight: 400; color: var(--text-muted); }
+.carta dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
+.carta dt { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.carta dd { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.15; color: #0c2b1c; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.carta dd .sub { margin-left: 5px; font-family: var(--font-body); font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.barras { display: inline-flex; gap: 3px; align-items: flex-end; height: 20px; }
+.barras i { width: 7px; border-radius: 2px; background: var(--cream-dark); }
+.barras i:nth-child(1) { height: 8px; } .barras i:nth-child(2) { height: 11px; } .barras i:nth-child(3) { height: 14px; } .barras i:nth-child(4) { height: 17px; } .barras i:nth-child(5) { height: 20px; }
+.barras i.on { background: var(--green-500); }
+.barras.d3 i.on { background: var(--gold); }
+.barras.d4 i.on, .barras.d5 i.on { background: var(--red); }
+.carta-jugar { width: 100%; height: 46px; border: 0; border-radius: 999px; background: var(--green-900); color: var(--cream); font-family: var(--font-display); font-size: 17px; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 16px; }
+.carta-jugar:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.puntos { display: flex; align-items: center; gap: 3px; }
+.puntos span { width: 5px; height: 5px; border-radius: 3px; background: rgba(244, 238, 218, .35); transition: width 200ms; }
+.puntos span.activo { width: 16px; background: var(--gold); }
+
+/* ── tarjeta ── */
+.tarjeta { width: min(100%, 420px); padding: 20px 18px; box-sizing: border-box; display: grid; gap: 14px; text-align: left; border-radius: 20px; }
+.tarjeta header { display: flex; align-items: center; gap: 12px; }
+.tarjeta header .teja { width: 48px; height: 48px; border-radius: 12px; background: var(--green-900); display: grid; place-items: center; font-size: 28px; }
+.tarjeta .quien { font-family: var(--font-display); font-size: 26px; line-height: 1.1; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-weight: 800; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); text-align: left; padding: 0 4px 6px; }
+td { font-family: var(--font-display); font-size: 22px; padding: 7px 4px; border-top: 1px solid var(--border-subtle); }
+td.res { font-family: var(--font-body); font-weight: 800; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+td.res i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 1px; background: var(--gold); }
+td.res i.bajo { background: var(--green-500); }
+td.res i.sobre { background: var(--red); }
+tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
+.num { text-align: right; }
+.extras { font-size: 13px; color: var(--text-muted); margin: 0; }
+.firma { display: grid; gap: 8px; }
+.firma .btn { width: 100%; font-size: 20px; }
+.reloj { height: 6px; border-radius: 3px; background: var(--cream-dark); overflow: hidden; }
+.reloj div { height: 100%; width: 100%; background: var(--red); }
+.firma p, .firmada { margin: 0; font-size: 13px; color: var(--text-muted); }
+.firmada { font-weight: 800; color: var(--green-500); letter-spacing: .04em; text-transform: uppercase; }
+.acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.acciones .ancho { grid-column: 1 / -1; }
+.acciones .btn { font-size: 16px; padding: 0 12px; }
+#copia { width: 100%; box-sizing: border-box; font: 13px/1.4 var(--font-body); border-radius: 10px; border: 1px solid var(--border-subtle); padding: 8px; color: var(--green-900); background: #fffdf5; }
+
+/* ── comunicado del Marshall ── */
+.comunicado { width: min(100%, 400px); overflow: hidden; text-align: left; border-radius: 20px; }
+.comunicado .cab { background: var(--green-900); color: var(--cream); padding: 14px 18px 12px; }
+.comunicado .cab b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 26px; letter-spacing: .03em; }
+.comunicado .cab span { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+.comunicado .cuerpo { padding: 16px 18px 18px; display: grid; gap: 12px; line-height: 1.5; font-size: 15px; }
+.comunicado .cuerpo p { margin: 0; }
+.comunicado .ciento { font-family: var(--font-display); font-size: 54px; line-height: 1.05; color: var(--green-900); }
+.comunicado .firma-m { font-weight: 800; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 1ms !important; animation: none !important; }
+}
+</style>
+
+<canvas id="cancha" aria-label="La cancha: hoyos 15, 16 y 17 de San Diego"></canvas>
+
+<div id="hud-top" hidden>
+  <div class="card">
+    <div class="hud-fila">
+      <div class="cara">
+        <img class="foto" id="j-foto" alt="" hidden>
+        <span class="foto sin-foto" id="j-sinfoto" aria-hidden="true"></span>
+        <span class="emo" id="j-emoji" aria-hidden="true">🥃</span>
+      </div>
+      <div class="hud-datos">
+        <div class="fila">
+          <div><span id="h-num">HOYO 15</span><span id="h-par">PAR 4</span></div>
+          <div class="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="v-kmh">0 km/h</span></div>
+        </div>
+        <div class="fila meta"><span id="h-golpe">Golpe 1</span><span id="h-dist">370 yd al pin</span></div>
+        <div class="hud-jugador"><span id="j-apodo">RORRO</span><span class="hcp" id="j-hcp"></span><span class="band" id="j-total">E</span></div>
+      </div>
+    </div>
+    <div id="voz" class="vacia" aria-live="polite"><span class="quien">📺 LG</span><span class="dice" id="r-dice"></span><span class="extra" id="r-extra"></span></div>
+  </div>
+</div>
+
+<div id="hud-bot" hidden>
+  <span id="lie">TEE</span>
+  <button class="btn ghost" id="lp" type="button">LP 💅</button>
+</div>
+
+<div id="banda" aria-live="polite">
+  <div class="caja">
+    <span class="kicker" id="b-kicker"></span>
+    <span id="b-grande"></span>
+    <span class="band" id="b-banda"></span>
+    <span id="b-verso"></span>
+  </div>
+</div>
+
+<section class="pantalla portada" id="portada">
+  <div class="logo" aria-label="SDGA"><svg fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 417.87 96.51">
+  <path d="M289.91,42.31c-1.41-.33-2.7-.52-3.85-.57-1.15-.06-2.76-.1-4.81-.14l-4.25-.08c-2.02-.03-4.93-.12-8.72-.26-3.8-.14-7.02-.23-9.68-.28l-3.83-.07c-1.3,1.04-1.95,2.02-1.97,2.95l-.26,14.68,1.87,2.16c.46,0,1.06,0,1.78-.02.73-.02,1.23-.03,1.52-.03l3.83.07v-.11s2.34.04,2.34.04l-.11,6.49c-2.53.74-5.77,1.07-9.7,1-1.53-.03-2.89-.24-4.09-.63-1.2-.39-2.2-.87-2.98-1.44-.79-.56-1.45-1.3-1.99-2.22-.53-.91-.94-1.77-1.2-2.58-.27-.8-.48-1.79-.61-2.96-.14-1.17-.22-2.13-.24-2.88-.02-.75-.02-1.68,0-2.82l.03-1.6c0-.25,0-.71-.03-1.39-.03-.67-.03-1.24-.03-1.7.03-1.52.06-2.75.09-3.67.03-.92.13-2.19.31-3.8.17-1.61.4-2.94.68-3.98.29-1.04.71-2.2,1.26-3.46.55-1.27,1.21-2.27,1.97-3,.76-.73,1.73-1.34,2.91-1.84,1.18-.49,2.51-.73,4-.7,1.14.02,2.08.19,2.84.5.76.32,1.28.7,1.58,1.14.29.45.53.96.72,1.53.19.57.32,1.11.4,1.6.08.5.24.96.48,1.39.24.43.57.72,1,.87,2.91.05,7.27.2,13.08.44,5.81.24,10.25.39,13.3.45,2.13.04,3.27-.47,3.43-1.54-.45-4.8-.75-7.71-.91-8.74-.59-2.67-1.59-5.07-3.01-7.21-1.42-2.14-3.1-3.89-5.04-5.25-1.95-1.37-3.98-2.53-6.11-3.49-2.13-.96-4.42-1.68-6.88-2.17-2.46-.49-4.67-.84-6.63-1.05-1.97-.21-3.98-.34-6.03-.37-2.8-.05-5.57.05-8.31.31-2.74.25-5.68.78-8.83,1.57-3.15.8-6.11,1.83-8.86,3.12-2.76,1.28-5.44,3-8.05,5.15-2.61,2.15-4.86,4.63-6.73,7.44-1.88,2.8-3.4,6.24-4.57,10.3-1.17,4.06-1.8,8.54-1.88,13.43-.24,13.37,3.36,23.95,10.8,31.72,7.43,7.78,18.3,11.79,32.59,12.05.99.02,2.47-.03,4.42-.14,1.95-.11,3.43-.15,4.42-.13l1.38.03c4.54.08,10.15-.35,16.84-1.3,6.69-.94,10.65-2.12,11.88-3.51l.02-1.17c0-.14-.01-.33-.04-.56-.03-.23-.04-.4-.04-.51.07-4.01.29-10.46.66-19.36.37-8.9.6-15.67.68-20.31-.45-.61-1.38-1.08-2.8-1.41Z"></path>
+  <path d="M382.04,8.13c-.22-.28-.47-.5-.77-.64-.3-.14-.7-.25-1.2-.32-.5-.07-.92-.11-1.28-.13-.36-.02-.8-.02-1.33-.02l-8.94.02c-2.09,0-5.18.04-9.26.12-4.08.08-7.17.12-9.26.12l-8.94.02c-.14.14-.42.57-.85,1.28-1.44,4.47-4.14,12.54-8.07,24.2-3.94,11.66-7.23,21.68-9.87,30.05-2.65,8.38-5.06,16.63-7.25,24.75.71.99,1.21,1.63,1.49,1.91.67,0,1.62-.02,2.85-.06,1.22-.04,2.12-.06,2.69-.06h1.49c1.52,0,3.8-.06,6.81-.17,3.01-.11,5.28-.17,6.81-.17h4.26c3.58-.01,5.57-.44,5.96-1.3l2.75-11.28,18.3-.03c.99,0,1.94.74,2.83,2.23.89,1.49,1.51,3.12,1.87,4.89v3.51c.18.5.6.89,1.26,1.2.66.3,1.52.49,2.61.58,1.08.09,2.07.14,2.95.15.89.02,1.98,0,3.27-.06,1.29-.06,2.15-.08,2.58-.08,1.42,0,3.53-.03,6.33-.06,2.8-.04,4.91-.06,6.33-.06h4.89c1.42-.01,2.38-.15,2.9-.41.51-.27.77-.75.77-1.47l-24.66-77.69c0-.39-.11-.73-.32-1.01ZM364.7,57.19c-2.36.34-4.96.51-7.8.52h-3.51s-1.49-2.49-1.49-2.49l4.22-18.47c.67-3.05,1.54-5.78,2.62-8.2,1.08-2.41,1.93-3.62,2.58-3.62l6.91,30.64c0,.75-1.18,1.29-3.53,1.63Z"></path>
+  <path d="M66.85,39.51c-1.47-.53-6.02-1.95-13.65-4.26-.31-.12-1.12-.38-2.41-.78-1.3-.4-2.38-.76-3.25-1.08-.87-.32-1.69-.82-2.46-1.5-.77-.67-1.13-1.4-1.1-2.18.03-.64.36-1.18.98-1.63s1.36-.77,2.2-.96c.84-.19,1.58-.32,2.2-.4.62-.08,1.08-.11,1.36-.1,1.03.05,1.85.21,2.46.49.61.28,1,.61,1.18,1.01.18.4.37.82.58,1.25.21.44.42.86.63,1.26.21.4.66.74,1.34,1.02.68.28,1.59.45,2.72.5,9.04.42,17.19.66,24.47.71l2-1.82c-.04-2.1-.22-3.87-.52-5.33-.3-1.45-.89-2.94-1.76-4.48-.87-1.53-1.78-2.88-2.74-4.04-.96-1.16-2.47-2.88-4.53-5.14-5.75-3.96-13.6-6.17-23.55-6.64-3.75-.18-7.4-.05-10.94.37-3.54.42-7.05,1.27-10.56,2.54-3.5,1.27-6.56,2.93-9.18,4.95-2.62,2.03-4.78,4.69-6.5,8.01-1.72,3.31-2.67,7.09-2.87,11.35-.28,6.02,1.38,10.86,5,14.51,3.61,3.65,9.67,6.84,18.17,9.58.28.08,1.3.32,3.06.7,1.76.39,3.47.82,5.13,1.31,1.67.48,3.41,1.06,5.25,1.74,1.83.67,3.29,1.49,4.39,2.47,1.09.97,1.61,2.01,1.56,3.11-.08,1.67-.8,2.95-2.18,3.87-1.38.91-2.93,1.33-4.67,1.25-1.42-.07-2.57-.36-3.45-.88-.88-.52-1.49-1.13-1.83-1.84-.34-.71-.63-1.42-.86-2.12-.23-.7-.55-1.31-.95-1.8-.4-.5-.98-.77-1.72-.8-2.94-.14-7.41-.27-13.4-.41-5.99-.14-10.46-.28-13.4-.41-.5-.02-.85-.07-1.06-.16-.71.07-1.09.45-1.12,1.12.14,3.84.84,7.25,2.11,10.22,1.26,2.97,2.91,5.44,4.93,7.4,2.02,1.96,4.55,3.62,7.6,4.99,3.04,1.37,6.22,2.4,9.52,3.11,3.3.71,7.04,1.24,11.22,1.62,2.74-.01,5.27-.1,7.6-.26,2.33-.16,4.89-.47,7.69-.95,2.79-.47,5.3-1.1,7.52-1.89,2.22-.78,4.43-1.87,6.63-3.26,2.19-1.39,4.05-3.01,5.55-4.85,1.5-1.85,2.76-4.13,3.75-6.86,1-2.72,1.57-5.77,1.73-9.13.26-5.56-1.01-10.26-3.82-14.08-3.04-4.12-8.38-7.58-16.03-10.39Z"></path>
+  <path d="M193.07,29.64c-.86-2.21-1.84-4.27-2.94-6.18-1.1-1.91-2.03-3.33-2.8-4.28-.76-.95-1.45-1.72-2.07-2.31l-1.97-1.79c-7.47-6.11-19.98-9.25-37.51-9.43-1.03,0-2.64.01-4.83.06-2.19.05-3.89.07-5.1.06l-6.18-.06c-.18,0-.8-.02-1.85-.05-1.05-.03-1.98-.05-2.78-.06-.81,0-1.83,0-3.06.02-1.23.02-2.29.09-3.18.19-.88.1-1.77.23-2.65.39-.88.16-1.56.39-2.02.7-.46.31-.7.66-.7,1.07l-.81,77.87c-.02,1.47.41,3.09,1.27,4.87,7.47-.22,15.81-.28,25.04-.18,1.58.02,3.93.08,7.06.18,3.12.11,5.48.17,7.06.18l1.76.02c4.26.04,8.41-.53,12.43-1.72,4.02-1.19,7.76-3.01,11.23-5.45,3.46-2.45,6.49-5.36,9.08-8.76,2.59-3.39,4.65-7.41,6.16-12.07,1.52-4.65,2.31-9.66,2.36-15.03.03-3.46-.24-6.8-.83-10.05-.59-3.24-1.32-5.97-2.18-8.19ZM166.01,79.62c-1.03.8-2.24,1.9-3.46,1.21-1.63-.92-.14-2.28.17-3.38.61-2.24.58-4.47.51-6.75-.06-2.07,1.02-2.09,2.48-1.15,3.41,2.2,3.57,7.35.31,10.08ZM165.75,63.01c-1.15.49-3.3.72-2.51-1.11,1.56-3.63.67-7.23.71-11.09,3.92.77,5.54,3.14,5.6,6.52.05,2.62-1.34,4.63-3.8,5.67ZM168.97,44.1c-.97,1.16-2.44,2.13-3.87,1.45-1.81-.86-.3-2.28.07-3.35.58-1.67.33-3.17-.23-4.76-.44-1.26-1.88-2.85.05-3.82,1.67-.84,3.02.63,4.25,1.42,2.41,3.21,2.13,6.21-.25,9.06ZM170.15,26.39c-1.08.99-2.39,2.32-3.86,1.53-1.8-.97-.45-2.59-.02-3.84.51-1.5.38-2.8-.18-4.26-.46-1.21-2.02-2.83-.14-3.86,1.65-.9,3.05.51,4.4,1.62,1.58,2.94,2.95,5.92-.2,8.81ZM179.28,69.83c-1.09.71-2.31,1.83-3.55,1.13-1.69-.96-.2-2.33.17-3.41.71-2.11.75-4.16.13-6.27-.24-.81-.4-1.86.42-2.18.61-.24,1.61.1,2.27.48,3.38,1.95,3.65,7.56.56,10.25ZM180.18,54.12c-1.05.81-2.31,1.85-3.52,1.16-1.67-.94-.19-2.31.19-3.4.78-2.23.07-4.15-.81-6.13-.38-.86-.72-2.05.48-2.53.65-.26,1.63-.13,2.32.17,4.12,1.8,4.84,7.76,1.34,10.72ZM182.43,37.24c-1.06,1.57-2.66,2.97-4.42,2.18-2.03-.91-.04-2.51.24-3.73.42-1.84.19-3.51-.42-5.22-.32-.9-.64-1.84-.1-2.79.96-.59,1.85-.26,2.75.2,3.01,1.53,4.03,6.29,1.96,9.37Z"></path>
+</svg></div>
+  <span class="kicker">SDGA Tour · hoyos 15 · 16 · 17</span>
+  <div class="mono-teja" aria-hidden="true">🐒</div>
+  <h1>LA TRAMPA DEL MONO</h1>
+  <span class="band">DONDE TODO SE VA</span>
+  <p class="bajada">Mientras Gonza cierra con Nintendo los derechos del Mario Golf, jugá los tres hoyos que más tarjetas rompieron en San Diego.</p>
+  <button class="btn" id="jugar" type="button">JUGAR</button>
+  <span id="frase"></span>
+</section>
+
+<section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
+  <div class="mazo-cab">
+    <div>
+      <p class="mazo-tit">Elegí tu nivel de dificultad</p>
+      <p class="mazo-sub" id="mazo-sub">1 de 24 · ↔ pasar · más handicap, más difícil</p>
+    </div>
+    <button class="redondo" id="mazo-cerrar" type="button" aria-label="Volver a la portada">×</button>
+  </div>
+  <div class="mazo-pila"><div class="mazo-cartas" id="mazo-cartas"></div></div>
+  <div class="mazo-pie">
+    <button class="redondo claro" id="mazo-ant" type="button" aria-label="Más fácil">‹</button>
+    <div class="puntos" id="mazo-puntos" aria-hidden="true"></div>
+    <button class="redondo claro" id="mazo-sig" type="button" aria-label="Más difícil">›</button>
+  </div>
+</section>
+
+<section class="pantalla" id="fin" hidden>
+  <div class="card tarjeta">
+    <header>
+      <span class="teja" id="t-emoji">🥃</span>
+      <div><span class="kicker" style="color: var(--text-muted)">Tarjeta oficial</span><div class="quien" id="t-apodo">RORRO</div><span class="kicker" style="color: var(--text-muted)" id="t-nivel"></span></div>
+    </header>
+    <table>
+      <thead><tr><th>Hoyo</th><th class="num">Par</th><th class="num">Golpes</th><th>&nbsp;</th></tr></thead>
+      <tbody id="t-filas"></tbody>
+    </table>
+    <p class="extras" id="t-extras"></p>
+    <div class="firma" id="t-firma">
+      <button class="btn" id="firmar" type="button">FIRMÁ LA TARJETA ✍️</button>
+      <div class="reloj"><div id="reloj"></div></div>
+      <p>Tenés 10 segundos. Si no firmás, el Marshall te pone 110.</p>
+    </div>
+    <p class="firmada" id="t-firmada" hidden></p>
+    <div class="acciones" id="t-acciones" hidden>
+      <a class="btn ancho" id="compartir" href="#" target="_blank" rel="noopener">COMPARTIR AL GRUPO</a>
+      <button class="btn oscuro" id="copiar" type="button">COPIAR</button>
+      <button class="btn oscuro" id="otra" type="button">OTRA VUELTA</button>
+      <button class="btn oscuro ancho" id="cambiar" type="button">CAMBIAR JUGADOR</button>
+      <textarea id="copia" class="ancho" rows="4" readonly hidden></textarea>
+    </div>
+  </div>
+</section>
+
+<section class="pantalla portada" id="comunicado" hidden>
+  <div class="card comunicado" role="alertdialog" aria-labelledby="c-tit">
+    <div class="cab"><b id="c-tit">COMUNICADO OFICIAL</b><span>SDGA Intelligence Center &amp; Rules Office</span></div>
+    <div class="cuerpo">
+      <p id="c-texto"></p>
+      <div class="ciento">110 NETO</div>
+      <p>La decisión es inapelable. Y no, el Marshall no está comprado.</p>
+      <p class="firma-m">— 🇸🇪 El Marshall</p>
+      <button class="btn oscuro" id="acatar" type="button">ACATAR</button>
+    </div>
+  </div>
+</section>
+
+<script type="module">
+import * as M from './motor.js'
+import { PLANTEL as TODOS, EN_PRUEBA } from './plantel.js'
+import { CANCHA } from './cancha-grid.js'
+// por ahora, para probar, solo los de EN_PRUEBA
+const PLANTEL = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo))
+
+const C = {
+  g950: '#0c2b1c', g900: '#14402a', g700: '#1c5638', g500: '#2e7d4f', g300: '#6fae87',
+  cream: '#f4eeda', creamDark: '#e7dfc2', gold: '#e8c34a', red: '#bc4b3c', pino: '#0f3624', pinoLuz: '#1d5236',
+}
+const LIES = { tee: 'TEE', fairway: 'FAIRWAY', rough: 'ROUGH · 70%', bunker: 'BUNKER · 50%', green: 'GREEN · PUTTER' }
+const EMOJI = 'system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
+const PASO = 1 / 120
+const rng = Math.random
+const $ = (s) => document.querySelector(s)
+
+// ── récords en este teléfono ──
+const CLAVE = 'sdga-trampa-v1'
+function leer() { try { return JSON.parse(localStorage.getItem(CLAVE)) || {} } catch { return {} } }
+function guardar(d) { try { localStorage.setItem(CLAVE, JSON.stringify(d)) } catch {} }
+let datos = leer()
+datos.records ??= {}
+
+// ── cancha ──
+const campo = M.crearCampo()
+// la cancha es el dibujo tal cual: CANCHA.escala píxeles = 1 yarda
+const fondo = new Image()
+fondo.src = 'cancha.webp'
+const CREMA_DIBUJO = '#fbf8ee' // el color de afuera del dibujo
+
+const lienzo = $('#cancha')
+const ctx = lienzo.getContext('2d')
+let W = 0, H = 0, dpr = 1
+
+let estado = 'portada' // portada | elegir | intro | apuntar | tiro | anim | resultado | fin
+let ronda = null, tiro = null, anim = null, drag = null
+let estela = []
+const cam = { cx: M.MUNDO.w / 2, cy: M.MUNDO.h / 2, esc: 1, rot: 0, sy: 300 }
+let obj = { ...cam }
+let velCam = 2
+
+function medir() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2)
+  W = window.innerWidth
+  H = window.innerHeight
+  lienzo.width = Math.round(W * dpr)
+  lienzo.height = Math.round(H * dpr)
+  lienzo.style.width = W + 'px'
+  lienzo.style.height = H + 'px'
+}
+function zona() {
+  const top = $('#hud-top').hidden ? 20 : $('#hud-top').getBoundingClientRect().bottom
+  const bot = $('#hud-bot').hidden ? H - 20 : $('#hud-bot').getBoundingClientRect().top
+  return { top: top + 36, bot: bot - 34 }
+}
+function vistaGeneral() {
+  const esc = Math.min(W / (M.MUNDO.w + 20), H / (M.MUNDO.h + 20)) * 1.6
+  return { cx: M.MUNDO.w / 2, cy: M.MUNDO.h / 2, esc, rot: 0, sy: H / 2 }
+}
+/** Encuadra pelota abajo y bandera arriba, girando la cancha para que el hoyo quede "para adelante". */
+function encuadre(a, b) {
+  const { top, bot } = zona()
+  const d = Math.max(M.dist(a, b), 1)
+  const esc = Math.min(10, Math.max(1.1, (bot - top) / d)) // más zoom y el dibujo se ve borroso
+  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, esc, rot: -Math.PI / 2 - Math.atan2(b[1] - a[1], b[0] - a[0]), sy: (top + bot) / 2 }
+}
+function w2s(p, k = cam) {
+  const dx = p[0] - k.cx, dy = p[1] - k.cy, c = Math.cos(k.rot), s = Math.sin(k.rot)
+  return [W / 2 + (dx * c - dy * s) * k.esc, k.sy + (dx * s + dy * c) * k.esc]
+}
+function s2wVec(vx, vy, k = cam) {
+  const c = Math.cos(k.rot), s = Math.sin(k.rot)
+  return [(vx * c + vy * s) / k.esc, (-vx * s + vy * c) / k.esc]
+}
+const difAng = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b))
+
+/** Durante el tiro: corre el encuadre para que la pelota no se vaya de pantalla. */
+function seguir(pos) {
+  const [sx, sy] = w2s(pos, obj)
+  const { top, bot } = zona()
+  const mx = W * 0.15
+  let ox = 0, oy = 0
+  if (sx < mx) ox = sx - mx
+  else if (sx > W - mx) ox = sx - (W - mx)
+  if (sy < top - 10) oy = sy - (top - 10)
+  else if (sy > bot + 10) oy = sy - (bot + 10)
+  if (ox || oy) {
+    const [wx, wy] = s2wVec(ox, oy, obj)
+    obj.cx += wx
+    obj.cy += wy
+  }
+}
+
+// ── apuntar ──
+const largoMax = () => Math.max(140, Math.min(260, Math.min(W, H) * 0.42))
+function apunte() {
+  if (!drag) return null
+  const px = drag.x0 - drag.x, py = drag.y0 - drag.y
+  const len = Math.hypot(px, py)
+  if (len < 8) return null
+  const putt = M.enModoPutt(campo, ronda)
+  const p = Math.min(1, Math.pow(len / largoMax(), putt ? 1.6 : 1.35))
+  const [wx, wy] = s2wVec(px, py)
+  const ang = Math.atan2(wy, wx)
+  let q = 0
+  const tiempo = (performance.now() - drag.t0) / 1000 // el Águila: la línea se sacude con el tiempo
+  let plan = M.planTiro(campo, ronda, ang, p, 0, tiempo)
+  if (plan.bomba) {
+    // el óvalo de Miguelón late: la precisión es máxima a mitad de cada latido
+    drag.tZona ??= performance.now()
+    q = 0.5 - 0.5 * Math.cos((2 * Math.PI * (performance.now() - drag.tZona)) / 1000 / M.BOMBA.periodo)
+    plan = M.planTiro(campo, ronda, ang, p, q, tiempo)
+  } else drag.tZona = null
+  return { ang, p, q, tiempo, putt, plan, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97 }
+}
+
+lienzo.addEventListener('pointerdown', (e) => {
+  if (estado !== 'apuntar') return
+  drag = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, id: e.pointerId, t0: performance.now() }
+  lienzo.setPointerCapture(e.pointerId)
+  if (!datos.vistoTip) { datos.vistoTip = true; guardar(datos) }
+})
+lienzo.addEventListener('pointermove', (e) => { if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY } })
+lienzo.addEventListener('pointerup', (e) => {
+  if (!drag || e.pointerId !== drag.id) return
+  const a = apunte()
+  drag = null
+  if (a && estado === 'apuntar') pegar(a)
+})
+lienzo.addEventListener('pointercancel', () => { drag = null })
+
+function pegar(a) {
+  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo)
+  estela = []
+  estado = 'tiro'
+  hud()
+}
+
+// ── ciclo ──
+let ultimo = performance.now(), acc = 0
+function cuadro(t) {
+  const dt = Math.min(0.05, (t - ultimo) / 1000)
+  ultimo = t
+  actualizar(dt)
+  dibujar()
+  requestAnimationFrame(cuadro)
+}
+function actualizar(dt) {
+  if (estado === 'tiro' && tiro) {
+    const h = M.hoyoActual(ronda)
+    acc += dt
+    while (acc >= PASO && tiro.fase !== 'quieta') { M.avanzar(campo, tiro, PASO, h.pin); acc -= PASO }
+    estela.push([tiro.pos[0], tiro.pos[1], tiro.alt])
+    if (estela.length > 70) estela.shift()
+    seguir(tiro.pos)
+    if (tiro.fase === 'quieta') { acc = 0; alReposo() }
+  }
+  if (ronda && estado !== 'tiro') {
+    // con la pelota quieta, los monos que cazan van hacia ella
+    const llego = M.moverMonos(ronda.monos, dt, estado === 'apuntar' ? ronda.pelota : null)
+    if (llego && estado === 'apuntar') llegaronMonos(llego)
+  }
+  pintarVoz()
+  if (firmaHasta) $('#reloj').style.width = `${Math.max(0, (firmaHasta - performance.now()) / (M.SEGUNDOS_FIRMA * 10))}%`
+  if (anim) {
+    anim.t += dt
+    if (anim.t >= anim.T) { const fin = anim.fin; anim = null; fin() }
+  }
+  const k = 1 - Math.exp(-dt * velCam)
+  cam.cx += (obj.cx - cam.cx) * k
+  cam.cy += (obj.cy - cam.cy) * k
+  cam.esc += (obj.esc - cam.esc) * k
+  cam.sy += (obj.sy - cam.sy) * k
+  cam.rot += difAng(obj.rot, cam.rot) * k
+}
+
+function alReposo() {
+  const h = M.hoyoActual(ronda)
+  const donde = [...tiro.pos]
+  const largo = M.dist(ronda.desde, h.pin)
+  const res = M.resolverReposo(campo, ronda, tiro, rng)
+  const dicho = M.comentar(rng, res, tiro, h, ronda.jugador)
+  if (res.tipo === 'embocada') {
+    const adulado = M.habilidadDe(ronda.jugador)?.adulado
+    const frase = adulado ? null : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
+    cerrar(frase)
+    return
+  }
+  relatar(dicho)
+  if (res.tipo === 'mono-malo' || res.tipo === 'mono-bueno') {
+    estado = 'anim'
+    anim = { tipo: 'mono', bueno: res.tipo === 'mono-bueno', desde: donde, hasta: [...ronda.pelota], t: 0, T: 2, fin: siguienteTiro }
+    return
+  }
+  if (res.tipo === 'mono-ladron') {
+    estado = 'anim'
+    anim = { tipo: 'ladron', mono: res.mono, hasta: [...ronda.pelota], t: 0, T: 2.2, fin: siguienteTiro }
+    return
+  }
+  if (res.tipo === 'afuera') {
+    estado = 'anim'
+    anim = { tipo: 'afuera', desde: donde, hasta: [...ronda.pelota], t: 0, T: 1.2, fin: siguienteTiro }
+    return
+  }
+  siguienteTiro()
+}
+function siguienteTiro() {
+  tiro = null
+  estela = []
+  if (M.necesitaLP(ronda)) { levantarVuelta(); return }
+  estado = 'apuntar'
+  obj = encuadre(ronda.pelota, M.hoyoActual(ronda).pin)
+  velCam = 3.5
+  M.despertarMonos(ronda.monos, ronda.pelota)
+  hud()
+}
+
+/** Los monos llegaron antes del golpe: se la llevan corriendo y volvés al tee del hoyo con un golpe de multa. */
+function llegaronMonos(mono) {
+  drag = null
+  M.calmarMonos(ronda.monos) // el ladrón sale corriendo a sus pinos
+  estado = 'anim'
+  anim = {
+    tipo: 'ladron', mono, lp: true, t: 0, T: 1.6,
+    fin: () => {
+      M.monosLlegaron(ronda)
+      const adulado = M.habilidadDe(ronda.jugador)?.adulado
+      relatar({ lg: M.elegir(rng, adulado ? M.ADULACION.mono : M.RELATO.monosLlegan) })
+      siguienteTiro()
+    },
+  }
+}
+
+/** LP: levantar la pelota es perder la vuelta entera. */
+function levantarVuelta() {
+  estado = 'resultado'
+  drag = null
+  const n = M.levantar(ronda)
+  banda({ kicker: `Levantaste en el ${n}`, grande: 'LP 💅', banda: 'VUELTA PERDIDA', verso: 'Entraste en la lista LP 💅' }, 2600, tarjetaFinal)
+}
+
+// ── hoyos ──
+function empezar(jugador) {
+  ronda = M.nuevaRonda(jugador, rng)
+  datos.ultimo = jugador.apodo
+  guardar(datos)
+  for (const id of ['portada', 'elegir', 'fin', 'comunicado']) $('#' + id).hidden = true
+  $('#hud-top').hidden = false
+  $('#hud-bot').hidden = false
+  introHoyo()
+}
+function introHoyo() {
+  const h = M.hoyoActual(ronda)
+  estado = 'intro'
+  tiro = null
+  estela = []
+  hud()
+  const fin = encuadre(h.tee, h.pin)
+  Object.assign(cam, { ...fin, cx: h.pin[0], cy: h.pin[1], esc: 4.5 })
+  obj = fin
+  velCam = 1.3
+  banda({ kicker: 'La Trampa del Mono', grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${Math.round(M.dist(h.tee, h.pin))} YD`, verso: h.verso }, 2800, () => {
+    estado = 'apuntar'
+    velCam = 3.5
+    M.despertarMonos(ronda.monos, ronda.pelota)
+    hud()
+    const hab = M.habilidadDe(ronda.jugador)
+    if (hab && ronda.idx === 0) relatar({ lg: `✨ ${hab.nombre}`, verso: hab.texto })
+  })
+}
+/** Hoyo embocado: el resultado y al siguiente. */
+function cerrar(frase) {
+  estado = 'resultado'
+  const fila = M.cerrarHoyo(ronda, rng)
+  const nombre = M.nombreResultado(fila.golpes, fila.par, false)
+  const linea = frase ?? M.fraseResultado(rng, nombre, ronda.jugador)
+  const { vsPar } = M.totales(ronda.tarjeta)
+  banda({ kicker: `Hoyo ${fila.n} · ${fila.golpes} golpes`, grande: nombre, banda: `VAS ${M.formatoPar(vsPar)}`, verso: linea }, 2600, () => {
+    if (ronda.terminada) tarjetaFinal()
+    else introHoyo()
+  })
+}
+
+// ── banda central ──
+let bandaLuego = null, bandaTimer = 0
+function banda({ kicker, grande, banda: b, verso }, ms, luego) {
+  $('#b-kicker').textContent = kicker
+  $('#b-grande').textContent = grande
+  $('#b-banda').textContent = b
+  $('#b-verso').textContent = verso ?? ''
+  $('#banda').classList.add('ver')
+  bandaLuego = luego
+  clearTimeout(bandaTimer)
+  bandaTimer = setTimeout(cerrarBanda, ms)
+}
+function cerrarBanda() {
+  clearTimeout(bandaTimer)
+  $('#banda').classList.remove('ver')
+  const f = bandaLuego
+  bandaLuego = null
+  f?.()
+}
+$('#banda').addEventListener('click', () => { if (bandaLuego) cerrarBanda() })
+
+// ── la voz de LG (franja fija del marcador): aviso de monos > relato > tip ──
+let voz = null // { lg, extra, hasta }
+let vozPintada = ''
+function relatar({ lg, excusa, verso }) {
+  if (!lg) return
+  const extra = excusa ? `${ronda.jugador.emoji} «${excusa}»` : verso ? `“${verso}”` : ''
+  voz = { lg, extra, hasta: performance.now() + 4200 }
+}
+function pintarVoz() {
+  let clase = 'vacia', dice = 'mirando…', extra = ''
+  if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza')) {
+    clase = 'alerta'; dice = '🐒 ¡VIENEN LOS MONOS! PEGALE'; extra = 'Si llegan, se la llevan: al tee con un golpe de multa'
+  } else if (voz && performance.now() < voz.hasta) {
+    clase = ''; dice = voz.lg; extra = voz.extra
+  } else if (estado === 'apuntar' && !datos.vistoTip) {
+    clase = ''; dice = '👆 Arrastrá para atrás y soltá'; extra = 'El óvalo es donde puede caer'
+  }
+  const clave = clase + dice + extra
+  if (clave === vozPintada) return
+  vozPintada = clave
+  $('#voz').className = clase
+  $('#r-dice').textContent = dice
+  $('#r-extra').textContent = extra
+}
+
+// ── HUD ──
+function hud() {
+  if (!ronda || ronda.terminada) return
+  const h = M.hoyoActual(ronda)
+  $('#h-num').textContent = `HOYO ${h.n}`
+  $('#h-par').textContent = `PAR ${h.par}`
+  $('#h-golpe').textContent = `Golpe ${ronda.golpes + (estado === 'tiro' ? 0 : 1)}`
+  $('#h-dist').textContent = `${Math.round(M.dist(ronda.pelota, h.pin))} yd al pin`
+  const ter = M.terreno(campo, ronda.pelota)
+  const ajeno = ter.hoyo && ter.hoyo !== h.n && ter.tipo !== 'tee' ? ` · DEL ${ter.hoyo}` : ''
+  $('#lie').textContent = (ter.tipo === 'green' && ajeno ? 'GREEN' : LIES[ronda.lie] ?? ronda.lie.toUpperCase()) + ajeno
+  $('#v-kmh').textContent = ronda.viento.kmh ? `${ronda.viento.kmh} km/h` : 'SIN VIENTO'
+  $('#v-flecha').hidden = !ronda.viento.kmh
+  const j = ronda.jugador
+  $('#j-emoji').textContent = j.emoji
+  $('#j-sinfoto').textContent = j.foto ? '' : j.emoji
+  $('#j-sinfoto').hidden = !!j.foto
+  $('#j-foto').hidden = !j.foto
+  if (j.foto && $('#j-foto').getAttribute('src') !== j.foto) { $('#j-foto').src = j.foto; $('#j-foto').alt = j.apodo }
+  $('#j-apodo').textContent = j.apodo.toUpperCase()
+  $('#j-hcp').textContent = `HCP ${hcpTxt(ronda.jugador)}`
+  $('#j-total').textContent = M.formatoPar(M.totales(ronda.tarjeta).vsPar)
+  $('#lp').disabled = estado !== 'apuntar'
+}
+let lpArmado = 0
+$('#lp').addEventListener('click', () => {
+  if (estado !== 'apuntar') return
+  if (lpArmado && performance.now() - lpArmado < 2500) {
+    lpArmado = 0
+    $('#lp').textContent = 'LP 💅'
+    levantarVuelta()
+    return
+  }
+  lpArmado = performance.now()
+  $('#lp').textContent = '¿PERDÉS LA VUELTA?'
+  setTimeout(() => {
+    if (lpArmado && performance.now() - lpArmado >= 2400) { lpArmado = 0; $('#lp').textContent = 'LP 💅' }
+  }, 2500)
+})
+
+// ── dibujo ──
+function dibujar() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.fillStyle = CREMA_DIBUJO
+  ctx.fillRect(0, 0, W, H)
+  const c = Math.cos(cam.rot) * cam.esc, s = Math.sin(cam.rot) * cam.esc
+  ctx.setTransform(dpr * c, dpr * s, -dpr * s, dpr * c, dpr * (W / 2 - (c * cam.cx - s * cam.cy)), dpr * (cam.sy - (s * cam.cx + c * cam.cy)))
+  const hoyo = ronda && !ronda.terminada ? M.hoyoActual(ronda) : null
+
+  if (fondo.complete && fondo.naturalWidth) {
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(fondo, 0, 0, fondo.naturalWidth / CANCHA.escala, fondo.naturalHeight / CANCHA.escala)
+  }
+
+  // caída del green cuando hay que patear
+  if (hoyo && estado === 'apuntar' && M.enModoPutt(campo, ronda)) {
+    const [gx, gy] = hoyo.pin
+    const ca = Math.atan2(hoyo.caida[1], hoyo.caida[0])
+    ctx.strokeStyle = 'rgba(20,64,42,.45)'
+    ctx.lineWidth = 0.35
+    ctx.lineCap = 'round'
+    for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) {
+      const x = gx + i * 4 + 2, y = gy + j * 4 + 2
+      if (M.celda(campo, [x, y]) !== 'g') continue
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.rotate(ca)
+      ctx.beginPath()
+      ctx.moveTo(-1, -0.9); ctx.lineTo(0.2, 0); ctx.lineTo(-1, 0.9)
+      ctx.stroke()
+      ctx.restore()
+    }
+  }
+
+  // hoyos
+  ctx.fillStyle = '#0a1f14'
+  const rHoyo = Math.max(M.FISICA.radioHoyo, 1.8 / cam.esc)
+  for (const h of M.HOYOS) { ctx.beginPath(); ctx.arc(h.pin[0], h.pin[1], rHoyo, 0, 7); ctx.fill() }
+
+  // ── encima, derecho ──
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  for (const h of M.HOYOS) {
+    const [tx, ty] = w2s(h.tee)
+    ctx.fillStyle = 'rgba(244,238,218,.85)'
+    ctx.font = '13px Anton, "Arial Narrow", sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(`TEE ${h.n}`, tx, ty + 22)
+    if (hoyo && h.n === hoyo.n) bandera(w2s(h.pin), h.n, true) // las otras banderas ya están en el dibujo
+  }
+
+  // estela
+  for (let i = 0; i < estela.length; i += 2) {
+    const [x, y, alt] = estela[i]
+    const [sx, sy] = w2s([x, y])
+    ctx.fillStyle = `rgba(244,238,218,${(0.35 * i) / estela.length})`
+    ctx.beginPath()
+    ctx.arc(sx, sy - alt * levante(), 1.6, 0, 7)
+    ctx.fill()
+  }
+
+  dibujarMonos()
+  if (ronda && !ronda.terminada) {
+    if (anim) dibujarAnim()
+    else if (tiro) pelota(tiro.pos, tiro.alt)
+    else pelota(ronda.pelota, 0)
+  }
+  const a = estado === 'apuntar' ? apunte() : null
+  if (a) dibujarApunte(a)
+
+  if (ronda && !ronda.terminada) {
+    const ang = ronda.viento.ang + cam.rot
+    const f = $('#v-flecha')
+    if (Math.abs((f._ang ?? 99) - ang) > 0.01) { f.style.transform = `rotate(${ang}rad)`; f._ang = ang }
+  }
+}
+const levante = () => Math.min(cam.esc * 0.5, 2.2)
+const tamMono = () => Math.max(22, Math.min(36, cam.esc * 3.4))
+
+function dibujarMonos() {
+  if (!ronda) return
+  const tam = tamMono()
+  const ahora = performance.now() / 1000
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  for (const s of ronda.monos) {
+    let [x, y] = w2s(s.pos)
+    const activo = M.monoActivo(s)
+    const salta = activo && !(s.modo === 'caza' && s.reaccion > 0) ? Math.abs(Math.sin(ahora * 12 + s.m.fase)) * 4 : 0
+    const afuera = x < 16 || x > W - 16 || y < 16 || y > H - 16
+    if (afuera) {
+      if (s.modo !== 'caza') continue
+      // un mono que viene y no se ve: marca en el borde
+      x = Math.max(26, Math.min(W - 26, x))
+      y = Math.max(26, Math.min(H - 26, y))
+      ctx.fillStyle = C.red
+      ctx.beginPath()
+      ctx.arc(x, y, 17, 0, 7)
+      ctx.fill()
+      ctx.font = `18px ${EMOJI}`
+      ctx.fillText('🐒', x, y + 1)
+      continue
+    }
+    ctx.globalAlpha = activo ? 1 : 0.5 // esperando entre los pinos se ve a medias
+    ctx.font = `${tam}px ${EMOJI}`
+    ctx.fillText('🐒', x, y - salta)
+    ctx.globalAlpha = 1
+    if (s.modo === 'caza' && s.reaccion > 0) {
+      // se dio cuenta
+      ctx.fillStyle = C.red
+      ctx.beginPath()
+      ctx.arc(x + tam * 0.45, y - tam * 0.7, 9, 0, 7)
+      ctx.fill()
+      ctx.fillStyle = C.cream
+      ctx.font = '14px Anton, "Arial Narrow", sans-serif'
+      ctx.fillText('!', x + tam * 0.45, y - tam * 0.7 + 1)
+    }
+  }
+  ctx.textBaseline = 'alphabetic'
+}
+
+function bandera([x, y], n, actual) {
+  ctx.globalAlpha = actual ? 1 : 0.55
+  ctx.strokeStyle = C.cream
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(x, y)
+  ctx.lineTo(x, y - 34)
+  ctx.stroke()
+  ctx.fillStyle = actual ? C.gold : C.cream
+  ctx.beginPath()
+  ctx.moveTo(x + 1, y - 34)
+  ctx.lineTo(x + 23, y - 28)
+  ctx.lineTo(x + 1, y - 21)
+  ctx.closePath()
+  ctx.fill()
+  ctx.fillStyle = C.g900
+  ctx.font = '10px Anton, "Arial Narrow", sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText(String(n), x + 9, y - 24.5)
+  ctx.globalAlpha = 1
+}
+
+function pelota(p, alt, alfa = 1) {
+  const [x, y] = w2s(p)
+  const r = Math.max(3.2, Math.min(6, cam.esc * 0.42)) * (1 + alt / 50)
+  ctx.globalAlpha = alfa * 0.35
+  ctx.fillStyle = '#000'
+  ctx.beginPath()
+  ctx.ellipse(x + 1, y + 1, r * 0.9, r * 0.6, 0, 0, 7)
+  ctx.fill()
+  ctx.globalAlpha = alfa
+  ctx.fillStyle = '#ffffff'
+  ctx.strokeStyle = 'rgba(12,43,28,.55)'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.arc(x, y - alt * levante(), r, 0, 7)
+  ctx.fill()
+  ctx.stroke()
+  ctx.globalAlpha = 1
+}
+
+function dibujarAnim() {
+  const t = anim.t
+  if (anim.tipo === 'ladron') {
+    if (t < 1.3) {
+      const [mx, my] = w2s(anim.mono.pos)
+      const tam = tamMono()
+      ctx.fillStyle = '#ffffff'
+      ctx.strokeStyle = 'rgba(12,43,28,.55)'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.arc(mx + tam * 0.4, my - tam * 0.55, 3.5, 0, 7)
+      ctx.fill()
+      ctx.stroke()
+    } else if (!anim.lp) pelota(anim.hasta, 0, Math.min(1, (t - 1.3) / 0.4))
+    return
+  }
+  if (anim.tipo === 'afuera') {
+    if (t < 0.55) pelota(anim.desde, 0, 1 - t / 0.55)
+    else pelota(anim.hasta, 0, Math.min(1, (t - 0.55) / 0.4))
+    return
+  }
+  // el Mono aparece, agarra la pelota y la tira
+  const [mx, my] = w2s(anim.desde)
+  const aparece = Math.min(1, t / 0.35)
+  const vuela = Math.max(0, Math.min(1, (t - 0.6) / 0.8))
+  const se_va = Math.max(0, (t - 1.5) / 0.5)
+  ctx.globalAlpha = 1 - se_va
+  ctx.font = `${Math.round(34 * aparece)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('🐒', mx, my - 18 - Math.sin(t * 9) * 3 * aparece)
+  ctx.textBaseline = 'alphabetic'
+  ctx.globalAlpha = 1
+  if (vuela <= 0) pelota(anim.desde, 0)
+  else {
+    const p = [anim.desde[0] + (anim.hasta[0] - anim.desde[0]) * vuela, anim.desde[1] + (anim.hasta[1] - anim.desde[1]) * vuela]
+    pelota(p, Math.sin(Math.PI * vuela) * (anim.bueno ? 25 : 10))
+  }
+}
+
+function dibujarApunte(a) {
+  const [bx, by] = w2s(ronda.pelota)
+  const [dx, dy] = w2s(a.destino)
+  const bomba = a.plan.bomba
+  const col = a.fondo || (bomba && !a.plan.perfecta) ? C.red : bomba ? C.gold : C.cream
+  ctx.strokeStyle = 'rgba(244,238,218,.3)'
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(drag.x0, drag.y0)
+  ctx.lineTo(drag.x, drag.y)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(drag.x, drag.y, 10, 0, 7)
+  ctx.stroke()
+  ctx.lineCap = 'round'
+  if (a.putt) {
+    // putt: solo la dirección y la fuerza; la distancia la medís vos
+    const dir = a.ang + cam.rot
+    ctx.strokeStyle = C.cream
+    ctx.lineWidth = 3
+    ctx.setLineDash([1, 8])
+    ctx.beginPath()
+    ctx.moveTo(bx + Math.cos(dir) * 14, by + Math.sin(dir) * 14)
+    ctx.lineTo(bx + Math.cos(dir) * 80, by + Math.sin(dir) * 80)
+    ctx.stroke()
+    ctx.setLineDash([])
+    ctx.strokeStyle = 'rgba(12,43,28,.55)'
+    ctx.lineWidth = 5
+    ctx.beginPath()
+    ctx.arc(bx, by, 20, 0, 7)
+    ctx.stroke()
+    ctx.strokeStyle = C.gold
+    ctx.beginPath()
+    ctx.arc(bx, by, 20, -Math.PI / 2, -Math.PI / 2 + a.p * 2 * Math.PI)
+    ctx.stroke()
+    return
+  }
+  ctx.strokeStyle = col
+  ctx.lineWidth = 3
+  ctx.setLineDash([1, 8])
+  ctx.beginPath()
+  ctx.moveTo(bx, by)
+  if (a.plan.control) {
+    // la comba del Mago: sale para afuera y vuelve a la línea
+    const [cx, cy] = w2s(a.plan.control)
+    ctx.quadraticCurveTo(cx, cy, dx, dy)
+  } else ctx.lineTo(dx, dy)
+  ctx.stroke()
+  ctx.setLineDash([])
+  // zona de pique: ±1,5 desvíos en largo y en ancho
+  const largo = Math.max(1.5 * a.disp.carry * a.alcance, 1.5) * cam.esc
+  const ancho = Math.max(a.alcance * Math.tan(1.5 * a.disp.ang), 1.5) * cam.esc
+  ctx.beginPath()
+  ctx.ellipse(dx, dy, largo, ancho, a.plan.cuerda + cam.rot, 0, 7)
+  ctx.fillStyle = a.fondo || (bomba && !a.plan.perfecta) ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.4)' : 'rgba(244,238,218,.18)'
+  ctx.fill()
+  ctx.lineWidth = 2
+  ctx.setLineDash([5, 5])
+  ctx.stroke()
+  ctx.setLineDash([])
+  if (a.plan.aguila) {
+    // el embudo del Águila: si la línea pasa por acá cuando soltás, sale derecha
+    const base = a.ang + cam.rot
+    const ab = (M.AGUILA.ventana * Math.PI) / 180 * 2.2
+    ctx.strokeStyle = a.plan.aguila.enVentana ? C.gold : 'rgba(244,238,218,.55)'
+    ctx.lineWidth = a.plan.aguila.enVentana ? 4 : 2.5
+    ctx.beginPath()
+    ctx.moveTo(bx + Math.cos(base - ab) * 54, by + Math.sin(base - ab) * 54)
+    ctx.lineTo(bx + Math.cos(base) * 16, by + Math.sin(base) * 16)
+    ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
+    ctx.stroke()
+  }
+  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.comba ? ' · COMBA' : a.fondo ? ' · A FONDO' : ''
+  const txt = `≈ ${Math.round(a.alcance)} YD${extra}`
+  ctx.font = '16px Anton, "Arial Narrow", sans-serif'
+  ctx.textAlign = 'center'
+  const w = ctx.measureText(txt).width + 16
+  const ly = Math.max(dy - Math.max(largo, ancho) - 18, zona().top - 10) // que no lo tape el marcador
+  ctx.fillStyle = 'rgba(12,43,28,.85)'
+  ctx.beginPath()
+  ctx.roundRect(dx - w / 2, ly - 16, w, 24, 12)
+  ctx.fill()
+  ctx.fillStyle = col
+  ctx.fillText(txt, dx, ly + 2)
+}
+
+// ── tarjeta final ──
+let firmaTimer = 0, firmaHasta = 0, firmada = false
+function tarjetaFinal() {
+  estado = 'fin'
+  $('#hud-top').hidden = true
+  $('#hud-bot').hidden = true
+  voz = null
+  obj = vistaGeneral()
+  velCam = 1
+  const j = ronda.jugador
+  $('#t-emoji').textContent = j.emoji
+  $('#t-apodo').textContent = j.apodo.toUpperCase()
+  const dif = M.dificultad(j.hcp)
+  $('#t-nivel').textContent = `HCP ${hcpTxt(j)} · ${dif.nombre}`
+  const filas = ronda.tarjeta.map((f) => {
+    const nombre = M.nombreResultado(f.golpes, f.par, f.lp)
+    const marca = f.lp || f.golpes > f.par ? 'sobre' : f.golpes < f.par ? 'bajo' : ''
+    return `<tr><td>${f.n}</td><td class="num">${f.par}</td><td class="num">${f.golpes ?? '—'}</td><td class="res"><i class="${marca}"></i>${nombre === 'LP' ? 'LP 💅' : nombre}</td></tr>`
+  })
+  const t = M.totales(ronda.tarjeta)
+  filas.push(`<tr class="total"><td>TOTAL</td><td class="num">${t.par}</td><td class="num">${t.golpes ?? '—'}</td><td class="res"><span class="band" style="font-family: var(--font-display); font-size: 22px; font-weight: 400">${M.formatoPar(t.vsPar)}</span></td></tr>`)
+  $('#t-filas').innerHTML = filas.join('')
+  $('#t-extras').textContent = `🐒 Monos: ${ronda.monosMalos} malos · ${ronda.monosBuenos} buenos · ${ronda.robos} robos${ronda.lp ? ` · LP en el ${ronda.lp}: no cuenta para el récord` : ''}`
+  $('#t-firma').hidden = false
+  $('#t-firmada').hidden = true
+  $('#t-acciones').hidden = true
+  $('#copia').hidden = true
+  $('#fin').hidden = false
+  firmaHasta = performance.now() + M.SEGUNDOS_FIRMA * 1000
+  clearTimeout(firmaTimer)
+  firmaTimer = setTimeout(sinFirma, M.SEGUNDOS_FIRMA * 1000)
+}
+$('#firmar').addEventListener('click', () => {
+  clearTimeout(firmaTimer)
+  firmaHasta = 0
+  firmada = true
+  const { vsPar } = M.totales(ronda.tarjeta)
+  const apodo = ronda.jugador.apodo
+  const antes = datos.records[apodo]
+  const record = vsPar != null && (antes === undefined || vsPar < antes)
+  if (record) { datos.records[apodo] = vsPar; guardar(datos) }
+  $('#t-firma').hidden = true
+  $('#t-firmada').hidden = false
+  $('#t-firmada').textContent = vsPar == null ? 'Firmada ✍️ · Vuelta LP: no cuenta para el récord' : record ? `Firmada ✍️ · ¡Récord personal! (${antes === undefined ? 'primera vuelta' : `antes ${M.formatoPar(antes)}`})` : `Firmada ✍️ · Tu récord: ${M.formatoPar(antes)}`
+  acciones()
+})
+function sinFirma() {
+  firmada = false
+  firmaHasta = 0
+  const j = ronda.jugador
+  $('#c-texto').textContent = `Se informa que ${j.emoji} ${j.apodo} no firmó la tarjeta de la Trampa del Mono dentro del plazo reglamentario. La vuelta se computa con:`
+  $('#fin').hidden = true
+  $('#comunicado').hidden = false
+  $('#acatar').focus()
+}
+$('#acatar').addEventListener('click', () => {
+  $('#comunicado').hidden = true
+  $('#fin').hidden = false
+  $('#t-firma').hidden = true
+  $('#t-firmada').hidden = false
+  $('#t-firmada').textContent = 'Sin firmar · 110 neto'
+  acciones()
+})
+function acciones() {
+  $('#compartir').href = 'https://wa.me/?text=' + encodeURIComponent(M.textoCompartir(ronda, firmada))
+  $('#copiar').textContent = 'COPIAR'
+  $('#t-acciones').hidden = false
+}
+$('#copiar').addEventListener('click', () => {
+  const texto = M.textoCompartir(ronda, firmada)
+  const mostrar = () => { const ta = $('#copia'); ta.value = texto; ta.hidden = false; ta.focus(); ta.select() }
+  if (!navigator.clipboard) return mostrar()
+  navigator.clipboard.writeText(texto).then(() => { $('#copiar').textContent = 'COPIADO ✓' }, mostrar)
+})
+$('#otra').addEventListener('click', () => empezar(ronda.jugador))
+$('#cambiar').addEventListener('click', mostrarElegir)
+
+// ── portada y plantel ──
+// ── mazo de cartas (como "Participantes" de los Playoffs de la FedE Cup) ──
+// Dedo a la izquierda trae la siguiente (más difícil), a la derecha vuelve a la anterior; atrás asoma la
+// que viene según para dónde arrastres. El mazo da la vuelta.
+const SWIPE_OUT = 90
+const FLY_MS = 260
+const SNAP_MS = 320
+const FLICK_V = 0.45
+let mazoI = 0
+let mazoPeek = 'next'
+let mazoAnim = false
+let mazoDrag = null
+const cartasDom = new Map()
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+// handicap aproximado (lo pasó Rorro, no está en la base): con ≈
+const hcpTxt = (j) => (j.hcp == null ? '—' : `${j.aprox ? '≈' : ''}${j.hcp}`)
+const fmtNeto = (v) => (v == null ? '—' : v === 0 ? 'E' : v > 0 ? `+${v}` : `−${-v}`)
+const enMazo = (k) => PLANTEL[((k % PLANTEL.length) + PLANTEL.length) % PLANTEL.length]
+
+function cartaDe(j) {
+  if (cartasDom.has(j.apodo)) return cartasDom.get(j.apodo)
+  const dif = M.dificultad(j.hcp)
+  const hab = M.habilidadDe(j)
+  const rec = datos.records[j.apodo]
+  const s = j.stats
+  const nivel = PLANTEL.indexOf(j) + 1
+  const el = document.createElement('div')
+  el.className = 'envoltorio'
+  el.innerHTML = `<article class="carta">
+    <div class="carta-foto">
+      ${j.foto ? `<img src="${j.foto}" alt="${esc(j.apodo)}" draggable="false">` : `<div class="carta-emoji" aria-hidden="true">${j.emoji}</div>`}
+      <div class="carta-degrade"></div>
+      <div class="carta-marcas">
+        <span class="carta-nivel">Nivel ${nivel} · HCP ${hcpTxt(j)}</span>
+        ${hab ? `<span class="carta-hab">✨ ${esc(hab.nombre)}</span>` : ''}
+      </div>
+      <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
+      <div class="carta-nombre"><h3>${esc(j.apodo)}</h3><span class="teja" aria-hidden="true">${j.emoji}</span></div>
+    </div>
+    <div class="carta-cuerpo">
+      ${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
+      <dl>
+        <div><dt>HCP</dt><dd>${dif.cargado ? hcpTxt(j) : `—<span class="sub">juega ${dif.hcp}</span>`}</dd></div>
+        <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span></dd></div>
+        <div><dt>Récord</dt><dd>${rec === undefined ? '—' : M.formatoPar(rec)}</dd></div>
+        <div><dt>Rondas</dt><dd>${s ? s.tarjetas : '—'}</dd></div>
+        <div><dt>Prom. neto</dt><dd>${fmtNeto(s?.netoPromedio)}</dd></div>
+        <div><dt>Mejor neto</dt><dd>${fmtNeto(s?.mejorNeto)}</dd></div>
+      </dl>
+      <button class="carta-jugar" type="button">Jugar con ${esc(j.apodo)}</button>
+    </div>
+  </article>`
+  el.querySelector('.carta-jugar').addEventListener('click', () => empezar(j))
+  el.addEventListener('pointerdown', mazoDown)
+  el.addEventListener('pointermove', mazoMove)
+  el.addEventListener('pointerup', mazoUp)
+  el.addEventListener('pointercancel', mazoUp)
+  cartasDom.set(j.apodo, el)
+  return el
+}
+
+function pintarMazo() {
+  const n = PLANTEL.length
+  const actual = enMazo(mazoI)
+  const atras = enMazo(mazoPeek === 'next' ? mazoI + 1 : mazoI - 1)
+  const cont = $('#mazo-cartas')
+  const top = cartaDe(actual)
+  const back = atras !== actual ? cartaDe(atras) : null
+  for (const el of [...cont.children]) if (el !== top && el !== back) el.remove()
+  if (back) { back.className = 'envoltorio atras'; back.setAttribute('aria-hidden', 'true'); cont.prepend(back) }
+  top.className = 'envoltorio arriba'
+  top.removeAttribute('aria-hidden')
+  cont.append(top)
+  for (const el of [top, back]) if (el) el.style.transition = 'none'
+  pintarArrastre(0)
+  const i = ((mazoI % n) + n) % n
+  $('#mazo-sub').textContent = `${i + 1} de ${n} · ↔ pasar · más handicap, más difícil`
+  $('#mazo-puntos').innerHTML = PLANTEL.map((_, k) => `<span class="${k === i ? 'activo' : ''}"></span>`).join('')
+}
+function cartasActivas() {
+  const cont = $('#mazo-cartas')
+  return { top: cont.querySelector('.arriba'), back: cont.querySelector('.atras') }
+}
+function pintarArrastre(dx) {
+  const { top, back } = cartasActivas()
+  if (top) top.style.transform = `translate3d(${dx}px,0,0) rotate(${dx / 22}deg)`
+  if (back) {
+    const p = Math.min(1, Math.abs(dx) / (SWIPE_OUT * 1.6))
+    back.style.transform = `translate3d(0,${12 * (1 - p)}px,0) scale(${0.95 + 0.05 * p})`
+    back.style.opacity = String(0.7 + 0.3 * p)
+  }
+}
+function elegirAtras(step) {
+  if (mazoPeek === step) return
+  mazoPeek = step
+  const dx = mazoDrag?.dx ?? 0
+  pintarMazo()
+  pintarArrastre(dx)
+}
+function volarMazo(step) {
+  if (mazoAnim || PLANTEL.length < 2) return
+  mazoAnim = true
+  const lanzar = () => {
+    const { top, back } = cartasActivas()
+    const w = window.innerWidth * 1.2 * (step === 'next' ? -1 : 1)
+    if (top) { top.style.transition = `transform ${FLY_MS}ms cubic-bezier(.3,.7,.4,1)`; top.style.transform = `translate3d(${w}px,0,0) rotate(${w / 22}deg)` }
+    if (back) { back.style.transition = `transform ${FLY_MS}ms ease-out, opacity ${FLY_MS}ms ease-out`; back.style.transform = 'none'; back.style.opacity = '1' }
+    setTimeout(() => {
+      mazoAnim = false
+      mazoI += step === 'next' ? 1 : -1
+      pintarMazo()
+    }, FLY_MS)
+  }
+  if (mazoPeek !== step) {
+    mazoPeek = step
+    pintarMazo()
+    setTimeout(lanzar, 20)
+  } else lanzar()
+}
+function mazoDown(e) {
+  if (mazoAnim || e.target.closest('button') || !e.currentTarget.classList.contains('arriba')) return
+  mazoDrag = { x: e.clientX, y: e.clientY, id: e.pointerId, eje: null, dx: 0, lastX: e.clientX, lastT: performance.now(), v: 0 }
+}
+function mazoMove(e) {
+  const d = mazoDrag
+  if (!d || d.id !== e.pointerId) return
+  const mx = e.clientX - d.x
+  const my = e.clientY - d.y
+  if (d.eje == null && Math.hypot(mx, my) > 8) {
+    d.eje = Math.abs(mx) > Math.abs(my) ? 'x' : 'y'
+    if (d.eje === 'x') try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
+  }
+  if (d.eje !== 'x') return
+  const now = performance.now()
+  d.v = 0.8 * ((e.clientX - d.lastX) / Math.max(1, now - d.lastT)) + 0.2 * d.v
+  d.lastX = e.clientX
+  d.lastT = now
+  d.dx = mx
+  if (mx !== 0) elegirAtras(mx < 0 ? 'next' : 'prev')
+  pintarArrastre(mx)
+}
+function mazoUp() {
+  const d = mazoDrag
+  mazoDrag = null
+  if (!d || d.eje !== 'x') return
+  const flick = Math.abs(d.v) > FLICK_V && Math.abs(d.dx) > 24 && Math.sign(d.v) === Math.sign(d.dx)
+  if (Math.abs(d.dx) >= SWIPE_OUT || flick) volarMazo(d.dx < 0 ? 'next' : 'prev')
+  else {
+    const { top, back } = cartasActivas()
+    for (const el of [top, back]) if (el) el.style.transition = `transform ${SNAP_MS}ms cubic-bezier(.2,.9,.3,1.2), opacity ${SNAP_MS}ms ease-out`
+    pintarArrastre(0)
+  }
+}
+$('#mazo-ant').addEventListener('click', () => volarMazo('prev'))
+$('#mazo-sig').addEventListener('click', () => volarMazo('next'))
+$('#mazo-cerrar').addEventListener('click', () => {
+  $('#elegir').hidden = true
+  $('#portada').hidden = false
+  estado = 'portada'
+})
+window.addEventListener('keydown', (e) => {
+  if ($('#elegir').hidden) return
+  if (e.key === 'ArrowRight') volarMazo('next')
+  else if (e.key === 'ArrowLeft') volarMazo('prev')
+  else if (e.key === 'Escape') $('#mazo-cerrar').click()
+})
+
+function mostrarElegir() {
+  estado = 'elegir'
+  for (const id of ['portada', 'fin', 'comunicado']) $('#' + id).hidden = true
+  $('#hud-top').hidden = true
+  $('#hud-bot').hidden = true
+  ronda = null
+  obj = vistaGeneral()
+  cartasDom.clear() // los récords pueden haber cambiado
+  $('#mazo-cartas').innerHTML = ''
+  const ultimo = PLANTEL.findIndex((j) => j.apodo === datos.ultimo)
+  mazoI = ultimo < 0 ? 0 : ultimo
+  mazoPeek = 'next'
+  $('#elegir').hidden = false
+  pintarMazo()
+}
+$('#jugar').addEventListener('click', mostrarElegir)
+
+let fraseI = Math.floor(Math.random() * M.FRASES_CARGA.length)
+function rotarFrase() {
+  $('#frase').textContent = M.FRASES_CARGA[fraseI++ % M.FRASES_CARGA.length]
+}
+rotarFrase()
+setInterval(rotarFrase, 2200)
+
+window.addEventListener('resize', () => {
+  medir()
+  if (estado === 'apuntar') obj = encuadre(ronda.pelota, M.hoyoActual(ronda).pin)
+  else if (!ronda) obj = vistaGeneral()
+})
+medir()
+obj = vistaGeneral()
+Object.assign(cam, obj)
+requestAnimationFrame(cuadro)
+</script>

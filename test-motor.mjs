@@ -1,0 +1,393 @@
+// node test-motor.mjs — chequeos del motor de La Trampa del Mono.
+import assert from 'node:assert/strict'
+import * as M from './motor.js'
+
+const campo = M.crearCampo()
+// para probar la física sola: sin monos cruzando y con greens planos
+const quieto = { ...campo, hoyos: M.HOYOS.map((h) => ({ ...h, monos: [] })) }
+const plano = { ...quieto, hoyos: quieto.hoyos.map((h) => ({ ...h, caida: [0, 0] })) }
+const [h15, h16, h17] = M.HOYOS
+// rng que deja el error humano en cero: gauss usa pares (u, 0.25) → cos(π/2) = 0
+const sinRuido = () => {
+  let i = 0
+  return () => (i++ % 2 ? 0.25 : 0.5)
+}
+const fijo = (v) => () => v
+// la primera yarda de cierta letra de la cancha dentro de una zona (centro de la celda)
+const buscar = (letra, [x0, y0, x1, y1]) => {
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (M.celda(campo, [x + 0.5, y + 0.5]) === letra) return [x + 0.5, y + 0.5]
+  return null
+}
+// un árbol cualquiera en el medio de la cancha (ahí aparece el Mono)
+const enArbol = buscar('t', [60, 60, 180, 380])
+const angulo = (a, b) => Math.atan2(b[1] - a[1], b[0] - a[0])
+const calma = { ang: 0, kmh: 0 }
+const ok = (nombre, fn) => {
+  fn()
+  console.log('✓', nombre)
+}
+
+ok('par 11 y la cancha sale del dibujo (4 px = 1 yarda)', () => {
+  assert.equal(M.PAR_TOTAL, 11)
+  assert.equal(campo.cancha.ancho, 219)
+  assert.equal(campo.cancha.alto, 447)
+  assert.equal(campo.cancha.filas.length, 447)
+  assert.ok(campo.cancha.filas.every((f) => f.length === 219))
+})
+
+ok('terreno: tee, green, fairway, bunker, rough entre hoyos, árbol y afuera', () => {
+  for (const h of M.HOYOS) {
+    assert.deepEqual(M.terreno(campo, h.tee), { tipo: 'tee', hoyo: h.n })
+    assert.deepEqual(M.terreno(campo, h.pin), { tipo: 'green', hoyo: h.n })
+    for (const p of h.calle) assert.equal(M.terreno(campo, p).tipo, 'fairway', `calle del ${h.n}`)
+  }
+  assert.deepEqual(M.terreno(campo, enArbol), { tipo: 'bosque', hoyo: null })
+  const abierto = buscar('.', [70, 150, 95, 300]) // rough entre el 15 y el 16
+  assert.ok([15, 16].includes(M.terreno(campo, abierto).hoyo))
+  assert.equal(M.terreno(campo, [1, 200]).tipo, 'afuera')
+  assert.equal(M.terreno(campo, buscar('b', [26, 160, 40, 182])).tipo, 'bunker') // el del fairway del 15
+})
+
+ok('no hay árboles en tees, greens ni calles; los árboles son una parte de la cancha', () => {
+  for (const h of M.HOYOS) {
+    assert.equal(M.pinoEn(campo, h.tee), null)
+    assert.equal(M.pinoEn(campo, h.pin), null)
+    for (const p of h.calle) assert.equal(M.pinoEn(campo, p), null)
+  }
+  const letras = campo.cancha.filas.join('')
+  const adentro = letras.replace(/x/g, '').length
+  const arboles = letras.replace(/[^t]/g, '').length
+  assert.ok(arboles / adentro > 0.15 && arboles / adentro < 0.35, `árboles ${((100 * arboles) / adentro).toFixed(0)}%`)
+})
+
+ok('drive al medio en el 15 queda en el fairway', () => {
+  const tiro = M.lanzar(quieto, { pelota: h15.tee, angulo: angulo(h15.tee, h15.pin), potencia: 0.9, viento: calma, lie: 'tee', rng: sinRuido() })
+  M.simular(quieto, tiro, h15.pin)
+  assert.equal(M.terreno(campo, tiro.pos).tipo, 'fairway')
+  assert.ok(M.dist(h15.tee, tiro.pos) > 220, `anduvo ${M.dist(h15.tee, tiro.pos)}`)
+})
+
+ok('en el 16 el drive pasa por arriba del bosque y cae en el fairway', () => {
+  const tiro = M.lanzar(campo, { pelota: h16.tee, angulo: angulo(h16.tee, h16.calle[1]), potencia: 0.88, viento: calma, lie: 'tee', rng: sinRuido() })
+  M.simular(quieto, tiro, h16.pin)
+  assert.ok(!tiro.eventos.some((e) => e.tipo === 'palo'))
+  assert.equal(M.terreno(campo, tiro.pos).tipo, 'fairway')
+})
+
+ok('el 17 (largo, desde el tee rojo) se llega de un golpe con el driver', () => {
+  const tiro = M.lanzar(campo, { pelota: h17.tee, angulo: angulo(h17.tee, h17.pin), potencia: 0.98, viento: calma, lie: 'tee', rng: sinRuido() })
+  M.simular(quieto, tiro, h17.pin)
+  assert.equal(M.terreno(campo, tiro.pos).tipo, 'green')
+})
+
+ok('pegado a un árbol, se puede pegar para el lado libre', () => {
+  // una yarda de rough con un árbol a la izquierda y 48 yardas libres a la derecha
+  let pelota = null
+  for (let y = 60; y < 400 && !pelota; y++) for (let x = 20; x < 190 && !pelota; x++) {
+    const p = [x + 0.5, y + 0.5]
+    if (M.celda(campo, p) !== '.' || M.celda(campo, [x - 0.5, y + 0.5]) !== 't') continue
+    if (Array.from({ length: 48 }, (_, i) => M.celda(campo, [x + 1.5 + i, y + 0.5])).every((c) => c === '.' || c === 'f')) pelota = p
+  }
+  assert.ok(pelota)
+  const tiro = M.simular(quieto, M.lanzar(quieto, { pelota, angulo: 0, potencia: 0.18, viento: calma, lie: 'rough', rng: sinRuido() }), h15.pin)
+  assert.ok(M.dist(pelota, tiro.pos) > 20, 'no rebota contra el árbol de al lado')
+})
+
+ok('desde un fairway se pasa por arriba de la franja de pinos al otro', () => {
+  const desde = h16.calle[1] // medio del fairway del 16
+  const tiro = M.simular(quieto, M.lanzar(quieto, { pelota: desde, angulo: angulo(desde, h15.calle[1]), potencia: 0.25, viento: calma, lie: 'fairway', rng: sinRuido() }), h16.pin)
+  assert.ok(!tiro.eventos.some((e) => e.tipo === 'palo'))
+  assert.ok(['fairway', 'rough'].includes(M.terreno(campo, tiro.pos).tipo))
+})
+
+ok('Rodal: nunca pega derecho; apuntando afuera, la comba la trae a la línea', () => {
+  const r = M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛' }, fijo(0.5))
+  r.monos = []
+  r.viento = calma
+  const linea = angulo(h15.tee, h15.pin)
+  const beta = (M.COMBA.angulo * Math.PI) / 180
+  // apuntando derecho a la bandera, la comba la saca de la línea
+  const derecho = M.planTiro(quieto, r, linea, 0.85)
+  assert.ok(derecho.comba && derecho.control)
+  assert.ok(Math.abs(derecho.cuerda - linea) > beta * 0.9)
+  // apuntando afuera (a los pinos), vuelve y cae sobre la línea, sin chocar pinos en el vuelo
+  const afuera = linea + beta
+  const tiro = M.simular(quieto, M.golpear(quieto, r, afuera, 0.85, sinRuido()), h15.pin)
+  assert.ok(!tiro.eventos.some((e) => e.tipo === 'palo'))
+  const enLinea = h15.tee[0] + ((h15.pin[0] - h15.tee[0]) * (h15.tee[1] - tiro.pos[1])) / (h15.tee[1] - h15.pin[1])
+  assert.ok(Math.abs(tiro.pos[0] - enLinea) < 3, `quedó a ${(tiro.pos[0] - enLinea).toFixed(1)} yd de la línea`)
+  // también fuera del tee (desde el fairway), y para el otro lado
+  r.pelota = [...h15.calle[2]]
+  r.lie = 'fairway'
+  const izq = M.planTiro(quieto, r, angulo(r.pelota, h15.pin) - 0.3, 0.5)
+  assert.ok(izq.comba && izq.cuerda > angulo(r.pelota, h15.pin) - 0.3)
+  // un jugador sin habilidad tira recto
+  const otro = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
+  assert.equal(M.planTiro(quieto, otro, afuera, 0.85).control, null)
+})
+
+ok('Miguelón: la bomba perfecta llega al green; mal pegada se abre y queda corta', () => {
+  const r = M.nuevaRonda({ apodo: 'Mike Queboni (Đ)', emoji: '🍯' }, fijo(0.5))
+  r.monos = []
+  r.viento = calma
+  const linea = angulo(h15.tee, h15.pin)
+  const perfecta = M.planTiro(quieto, r, linea, 1, 1)
+  assert.ok(perfecta.bomba && perfecta.perfecta)
+  // midiendo bien la distancia, alguna bomba perfecta termina en el green del 15
+  const alGreen = Array.from({ length: 11 }, (_, i) => 0.9 + i * 0.01).some((p) => {
+    const rr = { ...r, pelota: [...h15.tee], lie: 'tee', golpes: 0 }
+    return M.terreno(campo, M.simular(quieto, M.golpear(quieto, rr, linea, p, sinRuido(), 1), h15.pin).pos).tipo === 'green'
+  })
+  assert.ok(alGreen)
+  const mala = M.planTiro(quieto, r, linea, 1, 0.4)
+  assert.ok(!mala.perfecta && mala.disp.ang > (8 * Math.PI) / 180)
+  // por debajo de la zona de bomba es un drive normal (aunque más largo)
+  const corto = M.planTiro(quieto, r, linea, 0.7, 0)
+  assert.ok(!corto.bomba && corto.carry > M.FISICA.carryMax * 0.9)
+})
+
+ok('Rodal: LG solo lo adula, pegue como pegue', () => {
+  const rodal = { apodo: 'El Mago Rodal', emoji: '🥛' }
+  const tiro = { eventos: [], modo: 'full', carry: 150, pos: [0, 0] }
+  const malo = M.comentar(fijo(0.3), { tipo: 'normal', terreno: 'rough' }, tiro, h15, rodal)
+  assert.ok(M.ADULACION.malo.includes(malo.lg))
+  assert.equal(malo.excusa, null)
+  assert.ok(M.ADULACION.mono.includes(M.comentar(fijo(0.3), { tipo: 'mono-malo' }, tiro, h15, rodal).lg))
+  assert.ok(M.ADULACION.bueno.includes(M.comentar(fijo(0.3), { tipo: 'normal', terreno: 'fairway' }, tiro, h15, rodal).lg))
+  assert.ok(M.ADULACION.resultado.BOGEY.includes(M.fraseResultado(fijo(0.3), 'BOGEY', rodal)))
+  // a los demás LG no los adula
+  assert.ok(!M.ADULACION.malo.includes(M.comentar(fijo(0.3), { tipo: 'normal', terreno: 'rough' }, tiro, h15, { apodo: 'Rorro' }).lg))
+})
+
+ok('Mati (El Sueco): siempre derecho y drive de hasta 280', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'El Sueco', emoji: '🇸🇪', hcp: 1.5 }, fijo(0.5)), monos: [], viento: calma }
+  const linea = angulo(h15.tee, h15.pin)
+  const plan = M.planTiro(quieto, r, linea, 1)
+  assert.equal(plan.disp.ang, 0)
+  assert.equal(plan.carry, M.DERECHO.carryDrive)
+  assert.equal(M.dificultad(1.5).nombre, 'Paseo')
+  // con azar de verdad, cae sobre la línea
+  const tiro = M.simular(quieto, M.golpear(quieto, r, linea, 0.8, Math.random), h15.pin)
+  const enLinea = h15.tee[0] + ((h15.pin[0] - h15.tee[0]) * (h15.tee[1] - tiro.pos[1])) / (h15.tee[1] - h15.pin[1])
+  assert.ok(tiro.eventos.some((e) => e.tipo === 'palo') || Math.abs(tiro.pos[0] - enLinea) < 0.5)
+  // drive total (vuelo + rodaje) a fondo: unas 280
+  const largo = M.simular(quieto, M.golpear(quieto, { ...r, pelota: [...h15.tee], lie: 'tee' }, linea, 1, sinRuido()), h15.pin)
+  assert.ok(Math.abs(M.dist(h15.tee, largo.pos) - 280) < 12, `anduvo ${M.dist(h15.tee, largo.pos).toFixed(0)}`)
+})
+
+ok('Fito: la línea se sacude; en el embudo sale derecha', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'Fito (Đ)', emoji: '🦅', hcp: 22 }, fijo(0.5)), monos: [] }
+  const linea = angulo(h15.tee, h15.pin)
+  const afuera = M.planTiro(quieto, r, linea, 0.8, 0, M.AGUILA.periodo / 4) // el pico del sacudón
+  assert.ok(!afuera.aguila.enVentana)
+  assert.ok(Math.abs(afuera.cuerda - linea - (M.AGUILA.amplitud * Math.PI) / 180) < 1e-6)
+  assert.ok(afuera.disp.ang > 0)
+  const embudo = M.planTiro(quieto, r, linea, 0.8, 0, 0)
+  assert.ok(embudo.aguila.enVentana)
+  assert.equal(embudo.disp.ang, 0)
+  assert.ok(Math.abs(embudo.cuerda - linea) < 1e-9)
+})
+
+ok('Fito: cerca del green, el chip queda al lado del hoyo; perfecto y apuntado, entra', () => {
+  const desde = [h15.pin[0] + 2, h15.pin[1] + 24]
+  const fito = () => ({ ...M.nuevaRonda({ apodo: 'Fito (Đ)', emoji: '🦅', hcp: 22 }, fijo(0.5)), monos: [], viento: calma, pelota: [...desde], lie: M.terreno(campo, desde).tipo })
+  const alPin = angulo(desde, h15.pin)
+  const p = 14 / (M.FISICA.carryMax * M.dificultad(22).distancia * (M.FISICA.factorLie[fito().lie] ?? 1))
+  // apuntando torcido (15°): cae en el green y el imán la deja al lado, sin meterla
+  const torcido = M.simular(quieto, M.golpear(quieto, fito(), alPin + 0.26, p, sinRuido(), 0, 0), h15.pin)
+  assert.ok(torcido.iman?.aplicado)
+  assert.notEqual(torcido.embocada, true)
+  assert.ok(M.dist(torcido.pos, h15.pin) < 1.2, `quedó a ${M.dist(torcido.pos, h15.pin).toFixed(2)} yd`)
+  // perfecto (en el embudo) y apuntado a la bandera: chip in
+  const perfecto = M.simular(quieto, M.golpear(quieto, fito(), alPin, p, sinRuido(), 0, 0), h15.pin)
+  assert.equal(perfecto.embocada, true)
+})
+
+ok('más handicap, más difícil: más error y menos distancia', () => {
+  const crack = M.dificultad(1.5)
+  const malo = M.dificultad(22)
+  assert.ok(malo.error > crack.error && malo.distancia < crack.distancia)
+  assert.equal(crack.nombre, 'Paseo')
+  assert.equal(malo.nombre, 'Trampa total')
+  assert.equal(M.dificultad(null).hcp, M.HCP_SIN_CARGAR)
+  const linea = angulo(h15.tee, h15.pin)
+  const conHcp = (hcp) => M.planTiro(quieto, { ...M.nuevaRonda({ apodo: 'X', emoji: '⛳', hcp }, fijo(0.5)), monos: [] }, linea, 0.8)
+  assert.ok(conHcp(22).disp.ang > conHcp(1.5).disp.ang)
+  assert.ok(conHcp(22).carry < conHcp(1.5).carry)
+})
+
+ok('el viento desvía la pelota', () => {
+  const a = angulo(h15.tee, h15.pin)
+  const sin = M.simular(quieto, M.lanzar(quieto, { pelota: h15.tee, angulo: a, potencia: 0.5, viento: calma, lie: 'tee', rng: sinRuido() }), h15.pin)
+  const con = M.simular(quieto, M.lanzar(quieto, { pelota: h15.tee, angulo: a, potencia: 0.5, viento: { ang: 0, kmh: 20 }, lie: 'tee', rng: sinRuido() }), h15.pin)
+  assert.ok(con.pos[0] - sin.pos[0] > 5)
+})
+
+ok('putt de 4 yardas con la fuerza justa entra; a fondo hace labio', () => {
+  const pelota = [h15.pin[0], h15.pin[1] + 4]
+  const justo = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 4.3 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  assert.equal(justo.embocada, true)
+  const fuerte = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 1, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  assert.notEqual(fuerte.embocada, true)
+  assert.ok(fuerte.eventos.some((e) => e.tipo === 'labio'))
+})
+
+ok('si se frena adentro del hoyo, cae', () => {
+  const pelota = [h15.pin[0], h15.pin[1] + 4]
+  const muerta = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 4.05 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  assert.equal(muerta.embocada, true)
+})
+
+ok('la caída del green quiebra el putt', () => {
+  const pelota = [h15.pin[0], h15.pin[1] + 4]
+  const tiro = M.simular(quieto, M.lanzar(quieto, { pelota, angulo: -Math.PI / 2, potencia: 4.3 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  assert.notEqual(tiro.embocada, true)
+})
+
+ok('la zona de pique se abre con la potencia, el rough y tirando a fondo', () => {
+  const suave = M.dispersion('fairway', 0.4)
+  const fuerte = M.dispersion('fairway', 0.9)
+  const fondo = M.dispersion('fairway', 1)
+  assert.ok(fuerte.ang > suave.ang && fondo.ang > fuerte.ang && fondo.carry > fuerte.carry)
+  assert.ok(M.dispersion('rough', 0.9).ang > fuerte.ang)
+  assert.equal(fondo.fondo, true)
+})
+
+ok('los monos esperan en los pinos y después cruzan', () => {
+  const monos = M.crearMonos()
+  assert.equal(monos.length, 6)
+  const s = monos[0]
+  assert.deepEqual(s.pos, s.m.a)
+  M.moverMonos(monos, s.espera + 1, null) // termina de esperar y camina un segundo
+  assert.ok(M.monoActivo(s))
+  assert.ok(M.dist(s.pos, s.m.a) > 5)
+})
+
+ok('si la pelota le pega a un mono que cruza, se la lleva: +1 y drop donde le pegó', () => {
+  const r = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
+  const s = r.monos[0] // cruza el fairway del 15
+  s.pos = [...s.m.a]
+  s.espera = 0
+  s.hacia = 'b'
+  const ida = Math.atan2(s.m.b[1] - s.m.a[1], s.m.b[0] - s.m.a[0])
+  r.pelota = [s.m.a[0] + Math.cos(ida) * 30, s.m.a[1] + Math.sin(ida) * 30] // en su camino, tirándole de frente
+  r.lie = 'fairway'
+  r.golpes = 1
+  const tiro = M.simular(campo, M.golpear(campo, r, ida + Math.PI, 0.06, sinRuido()), h15.pin)
+  assert.equal(tiro.robada, s)
+  const res = M.resolverReposo(campo, r, tiro, fijo(0.5))
+  assert.equal(res.tipo, 'mono-ladron')
+  assert.equal(r.golpes, 3)
+  assert.equal(r.robos, 1)
+  assert.deepEqual(r.pelota, tiro.pos)
+})
+
+ok('pelota quieta cerca: los monos salen a buscarla y si llegan, al tee con un golpe de multa', () => {
+  const r = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
+  const cerca = r.monos[0]
+  r.pelota = [cerca.pos[0] + 25, cerca.pos[1]]
+  r.golpes = 2
+  const lejos = r.monos.find((s) => s.hoyo === 17)
+  assert.ok(M.despertarMonos(r.monos, r.pelota) >= 1)
+  assert.equal(cerca.modo, 'caza')
+  assert.equal(lejos.modo, 'ronda')
+  assert.equal(M.moverMonos(r.monos, M.MONO.reaccion * 0.5, r.pelota), null) // primero se dan cuenta
+  let llego = null
+  for (let i = 0; i < 600 && !llego; i++) llego = M.moverMonos(r.monos, 1 / 60, r.pelota)
+  assert.ok(llego)
+  const res = M.monosLlegaron(r)
+  assert.deepEqual(res, { tipo: 'reinicio', n: 15 })
+  assert.equal(r.golpes, 3)
+  assert.deepEqual(r.pelota, h15.tee)
+  assert.equal(r.lie, 'tee')
+  assert.equal(r.robos, 1)
+  assert.ok(!r.terminada)
+  assert.ok(r.monos.every((s) => s.modo === 'ronda'))
+})
+
+ok('aunque el mono esté al lado, siempre hay tiempo para pegar', () => {
+  const r = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
+  const s = r.monos[0]
+  r.pelota = [s.pos[0] + 5, s.pos[1]]
+  M.despertarMonos(r.monos, r.pelota)
+  let t = 0
+  while (!M.moverMonos(r.monos, 1 / 60, r.pelota) && t < 20) t += 1 / 60
+  assert.ok(t >= M.MONO.minimo - 0.1, `llegó en ${t.toFixed(1)} s`)
+})
+
+ok('si le pegás antes, los monos vuelven a su recorrido', () => {
+  const r = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
+  r.pelota = [r.monos[0].pos[0] + 25, r.monos[0].pos[1]]
+  r.lie = 'rough'
+  assert.ok(M.despertarMonos(r.monos, r.pelota) >= 1)
+  M.golpear(campo, r, -Math.PI / 2, 0.5, sinRuido())
+  assert.ok(r.monos.every((s) => s.modo === 'ronda'))
+})
+
+ok('afuera: golpe y distancia', () => {
+  const r = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
+  r.golpes = 1
+  const res = M.resolverReposo(campo, r, { pos: [1, 200], eventos: [] }, fijo(0.5))
+  assert.equal(res.tipo, 'afuera')
+  assert.equal(r.golpes, 2)
+  assert.deepEqual(r.pelota, h15.tee)
+})
+
+ok('Mono malo: +1 y drop en el rough; Mono bueno: al fairway sin penalidad', () => {
+  const r = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
+  r.golpes = 1
+  const malo = M.resolverReposo(campo, r, { pos: enArbol, eventos: [] }, fijo(0.99))
+  assert.equal(malo.tipo, 'mono-malo')
+  assert.equal(r.golpes, 2)
+  assert.ok(['rough', 'fairway'].includes(M.terreno(campo, r.pelota).tipo))
+  assert.equal(M.pinoEn(campo, r.pelota), null)
+
+  const bueno = M.resolverReposo(campo, r, { pos: enArbol, eventos: [] }, fijo(0.01))
+  assert.equal(bueno.tipo, 'mono-bueno')
+  assert.equal(r.golpes, 2)
+  assert.equal(M.terreno(campo, r.pelota).tipo, 'fairway')
+})
+
+ok('jugar desde el hoyo de al lado se avisa', () => {
+  const r = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
+  const res = M.resolverReposo(campo, r, { pos: [...h16.calle[1]], eventos: [] }, fijo(0.5))
+  assert.equal(res.ajeno, 16)
+})
+
+ok('LP: levantar es perder la vuelta entera', () => {
+  const r = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
+  r.golpes = 4
+  M.cerrarHoyo(r, fijo(0.5)) // el 15, embocado
+  r.golpes = 10
+  assert.ok(M.necesitaLP(r))
+  assert.equal(M.levantar(r), 16)
+  assert.ok(r.terminada)
+  assert.deepEqual(r.tarjeta.map((f) => [f.n, f.golpes, f.lp]), [[15, 4, false], [16, null, true], [17, null, true]])
+  const tot = M.totales(r.tarjeta)
+  assert.equal(tot.lp, true)
+  assert.equal(tot.vsPar, null)
+  assert.equal(M.formatoPar(tot.vsPar), 'LP')
+  assert.match(M.textoCompartir(r, true), /LP 💅 \(levantó en el 16\)/)
+})
+
+ok('tarjeta, formato y texto para el grupo', () => {
+  const r = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
+  r.golpes = 5
+  M.cerrarHoyo(r, fijo(0.5))
+  r.golpes = 3
+  M.cerrarHoyo(r, fijo(0.5))
+  r.golpes = 3
+  M.cerrarHoyo(r, fijo(0.5))
+  assert.ok(r.terminada)
+  assert.deepEqual(M.totales(r.tarjeta), { golpes: 11, par: 11, vsPar: 0, lp: false })
+  assert.equal(M.formatoPar(0), 'E')
+  assert.equal(M.formatoPar(3), '+3')
+  assert.equal(M.formatoPar(-2), '−2')
+  assert.equal(M.nombreResultado(3, 4, false), 'BIRDIE')
+  assert.equal(M.nombreResultado(1, 3, false), 'HOYO EN UNO')
+  assert.match(M.textoCompartir(r, true), /🥃 Rorro \(HCP —\): E \(5 · 3 · 3\)/)
+  assert.match(M.textoCompartir(r, false), /110 neto/)
+  assert.match(M.textoCompartir(r, true), /0 robos/)
+})
+
+console.log('\nTodo verde.')

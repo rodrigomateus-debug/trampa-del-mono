@@ -1,0 +1,8 @@
+{
+  "name": "trampa-del-mono",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test-motor.mjs"
+  }
+}
