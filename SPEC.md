@@ -135,5 +135,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
   - Al final queda la pantalla de inicio en loop: el logo LA TRAMPA DEL MONO con los ojos, el jugador caminando para siempre y el riff de la canción (compases 16 a 23) sin cortes. EMPEZAR lleva a la portada.
   - Las veces siguientes abre directo en la pantalla de inicio (sin sonido hasta tocar 🔇), con "VER INTRO". En la portada, INTRO ▶ la vuelve a pasar.
   - `?sinintro` la saltea; sin WebGL no aparece.
+  - SALTAR va abajo a la derecha. VER INTRO e INTRO ▶ arrancan siempre con música.
+  - El sonido suena aunque el iPhone esté en silencio (como un video): Audio Session "playback" y, si no está, un <audio> de silencio en loop.
+  - Pantalla de inicio: el jugador centrado entre el logo y el botón (la cámara se calcula con lo que mide cada pantalla) y pares de ojos de mono —los de la O del logo— que se abren a tempo, miran al jugador o para los costados, parpadean y se cierran en los huecos de arriba y de los costados.
 - Ícono de la app y favicon nuevos: el título con los ojos de MONO (`iconos/icono-fuente.html`); el favicon de 32 px son los dos ojos.
 

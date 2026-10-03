@@ -9,6 +9,8 @@
 export function crearEscena(THREE, opciones = {}) {
   const CUE = opciones.cues || window.CUES;
   let VERTICAL = !!opciones.vertical;
+  // pantalla de inicio de la app: dónde va el jugador (centro y alto como fracción de la pantalla)
+  let encuadre = null;
   let W = opciones.ancho || (VERTICAL ? 1080 : 1920);
   let H = opciones.alto || (VERTICAL ? 1920 : 1080);
 
@@ -1121,6 +1123,22 @@ export function crearEscena(THREE, opciones = {}) {
       off[1] *= 0.72; // gran plano más cerca: el jugador se ve más
       off[2] *= 0.72;
     }
+    let fovEncuadre = 0;
+    if (encuadre && t >= CUE.logo) {
+      // la cámara se para para que el jugador quede en (centro, alto) de la pantalla, mirando un poco desde arriba
+      fovEncuadre = encuadre.fov || 36;
+      const tanF = Math.tan((fovEncuadre * Math.PI) / 360);
+      const D = 1.85 / (encuadre.alto * 2 * tanF);
+      const phi = (10 * Math.PI) / 180;
+      off[0] = 0;
+      off[1] = 0.95 + D * Math.sin(phi);
+      off[2] = -D * Math.cos(phi);
+      const alfa = Math.atan((1 - 2 * encuadre.cy) * tanF);
+      const pitch = -phi - alfa;
+      mira[0] = 0;
+      mira[1] = off[1] + Math.sin(pitch) * 20;
+      mira[2] = off[2] + Math.cos(pitch) * 20;
+    }
     const tens = tension(t);
     // cámara en mano: el camarógrafo camina para atrás
     const fase = faseEn(t);
@@ -1143,7 +1161,7 @@ export function crearEscena(THREE, opciones = {}) {
     _v.set(gx + mira[0] + 0.02 * mano * ruido(t, 4), mira[1] + 0.015 * mano * ruido(t, 5), gz + mira[2]);
     camera.lookAt(_v);
     camera.rotateZ(kf(plano.roll, t) + 0.006 * mano * ruido(t, 6));
-    camera.fov = VERTICAL ? Math.min(62, kf(plano.fov, t) * 1.32) : kf(plano.fov, t);
+    camera.fov = fovEncuadre || (VERTICAL ? Math.min(62, kf(plano.fov, t) * 1.32) : kf(plano.fov, t));
     camera.updateProjectionMatrix();
   }
 
@@ -1235,6 +1253,9 @@ export function crearEscena(THREE, opciones = {}) {
       renderer.setSize(W, H, false);
       camera.aspect = W / H;
       camera.updateProjectionMatrix();
+    },
+    encuadrarTitulo(e) {
+      encuadre = e;
     },
     liberar() {
       renderer.dispose();

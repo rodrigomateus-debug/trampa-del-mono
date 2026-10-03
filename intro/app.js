@@ -50,6 +50,7 @@ async function iniciar() {
   document.head.appendChild(estilo)
   raiz.innerHTML = `
     <canvas class="ia-lienzo"></canvas>
+    <div class="ia-ojos"></div>
     <div class="ia-escenario">${MARKUP.replaceAll('assets/', BASE + 'assets/')}</div>
     <div class="ia-ui">
       <button class="ia-sonido" type="button" aria-label="Sonido" hidden>🔊</button>
@@ -162,6 +163,7 @@ async function iniciar() {
       const f = (((t - Q.C0) / B) % 1 + 1) % 1
       empezar.style.transform = `scale(${1 + 0.05 * Math.exp(-f * 7)})`
     }
+    ojos.actualizar(t, estado === 'inicio' && t > Q.logo + 1.3)
   }
 
   // ---------- estados ----------
@@ -176,7 +178,11 @@ async function iniciar() {
     cancelAnimationFrame(raf)
     raf = requestAnimationFrame(cuadro)
   }
+  // ver la intro siempre es un toque explícito: arranca con música
   function verIntro() {
+    ojos.vaciar()
+    sonido = !!audio
+    pintarSonido()
     if (audio) audio.despertar()
     estado = 'intro'
     puerta.hidden = true
@@ -195,15 +201,18 @@ async function iniciar() {
     btnSonido.hidden = !audio
     if (desdeSalto) tocarDesde(Q.logo)
     inicio.hidden = false
+    encuadrar()
     // el botón aparece cuando el logo ya está armado
     setTimeout(() => inicio.classList.add('visible'), desdeSalto ? 1400 : 1600)
     correr()
   }
   function cerrar() {
     estado = 'cerrado'
+    ojos.vaciar()
     raiz.classList.add('cerrando')
     if (audio) audio.apagar(0.6)
     setTimeout(() => {
+      if (audio) audio.dormir()
       cancelAnimationFrame(raf)
       raiz.hidden = true
       raiz.classList.remove('cerrando')
@@ -214,6 +223,29 @@ async function iniciar() {
     verIntro()
   }
   window.trampaIntro = { abrir }
+
+  // ---------- pantalla de inicio: el jugador entre el logo y el botón, los ojos en los huecos ----------
+  let jugadorCaja = null
+  function encuadrar() {
+    if (!vertical) {
+      escena.encuadrarTitulo(null)
+      jugadorCaja = null
+    } else {
+      const tag = escenario.querySelector('#logo-tag').getBoundingClientRect()
+      const btn = inicio.getBoundingClientRect()
+      const arriba = tag.bottom / H
+      const abajo = (btn.height ? btn.top : H * 0.82) / H
+      const alto = Math.max(0.12, Math.min(0.3, (abajo - arriba) * 0.8))
+      const cy = (arriba + abajo) / 2
+      escena.encuadrarTitulo({ cy, alto, fov: 36 })
+      jugadorCaja = { x: W / 2 - alto * H * 0.4, y: (cy - alto * 0.62) * H, w: alto * H * 0.8, h: alto * H * 1.24 }
+    }
+    ojos.lugares([escenario.querySelector('#logo-caja'), inicio, btnSonido], jugadorCaja, W, H)
+  }
+  window.addEventListener('resize', () => {
+    if (estado === 'inicio') encuadrar()
+  })
+  const ojos = crearOjos($('.ia-ojos'), Q)
 
   $('.ia-ir').addEventListener('click', verIntro)
   $('.ia-saltar-puerta').addEventListener('click', () => {
@@ -255,11 +287,37 @@ async function iniciar() {
   }
 }
 
+// un WAV de silencio para el truco del iPhone (ver despertar)
+function wavSilencio(seg = 1, sr = 8000) {
+  const n = Math.floor(seg * sr)
+  const buf = new ArrayBuffer(44 + n)
+  const v = new DataView(buf)
+  const txt = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)))
+  txt(0, 'RIFF')
+  v.setUint32(4, 36 + n, true)
+  txt(8, 'WAVE')
+  txt(12, 'fmt ')
+  v.setUint32(16, 16, true)
+  v.setUint16(20, 1, true) // PCM
+  v.setUint16(22, 1, true) // mono
+  v.setUint32(24, sr, true)
+  v.setUint32(28, sr, true)
+  v.setUint16(32, 1, true)
+  v.setUint16(34, 8, true)
+  txt(36, 'data')
+  v.setUint32(40, n, true)
+  for (let i = 0; i < n; i++) v.setUint8(44 + i, 128)
+  return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }))
+}
+
 // la canción con Web Audio: el loop 16–23 queda pegado, sin cortes
 async function prepararAudio(url, Q) {
   const Ctx = window.AudioContext || window.webkitAudioContext
   if (!Ctx) return null
   const ctx = new Ctx()
+  // En iPhone Web Audio respeta la tecla de silencio. Para que suene como un video (en "reproducción"):
+  // la Audio Session API donde existe, y si no, un <audio> de silencio en loop que pone la sesión en reproducción.
+  let silencio = null
   const datos = await (await fetch(url)).arrayBuffer()
   const buffer = await new Promise((ok, mal) => ctx.decodeAudioData(datos, ok, mal))
   const ganancia = ctx.createGain()
@@ -267,8 +325,27 @@ async function prepararAudio(url, Q) {
   let fuente = null
   return {
     ctx,
+    // llamar dentro de un toque
     despertar() {
+      try {
+        if (navigator.audioSession) navigator.audioSession.type = 'playback'
+      } catch {}
+      if (!silencio) {
+        silencio = document.createElement('audio')
+        silencio.src = wavSilencio()
+        silencio.loop = true
+        silencio.preload = 'auto'
+        silencio.setAttribute('playsinline', '')
+        silencio.setAttribute('x-webkit-airplay', 'deny')
+        silencio.disableRemotePlayback = true
+        silencio.style.display = 'none'
+        document.body.appendChild(silencio)
+      }
+      silencio.play().catch(() => {})
       if (ctx.state !== 'running') ctx.resume()
+    },
+    dormir() {
+      if (silencio) silencio.pause()
     },
     sonando: () => !!fuente,
     tocar(desde, vol) {
@@ -344,17 +421,128 @@ const CSS_APP = `
 #intro-app .ia-frase { font: 600 16px/1.4 var(--body); margin-top: 28px; min-height: 1.4em; }
 #intro-app .ia-botones { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 8px; }
 #intro-app .ia-tip { font: 600 13px/1.3 var(--body); letter-spacing: .08em; opacity: .85; }
-#intro-app .ia-saltar, #intro-app .ia-sonido { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); border: 0; cursor: pointer;
+#intro-app .ia-saltar, #intro-app .ia-sonido { position: absolute; border: 0; cursor: pointer;
   background: var(--green-900); color: var(--cream); box-shadow: 0 2px 0 rgba(12, 43, 28, .25); }
-#intro-app .ia-saltar { right: 14px; font: 800 15px/1 var(--body); letter-spacing: .18em; padding: 13px 18px 12px 20px; border-radius: 999px; }
-#intro-app .ia-sonido { left: 14px; width: 46px; height: 46px; border-radius: 50%; font-size: 20px; line-height: 46px; padding: 0; }
+#intro-app .ia-saltar { right: 16px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); font: 800 15px/1 var(--body); letter-spacing: .18em; padding: 13px 18px 12px 20px; border-radius: 999px; }
+#intro-app .ia-sonido { left: 14px; top: calc(14px + env(safe-area-inset-top, 0px)); width: 46px; height: 46px; border-radius: 50%; font-size: 20px; line-height: 46px; padding: 0; }
 #intro-app .ia-inicio { position: absolute; left: 0; right: 0; bottom: calc(8vh + env(safe-area-inset-bottom, 0px));
   display: flex; flex-direction: column; align-items: center; gap: 16px; opacity: 0; transition: opacity .6s ease; }
 #intro-app .ia-inicio.visible { opacity: 1; }
 #intro-app .ia-empezar { font-size: 36px; padding: 20px 64px 18px; }
+#intro-app .ia-ojos { position: absolute; inset: 0; pointer-events: none; }
+#intro-app .ia-par { position: absolute; display: flex; gap: .1em; transform-origin: 50% 50%; opacity: 0;
+  filter: drop-shadow(0 0 .3em rgba(232, 195, 74, .28)); will-change: transform; }
+#intro-app .ia-par svg { display: block; width: .465em; height: .735em; }
 #intro-app .ia-link { border: 0; background: var(--green-900); color: var(--cream); font: 800 13px/1 var(--body); letter-spacing: .2em;
   padding: 10px 16px 9px; border-radius: 6px; cursor: pointer; }
 `
+
+// ---------- ojos de mono que se abren y se cierran en los huecos de la pantalla de inicio ----------
+const OJO = `<svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda"/><g fill="#e7dfc2"><circle cx="22" cy="40" r="6"/><circle cx="48" cy="22" r="6"/><circle cx="76" cy="38" r="6"/><circle cx="16" cy="78" r="6"/><circle cx="84" cy="80" r="6"/><circle cx="24" cy="118" r="6"/><circle cx="50" cy="136" r="6"/><circle cx="77" cy="118" r="6"/></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a"/><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c"/><circle cx="58" cy="74" r="6" fill="#fff"/></g></svg>`
+
+function crearOjos(capa, Q) {
+  const B = Q.COMPAS / 4
+  let libres = []
+  let base = 30
+  let blanco = { x: 0, y: 0 } // adonde miran: el jugador
+  const pares = []
+  let proximo = 0
+  const choca = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+  const caja = (el, m) => {
+    const r = el.getBoundingClientRect()
+    return { x: r.left - m, y: r.top - m, w: r.width + 2 * m, h: r.height + 2 * m }
+  }
+  const sigNegra = (t, n = 0) => Q.C0 + (Math.ceil((t - Q.C0) / B) + n) * B
+
+  function nuevo(t) {
+    const ocupados = pares.map((p) => p.lugar)
+    const opciones = libres.filter((l) => ocupados.every((o) => Math.hypot(o.x - l.x, o.y - l.y) > base * 2.4))
+    if (!opciones.length) return
+    const lugar = opciones[Math.floor(Math.random() * opciones.length)]
+    const s = 0.7 + Math.random() * 0.6
+    const el = document.createElement('div')
+    el.className = 'ia-par'
+    el.innerHTML = OJO + OJO
+    el.style.fontSize = base * s + 'px'
+    el.style.left = lugar.x + (base * 1.3 * 1.08 - base * s * 1.08) / 2 + 'px'
+    el.style.top = lugar.y + (base * 1.3 * 0.75 - base * s * 0.75) / 2 + 'px'
+    capa.appendChild(el)
+    const abre = sigNegra(t, Math.floor(Math.random() * 3))
+    const cierra = abre + (6 + Math.floor(Math.random() * 10)) * B
+    // cada dos negras miran a otro lado; casi siempre vuelven al jugador
+    const miradas = []
+    for (let k = 0; k < 12; k++) {
+      const r = Math.random()
+      miradas.push(r < 0.5 ? null : [(Math.random() - 0.5) * 30, (Math.random() - 0.5) * 22])
+    }
+    const parpadeo = abre + (2 + Math.floor(Math.random() * 3)) * B * 2 + B * 0.5
+    pares.push({ el, pus: Array.from(el.querySelectorAll('.pu')), lugar, abre, cierra, miradas, parpadeo, px: 0, py: 0 })
+  }
+
+  return {
+    lugares(evitarEls, jugador, W, H) {
+      base = Math.max(22, Math.min(W, H * 0.6) * 0.1)
+      const pw = base * 1.3 * 1.08
+      const ph = base * 1.3 * 0.75
+      const evitar = evitarEls.filter(Boolean).map((e) => caja(e, 14))
+      if (jugador) evitar.push(jugador)
+      blanco = jugador ? { x: jugador.x + jugador.w / 2, y: jugador.y + jugador.h * 0.3 } : { x: W / 2, y: H * 0.7 }
+      libres = []
+      for (let y = 56; y + ph < H - 16; y += ph * 1.25)
+        for (let x = 16; x + pw < W - 16; x += pw * 1.2) {
+          const r = { x, y, w: pw, h: ph }
+          if (!evitar.some((e) => choca(r, e))) libres.push({ x, y })
+        }
+      this.vaciar()
+    },
+    vaciar() {
+      for (const p of pares) p.el.remove()
+      pares.length = 0
+      proximo = 0
+    },
+    actualizar(t, activos) {
+      capa.style.display = activos ? '' : 'none'
+      if (!activos) return
+      const max = Math.max(3, Math.min(8, Math.floor(libres.length / 4)))
+      // a lo sumo uno nuevo por negra, así se van abriendo de a uno
+      if (pares.length < max && t >= proximo) {
+        nuevo(t)
+        proximo = sigNegra(t, 1)
+      }
+      for (let i = pares.length - 1; i >= 0; i--) {
+        const p = pares[i]
+        let a
+        if (t < p.abre) a = 0
+        else if (t < p.abre + 0.18) {
+          const u = (t - p.abre) / 0.18
+          a = 1 + 2.7 * Math.pow(u - 1, 3) + 1.7 * Math.pow(u - 1, 2) // abre con rebote
+        } else if (t < p.cierra) a = 1
+        else if (t < p.cierra + 0.12) a = 1 - (t - p.cierra) / 0.12
+        else {
+          p.el.remove()
+          pares.splice(i, 1)
+          continue
+        }
+        if (Math.abs(t - p.parpadeo) < 0.07) a *= 0.06
+        p.el.style.opacity = a > 0.01 ? '1' : '0'
+        p.el.style.transform = `scaleY(${Math.max(0.04, a)})`
+        // la mirada: al jugador, o a donde le toque en esta negra doble
+        const k = Math.max(0, Math.floor((t - p.abre) / (2 * B))) % p.miradas.length
+        let objetivo = p.miradas[k]
+        if (!objetivo) {
+          const r = p.el.getBoundingClientRect()
+          const dx = blanco.x - (r.left + r.width / 2)
+          const dy = blanco.y - (r.top + r.height / 2)
+          const n = Math.hypot(dx, dy) || 1
+          objetivo = [(dx / n) * 15, (dy / n) * 12]
+        }
+        p.px += (objetivo[0] - p.px) * 0.35
+        p.py += (objetivo[1] - p.py) * 0.35
+        for (const pu of p.pus) pu.setAttribute('transform', `translate(${p.px.toFixed(1)} ${p.py.toFixed(1)})`)
+      }
+    },
+  }
+}
 
 // ---------- arranque (al final: usa todo lo de arriba) ----------
 if (raiz && new URLSearchParams(location.search).has('sinintro')) raiz.remove()
