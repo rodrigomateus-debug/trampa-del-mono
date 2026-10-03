@@ -346,10 +346,10 @@ function crearJugador() {
     ojo.position.set(0.047 * lado, 0.135, 0.118);
     cabeza.add(ojo);
     const blanco = new THREE.Mesh(new THREE.SphereGeometry(0.027, 14, 10), M.ojoBlanco);
-    blanco.scale.set(1, 1.1, 0.75);
+    blanco.scale.set(1, 1.1, 0.8);
     ojo.add(blanco);
-    const pupila = new THREE.Mesh(new THREE.SphereGeometry(0.0135, 10, 8), M.negro);
-    pupila.position.z = 0.017;
+    const pupila = new THREE.Mesh(new THREE.SphereGeometry(0.0155, 10, 8), M.negro);
+    pupila.position.z = 0.02;
     ojo.add(pupila);
     ojosJ.push({ ojo, blanco, pupila, lado });
     const ceja = caja(0.05, 0.012, 0.012, M.ceja);
@@ -758,13 +758,13 @@ const PLANOS = [
       [CUE.drop, [1.9, 0.62, -3.5]], // corte en el drop: bajo y con dutch
       [CUE.gira, [2.3, 0.85, -4.3], "io"],
       [CUE.cara, [2.0, 1.15, -3.6], "io"],
-      [CUE.logo, [0.85, 1.6, -1.75], "in"], // empuja hasta la cara
+      [CUE.logo, [0.85, 1.82, -1.8], "in"], // empuja hasta la cara
     ],
     mira: [
       [CUE.drop, [-0.45, 1.25, 1.4]],
       [CUE.gira, [-0.3, 1.15, 1.0], "io"],
-      [CUE.cara, [-0.15, 1.35, 0.3], "io"],
-      [CUE.logo, [-0.03, 1.55, 0.0], "in"],
+      [CUE.cara, [-0.15, 1.45, 0.3], "io"],
+      [CUE.logo, [-0.03, 1.74, 0.0], "in"],
     ],
     fov: [
       [CUE.drop, 44],
@@ -896,11 +896,11 @@ function posarJugador(t) {
   const ox = clamp((anticipo[0] - yaw) * 0.6 + yaw * 0.12, -0.5, 0.5);
   const oy = clamp(-(anticipo[1] - pitch) * 0.5, -0.4, 0.4);
   const pupilaChica = 1 - 0.2 * f;
-  const abiertos = 1 + 0.25 * f;
+  const abiertos = 1 + 0.15 * f;
   for (const o of J.ojosJ) {
-    o.pupila.position.set(ox * 0.016, oy * 0.014, 0.017);
+    o.pupila.position.set(ox * 0.016, oy * 0.014 - 0.004, 0.02);
     o.pupila.scale.setScalar(pupilaChica);
-    o.blanco.scale.set(1, 1.1 * abiertos, 0.75);
+    o.blanco.scale.set(1, 1.1 * abiertos, 0.8);
   }
   for (const c of J.cejas) {
     c.ceja.rotation.z = -c.lado * (0.08 + 0.42 * f);
@@ -1024,24 +1024,24 @@ function posarArboles(t, d, cabezaJ, mirarCamara) {
 
 function posarMonos(t, d, FW) {
   // cruzan el fairway detrás del jugador, de pinos a pinos (como en el juego)
-  const salidas = [CUE.monos, CUE.monos + 0.55, CUE.monos + 1.05];
+  const salidas = [CUE.monos - 0.4, CUE.monos + 0.45, CUE.monos + 1.2];
   monos.forEach((m, i) => {
     const t0 = salidas[i];
-    const dur = 1.7;
+    const dur = 2.3;
     const u = (t - t0) / dur;
     if (t < CUE.drop || u < 0 || u > 1 || t >= CUE.logo) {
       m.g.visible = false;
       return;
     }
     m.g.visible = true;
-    const zMundo = -distEn(t0) + 7 + i * 4.5;
+    const zMundo = -distEn(t0) + 6.5 + i * 3.6;
     const sentido = i === 1 ? -1 : 1;
     const ancho = FW + 4;
     const x = sentido * lerp(-ancho, ancho, u);
     const saltos = 5;
     const y = 0.55 * Math.abs(Math.sin(u * saltos * Math.PI));
     m.g.position.set(x, y, zMundo);
-    m.g.scale.setScalar(1.45);
+    m.g.scale.setScalar(1.8);
     m.g.rotation.set(0.35, sentido > 0 ? Math.PI / 2 : -Math.PI / 2, 0);
     const p = u * saltos * Math.PI * 2;
     m.miembros.forEach((j, n) => {
@@ -1056,7 +1056,7 @@ function posarMonos(t, d, FW) {
     const u = clamp((t - CUE.susto) / 0.28);
     const caida = EASE.back(u);
     const pendulo = Math.sin((t - CUE.susto) * 7.5) * 0.22 * Math.exp(-(t - CUE.susto) * 1.8);
-    c.g.position.set(0.5, lerp(1.9, 0.92, caida), -1.75);
+    c.g.position.set(0.52, lerp(1.9, 0.84, caida), -1.75);
     c.g.scale.setScalar(0.82);
     c.g.rotation.set(0.1, 0.35, Math.PI + pendulo);
     c.miembros.forEach((j, n) => {

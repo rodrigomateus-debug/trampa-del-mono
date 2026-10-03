@@ -610,9 +610,10 @@
           L + 0.16,
         );
         sacudir("#logo-caja", L + 0.42, 0.34, 14);
-        // los ojos del MONO arrancan cerrados y se abren cuando vuelve la banda
-        tl.fromTo(".parpado", { scaleY: 0.07, transformOrigin: "50% 50%" }, { scaleY: 0.07, duration: 0.01 }, L);
-        tl.to(".parpado", { scaleY: 1, duration: 0.26, ease: "back.out(3)", stagger: 0.05 }, Q.banda);
+        // las O de MONO arrancan como pelotas de golf; cuando vuelve la banda les aparecen las pupilas: son ojos de mono
+        tl.fromTo(".pupila", { scale: 0, transformOrigin: "50% 53%" }, { scale: 1, duration: 0.3, ease: "back.out(3)", stagger: 0.06 }, Q.banda);
+        tl.to(".parpado", { scaleY: 0.07, duration: 0.06, ease: "power2.in", transformOrigin: "50% 50%" }, Q.banda - 0.08);
+        tl.to(".parpado", { scaleY: 1, duration: 0.14, ease: "back.out(2)" }, Q.banda - 0.02);
         // banda dorada
         tl.fromTo("#banda-fondo", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.42, ease: "power3.inOut" }, L + 0.55);
         tl.fromTo("#banda-txt", { yPercent: 110 }, { yPercent: 0, duration: 0.36, ease: "power3.out" }, L + 0.8);
