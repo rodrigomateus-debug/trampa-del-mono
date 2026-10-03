@@ -326,5 +326,5 @@ export const DIFICULTAD_REAL = {
   'El Ninja (Đ)': { prom: 5.23, lp: 13 },
   'El Mago Rodal': { prom: 5.48, lp: 10 },
   Liberty: { prom: 6.49, lp: 12 },
-  Mugre: { prom: 6.69, lp: 18 },
+  Mugre: { prom: 6.6, lp: 20 }, // remedido con los panchos
 }
