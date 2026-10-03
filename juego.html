@@ -282,6 +282,7 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 /* ── cronómetro y golpe del Mago: debajo del marcador ── */
 #hud-chips { width: 100%; max-width: 520px; justify-self: center; display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
 #hud-chips .izq { min-width: 0; display: grid; gap: 6px; justify-items: start; }
+#sonido { pointer-events: auto; cursor: pointer; border: 0; width: 40px; padding: 0; justify-content: center; font-size: 17px; }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
 #pancho { position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--cream); background: var(--gold); color: var(--green-900); box-shadow: 0 6px 18px rgba(12, 43, 28, .5); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; cursor: pointer; font-family: var(--font-display); transition: transform 120ms var(--ease-snap), opacity 150ms; }
@@ -376,6 +377,7 @@ input { -webkit-user-select: text; user-select: text; }
   <div id="hud-chips">
     <div class="izq">
       <span class="chip" id="lie">TEE</span>
+      <button class="chip" id="sonido" type="button" aria-label="Sonido">🔊</button>
       <span class="chip" id="efecto" hidden></span>
     </div>
     <div class="der">
@@ -517,6 +519,7 @@ import * as M from './motor.js'
 import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js'
 import { CANCHA } from './cancha-grid.js'
 import * as R from './ranking.js'
+import * as S from './sonido.js'
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 const promReal = (j) => DIFICULTAD_REAL[j.apodo]?.prom ?? 10 + (j.hcp ?? M.HCP_SIN_CARGAR) / 10
@@ -679,6 +682,7 @@ lienzo.addEventListener('pointerdown', (e) => {
   // a medida que tirás para atrás, la cámara se aleja (con la pelota quieta) para que entre hasta dónde llega
   if (!M.enModoPutt(campo, ronda)) { drag.base = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin); velCam = 7 }
   lienzo.setPointerCapture(e.pointerId)
+  S.cargaInicio()
   document.body.classList.add('apuntando') // los botones de abajo se apagan mientras apuntás
   if (!datos.vistoTip) { datos.vistoTip = true; guardar(datos) }
 })
@@ -688,11 +692,13 @@ lienzo.addEventListener('pointerup', (e) => {
   const a = apunte()
   const base = drag.base
   drag = null
+  S.cargaFin()
   document.body.classList.remove('apuntando')
   if (a && estado === 'apuntar') pegar(a)
   else if (base) obj = base // no pegó: vuelve el zoom de antes
 })
 lienzo.addEventListener('pointercancel', () => {
+  S.cargaFin()
   if (drag?.base) obj = drag.base
   drag = null
   document.body.classList.remove('apuntando')
@@ -715,6 +721,7 @@ function zoomApunte() {
 }
 
 function pegar(a) {
+  S.golpe(a.p, a.putt)
   velCam = 3.5
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
@@ -738,6 +745,7 @@ function actualizar(dt) {
     const h = M.hoyoActual(ronda)
     acc += dt
     while (acc >= PASO && tiro.fase !== 'quieta') { M.avanzar(campo, tiro, PASO, h.pin); acc -= PASO }
+    sonarEventos(tiro)
     estela.push([tiro.pos[0], tiro.pos[1], tiro.alt])
     if (estela.length > 70) estela.shift()
     seguir(tiro.pos)
@@ -750,6 +758,13 @@ function actualizar(dt) {
   }
   moverRafagas(dt)
   zoomApunte()
+  if (drag && estado === 'apuntar') { const a = apunte(); S.carga(a?.p ?? 0, a?.plan?.bomba ? a.q : 0) }
+  if (ronda && estado === 'apuntar' && !drag) {
+    // tensión: un tic que se acelera con el mono más cercano que viene
+    let d = null
+    for (const m of ronda.monos) if (m.modo === 'caza' && !m.pancho) d = Math.min(d ?? Infinity, M.dist(m.pos, ronda.pelota))
+    if (d != null) S.tension(d, M.alertaDe(ronda))
+  }
   // si el tiro se cortó (llegaron los monos, LP, etc.), los botones vuelven
   if (!drag && document.body.classList.contains('apuntando')) document.body.classList.remove('apuntando')
   pintarVoz()
@@ -767,6 +782,17 @@ function actualizar(dt) {
   cam.rot += difAng(obj.rot, cam.rot) * k
 }
 
+/** Lo que pasó en el tiro desde el último cuadro (pique, palo, labio, robo al vuelo) suena una vez. */
+function sonarEventos(t) {
+  t._oidos ??= 0
+  for (; t._oidos < t.eventos.length; t._oidos++) {
+    const e = t.eventos[t._oidos]
+    if (e.tipo === 'pique') S.pique(e.terreno, (t.carry || 100) / 200)
+    else if (e.tipo === 'palo') S.palo()
+    else if (e.tipo === 'labio') S.labio()
+    else if (e.tipo === 'robo') S.robo()
+  }
+}
 function alReposo() {
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
@@ -790,6 +816,9 @@ function alReposo() {
     anim = { tipo: 'ladron', mono: res.mono, hasta: [...ronda.pelota], t: 0, T: 2.2, fin: siguienteTiro }
     return
   }
+  if (res.tipo === 'mono-bueno') S.monoBueno()
+  else if (res.tipo === 'mono-malo') S.robo()
+  else if (res.tipo === 'perro') S.perro()
   if (res.tipo === 'perro') {
     // el perro sale del fairway, la busca en el bosque y la trae (tarda: el reloj corre)
     estado = 'anim'
@@ -822,7 +851,7 @@ function siguienteTiro() {
 }
 /** Pelota quieta: los monos cercanos salen a buscarla (a la Mugre la huelen de más lejos). */
 function despertar() {
-  M.despertarMonos(ronda.monos, ronda.pelota, M.alertaDe(ronda))
+  if (M.despertarMonos(ronda.monos, ronda.pelota, M.alertaDe(ronda))) S.monosVienen()
 }
 // ── los panchos de la Mugre ──
 let pancho = null // { desde, hasta, t0 } — el que va volando / está en el piso
@@ -832,6 +861,7 @@ function tirarPancho() {
   const pos = M.tirarPancho(ronda)
   if (!pos) { relatar({ lg: 'No viene ningún mono', verso: 'Guardá los panchos para cuando vengan' }); return }
   pancho = { desde, hasta: pos, t0: performance.now() }
+  S.pancho()
   relatar({ lg: M.elegir(rng, M.RELATO.pancho), verso: `Te quedan ${ronda.panchos} 🌭 en este hoyo` })
   hud()
 }
@@ -850,6 +880,7 @@ function dibujarPancho() {
 }
 /** Embocó: el último putt del 17 para el reloj. */
 function embocar(frase) {
+  S.embocada()
   if (ronda.idx === M.HOYOS.length - 1 && ronda.t0 != null) ronda.ms = performance.now() - ronda.t0
   cerrar(frase)
 }
@@ -857,6 +888,8 @@ function embocar(frase) {
 /** Los monos llegaron antes del golpe: se la llevan corriendo y volvés al tee del hoyo con un golpe de multa. */
 function llegaronMonos(mono) {
   drag = null
+  S.cargaFin()
+  S.robo()
   M.calmarMonos(ronda.monos) // el ladrón sale corriendo a sus pinos
   estado = 'anim'
   anim = {
@@ -875,6 +908,7 @@ function levantarVuelta() {
   estado = 'resultado'
   drag = null
   const n = M.levantar(ronda)
+  S.lamento()
   banda({ kicker: `Levantaste en el ${n}`, grande: 'LP 💅', banda: 'VUELTA PERDIDA', verso: 'Entraste en la lista LP 💅' }, 2600, tarjetaFinal)
 }
 
@@ -933,10 +967,13 @@ function cuentaRegresiva(luego) {
   let n = 3
   const paso = () => {
     if (n > 0) {
+      S.cuenta(n)
       el.innerHTML = `<span>${n--}</span>`
       cuentaTimer = setTimeout(paso, 1000)
     } else {
       el.innerHTML = '<span class="ya">¡YA!</span>'
+      S.cuenta(0)
+      S.musica('juego')
       luego()
       cuentaTimer = setTimeout(() => { el.hidden = true }, 700)
     }
@@ -961,6 +998,7 @@ function cerrar(frase) {
   estado = 'resultado'
   const fila = M.cerrarHoyo(ronda, rng)
   const nombre = M.nombreResultado(fila.golpes, fila.par, false)
+  S.resultado(nombre)
   const linea = frase ?? M.fraseResultado(rng, nombre, ronda.jugador)
   const { vsPar } = M.totales(ronda.tarjeta)
   banda({ kicker: `Hoyo ${fila.n} · ${fila.golpes} golpes`, grande: nombre, banda: `VAS ${M.formatoPar(vsPar)}`, verso: linea }, 2600, () => {
@@ -1038,6 +1076,7 @@ function hud() {
   $('#v-kmh').textContent = ronda.viento.kmh ? ronda.viento.kmh : '0'
   $('#v-uni').textContent = ronda.viento.kmh ? 'KM/H' : 'SIN VIENTO'
   $('#viento').classList.toggle('calmo', !ronda.viento.kmh)
+  S.viento(ronda.viento.kmh)
   const j = ronda.jugador
   $('#j-emoji').textContent = j.emoji
   $('#j-sinfoto').textContent = j.foto ? '' : j.emoji
@@ -1067,6 +1106,7 @@ const textoLP = () => (ronda && M.tieneLPNinja(ronda) ? 'LP 🥷 +1' : 'LP 💅'
 function lpDelNinja() {
   drag = null
   M.lpNinja(campo, ronda)
+  S.lamento()
   relatar({ lg: M.elegir(rng, M.RELATO.ninjaLP), verso: 'El próximo LP sí te hace perder la vuelta' })
   siguienteTiro()
 }
@@ -1691,6 +1731,8 @@ function dibujarApunte(a) {
 // ── tarjeta final ──
 let firmaTimer = 0, firmaHasta = 0, firmada = false
 function tarjetaFinal() {
+  S.viento(0)
+  S.musica('final')
   estado = 'fin'
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
@@ -1727,6 +1769,7 @@ function tarjetaFinal() {
 }
 $('#firmar').addEventListener('click', () => {
   if ($('#t-firma').hidden || estado !== 'fin') return // doble toque: se firma (y se anota en el ranking) una sola vez
+  S.firma()
   clearTimeout(firmaTimer)
   firmaHasta = 0
   firmada = true
@@ -1742,6 +1785,7 @@ $('#firmar').addEventListener('click', () => {
   acciones()
 })
 function sinFirma() {
+  S.marshall()
   firmada = false
   firmaHasta = 0
   const j = ronda.jugador
@@ -2079,6 +2123,7 @@ function elegirAtras(step) {
 function volarMazo(step) {
   if (mazoAnim || PLANTEL.length < 2) return
   mazoAnim = true
+  S.swipe()
   const lanzar = () => {
     const { top, back } = cartasActivas()
     const w = window.innerWidth * 1.2 * (step === 'next' ? -1 : 1)
@@ -2148,6 +2193,8 @@ window.addEventListener('keydown', (e) => {
 
 function mostrarElegir() {
   estado = 'elegir'
+  S.musica(null)
+  S.viento(0)
   for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'resumen']) $('#' + id).hidden = true
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
@@ -2219,6 +2266,13 @@ setInterval(rotarFrase, 2200)
 for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false })
 document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false })
 document.addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea')) e.preventDefault() })
+
+// ── sonido: el audio se despierta con el primer toque; cada botón hace "clic" ──
+document.addEventListener('pointerdown', () => S.despertar(), { passive: true })
+document.addEventListener('click', (e) => { if (e.target.closest('button, .btn') && !e.target.closest('#sonido')) S.tap() })
+const pintarSonido = () => { $('#sonido').textContent = S.prendido() ? '🔊' : '🔇'; $('#sonido').setAttribute('aria-pressed', String(S.prendido())) }
+$('#sonido').addEventListener('click', () => { S.alternar(); pintarSonido() })
+pintarSonido()
 
 window.addEventListener('resize', () => {
   medir()
