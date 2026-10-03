@@ -90,6 +90,10 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - Mono bueno: dorado (la banda del SDGA), con brillo y la Boina Verde ladeada, para que se distinga del Mono malo.
 - Cuenta regresiva: durante el 3, 2, 1 la cámara está de cerca sobre el tee del 15 (de dónde salís); en el ¡YA! se abre al hoyo.
 
+## Dicky Toons
+- `dicky-toons.svg`: el logo de los Dicky Toons (del Illustrator que pasó Rorro, solo las capas de relleno y el fondo como círculo liso), animado en CSS: entra con un pop, cada 6 s el personaje carga el swing (squash), pega (stretch) mientras aparecen las líneas del swing, la pelota sale volando del tee y se va del círculo, vuelve con un pop a su lugar y el logo queda quieto como el original ~4 s. Respeta "reducir movimiento".
+- Lo llevan en la carta (arriba a la derecha de la foto) y en "Ver todos" los que tienen `dicky: true` en plantel.js: Fito, Miguelón, El Ninja, Tinder y La Rana (Taiu). Tinder y La Rana todavía no están en el mazo.
+
 ## Voz
 LG 📺 relata con las frases del chat ("Tremendo", "Uff", "Hermoso", "QUE HOMBRE"); en tiros malos sale una excusa.
 Intro de cada hoyo con un verso de la canción de Fito. Frases de carga del design system.

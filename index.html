@@ -217,6 +217,9 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .carta-hab { border-radius: 999px; background: rgba(20, 64, 42, .9); color: var(--gold); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; }
 .carta-dif { position: absolute; right: 12px; top: 12px; border-radius: 999px; background: rgba(20, 64, 42, .85); color: var(--cream); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; }
 .carta-dif.d4, .carta-dif.d5 { background: var(--red); }
+/* los Dicky Toons llevan su logo (animado) en el perfil */
+.carta-foto img.carta-dicky { position: absolute; inset: auto; right: 10px; top: 44px; width: 76px; height: 76px; object-fit: contain; border-radius: 50%; box-shadow: 0 4px 12px rgba(12, 43, 28, .45); }
+.todo-dicky { flex: none; width: 46px; height: 46px; border-radius: 50%; }
 .carta-nombre { position: absolute; left: 16px; right: 16px; bottom: 12px; display: flex; align-items: flex-end; gap: 8px; }
 .carta-nombre h3 { flex: 1; min-width: 0; margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 34px; line-height: .98; padding-top: 4px; color: var(--cream); overflow-wrap: anywhere; text-wrap: balance; }
 .carta-nombre .teja { flex: none; width: 42px; height: 42px; border-radius: 11px; background: var(--cream); display: grid; place-items: center; font-size: 25px; }
@@ -1637,6 +1640,7 @@ function cartaDe(j) {
         ${hab ? `<span class="carta-hab">✨ ${esc(hab.nombre)}</span>` : ''}
       </div>
       <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
+      ${j.dicky ? '<img class="carta-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
       <div class="carta-nombre"><h3>${esc(j.apodo)}</h3><span class="teja" aria-hidden="true">${j.emoji}</span></div>
     </div>
     <div class="carta-cuerpo">
@@ -1801,6 +1805,7 @@ function mostrarTodos() {
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${j.emoji}</span></div>
         <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${i + 1} · HCP ${hcpTxt(j)} · ${dif.nombre.toUpperCase()}</span></div>
+        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
         <button class="carta-jugar" type="button" data-jugar="${i}">Jugar</button>
       </div>
       ${hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
