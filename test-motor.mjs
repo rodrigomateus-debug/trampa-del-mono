@@ -197,15 +197,17 @@ ok('Rodal: el putt siempre lleva comba; derecho al hoyo no entra, apuntando afue
 })
 
 ok('Miguelón: la bomba perfecta llega al green; mal pegada se abre y queda corta', () => {
-  const r = M.nuevaRonda({ apodo: 'Mike Queboni (Đ)', emoji: '🍯' }, fijo(0.5))
+  const r = M.nuevaRonda({ apodo: 'Mike Queboni (Đ)', emoji: '🍯', hcp: 5 }, fijo(0.5))
   r.monos = []
   r.viento = calma
-  const linea = angulo(h15.tee, h15.pin)
+  const azul = h15.tees.azul
+  assert.deepEqual(r.pelota, azul) // HCP 5: sale de las azules
+  const linea = angulo(azul, h15.pin)
   const perfecta = M.planTiro(quieto, r, linea, 1, 1)
   assert.ok(perfecta.bomba && perfecta.perfecta)
-  // midiendo bien la distancia, alguna bomba perfecta termina en el green del 15
-  const alGreen = Array.from({ length: 11 }, (_, i) => 0.9 + i * 0.01).some((p) => {
-    const rr = { ...r, pelota: [...h15.tee], lie: 'tee', golpes: 0 }
+  // midiendo bien la distancia, alguna bomba perfecta termina en el green del 15 (392 yd desde las azules)
+  const alGreen = Array.from({ length: 21 }, (_, i) => 0.8 + i * 0.01).some((p) => {
+    const rr = { ...r, pelota: [...azul], lie: 'tee', golpes: 0 }
     return M.terreno(campo, M.simular(quieto, M.golpear(quieto, rr, linea, p, sinRuido(), 1), h15.pin).pos).tipo === 'green'
   })
   assert.ok(alGreen)
@@ -213,7 +215,7 @@ ok('Miguelón: la bomba perfecta llega al green; mal pegada se abre y queda cort
   assert.ok(!mala.perfecta && mala.disp.ang > (8 * Math.PI) / 180)
   // por debajo de la zona de bomba es un drive normal (aunque más largo)
   const corto = M.planTiro(quieto, r, linea, 0.7, 0)
-  assert.ok(!corto.bomba && corto.carry > M.FISICA.carryMax * 0.9)
+  assert.ok(!corto.bomba && corto.carry * h15.escala > M.carryDe(5) * 0.9)
 })
 
 ok('Rodal: LG solo lo adula, pegue como pegue', () => {
@@ -229,20 +231,22 @@ ok('Rodal: LG solo lo adula, pegue como pegue', () => {
   assert.ok(!M.ADULACION.malo.includes(M.comentar(fijo(0.3), { tipo: 'normal', terreno: 'rough' }, tiro, h15, { apodo: 'Rorro' }).lg))
 })
 
-ok('Mati (El Sueco): siempre derecho y drive de hasta 280', () => {
+ok('Mati (El Sueco): siempre derecho y drive de casi 300', () => {
   const r = { ...M.nuevaRonda({ apodo: 'El Sueco', emoji: '🇸🇪', hcp: 1.5 }, fijo(0.5)), monos: [], viento: calma }
-  const linea = angulo(h15.tee, h15.pin)
+  const linea = angulo(r.pelota, h15.pin)
   const plan = M.planTiro(quieto, r, linea, 1)
   assert.equal(plan.disp.ang, 0)
-  assert.equal(plan.carry, M.DERECHO.carryDrive)
+  assert.ok(Math.abs(plan.carry * h15.escala - M.carryDe(1.5)) < 1e-6)
   assert.equal(M.dificultad(1.5).nombre, 'Paseo')
   // con azar de verdad, cae sobre la línea
+  const t0 = [...r.pelota]
   const tiro = M.simular(quieto, M.golpear(quieto, r, linea, 0.8, Math.random), h15.pin)
-  const enLinea = h15.tee[0] + ((h15.pin[0] - h15.tee[0]) * (h15.tee[1] - tiro.pos[1])) / (h15.tee[1] - h15.pin[1])
+  const enLinea = t0[0] + ((h15.pin[0] - t0[0]) * (t0[1] - tiro.pos[1])) / (t0[1] - h15.pin[1])
   assert.ok(tiro.eventos.some((e) => e.tipo === 'palo') || Math.abs(tiro.pos[0] - enLinea) < 0.5)
-  // drive total (vuelo + rodaje) a fondo: unas 280
-  const largo = M.simular(quieto, M.golpear(quieto, { ...r, pelota: [...h15.tee], lie: 'tee' }, linea, 1, sinRuido()), h15.pin)
-  assert.ok(Math.abs(M.dist(h15.tee, largo.pos) - 280) < 12, `anduvo ${M.dist(h15.tee, largo.pos).toFixed(0)}`)
+  // drive total (vuelo + rodaje) a fondo, en yardas reales: casi 300
+  const largo = M.simular(quieto, M.golpear(quieto, { ...r, pelota: [...t0], lie: 'tee' }, linea, 1, sinRuido()), h15.pin)
+  const yd = M.dist(t0, largo.pos) * h15.escala
+  assert.ok(yd > 280 && yd < 310, `anduvo ${yd.toFixed(0)} yd`)
 })
 
 ok('Fito: la línea se sacude; en el embudo sale derecha', () => {
@@ -262,7 +266,7 @@ ok('Fito: cerca del green, el chip queda al lado del hoyo; perfecto y apuntado, 
   const desde = [h15.pin[0] + 2, h15.pin[1] + 24]
   const fito = () => ({ ...M.nuevaRonda({ apodo: 'Fito (Đ)', emoji: '🦅', hcp: 22 }, fijo(0.5)), monos: [], viento: calma, pelota: [...desde], lie: M.terreno(campo, desde).tipo })
   const alPin = angulo(desde, h15.pin)
-  const p = 14 / (M.FISICA.carryMax * M.dificultad(22).distancia * (M.FISICA.factorLie[fito().lie] ?? 1))
+  const p = (14 * h15.escala) / (M.carryDe(22) * (M.FISICA.factorLie[fito().lie] ?? 1))
   // apuntando torcido (15°): cae en el green y el imán la deja al lado, sin meterla
   const torcido = M.simular(quieto, M.golpear(quieto, fito(), alPin + 0.26, p, sinRuido(), 0, 0), h15.pin)
   assert.ok(torcido.iman?.aplicado)
@@ -368,7 +372,7 @@ ok('pelota quieta cerca: los monos salen a buscarla y si llegan, al tee con un g
   const res = M.monosLlegaron(r)
   assert.deepEqual(res, { tipo: 'reinicio', n: 15 })
   assert.equal(r.golpes, 3)
-  assert.deepEqual(r.pelota, h15.tee)
+  assert.deepEqual(r.pelota, M.teeDe(r))
   assert.equal(r.lie, 'tee')
   assert.equal(r.robos, 1)
   assert.ok(!r.terminada)
@@ -400,7 +404,7 @@ ok('afuera: golpe y distancia', () => {
   const res = M.resolverReposo(campo, r, { pos: [1, 200], eventos: [] }, fijo(0.5))
   assert.equal(res.tipo, 'afuera')
   assert.equal(r.golpes, 2)
-  assert.deepEqual(r.pelota, h15.tee)
+  assert.deepEqual(r.pelota, M.teeDe(r))
 })
 
 ok('Mono malo: +1 y drop en el rough; Mono bueno: al fairway sin penalidad', () => {
@@ -520,7 +524,7 @@ ok('El Ninja: el primer LP no pierde la vuelta (+1 y al fairway, no más cerca)'
   // desde el tee no adelanta nada
   const t = { ...M.nuevaRonda({ apodo: 'El Ninja (Đ)', emoji: '🥷' }, fijo(0.5)), monos: [] }
   M.lpNinja(campo, t)
-  assert.deepEqual(t.pelota, h15.tee)
+  assert.deepEqual(t.pelota, M.teeDe(t))
   assert.ok(!M.tieneLPNinja(M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5))))
 })
 
@@ -590,6 +594,29 @@ ok('LG: después de un mal tiro no se enoja y el próximo sale sin error', () =>
   assert.ok(!r.calma) // dura un solo golpe
   const dicho = M.comentar(fijo(0.1), { tipo: 'normal', terreno: 'rough' }, { eventos: [], modo: 'full', carry: 100, pos: [0, 0] }, h15, { apodo: 'LG' })
   assert.ok(M.RELATO.calma.includes(dicho.lg) && dicho.excusa === null)
+})
+
+ok('yardas reales: cada tee a sus yardas de la tarjeta; el color sale del handicap', () => {
+  const tabla = { 15: [392, 376, 360], 16: [415, 395, 380], 17: [208, 188, 170] }
+  for (const h of M.HOYOS) {
+    const [az, bl, am] = tabla[h.n]
+    assert.equal(Math.round(M.dist(h.tees.azul, h.pin) * h.escala), az)
+    assert.equal(Math.round(M.dist(h.tees.blanca, h.pin) * h.escala), bl)
+    assert.equal(Math.round(M.dist(h.tees.amarilla, h.pin) * h.escala), am)
+  }
+  assert.equal(M.colorTee({ hcp: 1.5 }), 'azul')
+  assert.equal(M.colorTee({ hcp: 11 }), 'blanca')
+  assert.equal(M.colorTee({ hcp: 22 }), 'amarilla')
+  // HCP 22 (Fito): sale de las amarillas en todos los hoyos; el drive a fondo, ~265 con el rodaje
+  const r = M.nuevaRonda({ apodo: 'Rorro', hcp: 22 }, fijo(0.5))
+  assert.deepEqual(r.pelota, h15.tees.amarilla)
+  const linea = angulo(r.pelota, h15.pin)
+  const t = M.simular(quieto, M.golpear(quieto, { ...r, monos: [], viento: calma }, linea, 1, sinRuido()), h15.pin)
+  const yd = M.dist(h15.tees.amarilla, t.pos) * h15.escala
+  assert.ok(yd > 250 && yd < 280, `anduvo ${yd.toFixed(0)}`)
+  r.tarjeta = []
+  M.cerrarHoyo(r, fijo(0.5))
+  assert.deepEqual(r.pelota, h16.tees.amarilla)
 })
 
 console.log('\nTodo verde.')

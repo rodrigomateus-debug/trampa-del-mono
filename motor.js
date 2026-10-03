@@ -38,7 +38,7 @@ export const MONO = { vel: 18, pausa: 3, radio: 3.2, altura: 8, velCaza: 12, ale
 export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: cada golpe le toca uno de 5 efectos (mirá cuál antes de pegar). El putt siempre lleva comba.' },
   'Mike Queboni (Đ)': { id: 'bomba', nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green.' },
-  'El Sueco': { id: 'derecho', nombre: 'Siempre derecho', texto: 'Mati no la tuerce nunca: todo sale derecho. Drive de hasta 280 yardas.' },
+  'El Sueco': { id: 'derecho', nombre: 'Siempre derecho', texto: 'Mati no la tuerce nunca: todo sale derecho, hasta el putt.' },
   'Fito (Đ)': { id: 'aguila', nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán al hoyo.' },
   // del chat del SDGA:
   Lechu: { id: 'dadas', nombre: 'Contando todas las dadas', texto: 'La Lechuza: el putt de menos de 1,5 yardas es dada (cuenta el golpe y entra solo).' },
@@ -57,7 +57,7 @@ export const NIVELES = ['Paseo', 'Normal', 'Difícil', 'Muy difícil', 'Trampa t
 export function dificultad(hcp) {
   const h = hcp ?? HCP_SIN_CARGAR
   const nivel = h < 5 ? 1 : h < 10 ? 2 : h < 15 ? 3 : h < 20 ? 4 : 5
-  return { hcp: h, cargado: hcp != null, error: 0.75 + h * 0.035, distancia: 1.05 - h * 0.006, nivel, nombre: NIVELES[nivel - 1] }
+  return { hcp: h, cargado: hcp != null, error: 0.75 + h * 0.035, distancia: (DRIVE.max - DRIVE.porHcp * h) / DRIVE.max, nivel, nombre: NIVELES[nivel - 1] }
 }
 /** La dificultad medida (promedio vs. par del bot de calibrar.mjs) en los mismos 5 niveles. */
 export function dificultadReal(prom) {
@@ -78,14 +78,13 @@ export const GOLPES_MAGO = [
 ]
 // el putt del Mago siempre dobla hacia el hoyo: giro = radianes por segundo que gira mientras rueda
 export const PUTT_MAGO = { giro: 0.3 }
-// la bomba de Miguelón: desde el tee su driver llega a `carry`; pasando `zona` yardas el óvalo late (periodo, en segundos)
-// y es perfecta si suelta con precisión >= perfecta
-export const BOMBA = { carry: 330, zona: 250, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
+// la bomba de Miguelón: desde el tee su driver llega a `carry` yardas reales (con el rodaje, el green del 15 desde las
+// azules); pasando `zona` yardas el óvalo late (periodo, en segundos) y es perfecta si suelta con precisión >= perfecta
+export const BOMBA = { carry: 365, zona: 285, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
 // el Águila (Fito): la línea de tiro se sacude ±amplitud grados cada `periodo` s; si suelta con el desvío dentro de
 // ±ventana (el embudo) sale derecha. A `chip` yardas o menos del hoyo, en el green tiene imán: la deja a `alLado`
 // yardas del hoyo; si además el tiro fue perfecto y apuntado a la bandera (±metida grados), entra.
-// Mati (El Sueco): sin error de dirección; su drive vuela hasta `carryDrive` (con el rodaje, unas 280 yd)
-export const DERECHO = { carryDrive: 255 }
+// Mati (El Sueco): sin error de dirección (pega lo que pega su handicap)
 export const AGUILA = { amplitud: 25, periodo: 0.7, ventana: 5, chip: 40, alLado: 0.7, metida: 4 }
 // Lechu: dada hasta `dada` yardas. El Perro: tarda `segundos` en traerla. Liberty: approach entre `desde` y `hasta` yd, error x`error`.
 export const DADA = 1.5
@@ -101,6 +100,8 @@ export const HOYOS = [
     n: 15,
     par: 4,
     tee: [56.9, 397.8],
+    azul: [57.5, 404.8], // la marca azul del dibujo
+    yardas: { negra: 412, azul: 392, blanca: 376, amarilla: 360 },
     pin: [35.4, 46.3],
     verso: 'Pero al llegar al quince, cambia la situación.',
     calle: [[58, 278], [50, 237.5], [47.5, 186], [46.3, 135], [43.8, 80]],
@@ -111,6 +112,8 @@ export const HOYOS = [
     n: 16,
     par: 4,
     tee: [71.9, 46.3],
+    azul: [67.8, 30.5], // el 16 no tiene marca azul: la del fondo del tee (la roja del dibujo)
+    yardas: { negra: 435, azul: 415, blanca: 395, amarilla: 380 },
     pin: [104.6, 393],
     verso: 'El dieciséis no es más fácil, te desafía sin piedad.',
     calle: [[105, 172.5], [105.5, 222.5], [106.3, 275], [104.5, 325], [103.8, 347.5]],
@@ -121,6 +124,8 @@ export const HOYOS = [
     n: 17,
     par: 3,
     tee: [149.3, 322.9],
+    azul: [151.2, 356.4],
+    yardas: { negra: 223, azul: 208, blanca: 188, amarilla: 170 },
     pin: [150.2, 78.6],
     verso: 'El diecisiete llega, pensás que vas a escapar…',
     calle: [[148.8, 265], [151.3, 212.5], [155, 162.5], [156.3, 120]],
@@ -129,6 +134,33 @@ export const HOYOS = [
   },
 ]
 export const PAR_TOTAL = HOYOS.reduce((s, h) => s + h.par, 0)
+
+// ── yardas reales ──
+// El dibujo no respeta las distancias reales (el 17 está dibujado mucho más largo). Cada hoyo tiene su escala
+// (yardas reales por yarda del dibujo), sacada del tee azul: desde el azul, la distancia al hoyo es la de la tarjeta.
+// Los tees blanco y amarillo van sobre la línea azul → hoyo, a sus yardas de la tarjeta.
+export const COLORES_TEE = { azul: 'AZULES', blanca: 'BLANCAS', amarilla: 'AMARILLAS' }
+for (const h of HOYOS) {
+  const d = Math.hypot(h.azul[0] - h.pin[0], h.azul[1] - h.pin[1])
+  h.escala = h.yardas.azul / d
+  const u = [(h.azul[0] - h.pin[0]) / d, (h.azul[1] - h.pin[1]) / d]
+  const en = (yd) => [h.pin[0] + (u[0] * yd) / h.escala, h.pin[1] + (u[1] * yd) / h.escala]
+  h.tees = { azul: [...h.azul], blanca: en(h.yardas.blanca), amarilla: en(h.yardas.amarilla) }
+}
+/** De qué tee sale según el handicap: hasta 5 de las azules, hasta 14 de las blancas, si no de las amarillas. */
+export const colorTee = (jugador) => {
+  const h = jugador?.hcp ?? HCP_SIN_CARGAR
+  return h <= 5 ? 'azul' : h <= 14 ? 'blanca' : 'amarilla'
+}
+/** El tee de la ronda en el hoyo actual (o en `h`). */
+export const teeDe = (r, h = HOYOS[r.idx]) => h.tees[r.tee ?? 'blanca']
+/** Yardas reales de una distancia del dibujo, en el hoyo que se juega. */
+export const aYardas = (r, d) => d * (HOYOS[Math.min(r.idx, HOYOS.length - 1)].escala)
+
+// El drive (carry máximo, en yardas reales) según el handicap: ~273 con HCP 0 (con el rodaje, ~300) y ~241 con HCP 22
+// (~265 con el rodaje; a fondo y con error, promedian 230–250).
+export const DRIVE = { max: 273, porHcp: 1.45 }
+export const carryDe = (hcp) => DRIVE.max - DRIVE.porHcp * (hcp ?? HCP_SIN_CARGAR)
 
 // ── geometría ───────────────────────────────────────────────────────────
 export function dentro(poly, [x, y]) {
@@ -340,10 +372,12 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
   }
   const tee = r.lie === 'tee'
   const plan = planBase(angulo, potencia, r.lie)
-  plan.carry *= dif.distancia
+  // el carry en yardas reales (según el handicap) pasado a yardas del dibujo con la escala del hoyo
+  const escala = hoyoActual(r).escala
+  plan.carry = (potencia * carryDe(r.jugador?.hcp) * (FISICA.factorLie[r.lie] ?? 1)) / escala
   plan.disp = { ...plan.disp, ang: plan.disp.ang * dif.error, carry: plan.disp.carry * dif.error }
-  if (hab?.id === 'bomba' && tee) plan.carry = potencia * BOMBA.carry
-  if (hab?.id === 'bomba' && tee && plan.carry > BOMBA.zona) {
+  if (hab?.id === 'bomba' && tee) plan.carry = (potencia * BOMBA.carry) / escala
+  if (hab?.id === 'bomba' && tee && plan.carry * escala > BOMBA.zona) {
     const q = Math.max(0, Math.min(1, precision))
     plan.bomba = true
     plan.perfecta = q >= BOMBA.perfecta
@@ -363,7 +397,6 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
   }
   if (hab?.id === 'derecho') {
     plan.disp = { ...plan.disp, ang: 0 } // siempre derecho
-    if (tee) plan.carry = potencia * DERECHO.carryDrive
   }
   if (hab?.id === 'comba') {
     // nunca derecho: sale por donde apunta y se cierra según el golpe que le tocó
@@ -603,13 +636,15 @@ export function simular(campo, tiro, pin, dt = 1 / 60) {
 
 // ── ronda ───────────────────────────────────────────────────────────────
 export function nuevaRonda(jugador, rng) {
+  const tee = colorTee(jugador)
   const r = {
     jugador,
+    tee, // azul, blanca o amarilla (según el handicap)
     idx: 0,
     golpes: 0,
-    pelota: [...HOYOS[0].tee],
+    pelota: [...HOYOS[0].tees[tee]],
     lie: 'tee',
-    desde: [...HOYOS[0].tee],
+    desde: [...HOYOS[0].tees[tee]],
     lieDesde: 'tee',
     viento: vientoAleatorio(rng),
     tarjeta: [],
@@ -657,8 +692,8 @@ export function monosLlegaron(r) {
   calmarMonos(r.monos)
   r.robos += 1
   r.golpes += 1
-  r.pelota = [...h.tee]
-  r.desde = [...h.tee]
+  r.pelota = [...teeDe(r)]
+  r.desde = [...teeDe(r)]
   r.lie = 'tee'
   r.lieDesde = 'tee'
   return { tipo: 'reinicio', n: h.n }
@@ -818,8 +853,8 @@ export function cerrarHoyo(r, rng) {
   } else {
     const sig = HOYOS[r.idx]
     r.golpes = 0
-    r.pelota = [...sig.tee]
-    r.desde = [...sig.tee]
+    r.pelota = [...teeDe(r, sig)]
+    r.desde = [...teeDe(r, sig)]
     r.lie = 'tee'
     r.lieDesde = 'tee'
     r.viento = vientoAleatorio(rng)

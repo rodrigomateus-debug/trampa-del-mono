@@ -47,7 +47,7 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - Si los monos llegan a la pelota antes del golpe: vuelta al tee del hoyo con un golpe de multa (se conservan los golpes que ya llevabas).
 - Rodal: LG solo lo adula, pegue como pegue (sin excusas ni versos; los resultados también).
 - Fito (🦅 El Águila) — Chip in: en drives y hierros la línea de tiro se sacude ±25° (período 0,7 s); si suelta con el desvío dentro de ±5° (el embudo dibujado en la pelota) sale derecha. A 40 yd o menos del hoyo, si la pelota llega al green, un imán la deja a 0,7 yd del hoyo; si el tiro fue perfecto y apuntado a la bandera, entra.
-- Mati (🇸🇪 El Sueco) — Siempre derecho: sin error de dirección (ni en el putt) y drive de hasta ~280 yd (vuela 255). HCP 1.5 = dificultad Paseo.
+- Mati (🇸🇪 El Sueco) — Siempre derecho: sin error de dirección (ni en el putt). Su drive sale de su handicap (casi 300 con el rodaje). HCP 1.5 = dificultad Paseo.
 - Por ahora el mazo muestra solo 4 jugadores (`EN_PRUEBA` en plantel.js): El Sueco, Miguelón, Rodal y Fito.
 - Web app: GitHub Pages en https://rodrigomateus-debug.github.io/trampa-del-mono/ (index.html se genera con `node build-web.mjs` desde juego.html; manifest + íconos con el green del 16 del dibujo, el Mono y el SDGA chiquito).
 
@@ -110,6 +110,12 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - Se sacó el emoji del jugador que caminaba de pelota a pelota (ruido visual).
 - Monos fuera de la pantalla (los que vienen a buscar la pelota, o tapados por el marcador): un indicador en el borde, sobre la línea pelota → mono, con el 🐒, una flecha para el lado de donde viene y las yardas que le faltan. El color va de verde (lejos) a amarillo, naranja y rojo (encima); a menos de 20 yd late.
 - Pelota al lado del hoyo: como el hoyo y la pelota se dibujan más grandes que los reales, una pelota quieta cerca del hoyo sin haber entrado se dibuja apoyada en el borde, afuera, con un aro rojo. La distancia cerca del hoyo va en centímetros (menos de 1 yd) o con un decimal (menos de 10 yd); nunca "0 yd".
+
+## Yardas reales y tees por nivel (2026-10-04)
+- Tarjeta real (yd): 15 · 16 · 17 — negras 412 · 435 · 223, azules 392 · 415 · 208, blancas 376 · 395 · 188, amarillas 360 · 380 · 170.
+- El dibujo no respeta esas distancias (el 17 está dibujado mucho más largo), así que cada hoyo tiene su escala (yardas reales por yarda del dibujo), sacada del tee azul: desde la marca azul del dibujo, la distancia al hoyo da las yardas de la tarjeta. Los tees blanco y amarillo se ubican sobre la línea azul → hoyo a sus yardas de la tarjeta (las amarillas quedan apenas adelante del cajón dibujado). El 16 no tiene marca azul en el dibujo: se usa la del fondo del tee.
+- De qué tee salís según el handicap: hasta 5, azules; hasta 14, blancas; más, amarillas. El juego marca tu tee con dos puntos de su color y el cartel del hoyo dice "desde las azules · PAR 4 · 392 YD".
+- Todo lo que se muestra (yd al pin, el cartel del tiro) está en yardas reales. El carry máximo (en yardas reales) sale del handicap: 273 − 1,45 × HCP (HCP 0: ~273 de vuelo, ~300 con el rodaje; HCP 22: ~241 de vuelo, ~265 con el rodaje, y a fondo con error promedian 230–250). El Sueco ya no tiene drive especial (sale de su handicap: casi 300). Miguelón: la bomba vuela hasta 365 yd (llega al green del 15 desde las azules); el óvalo late pasando las 285.
 
 ## Compartir la vuelta (2026-10-04)
 - En la tarjeta final, "COMPARTIR MI VUELTA 📸" (antes del texto para WhatsApp): arma una imagen 1080×1350 con el diseño del SDGA (verde con rayas, crema, banda dorada, Anton/Archivo): quién sos (el nombre de la portada), la cara y el emoji del jugador, "jugó con …", el score grande (o LP / 110 sin firmar), golpes y par, el tiempo, los tres hoyos en colores (bajo par verde, par dorado, sobre par rojo), el puesto en el ranking si firmaste, una frase de LG y los monos.

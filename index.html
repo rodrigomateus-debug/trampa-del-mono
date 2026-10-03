@@ -911,7 +911,7 @@ function introHoyo() {
   tiro = null
   estela = []
   hud()
-  const fin = encuadre(h.tee, h.pin)
+  const fin = encuadre(M.teeDe(ronda), h.pin)
   Object.assign(cam, { ...fin, cx: h.pin[0], cy: h.pin[1], esc: 4.5 })
   obj = fin
   velCam = 1.3
@@ -925,11 +925,11 @@ function introHoyo() {
     const hab = M.habilidadDe(ronda.jugador)
     if (hab && ronda.idx === 0) relatar({ lg: `✨ ${hab.nombre}`, verso: hab.texto })
   }
-  banda({ kicker: 'La Trampa del Mono', grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${Math.round(M.dist(h.tee, h.pin))} YD`, verso: h.verso }, 2800, () => {
+  banda({ kicker: `La Trampa del Mono · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}`, grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${h.yardas[ronda.tee]} YD`, verso: h.verso }, 2800, () => {
     // la primera vez: 3, 2, 1 y arranca el reloj, que corre hasta el último putt
     if (ronda.t0 == null) {
       // la cuenta regresiva muestra de cerca de dónde salís; en el ¡YA! se abre al hoyo
-      const vista = vistaApuntar(h.tee, h.pin)
+      const vista = vistaApuntar(M.teeDe(ronda), h.pin)
       obj = { ...vista, esc: 7 }
       velCam = 2.2
       // en el "2" vuelve al encuadre de salida: en el ¡YA! ya está quieta hace un segundo (no perdés tiempo)
@@ -1045,7 +1045,7 @@ function hud() {
   $('#h-num').textContent = `HOYO ${h.n}`
   $('#h-par').textContent = `PAR ${h.par}`
   $('#h-golpe').textContent = `Golpe ${ronda.golpes + (estado === 'tiro' ? 0 : 1)}`
-  const alPin = M.dist(ronda.pelota, h.pin)
+  const alPin = M.dist(ronda.pelota, h.pin) * h.escala // yardas reales
   // cerca del hoyo, con decimales: nunca "0 yd" con la pelota afuera
   $('#h-dist').textContent = alPin < 1 ? `${Math.round(alPin * 91)} cm al hoyo` : alPin < 10 ? `${alPin.toFixed(1).replace('.', ',')} yd al pin` : `${Math.round(alPin)} yd al pin`
   const ter = M.terreno(campo, ronda.pelota)
@@ -1156,6 +1156,22 @@ function dibujar() {
     ctx.fillText(`TEE ${h.n}`, tx, ty + 22)
     hoyoNitido(w2s(h.pin))
     bandera(w2s(h.pin), h.n, !hoyo || h.n === hoyo.n) // las del dibujo se borraron: van todas acá
+  }
+  // el tee de donde salís (azules, blancas o amarillas): dos marcas de su color a los costados
+  if (hoyo && ronda) {
+    const t = M.teeDe(ronda)
+    const color = { azul: '#2f5fd0', blanca: '#ffffff', amarilla: '#f2d335' }[ronda.tee]
+    const ang = Math.atan2(hoyo.pin[1] - t[1], hoyo.pin[0] - t[0]) + Math.PI / 2
+    for (const lado of [-1, 1]) {
+      const [mx, my] = w2s([t[0] + Math.cos(ang) * lado * 2.2, t[1] + Math.sin(ang) * lado * 2.2])
+      ctx.fillStyle = color
+      ctx.strokeStyle = 'rgba(12,43,28,.8)'
+      ctx.lineWidth = 1.5
+      ctx.beginPath()
+      ctx.arc(mx, my, Math.max(3, Math.min(7, cam.esc * 0.7)), 0, 7)
+      ctx.fill()
+      ctx.stroke()
+    }
   }
 
   // estela
@@ -1642,7 +1658,7 @@ function dibujarApunte(a) {
     ctx.stroke()
   }
   const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
-  const txt = `≈ ${Math.round(a.alcance)} YD${extra}`
+  const txt = `≈ ${Math.round(M.aYardas(ronda, a.alcance))} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
   const w = ctx.measureText(txt).width + 16
