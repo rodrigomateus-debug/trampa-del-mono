@@ -541,17 +541,31 @@ ok('El Perro: greens sin caída y el perro la trae del bosque sin multa', () => 
   assert.ok(Math.abs(conCaida.pos[0] - h15.pin[0]) > 0.3)
 })
 
-ok('Mugre: con panchitos los monos no se la roban ni salen a buscarla', () => {
+ok('Mugre: los monos la huelen de lejos; un pancho los distrae un segundo y vuelven', () => {
   const r = M.nuevaRonda({ apodo: 'Mugre', emoji: '💩' }, fijo(0.5))
-  const tiro = M.golpear(campo, r, angulo(h15.tee, h15.pin), 0.5, sinRuido())
-  assert.ok(tiro.panchitos)
-  // un mono justo donde pasa la pelota baja
-  r.monos[0].pos = [...tiro.pos]
-  r.monos[0].espera = 0
-  tiro.t = 0.01
-  M.avanzar(campo, tiro, 1 / 120, h15.pin)
-  assert.ok(!tiro.robada)
-  assert.equal(M.despertarMonos(r.monos, r.monos[0].pos, true), 0)
+  assert.equal(r.panchos, M.MUGRE.panchos)
+  assert.equal(M.alertaDe(r), M.MUGRE.alerta)
+  // un mono a 80 yd: a cualquiera no lo ve, a la Mugre sí
+  r.pelota = [...h15.calle[2]]
+  const s = r.monos[0]
+  s.pos = [r.pelota[0] + 80, r.pelota[1]]
+  assert.equal(M.despertarMonos([{ ...s, pos: [...s.pos] }], r.pelota), 0)
+  assert.equal(M.despertarMonos(r.monos, r.pelota, M.alertaDe(r)) >= 1, true)
+  // tira un pancho: cae del lado del mono, más allá; el mono va, come y vuelve
+  const pos = M.tirarPancho(r)
+  assert.ok(pos && pos[0] > s.pos[0] - 1 && r.panchos === M.MUGRE.panchos - 1)
+  const d0 = M.dist(s.pos, r.pelota)
+  for (let i = 0; i < 60; i++) M.moverMonos(r.monos, 1 / 30, r.pelota)
+  assert.ok(M.dist(s.pos, r.pelota) > d0, 'se alejó de la pelota para comer')
+  for (let i = 0; i < 400 && s.pancho; i++) M.moverMonos(r.monos, 1 / 30, r.pelota)
+  assert.equal(s.pancho, null)
+  let llego = null
+  for (let i = 0; i < 900 && !llego; i++) llego = M.moverMonos(r.monos, 1 / 30, r.pelota)
+  assert.ok(llego, 'después de comer vuelve por la pelota')
+  // sin panchos o sin monos cazando, no tira
+  r.panchos = 0
+  assert.equal(M.tirarPancho(r), null)
+  assert.equal(M.tirarPancho({ ...M.nuevaRonda({ apodo: 'Mugre' }, fijo(0.5)) }), null)
 })
 
 ok('Liberty: drive derecho; approach con el triple de error', () => {

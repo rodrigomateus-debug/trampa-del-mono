@@ -92,9 +92,14 @@ body {
 #h-num { font-family: var(--font-display); font-size: 28px; line-height: 1.1; letter-spacing: .01em; }
 #h-par { font-family: var(--font-display); font-size: 18px; color: var(--green-500); margin-left: 8px; }
 .meta { font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.viento { display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 18px; }
-#v-flecha { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--green-900); color: var(--cream); }
-#v-flecha svg { width: 14px; height: 14px; }
+/* el viento, grande, en la cancha debajo del reloj: la flecha apunta para donde sopla (girada con la cámara) */
+.viento { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px; background: rgba(12, 43, 28, .78); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); }
+#v-flecha { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--gold); color: var(--green-900); transition: transform 120ms linear; }
+#v-flecha svg { width: 24px; height: 24px; }
+.v-txt { display: grid; line-height: 1; }
+.v-txt b { font-family: var(--font-display); font-weight: 400; font-size: 26px; }
+.v-txt small { font-size: 10px; font-weight: 800; letter-spacing: .1em; opacity: .8; }
+.viento.calmo #v-flecha { background: rgba(244, 238, 218, .2); color: var(--cream); }
 /* la cara del jugador, grande, con su emoji en un circulito arriba */
 .hud-fila { display: flex; align-items: center; gap: 12px; }
 .cara { position: relative; flex: none; width: 66px; height: 66px; }
@@ -119,7 +124,7 @@ body {
 #lie { justify-self: start; max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
 #lp { justify-self: end; height: 30px; padding: 0 12px; font-size: 14px; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1.5px rgba(244, 238, 218, .6); pointer-events: auto; }
 #hud-chips > * { transition: opacity 150ms; }
-body.apuntando #lie, body.apuntando #lp { opacity: .25; pointer-events: none; }
+body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho { opacity: .25; pointer-events: none; }
 
 /* ── banda central (intro de hoyo y resultado) ── */
 #banda {
@@ -270,6 +275,11 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 /* ── cronómetro y golpe del Mago: debajo del marcador ── */
 #hud-chips { width: 100%; max-width: 520px; justify-self: center; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: start; }
 #hud-chips .centro { display: grid; gap: 6px; justify-items: center; }
+#hud-chips .der { justify-self: end; display: grid; gap: 6px; justify-items: end; }
+#pancho { pointer-events: auto; cursor: pointer; border: 0; background: var(--gold); color: var(--green-900); }
+#pancho[disabled] { opacity: .45; }
+body.monos-vienen #pancho:not([disabled]) { animation: latePancho .5s ease-in-out infinite alternate; }
+@keyframes latePancho { to { transform: scale(1.12); box-shadow: 0 0 0 4px rgba(232, 195, 74, .35); } }
 .chip { font-family: var(--font-display); font-size: 16px; letter-spacing: .05em; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); border-radius: 999px; padding: 0 12px; height: 30px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 #crono { color: var(--gold); min-width: 10ch; justify-content: center; }
 #efecto { background: var(--gold); color: var(--green-900); }
@@ -333,7 +343,6 @@ input { -webkit-user-select: text; user-select: text; }
       <div class="hud-datos">
         <div class="fila">
           <div><span id="h-num">HOYO 15</span><span id="h-par">PAR 4</span></div>
-          <div class="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="v-kmh">0 km/h</span></div>
         </div>
         <div class="fila meta"><span id="h-golpe">Golpe 1</span><span id="h-dist">370 yd al pin</span></div>
         <div class="hud-jugador"><span id="j-apodo">RORRO</span><span class="hcp" id="j-hcp"></span><span class="band" id="j-total">E</span></div>
@@ -345,9 +354,13 @@ input { -webkit-user-select: text; user-select: text; }
     <span class="chip" id="lie">TEE</span>
     <div class="centro">
       <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
+      <div class="viento" id="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="v-txt"><b id="v-kmh">0</b><small id="v-uni">KM/H</small></span></div>
       <span class="chip" id="efecto" hidden></span>
     </div>
-    <button class="btn ghost" id="lp" type="button">LP 💅</button>
+    <div class="der">
+      <button class="btn ghost" id="lp" type="button">LP 💅</button>
+      <button class="chip" id="pancho" type="button" hidden>🌭 PANCHO ×3</button>
+    </div>
   </div>
 </div>
 
@@ -679,6 +692,7 @@ function actualizar(dt) {
     if (llego && estado === 'apuntar') llegaronMonos(llego)
   }
   moverCaminante(dt)
+  moverRafagas(dt)
   zoomDelTee()
   // si el tiro se cortó (llegaron los monos, LP, etc.), los botones vuelven
   if (!drag && document.body.classList.contains('apuntando')) document.body.classList.remove('apuntando')
@@ -787,9 +801,33 @@ function siguienteTiro() {
   despertar()
   hud()
 }
-/** Pelota quieta: los monos cercanos salen a buscarla (a Mugre no: les tira panchitos). */
+/** Pelota quieta: los monos cercanos salen a buscarla (a la Mugre la huelen de más lejos). */
 function despertar() {
-  M.despertarMonos(ronda.monos, ronda.pelota, M.habilidadDe(ronda.jugador)?.id === 'panchitos')
+  M.despertarMonos(ronda.monos, ronda.pelota, M.alertaDe(ronda))
+}
+// ── los panchos de la Mugre ──
+let pancho = null // { desde, hasta, t0 } — el que va volando / está en el piso
+function tirarPancho() {
+  if (estado !== 'apuntar' || !ronda.panchos) return
+  const desde = [...ronda.pelota]
+  const pos = M.tirarPancho(ronda)
+  if (!pos) { relatar({ lg: 'No viene ningún mono', verso: 'Guardá los panchos para cuando vengan' }); return }
+  pancho = { desde, hasta: pos, t0: performance.now() }
+  relatar({ lg: M.elegir(rng, M.RELATO.pancho), verso: `Te quedan ${ronda.panchos} 🌭 en este hoyo` })
+  hud()
+}
+function dibujarPancho() {
+  if (!pancho || !ronda) return
+  const u = Math.min(1, (performance.now() - pancho.t0) / 450)
+  const comiendo = ronda.monos.some((s) => s.pancho)
+  if (u >= 1 && !comiendo) { pancho = null; return }
+  const p = [pancho.desde[0] + (pancho.hasta[0] - pancho.desde[0]) * u, pancho.desde[1] + (pancho.hasta[1] - pancho.desde[1]) * u]
+  const [x, y] = w2s(p)
+  ctx.font = `${Math.max(18, Math.min(28, cam.esc * 2.6))}px ${EMOJI}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('🌭', x, y - Math.sin(Math.PI * u) * 40)
+  ctx.textBaseline = 'alphabetic'
 }
 /** Embocó: el último putt del 17 para el reloj. */
 function embocar(frase) {
@@ -833,6 +871,7 @@ function empezar(jugador) {
 }
 function introHoyo() {
   const h = M.hoyoActual(ronda)
+  pancho = null
   caminante.pos = [...h.tee]
   estado = 'intro'
   tiro = null
@@ -857,7 +896,9 @@ function introHoyo() {
       const vista = encuadre(h.tee, h.pin)
       obj = { ...vista, cx: h.tee[0], cy: h.tee[1], esc: 7, sy: H * 0.56 }
       velCam = 2.2
-      cuentaRegresiva(() => { ronda.t0 = performance.now(); obj = vista; arrancar(); velCam = 2 })
+      // en el "2" vuelve al encuadre de salida: en el ¡YA! ya está quieta hace un segundo (no perdés tiempo)
+      setTimeout(() => { if (estado === 'cuenta') { obj = vista; velCam = 4.5 } }, 900)
+      cuentaRegresiva(() => { ronda.t0 = performance.now(); obj = vista; arrancar() })
     }
     else arrancar()
   })
@@ -940,7 +981,8 @@ function relatar({ lg, excusa, verso }) {
 function pintarVoz() {
   let clase = 'vacia', dice = 'mirando…', extra = ''
   if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza')) {
-    clase = 'alerta'; dice = '🐒 ¡VIENEN LOS MONOS! PEGALE'; extra = 'Si llegan, se la llevan: al tee con un golpe de multa'
+    clase = 'alerta'; dice = '🐒 ¡VIENEN LOS MONOS! PEGALE'
+    extra = ronda.panchos ? `…o tirales un pancho 🌭 (te quedan ${ronda.panchos})` : 'Si llegan, se la llevan: al tee con un golpe de multa'
   } else if (voz && performance.now() < voz.hasta) {
     clase = ''; dice = voz.lg; extra = voz.extra
   } else if (estado === 'apuntar' && !datos.vistoTip) {
@@ -953,6 +995,7 @@ function pintarVoz() {
   }
   const clave = clase + dice + extra
   if (clave === vozPintada) return
+  document.body.classList.toggle('monos-vienen', clase === 'alerta')
   vozPintada = clave
   $('#voz').className = clase
   $('#r-dice').textContent = dice
@@ -970,8 +1013,9 @@ function hud() {
   const ter = M.terreno(campo, ronda.pelota)
   const ajeno = ter.hoyo && ter.hoyo !== h.n && ter.tipo !== 'tee' ? ` · DEL ${ter.hoyo}` : ''
   $('#lie').textContent = (ter.tipo === 'green' && ajeno ? 'GREEN' : LIES[ronda.lie] ?? ronda.lie.toUpperCase()) + ajeno
-  $('#v-kmh').textContent = ronda.viento.kmh ? `${ronda.viento.kmh} km/h` : 'SIN VIENTO'
-  $('#v-flecha').hidden = !ronda.viento.kmh
+  $('#v-kmh').textContent = ronda.viento.kmh ? ronda.viento.kmh : '0'
+  $('#v-uni').textContent = ronda.viento.kmh ? 'KM/H' : 'SIN VIENTO'
+  $('#viento').classList.toggle('calmo', !ronda.viento.kmh)
   const j = ronda.jugador
   $('#j-emoji').textContent = j.emoji
   $('#j-sinfoto').textContent = j.foto ? '' : j.emoji
@@ -983,6 +1027,12 @@ function hud() {
   $('#j-total').textContent = M.formatoPar(M.totales(ronda.tarjeta).vsPar)
   $('#lp').disabled = estado !== 'apuntar'
   if (!lpArmado) $('#lp').textContent = textoLP()
+  const mugre = M.habilidadDe(ronda.jugador)?.id === 'panchitos'
+  $('#pancho').hidden = !mugre
+  if (mugre) {
+    $('#pancho').textContent = `🌭 PANCHO ×${ronda.panchos}`
+    $('#pancho').disabled = !ronda.panchos || estado !== 'apuntar'
+  }
   // el golpe del Mago: el que le toca (o, mientras vuela, el que pegó)
   const g = !ronda.golpeMago ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? PUTT_MAGO : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
   $('#efecto').hidden = !g
@@ -1003,6 +1053,7 @@ function golpeMago() {
   return M.enModoPutt(campo, ronda) ? PUTT_MAGO : M.golpeMagoDe(ronda)
 }
 let lpArmado = 0
+$('#pancho').addEventListener('click', tirarPancho)
 $('#lp').addEventListener('click', () => {
   if (estado !== 'apuntar') return
   const ninja = M.tieneLPNinja(ronda)
@@ -1079,6 +1130,8 @@ function dibujar() {
     ctx.fill()
   }
 
+  dibujarRafagas()
+  dibujarPancho()
   dibujarMonos()
   dibujarCaminante()
   if (ronda && !ronda.terminada) {
@@ -1093,6 +1146,41 @@ function dibujar() {
     const ang = ronda.viento.ang + cam.rot
     const f = $('#v-flecha')
     if (Math.abs((f._ang ?? 99) - ang) > 0.01) { f.style.transform = `rotate(${ang}rad)`; f._ang = ang }
+  }
+}
+// ── ráfagas: líneas finitas que cruzan la cancha para donde sopla; más viento, más líneas y más rápidas ──
+const rafagas = []
+function moverRafagas(dt) {
+  const kmh = ronda && !ronda.terminada ? ronda.viento.kmh : 0
+  const objetivo = Math.round((kmh / M.FISICA.vientoMax) * 26 * Math.min(1.6, (W * H) / 330000))
+  if (rafagas.length < objetivo && Math.random() < dt * 14) {
+    rafagas.push({ x: Math.random() * W, y: Math.random() * H, t: 0, T: 1.1 + Math.random() * 1.2, largo: 26 + Math.random() * 46 + kmh * 1.2 })
+  }
+  const vel = 50 + kmh * 9
+  const ang = (ronda?.viento.ang ?? 0) + cam.rot
+  for (let i = rafagas.length - 1; i >= 0; i--) {
+    const r = rafagas[i]
+    r.t += dt
+    r.x += Math.cos(ang) * vel * dt
+    r.y += Math.sin(ang) * vel * dt
+    if (r.t >= r.T) rafagas.splice(i, 1)
+  }
+}
+function dibujarRafagas() {
+  if (!rafagas.length || !ronda) return
+  const ang = ronda.viento.ang + cam.rot
+  const c = Math.cos(ang), s = Math.sin(ang)
+  ctx.lineCap = 'round'
+  ctx.lineWidth = 1.4
+  for (const r of rafagas) {
+    const u = r.t / r.T
+    const alfa = Math.sin(Math.PI * u) * 0.32 // aparece y desaparece
+    ctx.strokeStyle = `rgba(255,255,255,${alfa})`
+    ctx.beginPath()
+    ctx.moveTo(r.x - c * r.largo, r.y - s * r.largo)
+    // un poquito curva, como una ráfaga
+    ctx.quadraticCurveTo(r.x - c * r.largo * 0.5 - s * 4, r.y - s * r.largo * 0.5 + c * 4, r.x, r.y)
+    ctx.stroke()
   }
 }
 const levante = () => Math.min(cam.esc * 0.5, 2.2)

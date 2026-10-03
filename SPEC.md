@@ -72,7 +72,7 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - 🦉 Lechu (Joaquín "La Lechuza" Castelli, campeón de la Boina Verde) — Contando todas las dadas: en el green, a 1,5 yd o menos, es dada (cuenta el golpe y entra sola).
 - 🥷 El Ninja — La tradición ("manteniendo viva la tradición de un LP por finde"): el primer LP de la vuelta no la pierde: +1 y drop en la calle sin acercarse al hoyo (desde el tee, ahí mismo). El botón dice "LP 🥷 +1". El segundo LP sí pierde la vuelta.
 - 🐕 El Perro (Gonza) — Va a buscarla: los greens están habilitados (sin caída, ni flechas) y si la pelota va al bosque el perro la trae a la calle sin multa. Tarda 4 s y el reloj corre. LG: "La vida no es mucho más que esto".
-- 💩 Mugre (Alan, "Lurrrrpin") — Panchitos: los monos no se la roban al vuelo ni salen a buscarla. El Mono del bosque sigue igual. Cuando emboca, LG dice "Lurrrrrrpin".
+- 💩 Mugre (Alan, "Lurrrrpin") — Tirar panchos (2026-10-03, reemplaza a "Panchitos"): a la Mugre los monos la huelen de lejos (salen a buscarla desde 90 yd en vez de 60). Tiene 3 panchos por hoyo (botón "🌭 PANCHO ×N" debajo de LP, late cuando vienen los monos): el pancho cae del lado de donde vienen, más allá de ellos; los que la estaban cazando van, comen 1 s y vuelven (más rápido). Se la pueden robar igual que a todos. Cuando emboca, LG dice "Lurrrrrrpin".
 - 🗽 Liberty (Fede Bal) — Si no era por el approach: desde el tee sale derecho siempre; de 30 a 100 yd del hoyo, triple de error ("Los wedges ya van a funcionar").
 - 📺 LG (Lucas) — El que se enoja pierde: después de un mal tiro (rough, bunker, palo, afuera o mono) el próximo sale sin error, putt incluido. LG no pone excusas y a veces se relata a sí mismo.
 - El emoji del jugador camina de pelota a pelota: sale del tee, se queda donde pegó mientras vuela la pelota y después va hasta ella (≈1 s, saltando).
@@ -88,7 +88,8 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - Marcador: debajo de la tarjeta, una fila con dónde estás (TEE, FAIRWAY, ROUGH · 70%…) a la izquierda, el reloj (y el golpe del Mago) al centro y LP a la derecha. Abajo de la pantalla no queda nada: es todo cancha.
 - Afuera del dibujo: en vez del crema, el verde del SDGA con rayas diagonales de pasto cortado, sutiles. El crema de `cancha.webp` que rodea la cancha se volvió transparente (con el borde difuminado); bunkers y lo de adentro, intactos.
 - Mono bueno: dorado (la banda del SDGA), con brillo y la Boina Verde ladeada, para que se distinga del Mono malo.
-- Cuenta regresiva: durante el 3, 2, 1 la cámara está de cerca sobre el tee del 15 (de dónde salís); en el ¡YA! se abre al hoyo.
+- Cuenta regresiva: en el 3 la cámara está de cerca sobre el tee del 15 (de dónde salís); en el 2 vuelve al encuadre de salida, así que en el ¡YA! (cuando arranca el reloj) ya está quieta hace un segundo y no perdés tiempo.
+- Viento: fuera de la tarjeta, grande, debajo del reloj (flecha dorada que apunta para donde sopla, girada con la cámara, y los km/h). Sobre la cancha, ráfagas: líneas finitas que aparecen, cruzan para donde sopla y desaparecen; más viento, más líneas y más rápidas. Sin viento, no hay.
 
 ## Dicky Toons
 - `dicky-toons.svg`: el logo de los Dicky Toons (del Illustrator que pasó Rorro, solo las capas de relleno y el fondo como círculo liso), animado en CSS: entra con un pop, cada 6 s el personaje carga el swing (squash), pega (stretch) mientras aparecen las líneas del swing, la pelota sale volando del tee y se va del círculo, vuelve con un pop a su lugar y el logo queda quieto como el original ~4 s. Respeta "reducir movimiento".

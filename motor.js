@@ -44,7 +44,7 @@ export const HABILIDADES = {
   Lechu: { id: 'dadas', nombre: 'Contando todas las dadas', texto: 'La Lechuza: el putt de menos de 1,5 yardas es dada (cuenta el golpe y entra solo).' },
   'El Ninja (Đ)': { id: 'tradicion', nombre: 'La tradición', texto: 'Un LP por vuelta no te hace perder: levantás, +1 y dropeás en el fairway. El segundo, sí.' },
   'El Perro': { id: 'perro', nombre: 'Va a buscarla', texto: 'Los greens están habilitados (sin caída) y si va al bosque el perro te la trae al fairway sin multa. Tarda: el reloj corre.' },
-  Mugre: { id: 'panchitos', nombre: 'Panchitos', texto: 'Les tira panchitos a los monos: ni se la roban al vuelo ni salen a buscarla.' },
+  Mugre: { id: 'panchitos', nombre: 'Tirar panchos', texto: 'A la Mugre los monos la huelen de lejos y vienen más. Pero tiene 3 panchos por hoyo: se los tirás, van, comen un segundo y vuelven.' },
   Liberty: { id: 'approach', nombre: 'Si no era por el approach', texto: 'El drive sale derecho siempre. Los approach (de 30 a 100 yd del hoyo) tienen el triple de error.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
 }
@@ -90,6 +90,8 @@ export const AGUILA = { amplitud: 25, periodo: 0.7, ventana: 5, chip: 40, alLado
 // Lechu: dada hasta `dada` yardas. El Perro: tarda `segundos` en traerla. Liberty: approach entre `desde` y `hasta` yd, error x`error`.
 export const DADA = 1.5
 export const PERRO = { segundos: 4 }
+// Mugre: los monos lo huelen desde `alerta` yd; `panchos` por hoyo; los tira a `tiro` yd (para el lado de los monos) y comen `comer` s
+export const MUGRE = { alerta: 90, panchos: 3, tiro: 26, comer: 1 }
 export const APPROACH = { desde: 30, hasta: 100, error: 3 }
 
 // Los tres hoyos del dibujo (posiciones en yardas = píxeles / 4): 15 sube, 16 baja, 17 sube.
@@ -239,6 +241,14 @@ export function moverMonos(monos, dt, pelota) {
   let llego = null
   for (const s of monos) {
     if (s.modo === 'caza') {
+      if (s.pancho) {
+        // la Mugre le tiró un pancho: va, se lo come y después vuelve a la pelota (más rápido)
+        if (caminar(s, s.pancho, MONO.velCaza, dt)) {
+          s.comiendo -= dt
+          if (s.comiendo <= 0) { s.pancho = null; s.velCaza = MONO.velCaza }
+        }
+        continue
+      }
       if (!pelota) continue
       if (s.reaccion > 0) { s.reaccion -= dt; continue }
       caminar(s, pelota, s.velCaza, dt)
@@ -254,11 +264,10 @@ export function moverMonos(monos, dt, pelota) {
   return llego
 }
 /** La pelota quedó quieta: los monos que están cerca salen a buscarla. Devuelve cuántos. */
-export function despertarMonos(monos, pelota, panchitos = false) {
-  if (panchitos) return 0 // Mugre les tira panchitos: no salen a buscarla
+export function despertarMonos(monos, pelota, alerta = MONO.alerta) {
   let n = 0
   for (const s of monos) {
-    if (dist(s.pos, pelota) > MONO.alerta) continue
+    if (dist(s.pos, pelota) > alerta) continue
     if (s.modo !== 'caza') {
       s.modo = 'caza'
       s.reaccion = MONO.reaccion
@@ -271,7 +280,32 @@ export function despertarMonos(monos, pelota, panchitos = false) {
 }
 /** Se pegó (o terminó el hoyo): los que cazaban vuelven a su recorrido. */
 export function calmarMonos(monos) {
-  for (const s of monos) if (s.modo === 'caza') { s.modo = 'ronda'; s.espera = 0 }
+  for (const s of monos) if (s.modo === 'caza') { s.modo = 'ronda'; s.espera = 0; s.pancho = null }
+}
+
+/** La alerta de los monos para este jugador (a la Mugre la huelen de más lejos). */
+export const alertaDe = (r) => (habilidadDe(r.jugador)?.id === 'panchitos' ? MUGRE.alerta : MONO.alerta)
+
+/**
+ * La Mugre tira un pancho: cae del lado de donde vienen los monos (más allá de ellos) y todos los que la están
+ * cazando van a comerlo. Devuelve dónde cayó, o null si no quedan panchos o no viene ningún mono.
+ */
+export function tirarPancho(r) {
+  const cazan = r.monos.filter((s) => s.modo === 'caza' && !s.pancho)
+  if (!r.panchos || !cazan.length) return null
+  let dx = 0, dy = 0, lejos = 0
+  for (const s of cazan) {
+    const d = dist(s.pos, r.pelota) || 1
+    dx += (s.pos[0] - r.pelota[0]) / d
+    dy += (s.pos[1] - r.pelota[1]) / d
+    lejos = Math.max(lejos, d)
+  }
+  const n = Math.hypot(dx, dy) || 1
+  const a = Math.max(MUGRE.tiro, lejos + 10)
+  const pos = [r.pelota[0] + (dx / n) * a, r.pelota[1] + (dy / n) * a]
+  for (const s of cazan) { s.pancho = [...pos]; s.comiendo = MUGRE.comer; s.reaccion = 0 }
+  r.panchos -= 1
+  return pos
 }
 
 // ── tiro ────────────────────────────────────────────────────────────────
@@ -422,7 +456,7 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
 }
 
 function robo(tiro) {
-  if (!tiro.monos || tiro.panchitos || tiro.alt >= MONO.altura) return false
+  if (!tiro.monos || tiro.alt >= MONO.altura) return false
   const m = tiro.monos.find((s) => monoActivo(s) && dist(s.pos, tiro.pos) < MONO.radio)
   if (!m) return false
   tiro.robada = m
@@ -584,6 +618,7 @@ export function nuevaRonda(jugador, rng) {
     robos: 0,
     monos: crearMonos(),
     golpeMago: null, // el golpe que le toca al Mago en el próximo tiro
+    panchos: habilidadDe(jugador)?.id === 'panchitos' ? MUGRE.panchos : 0,
     t0: null, // performance.now() de la largada (lo pone la página)
     ms: null, // el tiempo de la vuelta: de la largada al último putt
     terminada: false,
@@ -609,7 +644,6 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   const tiro = lanzar(campo, { pelota: r.pelota, angulo, potencia, viento: r.viento, putt: plan.putt, lie: r.lie, rng, plan })
   tiro.monos = r.monos
   const hab = habilidadDe(r.jugador)
-  tiro.panchitos = hab?.id === 'panchitos'
   tiro.greenPlano = hab?.id === 'perro'
   tiro.calma = !!r.calma
   r.calma = false
@@ -789,6 +823,7 @@ export function cerrarHoyo(r, rng) {
     r.lie = 'tee'
     r.lieDesde = 'tee'
     r.viento = vientoAleatorio(rng)
+    if (r.panchos || habilidadDe(r.jugador)?.id === 'panchitos') r.panchos = MUGRE.panchos
   }
   return fila
 }
@@ -868,6 +903,7 @@ export const RELATO = {
   calma: ['LG no se enoja: el que se enoja pierde', 'LG respira. Ahora sale derecha', 'Tranquilo LG, el que se enoja pierde'],
   lgSolo: ['LG la pega como LG', 'Con el ESDIGIA esto no pasa', 'LG relata a LG: Tremendo', 'QUE HOMBRE LG'],
   mugre: ['Lurrrrrrpin', 'Lurrrrpin. Hermoso'],
+  pancho: ['¡Pancho! Los monos van a comer', 'Pagamos los terceros tiempos', 'Panchito para el mono. Lurrrrpin'],
 }
 export const VERSOS_BOSQUE = [
   'Los árboles te miran, te rodean en silencio',
