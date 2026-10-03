@@ -14,8 +14,9 @@ export const FISICA = {
   carryMax: 235, // driver a fondo desde el fairway
   distPuttMax: 32,
   alturaPino: 9, // debajo de esta altura la pelota choca los pinos (el arco del tiro pasa por arriba)
-  radioHoyo: 0.22, // generoso: si la pelota se frena adentro del hoyo dibujado, cae
-  velEmbocar: 2, // más rápido que esto, la pelota hace labio
+  radioHoyo: 0.22, // el centro del hoyo
+  bocaHoyo: 0.66, // el hoyo como se dibuja (3× el centro): la pelota que pasa por acá siempre reacciona
+  velEmbocar: 2, // por el centro entra hasta 1,25× esto; por el borde, hasta 0,7×. Más rápido: corbata o labio
   vientoMax: 30, // km/h
   vientoYd: 1, // yardas de deriva por km/h en un tiro de carryMax
   factorLie: { tee: 1, fairway: 1, green: 1, rough: 0.7, bunker: 0.5, bosque: 0.5, afuera: 1 },
@@ -28,6 +29,15 @@ export const FISICA = {
     puttDist: 0.07, puttAng: 0.025,
   },
 }
+
+// La corbata: la pelota que pasa por la boca del hoyo un poco pasada da la vuelta alrededor del hoyo
+// (más vuelta cuanto más al centro), se frena y sale cortita para cualquier lado; si venía justa, entra.
+// max = más rápido que esto salta por arriba (labio); radio = por dónde gira; freno = cuánto pierde por segundo;
+// salida = velocidad mínima con la que sale (para que no quede adentro de la boca); entra = margen sobre el límite;
+// muerta = si en la vuelta se frena por debajo de esto, se cae adentro.
+export const VUELTA = { max: 5, radio: 0.6, freno: 0.6, salida: 1.7, entra: 0.5, muerta: 0.5 }
+/** Hasta qué velocidad entra la pelota que pasa a d yardas del centro del hoyo. */
+export const limiteEmbocar = (d) => FISICA.velEmbocar * (1.25 - 0.55 * Math.min(1, d / FISICA.bocaHoyo))
 
 // Monos que cruzan de pinos a pinos: si la pelota (baja) les pega, se la llevan.
 // Cuando la pelota se frena cerca (alerta), salen a buscarla: si llegan antes de que pegues, es LP.
@@ -85,7 +95,7 @@ export const BOMBA = { carry: 365, zona: 285, perfecta: 0.93, periodo: 0.9, angP
 // ±ventana (el embudo) sale derecha. A `chip` yardas o menos del hoyo, en el green tiene imán: la deja a `alLado`
 // yardas del hoyo; si además el tiro fue perfecto y apuntado a la bandera (±metida grados), entra.
 // Mati (El Sueco): sin error de dirección (pega lo que pega su handicap)
-export const AGUILA = { amplitud: 25, periodo: 0.7, ventana: 5, chip: 40, alLado: 0.7, metida: 4 }
+export const AGUILA = { amplitud: 25, periodo: 0.7, ventana: 5, chip: 40, alLado: 0.85, metida: 4 }
 // Lechu: dada hasta `dada` yardas. El Perro: tarda `segundos` en traerla. Liberty: approach entre `desde` y `hasta` yd, error x`error`.
 export const DADA = 1.5
 export const PERRO = { segundos: 4 }
@@ -547,6 +557,7 @@ export function avanzar(campo, tiro, dt, pin) {
     return tiro.fase
   }
   if (tiro.fase !== 'rodando') return tiro.fase
+  if (tiro.vuelta && !tiro.vuelta.hecha) return darVuelta(tiro, dt, pin)
 
   const ter = terreno(campo, tiro.pos)
   if (ter.tipo === 'afuera') {
@@ -578,7 +589,7 @@ export function avanzar(campo, tiro, dt, pin) {
   if (vel <= a * dt) {
     tiro.v = [0, 0]
     tiro.fase = 'quieta'
-    if (pin && dist(tiro.pos, pin) < FISICA.radioHoyo) {
+    if (pin && dist(tiro.pos, pin) < FISICA.bocaHoyo) {
       // se frenó adentro del hoyo: cae
       tiro.pos = [...pin]
       tiro.embocada = true
@@ -592,9 +603,14 @@ export function avanzar(campo, tiro, dt, pin) {
   tiro.pos = [prev[0] + tiro.v[0] * dt, prev[1] + tiro.v[1] * dt]
   if (robo(tiro)) return tiro.fase
 
-  if (pin && dist(cercanoEnSegmento(pin, prev, tiro.pos), pin) < FISICA.radioHoyo) {
+  // recién salida de la corbata, la pelota todavía está en la boca: no la vuelve a agarrar hasta salir
+  const saliendo = (tiro.vuelta || tiro.salto) && dist(prev, pin) < FISICA.bocaHoyo + 0.01
+  const cerca = pin && !saliendo ? cercanoEnSegmento(pin, prev, tiro.pos) : null
+  // se decide en el punto más cercano al centro: mientras se sigue acercando, todavía no
+  if (cerca && dist(cerca, pin) < FISICA.bocaHoyo && dist(cerca, tiro.pos) > 1e-9) {
     const v = Math.hypot(tiro.v[0], tiro.v[1])
-    if (v < FISICA.velEmbocar) {
+    const d = dist(cerca, pin)
+    if (v < limiteEmbocar(d)) {
       tiro.pos = [...pin]
       tiro.v = [0, 0]
       tiro.embocada = true
@@ -602,8 +618,27 @@ export function avanzar(campo, tiro, dt, pin) {
       tiro.fase = 'quieta'
       return tiro.fase
     }
-    if (!tiro.labio) {
+    if (v < VUELTA.max && !tiro.vuelta && !tiro.salto) {
+      // la corbata: arranca a girar alrededor del hoyo desde donde pasó más cerca
       tiro.labio = true
+      tiro.eventos.push({ tipo: 'vuelta' })
+      let p = [cerca[0] - pin[0], cerca[1] - pin[1]]
+      if (Math.hypot(p[0], p[1]) < 0.02) p = [-tiro.v[1], tiro.v[0]] // por el medio justo: arranca de costado
+      const s = p[0] * tiro.v[1] - p[1] * tiro.v[0] >= 0 ? 1 : -1 // gira para donde iba
+      tiro.vuelta = {
+        ang: Math.atan2(p[1], p[0]),
+        s,
+        falta: Math.PI * (0.5 + 0.9 * (1 - Math.min(1, d / FISICA.bocaHoyo))), // de un cuarto a casi una vuelta y media de 180°
+        vel: v * 0.65, // el golpe contra el borde la frena
+        entra: v < limiteEmbocar(d) + VUELTA.entra,
+      }
+      tiro.pos = [pin[0] + Math.cos(tiro.vuelta.ang) * VUELTA.radio, pin[1] + Math.sin(tiro.vuelta.ang) * VUELTA.radio]
+      return tiro.fase
+    }
+    if (!tiro.labio) {
+      // muy pasada: salta por arriba del borde, se desvía y se frena un poco
+      tiro.labio = true
+      tiro.salto = true
       tiro.eventos.push({ tipo: 'labio' })
       const lado = tiro.v[0] * (pin[1] - prev[1]) - tiro.v[1] * (pin[0] - prev[0]) > 0 ? -1 : 1
       const g = 0.4 * lado
@@ -625,6 +660,30 @@ export function avanzar(campo, tiro, dt, pin) {
       if (!tiro.eventos.some((e) => e.tipo === 'palo')) tiro.eventos.push({ tipo: 'palo' })
     }
   }
+  return tiro.fase
+}
+
+/** Un paso de la corbata: gira pegada al borde, frenándose; al final entra o sale tangente, cortita. */
+function darVuelta(tiro, dt, pin) {
+  const vu = tiro.vuelta
+  const paso = (vu.vel * dt) / VUELTA.radio
+  vu.ang += vu.s * paso
+  vu.falta -= paso
+  vu.vel *= Math.exp(-VUELTA.freno * dt)
+  tiro.pos = [pin[0] + Math.cos(vu.ang) * VUELTA.radio, pin[1] + Math.sin(vu.ang) * VUELTA.radio]
+  tiro.v = [-Math.sin(vu.ang) * vu.s * vu.vel, Math.cos(vu.ang) * vu.s * vu.vel]
+  if (vu.falta > 0 && vu.vel > VUELTA.muerta) return tiro.fase
+  vu.hecha = true
+  if (vu.entra || vu.vel <= VUELTA.muerta) {
+    tiro.pos = [...pin]
+    tiro.v = [0, 0]
+    tiro.embocada = true
+    tiro.eventos.push({ tipo: 'embocada' })
+    tiro.fase = 'quieta'
+    return tiro.fase
+  }
+  const sale = Math.max(VUELTA.salida, vu.vel * 0.6)
+  tiro.v = [-Math.sin(vu.ang) * vu.s * sale, Math.cos(vu.ang) * vu.s * sale]
   return tiro.fase
 }
 
@@ -919,7 +978,8 @@ export const RELATO = {
   ajeno: ['Jugando desde el {n}, clásico', 'Visitando el {n}. Clásico'],
   afuera: ['AFUERA. Golpe y distancia', 'Esa no vuelve más'],
   palo: ['¡PALO! Le pegó al pino', 'Pino. Uff'],
-  labio: ['¡LABIO! Le dio la vuelta', 'Uff, el labio'],
+  labio: ['Uff, el labio', 'Saltó por arriba del hoyo'],
+  corbata: ['¡LA CORBATA! Le dio la vuelta y la escupió', 'Dio la vuelta entera y no quiso', '¡Corbata! Se la quedó mirando'],
   monoMalo: ['El Mono te la robó. +1 y dropeá en el rough'],
   monoBueno: ['¡MONO BUENO! Te la devolvió al medio del fairway'],
   bombaPerfecta: ['¡LA BOMBA DE MIGUELÓN! QUE HOMBRE', 'Miguelón la puso en el green. Tremendo'],
@@ -1022,6 +1082,7 @@ export function comentar(rng, res, tiro, hoyo, jugador) {
   else if (hab?.id === 'calma' && ['fairway', 'green'].includes(res.terreno) && rng() < 0.5) lg = elegir(rng, RELATO.lgSolo)
   else if (res.tipo === 'embocada') lg = null // lo dice el resultado del hoyo
   else if (palo) lg = elegir(rng, RELATO.palo)
+  else if (tiro.vuelta) lg = elegir(rng, RELATO.corbata)
   else if (tiro.labio) lg = elegir(rng, RELATO.labio)
   else if (res.ajeno) lg = elegir(rng, RELATO.ajeno).replace('{n}', res.ajeno)
   else if (tiro.modo === 'putt') lg = elegir(rng, RELATO.putt)

@@ -312,9 +312,35 @@ ok('si se frena adentro del hoyo, cae', () => {
   assert.equal(muerta.embocada, true)
 })
 
+ok('por la boca del hoyo, despacio, entra aunque no pase por el centro', () => {
+  // pasa a 0,45 yd del centro (adentro del hoyo dibujado), con la fuerza para quedar 0,3 yd pasada
+  const pelota = [h15.pin[0] + 0.45, h15.pin[1] + 4]
+  const t = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 4.3 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  assert.equal(t.embocada, true)
+})
+
+ok('la corbata: pasada por el hoyo, da la vuelta, se frena y queda cortita', () => {
+  const pelota = [h15.pin[0] + 0.15, h15.pin[1] + 4]
+  // con fuerza para pasarse ~3 yardas
+  const t = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 7 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  assert.notEqual(t.embocada, true)
+  assert.ok(t.vuelta?.hecha, 'dio la vuelta')
+  assert.ok(t.eventos.some((e) => e.tipo === 'vuelta'))
+  assert.ok(t.vuelta.s && Math.abs(t.vuelta.ang - Math.atan2(0, 0.15)) > Math.PI / 2, 'giró más de un cuarto')
+  const d = M.dist(t.pos, h15.pin)
+  assert.ok(d > M.FISICA.bocaHoyo && d < 1.6, `quedó a ${d.toFixed(2)} yd`)
+})
+
+ok('la corbata justa: da la vuelta y entra', () => {
+  const pelota = [h15.pin[0] + 0.1, h15.pin[1] + 4]
+  const t = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 5.4 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  assert.ok(t.vuelta?.hecha)
+  assert.equal(t.embocada, true)
+})
+
 ok('la caída del green quiebra el putt', () => {
-  const pelota = [h15.pin[0], h15.pin[1] + 4]
-  const tiro = M.simular(quieto, M.lanzar(quieto, { pelota, angulo: -Math.PI / 2, potencia: 4.3 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  const pelota = [h15.pin[0], h15.pin[1] + 8]
+  const tiro = M.simular(quieto, M.lanzar(quieto, { pelota, angulo: -Math.PI / 2, potencia: 8.3 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
   assert.notEqual(tiro.embocada, true)
 })
 
