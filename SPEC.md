@@ -79,6 +79,8 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - Apuntar: mientras arrastrás, los botones de abajo se apagan y no se pueden tocar. El encuadre es el de siempre; "a fondo" es arrastrar hasta 164 px o lo que haya de lugar debajo del dedo (mínimo 90 px), así que siempre se llega al 100%.
 - Desde el tee, a medida que tirás para atrás, la cámara se aleja (hasta un 22%, o lo justo para que entre el pique) y la pelota sube en la pantalla. Si no pegás, vuelve. En los demás tiros, el zoom de siempre.
 - Hoyo: dibujado encima del dibujo (vectorial, nítido), 50% más grande que el real (el real sigue siendo 0,22 yd) con borde crema. Las banderas pintadas en `cancha.webp` se borraron (inpainting) y las tres banderas las dibuja el juego (la del hoyo que se juega, dorada).
+- Mazo: botón "VER TODOS" arriba: la lista de todos los players (foto, emoji, nivel, HCP, dificultad, frase y la habilidad con su preview) con "Jugar" en cada uno.
+- Celu: sin zoom con doble toque ni pellizco (viewport + `touch-action: manipulation` + gesturestart), sin rebote al tirar para abajo, sin menú de "mantener apretado" en fotos. Un segundo dedo no pisa el tiro que estás armando. Si el tiro se corta (monos, LP), los botones vuelven. FIRMAR con doble toque anota una sola vez en el ranking. El LP no se confirma con un doble toque sin querer (el segundo toque tiene que llegar después de 0,45 s).
 - Cartas del mazo: debajo de la frase, un preview animado (SVG) de la habilidad con su nombre y texto.
 
 ## Voz

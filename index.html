@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#14402a">
 <meta name="description" content="La Trampa del Mono: los hoyos 15, 16 y 17 de San Diego, con los monos y el plantel del SDGA.">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -41,7 +41,11 @@
   --safe-bot: env(safe-area-inset-bottom, 0px);
   color-scheme: dark;
 }
-html, body { height: 100%; }
+html, body { height: 100%; overscroll-behavior: none; }
+/* celu: sin zoom con doble toque, sin menú de imagen al mantener apretado, sin resaltado */
+html, body, button, a, .pantalla, .mazo { touch-action: manipulation; }
+body, img { -webkit-touch-callout: none; }
+img { -webkit-user-drag: none; }
 body {
   margin: 0;
   background: var(--green-950);
@@ -179,6 +183,24 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .mazo-cab, .mazo-pie { width: 100%; max-width: 440px; margin: 0 auto; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .mazo-cab { padding: 12px 16px 8px; }
 .mazo-pie { padding: 4px 16px 16px; }
+.pill { flex: none; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(244, 238, 218, .35); background: rgba(244, 238, 218, .1); color: var(--cream); font: 800 11px var(--font-body); letter-spacing: .1em; cursor: pointer; margin-left: auto; }
+.pill:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+#todos { background: var(--green-950); justify-content: flex-start; gap: 10px; }
+#todos h2 { font-size: 28px; text-align: left; }
+.todos-cab { width: min(100%, 520px); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.todos-sub { margin: 0; width: min(100%, 520px); text-align: left; font-size: 13px; opacity: .8; }
+.todos-lista { list-style: none; margin: 0; padding: 0; width: min(100%, 520px); display: grid; gap: 10px; text-align: left; }
+.todo { background: var(--cream); color: var(--green-900); border-radius: 16px; padding: 12px; display: grid; gap: 10px; box-shadow: var(--shadow-card); }
+.todo-cab { display: flex; align-items: center; gap: 12px; }
+.todo-cab .cara { width: 52px; height: 52px; }
+.todo-cab .cara .foto { width: 52px; height: 52px; }
+.todo-cab .cara .sin-foto { font-size: 28px; }
+.todo-cab .cara .emo { width: 24px; height: 24px; font-size: 13px; }
+.todo-nombre { flex: 1; min-width: 0; }
+.todo-nombre b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 22px; line-height: 1.1; overflow-wrap: anywhere; }
+.todo-nombre span { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; }
+.todo .carta-jugar { width: auto; height: 38px; font-size: 14px; padding: 0 14px; flex: none; }
+.todo .carta-prev p { -webkit-line-clamp: unset; display: block; }
 .mazo-tit { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.05; letter-spacing: .04em; text-transform: uppercase; }
 .mazo-sub { margin: 4px 0 0; font-size: 12px; opacity: .75; }
 .redondo { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(244, 238, 218, .25); background: transparent; color: var(--cream); font-size: 22px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
@@ -383,6 +405,7 @@ input { -webkit-user-select: text; user-select: text; }
       <p class="mazo-tit">Elegí tu nivel de dificultad</p>
       <p class="mazo-sub" id="mazo-sub">1 de 24 · ↔ pasar · más handicap, más difícil</p>
     </div>
+    <button class="pill" id="ver-todos" type="button">VER TODOS</button>
     <button class="redondo" id="mazo-cerrar" type="button" aria-label="Volver a la portada">×</button>
   </div>
   <div class="mazo-pila"><div class="mazo-cartas" id="mazo-cartas"></div></div>
@@ -391,6 +414,12 @@ input { -webkit-user-select: text; user-select: text; }
     <div class="puntos" id="mazo-puntos" aria-hidden="true"></div>
     <button class="redondo claro" id="mazo-sig" type="button" aria-label="Más difícil">›</button>
   </div>
+</section>
+
+<section class="pantalla" id="todos" hidden aria-labelledby="todos-tit">
+  <div class="todos-cab"><h2 id="todos-tit">TODOS LOS PLAYERS</h2><button class="redondo" id="todos-cerrar" type="button" aria-label="Volver al mazo">×</button></div>
+  <p class="todos-sub">Ordenados por handicap: más arriba, más fácil. Cada uno con su habilidad.</p>
+  <ol class="todos-lista" id="todos-lista"></ol>
 </section>
 
 <section class="pantalla" id="fin" hidden>
@@ -572,7 +601,7 @@ function apunte() {
 }
 
 lienzo.addEventListener('pointerdown', (e) => {
-  if (estado !== 'apuntar') return
+  if (estado !== 'apuntar' || drag) return // un segundo dedo no pisa el tiro que estás armando
   // a fondo = arrastrar `largo` px; si abajo del dedo no hay tanto lugar, alcanza con menos
   const largo = Math.max(90, Math.min(largoMax(), H - e.clientY - 14))
   drag = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, id: e.pointerId, t0: performance.now(), largo }
@@ -641,6 +670,8 @@ function actualizar(dt) {
   }
   moverCaminante(dt)
   zoomDelTee()
+  // si el tiro se cortó (llegaron los monos, LP, etc.), los botones vuelven
+  if (!drag && document.body.classList.contains('apuntando')) document.body.classList.remove('apuntando')
   pintarVoz()
   pintarCrono()
   if (firmaHasta) $('#reloj').style.width = `${Math.max(0, (firmaHasta - performance.now()) / (M.SEGUNDOS_FIRMA * 10))}%`
@@ -786,7 +817,7 @@ function empezar(jugador) {
   datos.ultimo = jugador.apodo
   guardar(datos)
   pararCuenta()
-  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking']) $('#' + id).hidden = true
+  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking', 'todos']) $('#' + id).hidden = true
   $('#hud-top').hidden = false
   $('#hud-bot').hidden = false
   introHoyo()
@@ -960,6 +991,7 @@ let lpArmado = 0
 $('#lp').addEventListener('click', () => {
   if (estado !== 'apuntar') return
   const ninja = M.tieneLPNinja(ronda)
+  if (lpArmado && performance.now() - lpArmado < 450) return // doble toque sin querer: no confirma
   if (lpArmado && performance.now() - lpArmado < 2500) {
     lpArmado = 0
     $('#lp').textContent = textoLP()
@@ -1333,6 +1365,7 @@ function tarjetaFinal() {
   firmaTimer = setTimeout(sinFirma, M.SEGUNDOS_FIRMA * 1000)
 }
 $('#firmar').addEventListener('click', () => {
+  if ($('#t-firma').hidden || estado !== 'fin') return // doble toque: se firma (y se anota en el ranking) una sola vez
   clearTimeout(firmaTimer)
   firmaHasta = 0
   firmada = true
@@ -1644,6 +1677,7 @@ $('#mazo-cerrar').addEventListener('click', () => {
 })
 window.addEventListener('keydown', (e) => {
   if (!$('#ranking').hidden && e.key === 'Escape') { $('#ranking').hidden = true; return }
+  if (!$('#todos').hidden) { if (e.key === 'Escape') $('#todos').hidden = true; return }
   if ($('#elegir').hidden) return
   if (e.key === 'ArrowRight') volarMazo('next')
   else if (e.key === 'ArrowLeft') volarMazo('prev')
@@ -1671,6 +1705,34 @@ $('#usuario').addEventListener('input', (e) => {
   guardar(datos)
   if (datos.usuario) $('#quien-juega').classList.remove('falta')
 })
+// ── ver todos: la lista de players con su habilidad ──
+function mostrarTodos() {
+  $('#todos-lista').innerHTML = PLANTEL.map((j, i) => {
+    const hab = M.habilidadDe(j)
+    const dif = M.dificultad(j.hcp)
+    const cara = j.foto ? `<img class="foto" src="${j.foto}" alt="" draggable="false">` : `<span class="foto sin-foto">${j.emoji}</span>`
+    return `<li class="todo">
+      <div class="todo-cab">
+        <div class="cara" aria-hidden="true">${cara}<span class="emo">${j.emoji}</span></div>
+        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${i + 1} · HCP ${hcpTxt(j)} · ${dif.nombre.toUpperCase()}</span></div>
+        <button class="carta-jugar" type="button" data-jugar="${i}">Jugar</button>
+      </div>
+      ${hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
+      ${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : ''}
+    </li>`
+  }).join('')
+  $('#todos').hidden = false
+  $('#todos').scrollTop = 0
+}
+$('#ver-todos').addEventListener('click', mostrarTodos)
+$('#todos-cerrar').addEventListener('click', () => { $('#todos').hidden = true })
+$('#todos-lista').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-jugar]')
+  if (!b) return
+  $('#todos').hidden = true
+  empezar(PLANTEL[+b.dataset.jugar])
+})
+
 $('#jugar').addEventListener('click', () => {
   // sin nombre no hay ranking
   if (!datos.usuario) {
@@ -1688,6 +1750,11 @@ function rotarFrase() {
 }
 rotarFrase()
 setInterval(rotarFrase, 2200)
+
+// iOS ignora user-scalable=no: frenamos el pellizco y el menú de mantener apretado (el doble toque lo frena touch-action)
+for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false })
+document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false })
+document.addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea')) e.preventDefault() })
 
 window.addEventListener('resize', () => {
   medir()
