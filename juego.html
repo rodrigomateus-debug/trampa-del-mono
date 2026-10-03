@@ -1108,6 +1108,7 @@ function dibujar() {
     ctx.imageSmoothingQuality = 'high'
     ctx.drawImage(fondo, 0, 0, fondo.naturalWidth / CANCHA.escala, fondo.naturalHeight / CANCHA.escala)
   }
+  for (const h of M.HOYOS) cajonTee(h)
 
   // caída del green cuando hay que patear
   if (hoyo && estado === 'apuntar' && M.enModoPutt(campo, ronda) && M.habilidadDe(ronda.jugador)?.id !== 'perro') {
@@ -1133,30 +1134,34 @@ function dibujar() {
   // ── encima, derecho ──
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   for (const h of M.HOYOS) {
-    const [tx, ty] = w2s(h.tee)
+    const [tx, ty] = w2s(atrasDelTee(h, 9))
     ctx.fillStyle = 'rgba(244,238,218,.85)'
     ctx.font = '13px Anton, "Arial Narrow", sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText(`TEE ${h.n}`, tx, ty + 22)
+    ctx.fillText(`TEE ${h.n}`, tx, ty + 5)
     hoyoNitido(w2s(h.pin))
     bandera(w2s(h.pin), h.n, !hoyo || h.n === hoyo.n) // las del dibujo se borraron: van todas acá
   }
-  // el tee de donde salís (azules, blancas o amarillas): dos marcas de su color a los costados
-  if (hoyo && ronda) {
-    const t = M.teeDe(ronda)
-    const color = { azul: '#2f5fd0', blanca: '#ffffff', amarilla: '#f2d335' }[ronda.tee]
-    const ang = Math.atan2(hoyo.pin[1] - t[1], hoyo.pin[0] - t[0]) + Math.PI / 2
-    for (const lado of [-1, 1]) {
-      const [mx, my] = w2s([t[0] + Math.cos(ang) * lado * 2.2, t[1] + Math.sin(ang) * lado * 2.2])
-      ctx.fillStyle = color
-      ctx.strokeStyle = 'rgba(12,43,28,.8)'
-      ctx.lineWidth = 1.5
-      ctx.beginPath()
-      ctx.arc(mx, my, Math.max(3, Math.min(7, cam.esc * 0.7)), 0, 7)
-      ctx.fill()
-      ctx.stroke()
+  // las marcas de salida: azul, blanca y amarilla (de atrás para adelante), cada una donde sale; la tuya, más grande
+  for (const h of M.HOYOS) {
+    const ang = Math.atan2(h.pin[1] - h.azul[1], h.pin[0] - h.azul[0]) + Math.PI / 2
+    for (const color of ['azul', 'blanca', 'amarilla']) {
+      const t = h.tees[color]
+      const mia = hoyo && ronda && h.n === hoyo.n && ronda.tee === color
+      const r = Math.max(mia ? 5 : 3.5, Math.min(mia ? 8 : 6, cam.esc * (mia ? 0.8 : 0.6)))
+      for (const lado of [-1, 1]) {
+        const [mx, my] = w2s([t[0] + Math.cos(ang) * lado * 2.8, t[1] + Math.sin(ang) * lado * 2.8])
+        ctx.fillStyle = COLOR_TEE[color]
+        ctx.strokeStyle = 'rgba(12,43,28,.85)'
+        ctx.lineWidth = mia ? 2 : 1.2
+        ctx.beginPath()
+        ctx.arc(mx, my, r, 0, 7)
+        ctx.fill()
+        ctx.stroke()
+      }
     }
   }
+
 
   // estela
   for (let i = 0; i < estela.length; i += 2) {
@@ -1362,6 +1367,33 @@ function dibujarMonos() {
   ctx.textBaseline = 'alphabetic'
 }
 
+// ── los tees: un cajón de salida dibujado encima (de la marca azul a la amarilla) con las tres marcas ──
+const COLOR_TEE = { azul: '#2f5fd0', blanca: '#ffffff', amarilla: '#f2d335' }
+/** Un punto detrás del tee azul (para el cartel "TEE n"). */
+function atrasDelTee(h, d) {
+  const u = Math.hypot(h.azul[0] - h.pin[0], h.azul[1] - h.pin[1])
+  return [h.azul[0] + ((h.azul[0] - h.pin[0]) / u) * d, h.azul[1] + ((h.azul[1] - h.pin[1]) / u) * d]
+}
+/** El cajón de salida, en coordenadas del dibujo (se llama con la transformación de la cancha puesta). */
+function cajonTee(h) {
+  const a = h.tees.azul, b = h.tees.amarilla
+  const ang = Math.atan2(b[1] - a[1], b[0] - a[0])
+  const largo = Math.hypot(b[0] - a[0], b[1] - a[1]) + 8
+  const ancho = 9
+  ctx.save()
+  ctx.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+  ctx.rotate(ang)
+  ctx.fillStyle = '#326222'
+  ctx.strokeStyle = '#285419'
+  ctx.lineWidth = 0.5
+  ctx.beginPath()
+  ctx.roundRect(-largo / 2, -ancho / 2, largo, ancho, 1.4)
+  ctx.fill()
+  ctx.stroke()
+  ctx.fillStyle = 'rgba(255,255,255,.05)' // rayas de corte
+  for (let x = -largo / 2 + 2; x < largo / 2 - 2; x += 4) ctx.fillRect(x, -ancho / 2 + 0.6, 2, ancho - 1.2)
+  ctx.restore()
+}
 /** El hoyo dibujado encima del dibujo (vectorial, nítido): 3 veces el real (y más grande que la pelota), con borde claro. */
 function hoyoNitido([x, y]) {
   const r = Math.max(M.FISICA.radioHoyo * 3 * cam.esc, 5.4) // el doble de antes: más grande que la pelota
