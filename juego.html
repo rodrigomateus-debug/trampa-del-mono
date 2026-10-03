@@ -350,7 +350,10 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-ambito[hidden] { display: none; }
 .rk-ambito button { height: 34px; border: 0; border-radius: 999px; background: transparent; color: var(--green-900); font: 800 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
 .rk-ambito button[aria-selected="true"] { background: var(--green-900); color: var(--cream); }
-.como-app { margin: 0; font-size: 15px; color: rgba(244, 238, 218, .85); }
+.como-app { margin: 0; font-size: 15px; color: rgba(244, 238, 218, .85); display: flex; gap: 8px; align-items: baseline; justify-content: center; }
+.como-app .salir { border: 0; background: transparent; color: rgba(244, 238, 218, .6); font: 600 12px var(--font-body); text-decoration: underline; cursor: pointer; padding: 0; }
+.btn-google { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 50px; padding: 0 22px; border-radius: 999px; border: 0; background: #fff; color: #14402a; font: 800 15px var(--font-body); cursor: pointer; box-shadow: 0 4px 14px rgba(12, 43, 28, .35); }
+.nota-google { margin: -4px 0 0; max-width: 300px; font-size: 12px; line-height: 1.4; color: rgba(244, 238, 218, .7); }
 .como-app b { color: var(--gold); }
 .volver-app { border: 0; background: transparent; color: rgba(244, 238, 218, .8); font: 700 14px var(--font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px 10px; }
 .rk-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
@@ -442,7 +445,9 @@ input { -webkit-user-select: text; user-select: text; }
   <h1>LA TRAMPA DEL MONO</h1>
   <span class="band">DONDE TODO SE VA</span>
   <p class="bajada">Mientras Gonza cierra con Nintendo los derechos del Mario Golf, jugá los tres hoyos que más tarjetas rompieron en San Diego.</p>
-  <p class="como-app" id="como-app" hidden>Jugás como <b id="como-alias"></b></p>
+  <p class="como-app" id="como-app" hidden>Jugás como <b id="como-alias"></b><button class="salir" id="salir" type="button" hidden>Salir</button></p>
+  <button class="btn-google" id="entrar-google" type="button" hidden><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Entrar con Google para jugar</button>
+  <p class="nota-google" id="nota-google" hidden>Con la misma cuenta de la SDGApp: si sos del club, entrás con tu jugador.</p>
   <label class="quien-juega" id="quien-juega"><span class="kicker">¿Quién juega?</span><input id="usuario" type="text" maxlength="20" autocomplete="nickname" autocapitalize="words" spellcheck="false" placeholder="Tu nombre para el ranking"></label>
   <div class="portada-botones">
     <button class="btn" id="jugar" type="button">JUGAR</button>
@@ -1979,7 +1984,7 @@ async function anotarVuelta() {
   const nueva = conEl.golpes === marca.golpes && conEl.ms === marca.ms
   posRanking = { general: general.pos, conEl: conEl.pos, nueva }
   resumenListo = null // se rehace con el puesto
-  $('#t-ranking').textContent = `🏆 ${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el ${R.puente.activo ? 'mundial' : 'general'} · ${conEl.pos}° con ${jugador.emoji}`
+  $('#t-ranking').textContent = `🏆 ${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el ${R.compartido() || R.puente.enApp ? 'mundial' : 'general'} · ${conEl.pos}° con ${jugador.emoji}`
   $('#t-ranking').hidden = false
 }
 
@@ -1991,12 +1996,14 @@ let rkAmbito = 'mundial'
 let rkTab = 'general'
 let rkMarcas = []
 let rkCompartido = false
+let rkApp = false // el ranking de la SDGApp (Mundial / SDGA), por la app o directo
 async function mostrarRanking(tab = 'general') {
   rkTab = tab
   rkMarcas = null
   $('#ranking').hidden = false
   pintarRanking()
-  const { marcas, compartido, error } = await R.leerMarcas()
+  const { marcas, compartido, error, app } = await R.leerMarcas()
+  rkApp = !!app
   rkMarcas = marcas
   rkCompartido = compartido
   pintarRanking(error)
@@ -2013,7 +2020,7 @@ function pintarRanking(error = false) {
     $('#rk-fuente').textContent = ''
     return
   }
-  const app = R.puente.activo
+  const app = rkApp
   $('#rk-ambito').hidden = !app
   for (const b of $('#rk-ambito').children) b.setAttribute('aria-selected', String(b.dataset.ambito === rkAmbito))
   const base = app && rkAmbito === 'sdga' ? rkMarcas.filter((m) => m.sdga) : rkMarcas
@@ -2030,7 +2037,7 @@ function pintarRanking(error = false) {
   if (mio && mio.pos > top.length) filas.push(fila(mio, true))
   $('#rk-lista').innerHTML = filas.length ? filas.join('') : `<li class="rk-vacio">Todavía nadie firmó una vuelta${j ? ` con ${esc(j.apodo)}` : ''}. Sé el primero.</li>`
   $('#rk-fuente').textContent = app && rkCompartido
-    ? `${rkAmbito === 'sdga' ? 'Ranking SDGA: solo los socios del club.' : 'Ranking mundial: todos los que juegan desde la SDGApp.'} Entra cada tarjeta firmada (LP y sin firmar no cuentan).`
+    ? `${rkAmbito === 'sdga' ? 'Ranking SDGA: solo los socios del club.' : 'Ranking mundial: todos los que juegan, en la SDGApp o acá.'} Entra cada tarjeta firmada (LP y sin firmar no cuentan).`
     : rkCompartido
     ? 'Ranking del grupo. Entra cada tarjeta firmada (LP y sin firmar no cuentan).'
     : `${error ? 'No se pudo conectar: ' : ''}Por ahora se guarda en este teléfono. Entra cada tarjeta firmada (LP y sin firmar no cuentan).`
@@ -2285,9 +2292,23 @@ R.alEntrar((yo) => {
   $('#quien-juega').hidden = true
   $('#como-alias').textContent = yo.alias
   $('#como-app').hidden = false
-  $('#volver-app').hidden = false
+  $('#volver-app').hidden = !R.puente.enApp
+  $('#salir').hidden = R.puente.enApp
+  $('#entrar-google').hidden = true
+  $('#nota-google').hidden = true
   rkAmbito = yo.sdga ? 'sdga' : 'mundial'
 })
+// suelto, con el ranking de la SDGApp: se entra con Google (la misma cuenta que en la app), no con un nombre
+if (R.pideLogin()) {
+  $('#quien-juega').hidden = true
+  R.listo.then(() => {
+    if (R.puente.activo) return
+    $('#entrar-google').hidden = false
+    $('#nota-google').hidden = false
+  })
+}
+$('#entrar-google').addEventListener('click', () => R.entrarConGoogle())
+$('#salir').addEventListener('click', () => R.salir())
 $('#volver-app').addEventListener('click', () => R.volverALaApp())
 $('#usuario').addEventListener('input', (e) => {
   datos.usuario = e.target.value.trim().slice(0, 20)
@@ -2342,6 +2363,11 @@ $('#todos-lista').addEventListener('click', (e) => {
 })
 
 $('#jugar').addEventListener('click', () => {
+  // suelto con el ranking de la SDGApp: primero entrar con Google
+  if (R.pideLogin() && !R.puente.activo) {
+    R.entrarConGoogle()
+    return
+  }
   // sin nombre no hay ranking
   if (!datos.usuario) {
     $('#quien-juega').classList.add('falta')

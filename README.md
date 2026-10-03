@@ -13,7 +13,7 @@ y queda como app.
 - `motor.js` — la lógica pura (física, terreno, monos, habilidades, score). Se porta a `src/engine/` de la FedE Cup.
 - `cancha.webp` — el dibujo de la cancha; `cancha-grid.js` — su terreno, una letra por yarda.
 - `sonido.js` — el fondo mientras jugás, la canción de la tarjeta final y los efectos del juego.
-- `ranking.js` — dónde se guardan las marcas del ranking (el teléfono, o Supabase si se completa la config); `supabase.sql` — la tabla.
+- `ranking.js` — el ranking: el de la SDGApp (mismo Supabase que la FedE Cup, tabla `trampa_marcas` y vista `trampa_ranking`; la migración vive en el repo de la app). Adentro de la app, por el puente; suelto, entrando con Google con la misma cuenta. Sin la anon key cargada, en el teléfono.
 - `plantel.js` — los jugadores (handicap, frase, emoji) y `EN_PRUEBA`, los que aparecen por ahora.
 - `jugadores/` — fotos; `iconos/` y `manifest.webmanifest` — la app instalable.
 - `intro/` — la intro animada (HyperFrames + Three.js), su versión en vivo para la app (`intro/app.js`) y la presentación oficial del juego (`intro/trampa-del-mono-presentacion.mp4`); ver `intro/README.md`.

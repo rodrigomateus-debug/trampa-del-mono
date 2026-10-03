@@ -9,7 +9,7 @@ if (corte < 0) throw new Error('no encontré el canvas en juego.html')
 const cabeza = juego.slice(0, corte).trim() // <title>, fuentes y estilos
 const cuerpo = juego.slice(corte)
 
-const html = `<!doctype html>
+const html0 = `<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -31,5 +31,11 @@ ${cuerpo}
 </body>
 </html>
 `
+// Versión en los módulos (?v=hash del contenido): GitHub Pages cachea 10 minutos y los teléfonos más;
+// con la versión, cada cambio del juego llega apenas se publica (también adentro de la SDGApp).
+// cancha-grid.js va sin versión: lo importa también motor.js y tiene que ser el MISMO módulo.
+import crypto from 'node:crypto'
+const version = crypto.createHash('sha1').update(['motor.js', 'plantel.js', 'ranking.js', 'sonido.js', 'cancha-grid.js'].map((f) => fs.readFileSync(f, 'utf8')).join('')).digest('hex').slice(0, 10)
+const html = html0.replace(/from '\.\/(motor|plantel|ranking|sonido)\.js'/g, (_, f) => `from './${f}.js?v=${version}'`)
 fs.writeFileSync('index.html', html)
 console.log('index.html listo (' + html.length + ' bytes)')

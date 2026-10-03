@@ -62,7 +62,7 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
   - Por jugador: una pestaña por cada uno del mazo, con la mejor vuelta de cada usuario con ese jugador.
   - Entra solo la tarjeta firmada; LP y sin firmar (110) no cuentan. Al firmar te dice en qué puesto quedaste.
   - Para jugar hay que poner el nombre en la portada ("¿Quién juega?"), que queda guardado en el teléfono.
-  - Por ahora las marcas se guardan en el teléfono (`ranking.js`). Para que sea del grupo: correr `supabase.sql` y completar `SUPABASE.url` y `anonKey` en `ranking.js`.
+  - Las marcas van al ranking de la SDGApp (ver "Adentro de la SDGApp" y "Suelto con login" abajo); sin la anon key cargada en `ranking.js`, quedan en el teléfono.
 - El Mago Rodal — Golpes de mago (reemplaza a "Comba de mago" como único golpe): nunca derecho. A cada golpe (menos el putt) le toca uno de 5 efectos al azar, nunca el mismo dos veces seguidas, y se ve antes de pegar (chip dorado, la franja de LG y la línea punteada con la curva):
   - 🪄 Comba de mago: se cierra 30° hacia la bandera.
   - ↩️ Gancho: dobla 45° a la izquierda. ↪️ Slice: dobla 45° a la derecha.
@@ -144,7 +144,7 @@ Intro de cada hoyo con un verso de la canción de Fito. Frases de carga del desi
 - Se publica como artifact privado para probar en el celular.
 
 ## Afuera por ahora
-Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu. La tabla en Supabase está lista (`supabase.sql`) pero sin conectar.
+Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu. El ranking compartido vive en el Supabase de la SDGApp (2026-10-04).
 
 ## Intro y pantalla de inicio (2026-10-03)
 - `intro/`: la intro animada con la canción (proyecto HyperFrames; videos 9:16 y 16:9 en `intro/*.mp4`). Ver `intro/README.md`.
@@ -163,4 +163,10 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 ## Adentro de la SDGApp (2026-10-04)
 - La app (repo `patmig124/fedecup`, `/juegos/trampa`) abre el juego en un iframe y se hablan por `postMessage` (`ranking.js`): `trampa:hola` → la app contesta `sdga:identidad {uid, alias, sdga}`; `trampa:leer` / `trampa:anotar` → la app lee y guarda en SU Supabase (`trampa_marcas`) y contesta `sdga:marcas` / `sdga:anotada`; `trampa:cerrar` vuelve a la app. El juego nunca ve claves ni tokens.
 - Con la app: la portada dice "Jugás como X" (sin campo de nombre) y tiene "← Volver a la SDGApp". El ranking suma el switch **🌎 Mundial / ⛳ SDGA** (Mundial = todos los que juegan desde la app; SDGA = los socios) y agrupa por usuario de la app (`uid`), así dos "Juan" distintos no se pisan. Arranca en SDGA si sos socio.
-- Suelto (GitHub Pages) todo sigue igual: nombre a mano y ranking del teléfono (o el Supabase propio de `ranking.js`).
+- La app le pasa también los bordes seguros del teléfono (`sdga:marco {top, bottom}`): adentro del iframe `env(safe-area-inset-*)` da 0, así que el juego va de borde a borde y corre el HUD y el pancho lo justo.
+
+## Suelto con login (2026-10-04)
+- Un solo ranking: el de la SDGApp. Suelto (GitHub Pages / instalado) el juego pide **Entrar con Google** contra el MISMO Supabase de la FedE Cup (OAuth PKCE a mano en `ranking.js`, sin librerías). Es la misma cuenta que en la app: si ya elegiste tu jugador allá, acá entrás como tu jugador y al ranking SDGA; si no, con tu alias de Google ("Juan G.") y al Mundial. "Salir" al lado del nombre.
+- Lee la vista `trampa_ranking` (sirve también sin sesión) y anota en `trampa_marcas` con tu token (RLS: solo a tu nombre). Al entrar crea/toca tu fila de `users`, como la app.
+- Hace falta: la anon key de la app en `SUPABASE.anonKey` (`ranking.js`; es pública) y la URL del juego en Supabase → Authentication → URL Configuration → Redirect URLs (`https://rodrigomateus-debug.github.io/trampa-del-mono/**`). Sin la key, todo como antes: nombre a mano y ranking del teléfono.
+- Los módulos van con versión (`?v=hash`, lo pone `build-web.mjs`): cada cambio llega apenas se publica, sin quedar pegado en la caché.
