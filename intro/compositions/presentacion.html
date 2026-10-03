@@ -534,8 +534,8 @@
         position: absolute;
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px 22px 12px 14px;
+        gap: 14px;
+        padding: 14px 28px 14px 16px;
         border-radius: 999px;
         background: var(--cream);
         color: var(--green-900);
@@ -545,21 +545,21 @@
       .chip em {
         display: grid;
         place-items: center;
-        width: 50px;
-        height: 50px;
+        width: 62px;
+        height: 62px;
         border-radius: 50%;
         background: var(--green-100, #d9e8dc);
-        font: normal 30px/1 system-ui, "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+        font: normal 36px/1 system-ui, "Apple Color Emoji", "Noto Color Emoji", sans-serif;
       }
       .chip b {
         display: block;
-        font: 800 22px/1.1 var(--body);
-        letter-spacing: 0.06em;
+        font: 800 27px/1.1 var(--body);
+        letter-spacing: 0.05em;
         text-transform: uppercase;
       }
       .chip small {
         display: block;
-        font: 600 16px/1.2 var(--body);
+        font: 600 20px/1.25 var(--body);
         color: #5e6e5f;
       }
       #coro1,
@@ -625,13 +625,16 @@
       }
       #cl-tag {
         display: block;
-        max-width: 780px;
+        max-width: 1000px;
         margin-top: 20px;
         text-align: center;
+        white-space: nowrap;
         font: 800 21px/1.6 var(--body);
-        letter-spacing: 0.26em;
+        letter-spacing: 0.2em;
         color: var(--cream);
-        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.9));
+        background: var(--green-900);
+        border-radius: 6px;
+        padding: 6px 12px 5px 16px;
       }
       #cl-app {
         position: absolute;
@@ -678,6 +681,58 @@
         background: var(--green-900);
         border-radius: 6px;
         padding: 8px 14px 7px;
+      }
+      #podio {
+        position: absolute;
+        left: 180px;
+        width: 720px;
+        top: 1420px;
+        height: 500px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 16px;
+      }
+      .pod {
+        position: relative;
+        width: 214px;
+        border-radius: 20px 20px 0 0;
+        background: var(--cream);
+        display: flex;
+        justify-content: center;
+        padding-top: 22px;
+        box-shadow: 0 -12px 44px rgba(5, 18, 11, 0.45);
+      }
+      .pod-1 {
+        height: 330px;
+        background: var(--gold);
+      }
+      .pod-2 {
+        height: 255px;
+      }
+      .pod-3 {
+        height: 200px;
+      }
+      .pod b {
+        font: 400 120px/1 var(--display);
+        color: var(--green-900);
+      }
+      .pod-q {
+        position: absolute;
+        left: 50%;
+        bottom: 100%;
+        margin-bottom: 16px;
+        font: 400 64px/1 var(--display);
+        color: var(--cream);
+        filter: drop-shadow(0 4px 14px rgba(5, 18, 11, 0.7));
+      }
+      .pod-q.vos {
+        padding: 12px 24px 8px;
+        border-radius: 999px;
+        background: var(--cream);
+        color: var(--green-900);
+        font-size: 56px;
+        white-space: nowrap;
       }
       .par {
         position: absolute;
@@ -818,6 +873,7 @@
           <span class="feat-kicker"><b>01</b>LA CANCHA</span>
           <div class="feat-tit"><span class="linea"><span class="pal">LOS 3 HOYOS</span></span><span class="linea"><span class="pal">DE LA TRAMPA</span></span></div>
           <span class="feat-banda"><i></i><span>15 · 16 · 17 DE SAN DIEGO</span></span>
+
           <span class="feat-txt">El dibujo de Rorro, con las yardas reales y el tee según tu handicap.</span>
         </div>
       </section>
@@ -826,6 +882,7 @@
           <span class="feat-kicker"><b>02</b>EL PLANTEL</span>
           <div class="feat-tit"><span class="linea"><span class="pal">ELEGÍ CON</span></span><span class="linea"><span class="pal">QUIÉN JUGAR</span></span></div>
           <span class="feat-banda"><i></i><span>10 PLAYERS DEL SDGA</span></span>
+
           <span class="feat-txt">Del más fácil al más difícil: medido jugando 60 vueltas con cada uno.</span>
         </div>
       </section>
@@ -834,6 +891,7 @@
           <span class="feat-kicker"><b>03</b>HABILIDADES</span>
           <div class="feat-tit"><span class="linea"><span class="pal">CADA UNO CON</span></span><span class="linea"><span class="pal">SU HABILIDAD</span></span></div>
           <span class="feat-banda"><i></i><span>SACADAS DEL CHAT</span></span>
+
           <span class="feat-txt">El Mago nunca pega derecho. La Mugre tira panchos. El Perro va a buscarla.</span>
         </div>
       </section>
@@ -842,6 +900,7 @@
           <span class="feat-kicker"><b>04</b>EL TIRO</span>
           <div class="feat-tit"><span class="linea"><span class="pal">TIRÁ PARA</span></span><span class="linea"><span class="pal">ATRÁS Y SOLTÁ</span></span></div>
           <span class="feat-banda"><i></i><span>COMO UNA GOMERA</span></span>
+
           <span class="feat-txt">Viento con ráfagas, rough al 70%, bunker al 50% y el óvalo de pique.</span>
         </div>
       </section>
@@ -850,36 +909,40 @@
           <span class="feat-kicker"><b>05</b>LOS MONOS</span>
           <div class="feat-tit"><span class="linea"><span class="pal">¡VIENEN</span></span><span class="linea"><span class="pal">LOS MONOS!</span></span></div>
           <span class="feat-banda"><i></i><span>SE LLEVAN LA PELOTA</span></span>
+
           <span class="feat-txt">Si llegan antes que vos, al tee con un golpe de multa. Algunos te la devuelven.</span>
         </div>
       </section>
-      <section id="f6" class="clip feat" data-start="47.418" data-duration="2.657" data-track-index="2">
+      <section id="f6" class="clip feat" data-start="47.418" data-duration="1.329" data-track-index="2">
         <div class="feat-cab">
           <span class="feat-kicker"><b>06</b>CONTRA RELOJ</span>
           <div class="feat-tit"><span class="linea"><span class="pal">3, 2, 1…</span></span><span class="linea"><span class="pal">¡YA!</span></span></div>
-          <span class="feat-banda"><i></i><span>AL MILISEGUNDO</span></span>
-          <span class="feat-txt">A igual golpes, en el ranking gana el más rápido.</span>
+          <span class="feat-banda"><i></i><span>Y CORRE EL RELOJ</span></span>
+
         </div>
       </section>
-      <section id="f7" class="clip feat" data-start="50.075" data-duration="2.657" data-track-index="2">
+      <section id="f7" class="clip feat" data-start="48.746" data-duration="2.657" data-track-index="2">
         <div class="feat-cab">
           <span class="feat-kicker"><b>07</b>LA TARJETA</span>
           <div class="feat-tit"><span class="linea"><span class="pal">FIRMALA EN</span></span><span class="linea"><span class="pal">10 SEGUNDOS</span></span></div>
           <span class="feat-banda"><i></i><span>O 110 NETO</span></span>
+
           <span class="feat-txt">Si no firmás, comunicado oficial del Marshall. Es inapelable.</span>
         </div>
       </section>
-      <section id="f8" class="clip feat" data-start="52.732" data-duration="1.328" data-track-index="2">
+      <section id="f8" class="clip feat" data-start="51.403" data-duration="2.657" data-track-index="2">
         <div class="feat-cab">
           <span class="feat-kicker"><b>08</b>EL RANKING</span>
           <div class="feat-tit"><span class="linea"><span class="pal">SÉ EL</span></span><span class="linea"><span class="pal">PRIMERO</span></span></div>
           <span class="feat-banda"><i></i><span>TODAVÍA NADIE FIRMÓ</span></span>
-          <span class="feat-txt">Compartí tu vuelta en el grupo.</span>
+
+          <span class="feat-txt">Menos golpes y, a igual golpes, el más rápido al milisegundo. Tabla general y una por jugador.</span>
         </div>
       </section>
       <section id="p-tel" class="clip" data-start="34.133" data-duration="19.927" data-track-index="3">
-        <div id="tel"><div id="tel-pantalla"><img id="pt-cartel" src="assets/capturas/cartel.webp" alt="" /><img id="pt-carta-sueco" src="assets/capturas/carta-sueco.webp" alt="" /><img id="pt-carta-perro" src="assets/capturas/carta-perro.webp" alt="" /><img id="pt-carta-miguelon" src="assets/capturas/carta-miguelon.webp" alt="" /><img id="pt-carta-lechu" src="assets/capturas/carta-lechu.webp" alt="" /><img id="pt-carta-lg" src="assets/capturas/carta-lg.webp" alt="" /><img id="pt-carta-rodal" src="assets/capturas/carta-rodal.webp" alt="" /><img id="pt-carta-fito" src="assets/capturas/carta-fito.webp" alt="" /><img id="pt-carta-mugre" src="assets/capturas/carta-mugre.webp" alt="" /><img id="pt-todos1" src="assets/capturas/todos1.webp" alt="" /><img id="pt-todos2" src="assets/capturas/todos2.webp" alt="" /><img id="pt-tiro-arma" src="assets/capturas/tiro-arma.webp" alt="" /><img id="pt-tiro-vuelo" src="assets/capturas/tiro-vuelo.webp" alt="" /><img id="pt-tiro-relato" src="assets/capturas/tiro-relato.webp" alt="" /><img id="pt-monos" src="assets/capturas/monos.webp" alt="" /><img id="pt-pancho" src="assets/capturas/pancho.webp" alt="" /><img id="pt-cuenta3" src="assets/capturas/cuenta3.webp" alt="" /><img id="pt-cuenta-ya" src="assets/capturas/cuenta-ya.webp" alt="" /><img id="pt-reloj" src="assets/capturas/reloj.webp" alt="" /><img id="pt-tarjeta" src="assets/capturas/tarjeta.webp" alt="" /><img id="pt-marshall" src="assets/capturas/marshall.webp" alt="" /><img id="pt-compartir" src="assets/capturas/compartir.webp" alt="" /><img id="pt-ranking" src="assets/capturas/ranking.webp" alt="" /></div></div>
-        <div id="chips"><div class="chip" id="chip-0" style="left:70px;top:760px"><em>🥛</em><span><b>Golpes de mago</b><small>El Mago Rodal</small></span></div><div class="chip" id="chip-1" style="left:600px;top:830px"><em>🍯</em><span><b>Drive al green</b><small>Mike Queboni</small></span></div><div class="chip" id="chip-2" style="left:40px;top:960px"><em>🦅</em><span><b>Chip in</b><small>Fito</small></span></div><div class="chip" id="chip-3" style="left:640px;top:1050px"><em>💩</em><span><b>Tirar panchos</b><small>Mugre</small></span></div><div class="chip" id="chip-4" style="left:60px;top:1180px"><em>🐕</em><span><b>Va a buscarla</b><small>El Perro</small></span></div><div class="chip" id="chip-5" style="left:600px;top:1290px"><em>🦉</em><span><b>Todas las dadas</b><small>Lechu</small></span></div><div class="chip" id="chip-6" style="left:70px;top:1410px"><em>🥷</em><span><b>La tradición</b><small>El Ninja</small></span></div><div class="chip" id="chip-7" style="left:520px;top:1530px"><em>📺</em><span><b>El que se enoja pierde</b><small>LG</small></span></div></div>
+        <div id="tel"><div id="tel-pantalla"><img id="pt-cartel" src="assets/capturas/cartel.webp" alt="" /><img id="pt-carta-sueco" src="assets/capturas/carta-sueco.webp" alt="" /><img id="pt-carta-perro" src="assets/capturas/carta-perro.webp" alt="" /><img id="pt-carta-miguelon" src="assets/capturas/carta-miguelon.webp" alt="" /><img id="pt-carta-lechu" src="assets/capturas/carta-lechu.webp" alt="" /><img id="pt-carta-lg" src="assets/capturas/carta-lg.webp" alt="" /><img id="pt-carta-rodal" src="assets/capturas/carta-rodal.webp" alt="" /><img id="pt-carta-fito" src="assets/capturas/carta-fito.webp" alt="" /><img id="pt-carta-mugre" src="assets/capturas/carta-mugre.webp" alt="" /><img id="pt-todos1" src="assets/capturas/todos1.webp" alt="" /><img id="pt-todos2" src="assets/capturas/todos2.webp" alt="" /><img id="pt-tiro-arma" src="assets/capturas/tiro-arma.webp" alt="" /><img id="pt-tiro-vuelo" src="assets/capturas/tiro-vuelo.webp" alt="" /><img id="pt-tiro-relato" src="assets/capturas/tiro-relato.webp" alt="" /><img id="pt-monos" src="assets/capturas/monos.webp" alt="" /><img id="pt-pancho" src="assets/capturas/pancho.webp" alt="" /><img id="pt-cuenta3" src="assets/capturas/cuenta3.webp" alt="" /><img id="pt-cuenta-ya" src="assets/capturas/cuenta-ya.webp" alt="" /><img id="pt-tarjeta" src="assets/capturas/tarjeta.webp" alt="" /><img id="pt-marshall" src="assets/capturas/marshall.webp" alt="" /><img id="pt-ranking" src="assets/capturas/ranking.webp" alt="" /></div></div>
+        <div id="podio"><div class="pod pod-2"><span class="pod-q">?</span><b>2°</b></div><div class="pod pod-1"><span class="pod-q vos">¿VOS?</span><b>1°</b></div><div class="pod pod-3"><span class="pod-q">?</span><b>3°</b></div></div>
+        <div id="chips"><div class="chip" id="chip-0" style="left:70px;top:760px"><em>🥛</em><span><b>Golpes de mago</b><small>El Mago Rodal</small></span></div><div class="chip" id="chip-1" style="left:600px;top:830px"><em>🍯</em><span><b>Drive al green</b><small>Mike Queboni</small></span></div><div class="chip" id="chip-2" style="left:40px;top:960px"><em>🦅</em><span><b>Chip in</b><small>Fito</small></span></div><div class="chip" id="chip-3" style="left:640px;top:1050px"><em>💩</em><span><b>Tirar panchos</b><small>Mugre</small></span></div><div class="chip" id="chip-4" style="left:60px;top:1180px"><em>🐕</em><span><b>Va a buscarla</b><small>El Perro</small></span></div><div class="chip" id="chip-5" style="left:600px;top:1290px"><em>🦉</em><span><b>Todas las dadas</b><small>Lechu</small></span></div><div class="chip" id="chip-6" style="left:70px;top:1410px"><em>🥷</em><span><b>La tradición</b><small>El Ninja</small></span></div><div class="chip" id="chip-7" style="left:470px;top:1530px"><em>📺</em><span><b>El que se enoja pierde</b><small>LG</small></span></div></div>
       </section>
       <section id="coro1" class="clip cap" data-start="54.06" data-duration="4.982" data-track-index="2">
         <div class="cap-grande"><span class="linea"><span class="pal">¡ES LA TRAMPA</span></span><span class="linea"><span class="pal">DEL MONO!</span></span></div>
@@ -942,7 +1005,7 @@ $1data-track-index="10"
         // ---------- las funciones, una cada dos compases ----------
         tl.to("#p-oscuro", { opacity: 0.55, duration: 0.4, ease: "power2.out" }, P.funciones - 0.1);
         tl.to("#p-oscuro", { opacity: 0, duration: 0.2, ease: "none" }, P.estribillo - 0.05);
-        [["f1",34.133,2.657],["f2",36.79,2.657],["f3",39.447,2.657],["f4",42.104,2.657],["f5",44.761,2.657],["f6",47.418,2.657],["f7",50.075,2.657],["f8",52.732,1.328000000000003]].forEach(function (f) {
+        [["f1",34.133,2.657],["f2",36.79,2.657],["f3",39.447,2.657],["f4",42.104,2.657],["f5",44.761,2.657],["f6",47.418,1.3285],["f7",48.746,2.657],["f8",51.403,2.657]].forEach(function (f) {
           var id = "#" + f[0], t = f[1];
           tl.fromTo(id + " .feat-kicker", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t);
           palabras(id + " .feat-tit .pal", t + 0.04, B * 0.5);
@@ -955,7 +1018,7 @@ $1data-track-index="10"
         tl.fromTo("#tel", { scale: 1 }, { scale: 1.02, duration: P.estribillo - P.funciones - 1, ease: "sine.inOut" }, P.funciones + 0.7);
         tl.to("#tel", { y: 1300, rotation: -10, duration: 0.45, ease: "power3.in" }, P.estribillo - 0.5);
         // las pantallas (las cartas del mazo pasan como en el Tinder, una por negra)
-        [["cartel",34.133,false],["carta-sueco",36.79,false],["carta-perro",37.122125,true],["carta-miguelon",37.45425,true],["carta-lechu",37.786375,true],["carta-lg",38.1185,true],["carta-rodal",38.450625,true],["carta-fito",38.78275,true],["carta-mugre",39.114875,true],["todos1",39.447,false],["todos2",40.7755,false],["tiro-arma",42.104,false],["tiro-vuelo",43.4325,false],["tiro-relato",44.09675,false],["monos",44.761,false],["pancho",46.0895,false],["cuenta3",47.418,false],["cuenta-ya",48.08225,false],["reloj",48.7465,false],["tarjeta",50.075,false],["marshall",51.4035,false],["compartir",52.732,false],["ranking",53.39625,false]].forEach(function (s, i, todo) {
+        [["cartel",34.133,false],["carta-sueco",36.79,false],["carta-perro",37.122125,true],["carta-miguelon",37.45425,true],["carta-lechu",37.786375,true],["carta-lg",38.1185,true],["carta-rodal",38.450625,true],["carta-fito",38.78275,true],["carta-mugre",39.114875,true],["todos1",39.447,false],["todos2",40.7755,false],["tiro-arma",42.104,false],["tiro-vuelo",43.4325,false],["tiro-relato",44.09675,false],["monos",44.761,false],["pancho",46.0895,false],["cuenta3",47.418,false],["cuenta-ya",48.08225,false],["tarjeta",48.746,false],["marshall",50.0745,false],["ranking",51.403,false]].forEach(function (s, i, todo) {
           var el = "#pt-" + s[0], t = s[1];
           if (s[2]) {
             tl.fromTo(el, { opacity: 1, xPercent: 105, rotation: 7 }, { xPercent: 0, rotation: 0, duration: 0.24, ease: "power3.out" }, t);
@@ -972,6 +1035,16 @@ $1data-track-index="10"
           tl.fromTo(el, { scale: 0, opacity: 0, rotation: i % 2 ? 6 : -6 }, { scale: 1, opacity: 1, rotation: i % 2 ? 2 : -2, duration: 0.3, ease: "back.out(2.2)" }, c(29) + i * B);
           tl.to(el, { scale: 0.6, opacity: 0, duration: 0.18, ease: "power2.in" }, c(31) - 0.22 + i * 0.01);
         });
+        // ranking: el podio sube desde abajo (3°, 2°, 1°) y el ¿VOS? late
+        var R = 51.403;
+        [".pod-3", ".pod-2", ".pod-1"].forEach(function (sel, i) {
+          tl.fromTo(sel, { scaleY: 0, transformOrigin: "50% 100%" }, { scaleY: 1, duration: 0.32, ease: "back.out(1.7)" }, R + (2 + i) * B);
+          tl.fromTo(sel + " .pod-q", { scale: 0, xPercent: -50 }, { scale: 1, xPercent: -50, duration: 0.26, ease: "back.out(3)" }, R + (2.6 + i) * B);
+        });
+        for (var v = 0; R + (6 + v) * B < P.estribillo - 0.5; v++) {
+          tl.fromTo(".pod-q.vos", { scale: 1.12 }, { scale: 1, duration: B * 0.9, ease: "power2.out" }, R + (6 + v) * B);
+        }
+        tl.to("#podio", { y: 700, duration: 0.45, ease: "power3.in" }, P.estribillo - 0.5);
         // ---------- estribillo: la trampa otra vez ----------
         tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.85, duration: 0.04, ease: "none" }, P.estribillo - 0.02);
         tl.to("#flash", { opacity: 0, duration: 0.3, ease: "power2.out" }, P.estribillo + 0.03);

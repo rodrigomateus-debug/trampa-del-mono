@@ -139,8 +139,8 @@ const css = `
         position: absolute;
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px 22px 12px 14px;
+        gap: 14px;
+        padding: 14px 28px 14px 16px;
         border-radius: 999px;
         background: var(--cream);
         color: var(--green-900);
@@ -150,21 +150,21 @@ const css = `
       .chip em {
         display: grid;
         place-items: center;
-        width: 50px;
-        height: 50px;
+        width: 62px;
+        height: 62px;
         border-radius: 50%;
         background: var(--green-100, #d9e8dc);
-        font: normal 30px/1 system-ui, "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+        font: normal 36px/1 system-ui, "Apple Color Emoji", "Noto Color Emoji", sans-serif;
       }
       .chip b {
         display: block;
-        font: 800 22px/1.1 var(--body);
-        letter-spacing: 0.06em;
+        font: 800 27px/1.1 var(--body);
+        letter-spacing: 0.05em;
         text-transform: uppercase;
       }
       .chip small {
         display: block;
-        font: 600 16px/1.2 var(--body);
+        font: 600 20px/1.25 var(--body);
         color: #5e6e5f;
       }
       #coro1,
@@ -230,13 +230,16 @@ const css = `
       }
       #cl-tag {
         display: block;
-        max-width: 780px;
+        max-width: 1000px;
         margin-top: 20px;
         text-align: center;
+        white-space: nowrap;
         font: 800 21px/1.6 var(--body);
-        letter-spacing: 0.26em;
+        letter-spacing: 0.2em;
         color: var(--cream);
-        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.9));
+        background: var(--green-900);
+        border-radius: 6px;
+        padding: 6px 12px 5px 16px;
       }
       #cl-app {
         position: absolute;
@@ -284,6 +287,58 @@ const css = `
         border-radius: 6px;
         padding: 8px 14px 7px;
       }
+      #podio {
+        position: absolute;
+        left: 180px;
+        width: 720px;
+        top: 1420px;
+        height: 500px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 16px;
+      }
+      .pod {
+        position: relative;
+        width: 214px;
+        border-radius: 20px 20px 0 0;
+        background: var(--cream);
+        display: flex;
+        justify-content: center;
+        padding-top: 22px;
+        box-shadow: 0 -12px 44px rgba(5, 18, 11, 0.45);
+      }
+      .pod-1 {
+        height: 330px;
+        background: var(--gold);
+      }
+      .pod-2 {
+        height: 255px;
+      }
+      .pod-3 {
+        height: 200px;
+      }
+      .pod b {
+        font: 400 120px/1 var(--display);
+        color: var(--green-900);
+      }
+      .pod-q {
+        position: absolute;
+        left: 50%;
+        bottom: 100%;
+        margin-bottom: 16px;
+        font: 400 64px/1 var(--display);
+        color: var(--cream);
+        filter: drop-shadow(0 4px 14px rgba(5, 18, 11, 0.7));
+      }
+      .pod-q.vos {
+        padding: 12px 24px 8px;
+        border-radius: 999px;
+        background: var(--cream);
+        color: var(--green-900);
+        font-size: 56px;
+        white-space: nowrap;
+      }
       .par {
         position: absolute;
         display: flex;
@@ -307,24 +362,26 @@ const FUNCIONES = [
   { id: 'f3', n: 3, kicker: 'HABILIDADES', tit: ['CADA UNO CON', 'SU HABILIDAD'], banda: 'SACADAS DEL CHAT', txt: 'El Mago nunca pega derecho. La Mugre tira panchos. El Perro va a buscarla.' },
   { id: 'f4', n: 4, kicker: 'EL TIRO', tit: ['TIRÁ PARA', 'ATRÁS Y SOLTÁ'], banda: 'COMO UNA GOMERA', txt: 'Viento con ráfagas, rough al 70%, bunker al 50% y el óvalo de pique.' },
   { id: 'f5', n: 5, kicker: 'LOS MONOS', tit: ['¡VIENEN', 'LOS MONOS!'], banda: 'SE LLEVAN LA PELOTA', txt: 'Si llegan antes que vos, al tee con un golpe de multa. Algunos te la devuelven.' },
-  { id: 'f6', n: 6, kicker: 'CONTRA RELOJ', tit: ['3, 2, 1…', '¡YA!'], banda: 'AL MILISEGUNDO', txt: 'A igual golpes, en el ranking gana el más rápido.' },
+  { id: 'f6', n: 6, kicker: 'CONTRA RELOJ', tit: ['3, 2, 1…', '¡YA!'], banda: 'Y CORRE EL RELOJ', txt: '' },
   { id: 'f7', n: 7, kicker: 'LA TARJETA', tit: ['FIRMALA EN', '10 SEGUNDOS'], banda: 'O 110 NETO', txt: 'Si no firmás, comunicado oficial del Marshall. Es inapelable.' },
-  { id: 'f8', n: 8, kicker: 'EL RANKING', tit: ['SÉ EL', 'PRIMERO'], banda: 'TODAVÍA NADIE FIRMÓ', txt: 'Compartí tu vuelta en el grupo.' },
+  { id: 'f8', n: 8, kicker: 'EL RANKING', tit: ['SÉ EL', 'PRIMERO'], banda: 'TODAVÍA NADIE FIRMÓ', txt: 'Menos golpes y, a igual golpes, el más rápido al milisegundo. Tabla general y una por jugador.' },
 ]
-const desdeF = (i) => c(25 + 2 * i)
-const durF = (i) => (i === 7 ? c(40) - c(39) : 2 * COMPAS)
+// compases de cada función (15 en total, de c(25) a c(40)): la cuenta regresiva es de un compás
+const COMPASES = [2, 2, 2, 2, 2, 1, 2, 2]
+const desdeF = (i) => c(25 + COMPASES.slice(0, i).reduce((a, b) => a + b, 0))
+const durF = (i) => COMPASES[i] * COMPAS
 let funciones = FUNCIONES.map(
   (f, i) => `      <section id="${f.id}" class="clip feat" data-start="${desdeF(i)}" data-duration="${durF(i).toFixed(3)}" data-track-index="2">
         <div class="feat-cab">
           <span class="feat-kicker"><b>${String(f.n).padStart(2, '0')}</b>${f.kicker}</span>
           <div class="feat-tit">${f.tit.map(linea).join('')}</div>
           <span class="feat-banda"><i></i><span>${f.banda}</span></span>
-          <span class="feat-txt">${f.txt}</span>
+${f.txt ? `\n          <span class="feat-txt">${f.txt}</span>` : ''}
         </div>
       </section>`,
 ).join('\n')
 
-const PANTALLAS = ['cartel', 'carta-sueco', 'carta-perro', 'carta-miguelon', 'carta-lechu', 'carta-lg', 'carta-rodal', 'carta-fito', 'carta-mugre', 'todos1', 'todos2', 'tiro-arma', 'tiro-vuelo', 'tiro-relato', 'monos', 'pancho', 'cuenta3', 'cuenta-ya', 'reloj', 'tarjeta', 'marshall', 'compartir', 'ranking']
+const PANTALLAS = ['cartel', 'carta-sueco', 'carta-perro', 'carta-miguelon', 'carta-lechu', 'carta-lg', 'carta-rodal', 'carta-fito', 'carta-mugre', 'todos1', 'todos2', 'tiro-arma', 'tiro-vuelo', 'tiro-relato', 'monos', 'pancho', 'cuenta3', 'cuenta-ya', 'tarjeta', 'marshall', 'ranking']
 const CHIPS = [
   ['🥛', 'Golpes de mago', 'El Mago Rodal', 70, 760],
   ['🍯', 'Drive al green', 'Mike Queboni', 600, 830],
@@ -333,10 +390,11 @@ const CHIPS = [
   ['🐕', 'Va a buscarla', 'El Perro', 60, 1180],
   ['🦉', 'Todas las dadas', 'Lechu', 600, 1290],
   ['🥷', 'La tradición', 'El Ninja', 70, 1410],
-  ['📺', 'El que se enoja pierde', 'LG', 520, 1530],
+  ['📺', 'El que se enoja pierde', 'LG', 470, 1530],
 ]
 const telefono = `      <section id="p-tel" class="clip" data-start="${c(25)}" data-duration="${(c(40) - c(25)).toFixed(3)}" data-track-index="3">
         <div id="tel"><div id="tel-pantalla">${PANTALLAS.map((p) => `<img id="pt-${p}" src="assets/capturas/${p}.webp" alt="" />`).join('')}</div></div>
+        <div id="podio"><div class="pod pod-2"><span class="pod-q">?</span><b>2°</b></div><div class="pod pod-1"><span class="pod-q vos">¿VOS?</span><b>1°</b></div><div class="pod pod-3"><span class="pod-q">?</span><b>3°</b></div></div>
         <div id="chips">${CHIPS.map(([e, b, s, x, y], i) => `<div class="chip" id="chip-${i}" style="left:${x}px;top:${y}px"><em>${e}</em><span><b>${b}</b><small>${s}</small></span></div>`).join('')}</div>
       </section>`
 
@@ -379,9 +437,9 @@ const pantallasPorFuncion = {
   2: [['todos1', 0], ['todos2', 4]],
   3: [['tiro-arma', 0], ['tiro-vuelo', 4], ['tiro-relato', 6]],
   4: [['monos', 0], ['pancho', 4]],
-  5: [['cuenta3', 0], ['cuenta-ya', 2], ['reloj', 4]],
+  5: [['cuenta3', 0], ['cuenta-ya', 2]],
   6: [['tarjeta', 0], ['marshall', 4]],
-  7: [['compartir', 0], ['ranking', 2]],
+  7: [['ranking', 0]],
 }
 const secuencia = []
 for (const [i, lista] of Object.entries(pantallasPorFuncion)) for (const [p, n] of lista) secuencia.push([p, desdeF(+i) + n * B, +i === 1 && n > 0])
@@ -436,6 +494,16 @@ const guion = `
           tl.fromTo(el, { scale: 0, opacity: 0, rotation: i % 2 ? 6 : -6 }, { scale: 1, opacity: 1, rotation: i % 2 ? 2 : -2, duration: 0.3, ease: "back.out(2.2)" }, c(29) + i * B);
           tl.to(el, { scale: 0.6, opacity: 0, duration: 0.18, ease: "power2.in" }, c(31) - 0.22 + i * 0.01);
         });
+        // ranking: el podio sube desde abajo (3°, 2°, 1°) y el ¿VOS? late
+        var R = ${desdeF(7)};
+        [".pod-3", ".pod-2", ".pod-1"].forEach(function (sel, i) {
+          tl.fromTo(sel, { scaleY: 0, transformOrigin: "50% 100%" }, { scaleY: 1, duration: 0.32, ease: "back.out(1.7)" }, R + (2 + i) * B);
+          tl.fromTo(sel + " .pod-q", { scale: 0, xPercent: -50 }, { scale: 1, xPercent: -50, duration: 0.26, ease: "back.out(3)" }, R + (2.6 + i) * B);
+        });
+        for (var v = 0; R + (6 + v) * B < P.estribillo - 0.5; v++) {
+          tl.fromTo(".pod-q.vos", { scale: 1.12 }, { scale: 1, duration: B * 0.9, ease: "power2.out" }, R + (6 + v) * B);
+        }
+        tl.to("#podio", { y: 700, duration: 0.45, ease: "power3.in" }, P.estribillo - 0.5);
         // ---------- estribillo: la trampa otra vez ----------
         tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.85, duration: 0.04, ease: "none" }, P.estribillo - 0.02);
         tl.to("#flash", { opacity: 0, duration: 0.3, ease: "power2.out" }, P.estribillo + 0.03);

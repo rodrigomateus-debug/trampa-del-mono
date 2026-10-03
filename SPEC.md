@@ -152,4 +152,5 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
   - El sonido suena aunque el iPhone esté en silencio (como un video): Audio Session "playback" y, si no está, un <audio> de silencio en loop.
   - Pantalla de inicio: el jugador centrado entre el logo y el botón (la cámara se calcula con lo que mide cada pantalla) y pares de ojos de mono —los de la O del logo— que se abren a tempo, miran al jugador o para los costados, parpadean y se cierran en los huecos de arriba y de los costados.
 - Ícono de la app y favicon nuevos: el título con los ojos de MONO (`iconos/icono-fuente.html`); el favicon de 32 px son los dos ojos.
+- Presentación oficial (video 9:16 de 75 s, `intro/trampa-del-mono-presentacion.mp4`): la intro, después las 8 funciones con capturas reales del juego en un teléfono (cancha, plantel, habilidades, tiro, monos, contra reloj, tarjeta, ranking), el estribillo con la trampa de noche y el cierre como la pantalla de inicio con el ícono, JUGALA YA y la dirección. Se arma con `node intro/armar-presentacion.mjs` (ver `intro/README.md`).
 

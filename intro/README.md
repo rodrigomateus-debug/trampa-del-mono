@@ -24,6 +24,10 @@ con "Caminás tranquilo por el fairway…".
 - `assets/trampa-del-mono.mp3` — la canción (Suno). `assets/sdga-logo.svg` — el logo oficial del design system.
 - `assets/fonts/` — Anton y Archivo (OFL). `assets/vendor/` — three.js 0.181.2 y GSAP 3.14.2, locales para que el render no dependa de la red.
 - `trampa-del-mono-intro-vertical.mp4` y `trampa-del-mono-intro.mp4` — los videos ya renderizados (versión liviana); `poster.jpg` — el cuadro del logo.
+- `compositions/presentacion.html` — **la presentación oficial de la app** (9:16, 75,3 s, la canción hasta el final del primer estribillo).
+  La arma `armar-presentacion.mjs` a partir de `compositions/vertical.html` (si se toca la intro, volver a correrlo); `escena-presentacion.js`
+  remapea el tiempo de la escena 3D. Las capturas del juego están en `assets/capturas/` y el ícono en `assets/icono-app.png`.
+  Video: `trampa-del-mono-presentacion.mp4`.
 
 ## Mapa de la canción (0–36,8 s)
 
@@ -46,6 +50,19 @@ con "Caminás tranquilo por el fairway…".
 | 32,8 | vuelve la banda | se abren los ojos de MONO, banda dorada |
 | 36,1–36,8 | fin de "…cambia la situación" | fundido a verde |
 
+## La presentación oficial (0–75,3 s)
+
+| Tiempo | Música | Imagen |
+|---|---|---|
+| 0–31,5 | la intro | la intro vertical tal cual |
+| 31,48 | corte, entra la voz | LA TRAMPA DEL MONO |
+| 34,1 | verso | un teléfono con capturas reales y una función cada dos compases: 01 la cancha · 02 el plantel (el mazo pasa una carta por negra) · 03 las habilidades (los chips de cada jugador) · 04 el tiro · 05 los monos |
+| 47,4 | | 06 contra reloj (un compás: 3, 2, 1… ¡YA!) · 07 la tarjeta y el Marshall · 08 el ranking (sube el podio, ¿VOS? en el 1°) |
+| 54,06 | **estribillo** | flash, vuelve la trampa de noche · ¡ES LA TRAMPA DEL MONO! · ENTRE ÁRBOLES Y SOMBRAS |
+| 63,36 | | cierre como la pantalla de inicio: logo, el jugador caminando, ojos de mono en los huecos, el ícono, JUGALA YA y la dirección |
+| 70,0 | "en San Diego te espera…" | aparece la frase |
+| 74,7–75,3 | fin del estribillo | fundido a verde |
+
 ## Cómo se trabaja
 
 ```bash
@@ -55,6 +72,7 @@ npx hyperframes@0.8.114 snapshot --at 6,22.5,33   # cuadros sueltos para mirar
 npx hyperframes@0.8.114 preview                   # Studio con el timeline (abre el navegador)
 npx hyperframes@0.8.114 render --output trampa-del-mono-intro.mp4                              # 16:9
 npx hyperframes@0.8.114 render -c compositions/vertical.html --output trampa-del-mono-intro-vertical.mp4   # 9:16
+node armar-presentacion.mjs && npx hyperframes@0.8.114 render -c compositions/presentacion.html --output trampa-del-mono-presentacion.mp4
 ```
 
 El render usa WebGL por software si no hay GPU: tarda ~1 s por cuadro. `snapshot` y `preview` miran `index.html`;
