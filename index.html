@@ -256,6 +256,53 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 .comunicado .ciento { font-family: var(--font-display); font-size: 54px; line-height: 1.05; color: var(--green-900); }
 .comunicado .firma-m { font-weight: 800; }
 
+/* ── cronómetro y golpe del Mago: debajo del marcador ── */
+#hud-chips { justify-self: center; display: flex; gap: 8px; align-items: center; }
+.chip { font-family: var(--font-display); font-size: 16px; letter-spacing: .05em; background: rgba(12, 43, 28, .9); color: var(--cream); border-radius: 999px; padding: 0 12px; height: 30px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#crono { color: var(--gold); min-width: 10ch; justify-content: center; }
+#efecto { background: var(--gold); color: var(--green-900); }
+
+/* ── cuenta regresiva ── */
+#cuenta { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; background: radial-gradient(closest-side, rgba(12, 43, 28, .6), rgba(12, 43, 28, 0)); }
+#cuenta span { font-family: var(--font-display); font-size: clamp(120px, 40vw, 220px); line-height: 1; color: var(--cream); text-shadow: 0 4px 0 rgba(12, 43, 28, .6); animation: latido 1s ease-out both; }
+#cuenta span.ya { color: var(--gold); font-size: clamp(80px, 26vw, 150px); animation-duration: .7s; }
+@keyframes latido { 0% { transform: scale(1.7); opacity: 0 } 20% { transform: scale(1); opacity: 1 } 80% { opacity: 1 } 100% { transform: scale(.92); opacity: 0 } }
+
+/* ── quién juega (portada) ── */
+input { -webkit-user-select: text; user-select: text; }
+.quien-juega { display: grid; gap: 6px; justify-items: center; }
+.quien-juega input { width: min(260px, 80vw); height: 46px; border-radius: 999px; border: 2px solid rgba(244, 238, 218, .55); background: rgba(12, 43, 28, .6); color: var(--cream); font: 600 17px var(--font-body); text-align: center; padding: 0 16px; box-sizing: border-box; }
+.quien-juega input::placeholder { color: rgba(244, 238, 218, .55); }
+.quien-juega input:focus { outline: none; border-color: var(--gold); }
+.quien-juega.falta input { border-color: var(--red); }
+.quien-juega.falta .kicker { color: #f0a497; }
+.portada-botones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+/* ── ranking ── */
+#ranking { background: rgba(12, 43, 28, .97); }
+.ranking { gap: 12px; }
+.tiempo-final { margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; border-top: 1px solid var(--border-subtle); padding-top: 10px; }
+.tiempo-final b { font-family: var(--font-display); font-weight: 400; font-size: 30px; font-variant-numeric: tabular-nums; }
+.rk-pos-final { margin: 0; font-weight: 800; font-size: 14px; }
+.rk-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.rk-tab { flex: none; height: 36px; padding: 0 12px; border-radius: 999px; border: 0; background: var(--cream-dark); color: var(--green-900); font: 800 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.rk-tab .e { font-size: 18px; letter-spacing: 0; }
+.rk-tab[aria-selected="true"] { background: var(--green-900); color: var(--cream); }
+.rk-tab:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.rk-lista { list-style: none; margin: 0; padding: 0; display: grid; }
+.rk-fila { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 4px; border-top: 1px solid var(--border-subtle); }
+.rk-fila.yo { background: rgba(232, 195, 74, .3); border-radius: 10px; }
+.rk-fila.salto { border-top: 2px dashed var(--border-subtle); }
+.rk-pos { font-family: var(--font-display); font-size: 20px; text-align: center; }
+.rk-fila:first-child .rk-pos { background: var(--gold); border-radius: 6px; }
+.rk-quien { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.rk-quien b { font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--cream); border: 2px solid var(--green-900); display: grid; place-items: center; font-size: 13px; line-height: 1; }
+.rk-score { font-family: var(--font-display); font-size: 20px; text-align: right; }
+.rk-score small { display: block; font-family: var(--font-body); font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; }
+.rk-tiempo { font-family: var(--font-display); font-size: 17px; font-variant-numeric: tabular-nums; text-align: right; min-width: 7.5ch; }
+.rk-vacio { margin: 0; padding: 18px 4px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 1ms !important; animation: none !important; }
 }
@@ -283,7 +330,13 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
     </div>
     <div id="voz" class="vacia" aria-live="polite"><span class="quien">📺 LG</span><span class="dice" id="r-dice"></span><span class="extra" id="r-extra"></span></div>
   </div>
+  <div id="hud-chips">
+    <span class="chip" id="efecto" hidden></span>
+    <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
+  </div>
 </div>
+
+<div id="cuenta" hidden aria-live="assertive"></div>
 
 <div id="hud-bot" hidden>
   <span id="lie">TEE</span>
@@ -311,7 +364,11 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
   <h1>LA TRAMPA DEL MONO</h1>
   <span class="band">DONDE TODO SE VA</span>
   <p class="bajada">Mientras Gonza cierra con Nintendo los derechos del Mario Golf, jugá los tres hoyos que más tarjetas rompieron en San Diego.</p>
-  <button class="btn" id="jugar" type="button">JUGAR</button>
+  <label class="quien-juega" id="quien-juega"><span class="kicker">¿Quién juega?</span><input id="usuario" type="text" maxlength="20" autocomplete="nickname" autocapitalize="words" spellcheck="false" placeholder="Tu nombre para el ranking"></label>
+  <div class="portada-botones">
+    <button class="btn" id="jugar" type="button">JUGAR</button>
+    <button class="btn ghost" id="ver-ranking" type="button">RANKING 🏆</button>
+  </div>
   <span id="frase"></span>
 </section>
 
@@ -341,6 +398,7 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
       <thead><tr><th>Hoyo</th><th class="num">Par</th><th class="num">Golpes</th><th>&nbsp;</th></tr></thead>
       <tbody id="t-filas"></tbody>
     </table>
+    <p class="tiempo-final"><span class="kicker" style="color: var(--text-muted)">⏱ Tiempo</span><b id="t-tiempo">—</b></p>
     <p class="extras" id="t-extras"></p>
     <div class="firma" id="t-firma">
       <button class="btn" id="firmar" type="button">FIRMÁ LA TARJETA ✍️</button>
@@ -348,8 +406,10 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
       <p>Tenés 10 segundos. Si no firmás, el Marshall te pone 110.</p>
     </div>
     <p class="firmada" id="t-firmada" hidden></p>
+    <p class="rk-pos-final" id="t-ranking" hidden></p>
     <div class="acciones" id="t-acciones" hidden>
       <a class="btn ancho" id="compartir" href="#" target="_blank" rel="noopener">COMPARTIR AL GRUPO</a>
+      <button class="btn oscuro ancho" id="fin-ranking" type="button">VER RANKING 🏆</button>
       <button class="btn oscuro" id="copiar" type="button">COPIAR</button>
       <button class="btn oscuro" id="otra" type="button">OTRA VUELTA</button>
       <button class="btn oscuro ancho" id="cambiar" type="button">CAMBIAR JUGADOR</button>
@@ -371,10 +431,24 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
   </div>
 </section>
 
+<section class="pantalla" id="ranking" hidden aria-labelledby="rk-tit">
+  <div class="card tarjeta ranking">
+    <header>
+      <span class="teja" id="rk-teja">🏆</span>
+      <div><span class="kicker" style="color: var(--text-muted)">Ranking · golpes, después tiempo</span><div class="quien" id="rk-tit">GENERAL</div></div>
+    </header>
+    <div class="rk-tabs" id="rk-tabs" role="tablist" aria-label="Ranking"></div>
+    <ol class="rk-lista" id="rk-lista"></ol>
+    <p class="extras" id="rk-fuente"></p>
+    <button class="btn oscuro" id="rk-volver" type="button">VOLVER</button>
+  </div>
+</section>
+
 <script type="module">
 import * as M from './motor.js'
 import { PLANTEL as TODOS, EN_PRUEBA } from './plantel.js'
 import { CANCHA } from './cancha-grid.js'
+import * as R from './ranking.js'
 // por ahora, para probar, solo los de EN_PRUEBA
 const PLANTEL = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo))
 
@@ -394,6 +468,7 @@ function leer() { try { return JSON.parse(localStorage.getItem(CLAVE)) || {} } c
 function guardar(d) { try { localStorage.setItem(CLAVE, JSON.stringify(d)) } catch {} }
 let datos = leer()
 datos.records ??= {}
+datos.usuario ??= ''
 
 // ── cancha ──
 const campo = M.crearCampo()
@@ -535,6 +610,7 @@ function actualizar(dt) {
     if (llego && estado === 'apuntar') llegaronMonos(llego)
   }
   pintarVoz()
+  pintarCrono()
   if (firmaHasta) $('#reloj').style.width = `${Math.max(0, (firmaHasta - performance.now()) / (M.SEGUNDOS_FIRMA * 10))}%`
   if (anim) {
     anim.t += dt
@@ -555,6 +631,8 @@ function alReposo() {
   const res = M.resolverReposo(campo, ronda, tiro, rng)
   const dicho = M.comentar(rng, res, tiro, h, ronda.jugador)
   if (res.tipo === 'embocada') {
+    // el último putt para el reloj
+    if (ronda.idx === M.HOYOS.length - 1 && ronda.t0 != null) ronda.ms = performance.now() - ronda.t0
     const adulado = M.habilidadDe(ronda.jugador)?.adulado
     const frase = adulado ? null : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
     cerrar(frase)
@@ -618,7 +696,8 @@ function empezar(jugador) {
   ronda = M.nuevaRonda(jugador, rng)
   datos.ultimo = jugador.apodo
   guardar(datos)
-  for (const id of ['portada', 'elegir', 'fin', 'comunicado']) $('#' + id).hidden = true
+  pararCuenta()
+  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking']) $('#' + id).hidden = true
   $('#hud-top').hidden = false
   $('#hud-bot').hidden = false
   introHoyo()
@@ -633,14 +712,52 @@ function introHoyo() {
   Object.assign(cam, { ...fin, cx: h.pin[0], cy: h.pin[1], esc: 4.5 })
   obj = fin
   velCam = 1.3
-  banda({ kicker: 'La Trampa del Mono', grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${Math.round(M.dist(h.tee, h.pin))} YD`, verso: h.verso }, 2800, () => {
+  const arrancar = () => {
     estado = 'apuntar'
     velCam = 3.5
     M.despertarMonos(ronda.monos, ronda.pelota)
     hud()
     const hab = M.habilidadDe(ronda.jugador)
     if (hab && ronda.idx === 0) relatar({ lg: `✨ ${hab.nombre}`, verso: hab.texto })
+  }
+  banda({ kicker: 'La Trampa del Mono', grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${Math.round(M.dist(h.tee, h.pin))} YD`, verso: h.verso }, 2800, () => {
+    // la primera vez: 3, 2, 1 y arranca el reloj, que corre hasta el último putt
+    if (ronda.t0 == null) cuentaRegresiva(() => { ronda.t0 = performance.now(); arrancar() })
+    else arrancar()
   })
+}
+
+// ── cuenta regresiva y cronómetro ──
+let cuentaTimer = 0
+function cuentaRegresiva(luego) {
+  estado = 'cuenta'
+  const el = $('#cuenta')
+  el.hidden = false
+  let n = 3
+  const paso = () => {
+    if (n > 0) {
+      el.innerHTML = `<span>${n--}</span>`
+      cuentaTimer = setTimeout(paso, 1000)
+    } else {
+      el.innerHTML = '<span class="ya">¡YA!</span>'
+      luego()
+      cuentaTimer = setTimeout(() => { el.hidden = true }, 700)
+    }
+  }
+  paso()
+}
+function pararCuenta() {
+  clearTimeout(cuentaTimer)
+  $('#cuenta').hidden = true
+}
+let cronoPintado = ''
+function pintarCrono() {
+  if (!ronda || $('#hud-top').hidden) return
+  const ms = ronda.ms ?? (ronda.t0 != null ? performance.now() - ronda.t0 : 0)
+  const txt = `⏱ ${M.formatoTiempo(ms)}`
+  if (txt === cronoPintado) return
+  cronoPintado = txt
+  $('#crono').textContent = txt
 }
 /** Hoyo embocado: el resultado y al siguiente. */
 function cerrar(frase) {
@@ -692,6 +809,9 @@ function pintarVoz() {
     clase = ''; dice = voz.lg; extra = voz.extra
   } else if (estado === 'apuntar' && !datos.vistoTip) {
     clase = ''; dice = '👆 Arrastrá para atrás y soltá'; extra = 'El óvalo es donde puede caer'
+  } else if (estado === 'apuntar' && golpeMago()) {
+    const g = golpeMago()
+    clase = ''; dice = `${g.emoji} Te toca: ${g.nombre}`; extra = g.texto
   }
   const clave = clase + dice + extra
   if (clave === vozPintada) return
@@ -724,6 +844,16 @@ function hud() {
   $('#j-hcp').textContent = `HCP ${hcpTxt(ronda.jugador)}`
   $('#j-total').textContent = M.formatoPar(M.totales(ronda.tarjeta).vsPar)
   $('#lp').disabled = estado !== 'apuntar'
+  // el golpe del Mago: el que le toca (o, mientras vuela, el que pegó)
+  const g = !ronda.golpeMago ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? PUTT_MAGO : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
+  $('#efecto').hidden = !g
+  if (g) $('#efecto').textContent = `${g.emoji} ${g.nombre.toUpperCase()}`
+}
+const PUTT_MAGO = { emoji: '🪄', nombre: 'Putt con comba', texto: 'Siempre dobla hacia el hoyo: apuntá afuera' }
+/** Lo que le toca al Mago en el próximo golpe (null si no es Rodal). En el green, el putt con comba. */
+function golpeMago() {
+  if (!ronda?.golpeMago) return null
+  return M.enModoPutt(campo, ronda) ? PUTT_MAGO : M.golpeMagoDe(ronda)
 }
 let lpArmado = 0
 $('#lp').addEventListener('click', () => {
@@ -961,12 +1091,16 @@ function dibujarApunte(a) {
   if (a.putt) {
     // putt: solo la dirección y la fuerza; la distancia la medís vos
     const dir = a.ang + cam.rot
-    ctx.strokeStyle = C.cream
+    ctx.strokeStyle = a.plan.giro ? C.gold : C.cream
     ctx.lineWidth = 3
     ctx.setLineDash([1, 8])
     ctx.beginPath()
     ctx.moveTo(bx + Math.cos(dir) * 14, by + Math.sin(dir) * 14)
-    ctx.lineTo(bx + Math.cos(dir) * 80, by + Math.sin(dir) * 80)
+    if (a.plan.giro) {
+      // el putt del Mago: la línea muestra para dónde dobla
+      const fin = dir + Math.sign(a.plan.giro) * 0.45
+      ctx.quadraticCurveTo(bx + Math.cos(dir) * 60, by + Math.sin(dir) * 60, bx + Math.cos(fin) * 92, by + Math.sin(fin) * 92)
+    } else ctx.lineTo(bx + Math.cos(dir) * 80, by + Math.sin(dir) * 80)
     ctx.stroke()
     ctx.setLineDash([])
     ctx.strokeStyle = 'rgba(12,43,28,.55)'
@@ -1015,7 +1149,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.comba ? ' · COMBA' : a.fondo ? ' · A FONDO' : ''
+  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(a.alcance)} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
@@ -1051,6 +1185,8 @@ function tarjetaFinal() {
   const t = M.totales(ronda.tarjeta)
   filas.push(`<tr class="total"><td>TOTAL</td><td class="num">${t.par}</td><td class="num">${t.golpes ?? '—'}</td><td class="res"><span class="band" style="font-family: var(--font-display); font-size: 22px; font-weight: 400">${M.formatoPar(t.vsPar)}</span></td></tr>`)
   $('#t-filas').innerHTML = filas.join('')
+  $('#t-tiempo').textContent = ronda.ms != null && !ronda.lp ? M.formatoTiempo(ronda.ms) : 'LP · sin tiempo'
+  $('#t-ranking').hidden = true
   $('#t-extras').textContent = `🐒 Monos: ${ronda.monosMalos} malos · ${ronda.monosBuenos} buenos · ${ronda.robos} robos${ronda.lp ? ` · LP en el ${ronda.lp}: no cuenta para el récord` : ''}`
   $('#t-firma').hidden = false
   $('#t-firmada').hidden = true
@@ -1072,6 +1208,7 @@ $('#firmar').addEventListener('click', () => {
   if (record) { datos.records[apodo] = vsPar; guardar(datos) }
   $('#t-firma').hidden = true
   $('#t-firmada').hidden = false
+  anotarVuelta()
   $('#t-firmada').textContent = vsPar == null ? 'Firmada ✍️ · Vuelta LP: no cuenta para el récord' : record ? `Firmada ✍️ · ¡Récord personal! (${antes === undefined ? 'primera vuelta' : `antes ${M.formatoPar(antes)}`})` : `Firmada ✍️ · Tu récord: ${M.formatoPar(antes)}`
   acciones()
 })
@@ -1104,6 +1241,74 @@ $('#copiar').addEventListener('click', () => {
   navigator.clipboard.writeText(texto).then(() => { $('#copiar').textContent = 'COPIADO ✓' }, mostrar)
 })
 $('#otra').addEventListener('click', () => empezar(ronda.jugador))
+$('#fin-ranking').addEventListener('click', () => mostrarRanking(ronda?.jugador.apodo ?? 'general'))
+
+/** Tarjeta firmada: la vuelta entra al ranking (si tiene tiempo y no fue LP) y te dice dónde quedaste. */
+async function anotarVuelta() {
+  const marca = M.marcaDe(ronda, datos.usuario)
+  if (!marca || !marca.usuario) return
+  const jugador = ronda.jugador
+  await R.anotar(marca)
+  const { marcas } = await R.leerMarcas()
+  const yo = marca.usuario.toLowerCase()
+  const general = M.armarRanking(marcas).find((m) => m.usuario.trim().toLowerCase() === yo)
+  const conEl = M.armarRanking(marcas, jugador.apodo).find((m) => m.usuario.trim().toLowerCase() === yo)
+  if (!general || !conEl || ronda?.jugador !== jugador || estado !== 'fin') return
+  const nueva = conEl.golpes === marca.golpes && conEl.ms === marca.ms
+  $('#t-ranking').textContent = `🏆 ${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el general · ${conEl.pos}° con ${jugador.emoji}`
+  $('#t-ranking').hidden = false
+}
+
+// ── ranking: uno general (tu mejor vuelta, con el jugador que la hiciste) y uno por jugador ──
+let rkTab = 'general'
+let rkMarcas = []
+let rkCompartido = false
+async function mostrarRanking(tab = 'general') {
+  rkTab = tab
+  rkMarcas = null
+  $('#ranking').hidden = false
+  pintarRanking()
+  const { marcas, compartido, error } = await R.leerMarcas()
+  rkMarcas = marcas
+  rkCompartido = compartido
+  pintarRanking(error)
+  $('#rk-volver').focus()
+}
+function pintarRanking(error = false) {
+  const tabs = [{ id: 'general', txt: 'General' }, ...PLANTEL.map((j) => ({ id: j.apodo, txt: j.apodo.replace(/ \(Đ\)$/, ''), e: j.emoji }))]
+  $('#rk-tabs').innerHTML = tabs.map((t) => `<button class="rk-tab" type="button" role="tab" data-tab="${esc(t.id)}" aria-selected="${t.id === rkTab}">${t.e ? `<span class="e" aria-hidden="true">${t.e}</span>` : ''}${esc(t.txt)}</button>`).join('')
+  const j = PLANTEL.find((x) => x.apodo === rkTab)
+  $('#rk-tit').textContent = j ? j.apodo.toUpperCase() : 'GENERAL'
+  $('#rk-teja').textContent = j ? j.emoji : '🏆'
+  if (!rkMarcas) {
+    $('#rk-lista').innerHTML = '<li class="rk-vacio">Cargando…</li>'
+    $('#rk-fuente').textContent = ''
+    return
+  }
+  const lista = M.armarRanking(rkMarcas, j ? j.apodo : null)
+  const yo = datos.usuario.trim().toLowerCase()
+  const fila = (m, salto) => `<li class="rk-fila${m.usuario.trim().toLowerCase() === yo ? ' yo' : ''}${salto ? ' salto' : ''}">
+      <span class="rk-pos">${m.pos}</span>
+      <span class="rk-quien">${j ? '' : `<span class="mini" title="${esc(m.apodo)}" aria-label="con ${esc(m.apodo)}">${m.emoji}</span>`}<b>${esc(m.usuario)}</b></span>
+      <span class="rk-score">${M.formatoPar(m.vsPar)}<small>${m.golpes} golpes</small></span>
+      <span class="rk-tiempo">${M.formatoTiempo(m.ms)}</span>
+    </li>`
+  const top = lista.slice(0, 50)
+  const mio = lista.find((m) => m.usuario.trim().toLowerCase() === yo)
+  const filas = top.map((m) => fila(m, false))
+  if (mio && mio.pos > top.length) filas.push(fila(mio, true))
+  $('#rk-lista').innerHTML = filas.length ? filas.join('') : `<li class="rk-vacio">Todavía nadie firmó una vuelta${j ? ` con ${esc(j.apodo)}` : ''}. Sé el primero.</li>`
+  $('#rk-fuente').textContent = rkCompartido
+    ? 'Ranking del grupo. Entra cada tarjeta firmada (LP y sin firmar no cuentan).'
+    : `${error ? 'No se pudo conectar: ' : ''}Por ahora se guarda en este teléfono. Entra cada tarjeta firmada (LP y sin firmar no cuentan).`
+}
+$('#rk-tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tab]')
+  if (!b) return
+  rkTab = b.dataset.tab
+  pintarRanking()
+})
+$('#rk-volver').addEventListener('click', () => { $('#ranking').hidden = true })
 $('#cambiar').addEventListener('click', mostrarElegir)
 
 // ── portada y plantel ──
@@ -1267,6 +1472,7 @@ $('#mazo-cerrar').addEventListener('click', () => {
   estado = 'portada'
 })
 window.addEventListener('keydown', (e) => {
+  if (!$('#ranking').hidden && e.key === 'Escape') { $('#ranking').hidden = true; return }
   if ($('#elegir').hidden) return
   if (e.key === 'ArrowRight') volarMazo('next')
   else if (e.key === 'ArrowLeft') volarMazo('prev')
@@ -1275,7 +1481,7 @@ window.addEventListener('keydown', (e) => {
 
 function mostrarElegir() {
   estado = 'elegir'
-  for (const id of ['portada', 'fin', 'comunicado']) $('#' + id).hidden = true
+  for (const id of ['portada', 'fin', 'comunicado', 'ranking']) $('#' + id).hidden = true
   $('#hud-top').hidden = true
   $('#hud-bot').hidden = true
   ronda = null
@@ -1288,7 +1494,22 @@ function mostrarElegir() {
   $('#elegir').hidden = false
   pintarMazo()
 }
-$('#jugar').addEventListener('click', mostrarElegir)
+$('#usuario').value = datos.usuario
+$('#usuario').addEventListener('input', (e) => {
+  datos.usuario = e.target.value.trim().slice(0, 20)
+  guardar(datos)
+  if (datos.usuario) $('#quien-juega').classList.remove('falta')
+})
+$('#jugar').addEventListener('click', () => {
+  // sin nombre no hay ranking
+  if (!datos.usuario) {
+    $('#quien-juega').classList.add('falta')
+    $('#usuario').focus()
+    return
+  }
+  mostrarElegir()
+})
+$('#ver-ranking').addEventListener('click', () => mostrarRanking('general'))
 
 let fraseI = Math.floor(Math.random() * M.FRASES_CARGA.length)
 function rotarFrase() {

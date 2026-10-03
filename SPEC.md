@@ -38,7 +38,7 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - Se puede jugar desde el hoyo de al lado ("Jugando desde el 16, clásico").
 - LP 💅: levantar la pelota cuando quieras (confirmando). El hoyo cuenta par+4. Al décimo golpe sin embocar, LP automático.
 - Final: tarjeta hoyo por hoyo. 10 segundos para firmarla; si no, comunicado del Marshall 🇸🇪 y 110 neto.
-- Récord por jugador en el teléfono. Compartir al grupo por WhatsApp (link wa.me + copiar).
+- Récord por jugador en el teléfono. Compartir al grupo por WhatsApp (link wa.me + copiar), con el tiempo.
 
 
 ## Cambios del 2026-10-03 (tarde)
@@ -51,6 +51,22 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - Por ahora el mazo muestra solo 4 jugadores (`EN_PRUEBA` en plantel.js): El Sueco, Miguelón, Rodal y Fito.
 - Web app: GitHub Pages en https://rodrigomateus-debug.github.io/trampa-del-mono/ (index.html se genera con `node build-web.mjs` desde juego.html; manifest + íconos con el green del 16 del dibujo, el Mono y el SDGA chiquito).
 
+## Cambios del 2026-10-03 (noche): reloj, ranking y los golpes del Mago
+- Reloj: después del cartel del 15 hay cuenta regresiva 3, 2, 1, ¡YA! y arranca un cronómetro con milisegundos (debajo del marcador) que corre sin parar (carteles y animaciones incluidas) hasta que cae el último putt del 17. Si salteás los carteles tocándolos, ganás tiempo.
+- Ranking (más alto = mejor): primero menos golpes; a igual golpes, menos tiempo al milisegundo (`compararMarcas` en motor.js). Cada usuario figura con su mejor vuelta.
+  - General: usuario + el emoji en miniatura del jugador con el que hizo esa vuelta.
+  - Por jugador: una pestaña por cada uno del mazo, con la mejor vuelta de cada usuario con ese jugador.
+  - Entra solo la tarjeta firmada; LP y sin firmar (110) no cuentan. Al firmar te dice en qué puesto quedaste.
+  - Para jugar hay que poner el nombre en la portada ("¿Quién juega?"), que queda guardado en el teléfono.
+  - Por ahora las marcas se guardan en el teléfono (`ranking.js`). Para que sea del grupo: correr `supabase.sql` y completar `SUPABASE.url` y `anonKey` en `ranking.js`.
+- El Mago Rodal — Golpes de mago (reemplaza a "Comba de mago" como único golpe): nunca derecho. A cada golpe (menos el putt) le toca uno de 5 efectos al azar, nunca el mismo dos veces seguidas, y se ve antes de pegar (chip dorado, la franja de LG y la línea punteada con la curva):
+  - 🪄 Comba de mago: se cierra 30° hacia la bandera.
+  - ↩️ Gancho: dobla 45° a la izquierda. ↪️ Slice: dobla 45° a la derecha.
+  - 🎈 Globo: altísimo, 80% del carry, se cierra 15° y se clava (casi no rueda).
+  - 🐍 Viborita: rasante, 60% del carry, se cierra 20° y rueda una banda; como va al ras, choca pinos y monos.
+  - Todos (menos la viborita) vuelan por arriba de los pinos y tienen la mitad del error lateral, como antes.
+- Putt de Rodal: siempre con comba. Dobla hacia el hoyo mientras rueda (`PUTT_MAGO.giro` = 0,3 rad/s): derecho al hoyo no entra desde 3 yd; hay que apuntar afuera (≈7° a 3 yd, 12° a 6 yd, 16° a 10 yd). La línea del putt muestra para dónde dobla.
+
 ## Voz
 LG 📺 relata con las frases del chat ("Tremendo", "Uff", "Hermoso", "QUE HOMBRE"); en tiros malos sale una excusa.
 Intro de cada hoyo con un verso de la canción de Fito. Frases de carga del design system.
@@ -62,4 +78,4 @@ Intro de cada hoyo con un verso de la canción de Fito. Frases de carga del desi
 - Se publica como artifact privado para probar en el celular.
 
 ## Afuera por ahora
-Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu, tabla en Supabase.
+Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu. La tabla en Supabase está lista (`supabase.sql`) pero sin conectar.

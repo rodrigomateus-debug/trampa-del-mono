@@ -104,6 +104,7 @@ ok('Rodal: nunca pega derecho; apuntando afuera, la comba la trae a la línea', 
   const r = M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛' }, fijo(0.5))
   r.monos = []
   r.viento = calma
+  r.golpeMago = 'comba'
   const linea = angulo(h15.tee, h15.pin)
   const beta = (M.COMBA.angulo * Math.PI) / 180
   // apuntando derecho a la bandera, la comba la saca de la línea
@@ -119,11 +120,80 @@ ok('Rodal: nunca pega derecho; apuntando afuera, la comba la trae a la línea', 
   // también fuera del tee (desde el fairway), y para el otro lado
   r.pelota = [...h15.calle[2]]
   r.lie = 'fairway'
+  r.golpeMago = 'comba'
   const izq = M.planTiro(quieto, r, angulo(r.pelota, h15.pin) - 0.3, 0.5)
   assert.ok(izq.comba && izq.cuerda > angulo(r.pelota, h15.pin) - 0.3)
   // un jugador sin habilidad tira recto
   const otro = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
   assert.equal(M.planTiro(quieto, otro, afuera, 0.85).control, null)
+})
+
+ok('Rodal: cada golpe le toca uno de 5 efectos, ninguno derecho', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛' }, fijo(0.5)), monos: [], viento: calma }
+  assert.equal(M.GOLPES_MAGO.length, 5)
+  assert.ok(M.golpeMagoDe(r))
+  const desde = [...h16.calle[1]]
+  const linea = angulo(desde, h16.pin)
+  const plan = (id) => {
+    r.pelota = [...desde]
+    r.lie = 'fairway'
+    r.golpeMago = id
+    return M.planTiro(quieto, r, linea, 0.5)
+  }
+  const normal = M.planTiro(quieto, { ...r, jugador: { apodo: 'Rorro' }, pelota: [...desde], lie: 'fairway' }, linea, 0.5)
+  for (const g of M.GOLPES_MAGO) {
+    const p = plan(g.id)
+    assert.ok(p.comba && p.control && p.golpe === g.id)
+    assert.ok(Math.abs(p.cuerda - linea) >= (15 * Math.PI) / 180 - 1e-9, `${g.id} sale derecho`)
+  }
+  // apuntando a la bandera: el gancho cae a la izquierda (ángulo menor) y el slice a la derecha
+  assert.ok(plan('gancho').cuerda < linea && plan('slice').cuerda > linea)
+  // el globo vuela alto y casi no rueda; la viborita va al ras y rueda una banda
+  const tiroDe = (id) => {
+    plan(id)
+    return M.simular(quieto, M.golpear(quieto, r, linea, 0.5, sinRuido()), h16.pin)
+  }
+  const globo = tiroDe('globo')
+  const vibora = tiroDe('vibora')
+  const comba = tiroDe('comba')
+  assert.ok(globo.hMax > comba.hMax * 2 && vibora.hMax < M.FISICA.alturaPino)
+  assert.ok(globo.carry < comba.carry && vibora.carry < globo.carry)
+  const rodada = (t) => M.dist(t.pos, [t.desde[0] + t.carryVec[0] + t.deriva[0], t.desde[1] + t.carryVec[1] + t.deriva[1]])
+  assert.ok(rodada(globo) < 1 && rodada(vibora) > rodada(comba) * 3)
+  assert.ok(normal.control === null)
+  // después de cada golpe le toca otro efecto (nunca el mismo dos veces seguidas); el putt no cuenta
+  const vistos = new Set()
+  for (let i = 0; i < 40; i++) {
+    const antes = r.golpeMago
+    r.pelota = [...desde]
+    r.lie = 'fairway'
+    M.golpear(quieto, r, linea, 0.5, Math.random)
+    assert.notEqual(r.golpeMago, antes)
+    vistos.add(r.golpeMago)
+  }
+  assert.equal(vistos.size, 5)
+  r.pelota = [h15.pin[0], h15.pin[1] + 4]
+  r.lie = 'green'
+  const antes = r.golpeMago
+  M.golpear(quieto, r, angulo(r.pelota, h15.pin), 0.2, Math.random)
+  assert.equal(r.golpeMago, antes)
+})
+
+ok('Rodal: el putt siempre lleva comba; derecho al hoyo no entra, apuntando afuera sí', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛' }, fijo(0.5)), monos: [] }
+  const desde = [h15.pin[0], h15.pin[1] + 6]
+  const entra = (grados) => {
+    for (let p = 0.01; p <= 0.6; p += 0.002) {
+      const rr = { ...r, pelota: [...desde], lie: 'green' }
+      if (M.simular(plano, M.golpear(plano, rr, angulo(desde, h15.pin) + (grados * Math.PI) / 180, p, sinRuido()), h15.pin).embocada) return true
+    }
+    return false
+  }
+  assert.ok(!entra(0))
+  assert.ok(entra(12) && entra(-12)) // dobla hacia el hoyo, de los dos lados
+  // a los demás el putt les sale derecho
+  const otro = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [], pelota: [...desde], lie: 'green' }
+  assert.equal(M.planTiro(plano, otro, 0, 0.2).giro, 0)
 })
 
 ok('Miguelón: la bomba perfecta llega al green; mal pegada se abre y queda corta', () => {
@@ -388,6 +458,35 @@ ok('tarjeta, formato y texto para el grupo', () => {
   assert.match(M.textoCompartir(r, true), /🥃 Rorro \(HCP —\): E \(5 · 3 · 3\)/)
   assert.match(M.textoCompartir(r, false), /110 neto/)
   assert.match(M.textoCompartir(r, true), /0 robos/)
+})
+
+
+ok('ranking: menos golpes arriba; a igual golpes, el más rápido al milisegundo', () => {
+  const m = (usuario, apodo, golpes, ms) => ({ usuario, apodo, emoji: '🥛', golpes, vsPar: golpes - 11, ms })
+  const marcas = [
+    m('Rorro', 'El Mago Rodal', 12, 90000),
+    m('rorro', 'El Sueco', 11, 120000), // mismo usuario (sin importar mayúsculas): cuenta su mejor
+    m('Fede', 'El Mago Rodal', 11, 119999),
+    m('Mati', 'El Sueco', 10, 300000),
+    m('Lechu', 'El Sueco', 11, 120001),
+  ]
+  const general = M.armarRanking(marcas)
+  assert.deepEqual(general.map((x) => [x.pos, x.usuario, x.ms]), [[1, 'Mati', 300000], [2, 'Fede', 119999], [3, 'rorro', 120000], [4, 'Lechu', 120001]])
+  const rodal = M.armarRanking(marcas, 'El Mago Rodal')
+  assert.deepEqual(rodal.map((x) => x.usuario), ['Fede', 'Rorro'])
+  assert.equal(M.formatoTiempo(83456), '1:23.456')
+  assert.equal(M.formatoTiempo(5007), '0:05.007')
+  // la marca de una vuelta: con tiempo y sin LP
+  const r = M.nuevaRonda({ apodo: 'El Sueco', emoji: '🇸🇪' }, fijo(0.5))
+  r.tarjeta = [{ n: 15, par: 4, golpes: 4, lp: false }, { n: 16, par: 4, golpes: 3, lp: false }, { n: 17, par: 3, golpes: 3, lp: false }]
+  r.terminada = true
+  assert.equal(M.marcaDe(r, ' Rorro '), null) // sin tiempo, no hay marca
+  r.ms = 98765.4
+  assert.deepEqual(M.marcaDe(r, ' Rorro '), { usuario: 'Rorro', apodo: 'El Sueco', emoji: '🇸🇪', golpes: 10, vsPar: -1, ms: 98765 })
+  assert.ok(M.textoCompartir(r, true).includes('⏱ 1:38.765'))
+  r.tarjeta[2] = { n: 17, par: 3, golpes: null, lp: true }
+  r.lp = 17
+  assert.equal(M.marcaDe(r, 'Rorro'), null) // LP no entra al ranking
 })
 
 console.log('\nTodo verde.')

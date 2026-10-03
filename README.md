@@ -12,6 +12,7 @@ y queda como app.
 - `index.html` — la web app de GitHub Pages. **Generada** con `node build-web.mjs`; no se edita a mano.
 - `motor.js` — la lógica pura (física, terreno, monos, habilidades, score). Se porta a `src/engine/` de la FedE Cup.
 - `cancha.webp` — el dibujo de la cancha; `cancha-grid.js` — su terreno, una letra por yarda.
+- `ranking.js` — dónde se guardan las marcas del ranking (el teléfono, o Supabase si se completa la config); `supabase.sql` — la tabla.
 - `plantel.js` — los jugadores (handicap, frase, emoji) y `EN_PRUEBA`, los que aparecen por ahora.
 - `jugadores/` — fotos; `iconos/` y `manifest.webmanifest` — la app instalable.
 - `SPEC.md` — reglas y decisiones.
