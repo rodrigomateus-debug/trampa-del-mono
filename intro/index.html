@@ -129,8 +129,8 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 22px;
-        padding-bottom: 140px;
+        gap: 18px;
+        padding-top: 150px;
       }
       #presenta-logo {
         display: block;
@@ -141,8 +141,10 @@
         display: block;
         font: 800 22px/1 var(--body);
         letter-spacing: 0.62em;
-        padding-left: 0.62em;
+        padding: 9px 10px 8px calc(0.62em + 10px);
         color: var(--cream);
+        background: var(--green-900);
+        border-radius: 6px;
       }
 
       /* ---------- letra ---------- */
@@ -178,7 +180,9 @@
         letter-spacing: 0.24em;
         text-transform: uppercase;
         color: var(--cream);
-        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.7));
+        background: var(--green-900);
+        border-radius: 6px;
+        padding: 9px 16px 8px 20px;
       }
       #cap1 .cap-chica {
         margin-top: 22px;
@@ -436,10 +440,10 @@
         <div id="logo-fondo"></div>
         <div id="logo-caja">
           <div id="logo-l1">
-            <span class="lt">L</span><span class="lt">A</span><span class="esp"></span><span class="lt">T</span><span class="lt">R</span><span class="lt">A</span><span class="lt">M</span><span class="lt">P</span><span class="lt">A</span>
+            <span class="lt" data-layout-allow-overlap>L</span><span class="lt" data-layout-allow-overlap>A</span><span class="esp"></span><span class="lt" data-layout-allow-overlap>T</span><span class="lt" data-layout-allow-overlap>R</span><span class="lt" data-layout-allow-overlap>A</span><span class="lt" data-layout-allow-overlap>M</span><span class="lt" data-layout-allow-overlap>P</span><span class="lt" data-layout-allow-overlap>A</span>
           </div>
           <div id="logo-l2">
-            <span class="lt">D</span><span class="lt">E</span><span class="lt">L</span><span class="esp"></span><span class="lt">M</span>
+            <span class="lt" data-layout-allow-overlap>D</span><span class="lt" data-layout-allow-overlap>E</span><span class="lt" data-layout-allow-overlap>L</span><span class="esp"></span><span class="lt" data-layout-allow-overlap>M</span>
             <svg class="ojo lt" id="ojo-1" viewBox="0 0 100 158" aria-hidden="true">
               <g class="parpado">
                 <ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" />
@@ -453,7 +457,7 @@
                 </g>
               </g>
             </svg>
-            <span class="lt">N</span>
+            <span class="lt" data-layout-allow-overlap>N</span>
             <svg class="ojo lt" id="ojo-2" viewBox="0 0 100 158" aria-hidden="true">
               <g class="parpado">
                 <ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" />
@@ -468,7 +472,7 @@
               </g>
             </svg>
           </div>
-          <div id="logo-banda"><span id="banda-fondo"></span><span id="banda-txt">SAN DIEGO · HOYOS 15 · 16 · 17</span></div>
+          <div id="logo-banda"><span id="banda-fondo"></span><span id="banda-txt" data-layout-allow-overlap>SAN DIEGO · HOYOS 15 · 16 · 17</span></div>
           <span id="logo-tag">EN SAN DIEGO TE ESPERA, CON SU ABRAZO MACABRO</span>
         </div>
         <img id="logo-sdga" src="assets/sdga-logo.svg" alt="SDGA" />
@@ -531,7 +535,7 @@
         // SDGA PRESENTA
         tl.fromTo("#presenta-logo", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.7, ease: "power3.out" }, Q.C0);
         tl.fromTo("#presenta-txt", { opacity: 0, scale: 1.12 }, { opacity: 0.9, scale: 1, duration: 0.9, ease: "power3.out" }, Q.C0 + 0.25);
-        tl.to("#presenta", { opacity: 0, duration: 0.45, ease: "power2.in" }, 3.4);
+        tl.to("#presenta", { opacity: 0, duration: 0.4, ease: "power2.in" }, 3.1);
 
         // "CAMINÁS TRANQUILO" — una palabra por compás, tranqui
         entraPalabras("#cap1 .cap-grande .pal", c(2), B * 2);
@@ -543,7 +547,7 @@
         tl.to("#cap-quince .cap-chica", { opacity: 0, duration: 0.3 }, 11.3);
 
         // "CAMBIA LA SITUACIÓN" — entra con glitch en los colores SDGA
-        entraPalabras("#cap-cambia > .linea .pal", Q.cambia, B, { duration: 0.3, ease: "power4.out" });
+        entraPalabras("#cap-cambia .glitch > .linea .pal", Q.cambia, B, { duration: 0.3, ease: "power4.out" });
         [0, 0.08, 0.16, 0.24, B * 4, B * 4 + 0.08, B * 6, B * 6 + 0.06].forEach(function (dt, i) {
           var s = i % 2 ? -1 : 1;
           tl.set("#cambia-oro", { opacity: 0.85, x: 9 * s, y: -3 * s }, Q.cambia + dt);
@@ -551,7 +555,7 @@
           tl.set(["#cambia-oro", "#cambia-verde"], { opacity: 0 }, Q.cambia + dt + 0.05);
         });
         tl.fromTo("#cap-cambia .cap-grande", { skewX: -10 }, { skewX: 0, duration: 0.35, ease: "power3.out" }, Q.cambia);
-        salenPalabras("#cap-cambia > .linea .pal", c(9.6));
+        salenPalabras("#cap-cambia .glitch > .linea .pal", c(9.6));
 
         // "LOS ÁRBOLES TE MIRAN" — palabra por negra
         entraPalabras("#cap-miran .pal", Q.miran, B, { duration: 0.36 });

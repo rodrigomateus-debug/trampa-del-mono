@@ -196,7 +196,7 @@ const MAX_ARB = 460;
 const geoTronco = new THREE.CylinderGeometry(0.16, 0.26, 1, 6).translate(0, 0.5, 0);
 const geoCono = new THREE.ConeGeometry(1, 1, 7).translate(0, 0.5, 0);
 const geoCopa = new THREE.IcosahedronGeometry(1, 1);
-const matArbol = (hex) => toon(hex, { flatShading: true });
+const matArbol = (hex) => toon(hex);
 const troncos = new THREE.InstancedMesh(geoTronco, matArbol("#ffffff"), MAX_ARB);
 const conos = new THREE.InstancedMesh(geoCono, matArbol("#ffffff"), MAX_ARB * 3);
 const copas = new THREE.InstancedMesh(geoCopa, matArbol("#ffffff"), MAX_ARB * 3);
