@@ -1,6 +1,7 @@
 // Timeline de textos y logo (GSAP), compartido por index.html (16:9) y vertical.html (9:16).
 // Los tiempos salen de cues.js.
-window.armarTextos = function () {
+window.armarTextos = function (opciones) {
+  opciones = opciones || {};
   var Q = window.CUES;
   var c = Q.c;
   var B = Q.COMPAS / 4; // una negra
@@ -138,7 +139,7 @@ window.armarTextos = function () {
   // empuje lento del logo
   tl.fromTo("#logo-caja", { scale: 1 }, { scale: 1.045, duration: Q.FIN - L - 0.4, ease: "none" }, L + 0.4);
   // cierre a verde
-  tl.to("#fundido", { opacity: 1, duration: 0.6, ease: "power2.in" }, Q.FIN - 0.6);
+  if (!opciones.sinFundido) tl.to("#fundido", { opacity: 1, duration: 0.6, ease: "power2.in" }, Q.FIN - 0.6);
 
   return tl;
 };

@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>La Trampa del Mono — Presentación oficial</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <script src="cues.js"></script>
+    <script>
+      // la escena 3D avisa cuando está lista para dibujar (fuentes del cartel incluidas)
+      window.__hf = window.__hf || {};
+      window.__hf.buildReady = window.__hf.buildReady || {};
+      window.__hf.buildReady["escena-trampa"] = new Promise(function (resolve) {
+        window.__resolverEscena = resolve;
+      });
+    </script>
+    <script>
+      // tiempos de la presentación (en compases de la canción; ver cues.js)
+      window.PRESENTACION = { logo: 31.476, funciones: 34.133, estribillo: 54.06, cierre: 63.36, FIN: 75.3 };
+    </script>
+    <script type="importmap">
+      { "imports": { "three": "./assets/vendor/three.module.min.js" } }
+    </script>
+    <script type="module" src="escena-presentacion.js"></script>
+    <style>
+      @font-face {
+        font-family: "Anton";
+        src: url("assets/fonts/anton-400.woff2") format("woff2");
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: "Archivo";
+        src: url("assets/fonts/archivo-600.woff2") format("woff2");
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: "Archivo";
+        src: url("assets/fonts/archivo-700.woff2") format("woff2");
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: "Archivo";
+        src: url("assets/fonts/archivo-800.woff2") format("woff2");
+        font-weight: 800;
+      }
+      :root {
+        --green-950: #0c2b1c;
+        --green-900: #14402a;
+        --green-700: #1c5638;
+        --green-300: #6fae87;
+        --cream: #f4eeda;
+        --cream-dark: #e7dfc2;
+        --gold: #e8c34a;
+        --gold-dark: #c9a22e;
+        --display: "Anton", "Arial Narrow", sans-serif;
+        --body: "Archivo", "Helvetica Neue", sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--green-950);
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--green-950);
+        font-family: var(--body);
+        color: var(--cream);
+      }
+      #escena {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      /* overlay:desde */
+      .capa {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      #grano {
+        background-image: url("assets/grano.png");
+        background-size: 256px 256px;
+        mix-blend-mode: overlay;
+        opacity: 0.16;
+      }
+      #vineta {
+        background: radial-gradient(120% 95% at 50% 46%, rgba(5, 18, 11, 0) 52%, rgba(5, 18, 11, 0.55) 100%);
+      }
+      .franja {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 118px;
+        background: #050d08;
+      }
+      #franja-arriba {
+        top: 0;
+      }
+      #franja-abajo {
+        bottom: 0;
+      }
+      #flash {
+        background: var(--cream);
+        opacity: 0;
+      }
+      #negro {
+        background: #050d08;
+      }
+      #fundido {
+        background: var(--green-950);
+        opacity: 0;
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* ---------- SDGA PRESENTA ---------- */
+      #presenta {
+        right: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        padding-top: 150px;
+      }
+      #presenta-logo {
+        display: block;
+        width: 300px;
+        height: 69px;
+      }
+      #presenta-txt {
+        display: block;
+        font: 800 22px/1 var(--body);
+        letter-spacing: 0.62em;
+        padding: 9px 10px 8px calc(0.62em + 10px);
+        color: var(--cream);
+        background: var(--green-900);
+        border-radius: 6px;
+      }
+
+      /* ---------- letra ---------- */
+      .cap {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-start;
+        padding: 0 0 168px 132px;
+      }
+      .cap-grande {
+        font: 400 128px/0.92 var(--display);
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        filter: drop-shadow(0 6px 22px rgba(5, 18, 11, 0.5));
+      }
+      .linea {
+        display: block;
+        overflow: hidden;
+        padding: 0.19em 0.06em 0.02em 0;
+        margin-top: -0.08em;
+      }
+      .pal {
+        display: inline-block;
+        margin-right: 0.18em;
+      }
+      .pal:last-child {
+        margin-right: 0;
+      }
+      .cap-chica {
+        display: block;
+        font: 800 25px/1.2 var(--body);
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--cream);
+        background: var(--green-900);
+        border-radius: 6px;
+        padding: 9px 16px 8px 20px;
+      }
+      #cap1 .cap-chica {
+        margin-top: 22px;
+      }
+      #cap-quince .cap-chica {
+        font-size: 30px;
+      }
+      #cap-cambia {
+        padding-bottom: 168px;
+      }
+      .glitch {
+        position: relative;
+        display: block;
+      }
+      .glitch .fantasma {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        display: block;
+      }
+      #cambia-oro {
+        color: var(--gold);
+      }
+      #cambia-verde {
+        color: var(--green-300);
+      }
+      #cap-silencio {
+        align-items: center;
+        padding: 0 0 176px 0;
+      }
+      #cap-silencio .cap-chica {
+        font-size: 28px;
+        letter-spacing: 0.5em;
+        padding-left: 0.5em;
+      }
+      #cap-tension {
+        justify-content: center;
+        padding: 0 0 40px 132px;
+      }
+      #cap-tension .cap-grande {
+        font-size: 172px;
+      }
+      #cap-escape .cap-grande {
+        font-size: 150px;
+      }
+      .letra {
+        display: inline-block;
+      }
+      /* ficha de "+1" como en el juego */
+      #cap-ficha {
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        padding: 160px 0 0 132px;
+      }
+      #ficha {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        background: var(--cream);
+        color: var(--green-900);
+        border-radius: 999px;
+        padding: 14px 30px 14px 14px;
+        box-shadow: 0 6px 20px rgba(12, 43, 28, 0.35);
+      }
+      #ficha-num {
+        display: grid;
+        place-items: center;
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--gold);
+        font: 400 34px/1 var(--display);
+        color: var(--green-900);
+      }
+      #ficha-txt {
+        display: block;
+        font: 800 24px/1.15 var(--body);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      #ficha-txt small {
+        display: block;
+        font: 600 17px/1.2 var(--body);
+        letter-spacing: 0.12em;
+        color: #5e6e5f;
+      }
+
+      /* ---------- el logo ---------- */
+      #logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #logo-fondo {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(60% 62% at 50% 44%, rgba(12, 43, 28, 0.86) 0%, rgba(12, 43, 28, 0.62) 46%, rgba(12, 43, 28, 0) 78%);
+      }
+      #logo-caja {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: -150px;
+      }
+      #logo-l1,
+      #logo-l2 {
+        display: flex;
+        align-items: flex-end;
+        font-family: var(--display);
+        color: var(--cream);
+        line-height: 0.86;
+        letter-spacing: 0.012em;
+        text-shadow: 0 10px 40px rgba(5, 18, 11, 0.45);
+      }
+      #logo-l1 {
+        font-size: 158px;
+      }
+      #logo-l2 {
+        font-size: 268px;
+        margin-top: 6px;
+      }
+      .lt {
+        display: inline-block;
+      }
+      .esp {
+        display: inline-block;
+        width: 0.2em;
+      }
+      .ojo {
+        display: block;
+        width: 0.465em;
+        height: 0.735em;
+        margin: 0 0.03em 0.07em;
+        overflow: visible;
+      }
+      #logo-banda {
+        position: relative;
+        display: block;
+        margin-top: 26px;
+        padding: 10px 34px 8px;
+        overflow: hidden;
+      }
+      #banda-fondo {
+        position: absolute;
+        inset: 0;
+        background: var(--gold);
+      }
+      #banda-txt {
+        position: relative;
+        display: block;
+        font: 400 56px/1 var(--display);
+        letter-spacing: 0.06em;
+        color: var(--green-900);
+      }
+      #logo-tag {
+        display: block;
+        margin-top: 26px;
+        font: 800 22px/1.2 var(--body);
+        letter-spacing: 0.3em;
+        padding-left: 0.3em;
+        color: var(--cream);
+        text-shadow: 0 2px 12px rgba(5, 18, 11, 0.8);
+      }
+      #logo-sdga {
+        position: absolute;
+        left: 50%;
+        bottom: 70px;
+        width: 176px;
+        height: 41px;
+        margin-left: -88px;
+        display: block;
+      }
+      /* overlay:hasta */
+      /* vertical:desde */
+      /* ---------- 9:16 (celular) ---------- */
+      .franja {
+        display: none;
+      }
+      #presenta {
+        right: 0;
+        padding-top: 760px;
+      }
+      .cap {
+        padding: 0 72px 280px 72px;
+      }
+      .cap-grande {
+        font-size: 116px;
+      }
+      .cap-chica {
+        font-size: 21px;
+        letter-spacing: 0.16em;
+      }
+      #cap-quince .cap-chica {
+        font-size: 24px;
+      }
+      #cap-silencio {
+        padding: 0 0 280px 0;
+      }
+      #cap-silencio .cap-chica {
+        font-size: 22px;
+        letter-spacing: 0.34em;
+        padding-left: calc(0.34em + 16px);
+      }
+      #cap-tension {
+        justify-content: flex-end;
+        padding: 0 72px 280px 72px;
+      }
+      #cap-tension .cap-grande {
+        font-size: 150px;
+      }
+      #cap-escape .cap-grande {
+        font-size: 150px;
+      }
+      #cap-ficha {
+        padding: 230px 0 0 72px;
+      }
+      #logo-fondo {
+        background: radial-gradient(95% 42% at 50% 33%, rgba(12, 43, 28, 0.86) 0%, rgba(12, 43, 28, 0.6) 50%, rgba(12, 43, 28, 0) 82%);
+      }
+      #logo-caja {
+        margin-top: -470px;
+      }
+      #logo-l1 {
+        font-size: 132px;
+      }
+      #logo-l2 {
+        font-size: 214px;
+      }
+      #logo-banda {
+        margin-top: 22px;
+        padding: 8px 26px 6px;
+      }
+      #banda-txt {
+        font-size: 44px;
+      }
+      #logo-tag {
+        max-width: 760px;
+        font-size: 20px;
+        line-height: 1.6;
+        letter-spacing: 0.26em;
+        text-align: center;
+      }
+      #logo-sdga {
+        bottom: 190px;
+      }
+      /* vertical:hasta */
+
+      /* ---------- presentación oficial ---------- */
+      #p-oscuro {
+        background: #0c2b1c;
+        opacity: 0;
+      }
+      .feat {
+        display: block;
+      }
+      .feat-cab {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        top: 96px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .feat-kicker {
+        display: block;
+        font: 800 22px/1 var(--body);
+        letter-spacing: 0.3em;
+        color: var(--cream);
+        background: var(--green-900);
+        border-radius: 6px;
+        padding: 9px 14px 8px 16px;
+        margin-bottom: 18px;
+      }
+      .feat-kicker b {
+        color: var(--gold);
+        font-weight: 800;
+        margin-right: 0.6em;
+      }
+      .feat-tit {
+        font: 400 112px/0.92 var(--display);
+        letter-spacing: 0.01em;
+        color: var(--cream);
+        filter: drop-shadow(0 6px 22px rgba(5, 18, 11, 0.5));
+      }
+      .feat-banda {
+        position: relative;
+        display: block;
+        margin-top: 16px;
+        padding: 8px 20px 6px;
+        overflow: hidden;
+      }
+      .feat-banda i {
+        position: absolute;
+        inset: 0;
+        background: var(--gold);
+      }
+      .feat-banda span {
+        position: relative;
+        display: block;
+        font: 400 40px/1 var(--display);
+        letter-spacing: 0.05em;
+        color: var(--green-900);
+      }
+      .feat-txt {
+        display: block;
+        max-width: 900px;
+        margin-top: 16px;
+        font: 600 25px/1.35 var(--body);
+        color: var(--cream);
+        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.9));
+      }
+      #tel {
+        position: absolute;
+        left: 260px;
+        top: 660px;
+        width: 560px;
+        height: 1179px;
+        padding: 14px;
+        border-radius: 72px;
+        background: #07140d;
+        box-shadow: 0 34px 90px rgba(0, 0, 0, 0.55), inset 0 0 0 3px rgba(244, 238, 218, 0.16);
+      }
+      #tel-pantalla {
+        position: relative;
+        width: 532px;
+        height: 1151px;
+        border-radius: 58px;
+        overflow: hidden;
+        background: #14402a;
+      }
+      #tel-pantalla img {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 532px;
+        height: 1151px;
+        opacity: 0;
+      }
+      .chip {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 22px 12px 14px;
+        border-radius: 999px;
+        background: var(--cream);
+        color: var(--green-900);
+        box-shadow: 0 8px 26px rgba(12, 43, 28, 0.45);
+        white-space: nowrap;
+      }
+      .chip em {
+        display: grid;
+        place-items: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--green-100, #d9e8dc);
+        font: normal 30px/1 system-ui, "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+      }
+      .chip b {
+        display: block;
+        font: 800 22px/1.1 var(--body);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .chip small {
+        display: block;
+        font: 600 16px/1.2 var(--body);
+        color: #5e6e5f;
+      }
+      #coro1,
+      #coro2 {
+        justify-content: flex-end;
+      }
+      #coro1 .cap-grande,
+      #coro2 .cap-grande {
+        font-size: 150px;
+      }
+      #coro1 .feat-banda,
+      #coro2 .feat-banda {
+        margin-top: 20px;
+      }
+      /* cierre: logo arriba, el jugador al medio, la app abajo */
+      #cierre {
+        display: block;
+      }
+      #cl-caja {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 250px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #cl-l1,
+      #cl-l2 {
+        display: flex;
+        align-items: flex-end;
+        font-family: var(--display);
+        color: var(--cream);
+        line-height: 0.86;
+        letter-spacing: 0.012em;
+        filter: drop-shadow(0 10px 30px rgba(5, 18, 11, 0.5));
+      }
+      #cl-l1 {
+        font-size: 132px;
+      }
+      #cl-l2 {
+        font-size: 214px;
+        margin-top: 6px;
+      }
+      #cl-banda {
+        position: relative;
+        display: block;
+        margin-top: 22px;
+        padding: 8px 26px 6px;
+        overflow: hidden;
+      }
+      #cl-banda i {
+        position: absolute;
+        inset: 0;
+        background: var(--gold);
+      }
+      #cl-banda span {
+        position: relative;
+        display: block;
+        font: 400 44px/1 var(--display);
+        letter-spacing: 0.06em;
+        color: var(--green-900);
+      }
+      #cl-tag {
+        display: block;
+        max-width: 780px;
+        margin-top: 20px;
+        text-align: center;
+        font: 800 21px/1.6 var(--body);
+        letter-spacing: 0.26em;
+        color: var(--cream);
+        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.9));
+      }
+      #cl-app {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 1380px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      #cl-icono {
+        display: block;
+        width: 180px;
+        height: 180px;
+        border-radius: 42px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(244, 238, 218, 0.25);
+      }
+      #cl-boton {
+        display: block;
+        margin-top: 30px;
+        padding: 22px 70px 18px;
+        border-radius: 999px;
+        background: var(--gold);
+        color: var(--green-900);
+        font: 400 66px/1 var(--display);
+        letter-spacing: 0.05em;
+        box-shadow: 0 10px 30px rgba(12, 43, 28, 0.45);
+      }
+      #cl-url {
+        display: block;
+        margin-top: 26px;
+        font: 800 27px/1.2 var(--body);
+        letter-spacing: 0.02em;
+        color: var(--cream);
+        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.9));
+      }
+      #cl-como {
+        display: block;
+        margin-top: 12px;
+        font: 600 21px/1.3 var(--body);
+        letter-spacing: 0.04em;
+        color: var(--cream);
+        background: var(--green-900);
+        border-radius: 6px;
+        padding: 8px 14px 7px;
+      }
+      .par {
+        position: absolute;
+        display: flex;
+        gap: 0.1em;
+        transform-origin: 50% 50%;
+        filter: drop-shadow(0 0 0.3em rgba(232, 195, 74, 0.3));
+      }
+      .par svg {
+        display: block;
+        width: 0.465em;
+        height: 0.735em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="presentacion" data-start="0" data-width="1080" data-height="1920" data-duration="75.3">
+      <canvas id="escena" width="1080" height="1920"></canvas>
+      <div id="p-oscuro" class="capa"></div>
+      <!-- overlay:desde -->
+
+      <!-- SDGA PRESENTA -->
+      <section id="presenta" class="clip" data-start="0.6" data-duration="3.3" data-track-index="1">
+        <img id="presenta-logo" src="assets/sdga-logo.svg" alt="SDGA" />
+        <span id="presenta-txt">PRESENTA</span>
+      </section>
+
+      <!-- verso 1, línea 1 -->
+      <section id="cap1" class="clip cap" data-start="3.4" data-duration="5.2" data-track-index="2">
+        <div class="cap-grande">
+          <span class="linea"><span class="pal">CAMINÁS</span></span>
+          <span class="linea"><span class="pal">TRANQUILO</span></span>
+        </div>
+        <span class="linea"><span class="cap-chica pal">por el fairway · no hay preocupación</span></span>
+      </section>
+
+      <!-- línea 2 -->
+      <section id="cap-quince" class="clip cap" data-start="9.4" data-duration="2.25" data-track-index="2">
+        <span class="linea"><span class="cap-chica pal">pero al llegar al quince…</span></span>
+      </section>
+      <section id="cap-cambia" class="clip cap" data-start="11.5" data-duration="2.6" data-track-index="2">
+        <div class="cap-grande glitch">
+          <span class="linea"><span class="pal">CAMBIA LA</span></span>
+          <span class="linea"><span class="pal">SITUACIÓN</span></span>
+          <span id="cambia-oro" class="fantasma"><span class="linea"><span class="pal">CAMBIA LA</span></span><span class="linea"><span class="pal">SITUACIÓN</span></span></span>
+          <span id="cambia-verde" class="fantasma"><span class="linea"><span class="pal">CAMBIA LA</span></span><span class="linea"><span class="pal">SITUACIÓN</span></span></span>
+        </div>
+      </section>
+
+      <!-- línea 3 -->
+      <section id="cap-miran" class="clip cap" data-start="14.15" data-duration="4.4" data-track-index="2">
+        <div class="cap-grande">
+          <span class="linea"><span class="pal">LOS</span><span class="pal">ÁRBOLES</span></span>
+          <span class="linea"><span class="pal">TE</span><span class="pal">MIRAN</span></span>
+        </div>
+      </section>
+      <section id="cap-silencio" class="clip cap" data-start="19.45" data-duration="1.17" data-track-index="2">
+        <span class="linea"><span class="cap-chica pal">te rodean en silencio</span></span>
+      </section>
+
+      <!-- línea 4: entra toda la banda -->
+      <section id="cap-tension" class="clip cap" data-start="22.18" data-duration="2.75" data-track-index="2">
+        <div class="cap-grande">
+          <span class="linea"><span class="pal">YA</span><span class="pal">SENTÍS</span></span>
+          <span class="linea"><span class="pal">LA</span><span class="pal">TENSIÓN</span></span>
+        </div>
+      </section>
+      <section id="cap-ficha" class="clip" data-start="26.95" data-duration="1.25" data-track-index="3">
+        <div id="ficha">
+          <span id="ficha-num">+1</span>
+          <span id="ficha-txt">Se la llevó el mono<small>la pelota se pierde en el cielo</small></span>
+        </div>
+      </section>
+      <section id="cap-escape" class="clip cap" data-start="28.1" data-duration="2.1" data-track-index="2">
+        <div class="cap-grande">
+          <span class="linea"
+            ><span class="pal"><span class="letra">N</span><span class="letra">O</span></span
+            ><span class="pal"><span class="letra">H</span><span class="letra">A</span><span class="letra">Y</span></span></span
+          >
+          <span class="linea"
+            ><span class="pal"
+              ><span class="letra">E</span><span class="letra">S</span><span class="letra">C</span><span class="letra">A</span><span class="letra">P</span><span class="letra">E</span></span
+            ></span
+          >
+        </div>
+      </section>
+
+      <div id="grano" class="capa"></div>
+      <div id="vineta" class="capa"></div>
+      <div id="franja-arriba" class="franja"></div>
+      <div id="franja-abajo" class="franja"></div>
+
+      <!-- LA TRAMPA DEL MONO -->
+      <section id="logo" class="clip" data-start="31.48" data-duration="2.653" data-track-index="4">
+        <div id="logo-fondo"></div>
+        <div id="logo-caja">
+          <div id="logo-l1">
+            <span class="lt" data-layout-allow-overlap>L</span><span class="lt" data-layout-allow-overlap>A</span><span class="esp"></span><span class="lt" data-layout-allow-overlap>T</span><span class="lt" data-layout-allow-overlap>R</span><span class="lt" data-layout-allow-overlap>A</span><span class="lt" data-layout-allow-overlap>M</span><span class="lt" data-layout-allow-overlap>P</span><span class="lt" data-layout-allow-overlap>A</span>
+          </div>
+          <div id="logo-l2">
+            <span class="lt" data-layout-allow-overlap>D</span><span class="lt" data-layout-allow-overlap>E</span><span class="lt" data-layout-allow-overlap>L</span><span class="esp"></span><span class="lt" data-layout-allow-overlap>M</span>
+            <svg class="ojo lt" id="ojo-1" viewBox="0 0 100 158" aria-hidden="true">
+              <g class="parpado">
+                <ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" />
+                <g fill="#e7dfc2">
+                  <circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" />
+                </g>
+                <g class="pupila">
+                  <ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" />
+                  <ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" />
+                  <circle cx="58" cy="74" r="6" fill="#ffffff" />
+                </g>
+              </g>
+            </svg>
+            <span class="lt" data-layout-allow-overlap>N</span>
+            <svg class="ojo lt" id="ojo-2" viewBox="0 0 100 158" aria-hidden="true">
+              <g class="parpado">
+                <ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" />
+                <g fill="#e7dfc2">
+                  <circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" />
+                </g>
+                <g class="pupila">
+                  <ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" />
+                  <ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" />
+                  <circle cx="58" cy="74" r="6" fill="#ffffff" />
+                </g>
+              </g>
+            </svg>
+          </div>
+          <div id="logo-banda"><span id="banda-fondo"></span><span id="banda-txt" data-layout-allow-overlap>SAN DIEGO · HOYOS 15 · 16 · 17</span></div>
+          <span id="logo-tag">EN SAN DIEGO TE ESPERA, CON SU ABRAZO MACABRO</span>
+        </div>
+        <img id="logo-sdga" src="assets/sdga-logo.svg" alt="SDGA" />
+      </section>
+
+      <section id="f1" class="clip feat" data-start="34.133" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>01</b>LA CANCHA</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">LOS 3 HOYOS</span></span><span class="linea"><span class="pal">DE LA TRAMPA</span></span></div>
+          <span class="feat-banda"><i></i><span>15 · 16 · 17 DE SAN DIEGO</span></span>
+          <span class="feat-txt">El dibujo de Rorro, con las yardas reales y el tee según tu handicap.</span>
+        </div>
+      </section>
+      <section id="f2" class="clip feat" data-start="36.79" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>02</b>EL PLANTEL</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">ELEGÍ CON</span></span><span class="linea"><span class="pal">QUIÉN JUGAR</span></span></div>
+          <span class="feat-banda"><i></i><span>10 PLAYERS DEL SDGA</span></span>
+          <span class="feat-txt">Del más fácil al más difícil: medido jugando 60 vueltas con cada uno.</span>
+        </div>
+      </section>
+      <section id="f3" class="clip feat" data-start="39.447" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>03</b>HABILIDADES</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">CADA UNO CON</span></span><span class="linea"><span class="pal">SU HABILIDAD</span></span></div>
+          <span class="feat-banda"><i></i><span>SACADAS DEL CHAT</span></span>
+          <span class="feat-txt">El Mago nunca pega derecho. La Mugre tira panchos. El Perro va a buscarla.</span>
+        </div>
+      </section>
+      <section id="f4" class="clip feat" data-start="42.104" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>04</b>EL TIRO</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">TIRÁ PARA</span></span><span class="linea"><span class="pal">ATRÁS Y SOLTÁ</span></span></div>
+          <span class="feat-banda"><i></i><span>COMO UNA GOMERA</span></span>
+          <span class="feat-txt">Viento con ráfagas, rough al 70%, bunker al 50% y el óvalo de pique.</span>
+        </div>
+      </section>
+      <section id="f5" class="clip feat" data-start="44.761" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>05</b>LOS MONOS</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">¡VIENEN</span></span><span class="linea"><span class="pal">LOS MONOS!</span></span></div>
+          <span class="feat-banda"><i></i><span>SE LLEVAN LA PELOTA</span></span>
+          <span class="feat-txt">Si llegan antes que vos, al tee con un golpe de multa. Algunos te la devuelven.</span>
+        </div>
+      </section>
+      <section id="f6" class="clip feat" data-start="47.418" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>06</b>CONTRA RELOJ</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">3, 2, 1…</span></span><span class="linea"><span class="pal">¡YA!</span></span></div>
+          <span class="feat-banda"><i></i><span>AL MILISEGUNDO</span></span>
+          <span class="feat-txt">A igual golpes, en el ranking gana el más rápido.</span>
+        </div>
+      </section>
+      <section id="f7" class="clip feat" data-start="50.075" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>07</b>LA TARJETA</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">FIRMALA EN</span></span><span class="linea"><span class="pal">10 SEGUNDOS</span></span></div>
+          <span class="feat-banda"><i></i><span>O 110 NETO</span></span>
+          <span class="feat-txt">Si no firmás, comunicado oficial del Marshall. Es inapelable.</span>
+        </div>
+      </section>
+      <section id="f8" class="clip feat" data-start="52.732" data-duration="1.328" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>08</b>EL RANKING</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">SÉ EL</span></span><span class="linea"><span class="pal">PRIMERO</span></span></div>
+          <span class="feat-banda"><i></i><span>TODAVÍA NADIE FIRMÓ</span></span>
+          <span class="feat-txt">Compartí tu vuelta en el grupo.</span>
+        </div>
+      </section>
+      <section id="p-tel" class="clip" data-start="34.133" data-duration="19.927" data-track-index="3">
+        <div id="tel"><div id="tel-pantalla"><img id="pt-cartel" src="assets/capturas/cartel.webp" alt="" /><img id="pt-carta-sueco" src="assets/capturas/carta-sueco.webp" alt="" /><img id="pt-carta-perro" src="assets/capturas/carta-perro.webp" alt="" /><img id="pt-carta-miguelon" src="assets/capturas/carta-miguelon.webp" alt="" /><img id="pt-carta-lechu" src="assets/capturas/carta-lechu.webp" alt="" /><img id="pt-carta-lg" src="assets/capturas/carta-lg.webp" alt="" /><img id="pt-carta-rodal" src="assets/capturas/carta-rodal.webp" alt="" /><img id="pt-carta-fito" src="assets/capturas/carta-fito.webp" alt="" /><img id="pt-carta-mugre" src="assets/capturas/carta-mugre.webp" alt="" /><img id="pt-todos1" src="assets/capturas/todos1.webp" alt="" /><img id="pt-todos2" src="assets/capturas/todos2.webp" alt="" /><img id="pt-tiro-arma" src="assets/capturas/tiro-arma.webp" alt="" /><img id="pt-tiro-vuelo" src="assets/capturas/tiro-vuelo.webp" alt="" /><img id="pt-tiro-relato" src="assets/capturas/tiro-relato.webp" alt="" /><img id="pt-monos" src="assets/capturas/monos.webp" alt="" /><img id="pt-pancho" src="assets/capturas/pancho.webp" alt="" /><img id="pt-cuenta3" src="assets/capturas/cuenta3.webp" alt="" /><img id="pt-cuenta-ya" src="assets/capturas/cuenta-ya.webp" alt="" /><img id="pt-reloj" src="assets/capturas/reloj.webp" alt="" /><img id="pt-tarjeta" src="assets/capturas/tarjeta.webp" alt="" /><img id="pt-marshall" src="assets/capturas/marshall.webp" alt="" /><img id="pt-compartir" src="assets/capturas/compartir.webp" alt="" /><img id="pt-ranking" src="assets/capturas/ranking.webp" alt="" /></div></div>
+        <div id="chips"><div class="chip" id="chip-0" style="left:70px;top:760px"><em>🥛</em><span><b>Golpes de mago</b><small>El Mago Rodal</small></span></div><div class="chip" id="chip-1" style="left:600px;top:830px"><em>🍯</em><span><b>Drive al green</b><small>Mike Queboni</small></span></div><div class="chip" id="chip-2" style="left:40px;top:960px"><em>🦅</em><span><b>Chip in</b><small>Fito</small></span></div><div class="chip" id="chip-3" style="left:640px;top:1050px"><em>💩</em><span><b>Tirar panchos</b><small>Mugre</small></span></div><div class="chip" id="chip-4" style="left:60px;top:1180px"><em>🐕</em><span><b>Va a buscarla</b><small>El Perro</small></span></div><div class="chip" id="chip-5" style="left:600px;top:1290px"><em>🦉</em><span><b>Todas las dadas</b><small>Lechu</small></span></div><div class="chip" id="chip-6" style="left:70px;top:1410px"><em>🥷</em><span><b>La tradición</b><small>El Ninja</small></span></div><div class="chip" id="chip-7" style="left:520px;top:1530px"><em>📺</em><span><b>El que se enoja pierde</b><small>LG</small></span></div></div>
+      </section>
+      <section id="coro1" class="clip cap" data-start="54.06" data-duration="4.982" data-track-index="2">
+        <div class="cap-grande"><span class="linea"><span class="pal">¡ES LA TRAMPA</span></span><span class="linea"><span class="pal">DEL MONO!</span></span></div>
+        <span class="feat-banda"><i></i><span>DONDE TODO SE VA</span></span>
+      </section>
+      <section id="coro2" class="clip cap" data-start="59.374" data-duration="3.986" data-track-index="2">
+        <div class="cap-grande"><span class="linea"><span class="pal">ENTRE ÁRBOLES</span></span><span class="linea"><span class="pal">Y SOMBRAS</span></span></div>
+        <span class="feat-banda"><i></i><span>TU SUERTE CAERÁ</span></span>
+      </section>
+      <section id="cierre" class="clip" data-start="63.36" data-duration="11.940" data-track-index="4">
+        <div id="cl-pares"><div class="par" id="par-0" style="left:120px;top:150px;font-size:70px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-1" style="left:470px;top:120px;font-size:56px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-2" style="left:830px;top:175px;font-size:77px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-3" style="left:70px;top:930px;font-size:63px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-4" style="left:860px;top:990px;font-size:84px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-5" style="left:170px;top:1210px;font-size:53px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-6" style="left:820px;top:1240px;font-size:60px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-7" style="left:50px;top:1560px;font-size:56px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-8" style="left:930px;top:1600px;font-size:63px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div></div>
+        <div id="cl-caja">
+          <div id="cl-l1"><span class="lt" data-layout-allow-overlap>L</span><span class="lt" data-layout-allow-overlap>A</span><span class="esp"></span><span class="lt" data-layout-allow-overlap>T</span><span class="lt" data-layout-allow-overlap>R</span><span class="lt" data-layout-allow-overlap>A</span><span class="lt" data-layout-allow-overlap>M</span><span class="lt" data-layout-allow-overlap>P</span><span class="lt" data-layout-allow-overlap>A</span></div>
+          <div id="cl-l2"><span class="lt" data-layout-allow-overlap>D</span><span class="lt" data-layout-allow-overlap>E</span><span class="lt" data-layout-allow-overlap>L</span><span class="esp"></span><span class="lt" data-layout-allow-overlap>M</span><svg class="ojo lt" id="cl-ojo-1" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg><span class="lt" data-layout-allow-overlap>N</span><svg class="ojo lt" id="cl-ojo-2" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></div>
+          <span id="cl-banda" data-layout-allow-overlap><i></i><span>SAN DIEGO · HOYOS 15 · 16 · 17</span></span>
+          <span id="cl-tag">EN SAN DIEGO TE ESPERA, CON SU ABRAZO MACABRO</span>
+        </div>
+        <div id="cl-app">
+          <img id="cl-icono" src="assets/icono-app.png" alt="La Trampa del Mono" />
+          <span id="cl-boton">JUGALA YA</span>
+          <span id="cl-url">rodrigomateus-debug.github.io/trampa-del-mono</span>
+          <span id="cl-como">En el celu: compartir → agregar a la pantalla de inicio</span>
+        </div>
+      </section>
+      <div id="flash" class="capa"></div>
+      <div id="negro" class="capa"></div>
+      <div id="fundido" class="capa"></div>
+
+      <!-- overlay:hasta -->
+      <audio
+        id="musica"
+        src="assets/trampa-del-mono.mp3"
+        data-start="0"
+        data-duration="75.3"
+$1data-track-index="10"
+        data-volume="1"
+        data-timeline-role="music"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":74.39999999999999,"v":1},{"t":75.3,"v":0}]}]}'
+      ></audio>
+    </div>
+
+    <script src="textos.js"></script>
+
+    <script>
+      (function () {
+        var Q = window.CUES;
+        var c = Q.c;
+        var B = Q.COMPAS / 4;
+        var P = window.PRESENTACION;
+        var tl = window.armarTextos({ sinFundido: true });
+        function palabras(sel, t, cada) {
+          gsap.utils.toArray(sel).forEach(function (el, i) {
+            tl.fromTo(el, { yPercent: 108, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.34, ease: "back.out(1.6)" }, t + i * cada);
+          });
+        }
+        function banda(sel, t) {
+          tl.fromTo(sel + " i", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.3, ease: "power3.inOut" }, t);
+          tl.fromTo(sel + " span", { yPercent: 110 }, { yPercent: 0, duration: 0.26, ease: "power3.out" }, t + 0.16);
+        }
+        // ---------- las funciones, una cada dos compases ----------
+        tl.to("#p-oscuro", { opacity: 0.55, duration: 0.4, ease: "power2.out" }, P.funciones - 0.1);
+        tl.to("#p-oscuro", { opacity: 0, duration: 0.2, ease: "none" }, P.estribillo - 0.05);
+        [["f1",34.133,2.657],["f2",36.79,2.657],["f3",39.447,2.657],["f4",42.104,2.657],["f5",44.761,2.657],["f6",47.418,2.657],["f7",50.075,2.657],["f8",52.732,1.328000000000003]].forEach(function (f) {
+          var id = "#" + f[0], t = f[1];
+          tl.fromTo(id + " .feat-kicker", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t);
+          palabras(id + " .feat-tit .pal", t + 0.04, B * 0.5);
+          banda(id + " .feat-banda", t + B);
+          tl.fromTo(id + " .feat-txt", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, t + B * 1.5);
+          tl.to(id + " .feat-cab", { opacity: 0, y: -24, duration: 0.18, ease: "power2.in" }, t + f[2] - 0.2);
+        });
+        // el teléfono entra con peso y flota
+        tl.fromTo("#tel", { y: 900, rotation: 8 }, { y: 0, rotation: 0, duration: 0.7, ease: "back.out(1.2)" }, P.funciones);
+        tl.fromTo("#tel", { scale: 1 }, { scale: 1.02, duration: P.estribillo - P.funciones - 1, ease: "sine.inOut" }, P.funciones + 0.7);
+        tl.to("#tel", { y: 1300, rotation: -10, duration: 0.45, ease: "power3.in" }, P.estribillo - 0.5);
+        // las pantallas (las cartas del mazo pasan como en el Tinder, una por negra)
+        [["cartel",34.133,false],["carta-sueco",36.79,false],["carta-perro",37.122125,true],["carta-miguelon",37.45425,true],["carta-lechu",37.786375,true],["carta-lg",38.1185,true],["carta-rodal",38.450625,true],["carta-fito",38.78275,true],["carta-mugre",39.114875,true],["todos1",39.447,false],["todos2",40.7755,false],["tiro-arma",42.104,false],["tiro-vuelo",43.4325,false],["tiro-relato",44.09675,false],["monos",44.761,false],["pancho",46.0895,false],["cuenta3",47.418,false],["cuenta-ya",48.08225,false],["reloj",48.7465,false],["tarjeta",50.075,false],["marshall",51.4035,false],["compartir",52.732,false],["ranking",53.39625,false]].forEach(function (s, i, todo) {
+          var el = "#pt-" + s[0], t = s[1];
+          if (s[2]) {
+            tl.fromTo(el, { opacity: 1, xPercent: 105, rotation: 7 }, { xPercent: 0, rotation: 0, duration: 0.24, ease: "power3.out" }, t);
+            var prev = "#pt-" + todo[i - 1][0];
+            tl.to(prev, { xPercent: -110, rotation: -9, duration: 0.24, ease: "power3.in" }, t);
+          } else {
+            tl.fromTo(el, { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 0.22, ease: "power2.out" }, t);
+          }
+          var sig = todo[i + 1];
+          if (sig && !sig[2]) tl.set(el, { opacity: 0 }, sig[1] + 0.22);
+        });
+        // habilidades: los chips aparecen alrededor del teléfono, uno por negra
+        gsap.utils.toArray("#chips .chip").forEach(function (el, i) {
+          tl.fromTo(el, { scale: 0, opacity: 0, rotation: i % 2 ? 6 : -6 }, { scale: 1, opacity: 1, rotation: i % 2 ? 2 : -2, duration: 0.3, ease: "back.out(2.2)" }, c(29) + i * B);
+          tl.to(el, { scale: 0.6, opacity: 0, duration: 0.18, ease: "power2.in" }, c(31) - 0.22 + i * 0.01);
+        });
+        // ---------- estribillo: la trampa otra vez ----------
+        tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.85, duration: 0.04, ease: "none" }, P.estribillo - 0.02);
+        tl.to("#flash", { opacity: 0, duration: 0.3, ease: "power2.out" }, P.estribillo + 0.03);
+        ["#coro1", "#coro2"].forEach(function (id, k) {
+          var t = k ? c(44) : c(40);
+          gsap.utils.toArray(id + " .pal").forEach(function (el, i) {
+            tl.fromTo(el, { scale: 2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.22, ease: "expo.out", transformOrigin: "0% 70%" }, t + i * B * 2);
+          });
+          banda(id + " .feat-banda", t + B * 6);
+        });
+        // ---------- cierre: como la pantalla de inicio de la app ----------
+        var L2 = P.cierre;
+        tl.set("#flash", { opacity: 1 }, L2 - 0.01);
+        tl.to("#flash", { opacity: 0, duration: 0.4, ease: "power2.out" }, L2 + 0.02);
+        tl.fromTo("#cl-l1 .lt", { yPercent: -130, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.42, ease: "back.out(2.2)", stagger: 0.032 }, L2 + 0.02);
+        tl.fromTo("#cl-l2 .lt", { scale: 1.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "power4.out", stagger: 0.045, transformOrigin: "50% 80%" }, L2 + 0.16);
+        tl.fromTo("#cl-banda i", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.42, ease: "power3.inOut" }, L2 + 0.55);
+        tl.fromTo("#cl-banda span", { yPercent: 110 }, { yPercent: 0, duration: 0.36, ease: "power3.out" }, L2 + 0.8);
+        tl.fromTo("#cierre .pupila", { scale: 0, transformOrigin: "50% 53%" }, { scale: 1, duration: 0.3, ease: "back.out(3)", stagger: 0.06 }, c(48));
+        tl.to("#cierre .pupila", { x: -15, y: 2, duration: 0.22, ease: "power3.out" }, c(50));
+        tl.to("#cierre .pupila", { x: 15, y: 2, duration: 0.22, ease: "power3.out" }, c(51));
+        tl.to("#cierre .pupila", { x: 0, y: 18, duration: 0.22, ease: "power3.out" }, c(52.5));
+        tl.to("#cierre .pupila", { x: 0, y: 0, duration: 0.22, ease: "power3.out" }, c(54));
+        tl.to("#cierre .parpado", { scaleY: 0.07, duration: 0.07, ease: "power2.in", transformOrigin: "50% 50%" }, c(54.5));
+        tl.to("#cierre .parpado", { scaleY: 1, duration: 0.12, ease: "power2.out" }, c(54.5) + 0.07);
+        tl.fromTo("#cl-icono", { scale: 0, rotation: -12 }, { scale: 1, rotation: 0, duration: 0.5, ease: "back.out(2)" }, c(48));
+        tl.fromTo("#cl-boton", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2.4)" }, c(49));
+        // JUGALA YA late con la negra, como el EMPEZAR de la app
+        for (var k = 0; c(50) + k * B < P.FIN - 0.8; k++) {
+          tl.fromTo("#cl-boton", { scale: 1.06 }, { scale: 1, duration: B * 0.9, ease: "power2.out" }, c(50) + k * B);
+        }
+        tl.fromTo("#cl-url", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, c(49.5));
+        tl.fromTo("#cl-como", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, c(50.5));
+        // "en San Diego te espera, con su abrazo macabro" aparece cuando lo canta
+        tl.fromTo("#cl-tag", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" }, c(52));
+        // ojos de mono en los huecos: se abren de a uno, miran al jugador, parpadean y se cierran
+        [[120,150,1],[470,120,0.8],[830,175,1.1],[70,930,0.9],[860,990,1.2],[170,1210,0.75],[820,1240,0.85],[50,1560,0.8],[930,1600,0.9]].forEach(function (p, i) {
+          var el = "#par-" + i;
+          var dx = 540 - p[0], dy = 1150 - p[1], n = Math.sqrt(dx * dx + dy * dy) || 1;
+          var mx = (dx / n) * 15, my = (dy / n) * 12;
+          tl.set(el, { scaleY: 0.04, opacity: 0 }, L2);
+          var t = c(48) + ((i * 3) % 9) * B;
+          var vuelta = 0;
+          while (t < P.FIN - 1) {
+            var dura = (8 + ((i * 5 + vuelta * 3) % 6)) * B;
+            tl.set(el, { opacity: 1 }, t);
+            tl.fromTo(el, { scaleY: 0.04 }, { scaleY: 1, duration: 0.18, ease: "back.out(3)" }, t);
+            tl.fromTo(el + " .pu", { x: 0, y: 0 }, { x: mx, y: my, duration: 0.2, ease: "power3.out" }, t + 0.2);
+            tl.to(el + " .pu", { x: (i % 2 ? -1 : 1) * 14, y: -6, duration: 0.2, ease: "power3.out" }, t + dura * 0.45);
+            tl.to(el, { scaleY: 0.06, duration: 0.06, ease: "power2.in" }, t + dura * 0.62);
+            tl.to(el, { scaleY: 1, duration: 0.1, ease: "power2.out" }, t + dura * 0.62 + 0.06);
+            tl.to(el + " .pu", { x: mx, y: my, duration: 0.2, ease: "power3.out" }, t + dura * 0.7);
+            tl.to(el, { scaleY: 0.04, duration: 0.12, ease: "power2.in" }, t + dura);
+            tl.set(el, { opacity: 0 }, t + dura + 0.12);
+            t += dura + (2 + ((i + vuelta) % 4)) * B;
+            vuelta++;
+          }
+        });
+        tl.to("#fundido", { opacity: 1, duration: 0.6, ease: "power2.in" }, P.FIN - 0.6);
+        window.__timelines["presentacion"] = tl;
+      })();
+    </script>
+  </body>
+</html>
