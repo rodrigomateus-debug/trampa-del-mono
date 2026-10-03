@@ -1,4 +1,4 @@
-// El plantel del SDGA para elegir nivel: de la base de la FedE Cup (handicap, frase, emoji) y del
+// El plantel del SDGA para elegir nivel (dicky: es de los Dicky Toons, lleva el logo en la carta): de la base de la FedE Cup (handicap, frase, emoji) y del
 // design system (fotos, stats 2024–2026). Foto del 2026-10-03.
 // Ordenado por handicap, de menor a mayor. aprox: handicap aproximado que pasó Rorro (no está en la base).
 // En la app esto sale de la tabla players (usePlayers) y de photoForPlayer, no de este archivo.
@@ -41,6 +41,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "Tinder",
+    "dicky": true,
     "emoji": "🔥",
     "hcp": 3.3,
     "frase": "Le queda hueso a esa carne",
@@ -62,6 +63,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "El Ninja (Đ)",
+    "dicky": true,
     "emoji": "🥷",
     "hcp": 4,
     "frase": "LP",
@@ -75,6 +77,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "La Rana (Đ)",
+    "dicky": true,
     "emoji": "🐸",
     "hcp": 4,
     "aprox": true,
@@ -89,6 +92,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "Mike Queboni (Đ)",
+    "dicky": true,
     "emoji": "🍯",
     "hcp": 5,
     "frase": "Pero que bonito ehh",
@@ -279,6 +283,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "Fito (Đ)",
+    "dicky": true,
     "emoji": "🦅",
     "hcp": 22,
     "frase": "Si no es green es chip in!",
@@ -306,5 +311,20 @@ export const PLANTEL = [
   }
 ]
 
-// Por ahora, para probar, solo estos cuatro (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['El Sueco', 'Mike Queboni (Đ)', 'El Mago Rodal', 'Fito (Đ)']
+// Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
+export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)']
+
+// La dificultad real de cada uno con su habilidad: promedio vs. par y % de LP de un bot que juega 60 vueltas
+// (`node calibrar.mjs 60`, 2026-10-03). El mazo se ordena por esto, no por el handicap.
+export const DIFICULTAD_REAL = {
+  'El Sueco': { prom: 1.82, lp: 8 },
+  'El Perro': { prom: 2.62, lp: 3 },
+  'Mike Queboni (Đ)': { prom: 4.41, lp: 10 },
+  Lechu: { prom: 4.71, lp: 7 },
+  'Fito (Đ)': { prom: 5.06, lp: 13 },
+  LG: { prom: 5.14, lp: 2 },
+  'El Ninja (Đ)': { prom: 5.23, lp: 13 },
+  'El Mago Rodal': { prom: 5.48, lp: 10 },
+  Liberty: { prom: 6.49, lp: 12 },
+  Mugre: { prom: 6.6, lp: 20 }, // remedido con los panchos
+}

@@ -26,7 +26,11 @@
   --safe-bot: env(safe-area-inset-bottom, 0px);
   color-scheme: dark;
 }
-html, body { height: 100%; }
+html, body { height: 100%; overscroll-behavior: none; }
+/* celu: sin zoom con doble toque, sin menú de imagen al mantener apretado, sin resaltado */
+html, body, button, a, .pantalla, .mazo { touch-action: manipulation; }
+body, img { -webkit-touch-callout: none; }
+img { -webkit-user-drag: none; }
 body {
   margin: 0;
   background: var(--green-950);
@@ -88,9 +92,14 @@ body {
 #h-num { font-family: var(--font-display); font-size: 28px; line-height: 1.1; letter-spacing: .01em; }
 #h-par { font-family: var(--font-display); font-size: 18px; color: var(--green-500); margin-left: 8px; }
 .meta { font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.viento { display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 18px; }
-#v-flecha { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--green-900); color: var(--cream); }
-#v-flecha svg { width: 14px; height: 14px; }
+/* el viento, grande, en la cancha debajo del reloj: la flecha apunta para donde sopla (girada con la cámara) */
+.viento { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px; background: rgba(12, 43, 28, .78); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); }
+#v-flecha { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--gold); color: var(--green-900); transition: transform 120ms linear; }
+#v-flecha svg { width: 24px; height: 24px; }
+.v-txt { display: grid; line-height: 1; }
+.v-txt b { font-family: var(--font-display); font-weight: 400; font-size: 26px; }
+.v-txt small { font-size: 10px; font-weight: 800; letter-spacing: .1em; opacity: .8; }
+.viento.calmo #v-flecha { background: rgba(244, 238, 218, .2); color: var(--cream); }
 /* la cara del jugador, grande, con su emoji en un circulito arriba */
 .hud-fila { display: flex; align-items: center; gap: 12px; }
 .cara { position: relative; flex: none; width: 66px; height: 66px; }
@@ -111,14 +120,11 @@ body {
 #voz.alerta { background: var(--red); }
 #voz.alerta .dice, #voz.alerta .extra { color: var(--cream); }
 #voz.alerta .quien { background: var(--cream); color: var(--red); }
-#hud-bot {
-  position: fixed; left: 0; right: 0; bottom: 0;
-  padding: 0 12px calc(var(--safe-bot) + 12px);
-  display: flex; justify-content: center; align-items: flex-end; gap: 10px;
-  pointer-events: none;
-}
-#hud-bot > * { pointer-events: auto; }
-#lie { font-family: var(--font-display); font-size: 15px; letter-spacing: .05em; background: rgba(12, 43, 28, .88); border-radius: 999px; padding: 0 16px; height: 46px; display: inline-flex; align-items: center; }
+/* debajo del marcador: dónde estás (izq.), reloj (centro) y LP (der.); la parte de abajo queda libre para la cancha */
+#lie { justify-self: start; display: block; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 30px; }
+#lp { justify-self: end; height: 30px; padding: 0 12px; font-size: 14px; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1.5px rgba(244, 238, 218, .6); pointer-events: auto; }
+#hud-chips > * { transition: opacity 150ms; }
+body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho { opacity: .25; pointer-events: none; }
 
 /* ── banda central (intro de hoyo y resultado) ── */
 #banda {
@@ -163,6 +169,24 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .mazo-cab, .mazo-pie { width: 100%; max-width: 440px; margin: 0 auto; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .mazo-cab { padding: 12px 16px 8px; }
 .mazo-pie { padding: 4px 16px 16px; }
+.pill { flex: none; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(244, 238, 218, .35); background: rgba(244, 238, 218, .1); color: var(--cream); font: 800 11px var(--font-body); letter-spacing: .1em; cursor: pointer; margin-left: auto; }
+.pill:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+#todos { background: var(--green-950); justify-content: flex-start; gap: 10px; }
+#todos h2 { font-size: 28px; text-align: left; }
+.todos-cab { width: min(100%, 520px); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.todos-sub { margin: 0; width: min(100%, 520px); text-align: left; font-size: 13px; opacity: .8; }
+.todos-lista { list-style: none; margin: 0; padding: 0; width: min(100%, 520px); display: grid; gap: 10px; text-align: left; }
+.todo { background: var(--cream); color: var(--green-900); border-radius: 16px; padding: 12px; display: grid; gap: 10px; box-shadow: var(--shadow-card); }
+.todo-cab { display: flex; align-items: center; gap: 12px; }
+.todo-cab .cara { width: 52px; height: 52px; }
+.todo-cab .cara .foto { width: 52px; height: 52px; }
+.todo-cab .cara .sin-foto { font-size: 28px; }
+.todo-cab .cara .emo { width: 24px; height: 24px; font-size: 13px; }
+.todo-nombre { flex: 1; min-width: 0; }
+.todo-nombre b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 22px; line-height: 1.1; overflow-wrap: anywhere; }
+.todo-nombre span { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; }
+.todo .carta-jugar { width: auto; height: 38px; font-size: 14px; padding: 0 14px; flex: none; }
+.todo .carta-prev p { -webkit-line-clamp: unset; display: block; }
 .mazo-tit { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.05; letter-spacing: .04em; text-transform: uppercase; }
 .mazo-sub { margin: 4px 0 0; font-size: 12px; opacity: .75; }
 .redondo { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(244, 238, 218, .25); background: transparent; color: var(--cream); font-size: 22px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
@@ -183,12 +207,19 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .carta-hab { border-radius: 999px; background: rgba(20, 64, 42, .9); color: var(--gold); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; }
 .carta-dif { position: absolute; right: 12px; top: 12px; border-radius: 999px; background: rgba(20, 64, 42, .85); color: var(--cream); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; }
 .carta-dif.d4, .carta-dif.d5 { background: var(--red); }
+/* los Dicky Toons llevan su logo (animado) en el perfil */
+.carta-foto img.carta-dicky { position: absolute; inset: auto; right: 10px; top: 44px; width: 76px; height: 76px; object-fit: contain; border-radius: 50%; box-shadow: 0 4px 12px rgba(12, 43, 28, .45); }
+.todo-dicky { flex: none; width: 46px; height: 46px; border-radius: 50%; }
 .carta-nombre { position: absolute; left: 16px; right: 16px; bottom: 12px; display: flex; align-items: flex-end; gap: 8px; }
 .carta-nombre h3 { flex: 1; min-width: 0; margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 34px; line-height: .98; padding-top: 4px; color: var(--cream); overflow-wrap: anywhere; text-wrap: balance; }
 .carta-nombre .teja { flex: none; width: 42px; height: 42px; border-radius: 11px; background: var(--cream); display: grid; place-items: center; font-size: 25px; }
 .carta-cuerpo { display: grid; gap: 12px; padding: 12px 16px 16px; }
 .carta-frase { margin: 0; font-size: 15px; font-weight: 600; font-style: italic; line-height: 1.35; color: #0c2b1c; }
 .carta-frase.vacia { font-size: 14px; font-weight: 400; color: var(--text-muted); }
+.carta-prev { display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: center; background: var(--green-900); color: var(--cream); border-radius: 12px; padding: 6px 10px 6px 6px; }
+.carta-prev svg { width: 112px; height: 52px; display: block; border-radius: 8px; }
+.carta-prev p { margin: 0; font-size: 11.5px; line-height: 1.3; opacity: .92; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.carta-prev b { display: block; color: var(--gold); font-size: 12px; letter-spacing: .02em; }
 .carta dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
 .carta dt { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .carta dd { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.15; color: #0c2b1c; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -242,8 +273,14 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 .comunicado .firma-m { font-weight: 800; }
 
 /* ── cronómetro y golpe del Mago: debajo del marcador ── */
-#hud-chips { justify-self: center; display: flex; gap: 8px; align-items: center; }
-.chip { font-family: var(--font-display); font-size: 16px; letter-spacing: .05em; background: rgba(12, 43, 28, .9); color: var(--cream); border-radius: 999px; padding: 0 12px; height: 30px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#hud-chips { width: 100%; max-width: 520px; justify-self: center; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: start; }
+#hud-chips .centro { display: grid; gap: 6px; justify-items: center; }
+#hud-chips .der { justify-self: end; display: grid; gap: 6px; justify-items: end; }
+#pancho { pointer-events: auto; cursor: pointer; border: 0; background: var(--gold); color: var(--green-900); }
+#pancho[disabled] { opacity: .45; }
+body.monos-vienen #pancho:not([disabled]) { animation: latePancho .5s ease-in-out infinite alternate; }
+@keyframes latePancho { to { transform: scale(1.12); box-shadow: 0 0 0 4px rgba(232, 195, 74, .35); } }
+.chip { font-family: var(--font-display); font-size: 16px; letter-spacing: .05em; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); border-radius: 999px; padding: 0 12px; height: 30px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 #crono { color: var(--gold); min-width: 10ch; justify-content: center; }
 #efecto { background: var(--gold); color: var(--green-900); }
 
@@ -310,7 +347,6 @@ input { -webkit-user-select: text; user-select: text; }
       <div class="hud-datos">
         <div class="fila">
           <div><span id="h-num">HOYO 15</span><span id="h-par">PAR 4</span></div>
-          <div class="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="v-kmh">0 km/h</span></div>
         </div>
         <div class="fila meta"><span id="h-golpe">Golpe 1</span><span id="h-dist">370 yd al pin</span></div>
         <div class="hud-jugador"><span id="j-apodo">RORRO</span><span class="hcp" id="j-hcp"></span><span class="band" id="j-total">E</span></div>
@@ -319,17 +355,22 @@ input { -webkit-user-select: text; user-select: text; }
     <div id="voz" class="vacia" aria-live="polite"><span class="quien">📺 LG</span><span class="dice" id="r-dice"></span><span class="extra" id="r-extra"></span></div>
   </div>
   <div id="hud-chips">
-    <span class="chip" id="efecto" hidden></span>
-    <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
+    <span class="chip" id="lie">TEE</span>
+    <div class="centro">
+      <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
+      <div class="viento" id="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="v-txt"><b id="v-kmh">0</b><small id="v-uni">KM/H</small></span></div>
+      <span class="chip" id="efecto" hidden></span>
+    </div>
+    <div class="der">
+      <button class="btn ghost" id="lp" type="button">LP 💅</button>
+      <button class="chip" id="pancho" type="button" hidden>🌭 PANCHO ×3</button>
+    </div>
   </div>
 </div>
 
 <div id="cuenta" hidden aria-live="assertive"></div>
 
-<div id="hud-bot" hidden>
-  <span id="lie">TEE</span>
-  <button class="btn ghost" id="lp" type="button">LP 💅</button>
-</div>
+<div id="hud-bot" hidden></div><!-- vacío: los botones subieron debajo del marcador -->
 
 <div id="banda" aria-live="polite">
   <div class="caja">
@@ -365,8 +406,9 @@ input { -webkit-user-select: text; user-select: text; }
   <div class="mazo-cab">
     <div>
       <p class="mazo-tit">Elegí tu nivel de dificultad</p>
-      <p class="mazo-sub" id="mazo-sub">1 de 24 · ↔ pasar · más handicap, más difícil</p>
+      <p class="mazo-sub" id="mazo-sub">1 de 24 · ↔ pasar · de más fácil a más difícil</p>
     </div>
+    <button class="pill" id="ver-todos" type="button">VER TODOS</button>
     <button class="redondo" id="mazo-cerrar" type="button" aria-label="Volver a la portada">×</button>
   </div>
   <div class="mazo-pila"><div class="mazo-cartas" id="mazo-cartas"></div></div>
@@ -375,6 +417,12 @@ input { -webkit-user-select: text; user-select: text; }
     <div class="puntos" id="mazo-puntos" aria-hidden="true"></div>
     <button class="redondo claro" id="mazo-sig" type="button" aria-label="Más difícil">›</button>
   </div>
+</section>
+
+<section class="pantalla" id="todos" hidden aria-labelledby="todos-tit">
+  <div class="todos-cab"><h2 id="todos-tit">TODOS LOS PLAYERS</h2><button class="redondo" id="todos-cerrar" type="button" aria-label="Volver al mazo">×</button></div>
+  <p class="todos-sub">Del más fácil al más difícil (medido jugando 60 vueltas con cada uno). Cada uno con su habilidad.</p>
+  <ol class="todos-lista" id="todos-lista"></ol>
 </section>
 
 <section class="pantalla" id="fin" hidden>
@@ -435,17 +483,25 @@ input { -webkit-user-select: text; user-select: text; }
 
 <script type="module">
 import * as M from './motor.js'
-import { PLANTEL as TODOS, EN_PRUEBA } from './plantel.js'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js'
 import { CANCHA } from './cancha-grid.js'
 import * as R from './ranking.js'
 // por ahora, para probar, solo los de EN_PRUEBA
-const PLANTEL = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo))
+// ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
+const promReal = (j) => DIFICULTAD_REAL[j.apodo]?.prom ?? 10 + (j.hcp ?? M.HCP_SIN_CARGAR) / 10
+const PLANTEL = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo)).sort((a, b) => promReal(a) - promReal(b))
+/** Nivel y nombre de dificultad para mostrar: el medido si lo hay; si no, el del handicap. */
+function difDe(j) {
+  const base = M.dificultad(j.hcp)
+  const real = DIFICULTAD_REAL[j.apodo]
+  return real ? { ...base, ...M.dificultadReal(real.prom) } : base
+}
 
 const C = {
   g950: '#0c2b1c', g900: '#14402a', g700: '#1c5638', g500: '#2e7d4f', g300: '#6fae87',
   cream: '#f4eeda', creamDark: '#e7dfc2', gold: '#e8c34a', red: '#bc4b3c', pino: '#0f3624', pinoLuz: '#1d5236',
 }
-const LIES = { tee: 'TEE', fairway: 'FAIRWAY', rough: 'ROUGH · 70%', bunker: 'BUNKER · 50%', green: 'GREEN · PUTTER' }
+const LIES = { tee: 'TEE', fairway: 'FAIRWAY', rough: 'ROUGH · 70%', bunker: 'BUNKER · 50%', green: 'GREEN' }
 const EMOJI = 'system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
 const PASO = 1 / 120
 const rng = Math.random
@@ -464,7 +520,24 @@ const campo = M.crearCampo()
 // la cancha es el dibujo tal cual: CANCHA.escala píxeles = 1 yarda
 const fondo = new Image()
 fondo.src = 'cancha.webp'
-const CREMA_DIBUJO = '#fbf8ee' // el color de afuera del dibujo
+// afuera del dibujo: el verde del SDGA con rayas de pasto cortado (sutiles, para que no distraiga)
+let tramaFondo = null
+function trama() {
+  if (tramaFondo) return tramaFondo
+  const t = document.createElement('canvas')
+  const L = 56
+  t.width = t.height = L
+  const c = t.getContext('2d')
+  c.fillStyle = '#0c2b1c'
+  c.fillRect(0, 0, L, L)
+  c.fillStyle = '#113524'
+  c.beginPath() // franja diagonal que empalma con la de al lado
+  c.moveTo(0, 0); c.lineTo(L / 2, 0); c.lineTo(0, L / 2); c.closePath()
+  c.moveTo(L, 0); c.lineTo(L, L / 2); c.lineTo(L / 2, L); c.lineTo(0, L); c.closePath()
+  c.fill()
+  tramaFondo = ctx.createPattern(t, 'repeat')
+  return tramaFondo
+}
 
 const lienzo = $('#cancha')
 const ctx = lienzo.getContext('2d')
@@ -472,6 +545,8 @@ let W = 0, H = 0, dpr = 1
 
 let estado = 'portada' // portada | elegir | intro | apuntar | tiro | anim | resultado | fin
 let ronda = null, tiro = null, anim = null, drag = null
+// el jugador (su emoji) camina de pelota a pelota
+const caminante = { pos: null, paso: 0 }
 let estela = []
 const cam = { cx: M.MUNDO.w / 2, cy: M.MUNDO.h / 2, esc: 1, rot: 0, sy: 300 }
 let obj = { ...cam }
@@ -489,6 +564,7 @@ function medir() {
 function zona() {
   const top = $('#hud-top').hidden ? 20 : $('#hud-top').getBoundingClientRect().bottom
   const bot = $('#hud-bot').hidden ? H - 20 : $('#hud-bot').getBoundingClientRect().top
+  // la pelota queda lo bastante arriba como para arrastrar para abajo un tiro a fondo
   return { top: top + 36, bot: bot - 34 }
 }
 function vistaGeneral() {
@@ -501,6 +577,20 @@ function encuadre(a, b) {
   const d = Math.max(M.dist(a, b), 1)
   const esc = Math.min(10, Math.max(1.1, (bot - top) / d)) // más zoom y el dibujo se ve borroso
   return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, esc, rot: -Math.PI / 2 - Math.atan2(b[1] - a[1], b[0] - a[0]), sy: (top + bot) / 2 }
+}
+/**
+ * Para apuntar: más zoom y la pelota al medio de la cancha (debajo de la fila de botones), con la bandera para arriba.
+ * Abajo queda lugar para tirar para atrás. Se ve ~75 yd para adelante (o hasta el hoyo si está más cerca).
+ */
+function vistaApuntar(b, pin) {
+  const card = $('#hud-top .card')
+  const techo = (card && !$('#hud-top').hidden ? card.getBoundingClientRect().bottom : 20) + 46
+  const sy = techo + (H - techo) * 0.5
+  const d = Math.max(M.dist(b, pin), 1)
+  const putt = ronda && M.enModoPutt(campo, ronda)
+  const adelante = putt ? Math.max(d * 1.6, 7) : Math.min(d + 12, 75)
+  const esc = Math.min(10, Math.max(1.1, (sy - techo - 10) / adelante))
+  return { cx: b[0], cy: b[1], esc, rot: -Math.PI / 2 - Math.atan2(pin[1] - b[1], pin[0] - b[0]), sy, techo }
 }
 function w2s(p, k = cam) {
   const dx = p[0] - k.cx, dy = p[1] - k.cy, c = Math.cos(k.rot), s = Math.sin(k.rot)
@@ -537,7 +627,7 @@ function apunte() {
   const len = Math.hypot(px, py)
   if (len < 8) return null
   const putt = M.enModoPutt(campo, ronda)
-  const p = Math.min(1, Math.pow(len / largoMax(), putt ? 1.6 : 1.35))
+  const p = Math.min(1, Math.pow(len / drag.largo, putt ? 1.6 : 1.35))
   const [wx, wy] = s2wVec(px, py)
   const ang = Math.atan2(wy, wx)
   let q = 0
@@ -553,21 +643,52 @@ function apunte() {
 }
 
 lienzo.addEventListener('pointerdown', (e) => {
-  if (estado !== 'apuntar') return
-  drag = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, id: e.pointerId, t0: performance.now() }
+  if (estado !== 'apuntar' || drag) return // un segundo dedo no pisa el tiro que estás armando
+  // a fondo = arrastrar `largo` px; si abajo del dedo no hay tanto lugar, alcanza con menos
+  const largo = Math.max(90, Math.min(largoMax(), H - e.clientY - 14))
+  drag = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, id: e.pointerId, t0: performance.now(), largo }
+  // a medida que tirás para atrás, la cámara se aleja (con la pelota quieta) para que entre hasta dónde llega
+  if (!M.enModoPutt(campo, ronda)) { drag.base = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin); velCam = 7 }
   lienzo.setPointerCapture(e.pointerId)
+  document.body.classList.add('apuntando') // los botones de abajo se apagan mientras apuntás
   if (!datos.vistoTip) { datos.vistoTip = true; guardar(datos) }
 })
 lienzo.addEventListener('pointermove', (e) => { if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY } })
 lienzo.addEventListener('pointerup', (e) => {
   if (!drag || e.pointerId !== drag.id) return
   const a = apunte()
+  const base = drag.base
   drag = null
+  document.body.classList.remove('apuntando')
   if (a && estado === 'apuntar') pegar(a)
+  else if (base) obj = base // no pegó: vuelve el zoom de antes
 })
-lienzo.addEventListener('pointercancel', () => { drag = null })
+lienzo.addEventListener('pointercancel', () => {
+  if (drag?.base) obj = drag.base
+  drag = null
+  document.body.classList.remove('apuntando')
+})
+/** Mientras tirás para atrás: la cámara se aleja alrededor de la pelota justo lo que hace falta para ver el pique. */
+function zoomApunte() {
+  if (!drag?.base || estado !== 'apuntar') return
+  const a = apunte()
+  const k = drag.base
+  if (!a) { obj = k; return }
+  const b = ronda.pelota
+  const c = Math.cos(k.rot), s = Math.sin(k.rot)
+  const dx = a.destino[0] - b[0], dy = a.destino[1] - b[1]
+  const vx = dx * c - dy * s, vy = dx * s + dy * c // en pantalla (por unidad de zoom)
+  const margen = 10 + a.alcance * 0.1 // el óvalo y el cartel de yardas
+  let esc = k.esc
+  if (-vy + margen > 0) esc = Math.min(esc, (k.sy - k.techo - 30) / (-vy + margen))
+  esc = Math.min(esc, (W / 2 - 14) / (Math.abs(vx) + margen))
+  obj = { ...k, esc: Math.max(0.5, esc) }
+}
 
 function pegar(a) {
+  velCam = 3.5
+  datos.tiros = (datos.tiros ?? 0) + 1
+  guardar(datos)
   tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo)
   estela = []
   estado = 'tiro'
@@ -598,6 +719,11 @@ function actualizar(dt) {
     const llego = M.moverMonos(ronda.monos, dt, estado === 'apuntar' ? ronda.pelota : null)
     if (llego && estado === 'apuntar') llegaronMonos(llego)
   }
+  moverCaminante(dt)
+  moverRafagas(dt)
+  zoomApunte()
+  // si el tiro se cortó (llegaron los monos, LP, etc.), los botones vuelven
+  if (!drag && document.body.classList.contains('apuntando')) document.body.classList.remove('apuntando')
   pintarVoz()
   pintarCrono()
   if (firmaHasta) $('#reloj').style.width = `${Math.max(0, (firmaHasta - performance.now()) / (M.SEGUNDOS_FIRMA * 10))}%`
@@ -613,6 +739,44 @@ function actualizar(dt) {
   cam.rot += difAng(obj.rot, cam.rot) * k
 }
 
+/** El emoji del jugador va caminando hasta la pelota (mientras vuela, se queda donde pegó). */
+function moverCaminante(dt) {
+  if (!ronda || ronda.terminada) return
+  const meta = estado === 'tiro' ? null : ronda.pelota
+  if (!caminante.pos) caminante.pos = [...ronda.pelota]
+  if (!meta) return
+  const d = M.dist(caminante.pos, meta)
+  if (d < 0.05) { caminante.paso = 0; return }
+  const vel = Math.max(25, d / 1.1) // llega en algo más de un segundo, camine lo que camine
+  const k = Math.min(1, (vel * dt) / d)
+  caminante.pos = [caminante.pos[0] + (meta[0] - caminante.pos[0]) * k, caminante.pos[1] + (meta[1] - caminante.pos[1]) * k]
+  caminante.paso += dt
+}
+function dibujarCaminante() {
+  if (!ronda || ronda.terminada || !caminante.pos) return
+  const [x, y] = w2s(caminante.pos)
+  const tam = Math.max(22, Math.min(34, cam.esc * 3))
+  const camina = M.dist(caminante.pos, ronda.pelota) > 0.3 && estado !== 'tiro'
+  const salto = camina ? Math.abs(Math.sin(caminante.paso * 13)) * 5 : 0
+  const ladeo = camina ? Math.sin(caminante.paso * 13) * 0.15 : 0
+  // al costado de la pelota, como parado para pegar
+  const cx = x - tam * 0.75, cy = y - tam * 0.25 - salto
+  ctx.save()
+  ctx.globalAlpha = 0.3
+  ctx.fillStyle = '#000'
+  ctx.beginPath()
+  ctx.ellipse(x - tam * 0.75, y + tam * 0.3, tam * 0.32, tam * 0.12, 0, 0, 7)
+  ctx.fill()
+  ctx.globalAlpha = 1
+  ctx.translate(cx, cy)
+  ctx.rotate(ladeo)
+  ctx.font = `${tam}px ${EMOJI}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(ronda.jugador.emoji, 0, 0)
+  ctx.restore()
+}
+
 function alReposo() {
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
@@ -620,11 +784,9 @@ function alReposo() {
   const res = M.resolverReposo(campo, ronda, tiro, rng)
   const dicho = M.comentar(rng, res, tiro, h, ronda.jugador)
   if (res.tipo === 'embocada') {
-    // el último putt para el reloj
-    if (ronda.idx === M.HOYOS.length - 1 && ronda.t0 != null) ronda.ms = performance.now() - ronda.t0
-    const adulado = M.habilidadDe(ronda.jugador)?.adulado
-    const frase = adulado ? null : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
-    cerrar(frase)
+    const hab = M.habilidadDe(ronda.jugador)
+    const frase = hab?.adulado ? null : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
+    embocar(frase)
     return
   }
   relatar(dicho)
@@ -638,6 +800,12 @@ function alReposo() {
     anim = { tipo: 'ladron', mono: res.mono, hasta: [...ronda.pelota], t: 0, T: 2.2, fin: siguienteTiro }
     return
   }
+  if (res.tipo === 'perro') {
+    // el perro sale del fairway, la busca en el bosque y la trae (tarda: el reloj corre)
+    estado = 'anim'
+    anim = { tipo: 'perro', desde: donde, hasta: [...ronda.pelota], t: 0, T: M.PERRO.segundos, fin: siguienteTiro }
+    return
+  }
   if (res.tipo === 'afuera') {
     estado = 'anim'
     anim = { tipo: 'afuera', desde: donde, hasta: [...ronda.pelota], t: 0, T: 1.2, fin: siguienteTiro }
@@ -649,11 +817,51 @@ function siguienteTiro() {
   tiro = null
   estela = []
   if (M.necesitaLP(ronda)) { levantarVuelta(); return }
+  if (M.esDada(campo, ronda)) {
+    // Lechu: contando todas las dadas
+    M.darDada(ronda)
+    embocar(M.elegir(rng, M.RELATO.dada))
+    return
+  }
   estado = 'apuntar'
-  obj = encuadre(ronda.pelota, M.hoyoActual(ronda).pin)
+  apuntarDesde = performance.now()
+  obj = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin)
   velCam = 3.5
-  M.despertarMonos(ronda.monos, ronda.pelota)
+  despertar()
   hud()
+}
+/** Pelota quieta: los monos cercanos salen a buscarla (a la Mugre la huelen de más lejos). */
+function despertar() {
+  M.despertarMonos(ronda.monos, ronda.pelota, M.alertaDe(ronda))
+}
+// ── los panchos de la Mugre ──
+let pancho = null // { desde, hasta, t0 } — el que va volando / está en el piso
+function tirarPancho() {
+  if (estado !== 'apuntar' || !ronda.panchos) return
+  const desde = [...ronda.pelota]
+  const pos = M.tirarPancho(ronda)
+  if (!pos) { relatar({ lg: 'No viene ningún mono', verso: 'Guardá los panchos para cuando vengan' }); return }
+  pancho = { desde, hasta: pos, t0: performance.now() }
+  relatar({ lg: M.elegir(rng, M.RELATO.pancho), verso: `Te quedan ${ronda.panchos} 🌭 en este hoyo` })
+  hud()
+}
+function dibujarPancho() {
+  if (!pancho || !ronda) return
+  const u = Math.min(1, (performance.now() - pancho.t0) / 450)
+  const comiendo = ronda.monos.some((s) => s.pancho)
+  if (u >= 1 && !comiendo) { pancho = null; return }
+  const p = [pancho.desde[0] + (pancho.hasta[0] - pancho.desde[0]) * u, pancho.desde[1] + (pancho.hasta[1] - pancho.desde[1]) * u]
+  const [x, y] = w2s(p)
+  ctx.font = `${Math.max(18, Math.min(28, cam.esc * 2.6))}px ${EMOJI}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('🌭', x, y - Math.sin(Math.PI * u) * 40)
+  ctx.textBaseline = 'alphabetic'
+}
+/** Embocó: el último putt del 17 para el reloj. */
+function embocar(frase) {
+  if (ronda.idx === M.HOYOS.length - 1 && ronda.t0 != null) ronda.ms = performance.now() - ronda.t0
+  cerrar(frase)
 }
 
 /** Los monos llegaron antes del golpe: se la llevan corriendo y volvés al tee del hoyo con un golpe de multa. */
@@ -686,13 +894,14 @@ function empezar(jugador) {
   datos.ultimo = jugador.apodo
   guardar(datos)
   pararCuenta()
-  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking']) $('#' + id).hidden = true
+  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking', 'todos']) $('#' + id).hidden = true
   $('#hud-top').hidden = false
-  $('#hud-bot').hidden = false
   introHoyo()
 }
 function introHoyo() {
   const h = M.hoyoActual(ronda)
+  pancho = null
+  caminante.pos = [...h.tee]
   estado = 'intro'
   tiro = null
   estela = []
@@ -703,15 +912,25 @@ function introHoyo() {
   velCam = 1.3
   const arrancar = () => {
     estado = 'apuntar'
+    apuntarDesde = performance.now()
+    obj = vistaApuntar(ronda.pelota, h.pin) // del hoyo entero, a la pelota
     velCam = 3.5
-    M.despertarMonos(ronda.monos, ronda.pelota)
+    despertar()
     hud()
     const hab = M.habilidadDe(ronda.jugador)
     if (hab && ronda.idx === 0) relatar({ lg: `✨ ${hab.nombre}`, verso: hab.texto })
   }
   banda({ kicker: 'La Trampa del Mono', grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${Math.round(M.dist(h.tee, h.pin))} YD`, verso: h.verso }, 2800, () => {
     // la primera vez: 3, 2, 1 y arranca el reloj, que corre hasta el último putt
-    if (ronda.t0 == null) cuentaRegresiva(() => { ronda.t0 = performance.now(); arrancar() })
+    if (ronda.t0 == null) {
+      // la cuenta regresiva muestra de cerca de dónde salís; en el ¡YA! se abre al hoyo
+      const vista = vistaApuntar(h.tee, h.pin)
+      obj = { ...vista, esc: 7 }
+      velCam = 2.2
+      // en el "2" vuelve al encuadre de salida: en el ¡YA! ya está quieta hace un segundo (no perdés tiempo)
+      setTimeout(() => { if (estado === 'cuenta') { obj = vista; velCam = 4.5 } }, 900)
+      cuentaRegresiva(() => { ronda.t0 = performance.now(); arrancar(); obj = vista })
+    }
     else arrancar()
   })
 }
@@ -793,17 +1012,21 @@ function relatar({ lg, excusa, verso }) {
 function pintarVoz() {
   let clase = 'vacia', dice = 'mirando…', extra = ''
   if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza')) {
-    clase = 'alerta'; dice = '🐒 ¡VIENEN LOS MONOS! PEGALE'; extra = 'Si llegan, se la llevan: al tee con un golpe de multa'
+    clase = 'alerta'; dice = '🐒 ¡VIENEN LOS MONOS! PEGALE'
+    extra = ronda.panchos ? `…o tirales un pancho 🌭 (te quedan ${ronda.panchos})` : 'Si llegan, se la llevan: al tee con un golpe de multa'
   } else if (voz && performance.now() < voz.hasta) {
     clase = ''; dice = voz.lg; extra = voz.extra
   } else if (estado === 'apuntar' && !datos.vistoTip) {
     clase = ''; dice = '👆 Arrastrá para atrás y soltá'; extra = 'El óvalo es donde puede caer'
+  } else if (estado === 'apuntar' && ronda?.calma) {
+    clase = ''; dice = '📺 LG no se enoja'; extra = 'El que se enoja pierde: este golpe sale sin error'
   } else if (estado === 'apuntar' && golpeMago()) {
     const g = golpeMago()
     clase = ''; dice = `${g.emoji} Te toca: ${g.nombre}`; extra = g.texto
   }
   const clave = clase + dice + extra
   if (clave === vozPintada) return
+  document.body.classList.toggle('monos-vienen', clase === 'alerta')
   vozPintada = clave
   $('#voz').className = clase
   $('#r-dice').textContent = dice
@@ -821,8 +1044,9 @@ function hud() {
   const ter = M.terreno(campo, ronda.pelota)
   const ajeno = ter.hoyo && ter.hoyo !== h.n && ter.tipo !== 'tee' ? ` · DEL ${ter.hoyo}` : ''
   $('#lie').textContent = (ter.tipo === 'green' && ajeno ? 'GREEN' : LIES[ronda.lie] ?? ronda.lie.toUpperCase()) + ajeno
-  $('#v-kmh').textContent = ronda.viento.kmh ? `${ronda.viento.kmh} km/h` : 'SIN VIENTO'
-  $('#v-flecha').hidden = !ronda.viento.kmh
+  $('#v-kmh').textContent = ronda.viento.kmh ? ronda.viento.kmh : '0'
+  $('#v-uni').textContent = ronda.viento.kmh ? 'KM/H' : 'SIN VIENTO'
+  $('#viento').classList.toggle('calmo', !ronda.viento.kmh)
   const j = ronda.jugador
   $('#j-emoji').textContent = j.emoji
   $('#j-sinfoto').textContent = j.foto ? '' : j.emoji
@@ -833,6 +1057,13 @@ function hud() {
   $('#j-hcp').textContent = `HCP ${hcpTxt(ronda.jugador)}`
   $('#j-total').textContent = M.formatoPar(M.totales(ronda.tarjeta).vsPar)
   $('#lp').disabled = estado !== 'apuntar'
+  if (!lpArmado) $('#lp').textContent = textoLP()
+  const mugre = M.habilidadDe(ronda.jugador)?.id === 'panchitos'
+  $('#pancho').hidden = !mugre
+  if (mugre) {
+    $('#pancho').textContent = `🌭 PANCHO ×${ronda.panchos}`
+    $('#pancho').disabled = !ronda.panchos || estado !== 'apuntar'
+  }
   // el golpe del Mago: el que le toca (o, mientras vuela, el que pegó)
   const g = !ronda.golpeMago ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? PUTT_MAGO : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
   $('#efecto').hidden = !g
@@ -840,30 +1071,42 @@ function hud() {
 }
 const PUTT_MAGO = { emoji: '🪄', nombre: 'Putt con comba', texto: 'Siempre dobla hacia el hoyo: apuntá afuera' }
 /** Lo que le toca al Mago en el próximo golpe (null si no es Rodal). En el green, el putt con comba. */
+const textoLP = () => (ronda && M.tieneLPNinja(ronda) ? 'LP 🥷 +1' : 'LP 💅')
+/** El Ninja levanta (la tradición): +1, al fairway y sigue la vuelta. */
+function lpDelNinja() {
+  drag = null
+  M.lpNinja(campo, ronda)
+  relatar({ lg: M.elegir(rng, M.RELATO.ninjaLP), verso: 'El próximo LP sí te hace perder la vuelta' })
+  siguienteTiro()
+}
 function golpeMago() {
   if (!ronda?.golpeMago) return null
   return M.enModoPutt(campo, ronda) ? PUTT_MAGO : M.golpeMagoDe(ronda)
 }
 let lpArmado = 0
+$('#pancho').addEventListener('click', tirarPancho)
 $('#lp').addEventListener('click', () => {
   if (estado !== 'apuntar') return
+  const ninja = M.tieneLPNinja(ronda)
+  if (lpArmado && performance.now() - lpArmado < 450) return // doble toque sin querer: no confirma
   if (lpArmado && performance.now() - lpArmado < 2500) {
     lpArmado = 0
-    $('#lp').textContent = 'LP 💅'
-    levantarVuelta()
+    $('#lp').textContent = textoLP()
+    if (ninja) lpDelNinja()
+    else levantarVuelta()
     return
   }
   lpArmado = performance.now()
-  $('#lp').textContent = '¿PERDÉS LA VUELTA?'
+  $('#lp').textContent = ninja ? '¿LP NINJA? +1' : '¿PERDÉS LA VUELTA?'
   setTimeout(() => {
-    if (lpArmado && performance.now() - lpArmado >= 2400) { lpArmado = 0; $('#lp').textContent = 'LP 💅' }
+    if (lpArmado && performance.now() - lpArmado >= 2400) { lpArmado = 0; $('#lp').textContent = textoLP() }
   }, 2500)
 })
 
 // ── dibujo ──
 function dibujar() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-  ctx.fillStyle = CREMA_DIBUJO
+  ctx.fillStyle = trama()
   ctx.fillRect(0, 0, W, H)
   const c = Math.cos(cam.rot) * cam.esc, s = Math.sin(cam.rot) * cam.esc
   ctx.setTransform(dpr * c, dpr * s, -dpr * s, dpr * c, dpr * (W / 2 - (c * cam.cx - s * cam.cy)), dpr * (cam.sy - (s * cam.cx + c * cam.cy)))
@@ -876,7 +1119,7 @@ function dibujar() {
   }
 
   // caída del green cuando hay que patear
-  if (hoyo && estado === 'apuntar' && M.enModoPutt(campo, ronda)) {
+  if (hoyo && estado === 'apuntar' && M.enModoPutt(campo, ronda) && M.habilidadDe(ronda.jugador)?.id !== 'perro') {
     const [gx, gy] = hoyo.pin
     const ca = Math.atan2(hoyo.caida[1], hoyo.caida[0])
     ctx.strokeStyle = 'rgba(20,64,42,.45)'
@@ -895,10 +1138,6 @@ function dibujar() {
     }
   }
 
-  // hoyos
-  ctx.fillStyle = '#0a1f14'
-  const rHoyo = Math.max(M.FISICA.radioHoyo, 1.8 / cam.esc)
-  for (const h of M.HOYOS) { ctx.beginPath(); ctx.arc(h.pin[0], h.pin[1], rHoyo, 0, 7); ctx.fill() }
 
   // ── encima, derecho ──
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -908,7 +1147,8 @@ function dibujar() {
     ctx.font = '13px Anton, "Arial Narrow", sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(`TEE ${h.n}`, tx, ty + 22)
-    if (hoyo && h.n === hoyo.n) bandera(w2s(h.pin), h.n, true) // las otras banderas ya están en el dibujo
+    hoyoNitido(w2s(h.pin))
+    bandera(w2s(h.pin), h.n, !hoyo || h.n === hoyo.n) // las del dibujo se borraron: van todas acá
   }
 
   // estela
@@ -921,7 +1161,10 @@ function dibujar() {
     ctx.fill()
   }
 
+  dibujarRafagas()
+  dibujarPancho()
   dibujarMonos()
+  dibujarCaminante()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
     else if (tiro) pelota(tiro.pos, tiro.alt)
@@ -929,12 +1172,90 @@ function dibujar() {
   }
   const a = estado === 'apuntar' ? apunte() : null
   if (a) dibujarApunte(a)
+  else dibujarGuia()
 
   if (ronda && !ronda.terminada) {
     const ang = ronda.viento.ang + cam.rot
     const f = $('#v-flecha')
     if (Math.abs((f._ang ?? 99) - ang) > 0.01) { f.style.transform = `rotate(${ang}rad)`; f._ang = ang }
   }
+}
+// ── ráfagas: líneas finitas que cruzan la cancha para donde sopla; más viento, más líneas y más rápidas ──
+const rafagas = []
+function moverRafagas(dt) {
+  const kmh = ronda && !ronda.terminada ? ronda.viento.kmh : 0
+  const objetivo = Math.round((kmh / M.FISICA.vientoMax) * 26 * Math.min(1.6, (W * H) / 330000))
+  if (rafagas.length < objetivo && Math.random() < dt * 14) {
+    rafagas.push({ x: Math.random() * W, y: Math.random() * H, t: 0, T: 1.1 + Math.random() * 1.2, largo: 26 + Math.random() * 46 + kmh * 1.2 })
+  }
+  const vel = 50 + kmh * 9
+  const ang = (ronda?.viento.ang ?? 0) + cam.rot
+  for (let i = rafagas.length - 1; i >= 0; i--) {
+    const r = rafagas[i]
+    r.t += dt
+    r.x += Math.cos(ang) * vel * dt
+    r.y += Math.sin(ang) * vel * dt
+    if (r.t >= r.T) rafagas.splice(i, 1)
+  }
+}
+function dibujarRafagas() {
+  if (!rafagas.length || !ronda) return
+  const ang = ronda.viento.ang + cam.rot
+  const c = Math.cos(ang), s = Math.sin(ang)
+  ctx.lineCap = 'round'
+  ctx.lineWidth = 1.4
+  for (const r of rafagas) {
+    const u = r.t / r.T
+    const alfa = Math.sin(Math.PI * u) * 0.32 // aparece y desaparece
+    ctx.strokeStyle = `rgba(255,255,255,${alfa})`
+    ctx.beginPath()
+    ctx.moveTo(r.x - c * r.largo, r.y - s * r.largo)
+    // un poquito curva, como una ráfaga
+    ctx.quadraticCurveTo(r.x - c * r.largo * 0.5 - s * 4, r.y - s * r.largo * 0.5 + c * 4, r.x, r.y)
+    ctx.stroke()
+  }
+}
+// ── guía: dónde poner el dedo. Un anillo que late sobre la pelota; las primeras veces (o si tardás), un dedo que
+// muestra el gesto: apoyá en la pelota y tirá para atrás ──
+let apuntarDesde = 0
+function dibujarGuia() {
+  if (estado !== 'apuntar' || drag || anim || !ronda) return
+  const [x, y] = w2s(ronda.pelota)
+  const t = (performance.now() - apuntarDesde) / 1000
+  if (t < 0.4) return
+  const u = (t % 1.4) / 1.4
+  ctx.lineWidth = 2.5
+  for (const k of [0, 0.5]) {
+    const v = (u + k) % 1
+    ctx.strokeStyle = `rgba(232,195,74,${0.85 * (1 - v)})`
+    ctx.beginPath()
+    ctx.arc(x, y, 10 + v * 26, 0, 7)
+    ctx.stroke()
+  }
+  const putt = M.enModoPutt(campo, ronda)
+  const mostrarDedo = (datos.tiros ?? 0) < 6 || t > 5
+  if (!mostrarDedo) return
+  // el gesto: el dedo baja desde la pelota (tirar para atrás) con la línea punteada, y suelta
+  const w = (t % 2.2) / 2.2
+  const baja = Math.min(1, Math.max(0, (w - 0.15) / 0.55))
+  const alfa = w < 0.1 ? w / 0.1 : w > 0.85 ? (1 - w) / 0.15 : 1
+  const largo = putt ? 50 : 90
+  const dy = baja * largo
+  ctx.globalAlpha = alfa * 0.9
+  ctx.strokeStyle = C.cream
+  ctx.lineWidth = 2
+  ctx.setLineDash([2, 6])
+  ctx.beginPath()
+  ctx.moveTo(x, y + 8)
+  ctx.lineTo(x, y + dy)
+  ctx.stroke()
+  ctx.setLineDash([])
+  ctx.font = `30px ${EMOJI}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'top'
+  ctx.fillText('👆', x + 4, y + dy - 4)
+  ctx.textBaseline = 'alphabetic'
+  ctx.globalAlpha = 1
 }
 const levante = () => Math.min(cam.esc * 0.5, 2.2)
 const tamMono = () => Math.max(22, Math.min(36, cam.esc * 3.4))
@@ -981,6 +1302,22 @@ function dibujarMonos() {
   ctx.textBaseline = 'alphabetic'
 }
 
+/** El hoyo dibujado encima del dibujo (vectorial, nítido): 3 veces el real (y más grande que la pelota), con borde claro. */
+function hoyoNitido([x, y]) {
+  const r = Math.max(M.FISICA.radioHoyo * 3 * cam.esc, 5.4) // el doble de antes: más grande que la pelota
+  ctx.fillStyle = 'rgba(244,238,218,.9)'
+  ctx.beginPath()
+  ctx.arc(x, y, r + Math.max(1, r * 0.22), 0, 7)
+  ctx.fill()
+  ctx.fillStyle = '#081a10'
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, 7)
+  ctx.fill()
+  ctx.fillStyle = 'rgba(255,255,255,.18)' // un brillo adentro, para que se lea como pozo
+  ctx.beginPath()
+  ctx.arc(x - r * 0.25, y + r * 0.3, r * 0.45, 0, 7)
+  ctx.fill()
+}
 function bandera([x, y], n, actual) {
   ctx.globalAlpha = actual ? 1 : 0.55
   ctx.strokeStyle = C.cream
@@ -1038,6 +1375,24 @@ function dibujarAnim() {
     } else if (!anim.lp) pelota(anim.hasta, 0, Math.min(1, (t - 1.3) / 0.4))
     return
   }
+  if (anim.tipo === 'perro') {
+    // sale del fairway, va al bosque y vuelve con la pelota
+    const u = t / anim.T
+    const ida = Math.min(1, u / 0.45)
+    const vuelta = Math.max(0, (u - 0.55) / 0.45)
+    const a = anim.hasta, b = anim.desde
+    const p = u < 0.55 ? [a[0] + (b[0] - a[0]) * ida, a[1] + (b[1] - a[1]) * ida] : [b[0] + (a[0] - b[0]) * vuelta, b[1] + (a[1] - b[1]) * vuelta]
+    const [px, py] = w2s(p)
+    if (u < 0.55) pelota(b, 0)
+    ctx.font = `${tamMono()}px ${EMOJI}`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('🐕', px, py - Math.abs(Math.sin(t * 14)) * 4)
+    ctx.textBaseline = 'alphabetic'
+    if (u >= 0.55) pelota([p[0] + 1.2, p[1]], 0)
+    if (u >= 1) pelota(a, 0)
+    return
+  }
   if (anim.tipo === 'afuera') {
     if (t < 0.55) pelota(anim.desde, 0, 1 - t / 0.55)
     else pelota(anim.hasta, 0, Math.min(1, (t - 0.55) / 0.4))
@@ -1049,17 +1404,75 @@ function dibujarAnim() {
   const vuela = Math.max(0, Math.min(1, (t - 0.6) / 0.8))
   const se_va = Math.max(0, (t - 1.5) / 0.5)
   ctx.globalAlpha = 1 - se_va
-  ctx.font = `${Math.round(34 * aparece)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('🐒', mx, my - 18 - Math.sin(t * 9) * 3 * aparece)
-  ctx.textBaseline = 'alphabetic'
+  const tam = Math.round(34 * aparece)
+  const y = my - 18 - Math.sin(t * 9) * 3 * aparece
+  if (anim.bueno && tam > 4) monoBueno(mx, y, tam)
+  else {
+    ctx.font = `${tam}px ${EMOJI}`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('🐒', mx, y)
+    ctx.textBaseline = 'alphabetic'
+  }
   ctx.globalAlpha = 1
   if (vuela <= 0) pelota(anim.desde, 0)
   else {
     const p = [anim.desde[0] + (anim.hasta[0] - anim.desde[0]) * vuela, anim.desde[1] + (anim.hasta[1] - anim.desde[1]) * vuela]
     pelota(p, Math.sin(Math.PI * vuela) * (anim.bueno ? 25 : 10))
   }
+}
+
+/** El Mono bueno: dorado (como la banda del SDGA), con brillo y la Boina Verde, para que se note que es otro. */
+const monoDorado = new Map()
+function monoBueno(x, y, tam) {
+  const k = Math.round(tam)
+  if (!monoDorado.has(k)) {
+    // el emoji teñido de dorado en un canvas aparte (source-atop: solo pinta donde hay mono)
+    const c = document.createElement('canvas')
+    const L = Math.ceil(k * 1.4 * dpr)
+    c.width = c.height = L
+    const g = c.getContext('2d')
+    g.scale(dpr, dpr)
+    g.font = `${k}px ${EMOJI}`
+    g.textAlign = 'center'
+    g.textBaseline = 'middle'
+    g.fillText('🐒', L / dpr / 2, L / dpr / 2)
+    g.globalCompositeOperation = 'source-atop'
+    g.fillStyle = 'rgba(232,195,74,.55)'
+    g.fillRect(0, 0, L, L)
+    monoDorado.set(k, c)
+  }
+  const c = monoDorado.get(k)
+  const L = c.width / dpr
+  // halo
+  const halo = ctx.createRadialGradient(x, y, k * 0.2, x, y, k * 0.95)
+  halo.addColorStop(0, 'rgba(232,195,74,.55)')
+  halo.addColorStop(1, 'rgba(232,195,74,0)')
+  ctx.fillStyle = halo
+  ctx.beginPath()
+  ctx.arc(x, y, k * 0.95, 0, 7)
+  ctx.fill()
+  ctx.drawImage(c, x - L / 2, y - L / 2, L, L)
+  // la Boina Verde, ladeada sobre la cabeza
+  ctx.save()
+  ctx.translate(x - k * 0.04, y - k * 0.36)
+  ctx.rotate(-0.28)
+  ctx.fillStyle = '#1c5638'
+  ctx.strokeStyle = '#0c2b1c'
+  ctx.lineWidth = Math.max(1, k * 0.04)
+  ctx.beginPath()
+  ctx.ellipse(0, 0, k * 0.36, k * 0.15, 0, Math.PI, 0)
+  ctx.quadraticCurveTo(k * 0.42, k * 0.06, 0, k * 0.07)
+  ctx.quadraticCurveTo(-k * 0.42, k * 0.06, -k * 0.36, 0)
+  ctx.fill()
+  ctx.stroke()
+  ctx.fillStyle = '#e8c34a' // el escudito
+  ctx.beginPath()
+  ctx.arc(-k * 0.14, -k * 0.02, k * 0.045, 0, 7)
+  ctx.fill()
+  ctx.fillStyle = '#1c5638' // el palito de arriba
+  ctx.fillRect(-k * 0.02, -k * 0.2, k * 0.04, k * 0.07)
+  ctx.restore()
 }
 
 function dibujarApunte(a) {
@@ -1138,7 +1551,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
+  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(a.alcance)} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
@@ -1164,7 +1577,7 @@ function tarjetaFinal() {
   const j = ronda.jugador
   $('#t-emoji').textContent = j.emoji
   $('#t-apodo').textContent = j.apodo.toUpperCase()
-  const dif = M.dificultad(j.hcp)
+  const dif = difDe(j)
   $('#t-nivel').textContent = `HCP ${hcpTxt(j)} · ${dif.nombre}`
   const filas = ronda.tarjeta.map((f) => {
     const nombre = M.nombreResultado(f.golpes, f.par, f.lp)
@@ -1187,6 +1600,7 @@ function tarjetaFinal() {
   firmaTimer = setTimeout(sinFirma, M.SEGUNDOS_FIRMA * 1000)
 }
 $('#firmar').addEventListener('click', () => {
+  if ($('#t-firma').hidden || estado !== 'fin') return // doble toque: se firma (y se anota en el ranking) una sola vez
   clearTimeout(firmaTimer)
   firmaHasta = 0
   firmada = true
@@ -1319,9 +1733,44 @@ const hcpTxt = (j) => (j.hcp == null ? '—' : `${j.aprox ? '≈' : ''}${j.hcp}`
 const fmtNeto = (v) => (v == null ? '—' : v === 0 ? 'E' : v > 0 ? `+${v}` : `−${-v}`)
 const enMazo = (k) => PLANTEL[((k % PLANTEL.length) + PLANTEL.length) % PLANTEL.length]
 
+// ── preview de la habilidad (en la carta): una mini cancha animada en SVG ──
+function previewHab(id) {
+  const D = 3.6 // segundos por vuelta
+  const fondo = `<rect width="112" height="52" fill="#2e7d4f"/>
+    <rect x="4" y="19" width="92" height="14" rx="7" fill="#8fc45a"/>
+    <circle cx="96" cy="26" r="11" fill="#b8e070"/>`
+  const bandera = `<circle cx="97" cy="27" r="1.6" fill="#081a10"/><line x1="97" y1="27" x2="97" y2="13" stroke="#f4eeda" stroke-width="1"/><path d="M97 13 L105 15.5 L97 18 Z" fill="#e8c34a"/>`
+  const arboles = (x, y) => `<g fill="#0f3624"><circle cx="${x}" cy="${y}" r="5"/><circle cx="${x + 7}" cy="${y + 2}" r="4.5"/><circle cx="${x - 6}" cy="${y + 3}" r="4"/></g>`
+  // pelota que recorre `path`; `kt` = keyTimes y `kp` = keyPoints (para pausas); `ver` = opacidad animada
+  const bola = (path, { kt = '0;0.6;1', kp = '0;1;1', ver = '' } = {}) => `<circle r="2.2" fill="#fff" stroke="#0c2b1c" stroke-width=".5">
+      <animateMotion dur="${D}s" repeatCount="indefinite" path="${path}" keyTimes="${kt}" keyPoints="${kp}" calcMode="linear"/>${ver}</circle>`
+  const emo = (e, path, { kt = '0;0.6;1', kp = '0;1;1', tam = 11, ver = '' } = {}) => `<text font-size="${tam}" text-anchor="middle" dominant-baseline="central">${e}
+      <animateMotion dur="${D}s" repeatCount="indefinite" path="${path}" keyTimes="${kt}" keyPoints="${kp}" calcMode="linear"/>${ver}</text>`
+  const aparece = (desde, hasta = 1) => `<animate attributeName="opacity" dur="${D}s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;${desde};${Math.min(hasta, desde + 0.05)};1"/>`
+  const linea = (d, color = '#f4eeda') => `<path d="${d}" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="1.5 2.5" opacity=".8"/>`
+  const txt = (t, x, y, desde, color = '#e8c34a') => `<text x="${x}" y="${y}" font-size="8" font-family="Anton, sans-serif" fill="${color}" text-anchor="middle" opacity="0">${t}${aparece(desde)}</text>`
+  const escenas = {
+    derecho: linea('M8 26 L96 26') + bola('M8 26 L96 26'),
+    bomba: txt('BOMBA', 22, 13, 0.05) + linea('M8 26 L96 26', '#e8c34a') + bola('M8 26 L96 26', { kt: '0;0.45;1' }),
+    comba: linea('M8 26 L52 4') + linea('M8 26 Q46 -2 92 24', '#e8c34a') + bola('M8 26 Q46 -2 92 24'),
+    aguila: `<line x1="8" y1="26" x2="40" y2="26" stroke="#f4eeda" stroke-width="1" stroke-dasharray="1.5 2.5"><animateTransform attributeName="transform" type="rotate" values="-22 8 26;22 8 26;-22 8 26" dur=".7s" repeatCount="indefinite"/></line>`
+      + emo('🧲', 'M88 40 L88 40', { tam: 9 }) + bola('M8 26 L84 30 L97 27', { kt: '0;0.45;0.7;1', kp: '0;0.75;1;1' }) + txt('CHIP IN', 70, 47, 0.7),
+    dadas: `<rect width="112" height="52" fill="#b8e070"/><circle cx="74" cy="26" r="2.4" fill="#081a10"/>`
+      + bola('M50 30 L74 26', { kt: '0;0.5;1' }) + txt('DADA', 74, 13, 0.5, '#14402a'),
+    tradicion: arboles(50, 8) + bola('M8 26 L50 10', { kt: '0;0.3;1', ver: '<animate attributeName="opacity" dur="3.6s" repeatCount="indefinite" values="1;1;0;0" keyTimes="0;0.35;0.4;1"/>' })
+      + `<circle cx="50" cy="26" r="2.2" fill="#fff" stroke="#0c2b1c" stroke-width=".5" opacity="0">${aparece(0.55)}</circle>` + txt('LP 🥷 +1', 50, 46, 0.55),
+    perro: arboles(50, 8) + bola('M8 26 L50 10 L50 10 L56 26', { kt: '0;0.25;0.6;1', kp: '0;0.5;0.5;1' })
+      + emo('🐕', 'M58 30 L51 14 L57 28', { kt: '0;0.4;0.95;1', kp: '0;0.5;1;1' }),
+    panchitos: bola('M8 26 L60 26') + emo('🐒', 'M84 42 L66 30 L66 30 L96 46', { kt: '0;0.4;0.6;1', kp: '0;0.4;0.4;1' }) + `<text x="70" y="38" font-size="9" opacity="0">🌭${aparece(0.42)}</text>`,
+    approach: bola('M8 26 L62 26 L62 26 Q76 40 86 10', { kt: '0;0.3;0.45;1', kp: '0;0.55;0.55;1' }) + txt('APPROACH…', 74, 48, 0.75, '#f0a497'),
+    calma: arboles(40, 6) + bola('M8 26 Q20 8 38 9 L38 9 L96 26', { kt: '0;0.3;0.45;1', kp: '0;0.35;0.35;1' }) + txt('NO SE ENOJA', 66, 47, 0.45),
+  }
+  return `<svg viewBox="0 0 112 52" aria-hidden="true">${fondo}${id === 'dadas' ? '' : bandera}${escenas[id] ?? ''}</svg>`
+}
+
 function cartaDe(j) {
   if (cartasDom.has(j.apodo)) return cartasDom.get(j.apodo)
-  const dif = M.dificultad(j.hcp)
+  const dif = difDe(j)
   const hab = M.habilidadDe(j)
   const rec = datos.records[j.apodo]
   const s = j.stats
@@ -1337,13 +1786,15 @@ function cartaDe(j) {
         ${hab ? `<span class="carta-hab">✨ ${esc(hab.nombre)}</span>` : ''}
       </div>
       <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
+      ${j.dicky ? '<img class="carta-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
       <div class="carta-nombre"><h3>${esc(j.apodo)}</h3><span class="teja" aria-hidden="true">${j.emoji}</span></div>
     </div>
     <div class="carta-cuerpo">
       ${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
+      ${hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
       <dl>
         <div><dt>HCP</dt><dd>${dif.cargado ? hcpTxt(j) : `—<span class="sub">juega ${dif.hcp}</span>`}</dd></div>
-        <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span></dd></div>
+        <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span>${dif.prom != null ? `<span class="sub">${M.formatoPar(Math.round(dif.prom))} prom.</span>` : ''}</dd></div>
         <div><dt>Récord</dt><dd>${rec === undefined ? '—' : M.formatoPar(rec)}</dd></div>
         <div><dt>Rondas</dt><dd>${s ? s.tarjetas : '—'}</dd></div>
         <div><dt>Prom. neto</dt><dd>${fmtNeto(s?.netoPromedio)}</dd></div>
@@ -1376,7 +1827,7 @@ function pintarMazo() {
   for (const el of [top, back]) if (el) el.style.transition = 'none'
   pintarArrastre(0)
   const i = ((mazoI % n) + n) % n
-  $('#mazo-sub').textContent = `${i + 1} de ${n} · ↔ pasar · más handicap, más difícil`
+  $('#mazo-sub').textContent = `${i + 1} de ${n} · ↔ pasar · de más fácil a más difícil`
   $('#mazo-puntos').innerHTML = PLANTEL.map((_, k) => `<span class="${k === i ? 'activo' : ''}"></span>`).join('')
 }
 function cartasActivas() {
@@ -1462,6 +1913,7 @@ $('#mazo-cerrar').addEventListener('click', () => {
 })
 window.addEventListener('keydown', (e) => {
   if (!$('#ranking').hidden && e.key === 'Escape') { $('#ranking').hidden = true; return }
+  if (!$('#todos').hidden) { if (e.key === 'Escape') $('#todos').hidden = true; return }
   if ($('#elegir').hidden) return
   if (e.key === 'ArrowRight') volarMazo('next')
   else if (e.key === 'ArrowLeft') volarMazo('prev')
@@ -1489,6 +1941,35 @@ $('#usuario').addEventListener('input', (e) => {
   guardar(datos)
   if (datos.usuario) $('#quien-juega').classList.remove('falta')
 })
+// ── ver todos: la lista de players con su habilidad ──
+function mostrarTodos() {
+  $('#todos-lista').innerHTML = PLANTEL.map((j, i) => {
+    const hab = M.habilidadDe(j)
+    const dif = difDe(j)
+    const cara = j.foto ? `<img class="foto" src="${j.foto}" alt="" draggable="false">` : `<span class="foto sin-foto">${j.emoji}</span>`
+    return `<li class="todo">
+      <div class="todo-cab">
+        <div class="cara" aria-hidden="true">${cara}<span class="emo">${j.emoji}</span></div>
+        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${i + 1} · HCP ${hcpTxt(j)} · ${dif.nombre.toUpperCase()}</span></div>
+        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
+        <button class="carta-jugar" type="button" data-jugar="${i}">Jugar</button>
+      </div>
+      ${hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
+      ${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : ''}
+    </li>`
+  }).join('')
+  $('#todos').hidden = false
+  $('#todos').scrollTop = 0
+}
+$('#ver-todos').addEventListener('click', mostrarTodos)
+$('#todos-cerrar').addEventListener('click', () => { $('#todos').hidden = true })
+$('#todos-lista').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-jugar]')
+  if (!b) return
+  $('#todos').hidden = true
+  empezar(PLANTEL[+b.dataset.jugar])
+})
+
 $('#jugar').addEventListener('click', () => {
   // sin nombre no hay ranking
   if (!datos.usuario) {
@@ -1507,9 +1988,14 @@ function rotarFrase() {
 rotarFrase()
 setInterval(rotarFrase, 2200)
 
+// iOS ignora user-scalable=no: frenamos el pellizco y el menú de mantener apretado (el doble toque lo frena touch-action)
+for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false })
+document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false })
+document.addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea')) e.preventDefault() })
+
 window.addEventListener('resize', () => {
   medir()
-  if (estado === 'apuntar') obj = encuadre(ronda.pelota, M.hoyoActual(ronda).pin)
+  if (estado === 'apuntar') obj = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin)
   else if (!ronda) obj = vistaGeneral()
 })
 medir()

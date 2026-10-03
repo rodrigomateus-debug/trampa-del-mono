@@ -23,4 +23,5 @@ Después de tocar el juego:
 ```bash
 node test-motor.mjs
 node build-web.mjs
+node calibrar.mjs 60   # opcional: vuelve a medir la dificultad real de cada uno (y actualizar DIFICULTAD_REAL)
 ```

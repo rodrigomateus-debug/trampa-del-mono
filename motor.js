@@ -40,6 +40,13 @@ export const HABILIDADES = {
   'Mike Queboni (Đ)': { id: 'bomba', nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green.' },
   'El Sueco': { id: 'derecho', nombre: 'Siempre derecho', texto: 'Mati no la tuerce nunca: todo sale derecho. Drive de hasta 280 yardas.' },
   'Fito (Đ)': { id: 'aguila', nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán al hoyo.' },
+  // del chat del SDGA:
+  Lechu: { id: 'dadas', nombre: 'Contando todas las dadas', texto: 'La Lechuza: el putt de menos de 1,5 yardas es dada (cuenta el golpe y entra solo).' },
+  'El Ninja (Đ)': { id: 'tradicion', nombre: 'La tradición', texto: 'Un LP por vuelta no te hace perder: levantás, +1 y dropeás en el fairway. El segundo, sí.' },
+  'El Perro': { id: 'perro', nombre: 'Va a buscarla', texto: 'Los greens están habilitados (sin caída) y si va al bosque el perro te la trae al fairway sin multa. Tarda: el reloj corre.' },
+  Mugre: { id: 'panchitos', nombre: 'Tirar panchos', texto: 'A la Mugre los monos la huelen de lejos y vienen más. Pero tiene 3 panchos por hoyo: se los tirás, van, comen un segundo y vuelven.' },
+  Liberty: { id: 'approach', nombre: 'Si no era por el approach', texto: 'El drive sale derecho siempre. Los approach (de 30 a 100 yd del hoyo) tienen el triple de error.' },
+  LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
 }
 export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
 
@@ -51,6 +58,11 @@ export function dificultad(hcp) {
   const h = hcp ?? HCP_SIN_CARGAR
   const nivel = h < 5 ? 1 : h < 10 ? 2 : h < 15 ? 3 : h < 20 ? 4 : 5
   return { hcp: h, cargado: hcp != null, error: 0.75 + h * 0.035, distancia: 1.05 - h * 0.006, nivel, nombre: NIVELES[nivel - 1] }
+}
+/** La dificultad medida (promedio vs. par del bot de calibrar.mjs) en los mismos 5 niveles. */
+export function dificultadReal(prom) {
+  const nivel = prom < 3 ? 1 : prom < 4.6 ? 2 : prom < 5.3 ? 3 : prom < 6 ? 4 : 5
+  return { nivel, nombre: NIVELES[nivel - 1], prom }
 }
 // la comba de Rodal: cuánto se cierra la curva (grados entre la salida y dónde cae) y qué parte del error lateral le queda
 export const COMBA = { angulo: 30, error: 0.5 }
@@ -75,6 +87,12 @@ export const BOMBA = { carry: 330, zona: 250, perfecta: 0.93, periodo: 0.9, angP
 // Mati (El Sueco): sin error de dirección; su drive vuela hasta `carryDrive` (con el rodaje, unas 280 yd)
 export const DERECHO = { carryDrive: 255 }
 export const AGUILA = { amplitud: 25, periodo: 0.7, ventana: 5, chip: 40, alLado: 0.7, metida: 4 }
+// Lechu: dada hasta `dada` yardas. El Perro: tarda `segundos` en traerla. Liberty: approach entre `desde` y `hasta` yd, error x`error`.
+export const DADA = 1.5
+export const PERRO = { segundos: 4 }
+// Mugre: los monos lo huelen desde `alerta` yd; `panchos` por hoyo; los tira a `tiro` yd (para el lado de los monos) y comen `comer` s
+export const MUGRE = { alerta: 90, panchos: 3, tiro: 26, comer: 1 }
+export const APPROACH = { desde: 30, hasta: 100, error: 3 }
 
 // Los tres hoyos del dibujo (posiciones en yardas = píxeles / 4): 15 sube, 16 baja, 17 sube.
 // tee = la marca blanca (en el 17, la roja); calle = eje del fairway; monos = de árboles a árboles.
@@ -223,6 +241,14 @@ export function moverMonos(monos, dt, pelota) {
   let llego = null
   for (const s of monos) {
     if (s.modo === 'caza') {
+      if (s.pancho) {
+        // la Mugre le tiró un pancho: va, se lo come y después vuelve a la pelota (más rápido)
+        if (caminar(s, s.pancho, MONO.velCaza, dt)) {
+          s.comiendo -= dt
+          if (s.comiendo <= 0) { s.pancho = null; s.velCaza = MONO.velCaza }
+        }
+        continue
+      }
       if (!pelota) continue
       if (s.reaccion > 0) { s.reaccion -= dt; continue }
       caminar(s, pelota, s.velCaza, dt)
@@ -238,10 +264,10 @@ export function moverMonos(monos, dt, pelota) {
   return llego
 }
 /** La pelota quedó quieta: los monos que están cerca salen a buscarla. Devuelve cuántos. */
-export function despertarMonos(monos, pelota) {
+export function despertarMonos(monos, pelota, alerta = MONO.alerta) {
   let n = 0
   for (const s of monos) {
-    if (dist(s.pos, pelota) > MONO.alerta) continue
+    if (dist(s.pos, pelota) > alerta) continue
     if (s.modo !== 'caza') {
       s.modo = 'caza'
       s.reaccion = MONO.reaccion
@@ -254,7 +280,32 @@ export function despertarMonos(monos, pelota) {
 }
 /** Se pegó (o terminó el hoyo): los que cazaban vuelven a su recorrido. */
 export function calmarMonos(monos) {
-  for (const s of monos) if (s.modo === 'caza') { s.modo = 'ronda'; s.espera = 0 }
+  for (const s of monos) if (s.modo === 'caza') { s.modo = 'ronda'; s.espera = 0; s.pancho = null }
+}
+
+/** La alerta de los monos para este jugador (a la Mugre la huelen de más lejos). */
+export const alertaDe = (r) => (habilidadDe(r.jugador)?.id === 'panchitos' ? MUGRE.alerta : MONO.alerta)
+
+/**
+ * La Mugre tira un pancho: cae del lado de donde vienen los monos (más allá de ellos) y todos los que la están
+ * cazando van a comerlo. Devuelve dónde cayó, o null si no quedan panchos o no viene ningún mono.
+ */
+export function tirarPancho(r) {
+  const cazan = r.monos.filter((s) => s.modo === 'caza' && !s.pancho)
+  if (!r.panchos || !cazan.length) return null
+  let dx = 0, dy = 0, lejos = 0
+  for (const s of cazan) {
+    const d = dist(s.pos, r.pelota) || 1
+    dx += (s.pos[0] - r.pelota[0]) / d
+    dy += (s.pos[1] - r.pelota[1]) / d
+    lejos = Math.max(lejos, d)
+  }
+  const n = Math.hypot(dx, dy) || 1
+  const a = Math.max(MUGRE.tiro, lejos + 10)
+  const pos = [r.pelota[0] + (dx / n) * a, r.pelota[1] + (dy / n) * a]
+  for (const s of cazan) { s.pancho = [...pos]; s.comiendo = MUGRE.comer; s.reaccion = 0 }
+  r.panchos -= 1
+  return pos
 }
 
 // ── tiro ────────────────────────────────────────────────────────────────
@@ -285,7 +336,7 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
     // el putt del Mago dobla hacia el hoyo: apuntando a la derecha del hoyo gira a la izquierda, y al revés
     const pin = hoyoActual(r).pin
     const giro = hab?.id === 'comba' ? (difAng(angulo, Math.atan2(pin[1] - b[1], pin[0] - b[0])) >= 0 ? -1 : 1) * PUTT_MAGO.giro : 0
-    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: dif.error, recto: hab?.id === 'derecho', giro }
+    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: dif.error, recto: hab?.id === 'derecho' || !!r.calma, giro }
   }
   const tee = r.lie === 'tee'
   const plan = planBase(angulo, potencia, r.lie)
@@ -298,6 +349,17 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
     plan.perfecta = q >= BOMBA.perfecta
     const grados = plan.perfecta ? BOMBA.angPerfecta : BOMBA.angBase + BOMBA.angMala * (1 - q)
     plan.disp = { ang: ((grados * Math.PI) / 180) * dif.error, carry: (plan.perfecta ? 0.02 : 0.05 + 0.15 * (1 - q)) * dif.error, fondo: false }
+  }
+  if (hab?.id === 'approach') {
+    // Liberty: el drive, perfecto; el approach, una tragedia
+    const d = dist(b, hoyoActual(r).pin)
+    if (tee) plan.disp = { ...plan.disp, ang: 0, carry: plan.disp.carry * 0.5 }
+    else if (d >= APPROACH.desde && d <= APPROACH.hasta) { plan.disp = { ...plan.disp, ang: plan.disp.ang * APPROACH.error, carry: plan.disp.carry * APPROACH.error }; plan.approach = true }
+  }
+  if (r.calma) {
+    // LG no se enoja: después de un mal tiro, este sale sin error
+    plan.disp = { ...plan.disp, ang: 0, carry: 0 }
+    plan.calma = true
   }
   if (hab?.id === 'derecho') {
     plan.disp = { ...plan.disp, ang: 0 } // siempre derecho
@@ -375,6 +437,8 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     perfecta: !!p.perfecta,
     comba: !!p.comba,
     golpe: p.golpe ?? null,
+    approach: !!p.approach,
+    liberty: lie === 'tee' && !p.putt,
     rasante: !!p.rasante,
     rueda: p.rueda ?? 1,
     derecha: !!p.aguila?.enVentana,
@@ -467,7 +531,7 @@ export function avanzar(campo, tiro, dt, pin) {
       const v = Math.sqrt(2 * FISICA.roce.green * d) + (tiro.iman.meter ? 0.1 : 0)
       tiro.v = [((meta[0] - tiro.pos[0]) / (d || 1)) * v, ((meta[1] - tiro.pos[1]) / (d || 1)) * v]
     }
-  } else if (ter.tipo === 'green') {
+  } else if (ter.tipo === 'green' && !tiro.greenPlano) {
     const h = campo.hoyos.find((x) => x.n === ter.hoyo)
     tiro.v = [tiro.v[0] + h.caida[0] * dt, tiro.v[1] + h.caida[1] * dt]
   }
@@ -554,6 +618,7 @@ export function nuevaRonda(jugador, rng) {
     robos: 0,
     monos: crearMonos(),
     golpeMago: null, // el golpe que le toca al Mago en el próximo tiro
+    panchos: habilidadDe(jugador)?.id === 'panchitos' ? MUGRE.panchos : 0,
     t0: null, // performance.now() de la largada (lo pone la página)
     ms: null, // el tiempo de la vuelta: de la largada al último putt
     terminada: false,
@@ -578,6 +643,10 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   calmarMonos(r.monos)
   const tiro = lanzar(campo, { pelota: r.pelota, angulo, potencia, viento: r.viento, putt: plan.putt, lie: r.lie, rng, plan })
   tiro.monos = r.monos
+  const hab = habilidadDe(r.jugador)
+  tiro.greenPlano = hab?.id === 'perro'
+  tiro.calma = !!r.calma
+  r.calma = false
   if (r.golpeMago && !plan.putt) r.golpeMago = sortearGolpeMago(rng, r.golpeMago) // el próximo, otro efecto
   return tiro
 }
@@ -641,6 +710,14 @@ export function dropMono(campo, p, pin) {
  * Suma penalidades y mueve la pelota de la ronda.
  */
 export function resolverReposo(campo, r, tiro, rng) {
+  const res = resolver(campo, r, tiro, rng)
+  // LG: si fue un mal tiro, el próximo sale sin error
+  if (habilidadDe(r.jugador)?.id === 'calma') r.calma = esMalo(res, tiro)
+  return res
+}
+const esMalo = (res, tiro) => ['afuera', 'mono-malo', 'mono-ladron'].includes(res.tipo) || ['rough', 'bunker'].includes(res.terreno) || tiro.eventos.some((e) => e.tipo === 'palo')
+
+function resolver(campo, r, tiro, rng) {
   const hoyo = hoyoActual(r)
   if (tiro.embocada) return { tipo: 'embocada' }
   if (tiro.robada) {
@@ -659,6 +736,12 @@ export function resolverReposo(campo, r, tiro, rng) {
     r.pelota = [...r.desde]
     r.lie = r.lieDesde
     return { tipo: 'afuera' }
+  }
+  if (ter.tipo === 'bosque' && habilidadDe(r.jugador)?.id === 'perro') {
+    // el perro va a buscarla y la trae al fairway, sin multa
+    r.pelota = puntoEnCalle(hoyo, tiro.pos)
+    r.lie = terreno(campo, r.pelota).tipo
+    return { tipo: 'perro', desde: [...tiro.pos] }
   }
   if (ter.tipo === 'bosque') {
     if (rng() < CHANCE_MONO_BUENO) {
@@ -680,6 +763,38 @@ export function resolverReposo(campo, r, tiro, rng) {
 }
 
 export const necesitaLP = (r) => r.golpes >= MAX_GOLPES
+
+/** Lechu: en el green, a menos de DADA yardas del hoyo, es dada. */
+export const esDada = (campo, r) => habilidadDe(r.jugador)?.id === 'dadas' && enModoPutt(campo, r) && dist(r.pelota, hoyoActual(r).pin) <= DADA
+/** La dada: cuenta el golpe y la pelota entra. */
+export function darDada(r) {
+  r.golpes += 1
+  r.pelota = [...hoyoActual(r).pin]
+}
+
+/** El Ninja: el primer LP de la vuelta no la pierde (+1 y drop en el fairway). */
+export const tieneLPNinja = (r) => habilidadDe(r.jugador)?.id === 'tradicion' && !r.lpNinja
+export function lpNinja(campo, r) {
+  const h = hoyoActual(r)
+  calmarMonos(r.monos)
+  r.lpNinja = h.n
+  r.golpes += 1
+  // al fairway del hoyo: el punto de la calle más cerca de la pelota que no quede más cerca de la bandera
+  const dp = dist(r.pelota, h.pin)
+  let mejor = null
+  for (let i = 0; i < h.calle.length - 1; i++) {
+    for (let k = 0; k <= 20; k++) {
+      const [a, b] = [h.calle[i], h.calle[i + 1]]
+      const q = [a[0] + ((b[0] - a[0]) * k) / 20, a[1] + ((b[1] - a[1]) * k) / 20]
+      if (dist(q, h.pin) < dp - 1) continue
+      if (!mejor || dist(q, r.pelota) < dist(mejor, r.pelota)) mejor = q
+    }
+  }
+  // si toda la calle queda más cerca (por ejemplo, desde el tee), se dropea ahí mismo
+  if (mejor) r.pelota = mejor
+  r.lie = terreno(campo, r.pelota).tipo
+  return h.n
+}
 
 /** LP: levantar la pelota es perder la vuelta entera. Este hoyo y los que faltan quedan LP. */
 export function levantar(r) {
@@ -708,6 +823,7 @@ export function cerrarHoyo(r, rng) {
     r.lie = 'tee'
     r.lieDesde = 'tee'
     r.viento = vientoAleatorio(rng)
+    if (r.panchos || habilidadDe(r.jugador)?.id === 'panchitos') r.panchos = MUGRE.panchos
   }
   return fila
 }
@@ -779,6 +895,15 @@ export const RELATO = {
   monoLadron: ['¡LE PEGASTE A UN MONO! Se la llevó. +1', 'Un mono se la robó al vuelo. +1', 'Mono ladrón. +1 y dropeá ahí'],
   lp: ['Entraste en la lista LP 💅'],
   putt: ['Uff, le faltó', 'Casi', 'Se pasó. Uff'],
+  dada: ['Dada. Contando todas las dadas', 'La Lechuza no patea esas', 'Dada, como corresponde al campeón'],
+  ninjaLP: ['Manteniendo viva la tradición de un LP por finde', 'El Ninja levantó. Tradición Dicky', 'LP de Ninja: +1 y a seguir'],
+  perro: ['¡El perro la trajo! Al fairway, sin multa', 'Buen perro. La vida no es mucho más que esto', 'Perrolo fue a buscarla'],
+  approach: ['Si no era por el approach ganaba', 'Los wedges ya van a funcionar', 'El approach, otra vez'],
+  liberty: ['Drive de Liberty: al medio, como siempre', 'Ese drive no lo pega nadie'],
+  calma: ['LG no se enoja: el que se enoja pierde', 'LG respira. Ahora sale derecha', 'Tranquilo LG, el que se enoja pierde'],
+  lgSolo: ['LG la pega como LG', 'Con el ESDIGIA esto no pasa', 'LG relata a LG: Tremendo', 'QUE HOMBRE LG'],
+  mugre: ['Lurrrrrrpin', 'Lurrrrpin. Hermoso'],
+  pancho: ['¡Pancho! Los monos van a comer', 'Pagamos los terceros tiempos', 'Panchito para el mono. Lurrrrpin'],
 }
 export const VERSOS_BOSQUE = [
   'Los árboles te miran, te rodean en silencio',
@@ -845,14 +970,21 @@ export function comentar(rng, res, tiro, hoyo, jugador) {
       : ['rough', 'bunker'].includes(res.terreno) || tiro.eventos.some((e) => e.tipo === 'palo') ? ADULACION.malo : ADULACION.bueno
     return { lg: elegir(rng, pool), excusa: null, verso: null }
   }
-  const malo = ['afuera', 'mono-malo', 'mono-ladron'].includes(res.tipo) || ['rough', 'bunker'].includes(res.terreno) || tiro.eventos.some((e) => e.tipo === 'palo')
-  const excusa = malo && rng() < 0.6 ? elegir(rng, EXCUSAS) : null
+  const hab = habilidadDe(jugador)
+  const malo = esMalo(res, tiro)
+  // LG no pone excusas: el que se enoja pierde
+  const excusa = malo && res.tipo !== 'perro' && hab?.id !== 'calma' && rng() < 0.6 ? elegir(rng, EXCUSAS) : null
   const palo = tiro.eventos.some((e) => e.tipo === 'palo')
   let lg
   if (res.tipo === 'afuera') lg = elegir(rng, RELATO.afuera)
   else if (res.tipo === 'mono-malo') lg = elegir(rng, RELATO.monoMalo)
   else if (res.tipo === 'mono-bueno') lg = elegir(rng, RELATO.monoBueno)
   else if (res.tipo === 'mono-ladron') lg = elegir(rng, RELATO.monoLadron)
+  else if (res.tipo === 'perro') lg = elegir(rng, RELATO.perro)
+  else if (hab?.id === 'calma' && malo) lg = elegir(rng, RELATO.calma)
+  else if (tiro.approach && ['rough', 'bunker'].includes(res.terreno)) lg = elegir(rng, RELATO.approach)
+  else if (hab?.id === 'approach' && tiro.liberty && res.terreno === 'fairway') lg = elegir(rng, RELATO.liberty)
+  else if (hab?.id === 'calma' && ['fairway', 'green'].includes(res.terreno) && rng() < 0.5) lg = elegir(rng, RELATO.lgSolo)
   else if (res.tipo === 'embocada') lg = null // lo dice el resultado del hoyo
   else if (palo) lg = elegir(rng, RELATO.palo)
   else if (tiro.labio) lg = elegir(rng, RELATO.labio)
@@ -865,7 +997,7 @@ export function comentar(rng, res, tiro, hoyo, jugador) {
   else if (res.terreno === 'rough') lg = elegir(rng, RELATO.rough)
   else if (res.terreno === 'green') lg = elegir(rng, RELATO.green)
   else lg = elegir(rng, tiro.carry > 200 ? RELATO.bomba : RELATO.fairway)
-  const verso = res.tipo.startsWith('mono') ? elegir(rng, VERSOS_BOSQUE) : null
+  const verso = res.tipo.startsWith('mono') || res.tipo === 'perro' ? elegir(rng, VERSOS_BOSQUE) : null
   return { lg, excusa, verso }
 }
 

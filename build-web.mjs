@@ -13,7 +13,7 @@ const html = `<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#14402a">
 <meta name="description" content="La Trampa del Mono: los hoyos 15, 16 y 17 de San Diego, con los monos y el plantel del SDGA.">
 <meta name="apple-mobile-web-app-capable" content="yes">

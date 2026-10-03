@@ -489,4 +489,107 @@ ok('ranking: menos golpes arriba; a igual golpes, el más rápido al milisegundo
   assert.equal(M.marcaDe(r, 'Rorro'), null) // LP no entra al ranking
 })
 
+
+ok('Lechu: contando todas las dadas (a 1,5 yd o menos)', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'Lechu', emoji: '🦉' }, fijo(0.5)), monos: [] }
+  r.pelota = [h15.pin[0], h15.pin[1] + 1.4]
+  r.lie = 'green'
+  r.golpes = 2
+  assert.ok(M.esDada(campo, r))
+  M.darDada(r)
+  assert.equal(r.golpes, 3)
+  assert.deepEqual(r.pelota, h15.pin)
+  r.pelota = [h15.pin[0], h15.pin[1] + 2]
+  assert.ok(!M.esDada(campo, r))
+  assert.ok(!M.esDada(campo, { ...r, jugador: { apodo: 'Rorro' }, pelota: [h15.pin[0], h15.pin[1] + 1] }))
+})
+
+ok('El Ninja: el primer LP no pierde la vuelta (+1 y al fairway, no más cerca)', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'El Ninja (Đ)', emoji: '🥷' }, fijo(0.5)), monos: [] }
+  r.pelota = [...enArbol]
+  r.lie = 'bosque'
+  r.golpes = 2
+  const antes = M.dist(r.pelota, M.hoyoActual(r).pin)
+  assert.ok(M.tieneLPNinja(r))
+  M.lpNinja(campo, r)
+  assert.equal(r.golpes, 3)
+  assert.ok(!r.terminada)
+  assert.ok(['fairway', 'rough', 'tee'].includes(r.lie))
+  assert.ok(M.dist(r.pelota, M.hoyoActual(r).pin) >= antes - 1)
+  assert.ok(!M.tieneLPNinja(r)) // el segundo, sí pierde la vuelta
+  // desde el tee no adelanta nada
+  const t = { ...M.nuevaRonda({ apodo: 'El Ninja (Đ)', emoji: '🥷' }, fijo(0.5)), monos: [] }
+  M.lpNinja(campo, t)
+  assert.deepEqual(t.pelota, h15.tee)
+  assert.ok(!M.tieneLPNinja(M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5))))
+})
+
+ok('El Perro: greens sin caída y el perro la trae del bosque sin multa', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'El Perro', emoji: '🐕' }, fijo(0.5)), monos: [], viento: calma }
+  r.golpes = 2
+  const res = M.resolverReposo(campo, r, { pos: [...enArbol], eventos: [] }, fijo(0.99))
+  assert.equal(res.tipo, 'perro')
+  assert.equal(r.golpes, 2)
+  assert.notEqual(r.lie, 'bosque')
+  // el putt de costado que con caída se va, con el Perro va derecho
+  r.pelota = [h15.pin[0], h15.pin[1] + 8]
+  r.lie = 'green'
+  const otro = { ...r, jugador: { apodo: 'Rorro' }, pelota: [...r.pelota] }
+  const tiro = M.simular(quieto, M.golpear(quieto, r, angulo(r.pelota, h15.pin), 0.2, sinRuido()), h15.pin) // se queda corto
+  const conCaida = M.simular(quieto, M.golpear(quieto, otro, angulo(otro.pelota, h15.pin), 0.2, sinRuido()), h15.pin)
+  assert.ok(tiro.greenPlano && Math.abs(tiro.pos[0] - h15.pin[0]) < 0.01)
+  assert.ok(Math.abs(conCaida.pos[0] - h15.pin[0]) > 0.3)
+})
+
+ok('Mugre: los monos la huelen de lejos; un pancho los distrae un segundo y vuelven', () => {
+  const r = M.nuevaRonda({ apodo: 'Mugre', emoji: '💩' }, fijo(0.5))
+  assert.equal(r.panchos, M.MUGRE.panchos)
+  assert.equal(M.alertaDe(r), M.MUGRE.alerta)
+  // un mono a 80 yd: a cualquiera no lo ve, a la Mugre sí
+  r.pelota = [...h15.calle[2]]
+  const s = r.monos[0]
+  s.pos = [r.pelota[0] + 80, r.pelota[1]]
+  assert.equal(M.despertarMonos([{ ...s, pos: [...s.pos] }], r.pelota), 0)
+  assert.equal(M.despertarMonos(r.monos, r.pelota, M.alertaDe(r)) >= 1, true)
+  // tira un pancho: cae del lado del mono, más allá; el mono va, come y vuelve
+  const pos = M.tirarPancho(r)
+  assert.ok(pos && pos[0] > s.pos[0] - 1 && r.panchos === M.MUGRE.panchos - 1)
+  const d0 = M.dist(s.pos, r.pelota)
+  for (let i = 0; i < 60; i++) M.moverMonos(r.monos, 1 / 30, r.pelota)
+  assert.ok(M.dist(s.pos, r.pelota) > d0, 'se alejó de la pelota para comer')
+  for (let i = 0; i < 400 && s.pancho; i++) M.moverMonos(r.monos, 1 / 30, r.pelota)
+  assert.equal(s.pancho, null)
+  let llego = null
+  for (let i = 0; i < 900 && !llego; i++) llego = M.moverMonos(r.monos, 1 / 30, r.pelota)
+  assert.ok(llego, 'después de comer vuelve por la pelota')
+  // sin panchos o sin monos cazando, no tira
+  r.panchos = 0
+  assert.equal(M.tirarPancho(r), null)
+  assert.equal(M.tirarPancho({ ...M.nuevaRonda({ apodo: 'Mugre' }, fijo(0.5)) }), null)
+})
+
+ok('Liberty: drive derecho; approach con el triple de error', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'Liberty', emoji: '🗽' }, fijo(0.5)), monos: [] }
+  assert.equal(M.planTiro(quieto, r, angulo(h15.tee, h15.pin), 0.8).disp.ang, 0)
+  r.pelota = [h15.pin[0], h15.pin[1] + 60]
+  r.lie = 'fairway'
+  const otro = { ...r, jugador: { apodo: 'Rorro' } }
+  const a = M.planTiro(quieto, r, -Math.PI / 2, 0.3)
+  const b = M.planTiro(quieto, otro, -Math.PI / 2, 0.3)
+  assert.ok(a.approach && Math.abs(a.disp.ang / b.disp.ang - M.APPROACH.error) < 0.01)
+})
+
+ok('LG: después de un mal tiro no se enoja y el próximo sale sin error', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'LG', emoji: '📺', hcp: 11.1 }, fijo(0.5)), monos: [] }
+  r.pelota = [...h15.calle[2]]
+  r.lie = 'fairway'
+  M.resolverReposo(campo, r, { pos: [...buscar('.', [0, 150, 219, 300])], eventos: [] }, fijo(0.5)) // al rough
+  assert.ok(r.calma)
+  assert.equal(M.planTiro(quieto, r, -Math.PI / 2, 0.5).disp.ang, 0)
+  M.golpear(quieto, r, -Math.PI / 2, 0.5, sinRuido())
+  assert.ok(!r.calma) // dura un solo golpe
+  const dicho = M.comentar(fijo(0.1), { tipo: 'normal', terreno: 'rough' }, { eventos: [], modo: 'full', carry: 100, pos: [0, 0] }, h15, { apodo: 'LG' })
+  assert.ok(M.RELATO.calma.includes(dicho.lg) && dicho.excusa === null)
+})
+
 console.log('\nTodo verde.')
