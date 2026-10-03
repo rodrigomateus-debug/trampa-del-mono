@@ -576,8 +576,6 @@ let W = 0, H = 0, dpr = 1
 
 let estado = 'portada' // portada | elegir | intro | apuntar | tiro | anim | resultado | fin
 let ronda = null, tiro = null, anim = null, drag = null
-// el jugador (su emoji) camina de pelota a pelota
-const caminante = { pos: null, paso: 0 }
 let estela = []
 const cam = { cx: M.MUNDO.w / 2, cy: M.MUNDO.h / 2, esc: 1, rot: 0, sy: 300 }
 let obj = { ...cam }
@@ -750,7 +748,6 @@ function actualizar(dt) {
     const llego = M.moverMonos(ronda.monos, dt, estado === 'apuntar' ? ronda.pelota : null)
     if (llego && estado === 'apuntar') llegaronMonos(llego)
   }
-  moverCaminante(dt)
   moverRafagas(dt)
   zoomApunte()
   // si el tiro se cortó (llegaron los monos, LP, etc.), los botones vuelven
@@ -768,44 +765,6 @@ function actualizar(dt) {
   cam.esc += (obj.esc - cam.esc) * k
   cam.sy += (obj.sy - cam.sy) * k
   cam.rot += difAng(obj.rot, cam.rot) * k
-}
-
-/** El emoji del jugador va caminando hasta la pelota (mientras vuela, se queda donde pegó). */
-function moverCaminante(dt) {
-  if (!ronda || ronda.terminada) return
-  const meta = estado === 'tiro' ? null : ronda.pelota
-  if (!caminante.pos) caminante.pos = [...ronda.pelota]
-  if (!meta) return
-  const d = M.dist(caminante.pos, meta)
-  if (d < 0.05) { caminante.paso = 0; return }
-  const vel = Math.max(25, d / 1.1) // llega en algo más de un segundo, camine lo que camine
-  const k = Math.min(1, (vel * dt) / d)
-  caminante.pos = [caminante.pos[0] + (meta[0] - caminante.pos[0]) * k, caminante.pos[1] + (meta[1] - caminante.pos[1]) * k]
-  caminante.paso += dt
-}
-function dibujarCaminante() {
-  if (!ronda || ronda.terminada || !caminante.pos) return
-  const [x, y] = w2s(caminante.pos)
-  const tam = Math.max(22, Math.min(34, cam.esc * 3))
-  const camina = M.dist(caminante.pos, ronda.pelota) > 0.3 && estado !== 'tiro'
-  const salto = camina ? Math.abs(Math.sin(caminante.paso * 13)) * 5 : 0
-  const ladeo = camina ? Math.sin(caminante.paso * 13) * 0.15 : 0
-  // al costado de la pelota, como parado para pegar
-  const cx = x - tam * 0.75, cy = y - tam * 0.25 - salto
-  ctx.save()
-  ctx.globalAlpha = 0.3
-  ctx.fillStyle = '#000'
-  ctx.beginPath()
-  ctx.ellipse(x - tam * 0.75, y + tam * 0.3, tam * 0.32, tam * 0.12, 0, 0, 7)
-  ctx.fill()
-  ctx.globalAlpha = 1
-  ctx.translate(cx, cy)
-  ctx.rotate(ladeo)
-  ctx.font = `${tam}px ${EMOJI}`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(ronda.jugador.emoji, 0, 0)
-  ctx.restore()
 }
 
 function alReposo() {
@@ -932,7 +891,6 @@ function empezar(jugador) {
 function introHoyo() {
   const h = M.hoyoActual(ronda)
   pancho = null
-  caminante.pos = [...h.tee]
   estado = 'intro'
   tiro = null
   estela = []
@@ -1071,7 +1029,9 @@ function hud() {
   $('#h-num').textContent = `HOYO ${h.n}`
   $('#h-par').textContent = `PAR ${h.par}`
   $('#h-golpe').textContent = `Golpe ${ronda.golpes + (estado === 'tiro' ? 0 : 1)}`
-  $('#h-dist').textContent = `${Math.round(M.dist(ronda.pelota, h.pin))} yd al pin`
+  const alPin = M.dist(ronda.pelota, h.pin)
+  // cerca del hoyo, con decimales: nunca "0 yd" con la pelota afuera
+  $('#h-dist').textContent = alPin < 1 ? `${Math.round(alPin * 91)} cm al hoyo` : alPin < 10 ? `${alPin.toFixed(1).replace('.', ',')} yd al pin` : `${Math.round(alPin)} yd al pin`
   const ter = M.terreno(campo, ronda.pelota)
   const ajeno = ter.hoyo && ter.hoyo !== h.n && ter.tipo !== 'tee' ? ` · DEL ${ter.hoyo}` : ''
   $('#lie').textContent = (ter.tipo === 'green' && ajeno ? 'GREEN' : LIES[ronda.lie] ?? ronda.lie.toUpperCase()) + ajeno
@@ -1195,11 +1155,10 @@ function dibujar() {
   dibujarRafagas()
   dibujarPancho()
   dibujarMonos()
-  dibujarCaminante()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
     else if (tiro) pelota(tiro.pos, tiro.alt)
-    else pelota(ronda.pelota, 0)
+    else pelotaQuieta()
   }
   const a = estado === 'apuntar' ? apunte() : null
   if (a) dibujarApunte(a)
@@ -1291,6 +1250,68 @@ function dibujarGuia() {
 const levante = () => Math.min(cam.esc * 0.5, 2.2)
 const tamMono = () => Math.max(22, Math.min(36, cam.esc * 3.4))
 
+/** La parte de la pantalla donde se ve la cancha (sin el marcador de arriba). */
+function visible() {
+  const card = $('#hud-top .card')
+  const y0 = card && !$('#hud-top').hidden ? card.getBoundingClientRect().bottom + 10 : 16
+  return { x0: 16, x1: W - 16, y0, y1: H - 16 }
+}
+// verde (lejos) → amarillo → naranja → rojo (encima)
+const SEMAFORO = [[188, 75, 60], [232, 137, 47], [232, 195, 74], [46, 125, 79]]
+function colorDistancia(d, lejos) {
+  const t = Math.max(0, Math.min(1, (d - 6) / (lejos - 6))) * (SEMAFORO.length - 1)
+  const i = Math.min(SEMAFORO.length - 2, Math.floor(t)), f = t - i
+  const c = SEMAFORO[i].map((a, k) => Math.round(a + (SEMAFORO[i + 1][k] - a) * f))
+  return `rgb(${c[0]},${c[1]},${c[2]})`
+}
+/**
+ * Un mono que viene a buscar la pelota y está fuera de la pantalla: en el borde, sobre la línea pelota → mono,
+ * un círculo con el 🐒 y una flecha para el lado de donde viene. El color va de verde a rojo según cuánto le falta.
+ */
+function indicadorMono(s, mx, my, v) {
+  const [bx, by] = w2s(ronda.pelota)
+  const dx = mx - bx, dy = my - by
+  // dónde corta la línea al rectángulo visible (con margen para el círculo)
+  const m = 26
+  let k = Infinity
+  if (dx > 0) k = Math.min(k, (v.x1 - m - bx) / dx)
+  if (dx < 0) k = Math.min(k, (v.x0 + m - bx) / dx)
+  if (dy > 0) k = Math.min(k, (v.y1 - m - by) / dy)
+  if (dy < 0) k = Math.min(k, (v.y0 + m - by) / dy)
+  if (!isFinite(k) || k <= 0) return
+  const x = bx + dx * k, y = by + dy * k
+  const d = M.dist(s.pos, ronda.pelota)
+  const color = colorDistancia(d, M.alertaDe(ronda))
+  const cerca = d < 20
+  const late = cerca ? 1 + Math.abs(Math.sin(performance.now() / 120)) * 0.15 : 1
+  const ang = Math.atan2(dy, dx)
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.scale(late, late)
+  // flecha hacia el mono
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(Math.cos(ang) * 30, Math.sin(ang) * 30)
+  ctx.lineTo(Math.cos(ang + 0.5) * 18, Math.sin(ang + 0.5) * 18)
+  ctx.lineTo(Math.cos(ang - 0.5) * 18, Math.sin(ang - 0.5) * 18)
+  ctx.closePath()
+  ctx.fill()
+  ctx.beginPath()
+  ctx.arc(0, 0, 19, 0, 7)
+  ctx.fill()
+  ctx.lineWidth = 2.5
+  ctx.strokeStyle = 'rgba(244,238,218,.9)'
+  ctx.stroke()
+  ctx.font = `18px ${EMOJI}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('🐒', 0, 1)
+  // cuántas yardas le faltan
+  ctx.font = '12px Anton, "Arial Narrow", sans-serif'
+  ctx.fillStyle = C.cream
+  ctx.fillText(`${Math.round(d)} YD`, -Math.cos(ang) * 32, -Math.sin(ang) * 32)
+  ctx.restore()
+}
 function dibujarMonos() {
   if (!ronda) return
   const tam = tamMono()
@@ -1301,18 +1322,10 @@ function dibujarMonos() {
     let [x, y] = w2s(s.pos)
     const activo = M.monoActivo(s)
     const salta = activo && !(s.modo === 'caza' && s.reaccion > 0) ? Math.abs(Math.sin(ahora * 12 + s.m.fase)) * 4 : 0
-    const afuera = x < 16 || x > W - 16 || y < 16 || y > H - 16
+    const v = visible()
+    const afuera = x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1
     if (afuera) {
-      if (s.modo !== 'caza') continue
-      // un mono que viene y no se ve: marca en el borde
-      x = Math.max(26, Math.min(W - 26, x))
-      y = Math.max(26, Math.min(H - 26, y))
-      ctx.fillStyle = C.red
-      ctx.beginPath()
-      ctx.arc(x, y, 17, 0, 7)
-      ctx.fill()
-      ctx.font = `18px ${EMOJI}`
-      ctx.fillText('🐒', x, y + 1)
+      if (s.modo === 'caza') indicadorMono(s, x, y, v) // viene y no se ve: marca en el borde
       continue
     }
     ctx.globalAlpha = activo ? 1 : 0.5 // esperando entre los pinos se ve a medias
@@ -1371,8 +1384,33 @@ function bandera([x, y], n, actual) {
   ctx.globalAlpha = 1
 }
 
-function pelota(p, alt, alfa = 1) {
-  const [x, y] = w2s(p)
+/**
+ * La pelota quieta. El hoyo se dibuja más grande que el real (y la pelota también), así que una pelota a 30 cm se
+ * vería adentro: si quedó cerca sin entrar, se dibuja apoyada en el borde, claramente afuera, con un aro rojo.
+ */
+function pelotaQuieta() {
+  const pin = M.hoyoActual(ronda).pin
+  const d = M.dist(ronda.pelota, pin)
+  const [hx, hy] = w2s(pin)
+  const [px, py] = w2s(ronda.pelota)
+  const rHoyo = Math.max(M.FISICA.radioHoyo * 3 * cam.esc, 5.4)
+  const rPelota = Math.max(3.2, Math.min(6, cam.esc * 0.42))
+  const enPantalla = Math.hypot(px - hx, py - hy)
+  const borde = rHoyo + rPelota + 2
+  if (enPantalla >= borde || d > 3) return pelota(ronda.pelota, 0)
+  // la empuja hacia afuera, sobre la línea hoyo → pelota (si está justo encima, para abajo en la pantalla)
+  const ux = enPantalla > 0.01 ? (px - hx) / enPantalla : 0
+  const uy = enPantalla > 0.01 ? (py - hy) / enPantalla : 1
+  const x = hx + ux * borde, y = hy + uy * borde
+  pelota(ronda.pelota, 0, 1, [x, y])
+  ctx.strokeStyle = 'rgba(188,75,60,.9)'
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.arc(x, y, rPelota + 3, 0, 7)
+  ctx.stroke()
+}
+function pelota(p, alt, alfa = 1, pantalla = null) {
+  const [x, y] = pantalla ?? w2s(p)
   const r = Math.max(3.2, Math.min(6, cam.esc * 0.42)) * (1 + alt / 50)
   ctx.globalAlpha = alfa * 0.35
   ctx.fillStyle = '#000'
