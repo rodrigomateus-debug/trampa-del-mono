@@ -361,6 +361,13 @@ input { -webkit-user-select: text; user-select: text; }
 .tiempo-final { margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; border-top: 1px solid var(--border-subtle); padding-top: 10px; }
 .tiempo-final b { font-family: var(--font-display); font-weight: 400; font-size: 30px; font-variant-numeric: tabular-nums; }
 .rk-pos-final { margin: 0; font-weight: 800; font-size: 14px; }
+.rk-ambito { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(20, 64, 42, .1); }
+.rk-ambito[hidden] { display: none; }
+.rk-ambito button { height: 34px; border: 0; border-radius: 999px; background: transparent; color: var(--green-900); font: 800 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.rk-ambito button[aria-selected="true"] { background: var(--green-900); color: var(--cream); }
+.como-app { margin: 0; font-size: 15px; color: rgba(244, 238, 218, .85); }
+.como-app b { color: var(--gold); }
+.volver-app { border: 0; background: transparent; color: rgba(244, 238, 218, .8); font: 700 14px var(--font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px 10px; }
 .rk-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
 .rk-tab { flex: none; height: 36px; padding: 0 12px; border-radius: 999px; border: 0; background: var(--cream-dark); color: var(--green-900); font: 800 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .rk-tab .e { font-size: 18px; letter-spacing: 0; }
@@ -451,12 +458,14 @@ input { -webkit-user-select: text; user-select: text; }
   <h1>LA TRAMPA DEL MONO</h1>
   <span class="band">DONDE TODO SE VA</span>
   <p class="bajada">Mientras Gonza cierra con Nintendo los derechos del Mario Golf, jugá los tres hoyos que más tarjetas rompieron en San Diego.</p>
+  <p class="como-app" id="como-app" hidden>Jugás como <b id="como-alias"></b></p>
   <label class="quien-juega" id="quien-juega"><span class="kicker">¿Quién juega?</span><input id="usuario" type="text" maxlength="20" autocomplete="nickname" autocapitalize="words" spellcheck="false" placeholder="Tu nombre para el ranking"></label>
   <div class="portada-botones">
     <button class="btn" id="jugar" type="button">JUGAR</button>
     <button class="btn ghost" id="ver-ranking" type="button">RANKING 🏆</button>
     <button class="btn ghost" id="ver-intro" type="button">INTRO ▶</button>
   </div>
+  <button class="volver-app" id="volver-app" type="button" hidden>← Volver a la SDGApp</button>
   <span id="frase"></span>
 </section>
 
@@ -556,6 +565,10 @@ input { -webkit-user-select: text; user-select: text; }
       <span class="teja" id="rk-teja">🏆</span>
       <div><span class="kicker" style="color: var(--text-muted)">Ranking · golpes, después tiempo</span><div class="quien" id="rk-tit">GENERAL</div></div>
     </header>
+    <div class="rk-ambito" id="rk-ambito" role="tablist" aria-label="Qué ranking" hidden>
+      <button type="button" role="tab" data-ambito="mundial" aria-selected="true">🌎 Mundial</button>
+      <button type="button" role="tab" data-ambito="sdga" aria-selected="false">⛳ SDGA</button>
+    </div>
     <div class="rk-tabs" id="rk-tabs" role="tablist" aria-label="Ranking"></div>
     <ol class="rk-lista" id="rk-lista"></ol>
     <p class="extras" id="rk-fuente"></p>
@@ -1972,21 +1985,25 @@ let posRanking = null
 async function anotarVuelta() {
   const marca = M.marcaDe(ronda, datos.usuario)
   if (!marca || !marca.usuario) return
+  if (R.puente.activo) marca.uid = R.puente.identidad.uid
   const jugador = ronda.jugador
   await R.anotar(marca)
   const { marcas } = await R.leerMarcas()
-  const yo = marca.usuario.toLowerCase()
-  const general = M.armarRanking(marcas).find((m) => m.usuario.trim().toLowerCase() === yo)
-  const conEl = M.armarRanking(marcas, jugador.apodo).find((m) => m.usuario.trim().toLowerCase() === yo)
+  const general = M.armarRanking(marcas).find(esYo)
+  const conEl = M.armarRanking(marcas, jugador.apodo).find(esYo)
   if (!general || !conEl || ronda?.jugador !== jugador || estado !== 'fin') return
   const nueva = conEl.golpes === marca.golpes && conEl.ms === marca.ms
   posRanking = { general: general.pos, conEl: conEl.pos, nueva }
   resumenListo = null // se rehace con el puesto
-  $('#t-ranking').textContent = `🏆 ${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el general · ${conEl.pos}° con ${jugador.emoji}`
+  $('#t-ranking').textContent = `🏆 ${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el ${R.puente.activo ? 'mundial' : 'general'} · ${conEl.pos}° con ${jugador.emoji}`
   $('#t-ranking').hidden = false
 }
 
 // ── ranking: uno general (tu mejor vuelta, con el jugador que la hiciste) y uno por jugador ──
+/** ¿Es mía esta marca? En la SDGApp, por el usuario de la app; suelto, por el nombre que puse. */
+const esYo = (m) => (R.puente.activo ? m.uid === R.puente.identidad.uid : m.usuario.trim().toLowerCase() === datos.usuario.trim().toLowerCase())
+// en la SDGApp: Mundial (todos los que juegan) o SDGA (solo los socios)
+let rkAmbito = 'mundial'
 let rkTab = 'general'
 let rkMarcas = []
 let rkCompartido = false
@@ -2012,23 +2029,34 @@ function pintarRanking(error = false) {
     $('#rk-fuente').textContent = ''
     return
   }
-  const lista = M.armarRanking(rkMarcas, j ? j.apodo : null)
-  const yo = datos.usuario.trim().toLowerCase()
-  const fila = (m, salto) => `<li class="rk-fila${m.usuario.trim().toLowerCase() === yo ? ' yo' : ''}${salto ? ' salto' : ''}">
+  const app = R.puente.activo
+  $('#rk-ambito').hidden = !app
+  for (const b of $('#rk-ambito').children) b.setAttribute('aria-selected', String(b.dataset.ambito === rkAmbito))
+  const base = app && rkAmbito === 'sdga' ? rkMarcas.filter((m) => m.sdga) : rkMarcas
+  const lista = M.armarRanking(base, j ? j.apodo : null)
+  const fila = (m, salto) => `<li class="rk-fila${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}">
       <span class="rk-pos">${m.pos}</span>
       <span class="rk-quien">${j ? '' : `<span class="mini" title="${esc(m.apodo)}" aria-label="con ${esc(m.apodo)}">${m.emoji}</span>`}<b>${esc(m.usuario)}</b></span>
       <span class="rk-score">${M.formatoPar(m.vsPar)}<small>${m.golpes} golpes</small></span>
       <span class="rk-tiempo">${M.formatoTiempo(m.ms)}</span>
     </li>`
   const top = lista.slice(0, 50)
-  const mio = lista.find((m) => m.usuario.trim().toLowerCase() === yo)
+  const mio = lista.find(esYo)
   const filas = top.map((m) => fila(m, false))
   if (mio && mio.pos > top.length) filas.push(fila(mio, true))
   $('#rk-lista').innerHTML = filas.length ? filas.join('') : `<li class="rk-vacio">Todavía nadie firmó una vuelta${j ? ` con ${esc(j.apodo)}` : ''}. Sé el primero.</li>`
-  $('#rk-fuente').textContent = rkCompartido
+  $('#rk-fuente').textContent = app && rkCompartido
+    ? `${rkAmbito === 'sdga' ? 'Ranking SDGA: solo los socios del club.' : 'Ranking mundial: todos los que juegan desde la SDGApp.'} Entra cada tarjeta firmada (LP y sin firmar no cuentan).`
+    : rkCompartido
     ? 'Ranking del grupo. Entra cada tarjeta firmada (LP y sin firmar no cuentan).'
     : `${error ? 'No se pudo conectar: ' : ''}Por ahora se guarda en este teléfono. Entra cada tarjeta firmada (LP y sin firmar no cuentan).`
 }
+$('#rk-ambito').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-ambito]')
+  if (!b) return
+  rkAmbito = b.dataset.ambito
+  pintarRanking()
+})
 $('#rk-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('[data-tab]')
   if (!b) return
@@ -2266,6 +2294,17 @@ function mostrarElegir() {
   pintarMazo()
 }
 $('#usuario').value = datos.usuario
+// adentro de la SDGApp juega con su usuario de la app: no hay nombre para escribir
+R.alEntrar((yo) => {
+  datos.usuario = yo.alias
+  $('#usuario').value = yo.alias
+  $('#quien-juega').hidden = true
+  $('#como-alias').textContent = yo.alias
+  $('#como-app').hidden = false
+  $('#volver-app').hidden = false
+  rkAmbito = yo.sdga ? 'sdga' : 'mundial'
+})
+$('#volver-app').addEventListener('click', () => R.volverALaApp())
 $('#usuario').addEventListener('input', (e) => {
   datos.usuario = e.target.value.trim().slice(0, 20)
   guardar(datos)

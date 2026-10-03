@@ -939,13 +939,16 @@ export function marcaDe(r, usuario) {
   return { usuario: String(usuario ?? '').trim(), apodo: r.jugador.apodo, emoji: r.jugador.emoji, golpes: t.golpes, vsPar: t.vsPar, ms: Math.round(r.ms) }
 }
 
+/** De quién es una marca: el usuario de la SDGApp (uid) si viene de ahí; si no, el nombre que puso. */
+export const duenoDe = (m) => (m.uid ? `uid:${m.uid}` : String(m.usuario ?? '').trim().toLowerCase())
+
 /** El ranking: la mejor marca de cada usuario, ordenada. Con `apodo`, solo las vueltas con ese jugador. */
 export function armarRanking(marcas, apodo = null) {
   const mejor = new Map()
   for (const m of marcas) {
     if (apodo && m.apodo !== apodo) continue
     if (!(m.golpes > 0 && m.ms > 0) || !m.usuario) continue
-    const k = m.usuario.trim().toLowerCase()
+    const k = duenoDe(m)
     if (!mejor.has(k) || compararMarcas(m, mejor.get(k)) < 0) mejor.set(k, m)
   }
   return [...mejor.values()].sort(compararMarcas).map((m, i) => ({ ...m, pos: i + 1 }))

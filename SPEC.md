@@ -159,3 +159,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - Ícono de la app y favicon nuevos: el título con los ojos de MONO (`iconos/icono-fuente.html`); el favicon de 32 px son los dos ojos.
 - Presentación oficial (video 9:16 de 75 s, `intro/trampa-del-mono-presentacion.mp4`): la intro, después las 8 funciones con capturas reales del juego en un teléfono (cancha, plantel, habilidades, tiro, monos, contra reloj, tarjeta, ranking), el estribillo con la trampa de noche y el cierre como la pantalla de inicio con el ícono, JUGALA YA y la dirección. Se arma con `node intro/armar-presentacion.mjs` (ver `intro/README.md`).
 
+
+## Adentro de la SDGApp (2026-10-04)
+- La app (repo `patmig124/fedecup`, `/juegos/trampa`) abre el juego en un iframe y se hablan por `postMessage` (`ranking.js`): `trampa:hola` → la app contesta `sdga:identidad {uid, alias, sdga}`; `trampa:leer` / `trampa:anotar` → la app lee y guarda en SU Supabase (`trampa_marcas`) y contesta `sdga:marcas` / `sdga:anotada`; `trampa:cerrar` vuelve a la app. El juego nunca ve claves ni tokens.
+- Con la app: la portada dice "Jugás como X" (sin campo de nombre) y tiene "← Volver a la SDGApp". El ranking suma el switch **🌎 Mundial / ⛳ SDGA** (Mundial = todos los que juegan desde la app; SDGA = los socios) y agrupa por usuario de la app (`uid`), así dos "Juan" distintos no se pisan. Arranca en SDGA si sos socio.
+- Suelto (GitHub Pages) todo sigue igual: nombre a mano y ranking del teléfono (o el Supabase propio de `ranking.js`).

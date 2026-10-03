@@ -504,6 +504,13 @@ ok('ranking: menos golpes arriba; a igual golpes, el más rápido al milisegundo
   assert.deepEqual(general.map((x) => [x.pos, x.usuario, x.ms]), [[1, 'Mati', 300000], [2, 'Fede', 119999], [3, 'rorro', 120000], [4, 'Lechu', 120001]])
   const rodal = M.armarRanking(marcas, 'El Mago Rodal')
   assert.deepEqual(rodal.map((x) => x.usuario), ['Fede', 'Rorro'])
+  // desde la SDGApp manda el usuario de la app: dos "Juan" distintos no se pisan, y el mismo uid sí se junta
+  const app = [
+    { ...m('Juan', 'El Sueco', 11, 100000), uid: 'a' },
+    { ...m('Juan', 'El Sueco', 12, 100000), uid: 'b' },
+    { ...m('Juan', 'El Sueco', 10, 200000), uid: 'a' },
+  ]
+  assert.deepEqual(M.armarRanking(app).map((x) => [x.uid, x.golpes]), [['a', 10], ['b', 12]])
   assert.equal(M.formatoTiempo(83456), '1:23.456')
   assert.equal(M.formatoTiempo(5007), '0:05.007')
   // la marca de una vuelta: con tiempo y sin LP
