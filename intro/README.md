@@ -1,5 +1,7 @@
 # Intro — La Trampa del Mono
 
+![La Trampa del Mono](poster.jpg)
+
 Video de 36,8 s (1920×1080) para la intro de la canción, hecho con [HyperFrames](https://github.com/heygen-com/hyperframes)
 (HTML + GSAP + Three.js) y el design system del SDGA: verde del campo, crema, banda dorada, Anton + Archivo.
 
@@ -17,7 +19,7 @@ con "Caminás tranquilo por el fairway…".
 - `cues.js` — **los tiempos**, medidos sobre la canción (180,7 bpm; un compás = 1,3285 s). Si se cambia el mp3, se toca acá.
 - `assets/trampa-del-mono.mp3` — la canción (Suno). `assets/sdga-logo.svg` — el logo oficial del design system.
 - `assets/fonts/` — Anton y Archivo (OFL). `assets/vendor/` — three.js 0.181.2 y GSAP 3.14.2, locales para que el render no dependa de la red.
-- `trampa-del-mono-intro.mp4` — el video ya renderizado.
+- `trampa-del-mono-intro.mp4` — el video ya renderizado (versión liviana, 11 MB); `poster.jpg` — el cuadro del logo.
 
 ## Mapa de la canción (0–36,8 s)
 
