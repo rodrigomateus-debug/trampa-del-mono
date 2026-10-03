@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>La Trampa del Mono — Intro</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <script src="cues.js"></script>
+    <script>
+      // la escena 3D avisa cuando está lista para dibujar (fuentes del cartel incluidas)
+      window.__hf = window.__hf || {};
+      window.__hf.buildReady = window.__hf.buildReady || {};
+      window.__hf.buildReady["escena-trampa"] = new Promise(function (resolve) {
+        window.__resolverEscena = resolve;
+      });
+    </script>
+    <script type="importmap">
+      { "imports": { "three": "./assets/vendor/three.module.min.js" } }
+    </script>
+    <script type="module" src="escena.js"></script>
+    <style>
+      @font-face {
+        font-family: "Anton";
+        src: url("assets/fonts/anton-400.woff2") format("woff2");
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: "Archivo";
+        src: url("assets/fonts/archivo-600.woff2") format("woff2");
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: "Archivo";
+        src: url("assets/fonts/archivo-700.woff2") format("woff2");
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: "Archivo";
+        src: url("assets/fonts/archivo-800.woff2") format("woff2");
+        font-weight: 800;
+      }
+      :root {
+        --green-950: #0c2b1c;
+        --green-900: #14402a;
+        --green-700: #1c5638;
+        --green-300: #6fae87;
+        --cream: #f4eeda;
+        --cream-dark: #e7dfc2;
+        --gold: #e8c34a;
+        --gold-dark: #c9a22e;
+        --display: "Anton", "Arial Narrow", sans-serif;
+        --body: "Archivo", "Helvetica Neue", sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--green-950);
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--green-950);
+        font-family: var(--body);
+        color: var(--cream);
+      }
+      #escena {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .capa {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      #grano {
+        background-image: url("assets/grano.png");
+        background-size: 256px 256px;
+        mix-blend-mode: overlay;
+        opacity: 0.16;
+      }
+      #vineta {
+        background: radial-gradient(120% 95% at 50% 46%, rgba(5, 18, 11, 0) 52%, rgba(5, 18, 11, 0.55) 100%);
+      }
+      .franja {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 118px;
+        background: #050d08;
+      }
+      #franja-arriba {
+        top: 0;
+      }
+      #franja-abajo {
+        bottom: 0;
+      }
+      #flash {
+        background: var(--cream);
+        opacity: 0;
+      }
+      #negro {
+        background: #050d08;
+      }
+      #fin {
+        background: var(--green-950);
+        opacity: 0;
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* ---------- SDGA PRESENTA ---------- */
+      #presenta {
+        right: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        padding-bottom: 140px;
+      }
+      #presenta-logo {
+        display: block;
+        width: 300px;
+        height: 69px;
+      }
+      #presenta-txt {
+        display: block;
+        font: 800 22px/1 var(--body);
+        letter-spacing: 0.62em;
+        padding-left: 0.62em;
+        color: var(--cream);
+      }
+
+      /* ---------- letra ---------- */
+      .cap {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-start;
+        padding: 0 0 168px 132px;
+      }
+      .cap-grande {
+        font: 400 128px/0.92 var(--display);
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        filter: drop-shadow(0 6px 22px rgba(5, 18, 11, 0.5));
+      }
+      .linea {
+        display: block;
+        overflow: hidden;
+        padding: 0.19em 0.06em 0.02em 0;
+        margin-top: -0.08em;
+      }
+      .pal {
+        display: inline-block;
+        margin-right: 0.18em;
+      }
+      .pal:last-child {
+        margin-right: 0;
+      }
+      .cap-chica {
+        display: block;
+        font: 800 25px/1.2 var(--body);
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--cream);
+        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.7));
+      }
+      #cap1 .cap-chica {
+        margin-top: 22px;
+      }
+      #cap-quince .cap-chica {
+        font-size: 30px;
+      }
+      #cap-cambia {
+        padding-bottom: 168px;
+      }
+      .glitch {
+        position: relative;
+        display: block;
+      }
+      .glitch .fantasma {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        display: block;
+      }
+      #cambia-oro {
+        color: var(--gold);
+      }
+      #cambia-verde {
+        color: var(--green-300);
+      }
+      #cap-silencio {
+        align-items: center;
+        padding: 0 0 176px 0;
+      }
+      #cap-silencio .cap-chica {
+        font-size: 28px;
+        letter-spacing: 0.5em;
+        padding-left: 0.5em;
+      }
+      #cap-tension {
+        justify-content: center;
+        padding: 0 0 40px 132px;
+      }
+      #cap-tension .cap-grande {
+        font-size: 172px;
+      }
+      #cap-escape .cap-grande {
+        font-size: 150px;
+      }
+      .letra {
+        display: inline-block;
+      }
+      /* ficha de "+1" como en el juego */
+      #cap-ficha {
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        padding: 160px 0 0 132px;
+      }
+      #ficha {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        background: var(--cream);
+        color: var(--green-900);
+        border-radius: 999px;
+        padding: 14px 30px 14px 14px;
+        box-shadow: 0 6px 20px rgba(12, 43, 28, 0.35);
+      }
+      #ficha-num {
+        display: grid;
+        place-items: center;
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--gold);
+        font: 400 34px/1 var(--display);
+        color: var(--green-900);
+      }
+      #ficha-txt {
+        display: block;
+        font: 800 24px/1.15 var(--body);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      #ficha-txt small {
+        display: block;
+        font: 600 17px/1.2 var(--body);
+        letter-spacing: 0.12em;
+        color: #5e6e5f;
+      }
+
+      /* ---------- el logo ---------- */
+      #logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #logo-fondo {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(60% 62% at 50% 44%, rgba(12, 43, 28, 0.86) 0%, rgba(12, 43, 28, 0.62) 46%, rgba(12, 43, 28, 0) 78%);
+      }
+      #logo-caja {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: -150px;
+      }
+      #logo-l1,
+      #logo-l2 {
+        display: flex;
+        align-items: flex-end;
+        font-family: var(--display);
+        color: var(--cream);
+        line-height: 0.86;
+        letter-spacing: 0.012em;
+        text-shadow: 0 10px 40px rgba(5, 18, 11, 0.45);
+      }
+      #logo-l1 {
+        font-size: 158px;
+      }
+      #logo-l2 {
+        font-size: 268px;
+        margin-top: 6px;
+      }
+      .lt {
+        display: inline-block;
+      }
+      .esp {
+        display: inline-block;
+        width: 0.2em;
+      }
+      .ojo {
+        display: block;
+        width: 0.465em;
+        height: 0.735em;
+        margin: 0 0.03em 0.07em;
+        overflow: visible;
+      }
+      #logo-banda {
+        position: relative;
+        display: block;
+        margin-top: 26px;
+        padding: 10px 34px 8px;
+        overflow: hidden;
+      }
+      #banda-fondo {
+        position: absolute;
+        inset: 0;
+        background: var(--gold);
+      }
+      #banda-txt {
+        position: relative;
+        display: block;
+        font: 400 56px/1 var(--display);
+        letter-spacing: 0.06em;
+        color: var(--green-900);
+      }
+      #logo-tag {
+        display: block;
+        margin-top: 26px;
+        font: 800 22px/1.2 var(--body);
+        letter-spacing: 0.3em;
+        padding-left: 0.3em;
+        color: var(--cream);
+        text-shadow: 0 2px 12px rgba(5, 18, 11, 0.8);
+      }
+      #logo-sdga {
+        position: absolute;
+        left: 50%;
+        bottom: 70px;
+        width: 176px;
+        height: 41px;
+        margin-left: -88px;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="36.8">
+      <canvas id="escena" width="1920" height="1080"></canvas>
+
+      <!-- SDGA PRESENTA -->
+      <section id="presenta" class="clip" data-start="0.6" data-duration="3.3" data-track-index="1">
+        <img id="presenta-logo" src="assets/sdga-logo.svg" alt="SDGA" />
+        <span id="presenta-txt">PRESENTA</span>
+      </section>
+
+      <!-- verso 1, línea 1 -->
+      <section id="cap1" class="clip cap" data-start="3.4" data-duration="5.2" data-track-index="2">
+        <div class="cap-grande">
+          <span class="linea"><span class="pal">CAMINÁS</span></span>
+          <span class="linea"><span class="pal">TRANQUILO</span></span>
+        </div>
+        <span class="linea"><span class="cap-chica pal">por el fairway · no hay preocupación</span></span>
+      </section>
+
+      <!-- línea 2 -->
+      <section id="cap-quince" class="clip cap" data-start="9.4" data-duration="2.25" data-track-index="2">
+        <span class="linea"><span class="cap-chica pal">pero al llegar al quince…</span></span>
+      </section>
+      <section id="cap-cambia" class="clip cap" data-start="11.5" data-duration="2.6" data-track-index="2">
+        <div class="cap-grande glitch">
+          <span class="linea"><span class="pal">CAMBIA LA</span></span>
+          <span class="linea"><span class="pal">SITUACIÓN</span></span>
+          <span id="cambia-oro" class="fantasma"><span class="linea"><span class="pal">CAMBIA LA</span></span><span class="linea"><span class="pal">SITUACIÓN</span></span></span>
+          <span id="cambia-verde" class="fantasma"><span class="linea"><span class="pal">CAMBIA LA</span></span><span class="linea"><span class="pal">SITUACIÓN</span></span></span>
+        </div>
+      </section>
+
+      <!-- línea 3 -->
+      <section id="cap-miran" class="clip cap" data-start="14.15" data-duration="4.4" data-track-index="2">
+        <div class="cap-grande">
+          <span class="linea"><span class="pal">LOS</span><span class="pal">ÁRBOLES</span></span>
+          <span class="linea"><span class="pal">TE</span><span class="pal">MIRAN</span></span>
+        </div>
+      </section>
+      <section id="cap-silencio" class="clip cap" data-start="19.45" data-duration="1.17" data-track-index="2">
+        <span class="linea"><span class="cap-chica pal">te rodean en silencio</span></span>
+      </section>
+
+      <!-- línea 4: entra toda la banda -->
+      <section id="cap-tension" class="clip cap" data-start="22.18" data-duration="2.75" data-track-index="2">
+        <div class="cap-grande">
+          <span class="linea"><span class="pal">YA</span><span class="pal">SENTÍS</span></span>
+          <span class="linea"><span class="pal">LA</span><span class="pal">TENSIÓN</span></span>
+        </div>
+      </section>
+      <section id="cap-ficha" class="clip" data-start="26.95" data-duration="1.25" data-track-index="3">
+        <div id="ficha">
+          <span id="ficha-num">+1</span>
+          <span id="ficha-txt">Se la llevó el mono<small>la pelota se pierde en el cielo</small></span>
+        </div>
+      </section>
+      <section id="cap-escape" class="clip cap" data-start="28.1" data-duration="2.1" data-track-index="2">
+        <div class="cap-grande">
+          <span class="linea"
+            ><span class="pal"><span class="letra">N</span><span class="letra">O</span></span
+            ><span class="pal"><span class="letra">H</span><span class="letra">A</span><span class="letra">Y</span></span></span
+          >
+          <span class="linea"
+            ><span class="pal"
+              ><span class="letra">E</span><span class="letra">S</span><span class="letra">C</span><span class="letra">A</span><span class="letra">P</span><span class="letra">E</span></span
+            ></span
+          >
+        </div>
+      </section>
+
+      <div id="grano" class="capa"></div>
+      <div id="vineta" class="capa"></div>
+      <div id="franja-arriba" class="franja"></div>
+      <div id="franja-abajo" class="franja"></div>
+
+      <!-- LA TRAMPA DEL MONO -->
+      <section id="logo" class="clip" data-start="31.48" data-duration="5.32" data-track-index="4">
+        <div id="logo-fondo"></div>
+        <div id="logo-caja">
+          <div id="logo-l1">
+            <span class="lt">L</span><span class="lt">A</span><span class="esp"></span><span class="lt">T</span><span class="lt">R</span><span class="lt">A</span><span class="lt">M</span><span class="lt">P</span><span class="lt">A</span>
+          </div>
+          <div id="logo-l2">
+            <span class="lt">D</span><span class="lt">E</span><span class="lt">L</span><span class="esp"></span><span class="lt">M</span>
+            <svg class="ojo lt" id="ojo-1" viewBox="0 0 100 158" aria-hidden="true">
+              <g class="parpado">
+                <ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" />
+                <g fill="#e7dfc2">
+                  <circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" />
+                </g>
+                <g class="pupila">
+                  <ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" />
+                  <ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" />
+                  <circle cx="58" cy="74" r="6" fill="#ffffff" />
+                </g>
+              </g>
+            </svg>
+            <span class="lt">N</span>
+            <svg class="ojo lt" id="ojo-2" viewBox="0 0 100 158" aria-hidden="true">
+              <g class="parpado">
+                <ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" />
+                <g fill="#e7dfc2">
+                  <circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" />
+                </g>
+                <g class="pupila">
+                  <ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" />
+                  <ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" />
+                  <circle cx="58" cy="74" r="6" fill="#ffffff" />
+                </g>
+              </g>
+            </svg>
+          </div>
+          <div id="logo-banda"><span id="banda-fondo"></span><span id="banda-txt">SAN DIEGO · HOYOS 15 · 16 · 17</span></div>
+          <span id="logo-tag">EN SAN DIEGO TE ESPERA, CON SU ABRAZO MACABRO</span>
+        </div>
+        <img id="logo-sdga" src="assets/sdga-logo.svg" alt="SDGA" />
+      </section>
+
+      <div id="flash" class="capa"></div>
+      <div id="negro" class="capa"></div>
+      <div id="fin" class="capa"></div>
+
+      <audio
+        id="musica"
+        src="assets/trampa-del-mono.mp3"
+        data-start="0"
+        data-duration="36.8"
+        data-track-index="10"
+        data-volume="1"
+        data-timeline-role="music"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":36.1,"v":1},{"t":36.8,"v":0}]}]}'
+      ></audio>
+    </div>
+
+    <script>
+      (function () {
+        var Q = window.CUES;
+        var c = Q.c;
+        var B = Q.COMPAS / 4; // una negra
+        var tl = gsap.timeline({ paused: true });
+
+        // sacudón determinista (sin random): una lista fija de desplazamientos
+        function sacudir(sel, t, dur, fuerza) {
+          var pasos = [
+            [0.9, -0.6],
+            [-1, 0.4],
+            [0.7, 0.8],
+            [-0.5, -0.9],
+            [0.4, 0.5],
+            [-0.25, -0.2],
+            [0, 0],
+          ];
+          var dt = dur / pasos.length;
+          pasos.forEach(function (p, i) {
+            tl.to(sel, { x: p[0] * fuerza, y: p[1] * fuerza, duration: dt, ease: "none" }, t + i * dt);
+          });
+        }
+        function entraPalabras(sel, t, cada, opts) {
+          var els = gsap.utils.toArray(sel);
+          els.forEach(function (el, i) {
+            tl.fromTo(el, { yPercent: 108, opacity: 0 }, Object.assign({ yPercent: 0, opacity: 1, duration: 0.42, ease: "back.out(1.6)" }, opts || {}), t + i * cada);
+          });
+        }
+        function salenPalabras(sel, t) {
+          tl.to(sel, { yPercent: -108, opacity: 0, duration: 0.32, ease: "power3.in", stagger: 0.04 }, t);
+        }
+
+        // apertura: de negro al campo, con el crescendo
+        tl.fromTo("#negro", { opacity: 1 }, { opacity: 0, duration: 1.1, ease: "power2.inOut" }, Q.abre);
+        // grano de película a 12 cuadros por segundo
+        tl.fromTo("#grano", { backgroundPosition: "0px 0px" }, { backgroundPosition: "7373px 4519px", duration: Q.FIN, ease: "steps(" + Math.floor(Q.FIN * 12) + ")" }, 0);
+
+        // SDGA PRESENTA
+        tl.fromTo("#presenta-logo", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.7, ease: "power3.out" }, Q.C0);
+        tl.fromTo("#presenta-txt", { opacity: 0, scale: 1.12 }, { opacity: 0.9, scale: 1, duration: 0.9, ease: "power3.out" }, Q.C0 + 0.25);
+        tl.to("#presenta", { opacity: 0, duration: 0.45, ease: "power2.in" }, 3.4);
+
+        // "CAMINÁS TRANQUILO" — una palabra por compás, tranqui
+        entraPalabras("#cap1 .cap-grande .pal", c(2), B * 2);
+        tl.fromTo("#cap1 .cap-chica", { yPercent: 108, opacity: 0 }, { yPercent: 0, opacity: 0.92, duration: 0.5, ease: "power3.out" }, c(3));
+        salenPalabras("#cap1 .pal", c(5.5));
+
+        // "pero al llegar al quince…" mientras pasa el cartel
+        tl.fromTo("#cap-quince .cap-chica", { yPercent: 108, opacity: 0 }, { yPercent: 0, opacity: 0.95, duration: 0.5, ease: "power3.out" }, 9.45);
+        tl.to("#cap-quince .cap-chica", { opacity: 0, duration: 0.3 }, 11.3);
+
+        // "CAMBIA LA SITUACIÓN" — entra con glitch en los colores SDGA
+        entraPalabras("#cap-cambia > .linea .pal", Q.cambia, B, { duration: 0.3, ease: "power4.out" });
+        [0, 0.08, 0.16, 0.24, B * 4, B * 4 + 0.08, B * 6, B * 6 + 0.06].forEach(function (dt, i) {
+          var s = i % 2 ? -1 : 1;
+          tl.set("#cambia-oro", { opacity: 0.85, x: 9 * s, y: -3 * s }, Q.cambia + dt);
+          tl.set("#cambia-verde", { opacity: 0.85, x: -9 * s, y: 3 * s }, Q.cambia + dt);
+          tl.set(["#cambia-oro", "#cambia-verde"], { opacity: 0 }, Q.cambia + dt + 0.05);
+        });
+        tl.fromTo("#cap-cambia .cap-grande", { skewX: -10 }, { skewX: 0, duration: 0.35, ease: "power3.out" }, Q.cambia);
+        salenPalabras("#cap-cambia > .linea .pal", c(9.6));
+
+        // "LOS ÁRBOLES TE MIRAN" — palabra por negra
+        entraPalabras("#cap-miran .pal", Q.miran, B, { duration: 0.36 });
+        tl.fromTo("#cap-miran .cap-grande", { scale: 1 }, { scale: 1.06, duration: 3.6, ease: "none", transformOrigin: "0% 100%" }, Q.miran);
+        salenPalabras("#cap-miran .pal", c(13));
+
+        // "te rodean en silencio" — se corta seco en el silencio de la canción
+        tl.fromTo("#cap-silencio .cap-chica", { opacity: 0, scale: 1.1 }, { opacity: 0.95, scale: 1, duration: 0.8, ease: "power3.out" }, 19.5);
+
+        // DROP: flash y "YA SENTÍS LA TENSIÓN" golpe a golpe
+        tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.9, duration: 0.04, ease: "none" }, Q.drop - 0.02);
+        tl.to("#flash", { opacity: 0, duration: 0.32, ease: "power2.out" }, Q.drop + 0.03);
+        gsap.utils.toArray("#cap-tension .pal").forEach(function (el, i) {
+          var t = Q.drop + i * B;
+          tl.fromTo(el, { scale: 2.1, opacity: 0, yPercent: 0 }, { scale: 1, opacity: 1, duration: 0.22, ease: "expo.out", transformOrigin: "50% 60%" }, t);
+          sacudir("#cap-tension .cap-grande", t + 0.05, 0.22, 10);
+        });
+        salenPalabras("#cap-tension .pal", c(17.6));
+
+        // +1: la pelota se la llevó el mono (como en el juego)
+        tl.fromTo("#ficha", { scale: 0.4, opacity: 0, rotation: -8 }, { scale: 1, opacity: 1, rotation: -3, duration: 0.32, ease: "back.out(2.4)" }, 27.0);
+        tl.to("#ficha", { opacity: 0, y: -20, duration: 0.25, ease: "power2.in" }, 27.95);
+
+        // "NO HAY ESCAPE" — letras que tiemblan
+        entraPalabras("#cap-escape .pal", c(20.5), B * 2, { duration: 0.3, ease: "power4.out" });
+        var temblores = [
+          [3, -2],
+          [-2, 3],
+          [2, 2],
+          [-3, -1],
+          [1, -3],
+          [-1, 2],
+        ];
+        gsap.utils.toArray("#cap-escape .letra").forEach(function (el, i) {
+          for (var k = 0; k < 26; k++) {
+            var p = temblores[(i * 5 + k) % temblores.length];
+            tl.set(el, { x: p[0] * 1.6, y: p[1] * 1.6 }, c(20.5) + 0.3 + k * 0.06);
+          }
+        });
+        salenPalabras("#cap-escape .pal", c(21.8));
+
+        // letterbox: se abre con el logo
+        tl.to("#franja-arriba", { yPercent: -100, duration: 0.45, ease: "power3.inOut" }, Q.logo);
+        tl.to("#franja-abajo", { yPercent: 100, duration: 0.45, ease: "power3.inOut" }, Q.logo);
+
+        // ---------- LA TRAMPA DEL MONO ----------
+        var L = Q.logo;
+        tl.set("#flash", { opacity: 1 }, L - 0.01);
+        tl.to("#flash", { opacity: 0, duration: 0.4, ease: "power2.out" }, L + 0.02);
+        tl.fromTo("#logo-fondo", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, L);
+        tl.fromTo("#logo-l1 .lt", { yPercent: -130, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.42, ease: "back.out(2.2)", stagger: 0.032 }, L + 0.02);
+        tl.fromTo(
+          "#logo-l2 .lt",
+          { scale: 1.9, opacity: 0, filter: "blur(14px)" },
+          { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.34, ease: "power4.out", stagger: 0.045, transformOrigin: "50% 80%" },
+          L + 0.16,
+        );
+        sacudir("#logo-caja", L + 0.42, 0.34, 14);
+        // los ojos del MONO arrancan cerrados y se abren cuando vuelve la banda
+        tl.fromTo(".parpado", { scaleY: 0.07, transformOrigin: "50% 50%" }, { scaleY: 0.07, duration: 0.01 }, L);
+        tl.to(".parpado", { scaleY: 1, duration: 0.26, ease: "back.out(3)", stagger: 0.05 }, Q.banda);
+        // banda dorada
+        tl.fromTo("#banda-fondo", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.42, ease: "power3.inOut" }, L + 0.55);
+        tl.fromTo("#banda-txt", { yPercent: 110 }, { yPercent: 0, duration: 0.36, ease: "power3.out" }, L + 0.8);
+        tl.fromTo("#logo-tag", { opacity: 0, scale: 1.1 }, { opacity: 0.95, scale: 1, duration: 0.8, ease: "power3.out" }, Q.banda + 0.15);
+        tl.fromTo("#logo-sdga", { opacity: 0, y: 12 }, { opacity: 0.85, y: 0, duration: 0.6, ease: "power3.out" }, Q.banda + 0.45);
+        // las pupilas miran para todos lados, como el jugador
+        tl.to(".pupila", { x: -15, y: 2, duration: 0.22, ease: "power3.out" }, c(24.5));
+        tl.to(".pupila", { x: 15, y: 2, duration: 0.22, ease: "power3.out" }, c(25));
+        tl.to(".pupila", { x: 0, y: 18, duration: 0.22, ease: "power3.out" }, c(25.5));
+        tl.to(".pupila", { x: 0, y: 0, duration: 0.22, ease: "power3.out" }, Q.parpadea);
+        tl.to(".parpado", { scaleY: 0.07, duration: 0.07, ease: "power2.in" }, Q.parpadea + 0.32);
+        tl.to(".parpado", { scaleY: 1, duration: 0.12, ease: "power2.out" }, Q.parpadea + 0.39);
+        // empuje lento del logo
+        tl.fromTo("#logo-caja", { scale: 1 }, { scale: 1.045, duration: Q.FIN - L - 0.4, ease: "none" }, L + 0.4);
+        // cierre a verde
+        tl.to("#fin", { opacity: 1, duration: 0.6, ease: "power2.in" }, Q.FIN - 0.6);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>
