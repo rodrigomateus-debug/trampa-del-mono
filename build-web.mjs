@@ -1,6 +1,7 @@
 // node build-web.mjs — arma index.html (la web app de GitHub Pages) a partir de juego.html,
 // que es el mismo juego que se publica como artifact (allá el artifact le pone el <head>; acá se lo ponemos nosotros).
 import fs from 'node:fs'
+import './intro/armar-app.mjs' // textos y logo de la intro para la app (intro/app-overlay.js)
 
 const juego = fs.readFileSync('juego.html', 'utf8')
 const corte = juego.indexOf('<canvas id="cancha"')
