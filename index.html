@@ -1534,7 +1534,7 @@ function pelotaQuieta() {
   const [hx, hy] = w2s(pin)
   const [px, py] = w2s(ronda.pelota)
   const rHoyo = Math.max(M.FISICA.bocaHoyo * cam.esc, 5.4)
-  const rPelota = Math.max(3.2, Math.min(6, cam.esc * 0.42))
+  const rPelota = radioPelota()
   const enPantalla = Math.hypot(px - hx, py - hy)
   const borde = rHoyo + rPelota + 2
   if (enPantalla >= borde || d > 3) return pelota(ronda.pelota, 0)
@@ -1549,9 +1549,11 @@ function pelotaQuieta() {
   ctx.arc(x, y, rPelota + 3, 0, 7)
   ctx.stroke()
 }
+/** La pelota en pantalla: siempre en proporción al hoyo (0,42 vs. 0,66 yd), también en el zoom de la corbata. */
+const radioPelota = () => Math.max(3.2, cam.esc * 0.42)
 function pelota(p, alt, alfa = 1, pantalla = null) {
   const [x, y] = pantalla ?? w2s(p)
-  const r = Math.max(3.2, Math.min(6, cam.esc * 0.42)) * (1 + alt / 50)
+  const r = radioPelota() * (1 + alt / 50)
   ctx.globalAlpha = alfa * 0.35
   ctx.fillStyle = '#000'
   ctx.beginPath()
