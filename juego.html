@@ -122,7 +122,14 @@ body {
 #voz.alerta .quien { background: var(--cream); color: var(--red); }
 /* debajo del marcador: dónde estás (izq.), reloj (centro) y LP (der.); la parte de abajo queda libre para la cancha */
 #lie { justify-self: start; display: block; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 30px; }
-#lp { justify-self: end; height: 30px; padding: 0 12px; font-size: 14px; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1.5px rgba(244, 238, 218, .6); pointer-events: auto; }
+/* LP: un botón de verdad (crema, con sombra), abajo del reloj y el viento */
+#lp { height: 38px; padding: 0 16px; font-size: 16px; background: var(--cream); color: var(--green-900); border: 2px solid var(--green-900); box-shadow: 0 3px 0 var(--green-950), 0 6px 14px rgba(12, 43, 28, .45); pointer-events: auto; }
+#lp:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--green-950); }
+#lp[disabled] { opacity: .5; }
+/* mientras apretás para pegar, el marcador de arriba se vuelve transparente: se ve la cancha */
+#hud-top .card { transition: opacity 180ms; }
+body.apuntando #hud-top .card { opacity: .18; }
+body.apuntando #crono, body.apuntando #viento, body.apuntando #efecto { opacity: .45; }
 #hud-chips > * { transition: opacity 150ms; }
 body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho { opacity: .25; pointer-events: none; }
 
@@ -273,9 +280,9 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 .comunicado .firma-m { font-weight: 800; }
 
 /* ── cronómetro y golpe del Mago: debajo del marcador ── */
-#hud-chips { width: 100%; max-width: 520px; justify-self: center; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: start; }
-#hud-chips .centro { display: grid; gap: 6px; justify-items: center; }
-#hud-chips .der { justify-self: end; display: grid; gap: 6px; justify-items: end; }
+#hud-chips { width: 100%; max-width: 520px; justify-self: center; display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+#hud-chips .izq { min-width: 0; display: grid; gap: 6px; justify-items: start; }
+#hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
 #pancho { position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--cream); background: var(--gold); color: var(--green-900); box-shadow: 0 6px 18px rgba(12, 43, 28, .5); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; cursor: pointer; font-family: var(--font-display); transition: transform 120ms var(--ease-snap), opacity 150ms; }
 #pancho:active { transform: scale(.93); }
@@ -305,6 +312,12 @@ input { -webkit-user-select: text; user-select: text; }
 .quien-juega.falta input { border-color: var(--red); }
 .quien-juega.falta .kicker { color: #f0a497; }
 .portada-botones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+/* ── resumen de la vuelta para compartir ── */
+#resumen { background: var(--green-950); justify-content: center; gap: 14px; }
+#resumen-img { width: min(100%, 420px, calc((100dvh - 190px) * .8)); height: auto; border-radius: 16px; box-shadow: var(--shadow-pop); background: var(--green-900); }
+.resumen-acciones { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.resumen-nota { margin: 0; font-size: 13px; opacity: .8; max-width: 36ch; }
 
 /* ── ranking ── */
 #ranking { background: rgba(12, 43, 28, .97); }
@@ -361,14 +374,14 @@ input { -webkit-user-select: text; user-select: text; }
     <div id="voz" class="vacia" aria-live="polite"><span class="quien">📺 LG</span><span class="dice" id="r-dice"></span><span class="extra" id="r-extra"></span></div>
   </div>
   <div id="hud-chips">
-    <span class="chip" id="lie">TEE</span>
-    <div class="centro">
-      <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
-      <div class="viento" id="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="v-txt"><b id="v-kmh">0</b><small id="v-uni">KM/H</small></span></div>
+    <div class="izq">
+      <span class="chip" id="lie">TEE</span>
       <span class="chip" id="efecto" hidden></span>
     </div>
     <div class="der">
-      <button class="btn ghost" id="lp" type="button">LP 💅</button>
+      <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
+      <div class="viento" id="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="v-txt"><b id="v-kmh">0</b><small id="v-uni">KM/H</small></span></div>
+      <button class="btn" id="lp" type="button">LP 💅</button>
     </div>
   </div>
 </div>
@@ -452,7 +465,8 @@ input { -webkit-user-select: text; user-select: text; }
     <p class="firmada" id="t-firmada" hidden></p>
     <p class="rk-pos-final" id="t-ranking" hidden></p>
     <div class="acciones" id="t-acciones" hidden>
-      <a class="btn ancho" id="compartir" href="#" target="_blank" rel="noopener">COMPARTIR AL GRUPO</a>
+      <button class="btn ancho" id="compartir-img" type="button">COMPARTIR MI VUELTA 📸</button>
+      <a class="btn oscuro ancho" id="compartir" href="#" target="_blank" rel="noopener">MANDAR TEXTO AL GRUPO</a>
       <button class="btn oscuro ancho" id="fin-ranking" type="button">VER RANKING 🏆</button>
       <button class="btn oscuro" id="copiar" type="button">COPIAR</button>
       <button class="btn oscuro" id="otra" type="button">OTRA VUELTA</button>
@@ -473,6 +487,16 @@ input { -webkit-user-select: text; user-select: text; }
       <button class="btn oscuro" id="acatar" type="button">ACATAR</button>
     </div>
   </div>
+</section>
+
+<section class="pantalla" id="resumen" hidden aria-label="Tu vuelta para compartir">
+  <img id="resumen-img" alt="Resumen de tu vuelta" width="1080" height="1350">
+  <div class="resumen-acciones">
+    <button class="btn" id="resumen-compartir" type="button">COMPARTIR 📤</button>
+    <a class="btn oscuro" id="resumen-bajar" download="trampa-del-mono.png" href="#">GUARDAR</a>
+    <button class="btn ghost" id="resumen-cerrar" type="button">VOLVER</button>
+  </div>
+  <p class="resumen-nota" id="resumen-nota"></p>
 </section>
 
 <section class="pantalla" id="ranking" hidden aria-labelledby="rk-tit">
@@ -901,7 +925,7 @@ function empezar(jugador) {
   datos.ultimo = jugador.apodo
   guardar(datos)
   pararCuenta()
-  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking', 'todos']) $('#' + id).hidden = true
+  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking', 'todos', 'resumen']) $('#' + id).hidden = true
   $('#hud-top').hidden = false
   introHoyo()
 }
@@ -1568,13 +1592,14 @@ function dibujarApunte(a) {
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
   const w = ctx.measureText(txt).width + 16
-  const ly = Math.max(dy - Math.max(largo, ancho) - 18, zona().top - 10) // que no lo tape el marcador
+  const ly = Math.max(dy - Math.max(largo, ancho) - 18, 40) // con el marcador transparente, puede subir
   ctx.fillStyle = 'rgba(12,43,28,.85)'
   ctx.beginPath()
-  ctx.roundRect(dx - w / 2, ly - 16, w, 24, 12)
+  const lx = Math.max(w / 2 + 8, Math.min(W - w / 2 - 8, dx)) // siempre adentro de la pantalla
+  ctx.roundRect(lx - w / 2, ly - 16, w, 24, 12)
   ctx.fill()
   ctx.fillStyle = col
-  ctx.fillText(txt, dx, ly + 2)
+  ctx.fillText(txt, lx, ly + 2)
 }
 
 // ── tarjeta final ──
@@ -1602,6 +1627,8 @@ function tarjetaFinal() {
   $('#t-filas').innerHTML = filas.join('')
   $('#t-tiempo').textContent = ronda.ms != null && !ronda.lp ? M.formatoTiempo(ronda.ms) : 'LP · sin tiempo'
   $('#t-ranking').hidden = true
+  posRanking = null
+  resumenListo = null
   $('#t-extras').textContent = `🐒 Monos: ${ronda.monosMalos} malos · ${ronda.monosBuenos} buenos · ${ronda.robos} robos${ronda.lp ? ` · LP en el ${ronda.lp}: no cuenta para el récord` : ''}`
   $('#t-firma').hidden = false
   $('#t-firmada').hidden = true
@@ -1645,6 +1672,103 @@ $('#acatar').addEventListener('click', () => {
   $('#t-firmada').textContent = 'Sin firmar · 110 neto'
   acciones()
 })
+// ── el resumen con diseño: una imagen 1080×1350 (4:5) con quién sos, con quién jugaste y cómo te fue ──
+let resumenListo = null // { blob, url } de esta vuelta
+const cargarImg = (src) => new Promise((ok) => { if (!src) return ok(null); const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src })
+async function imagenVuelta() {
+  try { await Promise.all(['56px Anton', '600 30px Archivo', '800 30px Archivo', 'italic 400 30px Archivo'].map((f) => document.fonts.load(f))) } catch {}
+  const r = ronda
+  const j = r.jugador
+  const t = M.totales(r.tarjeta)
+  const W2 = 1080, H2 = 1350
+  const c = document.createElement('canvas')
+  c.width = W2; c.height = H2
+  const g = c.getContext('2d')
+  const D = (px) => `${px}px Anton, "Arial Narrow", sans-serif`
+  const B = (px, w = 600, it = '') => `${it} ${w} ${px}px Archivo, "Helvetica Neue", sans-serif`
+  // fondo: verde del SDGA con rayas de pasto cortado
+  const fondo = g.createLinearGradient(0, 0, W2, H2)
+  fondo.addColorStop(0, '#1f5f3e'); fondo.addColorStop(1, '#0c2b1c')
+  g.fillStyle = fondo; g.fillRect(0, 0, W2, H2)
+  g.save(); g.globalAlpha = 0.07; g.fillStyle = '#ffffff'
+  for (let x = -H2; x < W2 + H2; x += 120) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 60, 0); g.lineTo(x + 60 - H2, H2); g.lineTo(x - H2, H2); g.fill() }
+  g.restore()
+  // cabecera
+  g.textAlign = 'center'
+  g.fillStyle = '#e8c34a'; g.font = B(26, 800); g.fillText('SDGA TOUR  ·  HOYOS 15 · 16 · 17', W2 / 2, 82)
+  g.fillStyle = '#f4eeda'; g.font = D(96); g.fillText('LA TRAMPA DEL MONO', W2 / 2, 182)
+  // la cara del jugador
+  const foto = await cargarImg(j.foto)
+  const cx = W2 / 2, cy = 345, rad = 122
+  g.save(); g.beginPath(); g.arc(cx, cy, rad, 0, 7); g.closePath(); g.fillStyle = '#1c5638'; g.fill(); g.clip()
+  if (foto) {
+    const k = Math.max((rad * 2) / foto.width, (rad * 2) / foto.height)
+    g.drawImage(foto, cx - (foto.width * k) / 2, cy - rad, foto.width * k, foto.height * k)
+  } else { g.font = `150px ${EMOJI}`; g.textBaseline = 'middle'; g.fillText(j.emoji, cx, cy + 8); g.textBaseline = 'alphabetic' }
+  g.restore()
+  g.lineWidth = 10; g.strokeStyle = '#f4eeda'; g.beginPath(); g.arc(cx, cy, rad, 0, 7); g.stroke()
+  g.fillStyle = '#f4eeda'; g.beginPath(); g.arc(cx + 98, cy - 98, 46, 0, 7); g.fill()
+  g.lineWidth = 5; g.strokeStyle = '#14402a'; g.stroke()
+  g.font = `52px ${EMOJI}`; g.textBaseline = 'middle'; g.fillText(j.emoji, cx + 98, cy - 94); g.textBaseline = 'alphabetic'
+  // quién sos y con quién jugaste
+  const yo = (datos.usuario || 'Alguien').toUpperCase()
+  g.fillStyle = '#f4eeda'; g.font = D(84); g.fillText(yo, W2 / 2, 560)
+  g.font = B(34, 600); g.fillStyle = 'rgba(244,238,218,.85)'; g.fillText(`jugó con ${j.apodo}`, W2 / 2, 608)
+  // la tarjeta crema con el score
+  const x0 = 70, y0 = 640, w0 = W2 - 140, h0 = 510
+  g.fillStyle = '#f4eeda'; g.beginPath(); g.roundRect(x0, y0, w0, h0, 36); g.fill()
+  const score = r.lp ? 'LP 💅' : !firmada ? '110' : M.formatoPar(t.vsPar)
+  const debajo = r.lp ? `levantó en el ${r.lp}` : !firmada ? 'neto · no firmó la tarjeta' : `${t.golpes} golpes · par ${t.par}`
+  // banda dorada con el score
+  g.font = D(150)
+  const anchoScore = Math.max(260, g.measureText(score).width + 80)
+  g.fillStyle = '#e8c34a'; g.fillRect(W2 / 2 - anchoScore / 2, y0 + 36, anchoScore, 170)
+  g.fillStyle = '#14402a'; g.fillText(score, W2 / 2, y0 + 181)
+  g.font = B(32, 800); g.fillStyle = '#14402a'; g.fillText(debajo.toUpperCase(), W2 / 2, y0 + 262)
+  if (r.ms != null && !r.lp) { g.font = D(54); g.fillText(`⏱ ${M.formatoTiempo(r.ms)}`, W2 / 2, y0 + 330) }
+  // hoyo por hoyo
+  const cols = r.tarjeta.length || 3
+  const bw = 230, gap = 30, bx = W2 / 2 - (cols * bw + (cols - 1) * gap) / 2, by = y0 + 370
+  r.tarjeta.forEach((f, i) => {
+    const x = bx + i * (bw + gap)
+    const sobre = f.lp || f.golpes > f.par, bajo = !f.lp && f.golpes < f.par
+    g.fillStyle = bajo ? '#2e7d4f' : sobre ? '#bc4b3c' : '#e8c34a'
+    g.beginPath(); g.roundRect(x, by, bw, 120, 20); g.fill()
+    g.fillStyle = bajo || sobre ? '#f4eeda' : '#14402a'
+    g.font = B(24, 800); g.fillText(`HOYO ${f.n} · PAR ${f.par}`, x + bw / 2, by + 36)
+    g.font = D(60); g.fillText(f.lp ? 'LP' : String(f.golpes), x + bw / 2, by + 102)
+  })
+  // ranking y voz de LG
+  let y = y0 + h0 + 66
+  g.fillStyle = '#e8c34a'; g.font = B(34, 800)
+  if (posRanking && firmada) { g.fillText(`🏆 ${posRanking.general}° EN EL GENERAL · ${posRanking.conEl}° CON ${j.emoji}`, W2 / 2, y); y += 58 }
+  const adulado = M.habilidadDe(j)?.adulado
+  const lg = r.lp ? 'Entraste en la lista LP 💅' : adulado ? 'El Mago siempre gana' : !firmada ? 'El Marshall no perdona' : t.vsPar < 0 ? 'QUE HOMBRE' : t.vsPar === 0 ? 'Hermoso. Par y a casa' : t.vsPar <= 3 ? 'Tremendo. Nada que no arregle un approach' : 'La Trampa del Mono siempre tendrá la razón'
+  g.fillStyle = '#f4eeda'; g.font = B(34, 400, 'italic'); g.fillText(`📺 LG: “${lg}”`, W2 / 2, y)
+  g.font = B(24, 600); g.fillStyle = 'rgba(244,238,218,.7)'
+  g.fillText(`🐒 ${r.monosMalos} malos · ${r.monosBuenos} buenos · ${r.robos} robos   ·   rodrigomateus-debug.github.io/trampa-del-mono`, W2 / 2, H2 - 36)
+  const blob = await new Promise((ok) => c.toBlob(ok, 'image/png'))
+  return { blob, url: URL.createObjectURL(blob) }
+}
+async function mostrarResumen() {
+  $('#resumen').hidden = false
+  $('#resumen-nota').textContent = 'Armando tu resumen…'
+  resumenListo ??= await imagenVuelta()
+  $('#resumen-img').src = resumenListo.url
+  $('#resumen-bajar').href = resumenListo.url
+  const archivo = new File([resumenListo.blob], 'trampa-del-mono.png', { type: 'image/png' })
+  const puede = !!navigator.canShare?.({ files: [archivo] })
+  $('#resumen-compartir').hidden = !puede
+  $('#resumen-nota').textContent = puede ? 'Mandalo al grupo o subilo a tus historias.' : 'Guardala y mandala al grupo.'
+}
+$('#compartir-img').addEventListener('click', mostrarResumen)
+$('#resumen-cerrar').addEventListener('click', () => { $('#resumen').hidden = true })
+$('#resumen-compartir').addEventListener('click', async () => {
+  if (!resumenListo) return
+  const archivo = new File([resumenListo.blob], 'trampa-del-mono.png', { type: 'image/png' })
+  try { await navigator.share({ files: [archivo], text: M.textoCompartir(ronda, firmada) }) } catch {}
+})
+
 function acciones() {
   $('#compartir').href = 'https://wa.me/?text=' + encodeURIComponent(M.textoCompartir(ronda, firmada))
   $('#copiar').textContent = 'COPIAR'
@@ -1660,6 +1784,7 @@ $('#otra').addEventListener('click', () => empezar(ronda.jugador))
 $('#fin-ranking').addEventListener('click', () => mostrarRanking(ronda?.jugador.apodo ?? 'general'))
 
 /** Tarjeta firmada: la vuelta entra al ranking (si tiene tiempo y no fue LP) y te dice dónde quedaste. */
+let posRanking = null
 async function anotarVuelta() {
   const marca = M.marcaDe(ronda, datos.usuario)
   if (!marca || !marca.usuario) return
@@ -1671,6 +1796,8 @@ async function anotarVuelta() {
   const conEl = M.armarRanking(marcas, jugador.apodo).find((m) => m.usuario.trim().toLowerCase() === yo)
   if (!general || !conEl || ronda?.jugador !== jugador || estado !== 'fin') return
   const nueva = conEl.golpes === marca.golpes && conEl.ms === marca.ms
+  posRanking = { general: general.pos, conEl: conEl.pos, nueva }
+  resumenListo = null // se rehace con el puesto
   $('#t-ranking').textContent = `🏆 ${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el general · ${conEl.pos}° con ${jugador.emoji}`
   $('#t-ranking').hidden = false
 }
@@ -1935,7 +2062,7 @@ window.addEventListener('keydown', (e) => {
 
 function mostrarElegir() {
   estado = 'elegir'
-  for (const id of ['portada', 'fin', 'comunicado', 'ranking']) $('#' + id).hidden = true
+  for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'resumen']) $('#' + id).hidden = true
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
   $('#hud-bot').hidden = true

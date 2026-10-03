@@ -102,6 +102,14 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - La cuenta regresiva y el arranque de cada hoyo terminan en esa vista de apuntar.
 - Guía: sobre la pelota late un anillo dorado (dónde poner el dedo). Las primeras 6 veces que pegás (en el teléfono), o si tardás más de 5 s, además un 👆 muestra el gesto: apoyar en la pelota y tirar para atrás.
 
+## Cambios del 2026-10-04 (2)
+- Debajo del marcador: a la izquierda, dónde estás (y el golpe del Mago); a la derecha, en columna, el reloj, el viento y LP. LP es un botón de verdad (crema con borde y sombra).
+- Mientras apretás para pegar, el marcador de arriba se vuelve casi transparente (y el reloj y el viento a medias) para ver la cancha. El cartel de yardas nunca se sale de la pantalla.
+
+## Compartir la vuelta (2026-10-04)
+- En la tarjeta final, "COMPARTIR MI VUELTA 📸" (antes del texto para WhatsApp): arma una imagen 1080×1350 con el diseño del SDGA (verde con rayas, crema, banda dorada, Anton/Archivo): quién sos (el nombre de la portada), la cara y el emoji del jugador, "jugó con …", el score grande (o LP / 110 sin firmar), golpes y par, el tiempo, los tres hoyos en colores (bajo par verde, par dorado, sobre par rojo), el puesto en el ranking si firmaste, una frase de LG y los monos.
+- Se ve en grande con COMPARTIR (el menú del teléfono, con la imagen y el texto) y GUARDAR (descarga el PNG). Si el navegador no puede compartir archivos, queda solo GUARDAR.
+
 ## Voz
 LG 📺 relata con las frases del chat ("Tremendo", "Uff", "Hermoso", "QUE HOMBRE"); en tiros malos sale una excusa.
 Intro de cada hoyo con un verso de la canción de Fito. Frases de carga del design system.
