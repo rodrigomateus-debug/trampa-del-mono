@@ -95,6 +95,13 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - `dicky-toons.svg`: el logo de los Dicky Toons (del Illustrator que pasó Rorro, solo las capas de relleno y el fondo como círculo liso), animado en CSS: entra con un pop, cada 6 s el personaje carga el swing (squash), pega (stretch) mientras aparecen las líneas del swing, la pelota sale volando del tee y se va del círculo, vuelve con un pop a su lugar y el logo queda quieto como el original ~4 s. Respeta "reducir movimiento".
 - Lo llevan en la carta (arriba a la derecha de la foto) y en "Ver todos" los que tienen `dicky: true` en plantel.js: Fito, Miguelón, El Ninja, Tinder y La Rana (Taiu). Tinder y La Rana todavía no están en el mazo.
 
+## Cambios del 2026-10-04: cámara para apuntar, hoyo y guía
+- Hoyo: dibujado 3 veces el real (el doble que antes), siempre más grande que la pelota. El real sigue siendo 0,22 yd.
+- Apuntar: más zoom y la pelota al medio de la cancha (a mitad de camino entre la fila de botones y el borde de abajo), con la bandera para arriba; se ven ~75 yd para adelante (o hasta el hoyo si está más cerca; en el green, el putt entero). Abajo queda lugar para tirar para atrás.
+- Mientras tirás para atrás (todos los tiros menos el putt, ya no solo el del tee), la cámara se aleja alrededor de la pelota (la pelota no se mueve en la pantalla) justo lo que hace falta para que entren el pique, el óvalo y el cartel de yardas. Si soltás sin pegar, vuelve.
+- La cuenta regresiva y el arranque de cada hoyo terminan en esa vista de apuntar.
+- Guía: sobre la pelota late un anillo dorado (dónde poner el dedo). Las primeras 6 veces que pegás (en el teléfono), o si tardás más de 5 s, además un 👆 muestra el gesto: apoyar en la pelota y tirar para atrás.
+
 ## Voz
 LG 📺 relata con las frases del chat ("Tremendo", "Uff", "Hermoso", "QUE HOMBRE"); en tiros malos sale una excusa.
 Intro de cada hoyo con un verso de la canción de Fito. Frases de carga del design system.
