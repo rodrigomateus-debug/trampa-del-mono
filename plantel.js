@@ -312,7 +312,7 @@ export const PLANTEL = [
 ]
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)']
+export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez']
 
 // La dificultad real de cada uno con su habilidad: promedio vs. par y % de LP de un bot que juega 60 vueltas
 // (`node calibrar.mjs 60`, 2026-10-04, con el hoyo nuevo, la caída por zonas, el tope del par 3, el viento que pesa con el cuadrado del largo, el bunker a la mitad, sin árboles fantasma junto a los greens, sin monos en la salida, la bandera en otro lugar cada vuelta y los umbrales de las habilidades en yardas reales; el bot putea con la fuerza del medio de las que entran). El mazo se ordena por esto, no por el handicap.
@@ -325,6 +325,7 @@ export const DIFICULTAD_REAL = {
   Liberty: { prom: 1.59, lp: 7 },
   'El Ninja (Đ)': { prom: 1.84, lp: 3 },
   Lechu: { prom: 2.1, lp: 3 },
+  'El Flaco Ordoñez': { prom: 1.97, lp: 3 }, // el bot no maneja: el carrito le cuesta tiempo, no golpes
   Mugre: { prom: 2.86, lp: 2 },
   // Trampa total a mano (dicen los que juegan que es el más difícil: el embudo de la línea que se sacude)
   'Fito (Đ)': { prom: 1.59, lp: 2, nivel: 5 },

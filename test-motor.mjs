@@ -417,6 +417,44 @@ ok('la bandera cambia de lugar cada ronda: siempre en el green, a 6 yd o más de
   assert.ok(prom(tercios[0]) < prom(tercios[1]) && prom(tercios[1]) < prom(tercios[2]))
 })
 
+ok('Marcos: el carrito acelera, dobla, frena solo, no atraviesa árboles y llega a la pelota', () => {
+  const r = M.nuevaRonda({ apodo: 'El Flaco Ordoñez', emoji: '🏎️', hcp: 7.2 }, fijo(0.5))
+  assert.ok(M.usaCarrito(r) && r.carro)
+  assert.ok(!M.usaCarrito(M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))))
+  // por el fairway del 15, para arriba (hacia el green)
+  const c = M.crearCarro([48, 200], -Math.PI / 2)
+  for (let i = 0; i < 120; i++) M.manejar(campo, c, { acelerar: true }, 1 / 60)
+  assert.ok(c.v > 8, `va a ${c.v}`)
+  assert.ok(c.pos[1] < 190, 'avanzó para arriba')
+  // suelta el acelerador: se frena solo
+  for (let i = 0; i < 400; i++) M.manejar(campo, c, {}, 1 / 60)
+  assert.equal(c.v, 0)
+  // dobla a la derecha andando
+  const a0 = c.ang
+  for (let i = 0; i < 30; i++) M.manejar(campo, c, { acelerar: true, der: true }, 1 / 60)
+  assert.ok(c.ang > a0)
+  // reversa
+  const q = M.crearCarro([48, 200], -Math.PI / 2)
+  for (let i = 0; i < 60; i++) M.manejar(campo, q, { reversa: true }, 1 / 60)
+  assert.ok(q.v < 0 && q.pos[1] > 200)
+  // contra los árboles: nunca queda adentro de uno
+  // un lugar de pasto con un árbol 6 yd a la derecha (y pasto libre en el medio)
+  let ini = null
+  for (let y = 100; y < 380 && !ini; y++) for (let x = 30; x < 190 && !ini; x++) {
+    const p = [x + 0.5, y + 0.5]
+    if (M.celda(campo, p) === 't' && [2, 3, 4, 5, 6, 7, 8, 9, 10].every((k) => ['.', 'f'].includes(M.celda(campo, [p[0] - k, p[1]])))) ini = [p[0] - 9, p[1]]
+  }
+  assert.ok(ini)
+  const t = M.crearCarro(ini, 0)
+  let choco = false
+  for (let i = 0; i < 300; i++) { if (M.manejar(campo, t, { acelerar: true }, 1 / 60) === 'choque') choco = true; assert.notEqual(M.celda(campo, t.pos), 't') }
+  assert.ok(choco, 'chocó contra el árbol')
+  // llegar a la pelota
+  assert.ok(M.carroLlego(campo, M.crearCarro([50, 200]), [52, 202]))
+  assert.ok(!M.carroLlego(campo, M.crearCarro([50, 200]), [50, 220]))
+  assert.ok(M.carroLlego(campo, M.crearCarro([ini[0] + 1, ini[1]]), [ini[0] + 9, ini[1]]), 'en el bosque, el último tramo a pie')
+})
+
 ok('más handicap, más difícil: más error y menos distancia', () => {
   const crack = M.dificultad(1.5)
   const malo = M.dificultad(22)

@@ -305,6 +305,17 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 #sonido { pointer-events: auto; cursor: pointer; border: 0; width: 40px; padding: 0; justify-content: center; font-size: 17px; }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
+/* el carrito de Marcos: los mandos (solo mientras manejás) */
+#mandos { position: fixed; left: 0; right: 0; bottom: calc(var(--safe-bot) + 18px); z-index: 25; display: none; justify-content: space-between; align-items: flex-end; padding: 0 16px; pointer-events: none; }
+body.manejando #mandos { display: flex; }
+#mandos .grupo { display: flex; gap: 12px; align-items: flex-end; pointer-events: auto; }
+#mandos button { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; border: 3px solid var(--cream); color: var(--cream); background: rgba(12, 43, 28, .78); box-shadow: 0 6px 16px rgba(8, 26, 16, .45); font-family: var(--font-display); cursor: pointer; display: grid; place-items: center; transition: transform 90ms var(--ease-snap), background 90ms; }
+#mandos .dir { width: 74px; height: 74px; border-radius: 50%; font-size: 30px; }
+#mandos #m-acel { width: 104px; height: 104px; border-radius: 50%; background: var(--gold); color: var(--green-900); font-size: 17px; letter-spacing: .04em; line-height: 1; }
+#mandos #m-acel small { display: block; font-size: 26px; }
+#mandos #m-reversa { width: 66px; height: 66px; border-radius: 50%; font-size: 13px; letter-spacing: .06em; }
+#mandos button.on { transform: scale(.92); background: var(--cream); color: var(--green-900); }
+#mandos #m-acel.on { background: #f3d76e; }
 /* Lucas (LG) en persona: con Rodal aparece abajo a la izquierda y lo adula con un globo de diálogo */
 #lucas { position: fixed; left: 0; bottom: 0; z-index: 30; width: min(46vw, 230px); pointer-events: none; opacity: 0; transform: translateY(70%) rotate(-7deg); transform-origin: 30% 100%; }
 #lucas.entra { animation: lucas-entra 620ms cubic-bezier(.2, 1.25, .4, 1) forwards; }
@@ -444,6 +455,10 @@ input { -webkit-user-select: text; user-select: text; }
 <div id="cuenta" hidden aria-live="assertive"></div>
 
 <div id="hud-bot" hidden></div>
+<div id="mandos" aria-label="Manejar el carrito">
+  <div class="grupo"><button class="dir" id="m-izq" type="button" aria-label="Izquierda">◀</button><button class="dir" id="m-der" type="button" aria-label="Derecha">▶</button></div>
+  <div class="grupo"><button id="m-reversa" type="button" aria-label="Reversa">REVERSA</button><button id="m-acel" type="button" aria-label="Acelerar"><span><small>▲</small>ACELERAR</span></button></div>
+</div>
 <div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
 <div id="banda" aria-live="polite">
@@ -865,6 +880,7 @@ function actualizar(dt) {
     else seguir(tiro.pos)
     if (tiro.fase === 'quieta') { acc = 0; alReposo() }
   }
+  if (estado === 'manejar' && ronda?.carro) manejarCuadro(dt)
   if (ronda && estado !== 'tiro') {
     // con la pelota quieta, los monos que cazan van hacia ella
     const llego = M.moverMonos(ronda.monos, dt, estado === 'apuntar' ? ronda.pelota : null)
@@ -954,6 +970,11 @@ function siguienteTiro() {
   tiro = null
   estela = []
   if (M.necesitaLP(ronda)) { levantarVuelta(); return }
+  // Marcos: antes de pegar, maneja el carrito hasta la pelota
+  if (M.usaCarrito(ronda) && ronda.carro && !M.carroLlego(campo, ronda.carro, ronda.pelota)) { empezarManejo(aApuntar, 'pelota'); return }
+  aApuntar()
+}
+function aApuntar() {
   estado = 'apuntar'
   apuntarDesde = performance.now()
   obj = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin)
@@ -961,6 +982,54 @@ function siguienteTiro() {
   despertar()
   hud()
 }
+// ── el carrito de Marcos ──
+const mando = { acelerar: false, reversa: false, izq: false, der: false }
+let manejo = null // { luego, a: 'pelota' | 'tee', choque: 0 }
+function empezarManejo(luego, a) {
+  manejo = { luego, a, choque: 0 }
+  estado = 'manejar'
+  for (const k in mando) mando[k] = false
+  document.body.classList.add('manejando')
+  obj = vistaManejo(ronda.carro)
+  velCam = 2.5
+  relatar({ lg: a === 'tee' ? '🛺 Al tee del próximo hoyo' : '🛺 Arriba del carrito', verso: 'Manejá hasta la pelota: los árboles no se atraviesan' })
+  hud()
+}
+function terminarManejo() {
+  const luego = manejo?.luego
+  manejo = null
+  ronda.carro.v = 0
+  for (const k in mando) mando[k] = false
+  document.body.classList.remove('manejando')
+  for (const b of document.querySelectorAll('#mandos button')) b.classList.remove('on')
+  luego?.()
+}
+/** La cámara del carrito: lo sigue de cerca, con la trompa para arriba y lugar adelante para ver a dónde va. */
+function vistaManejo(c) {
+  const adelante = 9 + Math.max(0, c.v) * 0.6
+  // más rápido, la cámara se abre: se ve más lejos
+  return { cx: c.pos[0] + Math.cos(c.ang) * adelante, cy: c.pos[1] + Math.sin(c.ang) * adelante, esc: 6.5 - Math.max(0, c.v) * 0.12, rot: -Math.PI / 2 - c.ang, sy: H * 0.5, techo: obj?.techo ?? 120 }
+}
+function manejarCuadro(dt) {
+  const c = ronda.carro
+  if (M.manejar(campo, c, mando, dt) === 'choque' && performance.now() - manejo.choque > 400) { manejo.choque = performance.now(); S.palo() }
+  obj = vistaManejo(c)
+  velCam = 3.2
+  if (M.carroLlego(campo, c, ronda.pelota)) terminarManejo()
+}
+// los mandos en pantalla (multitáctil: cada botón con su dedo) y las flechas / WASD
+for (const [id, k] of [['m-izq', 'izq'], ['m-der', 'der'], ['m-acel', 'acelerar'], ['m-reversa', 'reversa']]) {
+  const b = document.getElementById(id)
+  const on = (e) => { e.preventDefault(); if (estado !== 'manejar') return; mando[k] = true; b.classList.add('on'); try { b.setPointerCapture(e.pointerId) } catch {} }
+  const off = () => { mando[k] = false; b.classList.remove('on') }
+  b.addEventListener('pointerdown', on)
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, off)
+  b.addEventListener('contextmenu', (e) => e.preventDefault())
+}
+const TECLAS = { ArrowUp: 'acelerar', w: 'acelerar', ArrowDown: 'reversa', s: 'reversa', ArrowLeft: 'izq', a: 'izq', ArrowRight: 'der', d: 'der' }
+window.addEventListener('keydown', (e) => { const k = TECLAS[e.key]; if (k && estado === 'manejar') { mando[k] = true; e.preventDefault() } })
+window.addEventListener('keyup', (e) => { const k = TECLAS[e.key]; if (k) mando[k] = false })
+
 /** Pelota quieta: los monos cercanos salen a buscarla (a la Mugre la huelen de más lejos). */
 function despertar() {
   if (M.despertarMonosDe(ronda)) S.monosVienen() // en la salida no vienen
@@ -1115,6 +1184,8 @@ function cerrar(frase) {
   const { vsPar } = M.totales(ronda.tarjeta)
   banda({ kicker: `Hoyo ${fila.n} · ${fila.golpes} golpes`, grande: nombre, banda: `VAS ${M.formatoPar(vsPar)}`, verso: linea }, 2600, () => {
     if (ronda.terminada) tarjetaFinal()
+    // Marcos: del green al tee del próximo hoyo, manejando
+    else if (M.usaCarrito(ronda) && ronda.carro && !M.carroLlego(campo, ronda.carro, ronda.pelota)) empezarManejo(introHoyo, 'tee')
     else introHoyo()
   })
 }
@@ -1169,6 +1240,9 @@ function pintarVoz() {
   if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza')) {
     clase = 'alerta'; dice = '🐒 ¡VIENEN LOS MONOS! PEGALE'
     extra = ronda.panchos ? `…o tirales un pancho 🌭 (te quedan ${ronda.panchos})` : 'Si llegan, se la llevan: al tee con un golpe de multa'
+  } else if (estado === 'manejar' && ronda?.carro) {
+    const yd = Math.round(M.aYardas(ronda, M.dist(ronda.carro.pos, ronda.pelota)))
+    clase = ''; dice = manejo?.a === 'tee' ? `🛺 Al tee: ${yd} yd` : `🛺 A la pelota: ${yd} yd`; extra = 'Acelerá, doblá y no le pegues a los árboles'
   } else if (voz && performance.now() < voz.hasta) {
     clase = ''; dice = voz.lg; extra = voz.extra
   } else if (estado === 'apuntar' && !datos.vistoTip) {
@@ -1373,6 +1447,7 @@ function dibujar() {
 
   dibujarRafagas()
   dibujarPancho()
+  if (ronda?.carro && !ronda.terminada) dibujarCarro(ronda.carro)
   dibujarMonos()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
@@ -1667,6 +1742,67 @@ function bandera([x, y], n, actual, color = 'blanca') {
     ctx.fillText(String(n), x + 9 * k, y - 24.5 * k)
   }
   ctx.globalAlpha = 1
+}
+
+/** El carrito verde de Marcos, visto de arriba (con su bolsa atrás). Manejando: el destino y una flecha hacia la pelota. */
+function dibujarCarro(c) {
+  const [x, y] = w2s(c.pos)
+  const L = Math.max(44, M.CARRITO.largo * cam.esc * 1.5), A = L * 0.58
+  if (estado === 'manejar') {
+    // a dónde ir: un aro que late en la pelota (o el tee)
+    const [bx, by] = w2s(ronda.pelota)
+    const pulso = 1 + 0.12 * Math.sin(performance.now() / 180)
+    ctx.strokeStyle = C.gold
+    ctx.lineWidth = 3
+    ctx.setLineDash([6, 6])
+    ctx.beginPath()
+    ctx.arc(bx, by, Math.max(14, M.CARRITO.llegar * cam.esc) * pulso, 0, 7)
+    ctx.stroke()
+    ctx.setLineDash([])
+    // la flecha, alrededor del carrito, apuntando a la pelota
+    const ang = Math.atan2(by - y, bx - x)
+    if (Math.hypot(bx - x, by - y) > L * 1.4) {
+      const r0 = L * 0.95
+      ctx.save()
+      ctx.translate(x + Math.cos(ang) * r0, y + Math.sin(ang) * r0)
+      ctx.rotate(ang)
+      ctx.fillStyle = C.gold
+      ctx.strokeStyle = C.g900
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(14, 0); ctx.lineTo(-6, -10); ctx.lineTo(-2, 0); ctx.lineTo(-6, 10); ctx.closePath()
+      ctx.fill(); ctx.stroke()
+      ctx.restore()
+    }
+  }
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(c.ang + cam.rot) // la trompa mira a +x
+  ctx.fillStyle = 'rgba(8,26,16,.3)' // sombra
+  ctx.beginPath(); ctx.roundRect(-L / 2 + 3, -A / 2 + 4, L, A, A * 0.3); ctx.fill()
+  ctx.fillStyle = '#121212' // ruedas
+  for (const wx of [-L * 0.3, L * 0.28]) for (const s of [-1, 1]) {
+    ctx.beginPath(); ctx.roundRect(wx - L * 0.1, s * A * 0.5 - A * 0.09, L * 0.2, A * 0.18, 2); ctx.fill()
+  }
+  ctx.fillStyle = '#1f7a45' // la carrocería verde
+  ctx.strokeStyle = '#0c2b1c'
+  ctx.lineWidth = 1.5
+  ctx.beginPath(); ctx.roundRect(-L / 2, -A / 2, L, A, A * 0.28); ctx.fill(); ctx.stroke()
+  ctx.fillStyle = '#2f9b5d' // el capot
+  ctx.beginPath(); ctx.roundRect(L * 0.18, -A * 0.4, L * 0.3, A * 0.8, A * 0.22); ctx.fill()
+  ctx.fillStyle = '#fff3b0' // los faros
+  for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(L * 0.46, s * A * 0.3, Math.max(1.5, L * 0.035), 0, 7); ctx.fill() }
+  ctx.fillStyle = 'rgba(244,238,218,.96)' // el techo
+  ctx.beginPath(); ctx.roundRect(-L * 0.3, -A * 0.46, L * 0.46, A * 0.92, 5); ctx.fill()
+  ctx.strokeStyle = 'rgba(12,43,28,.35)'
+  ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(-L * 0.07, -A * 0.44); ctx.lineTo(-L * 0.07, A * 0.44); ctx.stroke()
+  ctx.fillStyle = '#e9e2c8' // la bolsa de palos, atrás
+  ctx.strokeStyle = '#0c2b1c'
+  ctx.beginPath(); ctx.arc(-L * 0.42, 0, A * 0.2, 0, 7); ctx.fill(); ctx.stroke()
+  ctx.fillStyle = '#9aa3a0'
+  for (const [dx, dy] of [[-0.06, -0.08], [0.05, -0.04], [-0.02, 0.08]]) { ctx.beginPath(); ctx.arc(-L * 0.42 + dx * L, dy * L, Math.max(1.5, L * 0.03), 0, 7); ctx.fill() }
+  ctx.restore()
 }
 
 /**

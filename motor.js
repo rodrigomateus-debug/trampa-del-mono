@@ -108,6 +108,7 @@ export const HABILIDADES = {
   'El Perro': { id: 'perro', nombre: 'Va a buscarla', texto: 'Los greens están habilitados (sin caída) y si va al bosque el perro te la trae al fairway sin multa. Tarda: el reloj corre.' },
   Mugre: { id: 'panchitos', nombre: 'Tirar panchos', texto: 'A la Mugre los monos la huelen de lejos y vienen más. Pero tiene 3 panchos por hoyo: se los tirás, van, comen un segundo y vuelven.' },
   Liberty: { id: 'approach', nombre: 'Si no era por el approach', texto: 'El drive sale derecho siempre. Los approach (de 30 a 100 yd del hoyo) tienen el triple de error.' },
+  'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro (y de tee a tee) lo manejás vos hasta la pelota. Los árboles no se atraviesan. El reloj corre.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
 }
 export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
@@ -281,6 +282,52 @@ export const elegir = (rng, lista) => lista[Math.floor(rng() * lista.length)]
 export function crearCampo() {
   return { hoyos: HOYOS, cancha: CANCHA }
 }
+
+// ── el carrito de Marcos ──
+// Se maneja con acelerar, reversa e izquierda/derecha. Los árboles y el afuera no se atraviesan (rebota y se frena);
+// en el rough y el bunker anda más lento. `llegar` = a cuántas yardas de la pelota se baja (en el bosque, `llegarBosque`:
+// el último tramo lo hace a pie). Velocidades en yardas del dibujo por segundo.
+export const CARRITO = {
+  vmax: 16, atras: 6, acel: 10, freno: 16, roce: 5, giro: 2.3, largo: 2.6,
+  terreno: { rough: 0.7, bunker: 0.45 },
+  llegar: 4, llegarBosque: 10,
+}
+const NO_SE_PASA = new Set(['t', 'x'])
+/** El carrito donde Marcos se baja: al lado de la pelota, mirando para donde va. */
+export function crearCarro(pos, ang = -Math.PI / 2) {
+  return { pos: [...pos], ang, v: 0 }
+}
+/**
+ * Un paso del carrito. `mando` = { acelerar, reversa, izq, der } (true/false). Muta el carro; devuelve 'choque' si
+ * se pegó contra un árbol o el afuera en este paso.
+ */
+export function manejar(campo, carro, mando, dt) {
+  const c = CARRITO
+  const lim = c.vmax * (c.terreno[terreno(campo, carro.pos).tipo] ?? 1)
+  if (mando.acelerar && !mando.reversa) carro.v = Math.min(lim, carro.v + (carro.v < 0 ? c.freno : c.acel) * dt)
+  else if (mando.reversa && !mando.acelerar) carro.v = Math.max(-c.atras, carro.v - (carro.v > 0 ? c.freno : c.acel) * dt)
+  else carro.v -= Math.sign(carro.v) * Math.min(Math.abs(carro.v), c.roce * dt) // suelta: se frena solo
+  if (carro.v > lim) carro.v = Math.max(lim, carro.v - c.freno * dt) // entró al rough rápido: frena
+  // dobla según la velocidad (quieto no dobla; en reversa, al revés)
+  const giro = (mando.der ? 1 : 0) - (mando.izq ? 1 : 0)
+  carro.ang += giro * c.giro * dt * Math.max(-1, Math.min(1, carro.v / 4))
+  const nueva = [carro.pos[0] + Math.cos(carro.ang) * carro.v * dt, carro.pos[1] + Math.sin(carro.ang) * carro.v * dt]
+  // la trompa (o la cola, en reversa) y el centro no pueden entrar a un árbol
+  const punta = Math.sign(carro.v || 1) * c.largo * 0.5
+  const frente = [nueva[0] + Math.cos(carro.ang) * punta, nueva[1] + Math.sin(carro.ang) * punta]
+  if (NO_SE_PASA.has(celda(campo, nueva)) || NO_SE_PASA.has(celda(campo, frente))) {
+    carro.v = -carro.v * 0.25 // rebota un poquito
+    return 'choque'
+  }
+  carro.pos = nueva
+  return null
+}
+/** ¿Llegó a la pelota? (en el bosque alcanza con acercarse: el último tramo, a pie) */
+export function carroLlego(campo, carro, pelota) {
+  const lejos = NO_SE_PASA.has(celda(campo, pelota)) ? CARRITO.llegarBosque : CARRITO.llegar
+  return dist(carro.pos, pelota) <= lejos
+}
+export const usaCarrito = (r) => habilidadDe(r.jugador)?.id === 'carrito'
 
 // ── banderas ──
 // La bandera cambia de lugar en cada ronda: en cualquier parte del green a `margen` yardas o más del borde. Esa zona
@@ -869,6 +916,8 @@ export function nuevaRonda(jugador, rng) {
     terminada: false,
   }
   if (habilidadDe(jugador)?.id === 'comba') r.golpeMago = sortearGolpeMago(rng, null)
+  // Marcos arranca con el carrito estacionado al lado del tee del 15
+  if (habilidadDe(jugador)?.id === 'carrito') r.carro = crearCarro([r.pelota[0] + 2.5, r.pelota[1] + 2])
   return r
 }
 /** El golpe del Mago para el próximo tiro: al azar, distinto del anterior. */
