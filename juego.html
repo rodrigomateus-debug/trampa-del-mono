@@ -350,6 +350,10 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-ambito[hidden] { display: none; }
 .rk-ambito button { height: 34px; border: 0; border-radius: 999px; background: transparent; color: var(--green-900); font: 800 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
 .rk-ambito button[aria-selected="true"] { background: var(--green-900); color: var(--cream); }
+.conteo { margin: 0; font-size: 13px; color: rgba(244, 238, 218, .75); }
+.conteo b { color: var(--cream); }
+.rk-conteo { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--green-900); background: rgba(20, 64, 42, .08); border-radius: 10px; padding: 8px 10px; }
+.rk-conteo[hidden] { display: none; }
 .como-app { margin: 0; font-size: 15px; color: rgba(244, 238, 218, .85); display: flex; gap: 8px; align-items: baseline; justify-content: center; }
 .como-app .salir { border: 0; background: transparent; color: rgba(244, 238, 218, .6); font: 600 12px var(--font-body); text-decoration: underline; cursor: pointer; padding: 0; }
 .btn-google { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 50px; padding: 0 22px; border-radius: 999px; border: 0; background: #fff; color: #14402a; font: 800 15px var(--font-body); cursor: pointer; box-shadow: 0 4px 14px rgba(12, 43, 28, .35); }
@@ -445,6 +449,7 @@ input { -webkit-user-select: text; user-select: text; }
   <h1>LA TRAMPA DEL MONO</h1>
   <span class="band">DONDE TODO SE VA</span>
   <p class="bajada">Mientras Gonza cierra con Nintendo los derechos del Mario Golf, jugá los tres hoyos que más tarjetas rompieron en San Diego.</p>
+  <p class="conteo" id="conteo" hidden></p>
   <p class="como-app" id="como-app" hidden>Jugás como <b id="como-alias"></b><button class="salir" id="salir" type="button" hidden>Salir</button></p>
   <button class="btn-google" id="entrar-google" type="button" hidden><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Entrar con Google para jugar</button>
   <p class="nota-google" id="nota-google" hidden>Con la misma cuenta de la SDGApp: si sos del club, entrás con tu jugador.</p>
@@ -560,6 +565,7 @@ input { -webkit-user-select: text; user-select: text; }
     </div>
     <div class="rk-tabs" id="rk-tabs" role="tablist" aria-label="Ranking"></div>
     <ol class="rk-lista" id="rk-lista"></ol>
+    <p class="rk-conteo" id="rk-conteo" hidden></p>
     <p class="extras" id="rk-fuente"></p>
     <button class="btn oscuro" id="rk-volver" type="button">VOLVER</button>
   </div>
@@ -1819,6 +1825,8 @@ function dibujarApunte(a) {
 // ── tarjeta final ──
 let firmaTimer = 0, firmaHasta = 0, firmada = false
 function tarjetaFinal() {
+  R.contarVuelta({ apodo: ronda.jugador.apodo, lp: !!ronda.lp })
+  pintarConteo()
   S.viento(0)
   S.musica('final')
   estado = 'fin'
@@ -2020,6 +2028,33 @@ async function anotarVuelta() {
   $('#t-ranking').hidden = false
 }
 
+// ── el conteo de vueltas y LP ──
+const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0)
+const miles = (n) => n.toLocaleString('es-AR')
+function pintarConteo() {
+  const c = R.conteoLocal()
+  $('#conteo').hidden = !c.jugadas
+  $('#conteo').innerHTML = `Jugaste <b>${miles(c.jugadas)}</b> ${c.jugadas === 1 ? 'vuelta' : 'vueltas'} · <b>${miles(c.lps)}</b> LP 💅`
+}
+pintarConteo()
+let rkConteo = null // filas de todos: { user_id, apodo, jugadas, lps }
+function pintarRkConteo(j) {
+  const el = $('#rk-conteo')
+  const local = R.conteoLocal()
+  const mio = j ? local.por[j.apodo] ?? { jugadas: 0, lps: 0 } : local
+  let txt = ''
+  if (rkConteo) {
+    const filas = j ? rkConteo.filter((f) => f.apodo === j.apodo) : rkConteo
+    const tot = filas.reduce((a, f) => ({ jugadas: a.jugadas + f.jugadas, lps: a.lps + f.lps }), { jugadas: 0, lps: 0 })
+    txt += j
+      ? `${j.emoji} Con ${esc(j.apodo)}: <b>${miles(tot.jugadas)}</b> vueltas · <b>${miles(tot.lps)}</b> LP (${pct(tot.lps, tot.jugadas)}%)`
+      : `🏌️ Entre todos: <b>${miles(tot.jugadas)}</b> vueltas · <b>${miles(tot.lps)}</b> LP 💅 (${pct(tot.lps, tot.jugadas)}%)`
+  }
+  if (mio.jugadas) txt += `${txt ? '<br>' : ''}Vos${j ? ' con él' : ''}: <b>${miles(mio.jugadas)}</b> · <b>${miles(mio.lps)}</b> LP`
+  el.innerHTML = txt
+  el.hidden = !txt
+}
+
 // ── ranking: uno general (tu mejor vuelta, con el jugador que la hiciste) y uno por jugador ──
 /** ¿Es mía esta marca? En la SDGApp, por el usuario de la app; suelto, por el nombre que puse. */
 const esYo = (m) => (R.puente.activo ? m.uid === R.puente.identidad.uid : m.usuario.trim().toLowerCase() === datos.usuario.trim().toLowerCase())
@@ -2034,7 +2069,8 @@ async function mostrarRanking(tab = 'general') {
   rkMarcas = null
   $('#ranking').hidden = false
   pintarRanking()
-  const { marcas, compartido, error, app } = await R.leerMarcas()
+  const [{ marcas, compartido, error, app }, conteo] = await Promise.all([R.leerMarcas(), R.leerConteo()])
+  rkConteo = conteo
   rkApp = !!app
   rkMarcas = marcas
   rkCompartido = compartido
@@ -2045,6 +2081,7 @@ function pintarRanking(error = false) {
   const tabs = [{ id: 'general', txt: 'General' }, ...PLANTEL.map((j) => ({ id: j.apodo, txt: j.apodo.replace(/ \(Đ\)$/, ''), e: j.emoji }))]
   $('#rk-tabs').innerHTML = tabs.map((t) => `<button class="rk-tab" type="button" role="tab" data-tab="${esc(t.id)}" aria-selected="${t.id === rkTab}">${t.e ? `<span class="e" aria-hidden="true">${t.e}</span>` : ''}${esc(t.txt)}</button>`).join('')
   const j = PLANTEL.find((x) => x.apodo === rkTab)
+  pintarRkConteo(j)
   $('#rk-tit').textContent = j ? j.apodo.toUpperCase() : 'GENERAL'
   $('#rk-teja').textContent = j ? j.emoji : '🏆'
   if (!rkMarcas) {
@@ -2342,6 +2379,21 @@ if (R.pideLogin()) {
 $('#entrar-google').addEventListener('click', () => R.entrarConGoogle())
 $('#salir').addEventListener('click', () => R.salir())
 $('#volver-app').addEventListener('click', () => R.volverALaApp())
+// adentro de la SDGApp: la barra de estado del iPhone la pinta la app (no el juego). Le avisamos el color
+// de arriba de lo que se ve, así la barra se funde con la pantalla en vez de quedar como una franja.
+const COLOR_ARRIBA = { intro: '#1f5f3e', mazo: '#1f5f3e', pantalla: '#16392a', juego: '#1c4630' }
+let colorAvisado = null
+setInterval(() => {
+  if (!R.puente.enApp) return
+  const visible = (sel) => { const el = $(sel); return !!el && !el.hidden && getComputedStyle(el).display !== 'none' }
+  const cual = visible('#intro-app') ? 'intro'
+    : visible('#elegir') || visible('#todos') ? 'mazo'
+    : [...document.querySelectorAll('.pantalla')].some((p) => !p.hidden) ? 'pantalla'
+    : 'juego'
+  if (cual === colorAvisado) return
+  colorAvisado = cual
+  R.avisarApp({ tipo: 'trampa:color', color: COLOR_ARRIBA[cual] })
+}, 400)
 $('#usuario').addEventListener('input', (e) => {
   datos.usuario = e.target.value.trim().slice(0, 20)
   guardar(datos)

@@ -71,7 +71,7 @@ if (enMarco) {
       const px = (n) => `${Math.max(0, Math.min(80, Number(n) || 0))}px`
       document.documentElement.style.setProperty('--safe-top', px(d.top))
       document.documentElement.style.setProperty('--safe-bot', px(d.bottom))
-    } else if ((d.tipo === 'sdga:marcas' || d.tipo === 'sdga:anotada') && esperando.has(d.id)) {
+    } else if ((d.tipo === 'sdga:marcas' || d.tipo === 'sdga:anotada' || d.tipo === 'sdga:conteo') && esperando.has(d.id)) {
       esperando.get(d.id)(d)
       esperando.delete(d.id)
     }
@@ -86,6 +86,9 @@ function pedirApp(tipo, datos = {}) {
     window.parent.postMessage({ tipo, id, ...datos }, origenApp)
   })
 }
+/** Un aviso suelto a la app (p. ej. el color de arriba de la pantalla, para teñir la barra de estado). */
+export const avisarApp = (d) => { if (origenApp) window.parent.postMessage(d, origenApp) }
+
 /** El botón "volver a la SDGApp". */
 export const volverALaApp = () => { if (origenApp) window.parent.postMessage({ tipo: 'trampa:cerrar' }, origenApp) }
 
@@ -218,5 +221,45 @@ export async function anotar(marca) {
     return { ok: res.ok, compartido: true }
   } catch {
     return { ok: false, compartido: true }
+  }
+}
+
+// ── el conteo: cuántas vueltas se jugaron y cuántas fueron LP ──────────────────
+// Cuenta TODA vuelta que llega a la tarjeta final (firmada o no, LP incluido). Siempre en el teléfono;
+// con la SDGApp (o logueado suelto), también en `trampa_vueltas` y se lee el conteo de todos de la
+// vista `trampa_conteo` (user_id, apodo, jugadas, lps).
+const CONTEO = 'sdga-trampa-conteo-v1'
+/** Lo de este teléfono: { jugadas, lps, por: { [apodo]: { jugadas, lps } } } */
+export function conteoLocal() {
+  const c = leerLS(CONTEO)
+  return c && typeof c === 'object' ? { jugadas: c.jugadas | 0, lps: c.lps | 0, por: c.por ?? {} } : { jugadas: 0, lps: 0, por: {} }
+}
+export async function contarVuelta({ apodo, lp }) {
+  const c = conteoLocal()
+  const p = (c.por[apodo] ??= { jugadas: 0, lps: 0 })
+  c.jugadas++, p.jugadas++
+  if (lp) c.lps++, p.lps++
+  escribirLS(CONTEO, c)
+  if (puente.enApp) return avisarApp({ tipo: 'trampa:vuelta', vuelta: { apodo, lp: !!lp } }) // sin respuesta
+  const tk = compartido() ? await token() : null
+  if (!tk || !puente.identidad) return
+  fetch(`${SUPABASE.url}/rest/v1/trampa_vueltas`, {
+    method: 'POST',
+    headers: { ...cabeceras(tk), Prefer: 'return=minimal' },
+    body: JSON.stringify({ user_id: puente.identidad.uid, apodo, lp: !!lp }),
+  }).catch(() => {})
+}
+/** El conteo de todos (filas por usuario y player), o null si no hay base. */
+export async function leerConteo() {
+  if (puente.enApp) {
+    const r = await pedirApp('trampa:conteo')
+    return r && !r.error && Array.isArray(r.filas) ? r.filas : null
+  }
+  if (!compartido()) return null
+  try {
+    const res = await fetch(`${SUPABASE.url}/rest/v1/trampa_conteo?select=user_id,apodo,jugadas,lps`, { headers: cabeceras(await token()) })
+    return res.ok ? await res.json() : null
+  } catch {
+    return null
   }
 }

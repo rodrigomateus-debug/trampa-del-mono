@@ -177,3 +177,7 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - **Chip in (`CHIP`):** desde afuera del green un tiro completo que **cae** en la boca del hoyo entra con chance (80% en el centro, menos hacia el borde: `chanceClavada`); el que llega **rodando** más rápido que un putt también tiene chance hasta 10 yd/s (más centrado y más lento, más: `chanceRodando`). La suerte sale del tiro mismo (`suerteDe`), sin tocar el rng.
 - **Cámara en el vuelo:** al soltar un tiro completo, la cámara vuelve al zoom de apuntar (un 15% más cerca) y acompaña a la pelota; ya no queda con la cancha entera del zoom out de tirar para atrás.
 - Dificultad real recalibrada (60 vueltas por jugador).
+
+## Barra de estado y conteo (2026-10-04)
+- En la SDGApp el juego avisa el color de arriba de lo que muestra (`trampa:color`: intro/mazo `#1f5f3e`, menús `#16392a`, juego `#1c4630`) y la app tiñe la barra de estado del iPhone con ese color.
+- Conteo: cada vuelta que llega a la tarjeta final (firmada o no, LP incluido) se cuenta (`R.contarVuelta`): en el teléfono y, con sesión, en `trampa_vueltas` de la SDGApp. Portada: "Jugaste N vueltas · M LP 💅". Ranking: "Entre todos: X vueltas · Y LP (Z%)" en el general y "Con <player>: …" en cada pestaña, más lo tuyo.
