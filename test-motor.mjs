@@ -386,6 +386,37 @@ ok('en la salida de cada hoyo los monos no vienen a robar; después sí', () => 
   assert.equal(r.monos[0].modo, 'caza')
 })
 
+ok('la bandera cambia de lugar cada ronda: siempre en el green, a 6 yd o más del borde, y el color dice el tercio', () => {
+  const vistos = new Set()
+  let seed = 1
+  for (let i = 0; i < 60; i++) {
+    const rng = M.rngDesde(seed++)
+    const r = M.sortearBanderas(M.nuevaRonda({ apodo: 'X', emoji: '⛳', hcp: 7 }, rng), rng)
+    for (const h of r.hoyos) {
+      const t = M.terreno(campo, h.pin)
+      assert.equal(t.tipo, 'green', `hoyo ${h.n} en ${h.pin}`)
+      assert.equal(t.hoyo, h.n)
+      // a 6 yd o más del borde, para todos lados
+      for (let a = 0; a < 2 * Math.PI; a += Math.PI / 8) {
+        const q = [h.pin[0] + Math.cos(a) * 5.5, h.pin[1] + Math.sin(a) * 5.5]
+        assert.equal(M.terreno(campo, q).tipo, 'green', `hoyo ${h.n}: el borde está a menos de 6 yd`)
+      }
+      assert.equal(M.colorBandera(h, h.pin), h.bandera)
+      vistos.add(`${h.n}-${h.bandera}`)
+    }
+    // el tee no se mueve con la bandera
+    assert.deepEqual(M.teeDe(r), M.HOYOS[0].tees[r.tee])
+    assert.equal(M.hoyoActual(r), r.hoyos[0])
+  }
+  // en los tres hoyos salen los tres colores (roja adelante, blanca al medio, azul al fondo)
+  for (const n of [15, 16, 17]) for (const c of ['roja', 'blanca', 'azul']) assert.ok(vistos.has(`${n}-${c}`), `${n} ${c}`)
+  // la roja está más cerca del tee que la azul
+  const h = M.HOYOS[1]
+  const { tercios } = M.posicionesBandera(h)
+  const prom = (l) => l.reduce((s, p) => s + M.dist(p, h.azul), 0) / l.length
+  assert.ok(prom(tercios[0]) < prom(tercios[1]) && prom(tercios[1]) < prom(tercios[2]))
+})
+
 ok('más handicap, más difícil: más error y menos distancia', () => {
   const crack = M.dificultad(1.5)
   const malo = M.dificultad(22)

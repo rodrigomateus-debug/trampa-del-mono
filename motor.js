@@ -126,7 +126,7 @@ export function dificultad(hcp) {
  * (Fito: el bot acierta el embudo la mitad de las veces, la gente casi nunca → Trampa total).
  */
 export function dificultadReal(prom, nivel = null) {
-  nivel ??= prom < 0.65 ? 1 : prom < 1.2 ? 2 : prom < 1.95 ? 3 : prom < 3 ? 4 : 5
+  nivel ??= prom < 0.7 ? 1 : prom < 1.3 ? 2 : prom < 2 ? 3 : prom < 3 ? 4 : 5
   return { nivel, nombre: NIVELES[nivel - 1], prom }
 }
 // la comba de Rodal: cuánto se cierra la curva (grados entre la salida y dónde cae) y qué parte del error lateral le queda
@@ -279,6 +279,63 @@ export const elegir = (rng, lista) => lista[Math.floor(rng() * lista.length)]
 // Letras de cancha-grid.js: x afuera · . rough · f fairway · g green · b bunker · t árboles · e tee
 export function crearCampo() {
   return { hoyos: HOYOS, cancha: CANCHA }
+}
+
+// ── banderas ──
+// La bandera cambia de lugar en cada ronda: en cualquier parte del green a `margen` yardas o más del borde. Esa zona
+// se parte en tres tercios a lo largo de la línea del tee al green; el color dice en cuál está: roja adelante (el
+// tercio más cerca del tee), blanca en el medio y azul al fondo.
+export const BANDERA = { margen: 6, colores: ['roja', 'blanca', 'azul'] }
+const POSICIONES = new Map()
+/** Los lugares posibles para la bandera de un hoyo, en sus tres tercios: [[...adelante], [...medio], [...fondo]]. */
+export function posicionesBandera(h) {
+  if (POSICIONES.has(h.n)) return POSICIONES.get(h.n)
+  const campo = crearCampo()
+  const verde = new Set()
+  const celdas = []
+  const [px, py] = h.pin.map(Math.floor)
+  for (let y = py - 50; y <= py + 50; y++) for (let x = px - 50; x <= px + 50; x++) {
+    const t = terreno(campo, [x + 0.5, y + 0.5])
+    if (t.tipo === 'green' && t.hoyo === h.n) { verde.add(y * 10000 + x); celdas.push([x, y]) }
+  }
+  // del tee al centro del green: para partirlo en tercios
+  const cx = celdas.reduce((s, c) => s + c[0], 0) / celdas.length + 0.5
+  const cy = celdas.reduce((s, c) => s + c[1], 0) / celdas.length + 0.5
+  const dl = Math.hypot(cx - h.azul[0], cy - h.azul[1])
+  const u = [(cx - h.azul[0]) / dl, (cy - h.azul[1]) / dl]
+  const proy = (x, y) => (x + 0.5) * u[0] + (y + 0.5) * u[1]
+  const m = BANDERA.margen
+  const validas = celdas.filter(([x, y]) => {
+    for (let dy = -m; dy <= m; dy++) for (let dx = -m; dx <= m; dx++) {
+      if (dx * dx + dy * dy <= m * m && !verde.has((y + dy) * 10000 + (x + dx))) return false
+    }
+    return true
+  })
+  // los tercios se cuentan sobre la parte del green donde puede ir la bandera (las puntas angostas no cuentan):
+  // así en los tres hoyos pueden salir los tres colores
+  let lo = Infinity, hi = -Infinity
+  for (const [x, y] of validas) { const q = proy(x, y); lo = Math.min(lo, q); hi = Math.max(hi, q) }
+  const tercios = [[], [], []]
+  for (const [x, y] of validas) tercios[Math.min(2, Math.floor(((proy(x, y) - lo) / (hi - lo)) * 3))].push([x + 0.5, y + 0.5])
+  const res = { tercios, lo, hi, u }
+  POSICIONES.set(h.n, res)
+  return res
+}
+/** El color de la bandera según en qué tercio del green está. */
+export function colorBandera(h, pin) {
+  const { lo, hi, u } = posicionesBandera(h)
+  const k = Math.max(0, Math.min(2, Math.floor(((pin[0] * u[0] + pin[1] * u[1] - lo) / (hi - lo)) * 3)))
+  return BANDERA.colores[k]
+}
+/** Sortea dónde está la bandera de cada hoyo en esta ronda (un tercio al azar y un lugar al azar en ese tercio). */
+export function sortearBanderas(r, rng) {
+  r.hoyos = HOYOS.map((h) => {
+    const { tercios } = posicionesBandera(h)
+    const hay = [0, 1, 2].filter((k) => tercios[k].length)
+    const k = elegir(rng, hay)
+    return { ...h, pin: [...elegir(rng, tercios[k])], bandera: BANDERA.colores[k] }
+  })
+  return r
 }
 
 /** La letra de la cancha en ese punto (fuera del dibujo es afuera). */
@@ -809,7 +866,8 @@ export function sortearGolpeMago(rng, antes) {
   return elegir(rng, GOLPES_MAGO.filter((g) => g.id !== antes)).id
 }
 export const golpeMagoDe = (r) => GOLPES_MAGO.find((g) => g.id === r.golpeMago) ?? null
-export const hoyoActual = (r) => HOYOS[r.idx]
+// La ronda puede traer sus propias banderas (`sortearBanderas`): entonces el hoyo es su copia, con su `pin`.
+export const hoyoActual = (r) => (r.hoyos ?? HOYOS)[r.idx]
 export const enModoPutt = (campo, r) => r.lie === 'green' && terreno(campo, r.pelota).hoyo === hoyoActual(r).n
 
 /**
@@ -1012,7 +1070,7 @@ export function cerrarHoyo(r, rng) {
   if (r.idx >= HOYOS.length) {
     r.terminada = true
   } else {
-    const sig = HOYOS[r.idx]
+    const sig = hoyoActual(r)
     r.golpes = 0
     r.pelota = [...teeDe(r, sig)]
     r.desde = [...teeDe(r, sig)]

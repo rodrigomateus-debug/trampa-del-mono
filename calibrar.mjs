@@ -70,7 +70,7 @@ function elegirTiro(r) {
 /** Una vuelta entera. Devuelve el total vs. par (null si fue LP) y los golpes por hoyo. */
 export function jugarVuelta(jugador, seed) {
   const rng = M.rngDesde(seed)
-  const r = M.nuevaRonda(jugador, rng)
+  const r = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // como en el juego: la bandera, en otro lugar cada vuelta
   while (!r.terminada) {
     if (M.necesitaLP(r)) { M.levantar(r); break }
     const t = elegirTiro(r)
