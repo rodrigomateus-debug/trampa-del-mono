@@ -16,6 +16,8 @@ const CLAVE = 'sdga-trampa-marcas-v1'
 function locales() {
   try { return JSON.parse(localStorage.getItem(CLAVE)) || [] } catch { return [] }
 }
+/** Las vueltas firmadas en este teléfono (con el hoyo por hoyo, que la base de la SDGApp no guarda). */
+export const marcasDelTelefono = () => locales()
 function guardarLocal(m) {
   try { localStorage.setItem(CLAVE, JSON.stringify([...locales(), m].slice(-500))) } catch {}
 }
