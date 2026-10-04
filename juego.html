@@ -373,6 +373,8 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-fila:first-child .rk-pos { background: var(--gold); border-radius: 6px; }
 .rk-quien { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .rk-quien b { font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk-nombre { display: grid; min-width: 0; line-height: 1.15; }
+.rk-nombre small { font-size: 12px; font-weight: 600; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mini { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--cream); border: 2px solid var(--green-900); display: grid; place-items: center; font-size: 13px; line-height: 1; }
 .rk-score { font-family: var(--font-display); font-size: 20px; text-align: right; }
 .rk-score small { display: block; font-family: var(--font-body); font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; }
@@ -1967,7 +1969,7 @@ async function imagenVuelta() {
   // ranking y voz de LG
   let y = y0 + h0 + 66
   g.fillStyle = '#e8c34a'; g.font = B(34, 800)
-  if (posRanking && firmada) { g.fillText(`🏆 ${posRanking.general}° EN EL GENERAL · ${posRanking.conEl}° CON ${j.emoji}`, W2 / 2, y); y += 58 }
+  if (posRanking && firmada) { g.fillText(`🏆 ${posRanking.general}° EN EL ${R.compartido() || R.puente.enApp ? 'MUNDIAL' : 'GENERAL'} · ${posRanking.conEl}° CON ${j.emoji}`, W2 / 2, y); y += 58 }
   const adulado = M.habilidadDe(j)?.adulado
   const lg = r.lp ? 'Entraste en la lista LP 💅' : adulado ? 'El Mago siempre gana' : !firmada ? 'El Marshall no perdona' : t.vsPar < 0 ? 'QUE HOMBRE' : t.vsPar === 0 ? 'Hermoso. Par y a casa' : t.vsPar <= 3 ? 'Tremendo. Nada que no arregle un approach' : 'La Trampa del Mono siempre tendrá la razón'
   g.fillStyle = '#f4eeda'; g.font = B(34, 400, 'italic'); g.fillText(`📺 LG: “${lg}”`, W2 / 2, y)
@@ -2096,7 +2098,7 @@ function pintarRanking(error = false) {
   const lista = M.armarRanking(base, j ? j.apodo : null)
   const fila = (m, salto) => `<li class="rk-fila${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}">
       <span class="rk-pos">${m.pos}</span>
-      <span class="rk-quien">${j ? '' : `<span class="mini" title="${esc(m.apodo)}" aria-label="con ${esc(m.apodo)}">${m.emoji}</span>`}<b>${esc(m.usuario)}</b></span>
+      <span class="rk-quien">${j ? `<b>${esc(m.usuario)}</b>` : `<span class="mini" aria-hidden="true">${m.emoji}</span><span class="rk-nombre"><b>${esc(m.usuario)}</b><small>con ${esc(m.apodo.replace(/ \(Đ\)$/, ''))}</small></span>`}</span>
       <span class="rk-score">${M.formatoPar(m.vsPar)}<small>${m.golpes} golpes</small></span>
       <span class="rk-tiempo">${M.formatoTiempo(m.ms)}</span>
     </li>`
