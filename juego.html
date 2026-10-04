@@ -1539,25 +1539,28 @@ function hoyoNitido([x, y]) {
   ctx.arc(x - r * 0.25, y + r * 0.3, r * 0.45, 0, 7)
   ctx.fill()
 }
+// Con el zoom de los putts cortos (más de 10 px/yd) la bandera y los aros crecen con la cancha, como el hoyo.
+const escalaZoom = () => Math.min(3.5, Math.max(1, cam.esc / 10))
 function bandera([x, y], n, actual) {
+  const k = escalaZoom()
   ctx.globalAlpha = actual ? 1 : 0.55
   ctx.strokeStyle = C.cream
-  ctx.lineWidth = 2
+  ctx.lineWidth = 2 * k
   ctx.beginPath()
   ctx.moveTo(x, y)
-  ctx.lineTo(x, y - 34)
+  ctx.lineTo(x, y - 34 * k)
   ctx.stroke()
   ctx.fillStyle = actual ? C.gold : C.cream
   ctx.beginPath()
-  ctx.moveTo(x + 1, y - 34)
-  ctx.lineTo(x + 23, y - 28)
-  ctx.lineTo(x + 1, y - 21)
+  ctx.moveTo(x + k, y - 34 * k)
+  ctx.lineTo(x + 23 * k, y - 28 * k)
+  ctx.lineTo(x + k, y - 21 * k)
   ctx.closePath()
   ctx.fill()
   ctx.fillStyle = C.g900
-  ctx.font = '10px Anton, "Arial Narrow", sans-serif'
+  ctx.font = `${10 * k}px Anton, "Arial Narrow", sans-serif`
   ctx.textAlign = 'center'
-  ctx.fillText(String(n), x + 9, y - 24.5)
+  ctx.fillText(String(n), x + 9 * k, y - 24.5 * k)
   ctx.globalAlpha = 1
 }
 
@@ -1750,7 +1753,8 @@ function dibujarApunte(a) {
     ctx.lineWidth = 3
     ctx.setLineDash([1, 8])
     ctx.beginPath()
-    ctx.moveTo(bx + Math.cos(dir) * 14, by + Math.sin(dir) * 14)
+    const r0 = Math.max(14, radioPelota() + 4)
+    ctx.moveTo(bx + Math.cos(dir) * r0, by + Math.sin(dir) * r0)
     if (a.plan.giro) {
       // el putt del Mago: la línea muestra para dónde dobla
       const fin = dir + Math.sign(a.plan.giro) * 0.45
@@ -1758,14 +1762,16 @@ function dibujarApunte(a) {
     } else ctx.lineTo(bx + Math.cos(dir) * 80, by + Math.sin(dir) * 80)
     ctx.stroke()
     ctx.setLineDash([])
+    // el aro de la fuerza, alrededor de la pelota (crece con el zoom, como la pelota)
+    const ra = Math.max(20, radioPelota() + 10)
     ctx.strokeStyle = 'rgba(12,43,28,.55)'
     ctx.lineWidth = 5
     ctx.beginPath()
-    ctx.arc(bx, by, 20, 0, 7)
+    ctx.arc(bx, by, ra, 0, 7)
     ctx.stroke()
     ctx.strokeStyle = C.gold
     ctx.beginPath()
-    ctx.arc(bx, by, 20, -Math.PI / 2, -Math.PI / 2 + a.p * 2 * Math.PI)
+    ctx.arc(bx, by, ra, -Math.PI / 2, -Math.PI / 2 + a.p * 2 * Math.PI)
     ctx.stroke()
     return
   }

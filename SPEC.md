@@ -185,7 +185,7 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - Tarjeta final (2026-10-04, versión compacta elegida por Rorro): COMPARTIR MI VUELTA 📸 (grande, dorado: imagen + texto, el menú del teléfono elige WhatsApp/historias) · OTRA VUELTA y RANKING 🏆 en una fila · "Cambiar jugador" como link. Fuera MANDAR TEXTO y COPIAR. El pie de la imagen y el texto llevan `fedecup.vercel.app` (antes el link de GitHub).
 - Ranking general (Mundial y SDGA): cada fila dice "con <player>" debajo del nombre.
 - 2026-10-04 (pedidos de Rorro):
-  - Putts cortos con más zoom: al apuntar un putt el tope de zoom sube de 10 a 40 px/yd desde 8 yd hasta 1,5 yd (`vistaApuntar`); la fuerza sale del largo del arrastre en pantalla, así que el zoom no cambia la sensibilidad.
+  - Putts cortos con más zoom: al apuntar un putt el tope de zoom sube de 10 a 40 px/yd desde 8 yd hasta 1,5 yd (`vistaApuntar`); la fuerza sale del largo del arrastre en pantalla, así que el zoom no cambia la sensibilidad. Todo respeta el cambio de escala: el hoyo, la pelota y las flechas de caída están en yardas; la bandera y el aro de fuerza del putt crecen con el zoom (`escalaZoom`, hasta 3,5×).
   - Fito: a 40 yd o menos, si el chip cae en el green, el imán lo mete siempre (antes lo dejaba dado al lado y solo entraba perfecto y apuntado). Dificultad fijada en Trampa total.
   - Lechu (Joaco): putts de 3 metros o menos entran siempre (ver arriba).
   - Árbol en la salida: al apuntar, si el tiro (sin error ni viento) le pega a un árbol en la primera mitad del vuelo, todavía bajo (`pinoEnLaSalida`), la línea punteada sale en rojo, se corta en el árbol, el árbol queda marcado con una cruz y dice "PEGA EN EL ÁRBOL 🌲". Si lo pasa por arriba, la línea normal.
