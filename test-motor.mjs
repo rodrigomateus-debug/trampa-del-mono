@@ -338,6 +338,36 @@ ok('la corbata justa: da la vuelta y entra', () => {
   assert.equal(t.embocada, true)
 })
 
+ok('chip in: un tiro completo que cae en el hoyo puede quedar adentro de aire', () => {
+  assert.equal(M.chanceClavada(0), M.CHIP.clavada)
+  assert.ok(M.chanceClavada(0.4) > 0 && M.chanceClavada(0.4) < M.CHIP.clavada)
+  assert.equal(M.chanceClavada(M.FISICA.bocaHoyo), 0)
+  // buscar un tiro (sin error) que caiga justo en el hoyo desde ~60 yd, con suerte a favor
+  // desde la calle, 40 yd antes del green, en la línea del tee a la bandera
+  const dl = M.dist(h15.azul, h15.pin)
+  const u = [(h15.pin[0] - h15.azul[0]) / dl, (h15.pin[1] - h15.azul[1]) / dl]
+  const desde = [h15.pin[0] - u[0] * 40, h15.pin[1] - u[1] * 40]
+  const ang = Math.atan2(u[1], u[0])
+  let hecho = null
+  for (let p = 0.05; p < 0.9 && !hecho; p += 0.0005) {
+    const t = M.lanzar(quieto, { pelota: desde, angulo: ang, potencia: p, viento: calma, lie: 'fairway', rng: sinRuido() })
+    const sim = { ...t, pos: [...t.pos] }
+    M.simular(quieto, sim, h15.pin)
+    if (sim.eventos.some((e) => e.tipo === 'clavada')) hecho = sim
+  }
+  assert.ok(hecho, 'alguno entra de aire')
+  assert.equal(hecho.embocada, true)
+})
+
+ok('chip in rodando: más rápido que un putt tiene chance, cuanto más centrado y lento, más', () => {
+  assert.equal(M.chanceRodando(0.1, M.CHIP.max), 0)
+  assert.ok(M.chanceRodando(0.05, 4) > M.chanceRodando(0.05, 8))
+  assert.ok(M.chanceRodando(0.05, 6) > M.chanceRodando(0.5, 6))
+  const t = { desde: [1, 2], carryVec: [3, 4] }
+  const u = M.suerteDe(t)
+  assert.ok(u >= 0 && u < 1 && u === M.suerteDe(t), 'la suerte es fija para el mismo tiro')
+})
+
 ok('la caída del green quiebra el putt', () => {
   const pelota = [h15.pin[0], h15.pin[1] + 8]
   const tiro = M.simular(quieto, M.lanzar(quieto, { pelota, angulo: -Math.PI / 2, potencia: 8.3 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)

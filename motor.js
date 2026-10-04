@@ -36,6 +36,29 @@ export const FISICA = {
 // salida = velocidad mínima con la que sale (para que no quede adentro de la boca); entra = margen sobre el límite;
 // muerta = si en la vuelta se frena por debajo de esto, se cae adentro.
 export const VUELTA = { max: 5, radio: 0.6, freno: 0.6, salida: 1.7, entra: 0.5, muerta: 0.5 }
+// Desde afuera del green (tiros completos) un tiro perfecto tiene que poder entrar, aunque llegue más
+// rápido que un putt: si CAE en la boca, entra con probabilidad `clavada` (más cerca del centro, más);
+// si llega rodando, hasta `max` yd/s tiene chance (más centrada y más lenta, más chance, hasta `prob`).
+// La suerte de cada tiro sale del tiro mismo (suerteDe): determinista, sin tocar el rng.
+export const CHIP = { clavada: 0.8, max: 10, prob: 0.7 }
+/** Un número 0–1 propio de cada tiro (de dónde sale y adónde va): la "suerte" del chip in. */
+export function suerteDe(tiro) {
+  const x = Math.sin(tiro.desde[0] * 12.9898 + tiro.desde[1] * 78.233 + tiro.carryVec[0] * 37.719 + tiro.carryVec[1] * 4.581) * 43758.5453
+  return x - Math.floor(x)
+}
+/** La chance de entrar de un tiro completo que cae a d yardas del centro del hoyo. */
+export function chanceClavada(d) {
+  if (d >= FISICA.bocaHoyo) return 0
+  if (d <= FISICA.radioHoyo) return CHIP.clavada
+  return CHIP.clavada * 0.6 * (1 - (d - FISICA.radioHoyo) / (FISICA.bocaHoyo - FISICA.radioHoyo))
+}
+/** La chance de entrar de un tiro completo que pasa RODANDO a d yardas del centro a v yd/s (más rápido que un putt). */
+export function chanceRodando(d, v) {
+  const lim = limiteEmbocar(d)
+  if (v >= CHIP.max || d >= FISICA.bocaHoyo) return 0
+  return CHIP.prob * (1 - d / FISICA.bocaHoyo) * (1 - Math.max(0, v - lim) / (CHIP.max - lim))
+}
+
 /** Hasta qué velocidad entra la pelota que pasa a d yardas del centro del hoyo. */
 export const limiteEmbocar = (d) => FISICA.velEmbocar * (1.25 - 0.55 * Math.min(1, d / FISICA.bocaHoyo))
 
@@ -545,6 +568,15 @@ export function avanzar(campo, tiro, dt, pin) {
         tiro.fase = 'quieta'
         return tiro.fase
       }
+      // cayó en la boca del hoyo: puede quedar adentro de aire
+      if (pin && tiro.modo === 'full' && suerteDe(tiro) < chanceClavada(dist(tiro.pos, pin))) {
+        tiro.pos = [...pin]
+        tiro.v = [0, 0]
+        tiro.embocada = true
+        tiro.eventos.push({ tipo: 'clavada' }, { tipo: 'embocada' })
+        tiro.fase = 'quieta'
+        return tiro.fase
+      }
       // rueda en la dirección con la que llega; la comba del Mago, en cambio, pica y sigue derecho a la bandera
       const k = tiro.comba ? 0 : 1
       const dx = tiro.carryVec[0] - k * tiro.controlVec[0] + tiro.deriva[0]
@@ -610,7 +642,8 @@ export function avanzar(campo, tiro, dt, pin) {
   if (cerca && dist(cerca, pin) < FISICA.bocaHoyo && dist(cerca, tiro.pos) > 1e-9) {
     const v = Math.hypot(tiro.v[0], tiro.v[1])
     const d = dist(cerca, pin)
-    if (v < limiteEmbocar(d)) {
+    // desde afuera del green, llegando rápido, tiene su chance (si no, sigue: corbata o labio)
+    if (v < limiteEmbocar(d) || (tiro.modo === 'full' && suerteDe(tiro) < chanceRodando(d, v))) {
       tiro.pos = [...pin]
       tiro.v = [0, 0]
       tiro.embocada = true

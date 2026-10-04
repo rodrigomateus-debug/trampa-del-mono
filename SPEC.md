@@ -170,3 +170,10 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - Lee la vista `trampa_ranking` (sirve también sin sesión) y anota en `trampa_marcas` con tu token (RLS: solo a tu nombre). Al entrar crea/toca tu fila de `users`, como la app.
 - Hace falta: la anon key de la app en `SUPABASE.anonKey` (`ranking.js`; es pública) y la URL del juego en Supabase → Authentication → URL Configuration → Redirect URLs (`https://rodrigomateus-debug.github.io/trampa-del-mono/**`). Sin la key, todo como antes: nombre a mano y ranking del teléfono.
 - Los módulos van con versión (`?v=hash`, lo pone `build-web.mjs`): cada cambio llega apenas se publica, sin quedar pegado en la caché.
+
+## Fluidez, hoyo de lejos, chip in y cámara en el vuelo (2026-10-04)
+- **Fluidez:** se dibuja solo el pedazo de cancha que se ve (antes la imagen entera, rotada y con suavizado máximo, en cada cuadro); suavizado 'medium'; la trama de fondo solo si el dibujo no tapa la pantalla. En la SDGApp, además, el juego se sirve desde el mismo dominio de la app (`/trampa/`) y la app de atrás se apaga mientras jugás.
+- **El hoyo de lejos:** sin el mínimo de 5,4 px: con zoom out se ve del tamaño que le toca (mínimo 2,6 px), no como un pozo.
+- **Chip in (`CHIP`):** desde afuera del green un tiro completo que **cae** en la boca del hoyo entra con chance (80% en el centro, menos hacia el borde: `chanceClavada`); el que llega **rodando** más rápido que un putt también tiene chance hasta 10 yd/s (más centrado y más lento, más: `chanceRodando`). La suerte sale del tiro mismo (`suerteDe`), sin tocar el rng.
+- **Cámara en el vuelo:** al soltar un tiro completo, la cámara vuelve al zoom de apuntar (un 15% más cerca) y acompaña a la pelota; ya no queda con la cancha entera del zoom out de tirar para atrás.
+- Dificultad real recalibrada (60 vueltas por jugador).

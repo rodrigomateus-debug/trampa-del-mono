@@ -315,16 +315,16 @@ export const PLANTEL = [
 export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)']
 
 // La dificultad real de cada uno con su habilidad: promedio vs. par y % de LP de un bot que juega 60 vueltas
-// (`node calibrar.mjs 60`, 2026-10-04, con las yardas reales, los tees por handicap y la boca del hoyo con corbata). El mazo se ordena por esto, no por el handicap.
+// (`node calibrar.mjs 60`, 2026-10-04, con las yardas reales, los tees por handicap, la boca del hoyo con corbata y los chip in). El mazo se ordena por esto, no por el handicap.
 export const DIFICULTAD_REAL = {
-  'El Perro': { prom: 2.79, lp: 3 },
-  'El Sueco': { prom: 2.88, lp: 3 },
-  'Fito (Đ)': { prom: 4.27, lp: 8 },
-  LG: { prom: 4.73, lp: 2 },
-  'Mike Queboni (Đ)': { prom: 4.79, lp: 7 },
-  Mugre: { prom: 4.87, lp: 23 },
-  Lechu: { prom: 4.9, lp: 17 },
-  'El Mago Rodal': { prom: 5.02, lp: 8 },
-  'El Ninja (Đ)': { prom: 5.74, lp: 17 },
-  Liberty: { prom: 5.81, lp: 22 },
+  'El Sueco': { prom: 2.88, lp: 0 },
+  'El Perro': { prom: 2.9, lp: 3 },
+  'Fito (Đ)': { prom: 4, lp: 8 },
+  LG: { prom: 4.47, lp: 2 },
+  'El Mago Rodal': { prom: 4.82, lp: 7 },
+  Lechu: { prom: 4.84, lp: 15 },
+  'Mike Queboni (Đ)': { prom: 4.84, lp: 8 },
+  Mugre: { prom: 4.87, lp: 22 },
+  Liberty: { prom: 5.9, lp: 18 },
+  'El Ninja (Đ)': { prom: 6, lp: 17 },
 }

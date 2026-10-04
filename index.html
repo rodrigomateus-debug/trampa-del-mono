@@ -582,11 +582,11 @@ input { -webkit-user-select: text; user-select: text; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=ab1fd1dc53'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=ab1fd1dc53'
+import * as M from './motor.js?v=440126889c'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=440126889c'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=ab1fd1dc53'
-import * as S from './sonido.js?v=ab1fd1dc53'
+import * as R from './ranking.js?v=440126889c'
+import * as S from './sonido.js?v=440126889c'
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 const promReal = (j) => DIFICULTAD_REAL[j.apodo]?.prom ?? 10 + (j.hcp ?? M.HCP_SIN_CARGAR) / 10
@@ -761,7 +761,7 @@ lienzo.addEventListener('pointerup', (e) => {
   drag = null
   S.cargaFin()
   document.body.classList.remove('apuntando')
-  if (a && estado === 'apuntar') pegar(a)
+  if (a && estado === 'apuntar') pegar(a, base)
   else if (base) obj = base // no pegó: vuelve el zoom de antes
 })
 lienzo.addEventListener('pointercancel', () => {
@@ -787,9 +787,12 @@ function zoomApunte() {
   obj = { ...k, esc: Math.max(0.5, esc) }
 }
 
-function pegar(a) {
+// el zoom mientras vuela un tiro completo: el de apuntar (antes de alejarte tirando para atrás), un poco más cerca
+let escVuelo = null
+function pegar(a, base = null) {
   S.golpe(a.p, a.putt)
   velCam = 3.5
+  escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
   tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo)
@@ -817,6 +820,8 @@ function actualizar(dt) {
     if (estela.length > 70) estela.shift()
     // la corbata: la cámara se acerca al hoyo para que se vea la vuelta
     if (tiro.vuelta && !tiro.vuelta.hecha) { obj = { ...obj, cx: h.pin[0], cy: h.pin[1], esc: Math.max(obj.esc, 30) }; velCam = 4 }
+    // tiro completo: la cámara se vuelve a acercar y acompaña a la pelota (de cerca, no con la cancha entera)
+    else if (escVuelo && tiro.modo === 'full') { obj = { ...obj, cx: tiro.pos[0], cy: tiro.pos[1], esc: escVuelo }; velCam = 6 }
     else seguir(tiro.pos)
     if (tiro.fase === 'quieta') { acc = 0; alReposo() }
   }
@@ -1205,19 +1210,45 @@ $('#lp').addEventListener('click', () => {
 })
 
 // ── dibujo ──
+/**
+ * El dibujo de la cancha: SOLO el pedazo que se ve (más un margen), no la imagen entera. Con zoom es
+ * la diferencia entre rasterizar 1.6 millones de píxeles por cuadro o unos pocos miles — era lo que
+ * trababa el juego (más en el teléfono y adentro de la SDGApp). Suavizado 'medium': a la vista igual.
+ */
+function vistaFondo(c, s) {
+  const e = CANCHA.escala // px de la imagen por yarda del mapa
+  const k = c * c + s * s // esc²
+  const mundo = (x, y) => { // pantalla → mundo (la inversa de la cámara)
+    const dx = x - W / 2, dy = y - cam.sy
+    return [cam.cx + (c * dx + s * dy) / k, cam.cy + (-s * dx + c * dy) / k]
+  }
+  const esquinas = [mundo(0, 0), mundo(W, 0), mundo(0, H), mundo(W, H)]
+  const margen = 4
+  const ax = Math.min(...esquinas.map((p) => p[0])) - margen, ay = Math.min(...esquinas.map((p) => p[1])) - margen
+  const bx = Math.max(...esquinas.map((p) => p[0])) + margen, by = Math.max(...esquinas.map((p) => p[1])) + margen
+  const ancho = fondo.naturalWidth / e, alto = fondo.naturalHeight / e
+  const x0 = Math.max(0, ax), y0 = Math.max(0, ay), x1 = Math.min(ancho, bx), y1 = Math.min(alto, by)
+  // si el dibujo tapa toda la pantalla, no hace falta pintar la trama de atrás
+  return { x0, y0, x1, y1, e, cubre: ax >= 0 && ay >= 0 && bx <= ancho && by <= alto }
+}
+function dibujarFondo({ x0, y0, x1, y1, e }) {
+  if (x1 <= x0 || y1 <= y0) return
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'medium'
+  ctx.drawImage(fondo, x0 * e, y0 * e, (x1 - x0) * e, (y1 - y0) * e, x0, y0, x1 - x0, y1 - y0)
+}
 function dibujar() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-  ctx.fillStyle = trama()
-  ctx.fillRect(0, 0, W, H)
   const c = Math.cos(cam.rot) * cam.esc, s = Math.sin(cam.rot) * cam.esc
+  const vf = fondo.complete && fondo.naturalWidth ? vistaFondo(c, s) : null
+  if (!vf?.cubre) {
+    ctx.fillStyle = trama()
+    ctx.fillRect(0, 0, W, H)
+  }
   ctx.setTransform(dpr * c, dpr * s, -dpr * s, dpr * c, dpr * (W / 2 - (c * cam.cx - s * cam.cy)), dpr * (cam.sy - (s * cam.cx + c * cam.cy)))
   const hoyo = ronda && !ronda.terminada ? M.hoyoActual(ronda) : null
 
-  if (fondo.complete && fondo.naturalWidth) {
-    ctx.imageSmoothingEnabled = true
-    ctx.imageSmoothingQuality = 'high'
-    ctx.drawImage(fondo, 0, 0, fondo.naturalWidth / CANCHA.escala, fondo.naturalHeight / CANCHA.escala)
-  }
+  if (vf) dibujarFondo(vf)
   for (const h of M.HOYOS) cajonTee(h)
 
   // caída del green cuando hay que patear
@@ -1506,7 +1537,8 @@ function cajonTee(h) {
 }
 /** El hoyo dibujado encima del dibujo (vectorial, nítido): 3 veces el real (y más grande que la pelota), con borde claro. */
 function hoyoNitido([x, y]) {
-  const r = Math.max(M.FISICA.bocaHoyo * cam.esc, 5.4) // el doble de antes: más grande que la pelota
+  // del tamaño real del dibujo; de lejos, chiquito (antes tenía un mínimo de 5,4 px y con la cancha entera parecía un pozo)
+  const r = Math.max(M.FISICA.bocaHoyo * cam.esc, 2.6)
   ctx.fillStyle = 'rgba(244,238,218,.9)'
   ctx.beginPath()
   ctx.arc(x, y, r + Math.max(1, r * 0.22), 0, 7)
@@ -1551,7 +1583,7 @@ function pelotaQuieta() {
   const d = M.dist(ronda.pelota, pin)
   const [hx, hy] = w2s(pin)
   const [px, py] = w2s(ronda.pelota)
-  const rHoyo = Math.max(M.FISICA.bocaHoyo * cam.esc, 5.4)
+  const rHoyo = Math.max(M.FISICA.bocaHoyo * cam.esc, 2.6)
   const rPelota = radioPelota()
   const enPantalla = Math.hypot(px - hx, py - hy)
   const borde = rHoyo + rPelota + 2
