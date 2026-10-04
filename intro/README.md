@@ -24,10 +24,15 @@ con "Caminás tranquilo por el fairway…".
 - `assets/trampa-del-mono.mp3` — la canción (Suno). `assets/sdga-logo.svg` — el logo oficial del design system.
 - `assets/fonts/` — Anton y Archivo (OFL). `assets/vendor/` — three.js 0.181.2 y GSAP 3.14.2, locales para que el render no dependa de la red.
 - `trampa-del-mono-intro-vertical.mp4` y `trampa-del-mono-intro.mp4` — los videos ya renderizados (versión liviana); `poster.jpg` — el cuadro del logo.
-- `compositions/presentacion.html` — **la presentación oficial de la app** (16:9, 128,8 s, la canción entera), con el juego
-  de verdad. La arma `armar-presentacion.mjs` (con `presentacion.css`) a partir de `index.html`: si se toca la intro, volver a correrlo.
-  `escena-presentacion.js` remapea el tiempo de la escena 3D y `mapa.js` es el vuelo 3D sobre el dibujo de la cancha
-  (`assets/cancha.webp`; los datos los saca `armar-mapa.mjs` a `mapa-datos.js`). Video: `trampa-del-mono-presentacion.mp4`.
+- **Dos presentaciones oficiales:**
+  - `compositions/presentacion.html` — la **vertical (9:16, 75 s)**, la de la app: la intro y las funciones con capturas del juego.
+    La arma `armar-presentacion.mjs` desde `compositions/vertical.html`; `escena-presentacion.js` remapea el tiempo de la escena 3D;
+    las capturas están en `assets/capturas/`. Video: `trampa-del-mono-presentacion.mp4`.
+  - `compositions/presentacion-horizontal.html` — la **horizontal (16:9, 2:09, la canción entera)**, para mandar por WhatsApp, con el juego
+    de verdad. La arma `armar-presentacion-horizontal.mjs` (con `presentacion-horizontal.css`) a partir de `index.html`:
+    si se toca la intro, volver a correrlo. `escena-presentacion-horizontal.js` remapea el tiempo de la escena 3D y `mapa.js` es el
+    vuelo 3D sobre el dibujo de la cancha (`assets/cancha.webp`; los datos los saca `armar-mapa.mjs` a `mapa-datos.js`).
+    Video: `trampa-del-mono-presentacion-horizontal.mp4`.
 - `assets/juego/` — el juego grabado cuadro por cuadro (ver `rodaje/`): las tomas (`*.mp4`), sus marcas de tiempo (`tomas.json`),
   las cartas del plantel, las caras, la imagen para compartir y los efectos de sonido del juego (`sfx/`).
 - `rodaje/` — las herramientas para grabar el juego: un navegador que juega solo con un reloj virtual (ver más abajo).
@@ -53,7 +58,7 @@ con "Caminás tranquilo por el fairway…".
 | 32,8 | vuelve la banda | se abren los ojos de MONO, banda dorada |
 | 36,1–36,8 | fin de "…cambia la situación" | fundido a verde |
 
-## La presentación oficial (16:9, 0–128,8 s)
+## La presentación oficial horizontal (16:9, 0–128,8 s, para WhatsApp)
 
 | Tiempo | Música | Imagen |
 |---|---|---|
@@ -95,7 +100,7 @@ node t-final.cjs 3 firma graba          # vuelta entera y la tarjeta (firma o ma
 node t-plantel.cjs                      # las 10 cartas
 node sfx.cjs                            # los efectos del juego a assets/juego/sfx
 node juntar.cjs                         # pasa las tomas de elegidas.json a ../assets/juego (mp4 + tomas.json)
-cd .. && node armar-presentacion.mjs && npx hyperframes@0.8.114 render -c compositions/presentacion.html --output trampa-del-mono-presentacion.mp4
+cd .. && node armar-presentacion-horizontal.mjs && npx hyperframes@0.8.114 render -c compositions/presentacion-horizontal.html --output trampa-del-mono-presentacion-horizontal.mp4
 ```
 
 ## Cómo se trabaja
@@ -107,7 +112,8 @@ npx hyperframes@0.8.114 snapshot --at 6,22.5,33   # cuadros sueltos para mirar
 npx hyperframes@0.8.114 preview                   # Studio con el timeline (abre el navegador)
 npx hyperframes@0.8.114 render --output trampa-del-mono-intro.mp4                              # 16:9
 npx hyperframes@0.8.114 render -c compositions/vertical.html --output trampa-del-mono-intro-vertical.mp4   # 9:16
-node armar-presentacion.mjs && npx hyperframes@0.8.114 render -c compositions/presentacion.html --output trampa-del-mono-presentacion.mp4   # 16:9
+node armar-presentacion.mjs && npx hyperframes@0.8.114 render -c compositions/presentacion.html --output trampa-del-mono-presentacion.mp4   # 9:16 (app)
+node armar-presentacion-horizontal.mjs && npx hyperframes@0.8.114 render -c compositions/presentacion-horizontal.html --output trampa-del-mono-presentacion-horizontal.mp4   # 16:9 (WhatsApp)
 ```
 
 El render usa WebGL por software si no hay GPU: tarda ~1 s por cuadro. `snapshot` y `preview` miran `index.html`;

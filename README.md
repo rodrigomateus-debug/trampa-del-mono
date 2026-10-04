@@ -16,7 +16,7 @@ y queda como app.
 - `ranking.js` — dónde se guardan las marcas del ranking (el teléfono, o Supabase si se completa la config); `supabase.sql` — la tabla.
 - `plantel.js` — los jugadores (handicap, frase, emoji) y `EN_PRUEBA`, los que aparecen por ahora.
 - `jugadores/` — fotos; `iconos/` y `manifest.webmanifest` — la app instalable.
-- `intro/` — la intro animada (HyperFrames + Three.js), su versión en vivo para la app (`intro/app.js`) y la presentación oficial del juego (`intro/trampa-del-mono-presentacion.mp4`); ver `intro/README.md`.
+- `intro/` — la intro animada (HyperFrames + Three.js), su versión en vivo para la app (`intro/app.js`) y las presentaciones oficiales del juego (`intro/trampa-del-mono-presentacion.mp4` vertical, para la app, y `intro/trampa-del-mono-presentacion-horizontal.mp4`, para WhatsApp); ver `intro/README.md`.
 - `SPEC.md` — reglas y decisiones.
 
 Después de tocar el juego:
