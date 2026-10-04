@@ -545,7 +545,7 @@ function crearOjos(capa, Q) {
 }
 
 // ---------- arranque (al final: usa todo lo de arriba) ----------
-if (raiz && new URLSearchParams(location.search).has('sinintro')) raiz.remove()
+if (raiz && ['sinintro', 'match'].some((k) => new URLSearchParams(location.search).has(k))) raiz.remove() // con ?match la app te manda directo a tus desafíos
 else if (raiz)
   iniciar().catch((e) => {
     console.warn('intro: no se pudo armar', e)

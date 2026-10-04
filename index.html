@@ -449,6 +449,8 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-ambito { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(20, 64, 42, .1); }
 .rk-ambito[hidden] { display: none; }
 .rk-ambito button { height: 34px; border: 0; border-radius: 999px; background: transparent; color: var(--green-900); font: 800 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.rk-ambito:has(> :nth-child(3)) { grid-template-columns: repeat(3, 1fr); }
+.rk-ambito:has(> :nth-child(3)) button { font-size: 11px; letter-spacing: .02em; padding: 0 4px; }
 .rk-ambito button[aria-selected="true"] { background: var(--green-900); color: var(--cream); }
 .conteo { margin: 0; font-size: 13px; color: rgba(244, 238, 218, .75); }
 .conteo b { color: var(--cream); }
@@ -479,6 +481,41 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-score { font-family: var(--font-display); font-size: 20px; text-align: right; }
 .rk-score small { display: block; font-family: var(--font-body); font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; }
 .rk-tiempo { font-family: var(--font-display); font-size: 17px; font-variant-numeric: tabular-nums; text-align: right; min-width: 7.5ch; }
+/* ── match ── */
+#match { background: rgba(12, 43, 28, .97); }
+.aviso { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; margin-left: 8px; border-radius: 999px; background: var(--red); color: var(--cream); font: 800 12px var(--font-body); letter-spacing: 0; vertical-align: 2px; box-sizing: border-box; }
+.aviso[hidden] { display: none; }
+.mt-buscar { height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border-subtle); background: #fff; color: var(--green-900); font: 600 15px var(--font-body); }
+.mt-buscar[hidden] { display: none; }
+.mt-fila { grid-template-columns: 30px minmax(0, 1fr) auto; text-align: left; }
+.mt-fila .mini { width: 30px; height: 30px; font-size: 16px; }
+.mt-fila .rk-nombre small.gana { color: var(--green-500); }
+.mt-fila .rk-nombre small.pierde { color: var(--red); }
+.mt-btn { height: 34px; padding: 0 14px; border-radius: 999px; border: 0; background: var(--green-900); color: var(--cream); font: 800 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.mt-btn.oro { background: var(--gold); color: var(--green-900); }
+.mt-btn[disabled] { opacity: .5; }
+.mt-estado { font: 700 12px var(--font-body); color: var(--text-muted); text-align: right; }
+.mt-sec { padding: 12px 4px 4px; font: 800 11px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); text-align: left; list-style: none; }
+.t-match { margin: 0; padding: 10px 12px; border-radius: 12px; background: rgba(20, 64, 42, .08); font-size: 14px; line-height: 1.4; }
+.t-match[hidden] { display: none; }
+.t-match .gran { display: block; font-family: var(--font-display); font-size: 24px; line-height: 1.1; letter-spacing: .02em; }
+.t-match.gana { background: var(--gold); }
+.t-match.pierde { background: rgba(188, 75, 60, .15); }
+.t-match button { margin-top: 6px; }
+.t-match .wa { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; margin-top: 10px; border: 0; border-radius: 999px; background: #25d366; color: #fff; font: 800 14px var(--font-body); letter-spacing: .04em; cursor: pointer; box-shadow: 0 3px 0 #128c4b; }
+.t-match .wa:active { transform: translateY(2px); box-shadow: 0 1px 0 #128c4b; }
+.mt-record { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; list-style: none; padding: 4px 0 8px; }
+.mt-record div { border-radius: 12px; padding: 8px 4px; text-align: center; background: rgba(20, 64, 42, .08); }
+.mt-record b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1; }
+.mt-record span { font: 800 10px var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+.mt-record .g { background: rgba(46, 125, 79, .18); }
+.mt-record .p { background: rgba(188, 75, 60, .14); }
+.wdl { display: inline-flex; gap: 4px; font: 800 12px var(--font-body); font-variant-numeric: tabular-nums; }
+.wdl i { font-style: normal; min-width: 30px; height: 24px; border-radius: 6px; display: grid; place-items: center; background: rgba(20, 64, 42, .08); }
+.wdl .g { background: rgba(46, 125, 79, .22); }
+.wdl .p { background: rgba(188, 75, 60, .18); }
+#h-fantasma { background: rgba(244, 238, 218, .9); color: var(--green-900); justify-self: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+#h-fantasma[hidden] { display: none; }
 .rk-vacio { margin: 0; padding: 18px 4px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -523,6 +560,7 @@ input { -webkit-user-select: text; user-select: text; }
       <button class="btn" id="lp" type="button">LP 💅</button>
     </div>
   </div>
+  <span class="chip" id="h-fantasma" hidden></span>
 </div>
 
 <button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
@@ -586,6 +624,7 @@ input { -webkit-user-select: text; user-select: text; }
   <label class="quien-juega" id="quien-juega"><span class="kicker">¿Quién juega?</span><input id="usuario" type="text" maxlength="20" autocomplete="nickname" autocapitalize="words" spellcheck="false" placeholder="Tu nombre para el ranking"></label>
   <div class="portada-botones">
     <button class="btn" id="jugar" type="button">JUGAR</button>
+    <button class="btn ghost" id="ver-match" type="button" hidden>MATCH ⚔️<b class="aviso" id="match-aviso" hidden></b></button>
     <button class="btn ghost" id="ver-ranking" type="button">RANKING 🏆</button>
     <button class="btn ghost" id="ver-intro" type="button">INTRO ▶</button>
   </div>
@@ -648,6 +687,7 @@ input { -webkit-user-select: text; user-select: text; }
     </div>
     <p class="firmada" id="t-firmada" hidden></p>
     <p class="rk-pos-final" id="t-ranking" hidden></p>
+    <div class="t-match" id="t-match" hidden></div>
     <div class="acciones" id="t-acciones" hidden>
       <button class="btn ancho" id="compartir-img" type="button">COMPARTIR MI VUELTA 📸</button>
       <button class="btn oscuro" id="otra" type="button">OTRA VUELTA</button>
@@ -680,6 +720,24 @@ input { -webkit-user-select: text; user-select: text; }
   <p class="resumen-nota" id="resumen-nota"></p>
 </section>
 
+<section class="pantalla" id="match" hidden aria-labelledby="mt-tit">
+  <div class="card tarjeta ranking">
+    <header>
+      <span class="teja">⚔️</span>
+      <div><span class="kicker" style="color: var(--text-muted)">Uno contra uno · mismo viento y banderas</span><div class="quien" id="mt-tit">MATCH</div></div>
+    </header>
+    <div class="rk-ambito" id="mt-tabs" role="tablist" aria-label="Match">
+      <button type="button" role="tab" data-mt="desafiar" aria-selected="true">⚔️ Desafiar</button>
+      <button type="button" role="tab" data-mt="mios" aria-selected="false">📋 Pendientes<b class="aviso" id="mt-aviso" hidden></b></button>
+      <button type="button" role="tab" data-mt="historial" aria-selected="false">📊 Historial</button>
+    </div>
+    <input class="mt-buscar" id="mt-buscar" type="search" placeholder="Buscar rival…" autocomplete="off" spellcheck="false">
+    <ol class="rk-lista" id="mt-lista"></ol>
+    <p class="extras" id="mt-nota">Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma.</p>
+    <button class="btn oscuro" id="mt-volver" type="button">VOLVER</button>
+  </div>
+</section>
+
 <section class="pantalla" id="ranking" hidden aria-labelledby="rk-tit">
   <div class="card tarjeta ranking">
     <header>
@@ -699,11 +757,11 @@ input { -webkit-user-select: text; user-select: text; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=b408dc0714'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=b408dc0714'
+import * as M from './motor.js?v=9da7da3330'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=9da7da3330'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=b408dc0714'
-import * as S from './sonido.js?v=b408dc0714'
+import * as R from './ranking.js?v=9da7da3330'
+import * as S from './sonido.js?v=9da7da3330'
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 // el nivel fijado a mano manda (Fito, Trampa total, va al final)
@@ -996,6 +1054,7 @@ function actualizar(dt) {
   if (!drag && document.body.classList.contains('apuntando')) document.body.classList.remove('apuntando')
   pintarVoz()
   pintarCrono()
+  if (ronda?.duelo) cuadroDuelo()
   if (firmaHasta) $('#reloj').style.width = `${Math.max(0, (firmaHasta - performance.now()) / (M.SEGUNDOS_FIRMA * 10))}%`
   if (anim) {
     anim.t += dt
@@ -1240,10 +1299,18 @@ function levantarVuelta() {
 // ── hoyos ──
 function empezar(jugador) {
   ronda = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // la bandera, en otro lugar del green cada ronda
+  // el match: las banderas y el viento salen de la semilla (los dos juegan lo mismo); se usa una vez
+  const duelo = matchModo
+  matchModo = null
+  if (duelo) {
+    M.aplicarMatch(ronda, M.condicionesMatch(duelo.semilla))
+    ronda.duelo = { ...duelo, grabacion: [] }
+  }
   datos.ultimo = jugador.apodo
   guardar(datos)
   pararCuenta()
-  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking', 'todos', 'resumen']) $('#' + id).hidden = true
+  $('#h-fantasma').hidden = true
+  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking', 'todos', 'resumen', 'match']) $('#' + id).hidden = true
   $('#hud-top').hidden = false
   introHoyo()
 }
@@ -1739,6 +1806,7 @@ function dibujar() {
   dibujarPancho()
   if (ronda?.carro && !ronda.terminada) dibujarCarro(ronda.carro)
   dibujarMonos()
+  if (ronda?.duelo?.fantasma) dibujarFantasma()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
     else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); pelota(tiro.pos, tiro.alt) }
@@ -2539,6 +2607,8 @@ function tarjetaFinal() {
   $('#t-filas').innerHTML = filas.join('')
   $('#t-tiempo').textContent = ronda.ms != null && !ronda.lp ? M.formatoTiempo(ronda.ms) : 'LP · sin tiempo'
   $('#t-ranking').hidden = true
+  $('#t-match').hidden = true
+  if (ronda.duelo) cerrarMatch(ronda)
   posRanking = null
   resumenListo = null
   soltarResumenes()
@@ -2714,6 +2784,329 @@ async function anotarVuelta() {
   resumenListo = null // se rehace con el puesto
   $('#t-ranking').textContent = `🏆 ${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el ${R.compartido() || R.puente.enApp ? 'mundial' : 'general'} · ${conEl.pos}° con ${jugador.emoji}`
   $('#t-ranking').hidden = false
+}
+
+// ── el match: desafiás a otro, jugás tu vuelta y él la juega después con tu fantasma ──
+let matchModo = null // lo que sigue al elegir player: { tipo: 'reto', rival, semilla } | { tipo: 'respuesta', desafio, fantasma }
+let mtTab = 'desafiar'
+let mtRivales = null, mtDesafios = null, mtError = null
+const VISTOS = 'sdga-trampa-match-vistos-v1'
+const vistos = () => new Set(leerJSON(VISTOS) ?? [])
+function leerJSON(k) { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } }
+const yoUid = () => R.puente.identidad?.uid
+const golpesVan = (r) => r.tarjeta.reduce((t, f) => t + (f.golpes ?? 0), 0) + r.golpes
+/** Lo que me toca mirar: desafíos para jugar y resultados de los que mandé que todavía no vi. */
+function pendientesMatch(ds = mtDesafios) {
+  if (!ds) return 0
+  const v = vistos()
+  return ds.filter((d) => (d.estado === 'pendiente' && d.rival.uid === yoUid()) || (d.estado === 'jugado' && d.retador.uid === yoUid() && !v.has(d.id))).length
+}
+function pintarAvisoMatch() {
+  const n = pendientesMatch()
+  for (const el of [$('#match-aviso'), $('#mt-aviso')]) { el.hidden = !n; el.textContent = n }
+}
+async function cargarDesafios() {
+  try { mtDesafios = await R.leerDesafios(); mtError = null } catch (e) { mtError = e; mtDesafios ??= null }
+  pintarAvisoMatch()
+}
+async function mostrarMatch(tab = mtTab) {
+  mtTab = tab
+  $('#match').hidden = false
+  pintarMatch()
+  const [rv] = await Promise.allSettled([mtRivales ? Promise.resolve(mtRivales) : R.leerRivales(), cargarDesafios()])
+  if (rv.status === 'fulfilled') mtRivales = rv.value
+  else mtError = rv.reason
+  pintarMatch()
+}
+/** Resultado de un match jugado, visto por mí. */
+function resultadoPara(d) {
+  const soyRetador = d.retador.uid === yoUid()
+  const yo = soyRetador ? d.retador : d.rival, el = soyRetador ? d.rival : d.retador
+  const g = M.ganadorMatch(yo, el)
+  return { yo, el, g, txt: g > 0 ? 'Ganaste' : g < 0 ? 'Perdiste' : 'Empate', clase: g > 0 ? 'gana' : g < 0 ? 'pierde' : '' }
+}
+const golpesTxt = (x) => (x.golpes == null || x.lp ? 'LP 💅' : `${x.golpes} (${M.formatoPar(x.vsPar)})`)
+function pintarMatch() {
+  for (const b of $('#mt-tabs').children) b.setAttribute('aria-selected', String(b.dataset.mt === mtTab))
+  pintarAvisoMatch()
+  const lista = $('#mt-lista')
+  $('#mt-buscar').hidden = mtTab !== 'desafiar'
+  if (mtTab === 'desafiar') {
+    $('#mt-nota').textContent = 'Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma. Mismo viento y banderas para los dos.'
+    if (!mtRivales) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudo cargar la lista. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; return }
+    const q = $('#mt-buscar').value.trim().toLowerCase()
+    const rs = mtRivales.filter((r) => !q || r.nombre.toLowerCase().includes(q))
+    lista.innerHTML = rs.length ? rs.map((r) => `<li class="rk-fila mt-fila">
+        <span class="mini" aria-hidden="true">${esc(r.nombre.charAt(0).toUpperCase())}</span>
+        <span class="rk-nombre"><b>${esc(r.nombre)}</b>${r.sdga ? '<small>⛳ SDGA</small>' : ''}</span>
+        <button class="mt-btn" type="button" data-desafiar="${esc(r.uid)}">Desafiar</button>
+      </li>`).join('') : `<li class="rk-vacio">${q ? 'Nadie con ese nombre.' : 'Todavía no hay a quién desafiar.'}</li>`
+    return
+  }
+  $('#mt-nota').textContent = 'Gana el que hace menos golpes; si empatan, el más rápido. LP pierde. Los dos juegan con el mismo player.'
+  if (!mtDesafios) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudieron cargar tus matches.' : 'Cargando…'}</li>`; return }
+  if (mtTab === 'historial') { pintarHistorial(lista); return }
+  const yo = yoUid()
+  const meToca = mtDesafios.filter((d) => d.estado === 'pendiente' && d.rival.uid === yo)
+  const espero = mtDesafios.filter((d) => d.estado === 'pendiente' && d.retador.uid === yo)
+  const sec = (t, filas) => (filas.length ? `<li class="mt-sec">${t}</li>${filas.join('')}` : '')
+  const html = [
+    sec('Te desafiaron', meToca.map((d) => `<li class="rk-fila mt-fila">
+        <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
+        <span class="rk-nombre"><b>${esc(d.retador.alias)}</b><small>Jugás con ${esc(d.retador.emoji)} ${esc(String(d.retador.apodo).replace(/ \(Đ\)$/, ''))} · ya jugó</small></span>
+        <button class="mt-btn oro" type="button" data-responder="${esc(d.id)}">Jugar</button>
+      </li>`)),
+    sec('Esperando que jueguen', espero.map((d) => `<li class="rk-fila mt-fila">
+        <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
+        <span class="rk-nombre"><b>${esc(d.rival.alias)}</b><small>Hiciste ${esc(golpesTxt(d.retador))}</small></span>
+        <span class="mt-estado">⏳</span>
+      </li>`)),
+  ].join('')
+  lista.innerHTML = html || '<li class="rk-vacio">No tenés matches pendientes. Desafiá a alguien.</li>'
+}
+/** El historial: tu récord (G-E-P), contra cada rival y match por match. */
+function pintarHistorial(lista) {
+  $('#mt-nota').textContent = 'G = ganados · E = empatados · P = perdidos. Cuentan los matches que jugaron los dos.'
+  const yo = yoUid()
+  const jugados = mtDesafios.filter((d) => d.estado === 'jugado').sort((a, b) => String(b.jugadoFecha ?? b.fecha).localeCompare(String(a.jugadoFecha ?? a.fecha)))
+  if (!jugados.length) { lista.innerHTML = '<li class="rk-vacio">Todavía no terminaste ningún match.</li>'; return }
+  const v = vistos()
+  const res = jugados.map((d) => ({ d, ...resultadoPara(d) }))
+  const tot = { g: 0, e: 0, p: 0 }
+  const por = new Map() // uid del rival → { alias, g, e, p, ultimo }
+  for (const r of res) {
+    const k = r.g > 0 ? 'g' : r.g < 0 ? 'p' : 'e'
+    tot[k]++
+    const uid = r.el.uid
+    const x = por.get(uid) ?? { alias: r.el.alias, g: 0, e: 0, p: 0 }
+    x[k]++
+    por.set(uid, x)
+  }
+  const wdl = (x) => `<span class="wdl" aria-label="${x.g} ganados, ${x.e} empatados, ${x.p} perdidos"><i class="g">${x.g}G</i><i>${x.e}E</i><i class="p">${x.p}P</i></span>`
+  const rivales = [...por.values()].sort((a, b) => b.g + b.e + b.p - (a.g + a.e + a.p) || b.g - a.g)
+  lista.innerHTML = `<li class="mt-record"><div class="g"><b>${tot.g}</b><span>Ganados</span></div><div><b>${tot.e}</b><span>Empatados</span></div><div class="p"><b>${tot.p}</b><span>Perdidos</span></div></li>
+    <li class="mt-sec">Contra cada rival</li>
+    ${rivales.map((x) => `<li class="rk-fila mt-fila">
+      <span class="mini" aria-hidden="true">${esc(String(x.alias).charAt(0).toUpperCase())}</span>
+      <span class="rk-nombre"><b>${esc(x.alias)}</b><small>${x.g + x.e + x.p} ${x.g + x.e + x.p === 1 ? 'match' : 'matches'}</small></span>
+      ${wdl(x)}
+    </li>`).join('')}
+    <li class="mt-sec">Match por match</li>
+    ${res.map((r) => `<li class="rk-fila mt-fila">
+      <span class="mini" aria-hidden="true">${esc(r.yo.emoji ?? '⛳')}</span>
+      <span class="rk-nombre"><b>vs ${esc(r.el.alias)}</b><small class="${r.clase}">${r.txt} · ${esc(golpesTxt(r.yo))} vs ${esc(golpesTxt(r.el))} · con ${esc(String(r.yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}</small></span>
+      <span class="mt-estado">${r.d.retador.uid === yo && !v.has(r.d.id) ? '🆕' : r.g > 0 ? '🏆' : r.g < 0 ? '😵' : '🤝'}</span>
+    </li>`).join('')}`
+  // los resultados que ya viste (los de los desafíos que mandaste)
+  const ids = jugados.filter((d) => d.retador.uid === yo).map((d) => d.id)
+  if (ids.some((id) => !v.has(id))) { try { localStorage.setItem(VISTOS, JSON.stringify([...new Set([...v, ...ids])].slice(-300))) } catch {} }
+}
+const tabConAviso = () => {
+  const yo = yoUid(), v = vistos()
+  if (mtDesafios?.some((d) => d.estado === 'pendiente' && d.rival.uid === yo)) return 'mios'
+  if (mtDesafios?.some((d) => d.estado === 'jugado' && d.retador.uid === yo && !v.has(d.id))) return 'historial'
+  return 'desafiar'
+}
+$('#ver-match').addEventListener('click', () => mostrarMatch(tabConAviso()))
+$('#mt-volver').addEventListener('click', () => { $('#match').hidden = true; pintarAvisoMatch() })
+$('#mt-tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-mt]')
+  if (!b) return
+  mtTab = b.dataset.mt
+  pintarMatch()
+})
+$('#mt-buscar').addEventListener('input', pintarMatch)
+$('#mt-lista').addEventListener('click', async (e) => {
+  const reto = e.target.closest('[data-desafiar]')
+  if (reto) {
+    const rival = mtRivales?.find((r) => r.uid === reto.dataset.desafiar)
+    if (!rival) return
+    matchModo = { tipo: 'reto', rival, semilla: crypto.getRandomValues(new Uint32Array(1))[0] }
+    mostrarElegir()
+    return
+  }
+  const resp = e.target.closest('[data-responder]')
+  if (resp) {
+    const desafio = mtDesafios?.find((d) => d.id === resp.dataset.responder)
+    if (!desafio) return
+    resp.disabled = true
+    resp.textContent = '…'
+    let fantasma = null
+    try { fantasma = await R.leerFantasma(desafio.id) } catch {}
+    if (!Array.isArray(fantasma)) { resp.disabled = false; resp.textContent = 'Reintentar'; return }
+    matchModo = { tipo: 'respuesta', desafio, fantasma, semilla: desafio.semilla }
+    // se juega con el mismo player que usó el que desafió
+    const j = TODOS.find((x) => x.apodo === desafio.retador.apodo)
+    if (j) empezar(j)
+    else mostrarElegir()
+  }
+})
+
+/** Cada cuadro de un match: grabo mi vuelta (si desafío) y escribo dónde va el fantasma (si respondo). */
+let fantasmaPintado = ''
+function cuadroDuelo() {
+  const d = ronda.duelo
+  if (ronda.t0 == null) return
+  const ms = ronda.ms ?? performance.now() - ronda.t0
+  if (d.tipo === 'reto' && ronda.ms == null && !ronda.terminada) {
+    M.grabar(d.grabacion, ms, ronda.idx, tiro ? tiro.pos : ronda.pelota, tiro ? tiro.alt : 0, golpesVan(ronda))
+  }
+  if (!d.fantasma) return
+  const f = M.fantasmaEn(d.fantasma, ms)
+  const r = d.desafio.retador
+  const txt = !f ? '' : f.fin
+    ? `👻 ${r.emoji} ${r.alias} terminó · ${r.lp || r.golpes == null ? 'LP 💅' : `${r.golpes} golpes`}`
+    : `👻 ${r.emoji} ${r.alias} · hoyo ${M.HOYOS[f.idx]?.n ?? ''} · ${f.golpes} ${f.golpes === 1 ? 'golpe' : 'golpes'}`
+  if (txt !== fantasmaPintado) {
+    fantasmaPintado = txt
+    $('#h-fantasma').textContent = txt
+    $('#h-fantasma').hidden = !txt
+  }
+}
+/** La pelota del que te desafió, semitransparente, con su emoji y su nombre (solo si va en tu mismo hoyo).
+ *  Si está fuera de la pantalla, el cartelito queda en el borde con una flechita que apunta para donde va. */
+function dibujarFantasma() {
+  if (ronda.t0 == null || ronda.terminada) return
+  const d = ronda.duelo
+  const f = M.fantasmaEn(d.fantasma, ronda.ms ?? performance.now() - ronda.t0)
+  if (!f || f.fin || f.idx !== ronda.idx) return
+  const [x, y0] = w2s(f.pos)
+  const r = Math.max(4.5, radioPelota()) * (1 + f.alt / 50)
+  const y = y0 - f.alt * levante()
+  const arriba = Math.min(H * 0.4, (document.querySelector('#hud-top')?.getBoundingClientRect().bottom ?? 0) + 30)
+  const fuera = x < 0 || x > W || y < arriba || y > H
+  if (!fuera) {
+    ctx.globalAlpha = 0.22
+    ctx.fillStyle = '#000'
+    ctx.beginPath()
+    ctx.ellipse(x + 1, y0 + 1, r * 0.9, r * 0.6, 0, 0, 7)
+    ctx.fill()
+    ctx.globalAlpha = 0.25 + 0.1 * Math.sin(performance.now() / 300) // un halo que respira
+    ctx.fillStyle = '#dfe9ff'
+    ctx.beginPath()
+    ctx.arc(x, y, r + 4, 0, 7)
+    ctx.fill()
+    ctx.globalAlpha = 0.6
+    ctx.beginPath()
+    ctx.arc(x, y, r, 0, 7)
+    ctx.fill()
+    ctx.setLineDash([2, 2])
+    ctx.strokeStyle = 'rgba(12,43,28,.8)'
+    ctx.lineWidth = 1
+    ctx.stroke()
+    ctx.setLineDash([])
+  }
+  // el cartelito: emoji + nombre
+  const ret = d.desafio.retador
+  const nombre = ret.alias.length > 14 ? ret.alias.slice(0, 13) + '…' : ret.alias
+  ctx.font = '800 11px system-ui, sans-serif'
+  const w = ctx.measureText(nombre).width + 30, h = 20
+  let cx = x, cy = y - r - h / 2 - 6
+  if (fuera) {
+    cx = Math.max(w / 2 + 8, Math.min(W - w / 2 - 8, x))
+    cy = Math.max(arriba + h / 2, Math.min(H - h / 2 - 90, y))
+  }
+  const bx = cx - w / 2, by = cy - h / 2
+  ctx.globalAlpha = 0.85
+  ctx.fillStyle = '#f4eeda'
+  ctx.beginPath()
+  ctx.roundRect(bx, by, w, h, 10)
+  ctx.fill()
+  // la puntita: abajo, hacia la pelota; afuera de la pantalla, hacia donde está
+  const ang = fuera ? Math.atan2(y - cy, x - cx) : Math.PI / 2
+  const px = cx + Math.cos(ang) * (fuera ? Math.min(w / 2, Math.abs(h / 2 / (Math.sin(ang) || 1e-6))) : h / 2)
+  const py = cy + Math.sin(ang) * (fuera ? Math.min(h / 2, Math.abs(w / 2 / (Math.cos(ang) || 1e-6)) * Math.abs(Math.sin(ang))) : h / 2)
+  ctx.beginPath()
+  ctx.moveTo(px + Math.cos(ang + Math.PI / 2) * 5, py + Math.sin(ang + Math.PI / 2) * 5)
+  ctx.lineTo(px + Math.cos(ang) * 7, py + Math.sin(ang) * 7)
+  ctx.lineTo(px + Math.cos(ang - Math.PI / 2) * 5, py + Math.sin(ang - Math.PI / 2) * 5)
+  ctx.closePath()
+  ctx.fill()
+  ctx.globalAlpha = 0.95
+  ctx.textBaseline = 'middle'
+  ctx.textAlign = 'left'
+  ctx.font = `13px ${EMOJI}`
+  ctx.fillText(ret.emoji, bx + 5, cy + 1)
+  ctx.font = '800 11px system-ui, sans-serif'
+  ctx.fillStyle = '#14402a'
+  ctx.fillText(nombre, bx + 24, cy + 1)
+  ctx.textBaseline = 'alphabetic'
+  ctx.globalAlpha = 1
+}
+/** El mensaje para el desafiado, armado con tu vuelta. */
+function mensajeDesafio(r, rival, mia) {
+  const nombre = rival.nombre.split(' ')[0]
+  const j = r.jugador
+  const vuelta = mia.lp ? `levanté la pelota (LP 💅), así que la vara está en el piso` : `hice ${mia.golpes} golpes (${M.formatoPar(mia.vsPar)}) en ${M.formatoTiempo(mia.ms)}`
+  const pique = mia.lp ? M.elegir(rng, ['Ni vos podés perder esto. ¿O sí? 🤔', 'Te la dejé servida. Si perdés, el Marshall te pone 110.'])
+    : mia.vsPar < 0 ? M.elegir(rng, ['Bajo par en la Trampa. Andá calentando, que esto no se empata solo. 🔥', 'Te dejé la vara por las nubes. Los monos todavía aplauden. 🐒👏'])
+    : mia.vsPar === 0 ? M.elegir(rng, ['Par redondo. Para ganarme vas a tener que jugar en serio. 😏', 'Ni un golpe de más. ¿Te animás o levantás?'])
+    : mia.vsPar <= 2 ? M.elegir(rng, ['Se puede mejorar, sí. Pero primero tenés que hacerlo vos. 😌', 'Los monos se llevaron algo, pero la tarjeta está firmada.'])
+    : M.elegir(rng, ['Fue una vuelta "con carácter". Igual te gano. 🙃', 'Sí, los monos ganaron esta. Vos no vas a ganar la próxima.'])
+  return [
+    `⚔️ ${nombre}, quedaste DESAFIADO en La Trampa del Mono 🐒`,
+    '',
+    `Jugué con ${j.emoji} ${j.apodo} y ${vuelta}.`,
+    pique,
+    '',
+    `Te toca: mismo player (${j.emoji} ${j.apodo}), mismo viento y mismas banderas. Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
+    'Menos golpes gana; si empatamos, el más rápido. LP pierde.',
+    '',
+    `Entrá a la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch()}`,
+  ].join('\n')
+}
+function mandarPorWhatsapp(r, rival, mia) {
+  const url = `https://wa.me/?text=${encodeURIComponent(mensajeDesafio(r, rival, mia))}`
+  if (!window.open(url, '_blank')) location.href = url
+}
+/** Terminó la vuelta de un match: si desafiaste, se manda; si respondías, se anota y se ve quién ganó. */
+async function cerrarMatch(r) {
+  const d = r.duelo
+  if (d.enviado) return
+  d.enviado = true
+  const t = M.totales(r.tarjeta)
+  const lp = !!r.lp
+  const mia = { apodo: r.jugador.apodo, emoji: r.jugador.emoji, golpes: lp ? null : t.golpes, vsPar: lp ? null : t.vsPar, ms: lp || r.ms == null ? null : Math.round(r.ms), lp }
+  const el = $('#t-match')
+  el.className = 't-match'
+  el.hidden = false
+  if (d.tipo === 'reto') {
+    // la última muestra: dónde terminó y con cuántos golpes
+    const ms = Math.round(r.ms ?? performance.now() - r.t0)
+    const u = d.grabacion[d.grabacion.length - 1]
+    const pin = M.hoyoActual({ ...r, idx: Math.min(r.idx, M.HOYOS.length - 1) }).pin
+    if (!u || u[0] < ms) d.grabacion.push([ms, Math.min(r.idx, M.HOYOS.length - 1), Math.round(pin[0] * 10) / 10, Math.round(pin[1] * 10) / 10, 0, lp ? golpesVan(r) : t.golpes])
+    const mandar = async () => {
+      el.innerHTML = `⚔️ Mandando el desafío a <b>${esc(d.rival.nombre)}</b>…`
+      try {
+        await R.crearDesafio({ rival: d.rival, semilla: d.semilla, ...mia, fantasma: d.grabacion })
+        el.innerHTML = `<span class="gran">⚔️ DESAFÍO ENVIADO</span>Le llegó a <b>${esc(d.rival.nombre)}</b>. Va a jugar con ${esc(r.jugador.emoji)} ${esc(r.jugador.apodo)}, como vos, y va a ver tu pelota en vivo. El resultado te aparece en MATCH.<br><button class="wa" type="button"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>MANDÁSELO POR WHATSAPP</button>`
+        el.querySelector('.wa').addEventListener('click', () => mandarPorWhatsapp(r, d.rival, mia))
+        mtDesafios = null
+      } catch {
+        el.innerHTML = 'No se pudo mandar el desafío. <br><button class="mt-btn" type="button">Reintentar</button>'
+        el.querySelector('button').addEventListener('click', mandar)
+      }
+    }
+    mandar()
+    return
+  }
+  const des = d.desafio
+  const anotar = async () => {
+    el.innerHTML = `⚔️ Anotando el match con <b>${esc(des.retador.alias)}</b>…`
+    try {
+      await R.responderDesafio(des.id, mia)
+      const g = M.ganadorMatch(mia, des.retador)
+      el.className = `t-match ${g > 0 ? 'gana' : g < 0 ? 'pierde' : ''}`
+      el.innerHTML = `<span class="gran">${g > 0 ? '🏆 GANASTE EL MATCH' : g < 0 ? '😵 PERDISTE EL MATCH' : '🤝 EMPATE'}</span>Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}`
+      if (g > 0) S.embocada()
+      mtDesafios = null
+    } catch {
+      el.innerHTML = 'No se pudo anotar el match. <br><button class="mt-btn" type="button">Reintentar</button>'
+      el.querySelector('button').addEventListener('click', anotar)
+    }
+  }
+  anotar()
 }
 
 // ── el conteo de vueltas y LP ──
@@ -3012,10 +3405,12 @@ $('#mazo-cerrar').addEventListener('click', () => {
   $('#elegir').hidden = true
   $('#portada').hidden = false
   estado = 'portada'
+  if (matchModo) { matchModo = null; mostrarMatch() } // venías del match: volvés a él
 })
 window.addEventListener('keydown', (e) => {
   if (!$('#hab-modal').hidden) { if (e.key === 'Escape') cerrarHabilidad(); return }
   if (!$('#ranking').hidden && e.key === 'Escape') { $('#ranking').hidden = true; return }
+  if (!$('#match').hidden) { if (e.key === 'Escape') $('#mt-volver').click(); return }
   if (!$('#todos').hidden) { if (e.key === 'Escape') $('#todos').hidden = true; return }
   if ($('#elegir').hidden) return
   if (e.key === 'ArrowRight') volarMazo('next')
@@ -3027,7 +3422,8 @@ function mostrarElegir() {
   estado = 'elegir'
   S.musica(null)
   S.viento(0)
-  for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'resumen']) $('#' + id).hidden = true
+  for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'resumen', 'match']) $('#' + id).hidden = true
+  $('.mazo-tit').textContent = matchModo ? `⚔️ Match vs ${matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias}` : 'Elegí tu nivel de dificultad'
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
   $('#hud-bot').hidden = true
@@ -3054,6 +3450,11 @@ R.alEntrar((yo) => {
   $('#entrar-google').hidden = true
   $('#nota-google').hidden = true
   rkAmbito = yo.sdga ? 'sdga' : 'mundial'
+  if (R.hayMatch()) {
+    $('#ver-match').hidden = false
+    cargarDesafios()
+    if (new URLSearchParams(location.search).has('match')) cargarDesafios().then(() => mostrarMatch(tabConAviso() === 'desafiar' ? 'mios' : tabConAviso()))
+  }
 })
 // suelto, con el ranking de la SDGApp: se entra con Google (la misma cuenta que en la app), no con un nombre
 if (R.pideLogin()) {

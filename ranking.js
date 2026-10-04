@@ -53,7 +53,7 @@ export function aliasDeGoogle(meta, email) {
 // ── adentro de la SDGApp ─────────────────────────────────────────────────────
 // La app abre el juego en un iframe y le habla por postMessage. El juego nunca ve una clave ni un token.
 //   juego → app: trampa:hola · trampa:leer {id} · trampa:anotar {id, marca} · trampa:cerrar
-//   app → juego: sdga:identidad {uid, alias, sdga} · sdga:marco {top, bottom} · sdga:marcas {id, marcas, error} · sdga:anotada {id, ok}
+//   app → juego: sdga:identidad {uid, alias, sdga, match?} · sdga:marco {top, bottom} · sdga:marcas {id, marcas, error} · sdga:anotada {id, ok}
 //   el match: juego → app trampa:match {id, accion, datos} · app → juego sdga:match {id, ok, datos} (ver más abajo)
 const enMarco = typeof window !== 'undefined' && window.parent !== window
 let origenApp = null
@@ -65,7 +65,7 @@ if (enMarco) {
     const d = e.data
     if (d.tipo === 'sdga:identidad' && d.uid && d.alias) {
       origenApp = e.origin
-      entro({ uid: String(d.uid), alias: String(d.alias).slice(0, 24), sdga: !!d.sdga }, true)
+      entro({ uid: String(d.uid), alias: String(d.alias).slice(0, 24), sdga: !!d.sdga, match: d.match === true }, true)
     } else if (d.tipo === 'sdga:marco') {
       // los bordes seguros del teléfono (adentro del iframe env() da 0): el juego va de borde a borde
       origenApp ??= e.origin
@@ -89,6 +89,9 @@ function pedirApp(tipo, datos = {}) {
 }
 /** Un aviso suelto a la app (p. ej. el color de arriba de la pantalla, para teñir la barra de estado). */
 export const avisarApp = (d) => { if (origenApp) window.parent.postMessage(d, origenApp) }
+
+/** El link para abrir el match: adentro de la app, la pantalla del juego de la app (la misma base: dev o producción); suelto, el juego. */
+export const linkMatch = () => (origenApp ? `${origenApp}/#/juegos/trampa?match=1` : `${location.origin}${location.pathname}?match=1`)
 
 /** El botón "volver a la SDGApp". */
 export const volverALaApp = () => { if (origenApp) window.parent.postMessage({ tipo: 'trampa:cerrar' }, origenApp) }
@@ -275,8 +278,9 @@ export const deFilaDesafio = (f) => ({
   retador: { uid: f.retador_id, alias: f.retador_alias, apodo: f.retador_apodo, emoji: f.retador_emoji, golpes: f.retador_golpes, vsPar: f.retador_vs_par, ms: f.retador_ms, lp: !!f.retador_lp },
   rival: { uid: f.rival_id, alias: f.rival_alias, apodo: f.rival_apodo ?? null, emoji: f.rival_emoji ?? null, golpes: f.rival_golpes ?? null, vsPar: f.rival_vs_par ?? null, ms: f.rival_ms ?? null, lp: !!f.rival_lp },
 })
-/** ¿Se puede jugar el match? (adentro de la app, o suelto con la base y la sesión) */
-export const hayMatch = () => puente.enApp || (compartido() && !!puente.identidad)
+/** ¿Se puede jugar el match? Adentro de la app, solo si la app lo anuncia (`match: true` en la identidad: hoy, la de dev);
+ *  suelto, con la base y la sesión. */
+export const hayMatch = () => (puente.enApp ? !!puente.identidad?.match : compartido() && !!puente.identidad)
 
 async function rest(ruta, { metodo = 'GET', cuerpo, prefer } = {}) {
   const tk = await token()
