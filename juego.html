@@ -708,6 +708,22 @@ input { -webkit-user-select: text; user-select: text; }
 .rs-hoyos .sobre b { color: var(--red); }
 .rs-titulo { margin: 2px 0 -4px; font: 800 11px/1 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); }
 .rs-caja .carta-jugar { height: 44px; }
+/* 🔒 el player secreto, para el que todavía no lo desbloqueó */
+.rs-caja.bloqueado { background: radial-gradient(120% 70% at 50% 0%, #2a3140 0%, #12141a 70%); color: #fff3c4; box-shadow: 0 0 0 2px #e8c34a, 0 0 40px rgba(232, 195, 74, .35), 0 18px 48px rgba(0, 0, 0, .6); }
+.rs-caja.bloqueado .hab-x { background: rgba(255, 243, 196, .12); color: #fff3c4; }
+.rs-caja.bloqueado > .carta-jugar { background: transparent; color: #fff3c4; box-shadow: inset 0 0 0 2px rgba(255, 243, 196, .35); }
+.rb-cara { position: relative; width: 120px; height: 120px; margin: 4px auto 0; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, #444a57, #101217 76%); box-shadow: 0 0 0 4px #e8c34a, 0 0 34px rgba(232, 195, 74, .6); font: 86px/1 var(--font-display); color: #fff3c4; text-shadow: 0 0 18px rgba(255, 220, 120, .9); animation: sec-late 1.6s ease-in-out infinite; }
+.rb-cara svg { position: absolute; right: -6px; bottom: -4px; width: 44px; height: 44px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.rb-kicker { margin: 6px 0 0; text-align: center; font: 800 11px/1.2 var(--font-body); letter-spacing: .24em; text-transform: uppercase; color: #e8c34a; }
+.rb-titulo { margin: 2px 0 0; text-align: center; font: 34px/1 var(--font-display); letter-spacing: .02em; color: #fff3c4; text-wrap: balance; }
+.rb-texto { margin: 0; text-align: center; font: 600 14.5px/1.45 var(--font-body); color: rgba(255, 243, 196, .88); text-wrap: pretty; }
+.rb-texto b { color: #e8c34a; }
+.rb-fichas { display: grid; gap: 6px; margin: 2px 0 0; padding: 0; list-style: none; }
+.rb-fichas li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 12px; background: rgba(255, 243, 196, .07); box-shadow: inset 0 0 0 1px rgba(232, 195, 74, .25); font: 700 13px/1.2 var(--font-body); color: rgba(255, 243, 196, .75); }
+.rb-fichas li b { font: 16px/1 var(--font-display); letter-spacing: .08em; color: #fff3c4; }
+.rb-pista { margin: 0; padding: 10px 12px; border-radius: 12px; border: 1.5px dashed rgba(232, 195, 74, .55); text-align: center; font: italic 600 13.5px/1.4 var(--font-body); color: #e8c34a; }
+.rb-ir { width: 100%; height: 52px; border: 0; border-radius: 16px; cursor: pointer; font: 22px/1 var(--font-display); letter-spacing: .05em; color: #2b1d08; background: linear-gradient(180deg, #f6dc8d, #e0b23c); box-shadow: 0 4px 0 #8f6d18, 0 0 22px rgba(232, 195, 74, .45); }
+.rb-ir:active { transform: translateY(3px); box-shadow: 0 1px 0 #8f6d18; }
 .rk-vacio { margin: 0; padding: 18px 4px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3294,6 +3310,7 @@ function pintarRankingMatch(lista) {
 }
 function abrirRecordMatch(x) {
   if (!x) return
+  $('.rs-caja').classList.remove('bloqueado')
   const filas = [...(mtRanking ?? [])].sort(ordenMatch)
   const pos = filas.findIndex((f) => f.uid === x.uid) + 1
   const f = fechaLarga(x.ultimo)
@@ -3645,8 +3662,30 @@ const fechaLarga = (iso) => {
   return { dia: dia.charAt(0).toUpperCase() + dia.slice(1), hora: d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) }
 }
 const deltaTiempo = (ms) => `+${M.formatoTiempo(ms).replace(/^0:/, '')}`
+/** 🔒 Tocaste la vuelta de alguien que jugó con el player secreto y vos todavía no lo tenés. */
+function abrirBloqueado(m) {
+  $('.rs-caja').classList.add('bloqueado')
+  const candado = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="12" rx="3" fill="#e8c34a" stroke="#2b1d08" stroke-width="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#e8c34a" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="15.5" r="1.8" fill="#2b1d08"/><path d="M12 16.5v2.5" stroke="#2b1d08" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  $('#rs-cuerpo').innerHTML = `
+    <div class="rb-cara" aria-hidden="true">?${candado}</div>
+    <p class="rb-kicker">Personaje secreto</p>
+    <h3 class="rb-titulo" id="rs-quien">TODAVÍA NO LO DESBLOQUEASTE</h3>
+    <p class="rb-texto"><b>${esc(m.usuario)}</b> ya lo encontró${m.vsPar != null ? ` y le hizo <b>${M.formatoPar(m.vsPar)}</b> a la Trampa con él` : ''}. Vos, ni idea de quién es. 👀<br>Hay un player escondido en la Trampa del Mono y nadie te va a contar dónde. No se compra, no se pide, no se presta: <b>se descubre jugando</b>.</p>
+    <ul class="rb-fichas">
+      <li>¿Quién es?<b>? ? ?</b></li>
+      <li>¿Cómo juega?<b>? ? ?</b></li>
+      <li>¿Cómo se consigue?<b>ESO ES COSA TUYA</b></li>
+    </ul>
+    <p class="rb-pista">Pista: el que juega derechito nunca lo encuentra. 🐒</p>
+    <button class="rb-ir" type="button">SALIR A BUSCARLO ⛳</button>`
+  $('#rs-cuerpo .rb-ir').addEventListener('click', () => { cerrarResumen(); $('#ranking').hidden = true; mostrarElegir() })
+  $('#rk-resumen').hidden = false
+  $('#rk-resumen .hab-x').focus({ preventScroll: true })
+}
 function abrirResumen(m) {
   if (!m) return
+  $('.rs-caja').classList.remove('bloqueado')
+  if (publico(m).misterio) return abrirBloqueado(m)
   const app = rkApp
   const base = app && rkAmbito === 'sdga' ? rkMarcas.filter((x) => x.sdga) : rkMarcas
   const general = M.armarRanking(base)
