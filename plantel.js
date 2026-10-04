@@ -332,7 +332,6 @@ export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni
 // (`node calibrar.mjs 60`, 2026-10-04, con el hoyo nuevo, la caída por zonas, el tope del par 3, el viento que pesa con el cuadrado del largo, el bunker a la mitad, sin árboles fantasma junto a los greens, sin monos en la salida, la bandera en otro lugar cada vuelta y los umbrales de las habilidades en yardas reales; el bot putea con la fuerza del medio de las que entran). El mazo se ordena por esto, no por el handicap.
 export const DIFICULTAD_REAL = {
   'El Sueco': { prom: -0.27, lp: 0 },
-  'Demetrio López': { prom: 0, lp: 0 }, // siempre par: E justo
   LG: { prom: 0.56, lp: 2 },
   'El Perro': { prom: 0.88, lp: 0 },
   'Mike Queboni (Đ)': { prom: 1, lp: 0 },

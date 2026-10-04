@@ -1119,46 +1119,61 @@ ok('🤫 en el hoyo de otro: jugando el 15, la que entra en el 16 cae, el golpe 
   assert.equal(fuerte.ajena, undefined)
 })
 
-ok('🤫 Demetrio López: sin monos, sin viento, perfecto y siempre par (el tiro para par entra esté donde esté)', () => {
+ok('🤫 Demetrio López: sin monos; cada tiro queda exactamente donde apuntó; birdies sí, nunca más que par', () => {
   const dem = { apodo: 'Demetrio López', emoji: '🏌️', hcp: 0 }
   assert.equal(M.habilidadDe(dem).id, 'retro')
   const r = M.nuevaRonda(dem, fijo(0.5))
   assert.equal(r.monos.length, 0)
   r.viento = { ang: 0, kmh: 30 } // viento fuerte de costado: no le hace nada
-  // un hierro desde el tee: cae exactamente donde apuntó (sin error ni viento)
-  const ang = angulo(r.pelota, h15.pin)
-  const plan = M.planTiro(quieto, r, ang, 0.6)
+  // desde el tee, a través de los árboles: pica exactamente donde apuntó y ahí se queda
+  const ang = angulo(r.pelota, h15.pin) + 0.35
+  const plan = M.planTiro(campo, r, ang, 0.7)
   assert.equal(plan.disp.ang, 0)
   assert.equal(plan.disp.carry, 0)
-  const t = M.golpear(quieto, r, ang, 0.6, M.rngDesde(3))
+  const t = M.golpear(campo, { ...r }, ang, 0.7, M.rngDesde(3))
   assert.deepEqual(t.deriva, [0, 0])
-  assert.ok(Math.abs(t.carry - plan.carry) < 1e-9)
-  assert.equal(t.sinHoyo, true)
-  // antes del tiro para par no la emboca: pasa por arriba del hoyo
-  const pasa = { ...M.nuevaRonda(dem, fijo(0.5)), pelota: [h15.pin[0], h15.pin[1] + 5], lie: 'green', golpes: 1 }
-  const p = M.golpear(plano, pasa, -Math.PI / 2, 5.4 / M.FISICA.distPuttMax, sinRuido())
-  M.simular(plano, p, h15.pin)
-  assert.equal(p.embocada, undefined)
+  M.simular(campo, t, h15.pin)
+  assert.ok(M.dist(t.pos, plan.destino) < 1e-6, `quedó a ${M.dist(t.pos, plan.destino)} yd`)
+  assert.ok(!t.eventos.some((e) => e.tipo === 'palo'))
+  // desde el bunker llega a lo que se ve (a los demás, la mitad)
+  const bk = { ...M.nuevaRonda(dem, fijo(0.5)), pelota: buscar('b', [26, 160, 40, 182]), lie: 'bunker', golpes: 1 }
+  const pb = M.planTiro(campo, bk, -Math.PI / 2, 0.4)
+  const tb = M.golpear(campo, bk, -Math.PI / 2, 0.4, M.rngDesde(4))
+  M.simular(campo, tb, h15.pin)
+  assert.ok(M.dist(tb.pos, pb.destino) < 1e-6)
+  // birdie: apuntado al hoyo, entra (el putt va derecho aunque el green caiga, y sin labios)
+  const putt = { ...M.nuevaRonda(dem, fijo(0.5)), pelota: [h15.pin[0] + 3, h15.pin[1] + 6], lie: 'green', golpes: 2 }
+  assert.ok(M.enModoPutt(campo, putt))
+  const tq = M.golpear(campo, putt, angulo(putt.pelota, h15.pin), 0.6, M.rngDesde(9)) // pasado de fuerza: igual entra
+  M.simular(campo, tq, h15.pin)
+  assert.equal(tq.embocada, true)
+  // hoyo en uno: el tiro del tee apuntado a la bandera, con la fuerza justa, cae en el hoyo
+  const h1 = M.nuevaRonda(dem, fijo(0.5))
+  h1.idx = 2
+  h1.pelota = [...M.teeDe(h1, h17)]
+  const a17 = angulo(h1.pelota, h17.pin)
+  const d17 = M.dist(h1.pelota, h17.pin) * h17.escala
+  const pot = d17 / M.carryMaxDe(0, 3)
+  assert.ok(pot <= 1)
+  const t1 = M.golpear(campo, h1, a17, pot, M.rngDesde(5))
+  M.simular(campo, t1, h17.pin)
+  assert.equal(t1.embocada, true)
   // el tiro para par entra siempre: desde lejos, desde el rough, pegue como pegue
   const par = { ...M.nuevaRonda(dem, fijo(0.5)), pelota: [h15.calle[2][0] + 12, h15.calle[2][1]], lie: 'rough', golpes: 3 }
   const tp = M.golpear(quieto, par, 0.3, 0.1, M.rngDesde(9))
   assert.equal(tp.retro, true)
   M.simular(quieto, tp, h15.pin)
   assert.equal(tp.embocada, true)
-  const putt = { ...M.nuevaRonda(dem, fijo(0.5)), pelota: [h15.pin[0], h15.pin[1] + 6], lie: 'green', golpes: 3 }
-  const tq = M.golpear(plano, putt, 0, 0.9, M.rngDesde(9))
-  M.simular(plano, tq, h15.pin)
-  assert.equal(tq.embocada, true)
   // nunca más que par en la tarjeta (ni con una multa)
   const c = M.nuevaRonda(dem, fijo(0.5))
   c.golpes = 6
   assert.equal(M.cerrarHoyo(c, fijo(0.5)).golpes, 4)
   // en el bosque no hay Mono (ni bueno ni malo): se juega desde ahí, sin multa
-  const b = { ...M.nuevaRonda(dem, fijo(0.5)), golpes: 1 }
-  const res = M.resolverReposo(campo, b, { pos: enArbol, eventos: [] }, fijo(0.01))
+  const bo = { ...M.nuevaRonda(dem, fijo(0.5)), golpes: 1 }
+  const res = M.resolverReposo(campo, bo, { pos: enArbol, eventos: [] }, fijo(0.01))
   assert.equal(res.tipo, 'normal')
-  assert.equal(b.lie, 'bosque')
-  assert.equal(b.golpes, 1)
+  assert.equal(bo.lie, 'bosque')
+  assert.equal(bo.golpes, 1)
 })
 
 console.log('\nTodo verde.')

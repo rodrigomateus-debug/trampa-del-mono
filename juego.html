@@ -1214,7 +1214,7 @@ function alReposo() {
   lucasDice(dicho.lucas) // con Rodal: Lucas en persona
   if (res.tipo === 'embocada') {
     const hab = M.habilidadDe(ronda.jugador)
-    const frase = tiro.deme ? '¡LO DIJO DEME! 🧙' : tiro.retro ? M.elegir(rng, ['Par de Demetrio. Como en el 60 🏌️', 'Ni el viento se animó. Par.', 'Así se jugaba antes: par y a casa', 'Par. Demetrio no hace birdies: es un caballero']) : hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
+    const frase = tiro.deme ? '¡LO DIJO DEME! 🧙' : tiro.retro ? M.elegir(rng, ['Par de Demetrio. Como en el 60 🏌️', 'Ni el viento se animó. Par.', 'Así se jugaba antes: par y a casa', 'Par. Más que eso, Demetrio no hace']) : hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
     embocar(frase)
     return
   }
