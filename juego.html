@@ -994,7 +994,7 @@ function levantarVuelta() {
 
 // ── hoyos ──
 function empezar(jugador) {
-  ronda = M.nuevaRonda(jugador, rng)
+  ronda = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // la bandera, en otro lugar del green cada ronda
   datos.ultimo = jugador.apodo
   guardar(datos)
   pararCuenta()
@@ -1299,14 +1299,14 @@ function dibujar() {
 
   // ── encima, derecho ──
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-  for (const h of M.HOYOS) {
+  for (const h of ronda?.hoyos ?? M.HOYOS) {
     const [tx, ty] = w2s(atrasDelTee(h, 9))
     ctx.fillStyle = 'rgba(244,238,218,.85)'
     ctx.font = '13px Anton, "Arial Narrow", sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(`TEE ${h.n}`, tx, ty + 5)
     hoyoNitido(w2s(h.pin))
-    bandera(w2s(h.pin), h.n, !hoyo || h.n === hoyo.n) // las del dibujo se borraron: van todas acá
+    bandera(w2s(h.pin), h.n, !hoyo || h.n === hoyo.n, h.bandera ?? M.colorBandera(h, h.pin)) // las del dibujo se borraron: van todas acá
   }
   // las marcas de salida: azul, blanca y amarilla (de atrás para adelante), cada una donde sale; la tuya, más grande
   for (const h of M.HOYOS) {
@@ -1604,7 +1604,9 @@ function marcasCaida(h) {
   MARCAS_CAIDA.set(h.n, lista)
   return lista
 }
-function bandera([x, y], n, actual) {
+// el color de la bandera dice en qué tercio del green está: roja adelante, blanca al medio, azul al fondo
+const TELA = { roja: ['#c8352e', '#f4eeda'], blanca: ['#f4eeda', '#14402a'], azul: ['#2f5fd0', '#f4eeda'] }
+function bandera([x, y], n, actual, color = 'blanca') {
   const k = escalaZoom()
   ctx.globalAlpha = actual ? 1 : 0.55
   ctx.strokeStyle = C.cream
@@ -1613,16 +1615,20 @@ function bandera([x, y], n, actual) {
   ctx.moveTo(x, y)
   ctx.lineTo(x, y - 34 * k)
   ctx.stroke()
-  ctx.fillStyle = actual ? C.gold : C.cream
+  const [tela, letra] = TELA[color] ?? TELA.blanca
+  ctx.fillStyle = tela
+  ctx.strokeStyle = 'rgba(12,43,28,.55)' // un borde fino, para que la blanca se lea sobre el green claro
+  ctx.lineWidth = Math.max(1, k)
   ctx.beginPath()
   ctx.moveTo(x + k, y - 34 * k)
   ctx.lineTo(x + 23 * k, y - 28 * k)
   ctx.lineTo(x + k, y - 21 * k)
   ctx.closePath()
   ctx.fill()
+  ctx.stroke()
   if (k >= 0.6) {
     // el número, solo si la bandera es lo bastante grande para leerse
-    ctx.fillStyle = C.g900
+    ctx.fillStyle = letra
     ctx.font = `${10 * k}px Anton, "Arial Narrow", sans-serif`
     ctx.textAlign = 'center'
     ctx.fillText(String(n), x + 9 * k, y - 24.5 * k)
