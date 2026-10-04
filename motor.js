@@ -1123,11 +1123,32 @@ export const POR_RESULTADO = {
   LP: ['Entraste en la lista LP 💅'],
   otro: ['La Trampa del Mono siempre tendrá la razón'],
 }
-// Con Rodal, LG solo lo adula: pegue como pegue.
+// Con Rodal, Lucas (LG) aparece en pantalla y solo lo adula, pegue como pegue. Las frases van con el tiro: el drive
+// se adula como drive, el approach como approach y el putt como putt (antes le decía "¡qué bomba!" a un putt).
 export const ADULACION = {
-  bueno: ['QUE BOMBA RODI!', 'El Rey del Match, señores', 'Penta, Penta, Penta', 'Magia pura', 'Clase mundial', 'Ni Tiger la pega así', 'El Mago no falla', 'Hermoso, como todo lo que hace Rodi'],
-  malo: ['Lo hizo a propósito: estaba leyendo el viento', 'Hasta desde ahí se nota la clase del Mago', 'Ese árbol se movió, Rodi', 'Una genialidad que pocos entienden', 'Penta es Penta: él sabe por qué', 'Táctica de pentacampeón', 'El Mago está jugando otro deporte', 'Nadie pega ese tiro, solo él'],
-  mono: ['Hasta el Mono quería una foto con el Mago', 'El Mono se llevó un recuerdo del pentacampeón'],
+  drive: {
+    bueno: ['¡QUÉ BOMBA, RODI!', 'Ese drive lo escucharon en Pilar', 'Swing de manual, Mago. Bajala de ahí', 'Largo y derecho, como su palmarés', 'Ni DeChambeau la saca así', 'Drive de pentacampeón, señores', 'Con ese drive se compra un lote en el fairway'],
+    malo: ['Drive táctico: abrió el hoyo para el segundo', 'La quiso hacer interesante, el Mago', 'Ese fairway le quedaba chico a semejante drive', 'Un drive de Penta no se mide en yardas', 'El árbol se corrió, yo lo vi', 'Le pegó tan fuerte que el viento se asustó'],
+  },
+  hierro: {
+    bueno: ['Qué hierro, por favor', 'Hierro de exhibición, Rodi', 'Así se ataca una bandera', 'Le pegó con el palo y con el alma', 'Ese hierro va al museo del club', 'Contacto puro. Sonó a gloria'],
+    malo: ['Hierro valiente: buscó el ángulo para el chip', 'La dejó donde nadie la busca: genio', 'Ni el viento entiende lo que pensó el Mago', 'Solo él ve esa línea', 'Táctica de pentacampeón: guarda lo mejor para después'],
+  },
+  approach: {
+    bueno: ['Approach de seda, Mago', 'La tocó como a una guitarra', 'Qué manos, Rodi. Qué manos', 'Pegó un approach y aplaudió el green', 'Toque de cirujano', 'Así se juega cerca del green'],
+    malo: ['Approach táctico: deja un putt para lucirse', 'La hizo difícil para que tenga gracia', 'Hasta el bunker quería tocar una pelota del Mago', 'Un approach que pocos entienden', 'El green se movió, Rodi. No fuiste vos'],
+  },
+  putt: {
+    bueno: ['Qué toque: la dejó dada', 'Lag putt de manual, Rodi', 'La acarició. Es arte', 'Leyó la caída con los ojos cerrados', 'Velocidad perfecta, como siempre'],
+    malo: ['Putt valiente: los cobardes la dejan corta', 'Lo leyó perfecto: el green se equivocó', 'Ese green no está a su altura, Mago', 'Le dio un paseíto por el green: generoso', 'La línea era buena, el pasto no'],
+    corbata: ['Hasta la corbata le queda linda, Rodi', 'La pelota dio la vuelta para verlo mejor', 'Una corbata de seda, Mago'],
+  },
+  embocada: {
+    putt: ['¡ADENTRO! Ni la miró', 'Embocó como respira', 'Putt de pentacampeón, señores', 'La vio entrar antes de pegarle', 'Ese putt va al resumen del año'],
+    chip: ['¡CHIP IN! Obvio. Es el Mago', 'La metió de afuera. Clase mundial', 'Magia pura: de afuera del green, adentro'],
+    hoyoEnUno: ['¡HOYO EN UNO! Lo sabíamos todos', 'Hoyo en uno. Normal para el Mago'],
+  },
+  mono: ['Hasta el Mono quería una foto con el Mago', 'El Mono se llevó un recuerdo del pentacampeón', 'Los monos también son fans, Rodi'],
   afuera: ['La mandó a saludar a la hinchada', 'Un regalito para los de afuera: humilde el Mago'],
   resultado: {
     'HOYO EN UNO': ['Obvio. Es el Mago'],
@@ -1141,6 +1162,28 @@ export const ADULACION = {
   },
 }
 
+/** Qué tiro fue: el drive (tee de par 4), el hierro (tee del par 3 o de más de 110 yd), el approach o el putt. */
+export function tipoDeTiro(tiro, hoyo, desde, lieDesde) {
+  if (tiro.modo === 'putt') return 'putt'
+  if (lieDesde === 'tee') return hoyo.par === 3 ? 'hierro' : 'drive'
+  const yd = desde ? dist(desde, hoyo.pin) * (hoyo.escala ?? 1) : Infinity
+  return yd > 110 ? 'hierro' : 'approach'
+}
+
+/** Lo que Lucas le dice a Rodal después del tiro (con el tipo de tiro y cómo salió). */
+export function adular(rng, res, tiro, hoyo, { desde, lieDesde } = {}) {
+  const tipo = tipoDeTiro(tiro, hoyo, desde, lieDesde)
+  if (res.tipo === 'embocada') return elegir(rng, tipo === 'putt' ? ADULACION.embocada.putt : lieDesde === 'tee' ? ADULACION.embocada.hoyoEnUno : ADULACION.embocada.chip)
+  if (res.tipo === 'afuera') return elegir(rng, ADULACION.afuera)
+  if (res.tipo?.startsWith('mono')) return elegir(rng, ADULACION.mono)
+  if (tipo === 'putt') {
+    if (tiro.vuelta) return elegir(rng, ADULACION.putt.corbata)
+    return elegir(rng, dist(tiro.pos, hoyo.pin) <= 1.5 ? ADULACION.putt.bueno : ADULACION.putt.malo)
+  }
+  const malo = ['rough', 'bunker', 'bosque'].includes(res.terreno) || tiro.eventos.some((e) => e.tipo === 'palo')
+  return elegir(rng, ADULACION[tipo][malo ? 'malo' : 'bueno'])
+}
+
 export const FRASES_CARGA = [
   'Buscando tu pelota en el rough…',
   'Calculando handicaps… y excusas',
@@ -1151,14 +1194,12 @@ export const FRASES_CARGA = [
   'Planchando la Boina Verde…',
 ]
 
-/** Qué dice LG 📺 después de un tiro, y si el jugador pone una excusa. Con Rodal, solo adulación. */
-export function comentar(rng, res, tiro, hoyo, jugador) {
-  if (habilidadDe(jugador)?.adulado) {
-    if (res.tipo === 'embocada') return { lg: null, excusa: null, verso: null }
-    const pool = res.tipo === 'afuera' ? ADULACION.afuera : res.tipo.startsWith('mono') ? ADULACION.mono
-      : ['rough', 'bunker'].includes(res.terreno) || tiro.eventos.some((e) => e.tipo === 'palo') ? ADULACION.malo : ADULACION.bueno
-    return { lg: elegir(rng, pool), excusa: null, verso: null }
-  }
+/**
+ * Qué dice LG 📺 después de un tiro, y si el jugador pone una excusa. Con Rodal, LG no relata arriba: Lucas aparece
+ * en pantalla y lo adula (`lucas`). `ctx` = de dónde y de qué lie salió el tiro (para saber si fue drive, approach o putt).
+ */
+export function comentar(rng, res, tiro, hoyo, jugador, ctx = {}) {
+  if (habilidadDe(jugador)?.adulado) return { lg: null, excusa: null, verso: null, lucas: adular(rng, res, tiro, hoyo, ctx) }
   const hab = habilidadDe(jugador)
   const malo = esMalo(res, tiro)
   // LG no pone excusas: el que se enoja pierde

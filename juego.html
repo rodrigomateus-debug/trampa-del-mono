@@ -305,6 +305,21 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 #sonido { pointer-events: auto; cursor: pointer; border: 0; width: 40px; padding: 0; justify-content: center; font-size: 17px; }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
+/* Lucas (LG) en persona: con Rodal aparece abajo a la izquierda y lo adula con un globo de diálogo */
+#lucas { position: fixed; left: 0; bottom: 0; z-index: 30; width: min(46vw, 230px); pointer-events: none; opacity: 0; transform: translateY(70%) rotate(-7deg); transform-origin: 30% 100%; }
+#lucas.entra { animation: lucas-entra 620ms cubic-bezier(.2, 1.25, .4, 1) forwards; }
+#lucas.sale { animation: lucas-sale 520ms cubic-bezier(.5, 0, .8, .4) forwards; }
+#lucas .cuerpo { animation: lucas-flota 2.6s ease-in-out infinite; transform-origin: 40% 100%; }
+#lucas img { display: block; width: 100%; height: auto; filter: drop-shadow(0 8px 18px rgba(8, 26, 16, .55)); }
+#lucas .globo { position: absolute; left: 62%; bottom: 74%; width: max-content; max-width: min(58vw, 250px); padding: 10px 14px; background: var(--cream); color: var(--green-900); font: 800 16px/1.2 var(--font-body); border: 2.5px solid var(--green-900); border-radius: 22px 26px 24px 18px; box-shadow: 0 6px 16px rgba(8, 26, 16, .4); transform-origin: 0% 100%; opacity: 0; }
+#lucas .globo::after { content: ''; position: absolute; left: 4px; bottom: -14px; width: 22px; height: 18px; background: var(--cream); border-left: 2.5px solid var(--green-900); border-bottom: 2.5px solid var(--green-900); border-bottom-left-radius: 18px 14px; transform: skewX(-28deg); }
+#lucas.entra .globo { animation: globo-sale 520ms 260ms cubic-bezier(.2, 1.5, .4, 1) forwards, globo-respira 2.2s 780ms ease-in-out infinite; }
+@keyframes lucas-entra { 0% { opacity: 0; transform: translateY(70%) rotate(-7deg); } 60% { opacity: 1; } 100% { opacity: 1; transform: translateY(0) rotate(0); } }
+@keyframes lucas-sale { from { opacity: 1; transform: translateY(0) rotate(0); } to { opacity: 0; transform: translateY(45%) rotate(-4deg); } }
+@keyframes lucas-flota { 0%, 100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-5px) rotate(1.4deg); } 65% { transform: translateY(-2px) rotate(-1.2deg); } }
+@keyframes globo-sale { 0% { opacity: 0; transform: scale(.25) rotate(-10deg); } 65% { opacity: 1; transform: scale(1.08) rotate(2deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes globo-respira { 0%, 100% { opacity: 1; transform: scale(1) rotate(0); border-radius: 22px 26px 24px 18px; } 35% { opacity: 1; transform: scale(1.035) rotate(-1.2deg); border-radius: 26px 20px 28px 20px; } 70% { opacity: 1; transform: scale(.99) rotate(.9deg); border-radius: 20px 28px 20px 24px; } }
+@media (prefers-reduced-motion: reduce) { #lucas.entra, #lucas.entra .globo, #lucas .cuerpo { animation-duration: 1ms; animation-iteration-count: 1; } }
 #pancho { position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--cream); background: var(--gold); color: var(--green-900); box-shadow: 0 6px 18px rgba(12, 43, 28, .5); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; cursor: pointer; font-family: var(--font-display); transition: transform 120ms var(--ease-snap), opacity 150ms; }
 #pancho:active { transform: scale(.93); }
 #pancho .pancho-emo { font-size: 34px; line-height: 1; }
@@ -428,7 +443,8 @@ input { -webkit-user-select: text; user-select: text; }
 
 <div id="cuenta" hidden aria-live="assertive"></div>
 
-<div id="hud-bot" hidden></div><!-- vacío: los botones subieron debajo del marcador -->
+<div id="hud-bot" hidden></div>
+<div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
 <div id="banda" aria-live="polite">
   <div class="caja">
@@ -865,8 +881,10 @@ function alReposo() {
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
   const largo = M.dist(ronda.desde, h.pin)
+  const desde = [...ronda.desde], lieDesde = ronda.lieDesde // de dónde salió (drive, approach o putt)
   const res = M.resolverReposo(campo, ronda, tiro, rng)
-  const dicho = M.comentar(rng, res, tiro, h, ronda.jugador)
+  const dicho = M.comentar(rng, res, tiro, h, ronda.jugador, { desde, lieDesde })
+  lucasDice(dicho.lucas) // con Rodal: Lucas en persona
   if (res.tipo === 'embocada') {
     const hab = M.habilidadDe(ronda.jugador)
     const frase = hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
@@ -958,8 +976,8 @@ function llegaronMonos(mono) {
     tipo: 'ladron', mono, lp: true, t: 0, T: 1.6,
     fin: () => {
       M.monosLlegaron(ronda)
-      const adulado = M.habilidadDe(ronda.jugador)?.adulado
-      relatar({ lg: M.elegir(rng, adulado ? M.ADULACION.mono : M.RELATO.monosLlegan) })
+      if (M.habilidadDe(ronda.jugador)?.adulado) lucasDice(M.elegir(rng, M.ADULACION.mono))
+      else relatar({ lg: M.elegir(rng, M.RELATO.monosLlegan) })
       siguienteTiro()
     },
   }
@@ -1093,6 +1111,22 @@ $('#banda').addEventListener('click', () => { if (bandaLuego) cerrarBanda() })
 // ── la voz de LG (franja fija del marcador): aviso de monos > relato > tip ──
 let voz = null // { lg, extra, hasta }
 let vozPintada = ''
+/** Lucas en persona (con Rodal): entra con movimiento, dice la frase en un globo y se va. */
+let lucasTimer = 0
+function lucasDice(texto) {
+  if (!texto) return
+  const el = $('#lucas')
+  clearTimeout(lucasTimer)
+  el.querySelector('.globo').textContent = texto
+  el.hidden = false
+  el.classList.remove('entra', 'sale')
+  void el.offsetWidth // reinicia la animación aunque ya estuviera en pantalla
+  el.classList.add('entra')
+  lucasTimer = setTimeout(() => {
+    el.classList.replace('entra', 'sale')
+    lucasTimer = setTimeout(() => { el.hidden = true; el.classList.remove('sale') }, 540)
+  }, 2400 + 45 * texto.length)
+}
 function relatar({ lg, excusa, verso }) {
   if (!lg) return
   const extra = excusa ? `${ronda.jugador.emoji} «${excusa}»` : verso ? `“${verso}”` : ''

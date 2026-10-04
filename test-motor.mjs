@@ -218,17 +218,36 @@ ok('Miguelón: la bomba perfecta llega al green; mal pegada se abre y queda cort
   assert.ok(!corto.bomba && corto.carry * h15.escala > M.carryDe(5) * 0.9)
 })
 
-ok('Rodal: LG solo lo adula, pegue como pegue', () => {
+ok('Rodal: Lucas solo lo adula, pegue como pegue, y con frases del tiro que pegó', () => {
   const rodal = { apodo: 'El Mago Rodal', emoji: '🥛' }
-  const tiro = { eventos: [], modo: 'full', carry: 150, pos: [0, 0] }
-  const malo = M.comentar(fijo(0.3), { tipo: 'normal', terreno: 'rough' }, tiro, h15, rodal)
-  assert.ok(M.ADULACION.malo.includes(malo.lg))
-  assert.equal(malo.excusa, null)
-  assert.ok(M.ADULACION.mono.includes(M.comentar(fijo(0.3), { tipo: 'mono-malo' }, tiro, h15, rodal).lg))
-  assert.ok(M.ADULACION.bueno.includes(M.comentar(fijo(0.3), { tipo: 'normal', terreno: 'fairway' }, tiro, h15, rodal).lg))
+  const full = { eventos: [], modo: 'full', carry: 150, pos: [0, 0] }
+  const lejos = [h15.pin[0], h15.pin[1] + 200]
+  const cerca = [h15.pin[0], h15.pin[1] + 40]
+  const dice = (res, tiro, ctx, hoyo = h15) => M.comentar(fijo(0.3), res, tiro, hoyo, rodal, ctx)
+  // drive (tee de par 4)
+  const drive = dice({ tipo: 'normal', terreno: 'fairway' }, full, { desde: h15.tee, lieDesde: 'tee' })
+  assert.equal(drive.lg, null)
+  assert.ok(M.ADULACION.drive.bueno.includes(drive.lucas))
+  assert.ok(M.ADULACION.drive.malo.includes(dice({ tipo: 'normal', terreno: 'rough' }, full, { desde: h15.tee, lieDesde: 'tee' }).lucas))
+  // tee del par 3: hierro
+  assert.ok(M.ADULACION.hierro.bueno.includes(dice({ tipo: 'normal', terreno: 'green' }, full, { desde: h17.tee, lieDesde: 'tee' }, h17).lucas))
+  // segundo tiro largo: hierro; cerca: approach
+  assert.ok(M.ADULACION.hierro.bueno.includes(dice({ tipo: 'normal', terreno: 'fairway' }, full, { desde: lejos, lieDesde: 'fairway' }).lucas))
+  assert.ok(M.ADULACION.approach.malo.includes(dice({ tipo: 'normal', terreno: 'bunker' }, full, { desde: cerca, lieDesde: 'fairway' }).lucas))
+  // putt: nunca "bomba"
+  const putt = { eventos: [], modo: 'putt', pos: [h15.pin[0], h15.pin[1] + 0.8] }
+  const p1 = dice({ tipo: 'normal', terreno: 'green' }, putt, { desde: [h15.pin[0], h15.pin[1] + 8], lieDesde: 'green' })
+  assert.ok(M.ADULACION.putt.bueno.includes(p1.lucas))
+  assert.ok(!/bomba|drive/i.test(p1.lucas))
+  assert.ok(M.ADULACION.putt.malo.includes(dice({ tipo: 'normal', terreno: 'green' }, { ...putt, pos: [h15.pin[0], h15.pin[1] - 5] }, { lieDesde: 'green' }).lucas))
+  assert.ok(M.ADULACION.embocada.putt.includes(dice({ tipo: 'embocada' }, putt, { lieDesde: 'green' }).lucas))
+  assert.ok(M.ADULACION.embocada.chip.includes(dice({ tipo: 'embocada' }, full, { desde: cerca, lieDesde: 'rough' }).lucas))
+  assert.ok(M.ADULACION.mono.includes(dice({ tipo: 'mono-malo' }, full, {}).lucas))
+  assert.equal(dice({ tipo: 'normal', terreno: 'rough' }, full, {}).excusa, null)
   assert.ok(M.ADULACION.resultado.BOGEY.includes(M.fraseResultado(fijo(0.3), 'BOGEY', rodal)))
-  // a los demás LG no los adula
-  assert.ok(!M.ADULACION.malo.includes(M.comentar(fijo(0.3), { tipo: 'normal', terreno: 'rough' }, tiro, h15, { apodo: 'Rorro' }).lg))
+  // a los demás LG los relata arriba, sin Lucas
+  const otro = M.comentar(fijo(0.3), { tipo: 'normal', terreno: 'rough' }, full, h15, { apodo: 'Rorro' })
+  assert.ok(otro.lg && !otro.lucas)
 })
 
 ok('Mati (El Sueco): siempre derecho y drive de casi 300', () => {
