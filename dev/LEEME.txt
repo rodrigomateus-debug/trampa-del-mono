@@ -1,0 +1,2 @@
+Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
+Sale de la rama claude/admiring-maxwell-x6xmy5. No se edita a mano: se vuelve a copiar.
