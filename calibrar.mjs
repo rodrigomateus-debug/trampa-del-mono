@@ -39,10 +39,18 @@ function elegirTiro(r) {
     const d = M.dist(r.pelota, h.pin)
     const pMax = Math.min(1, Math.sqrt(d / M.FISICA.distPuttMax) * 1.6 + 0.05)
     for (let g = -abre; g <= abre; g += paso) {
+      // como una persona: de las fuerzas que entran, la del medio (ni al límite de corta ni de pasada),
+      // y la línea con más margen de fuerza
+      const entran = []
       for (let p = 0.01; p <= pMax; p += 0.006) {
         const t = probar(r, base + (g * Math.PI) / 180, p, 0, 0)
-        const c = t.embocada ? -1e6 + Math.abs(p - 0.3) : M.dist(t.pos, h.pin)
-        if (!mejor || c < mejor.c) mejor = { c, ang: base + (g * Math.PI) / 180, p }
+        if (t.embocada) entran.push(p)
+        const c = t.embocada ? -1e6 : M.dist(t.pos, h.pin)
+        if (!t.embocada && (!mejor || c < mejor.c)) mejor = { c, ang: base + (g * Math.PI) / 180, p }
+      }
+      if (entran.length) {
+        const c = -1e6 - entran.length
+        if (!mejor || c < mejor.c) mejor = { c, ang: base + (g * Math.PI) / 180, p: entran[Math.floor(entran.length / 2)] }
       }
       if (mejor?.c < -1e5 && hab?.id !== 'comba') break
     }

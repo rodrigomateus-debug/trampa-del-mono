@@ -16,7 +16,9 @@ export const FISICA = {
   alturaPino: 9, // debajo de esta altura la pelota choca los pinos (el arco del tiro pasa por arriba)
   radioHoyo: 0.22, // el centro del hoyo
   bocaHoyo: 0.66, // el hoyo como se dibuja (3× el centro): la pelota que pasa por acá siempre reacciona
-  velEmbocar: 2, // por el centro entra hasta 1,25× esto; por el borde, hasta 0,7×. Más rápido: corbata o labio
+  velEmbocar: 2, // por el borde de la boca entra hasta 0,7× esto (1,4 yd/s). Más rápido: corbata o labio
+  medioHoyo: 0.3, // "por el medio": a menos de esto del centro no hay corbata, entra de una
+  velMedio: 3.8, // por el medio entra hasta esto (la que se pasaría ~3 yd). Más fuerte: salta por arriba
   vientoMax: 30, // km/h
   vientoYd: 1, // yardas de deriva por km/h en un tiro de carryMax
   factorLie: { tee: 1, fairway: 1, green: 1, rough: 0.7, bunker: 0.5, bosque: 0.5, afuera: 1 },
@@ -59,8 +61,15 @@ export function chanceRodando(d, v) {
   return CHIP.prob * (1 - d / FISICA.bocaHoyo) * (1 - Math.max(0, v - lim) / (CHIP.max - lim))
 }
 
-/** Hasta qué velocidad entra la pelota que pasa a d yardas del centro del hoyo. */
-export const limiteEmbocar = (d) => FISICA.velEmbocar * (1.25 - 0.55 * Math.min(1, d / FISICA.bocaHoyo))
+/**
+ * Hasta qué velocidad entra la pelota que pasa a d yardas del centro del hoyo: por el medio (hasta
+ * `medioHoyo`) todo lo que no venga muy pasado (`velMedio`); de ahí al borde de la boca baja hasta 0,7 × velEmbocar.
+ */
+export function limiteEmbocar(d) {
+  if (d <= FISICA.medioHoyo) return FISICA.velMedio
+  const t = Math.min(1, (d - FISICA.medioHoyo) / (FISICA.bocaHoyo - FISICA.medioHoyo))
+  return FISICA.velMedio + (FISICA.velEmbocar * 0.7 - FISICA.velMedio) * t
+}
 
 // Monos que cruzan de pinos a pinos: si la pelota (baja) les pega, se la llevan.
 // Cuando la pelota se frena cerca (alerta), salen a buscarla: si llegan antes de que pegues, es LP.
@@ -651,17 +660,17 @@ export function avanzar(campo, tiro, dt, pin) {
       tiro.fase = 'quieta'
       return tiro.fase
     }
-    if (v < VUELTA.max && !tiro.vuelta && !tiro.salto) {
+    // por el medio no hay corbata: o entró (arriba) o venía muy fuerte y salta por arriba
+    if (v < VUELTA.max && d > FISICA.medioHoyo && !tiro.vuelta && !tiro.salto) {
       // la corbata: arranca a girar alrededor del hoyo desde donde pasó más cerca
       tiro.labio = true
       tiro.eventos.push({ tipo: 'vuelta' })
       let p = [cerca[0] - pin[0], cerca[1] - pin[1]]
-      if (Math.hypot(p[0], p[1]) < 0.02) p = [-tiro.v[1], tiro.v[0]] // por el medio justo: arranca de costado
       const s = p[0] * tiro.v[1] - p[1] * tiro.v[0] >= 0 ? 1 : -1 // gira para donde iba
       tiro.vuelta = {
         ang: Math.atan2(p[1], p[0]),
         s,
-        falta: Math.PI * (0.5 + 0.9 * (1 - Math.min(1, d / FISICA.bocaHoyo))), // de un cuarto a casi una vuelta y media de 180°
+        falta: Math.PI * (0.5 + 0.9 * (1 - Math.min(1, (d - FISICA.medioHoyo) / (FISICA.bocaHoyo - FISICA.medioHoyo)))), // de un cuarto (borde) a casi tres cuartos de vuelta (cerca del medio)
         vel: v * 0.65, // el golpe contra el borde la frena
         entra: v < limiteEmbocar(d) + VUELTA.entra,
       }

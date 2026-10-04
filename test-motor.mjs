@@ -319,21 +319,33 @@ ok('por la boca del hoyo, despacio, entra aunque no pase por el centro', () => {
   assert.equal(t.embocada, true)
 })
 
-ok('la corbata: pasada por el hoyo, da la vuelta, se frena y queda cortita', () => {
-  const pelota = [h15.pin[0] + 0.15, h15.pin[1] + 4]
-  // con fuerza para pasarse ~3 yardas
+ok('por el medio, sin venir muy fuerte, entra de una (sin corbata); muy fuerte salta por arriba', () => {
+  const pelota = [h15.pin[0] + 0.1, h15.pin[1] + 4]
+  // con fuerza para pasarse ~3 yardas: entra derecho
   const t = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 7 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  assert.equal(t.embocada, true)
+  assert.ok(!t.vuelta, 'sin corbata')
+  // para pasarse ~6 yardas: salta por arriba, tampoco corbata
+  const f = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 10 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  assert.notEqual(f.embocada, true)
+  assert.ok(!f.vuelta && f.eventos.some((e) => e.tipo === 'labio'))
+})
+
+ok('la corbata: pasada por un costado de la boca, da la vuelta, se frena y queda cortita', () => {
+  const pelota = [h15.pin[0] + 0.4, h15.pin[1] + 4]
+  // con fuerza para pasarse ~4 yardas
+  const t = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 8.2 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
   assert.notEqual(t.embocada, true)
   assert.ok(t.vuelta?.hecha, 'dio la vuelta')
   assert.ok(t.eventos.some((e) => e.tipo === 'vuelta'))
-  assert.ok(t.vuelta.s && Math.abs(t.vuelta.ang - Math.atan2(0, 0.15)) > Math.PI / 2, 'giró más de un cuarto')
+  assert.ok(t.vuelta.s && Math.abs(t.vuelta.ang - Math.atan2(0, 0.4)) > Math.PI / 2, 'giró más de un cuarto')
   const d = M.dist(t.pos, h15.pin)
   assert.ok(d > M.FISICA.bocaHoyo && d < 1.6, `quedó a ${d.toFixed(2)} yd`)
 })
 
 ok('la corbata justa: da la vuelta y entra', () => {
-  const pelota = [h15.pin[0] + 0.1, h15.pin[1] + 4]
-  const t = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 5.4 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
+  const pelota = [h15.pin[0] + 0.4, h15.pin[1] + 4]
+  const t = M.simular(plano, M.lanzar(plano, { pelota, angulo: -Math.PI / 2, potencia: 6.6 / 32, viento: calma, putt: true, rng: sinRuido() }), h15.pin)
   assert.ok(t.vuelta?.hecha)
   assert.equal(t.embocada, true)
 })
