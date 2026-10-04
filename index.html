@@ -368,6 +368,15 @@ body.manejando #mandos { display: flex; }
 @keyframes rorro-cara { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(3deg); } }
 @keyframes rorro-sello { 0% { opacity: 0; transform: scale(2.6) rotate(-20deg); } 100% { opacity: 1; transform: scale(1) rotate(-8deg); } }
 @keyframes rorro-lluvia { to { transform: translateY(calc(100vh + 120px)) rotate(360deg); } }
+/* pisaste un mono: el sello de la multa y la sacudida */
+#multa { position: fixed; left: 50%; top: 34%; z-index: 40; pointer-events: none; text-align: center; transform: translate(-50%, -50%); }
+#multa[hidden] { display: none; }
+#multa .sello-multa { display: inline-block; padding: 10px 18px 12px; border: 5px solid var(--red); border-radius: 16px; background: rgba(244, 238, 218, .94); color: var(--red); box-shadow: 0 10px 28px rgba(8, 26, 16, .5); animation: multa-sello 2.3s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+#multa b { display: block; font: 34px/1 var(--font-display); letter-spacing: .02em; white-space: nowrap; }
+#multa small { display: block; margin-top: 6px; font: 800 15px/1.1 var(--font-body); color: var(--green-900); }
+@keyframes multa-sello { 0% { opacity: 0; transform: scale(2.8) rotate(-14deg); } 14% { opacity: 1; transform: scale(.94) rotate(-6deg); } 22% { transform: scale(1.04) rotate(-7deg); } 30%, 78% { opacity: 1; transform: scale(1) rotate(-6deg); } 100% { opacity: 0; transform: scale(.9) translateY(-30px) rotate(-6deg); } }
+#cancha.sacudida { animation: sacudida 380ms linear; }
+@keyframes sacudida { 0%, 100% { transform: translate(0, 0); } 15% { transform: translate(-7px, 4px); } 30% { transform: translate(6px, -5px); } 45% { transform: translate(-5px, -3px); } 60% { transform: translate(4px, 5px); } 80% { transform: translate(-2px, 2px); } }
 /* Lucas (LG) en persona: con Rodal aparece abajo a la izquierda y lo adula con un globo de diálogo */
 #lucas { position: fixed; left: 0; bottom: 0; z-index: 30; width: min(46vw, 230px); pointer-events: none; opacity: 0; transform: translateY(70%) rotate(-7deg); transform-origin: 30% 100%; }
 #lucas.entra { animation: lucas-entra 620ms cubic-bezier(.2, 1.25, .4, 1) forwards; }
@@ -531,6 +540,7 @@ input { -webkit-user-select: text; user-select: text; }
   </div>
   <div class="lluvia" aria-hidden="true"></div>
 </div>
+<div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
 <div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
 <div id="banda" aria-live="polite">
@@ -1115,13 +1125,27 @@ function manejarCuadro(dt) {
   if (M.perseguirCarro(ronda) && !manejo.avisado) { manejo.avisado = true; S.monosVienen() }
   for (const s of M.atropellar(ronda)) {
     S.robo()
-    pisados.push({ p: [...s.pos], t: ahora })
-    relatar({ lg: `🐒 ¡Pisaste un mono! +1 golpe`, verso: ronda.aplastados > 1 ? `Ya van ${ronda.aplastados} aplastados` : 'Queda ahí, de recuerdo' })
+    s.aplastadoT = ahora // se aplasta con rebote (ver dibujarMonos)
+    // el estallido: ¡PLAF! y cosas que vuelan
+    const chispas = Array.from({ length: 12 }, (_, i) => ({ e: ['💥', '🍌', '💫', '⭐'][i % 4], a: (i / 12) * 2 * Math.PI + Math.random() * 0.4, v: 120 + Math.random() * 140 }))
+    pisados.push({ p: [...s.pos], t: ahora, chispas })
+    // la sacudida y el sello de la multa
+    lienzo.classList.remove('sacudida'); void lienzo.offsetWidth; lienzo.classList.add('sacudida')
+    multaSello()
+    relatar({ lg: '🐒 +1 golpe de multa por tortura animal', verso: ronda.aplastados > 1 ? `Ya van ${ronda.aplastados} monos aplastados` : 'Queda ahí, de recuerdo' })
     hud()
   }
   if (M.carroLlego(campo, c, ronda.pelota)) terminarManejo()
 }
-let pisados = [] // el "+1" que sube donde pisaste un mono
+let pisados = [] // el estallido y el "+1" donde pisaste un mono
+let multaTimer = 0
+function multaSello() {
+  const el = $('#multa'), sello = el.querySelector('.sello-multa')
+  clearTimeout(multaTimer)
+  el.hidden = false
+  sello.style.animation = 'none'; void sello.offsetWidth; sello.style.animation = ''
+  multaTimer = setTimeout(() => { el.hidden = true }, 2300)
+}
 // los mandos en pantalla (multitáctil: cada botón con su dedo) y las flechas / WASD
 for (const [id, k] of [['m-izq', 'izq'], ['m-der', 'der'], ['m-acel', 'acelerar'], ['m-freno', 'frenar'], ['m-reversa', 'reversa']]) {
   const b = document.getElementById(id)
@@ -1727,7 +1751,10 @@ function dibujarMonos() {
       ctx.save()
       ctx.translate(x, y)
       ctx.rotate((s.aplastadoAng ?? 0) + cam.rot + Math.PI / 2)
-      ctx.scale(1.35, 0.32)
+      // de parado a chato en un cuarto de segundo, con un rebotecito
+      const ua = s.aplastadoT ? Math.min(1, (performance.now() - s.aplastadoT) / 250) : 1
+      const rebote = ua < 1 ? Math.sin(ua * Math.PI) * 0.15 : 0
+      ctx.scale(1 + 0.35 * ua + rebote, 1 - 0.68 * ua + rebote)
       ctx.globalAlpha = 0.9
       ctx.font = `${tam}px ${EMOJI}`
       ctx.fillText('🐒', 0, 0)
@@ -1883,11 +1910,37 @@ function dibujarCarro(c) {
     ctx.fillStyle = `rgba(244,238,218,${0.5 * (1 - u)})`
     ctx.beginPath(); ctx.arc(hx, hy, 4 + u * 14, 0, 7); ctx.fill()
   }
-  // el "+1" de cada mono pisado, que sube y se apaga
+  // el estallido de cada mono pisado (¡PLAF! y cosas que vuelan) y el "+1" que sube y se apaga
   if (pisados.length && ahora - pisados[0].t > 1600) pisados = pisados.filter((p) => ahora - p.t < 1600)
   for (const p of pisados) {
     const u = (ahora - p.t) / 1600
     const [px, py] = w2s(p.p)
+    const sg = (ahora - p.t) / 1000
+    if (sg < 0.9) {
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.font = `22px ${EMOJI}`
+      for (const c of p.chispas ?? []) {
+        ctx.globalAlpha = 1 - sg / 0.9
+        ctx.fillText(c.e, px + Math.cos(c.a) * c.v * sg, py + Math.sin(c.a) * c.v * sg + 160 * sg * sg)
+      }
+      // ¡PLAF! de historieta, que hace pop
+      const pop = sg < 0.15 ? sg / 0.15 * 1.3 : 1.3 - Math.min(0.3, (sg - 0.15) * 1.5)
+      ctx.globalAlpha = Math.min(1, 2 * (1 - sg / 0.9))
+      ctx.save()
+      ctx.translate(px, py - 30)
+      ctx.rotate(-0.15)
+      ctx.scale(pop, pop)
+      ctx.font = '34px Anton, "Arial Narrow", sans-serif'
+      ctx.lineWidth = 7
+      ctx.strokeStyle = C.red
+      ctx.strokeText('¡PLAF!', 0, 0)
+      ctx.fillStyle = C.gold
+      ctx.fillText('¡PLAF!', 0, 0)
+      ctx.restore()
+      ctx.textBaseline = 'alphabetic'
+      ctx.globalAlpha = 1
+    }
     ctx.globalAlpha = 1 - u
     ctx.font = '28px Anton, "Arial Narrow", sans-serif'
     ctx.textAlign = 'center'
