@@ -183,6 +183,8 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .todos-cab { width: min(100%, 520px); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .todos-sub { margin: 0; width: min(100%, 520px); text-align: left; font-size: 13px; opacity: .8; }
 .todos-lista { list-style: none; margin: 0; padding: 0; width: min(100%, 520px); display: grid; gap: 10px; text-align: left; }
+.todo.dorado { background: linear-gradient(135deg, #fbe7a1 0%, #e9bf4e 30%, #b47a1b 55%, #f3d273 80%, #c99236 100%); color: #2b1d08; box-shadow: 0 0 0 2px #7a5a1c, 0 0 24px rgba(255, 210, 100, .5); }
+.todo.dorado .carta-jugar { background: #2b1d08; color: #ffe69a; box-shadow: inset 0 0 0 2px #f3d27a; }
 .todo { background: var(--cream); color: var(--green-900); border-radius: 16px; padding: 12px; display: grid; gap: 10px; box-shadow: var(--shadow-card); }
 .todo-cab { display: flex; align-items: center; gap: 12px; }
 .todo-cab .cara { width: 52px; height: 52px; }
@@ -901,7 +903,7 @@ function guardar(d) { try { localStorage.setItem(CLAVE, JSON.stringify(d)) } cat
 let datos = leer()
 datos.records ??= {}
 datos.usuario ??= ''
-// 🤫 Demetrio López: solo lo tiene en el mazo (al final) el que lo desbloqueó; en el match no va (el rival lo vería)
+// 🤫 Demetrio López: solo lo tiene en el mazo (primero) el que lo desbloqueó; en el match no va (el rival lo vería)
 // Para probar: ?olvidar-secreto lo vuelve a bloquear; ?probar-secreto arranca con la pelota en el green del 16, al lado del hoyo.
 const PARAMS = new URLSearchParams(location.search)
 let matchModo = null // lo que sigue al elegir player: { tipo: 'reto', rival, semilla } | { tipo: 'respuesta', desafio, fantasma }
@@ -909,7 +911,7 @@ if (PARAMS.has('olvidar-secreto')) { delete datos.demetrio; guardar(datos) }
 function sincronizarSecreto() {
   const tiene = PLANTEL.includes(DEMETRIO)
   const va = !!datos.demetrio && !matchModo
-  if (va && !tiene) PLANTEL.push(DEMETRIO)
+  if (va && !tiene) PLANTEL.unshift(DEMETRIO) // el que lo desbloqueó lo ve primero, sin buscarlo
   if (!va && tiene) PLANTEL.splice(PLANTEL.indexOf(DEMETRIO), 1)
 }
 /** Cómo ve a un player alguien que todavía no desbloqueó a Demetrio (ranking, lo que se comparte). */
@@ -1421,7 +1423,7 @@ function mostrarSecreto(res, primera) {
   el.querySelector('.chispas').innerHTML = ''
   el.querySelector('.cara img').src = DEMETRIO.foto
   $('#secreto-hab').innerHTML = `<b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}`
-  $('#secreto-nota').textContent = `Ya está en el mazo. El golpe cuenta: alivio sin multa afuera de ese green y seguís en el ${res.jugando}.`
+  $('#secreto-nota').textContent = `Ya está en el mazo, primero. El golpe cuenta: alivio sin multa afuera de ese green y seguís en el ${res.jugando}.`
   const revelar = (conTodo) => {
     el.classList.remove('cargando')
     el.classList.add('revelado')
@@ -3498,6 +3500,8 @@ let mazoDrag = null
 const cartasDom = new Map()
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 // handicap aproximado (lo pasó Rorro, no está en la base): con ≈
+// el nivel es el lugar entre los de siempre (de más fácil a más difícil); Demetrio, que va primero, es ★
+const nivelDe = (j) => (j.secreto ? '★' : PLANTEL.filter((x) => !x.secreto).indexOf(j) + 1)
 const hcpTxt = (j) => j.hcpTexto ?? (j.hcp == null ? '—' : `${j.aprox ? '≈' : ''}${j.hcp}`)
 // "HCP 12", o lo que diga en su lugar (Demetrio: "Pro Player")
 const hcpEtiqueta = (j) => j.hcpTexto ?? `HCP ${hcpTxt(j)}`
@@ -3547,7 +3551,7 @@ function cartaDe(j) {
   const hab = M.habilidadDe(j)
   const rec = datos.records[j.apodo]
   const s = j.stats
-  const nivel = PLANTEL.indexOf(j) + 1
+  const nivel = nivelDe(j)
   const el = document.createElement('div')
   el.className = 'envoltorio'
   el.innerHTML = `<article class="carta${j.retro ? ' dorada' : ''}">
@@ -3731,6 +3735,8 @@ function mostrarElegir() {
   $('#mazo-cartas').innerHTML = ''
   const ultimo = PLANTEL.findIndex((j) => j.apodo === datos.ultimo)
   mazoI = ultimo < 0 ? 0 : ultimo
+  // recién desbloqueado: el mazo abre en Demetrio (una vez; después, como siempre, en el último que jugaste)
+  if (datos.demetrio && !datos.demetrio.visto && PLANTEL[0] === DEMETRIO) { mazoI = 0; datos.demetrio.visto = true; guardar(datos) }
   mazoPeek = 'next'
   $('#elegir').hidden = false
   pintarMazo()
@@ -3810,10 +3816,10 @@ function mostrarTodos() {
     const hab = M.habilidadDe(j)
     const dif = difDe(j)
     const cara = j.foto ? `<img class="foto" src="${j.foto}" alt="" draggable="false">` : `<span class="foto sin-foto">${j.emoji}</span>`
-    return `<li class="todo">
+    return `<li class="todo${j.retro ? ' dorado' : ''}">
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${j.emoji}</span></div>
-        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${i + 1} · ${hcpEtiqueta(j).toUpperCase()} · ${dif.nombre.toUpperCase()}</span></div>
+        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${nivelDe(j)} · ${hcpEtiqueta(j).toUpperCase()} · ${dif.nombre.toUpperCase()}</span></div>
         ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
         <button class="carta-jugar" type="button" data-jugar="${i}">Jugar</button>
       </div>
