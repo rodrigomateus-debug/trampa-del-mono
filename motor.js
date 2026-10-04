@@ -376,6 +376,63 @@ export function carroLlego(campo, carro, pelota) {
 }
 export const usaCarrito = (r) => habilidadDe(r.jugador)?.id === 'carrito'
 
+// ── el match (desafíos) ──
+// El que desafía juega una vez y su vuelta queda grabada; el desafiado juega después con el fantasma al lado.
+// Los dos juegan con las MISMAS condiciones: el viento de cada hoyo y dónde está cada bandera salen de una
+// semilla (no del player que elija cada uno). El error de los tiros y los monos, no: eso es de cada uno.
+export const MATCH = { muestraMs: 100, maxMuestras: 6000 }
+/** El viento de cada hoyo y las banderas de un match, a partir de su semilla. */
+export function condicionesMatch(semilla) {
+  const rv = rngDesde(semilla), rb = rngDesde((semilla ^ 0x5bd1e995) >>> 0)
+  const vientos = HOYOS.map(() => vientoAleatorio(rv))
+  const conBanderas = sortearBanderas({}, rb)
+  return { semilla, vientos, pines: conBanderas.hoyos.map((h) => ({ pin: [...h.pin], bandera: h.bandera })) }
+}
+/** Pone las condiciones del match en la ronda (banderas y el viento del primer hoyo; los siguientes, en cerrarHoyo). */
+export function aplicarMatch(r, cond) {
+  r.match = cond
+  r.hoyos = HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera }))
+  r.viento = { ...cond.vientos[r.idx] }
+  return r
+}
+/**
+ * La grabación del fantasma: muestras [ms, hoyo, x, y, altura, golpes totales], una cada `muestraMs` y solo si
+ * algo cambió (la pelota quieta no ocupa lugar).
+ */
+export function grabar(g, ms, idx, pos, alt, golpes) {
+  const u = g[g.length - 1]
+  if (u && ms - u[0] < MATCH.muestraMs) return g
+  const m = [Math.round(ms), idx, Math.round(pos[0] * 10) / 10, Math.round(pos[1] * 10) / 10, Math.round(alt || 0), golpes]
+  if (u && u[1] === m[1] && u[2] === m[2] && u[3] === m[3] && u[4] === m[4] && u[5] === m[5]) return g
+  if (g.length < MATCH.maxMuestras) g.push(m)
+  return g
+}
+/**
+ * Dónde está el fantasma a los `ms` de su vuelta: entre dos muestras seguidas del mismo hoyo, interpolado; si
+ * entre una y otra pasó un rato (la pelota quieta), se queda en la primera hasta que se mueve.
+ */
+export function fantasmaEn(g, ms) {
+  if (!g?.length) return null
+  let lo = 0, hi = g.length - 1
+  if (ms < g[0][0]) return { idx: g[0][1], pos: [g[0][2], g[0][3]], alt: g[0][4], golpes: g[0][5], fin: false }
+  while (lo < hi) { const m = (lo + hi + 1) >> 1; if (g[m][0] <= ms) lo = m; else hi = m - 1 }
+  const a = g[lo], b = g[lo + 1]
+  if (!b) return { idx: a[1], pos: [a[2], a[3]], alt: a[4], golpes: a[5], fin: true }
+  if (b[1] !== a[1] || b[0] - a[0] > MATCH.muestraMs * 2.5) return { idx: a[1], pos: [a[2], a[3]], alt: a[4], golpes: a[5], fin: false }
+  const u = (ms - a[0]) / (b[0] - a[0])
+  return { idx: a[1], pos: [a[2] + (b[2] - a[2]) * u, a[3] + (b[3] - a[3]) * u], alt: a[4] + (b[4] - a[4]) * u, golpes: a[5], fin: false }
+}
+/** Quién gana el match: 1 gana `a`, −1 gana `b`, 0 empate. Menos golpes; a igual golpes, el más rápido; LP (golpes null) pierde. */
+export function ganadorMatch(a, b) {
+  const ga = a?.golpes ?? null, gb = b?.golpes ?? null
+  if (ga == null && gb == null) return 0
+  if (ga == null) return -1
+  if (gb == null) return 1
+  if (ga !== gb) return ga < gb ? 1 : -1
+  if ((a.ms ?? Infinity) !== (b.ms ?? Infinity)) return (a.ms ?? Infinity) < (b.ms ?? Infinity) ? 1 : -1
+  return 0
+}
+
 // ── banderas ──
 // La bandera cambia de lugar en cada ronda: en cualquier parte del green a `margen` yardas o más del borde. Esa zona
 // se parte en tres tercios a lo largo de la línea del tee al green; el color dice en cuál está: roja adelante (el
@@ -1217,7 +1274,7 @@ export function cerrarHoyo(r, rng) {
     r.desde = [...teeDe(r, sig)]
     r.lie = 'tee'
     r.lieDesde = 'tee'
-    r.viento = vientoAleatorio(rng)
+    r.viento = r.match ? { ...r.match.vientos[r.idx] } : vientoAleatorio(rng) // en un match, el mismo viento para los dos
     if (r.panchos || habilidadDe(r.jugador)?.id === 'panchitos') r.panchos = MUGRE.panchos
   }
   return fila

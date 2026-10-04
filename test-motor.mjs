@@ -573,6 +573,50 @@ ok('Maxi (Grandpa): una vez por vuelta invoca a Deme y el próximo tiro entra de
   assert.ok(!M.puedeInvocarDeme({ ...M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5)), lie: 'fairway' }))
 })
 
+ok('match: las mismas condiciones para los dos (viento y banderas), sea quien sea cada uno', () => {
+  const c1 = M.condicionesMatch(12345), c2 = M.condicionesMatch(12345), otra = M.condicionesMatch(999)
+  assert.deepEqual(c1, c2)
+  assert.notDeepEqual(c1.pines, otra.pines)
+  // el Mago (que gasta azar en su golpe) y el Sueco juegan con lo mismo
+  const a = M.aplicarMatch(M.sortearBanderas(M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛', hcp: 11 }, Math.random), Math.random), c1)
+  const b = M.aplicarMatch(M.nuevaRonda({ apodo: 'El Sueco', emoji: '🇸🇪', hcp: 1.5 }, Math.random), c1)
+  assert.deepEqual(a.hoyos.map((h) => h.pin), b.hoyos.map((h) => h.pin))
+  assert.deepEqual(a.viento, b.viento)
+  // al pasar de hoyo, el viento del match (no uno al azar)
+  for (const r of [a, b]) { r.golpes = 4; M.cerrarHoyo(r, Math.random) }
+  assert.deepEqual(a.viento, c1.vientos[1])
+  assert.deepEqual(b.viento, c1.vientos[1])
+  assert.deepEqual(M.hoyoActual(a).pin, c1.pines[1].pin)
+})
+
+ok('match: el fantasma se graba liviano y se reproduce donde iba, sin deslizarse cuando estuvo quieto', () => {
+  const g = []
+  M.grabar(g, 0, 0, [10, 400], 0, 0)
+  M.grabar(g, 50, 0, [10, 399], 0, 1) // muy pronto: no
+  M.grabar(g, 100, 0, [10, 380], 5, 1)
+  M.grabar(g, 200, 0, [10, 360], 8, 1)
+  M.grabar(g, 300, 0, [10, 360], 8, 1) // igual: no
+  M.grabar(g, 5000, 0, [10, 300], 3, 2) // se movió mucho después
+  assert.equal(g.length, 4)
+  const mitad = M.fantasmaEn(g, 150)
+  assert.ok(Math.abs(mitad.pos[1] - 370) < 1e-9)
+  assert.equal(mitad.golpes, 1)
+  // entre 200 y 5000 estuvo quieta: no se desliza
+  assert.deepEqual(M.fantasmaEn(g, 3000).pos, [10, 360])
+  assert.ok(M.fantasmaEn(g, 9000).fin)
+  assert.ok(!M.fantasmaEn(g, 100).fin)
+  assert.equal(M.fantasmaEn([], 10), null)
+})
+
+ok('match: gana el de menos golpes; a igual golpes, el más rápido; LP pierde', () => {
+  assert.equal(M.ganadorMatch({ golpes: 11, ms: 90000 }, { golpes: 12, ms: 60000 }), 1)
+  assert.equal(M.ganadorMatch({ golpes: 12, ms: 60000 }, { golpes: 12, ms: 70000 }), 1)
+  assert.equal(M.ganadorMatch({ golpes: 12, ms: 70000 }, { golpes: 12, ms: 60000 }), -1)
+  assert.equal(M.ganadorMatch({ golpes: null }, { golpes: 20, ms: 1 }), -1)
+  assert.equal(M.ganadorMatch({ golpes: null }, { golpes: null }), 0)
+  assert.equal(M.ganadorMatch({ golpes: 12, ms: 5 }, { golpes: 12, ms: 5 }), 0)
+})
+
 ok('más handicap, más difícil: más error y menos distancia', () => {
   const crack = M.dificultad(1.5)
   const malo = M.dificultad(22)

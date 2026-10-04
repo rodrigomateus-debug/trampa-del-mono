@@ -54,6 +54,7 @@ export function aliasDeGoogle(meta, email) {
 // La app abre el juego en un iframe y le habla por postMessage. El juego nunca ve una clave ni un token.
 //   juego → app: trampa:hola · trampa:leer {id} · trampa:anotar {id, marca} · trampa:cerrar
 //   app → juego: sdga:identidad {uid, alias, sdga} · sdga:marco {top, bottom} · sdga:marcas {id, marcas, error} · sdga:anotada {id, ok}
+//   el match: juego → app trampa:match {id, accion, datos} · app → juego sdga:match {id, ok, datos} (ver más abajo)
 const enMarco = typeof window !== 'undefined' && window.parent !== window
 let origenApp = null
 const esperando = new Map()
@@ -71,7 +72,7 @@ if (enMarco) {
       const px = (n) => `${Math.max(0, Math.min(80, Number(n) || 0))}px`
       document.documentElement.style.setProperty('--safe-top', px(d.top))
       document.documentElement.style.setProperty('--safe-bot', px(d.bottom))
-    } else if ((d.tipo === 'sdga:marcas' || d.tipo === 'sdga:anotada' || d.tipo === 'sdga:conteo') && esperando.has(d.id)) {
+    } else if ((d.tipo === 'sdga:marcas' || d.tipo === 'sdga:anotada' || d.tipo === 'sdga:conteo' || d.tipo === 'sdga:match') && esperando.has(d.id)) {
       esperando.get(d.id)(d)
       esperando.delete(d.id)
     }
@@ -263,3 +264,77 @@ export async function leerConteo() {
     return null
   }
 }
+
+// ── el match: desafíos ─────────────────────────────────────────────────────────
+// Tabla `trampa_desafios` (una fila por desafío) y vista `trampa_rivales` (a quién se puede desafiar), en el
+// Supabase de la app. Adentro de la app va todo por el puente (`trampa:match` con una `accion`); suelto, directo.
+const COLS_DESAFIO = 'id,retador_id,retador_alias,retador_apodo,retador_emoji,retador_golpes,retador_vs_par,retador_ms,retador_lp,rival_id,rival_alias,rival_apodo,rival_emoji,rival_golpes,rival_vs_par,rival_ms,rival_lp,semilla,estado,created_at,jugado_at'
+/** Una fila de la base → el desafío del juego. */
+export const deFilaDesafio = (f) => ({
+  id: f.id, semilla: Number(f.semilla), estado: f.estado, fecha: f.created_at, jugadoFecha: f.jugado_at ?? null,
+  retador: { uid: f.retador_id, alias: f.retador_alias, apodo: f.retador_apodo, emoji: f.retador_emoji, golpes: f.retador_golpes, vsPar: f.retador_vs_par, ms: f.retador_ms, lp: !!f.retador_lp },
+  rival: { uid: f.rival_id, alias: f.rival_alias, apodo: f.rival_apodo ?? null, emoji: f.rival_emoji ?? null, golpes: f.rival_golpes ?? null, vsPar: f.rival_vs_par ?? null, ms: f.rival_ms ?? null, lp: !!f.rival_lp },
+})
+/** ¿Se puede jugar el match? (adentro de la app, o suelto con la base y la sesión) */
+export const hayMatch = () => puente.enApp || (compartido() && !!puente.identidad)
+
+async function rest(ruta, { metodo = 'GET', cuerpo, prefer } = {}) {
+  const tk = await token()
+  if (!tk) throw new Error('sin sesión')
+  const res = await fetch(`${SUPABASE.url}/rest/v1/${ruta}`, {
+    method: metodo,
+    headers: { ...cabeceras(tk), ...(prefer ? { Prefer: prefer } : {}) },
+    body: cuerpo ? JSON.stringify(cuerpo) : undefined,
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.status === 204 ? null : res.json()
+}
+async function porApp(accion, datos) {
+  const r = await pedirApp('trampa:match', { accion, datos })
+  if (!r || !r.ok) throw new Error(r?.error || 'sin respuesta de la app')
+  return r.datos
+}
+
+/** A quién se puede desafiar: [{ uid, nombre, sdga }] (sin vos). */
+export async function leerRivales() {
+  const filas = puente.enApp ? await porApp('rivales') : await rest('trampa_rivales?select=user_id,nombre,sdga&order=nombre')
+  const yo = puente.identidad?.uid
+  return (filas ?? []).map((f) => ({ uid: f.user_id ?? f.uid, nombre: f.nombre, sdga: !!f.sdga })).filter((f) => f.uid && f.uid !== yo)
+}
+/** Manda un desafío ya jugado (con la grabación del fantasma). Devuelve el id. */
+export async function crearDesafio({ rival, semilla, apodo, emoji, golpes, vsPar, ms, lp, fantasma }) {
+  const yo = puente.identidad
+  const datos = { rivalId: rival.uid, rivalAlias: rival.nombre, semilla, apodo, emoji, golpes, vsPar, ms, lp: !!lp, fantasma }
+  if (puente.enApp) return (await porApp('desafiar', datos))?.id ?? null
+  const fila = {
+    retador_id: yo.uid, retador_alias: yo.alias, retador_apodo: apodo, retador_emoji: emoji, retador_golpes: golpes, retador_vs_par: vsPar, retador_ms: ms, retador_lp: !!lp,
+    rival_id: rival.uid, rival_alias: rival.nombre, semilla, fantasma,
+  }
+  const r = await rest('trampa_desafios?select=id', { metodo: 'POST', cuerpo: fila, prefer: 'return=representation' })
+  return r?.[0]?.id ?? null
+}
+/** Mis desafíos (los que hice y los que me hicieron), sin la grabación. */
+export async function leerDesafios() {
+  if (puente.enApp) return ((await porApp('desafios')) ?? []).map(deFilaDesafio)
+  const uid = puente.identidad?.uid
+  const filas = await rest(`trampa_desafios?select=${COLS_DESAFIO}&or=(retador_id.eq.${uid},rival_id.eq.${uid})&order=created_at.desc&limit=100`)
+  return (filas ?? []).map(deFilaDesafio)
+}
+/** La grabación del que desafió, para jugar con su fantasma. */
+export async function leerFantasma(id) {
+  if (puente.enApp) return (await porApp('fantasma', { desafioId: id })) ?? null
+  const filas = await rest(`trampa_desafios?select=fantasma&id=eq.${encodeURIComponent(id)}`)
+  return filas?.[0]?.fantasma ?? null
+}
+/** El desafiado jugó: anota su vuelta y el match queda cerrado. */
+export async function responderDesafio(id, { apodo, emoji, golpes, vsPar, ms, lp }) {
+  const datos = { desafioId: id, apodo, emoji, golpes, vsPar, ms, lp: !!lp }
+  if (puente.enApp) { await porApp('responder', datos); return true }
+  const uid = puente.identidad?.uid
+  await rest(`trampa_desafios?id=eq.${encodeURIComponent(id)}&rival_id=eq.${uid}&estado=eq.pendiente`, {
+    metodo: 'PATCH', prefer: 'return=minimal',
+    cuerpo: { rival_apodo: apodo, rival_emoji: emoji, rival_golpes: golpes, rival_vs_par: vsPar, rival_ms: ms, rival_lp: !!lp, estado: 'jugado', jugado_at: new Date().toISOString() },
+  })
+  return true
+}
+
