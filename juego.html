@@ -1868,7 +1868,7 @@ function hud() {
   $('#j-foto').hidden = !j.foto
   if (j.foto && $('#j-foto').getAttribute('src') !== j.foto) { $('#j-foto').src = j.foto; $('#j-foto').alt = j.apodo }
   $('#j-apodo').textContent = j.apodo.toUpperCase()
-  $('#j-hcp').textContent = `HCP ${hcpTxt(ronda.jugador)}`
+  $('#j-hcp').textContent = hcpEtiqueta(ronda.jugador)
   $('#j-total').textContent = M.formatoPar(M.totales(ronda.tarjeta).vsPar)
   $('#lp').disabled = estado !== 'apuntar'
   if (!lpArmado) $('#lp').textContent = textoLP()
@@ -2870,7 +2870,7 @@ function tarjetaFinal() {
   $('#t-emoji').textContent = j.emoji
   $('#t-apodo').textContent = j.apodo.toUpperCase()
   const dif = difDe(j)
-  $('#t-nivel').textContent = `HCP ${hcpTxt(j)} · ${dif.nombre}`
+  $('#t-nivel').textContent = `${hcpEtiqueta(j)} · ${dif.nombre}`
   const filas = ronda.tarjeta.map((f) => {
     const nombre = M.nombreResultado(f.golpes, f.par, f.lp)
     const marca = f.lp || f.golpes > f.par ? 'sobre' : f.golpes < f.par ? 'bajo' : ''
@@ -3498,7 +3498,9 @@ let mazoDrag = null
 const cartasDom = new Map()
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 // handicap aproximado (lo pasó Rorro, no está en la base): con ≈
-const hcpTxt = (j) => (j.hcp == null ? '—' : `${j.aprox ? '≈' : ''}${j.hcp}`)
+const hcpTxt = (j) => j.hcpTexto ?? (j.hcp == null ? '—' : `${j.aprox ? '≈' : ''}${j.hcp}`)
+// "HCP 12", o lo que diga en su lugar (Demetrio: "Pro Player")
+const hcpEtiqueta = (j) => j.hcpTexto ?? `HCP ${hcpTxt(j)}`
 const fmtNeto = (v) => (v == null ? '—' : v === 0 ? 'E' : v > 0 ? `+${v}` : `−${-v}`)
 const enMazo = (k) => PLANTEL[((k % PLANTEL.length) + PLANTEL.length) % PLANTEL.length]
 
@@ -3553,7 +3555,7 @@ function cartaDe(j) {
       ${j.foto ? `<img src="${j.foto}" alt="${esc(j.apodo)}" draggable="false">` : `<div class="carta-emoji" aria-hidden="true">${j.emoji}</div>`}
       <div class="carta-degrade"></div>
       <div class="carta-marcas">
-        <span class="carta-nivel">Nivel ${nivel} · HCP ${hcpTxt(j)}</span>
+        <span class="carta-nivel">Nivel ${nivel} · ${hcpEtiqueta(j)}</span>
         ${hab ? `<span class="carta-hab">✨ ${esc(hab.nombre)}</span>` : ''}
       </div>
       <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
@@ -3811,7 +3813,7 @@ function mostrarTodos() {
     return `<li class="todo">
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${j.emoji}</span></div>
-        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${i + 1} · HCP ${hcpTxt(j)} · ${dif.nombre.toUpperCase()}</span></div>
+        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${i + 1} · ${hcpEtiqueta(j).toUpperCase()} · ${dif.nombre.toUpperCase()}</span></div>
         ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
         <button class="carta-jugar" type="button" data-jugar="${i}">Jugar</button>
       </div>

@@ -316,6 +316,7 @@ export const DEMETRIO = {
   "apodo": "Demetrio López",
   "emoji": "🏌️",
   "hcp": 0,
+  "hcpTexto": "Pro Player",
   "frase": "En mi época el viento no existía",
   "foto": "jugadores/demetrio-lopez.webp",
   "stats": null,
