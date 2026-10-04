@@ -1081,4 +1081,71 @@ ok('salida: solo el tee del hoyo que se juega; en el tee de otro hoyo no hay bom
   assert.equal(M.tipoDeTiro(t, h15, l.desde, 'tee'), 'approach')
 })
 
+ok('🤫 en el hoyo de otro: jugando el 15, la que entra en el 16 cae, el golpe cuenta y se dropea afuera de ese green', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [] }
+  // golpear arma los hoyos que no se juegan
+  r.pelota = [h16.pin[0], h16.pin[1] - 5]
+  r.lie = 'green'
+  r.golpes = 2
+  const t0 = M.golpear(plano, { ...r }, angulo(r.pelota, h16.pin), 0.2, sinRuido())
+  assert.deepEqual(t0.ajenos.map((a) => a.n), [16, 17])
+  // un putt (rodando) que pasa por el medio del 16, justo de fuerza
+  const tiro = M.lanzar(plano, { pelota: r.pelota, angulo: angulo(r.pelota, h16.pin), potencia: 6 / M.FISICA.distPuttMax, viento: calma, putt: true, lie: 'green', rng: sinRuido() })
+  tiro.ajenos = [{ n: 16, pin: h16.pin }, { n: 17, pin: h17.pin }]
+  M.simular(plano, tiro, h15.pin)
+  assert.equal(tiro.ajena, 16)
+  assert.equal(tiro.embocada, undefined)
+  assert.deepEqual(tiro.pos, h16.pin)
+  assert.ok(tiro.eventos.some((e) => e.tipo === 'ajena' && e.n === 16))
+  r.golpes = 3
+  const res = M.resolverReposo(campo, r, tiro, fijo(0.5))
+  assert.equal(res.tipo, 'ajena')
+  assert.equal(res.n, 16)
+  assert.equal(res.jugando, 15)
+  assert.equal(r.golpes, 3) // sin multa
+  assert.equal(r.ajenas, 1)
+  assert.ok(['fairway', 'rough'].includes(r.lie))
+  assert.notEqual(M.terreno(campo, r.pelota).tipo, 'green')
+  assert.equal(M.pinoEn(campo, r.pelota), null)
+  assert.ok(M.dist(r.pelota, h16.pin) < 40)
+  // sin los otros hoyos (como antes), pasa de largo
+  const sin = M.lanzar(plano, { pelota: [h16.pin[0], h16.pin[1] - 5], angulo: Math.PI / 2, potencia: 6 / M.FISICA.distPuttMax, viento: calma, putt: true, lie: 'green', rng: sinRuido() })
+  M.simular(plano, sin, h15.pin)
+  assert.equal(sin.ajena, undefined)
+  // muy fuerte, pasa por arriba del otro hoyo y sigue
+  const fuerte = M.lanzar(plano, { pelota: [h16.pin[0], h16.pin[1] - 5], angulo: Math.PI / 2, potencia: 0.9, viento: calma, putt: true, lie: 'green', rng: sinRuido() })
+  fuerte.ajenos = [{ n: 16, pin: h16.pin }]
+  M.simular(plano, fuerte, h15.pin)
+  assert.equal(fuerte.ajena, undefined)
+})
+
+ok('🤫 El Mono: los monos nunca le roban (ni van a buscarla) y en el bosque el Mono bueno se la devuelve siempre', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'El Mono', emoji: '🐒', hcp: 12 }, fijo(0.5)) }
+  assert.equal(M.habilidadDe(r.jugador).id, 'mono')
+  r.golpes = 1
+  r.lie = 'rough'
+  r.pelota = [r.monos[0].pos[0] + 10, r.monos[0].pos[1]]
+  assert.equal(M.despertarMonosDe(r), 0)
+  const bueno = M.resolverReposo(campo, r, { pos: enArbol, eventos: [] }, fijo(0.99))
+  assert.equal(bueno.tipo, 'mono-bueno')
+  assert.equal(r.golpes, 1)
+  // un tiro que pasa bajo por encima de un mono: no se la roba
+  const t = M.golpear(quieto, { ...r, pelota: [...h15.tee], lie: 'tee', golpes: 0 }, angulo(h15.tee, h15.pin), 0.5, sinRuido())
+  assert.equal(t.amigo, true)
+  t.monos = null
+  for (let i = 0; i < 12; i++) M.avanzar(quieto, t, 1 / 120, h15.pin) // que ya haya salido (todavía bajo)
+  const m = { ...r.monos[0], espera: 0, pos: [...t.pos] }
+  t.monos = [m]
+  assert.ok(M.monoActivo(m) && t.alt < M.MONO.altura)
+  M.avanzar(quieto, t, 1 / 120, h15.pin)
+  assert.equal(t.robada, undefined)
+  // a cualquier otro, ese mono se la roba
+  const o = M.golpear(quieto, { ...M.nuevaRonda({ apodo: 'Rorro', hcp: 12 }, fijo(0.5)), monos: [], pelota: [...h15.tee], lie: 'tee', golpes: 0 }, angulo(h15.tee, h15.pin), 0.5, sinRuido())
+  o.monos = null
+  for (let i = 0; i < 12; i++) M.avanzar(quieto, o, 1 / 120, h15.pin)
+  o.monos = [{ ...r.monos[0], espera: 0, pos: [...o.pos] }]
+  M.avanzar(quieto, o, 1 / 120, h15.pin)
+  assert.ok(o.robada)
+})
+
 console.log('\nTodo verde.')

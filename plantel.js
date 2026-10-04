@@ -311,6 +311,18 @@ export const PLANTEL = [
   }
 ]
 
+// 🤫 No está en el mazo: aparece cuando lo desbloqueás (no se dice cómo).
+export const EL_MONO = {
+  "apodo": "El Mono",
+  "emoji": "🐒",
+  "hcp": 12,
+  "aprox": true,
+  "frase": "Uh uh ah ah",
+  "foto": null,
+  "stats": null,
+  "secreto": true
+}
+
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
 export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa']
 

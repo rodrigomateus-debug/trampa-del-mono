@@ -336,6 +336,13 @@ export const monosVienen = () => chillido(0, 4, 1)
 export function robo() { chillido(0, 6, 1.3); tono(600, 0.5, { vol: 0.08, f2: 200, tipo: 'triangle', at: 0.6 }) }
 /** El Mono bueno: un glissando mágico para arriba. */
 export function monoBueno() { [659.25, 783.99, 987.77, 1318.5, 1567.98].forEach((f, i) => campana(f, i * 0.07, 0.12)) }
+/** 🤫 Un acorde raro que se abre, las campanas y los monos que se ríen. */
+export function secreto() {
+  agachar(5)
+  ;[311.13, 369.99, 466.16, 554.37].forEach((f, i) => tono(f, 0.9, { vol: 0.07, tipo: 'triangle', at: i * 0.11 }))
+  ;[783.99, 987.77, 1174.66, 1567.98, 1975.53, 2349.32].forEach((f, i) => campana(f, 0.7 + i * 0.08, 0.12))
+  chillido(1.3, 6, 1.15)
+}
 /** Tensión: un "tic" que se acelera cuanto más cerca está el mono más cercano (lo llama el juego en cada cuadro). */
 let proxTic = 0
 export function tension(dist, alerta) {

@@ -368,6 +368,29 @@ body.manejando #mandos { display: flex; }
 @keyframes rorro-cara { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(3deg); } }
 @keyframes rorro-sello { 0% { opacity: 0; transform: scale(2.6) rotate(-20deg); } 100% { opacity: 1; transform: scale(1) rotate(-8deg); } }
 @keyframes rorro-lluvia { to { transform: translateY(calc(100vh + 120px)) rotate(360deg); } }
+/* 🤫 */
+#secreto { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 16px; background: radial-gradient(circle at 50% 40%, rgba(232, 195, 74, .28), rgba(8, 26, 16, .82) 62%); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+#secreto[hidden] { display: none; }
+#secreto .carta-sec { position: relative; z-index: 1; width: min(340px, 100%); margin-top: 50px; padding: 62px 20px 18px; background: var(--green-900); color: var(--cream); text-align: center; border: 3px solid var(--gold); box-shadow: 0 0 0 6px rgba(232, 195, 74, .18), 0 22px 50px rgba(0, 0, 0, .6); animation: rorro-entra 700ms cubic-bezier(.2, 1.3, .4, 1) both, rorro-blob 4.5s 700ms ease-in-out infinite; border-radius: 34px 28px 36px 26px / 28px 36px 26px 34px; }
+#secreto .carta-sec::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(115deg, transparent 30%, rgba(255, 233, 163, .16) 45%, transparent 60%); background-size: 260% 100%; animation: sec-brillo 2.8s ease-in-out infinite; }
+#secreto .cara-sec { position: absolute; left: 50%; top: -52px; width: 104px; height: 104px; margin-left: -52px; border-radius: 50%; border: 4px solid var(--gold); background: var(--cream); display: grid; place-items: center; font-size: 62px; line-height: 1; box-shadow: 0 0 30px rgba(232, 195, 74, .7); animation: sec-mono 1.6s ease-in-out infinite; }
+#secreto .kicker { color: var(--gold); }
+#secreto h2 { margin: 6px 0 0; font: 34px/1 var(--font-display); letter-spacing: .02em; color: var(--cream); }
+#secreto .sello { display: inline-block; margin: 12px 0 2px; padding: 4px 12px; font: 18px/1 var(--font-display); letter-spacing: .06em; color: var(--gold); border: 3px solid currentColor; border-radius: 12px; transform: rotate(-6deg); animation: rorro-sello 560ms 350ms cubic-bezier(.2, 1.6, .4, 1) both; }
+#secreto p { margin: 10px 0 0; font: 600 14px/1.35 var(--font-body); opacity: .92; text-wrap: pretty; }
+#secreto .premio { margin-top: 14px; padding: 12px; background: var(--cream); color: var(--green-900); border-radius: 18px; animation: rorro-entra 600ms 900ms cubic-bezier(.2, 1.3, .4, 1) both; }
+#secreto .premio b { display: block; font: 21px/1.05 var(--font-display); letter-spacing: .02em; }
+#secreto .premio span { display: block; margin-top: 6px; font: 600 13px/1.35 var(--font-body); }
+#secreto .premio small { display: block; margin-top: 8px; font: 700 12px/1.3 var(--font-body); color: var(--text-muted, #4a5a50); }
+#secreto .btn { margin-top: 16px; width: 100%; height: 52px; font-size: 22px; }
+#secreto .lluvia { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+#secreto .lluvia span { position: absolute; top: -60px; font-size: 34px; animation: rorro-lluvia linear forwards; }
+@keyframes sec-mono { 0%, 100% { transform: translateY(0) rotate(-8deg) scale(1); } 25% { transform: translateY(-10px) rotate(6deg) scale(1.05); } 50% { transform: translateY(0) rotate(8deg) scale(1); } 75% { transform: translateY(-6px) rotate(-4deg) scale(1.03); } }
+@keyframes sec-brillo { 0% { background-position: 130% 0; } 100% { background-position: -130% 0; } }
+.mono-teja.secreto { box-shadow: var(--shadow-card), 0 0 0 3px var(--gold), 0 0 22px rgba(232, 195, 74, .55); }
+.carta.secreta { box-shadow: 0 0 0 3px var(--gold), 0 0 28px rgba(232, 195, 74, .55); }
+.carta.secreta .carta-foto { background: radial-gradient(circle at 50% 45%, #2e7d4f, #0c2b1c 70%); }
+@media (prefers-reduced-motion: reduce) { #secreto .carta-sec, #secreto .carta-sec::before, #secreto .cara-sec, #secreto .lluvia { animation: none; } #secreto .lluvia { display: none; } }
 /* pisaste un mono: el sello de la multa y la sacudida */
 #multa { position: fixed; left: 50%; top: 34%; z-index: 40; pointer-events: none; text-align: center; transform: translate(-50%, -50%); }
 #multa[hidden] { display: none; }
@@ -591,6 +614,18 @@ input { -webkit-user-select: text; user-select: text; }
   </div>
   <div class="lluvia" aria-hidden="true"></div>
 </div>
+<div id="secreto" hidden role="dialog" aria-modal="true" aria-labelledby="secreto-titulo">
+  <div class="carta-sec">
+    <div class="cara-sec" aria-hidden="true">🐒</div>
+    <span class="kicker" id="secreto-kicker"></span>
+    <h2 id="secreto-titulo"></h2>
+    <div class="sello">LA VERDADERA TRAMPA</div>
+    <p id="secreto-texto"></p>
+    <div class="premio" id="secreto-premio"></div>
+    <button class="btn" id="secreto-seguir" type="button">SEGUIR JUGANDO</button>
+  </div>
+  <div class="lluvia" aria-hidden="true"></div>
+</div>
 <button id="deme-btn" type="button" hidden aria-label="Invocar a Deme"><img src="jugadores/deme-cabeza.webp" alt="" width="260" height="207"><span>DEME</span></button>
 <div id="deme" hidden aria-live="polite"><svg viewBox="0 0 360 300" aria-label="Deme"></svg><p class="globo"></p></div>
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
@@ -757,11 +792,11 @@ input { -webkit-user-select: text; user-select: text; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=9da7da3330'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=9da7da3330'
+import * as M from './motor.js?v=6fcf235121'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, EL_MONO } from './plantel.js?v=6fcf235121'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=9da7da3330'
-import * as S from './sonido.js?v=9da7da3330'
+import * as R from './ranking.js?v=6fcf235121'
+import * as S from './sonido.js?v=6fcf235121'
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 // el nivel fijado a mano manda (Fito, Trampa total, va al final)
@@ -791,6 +826,9 @@ function guardar(d) { try { localStorage.setItem(CLAVE, JSON.stringify(d)) } cat
 let datos = leer()
 datos.records ??= {}
 datos.usuario ??= ''
+// 🤫 el que lo encontró lo tiene en el mazo (al final) y en la portada el mono brilla
+if (datos.secreto) PLANTEL.push(EL_MONO)
+$('.mono-teja').classList.toggle('secreto', !!datos.secreto)
 
 // ── cancha ──
 const campo = M.crearCampo()
@@ -1086,6 +1124,7 @@ function alReposo() {
   const largo = M.dist(ronda.desde, h.pin)
   const desde = [...ronda.desde], lieDesde = ronda.lieDesde // de dónde salió (drive, approach o putt)
   const res = M.resolverReposo(campo, ronda, tiro, rng)
+  if (res.tipo === 'ajena') { hoyoEquivocado(res); return }
   const dicho = M.comentar(rng, res, tiro, h, ronda.jugador, { desde, lieDesde })
   lucasDice(dicho.lucas) // con Rodal: Lucas en persona
   if (res.tipo === 'embocada') {
@@ -1267,6 +1306,63 @@ function embocar(frase) {
   S.embocada()
   if (ronda.idx === M.HOYOS.length - 1 && ronda.t0 != null) ronda.ms = performance.now() - ronda.t0
   cerrar(frase)
+}
+
+// ── 🤫 la metiste en el hoyo de OTRO (uno que no estás jugando) ──
+// Nadie lo sabe hasta que le pasa: los monos salen del hoyo, se desbloquea El Mono y se sigue con alivio sin multa.
+function hoyoEquivocado(res) {
+  drag = null
+  estado = 'anim'
+  hud()
+  const primera = !datos.secreto
+  datos.secreto ??= { fecha: new Date().toISOString(), jugando: res.jugando, en: res.n, con: ronda.jugador.apodo }
+  datos.secreto.veces = (datos.secreto.veces ?? 0) + 1
+  guardar(datos)
+  if (!PLANTEL.includes(EL_MONO)) PLANTEL.push(EL_MONO)
+  $('.mono-teja').classList.add('secreto')
+  S.embocada()
+  // la cámara se va al hoyo equivocado: los monos salen de adentro
+  obj = { ...obj, cx: res.desde[0], cy: res.desde[1], esc: 16 }
+  velCam = 3
+  setTimeout(() => S.secreto(), 500)
+  relatar({ lg: `🐒 ¿EN EL ${res.n}? ¿QUÉ HICISTE?`, verso: 'Los monos no lo pueden creer' })
+  anim = { tipo: 'secreto', desde: res.desde, t: 0, T: 2.4, fin: () => mostrarSecreto(res, primera) }
+}
+function mostrarSecreto(res, primera) {
+  const el = $('#secreto')
+  const pausa = performance.now() // el reloj no corre mientras festejás
+  $('#secreto-kicker').textContent = `Jugando el ${res.jugando}…`
+  $('#secreto-titulo').textContent = `¡LA METISTE EN EL ${res.n}!`
+  $('#secreto-texto').textContent = primera
+    ? 'Encontraste la verdadera Trampa del Mono. Nadie te lo contó y vos no se lo contás a nadie. 🤫'
+    : `Otra vez en el hoyo equivocado. Van ${datos.secreto.veces}: los monos ya te conocen. 🤫`
+  const hab = M.habilidadDe(EL_MONO)
+  $('#secreto-premio').innerHTML = primera
+    ? `<b>DESBLOQUEASTE A EL MONO 🐒</b><span>✨ ${esc(hab.nombre)}: ${esc(hab.texto)}</span><small>Ya está en el mazo, al final. El golpe cuenta: alivio sin multa afuera de ese green y seguís en el ${res.jugando}.</small>`
+    : `<b>EL MONO TE SALUDA 🐒</b><small>El golpe cuenta: alivio sin multa afuera de ese green y seguís en el ${res.jugando}.</small>`
+  const lluvia = el.querySelector('.lluvia')
+  lluvia.innerHTML = ''
+  for (let i = 0; i < 34; i++) {
+    const e = document.createElement('span')
+    e.textContent = ['🐒', '🍌', '⛳', '🐒', '🍌', '🙈', '🙉', '🙊'][i % 8]
+    e.style.left = `${Math.random() * 100}%`
+    e.style.animationDuration = `${1.8 + Math.random() * 2}s`
+    e.style.animationDelay = `${Math.random() * 1.4}s`
+    lluvia.appendChild(e)
+  }
+  el.hidden = false
+  S.monoBueno()
+  const seguir = () => {
+    el.hidden = true
+    if (ronda.t0 != null && ronda.ms == null) ronda.t0 += performance.now() - pausa
+    relatar({ lg: '🐒 Green equivocado: alivio sin multa', verso: `El golpe cuenta. Seguís en el ${res.jugando}` })
+    // la cámara se abre para ver el drop afuera del green
+    obj = { ...obj, cx: (res.desde[0] + ronda.pelota[0]) / 2, cy: (res.desde[1] + ronda.pelota[1]) / 2, esc: Math.min(obj.esc, 9) }
+    velCam = 3
+    anim = { tipo: 'afuera', desde: res.desde, hasta: [...ronda.pelota], t: 0, T: 1.2, fin: siguienteTiro }
+  }
+  $('#secreto-seguir').onclick = seguir
+  setTimeout(() => $('#secreto-seguir').focus({ preventScroll: true }), 50)
 }
 
 /** Los monos llegaron antes del golpe: se la llevan corriendo y volvés al tee del hoyo con un golpe de multa. */
@@ -2287,6 +2383,30 @@ function pelota(p, alt, alfa = 1, pantalla = null) {
 
 function dibujarAnim() {
   const t = anim.t
+  if (anim.tipo === 'secreto') {
+    // 🤫 los monos salen del hoyo equivocado, uno atrás del otro, saltan y festejan alrededor
+    const [hx, hy] = w2s(anim.desde)
+    const tam = Math.max(40, Math.min(64, cam.esc * 2.6))
+    const caras = ['🐒', '🙈', '🙉', '🙊', '🐒']
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    for (let i = 0; i < caras.length; i++) {
+      const u = Math.max(0, Math.min(1, (t - 0.25 - i * 0.18) / 0.5))
+      if (u <= 0) continue
+      const a = -Math.PI / 2 + (i - (caras.length - 1) / 2) * 0.62
+      const r = tam * 1.5 * (1 - Math.pow(1 - u, 3))
+      const salto = Math.abs(Math.sin(t * 7 + i)) * tam * 0.25 * u
+      ctx.globalAlpha = Math.min(1, u * 2)
+      ctx.font = `${Math.round(tam * (0.6 + 0.4 * u))}px ${EMOJI}`
+      ctx.fillText(caras[i], hx + Math.cos(a) * r, hy + Math.sin(a) * r * 0.8 - salto)
+    }
+    ctx.globalAlpha = Math.max(0, 1 - Math.abs(t - 1.4) / 1)
+    ctx.font = `${Math.round(tam * 0.9)}px ${EMOJI}`
+    ctx.fillText('❓', hx, hy - tam * 2.6 - Math.sin(t * 5) * 4)
+    ctx.globalAlpha = 1
+    ctx.textBaseline = 'alphabetic'
+    return
+  }
   if (anim.tipo === 'ladron') {
     if (t < 1.3) {
       const [mx, my] = w2s(anim.mono.pos)
@@ -3256,6 +3376,8 @@ function previewHab(id) {
       + emo('🐕', 'M58 30 L51 14 L57 28', { kt: '0;0.4;0.95;1', kp: '0;0.5;1;1' }),
     panchitos: bola('M8 26 L60 26') + emo('🐒', 'M84 42 L66 30 L66 30 L96 46', { kt: '0;0.4;0.6;1', kp: '0;0.4;0.4;1' }) + `<text x="70" y="38" font-size="9" opacity="0">🌭${aparece(0.42)}</text>`,
     approach: bola('M8 26 L62 26 L62 26 Q76 40 86 10', { kt: '0;0.3;0.45;1', kp: '0;0.55;0.55;1' }) + txt('APPROACH…', 74, 48, 0.75, '#f0a497'),
+    mono: arboles(50, 8) + emo('🐒', 'M50 18 L50 14 L50 18', { kt: '0;0.5;1', kp: '0;0.5;1', tam: 10 }) + linea('M8 26 L96 26') + bola('M8 26 L96 26')
+      + txt('AMIGOS 🍌', 50, 46, 0.4),
     calma: arboles(40, 6) + bola('M8 26 Q20 8 38 9 L38 9 L96 26', { kt: '0;0.3;0.45;1', kp: '0;0.35;0.35;1' }) + txt('NO SE ENOJA', 66, 47, 0.45),
   }
   return `<svg viewBox="0 0 112 52" aria-hidden="true">${fondo}${id === 'dadas' ? '' : bandera}${escenas[id] ?? ''}</svg>`
@@ -3270,7 +3392,7 @@ function cartaDe(j) {
   const nivel = PLANTEL.indexOf(j) + 1
   const el = document.createElement('div')
   el.className = 'envoltorio'
-  el.innerHTML = `<article class="carta">
+  el.innerHTML = `<article class="carta${j.secreto ? ' secreta' : ''}">
     <div class="carta-foto">
       ${j.foto ? `<img src="${j.foto}" alt="${esc(j.apodo)}" draggable="false">` : `<div class="carta-emoji" aria-hidden="true">${j.emoji}</div>`}
       <div class="carta-degrade"></div>
