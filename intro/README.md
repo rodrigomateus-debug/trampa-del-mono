@@ -24,10 +24,13 @@ con "Caminás tranquilo por el fairway…".
 - `assets/trampa-del-mono.mp3` — la canción (Suno). `assets/sdga-logo.svg` — el logo oficial del design system.
 - `assets/fonts/` — Anton y Archivo (OFL). `assets/vendor/` — three.js 0.181.2 y GSAP 3.14.2, locales para que el render no dependa de la red.
 - `trampa-del-mono-intro-vertical.mp4` y `trampa-del-mono-intro.mp4` — los videos ya renderizados (versión liviana); `poster.jpg` — el cuadro del logo.
-- `compositions/presentacion.html` — **la presentación oficial de la app** (9:16, 75,3 s, la canción hasta el final del primer estribillo).
-  La arma `armar-presentacion.mjs` a partir de `compositions/vertical.html` (si se toca la intro, volver a correrlo); `escena-presentacion.js`
-  remapea el tiempo de la escena 3D. Las capturas del juego están en `assets/capturas/` y el ícono en `assets/icono-app.png`.
-  Video: `trampa-del-mono-presentacion.mp4`.
+- `compositions/presentacion.html` — **la presentación oficial de la app** (16:9, 128,8 s, la canción entera), con el juego
+  de verdad. La arma `armar-presentacion.mjs` (con `presentacion.css`) a partir de `index.html`: si se toca la intro, volver a correrlo.
+  `escena-presentacion.js` remapea el tiempo de la escena 3D y `mapa.js` es el vuelo 3D sobre el dibujo de la cancha
+  (`assets/cancha.webp`; los datos los saca `armar-mapa.mjs` a `mapa-datos.js`). Video: `trampa-del-mono-presentacion.mp4`.
+- `assets/juego/` — el juego grabado cuadro por cuadro (ver `rodaje/`): las tomas (`*.mp4`), sus marcas de tiempo (`tomas.json`),
+  las cartas del plantel, las caras, la imagen para compartir y los efectos de sonido del juego (`sfx/`).
+- `rodaje/` — las herramientas para grabar el juego: un navegador que juega solo con un reloj virtual (ver más abajo).
 
 ## Mapa de la canción (0–36,8 s)
 
@@ -50,18 +53,50 @@ con "Caminás tranquilo por el fairway…".
 | 32,8 | vuelve la banda | se abren los ojos de MONO, banda dorada |
 | 36,1–36,8 | fin de "…cambia la situación" | fundido a verde |
 
-## La presentación oficial (0–75,3 s)
+## La presentación oficial (16:9, 0–128,8 s)
 
 | Tiempo | Música | Imagen |
 |---|---|---|
-| 0–31,5 | la intro | la intro vertical tal cual |
-| 31,48 | corte, entra la voz | LA TRAMPA DEL MONO |
-| 34,1 | verso | un teléfono con capturas reales y una función cada dos compases: 01 la cancha · 02 el plantel (el mazo pasa una carta por negra) · 03 las habilidades (los chips de cada jugador) · 04 el tiro · 05 los monos |
-| 47,4 | | 06 contra reloj (un compás: 3, 2, 1… ¡YA!) · 07 la tarjeta y el Marshall · 08 el ranking (sube el podio, ¿VOS? en el 1°) |
-| 54,06 | **estribillo** | flash, vuelve la trampa de noche · ¡ES LA TRAMPA DEL MONO! · ENTRE ÁRBOLES Y SOMBRAS |
-| 63,36 | | cierre como la pantalla de inicio: logo, el jugador caminando, ojos de mono en los huecos, el ícono, JUGALA YA y la dirección |
-| 70,0 | "en San Diego te espera…" | aparece la frase |
-| 74,7–75,3 | fin del estribillo | fundido a verde |
+| 0–31,5 | la intro | la intro horizontal tal cual |
+| 31,48 | corte, entra la voz | LA TRAMPA DEL MONO; el ojo de la segunda O crece hasta que la pupila tapa todo |
+| 34,1 | verso | el juego en un teléfono, con la letra a la izquierda: 01 la portada y el nombre · 02 el mazo (las cartas pasan con el dedo) |
+| 40,8 | | 03 HOYO 15 y la cuenta regresiva cortada a tempo (3, 2, 1, ¡YA!) |
+| 43,4 | "cada golpe es un reto…" | 04 el drive: zoom al dedo que tira para atrás; suelta justo en "la pelota vuela" (46,1); el reloj y el viento |
+| 48,7 | "entre ramas y hojas…" | 05 un mono se la lleva al vuelo (zoom) · 06 ¡VIENEN LOS MONOS! |
+| 54,06 | **estribillo** | el teléfono se viene encima y el robo queda a pantalla completa (+1) · la escena 3D de noche |
+| 59,4 | | tres pantallas: el Mono malo, el Mono bueno, el perro |
+| 64,7 | "…es casi un milagro" | el approach y el putt que da la vuelta al hoyo y entra justo en 68,7: ¡BIRDIE! |
+| 70,0 | "en San Diego te espera…" | vuelo 3D sobre el dibujo de la cancha: los tres hoyos y ojos en los árboles |
+| 75,3 | la canción baja | el plantel: las 10 cartas en una rueda 3D |
+| 83,3 | | CADA UNO CON SU HABILIDAD |
+| 85,9 | toda la banda | las habilidades de a dos, cada una jugada de verdad: Miguelón y Fito, el Mago y la Mugre, el Perro y Lechu, el Ninja y LG |
+| 107,2 | | 07 la tarjeta: firmada (récord, 1° en el ranking, la imagen para compartir) y sin firmar (comunicado del Marshall, 110 neto) |
+| 113,8 | se corta el bajo | 08 el ranking |
+| 117,8 | el final | la pantalla de inicio: logo, el jugador caminando, ojos de mono, JUGALA YA, el ícono y un QR; en 124,5 se cierran todos los ojos y en el último golpe se abren de una |
+
+Los efectos de sonido son los del juego (sonido.js), sacados a mp3 con `rodaje/sfx.cjs`: la cuenta, el golpe, los monos,
+la embocada, el perro, el pancho, el LP, la firma y el Marshall.
+
+## El rodaje (`rodaje/`)
+
+El juego se graba de verdad, jugando: Playwright abre `index.html` con un reloj virtual (`reloj.js`: `performance.now`, timers,
+`requestAnimationFrame` y las animaciones CSS/SMIL avanzan solo cuando el rodaje lo pide), así cada cuadro sale a 30 fps exactos
+aunque dibujar en 3x tarde. `Math.random` lleva una semilla: la misma semilla y los mismos gestos dan siempre la misma jugada.
+`bot.js` apunta como el bot de `calibrar.mjs` y convierte el tiro en un gesto (el dedo apoya en la pelota y tira para atrás);
+se ve un círculo donde toca el dedo, como en las grabaciones de pantalla del iPhone.
+
+```bash
+cd intro/rodaje && npm install          # playwright-core y las fuentes (Chromium aparte; CHROME=ruta si no está en /opt/pw-browsers)
+python3 -m http.server 8765 --bind 127.0.0.1 --directory ../..   # el juego, en otra terminal
+node t-vuelta.cjs 3                     # la vuelta principal (portada, mazo, hoyo 15 con birdie) → tomas/vuelta-3
+node t-hab.cjs bomba 5 graba            # una jugada: bomba, aguila, chipin, mago, pancho, ladron, bosque, perro, dada, ninja, lg
+node t-hab.cjs perro 1                  # sin "graba": explora rápido en 1x y muestra cómo sale (para elegir semillas)
+node t-final.cjs 3 firma graba          # vuelta entera y la tarjeta (firma o marshall)
+node t-plantel.cjs                      # las 10 cartas
+node sfx.cjs                            # los efectos del juego a assets/juego/sfx
+node juntar.cjs                         # pasa las tomas de elegidas.json a ../assets/juego (mp4 + tomas.json)
+cd .. && node armar-presentacion.mjs && npx hyperframes@0.8.114 render -c compositions/presentacion.html --output trampa-del-mono-presentacion.mp4
+```
 
 ## Cómo se trabaja
 
@@ -72,7 +107,7 @@ npx hyperframes@0.8.114 snapshot --at 6,22.5,33   # cuadros sueltos para mirar
 npx hyperframes@0.8.114 preview                   # Studio con el timeline (abre el navegador)
 npx hyperframes@0.8.114 render --output trampa-del-mono-intro.mp4                              # 16:9
 npx hyperframes@0.8.114 render -c compositions/vertical.html --output trampa-del-mono-intro-vertical.mp4   # 9:16
-node armar-presentacion.mjs && npx hyperframes@0.8.114 render -c compositions/presentacion.html --output trampa-del-mono-presentacion.mp4
+node armar-presentacion.mjs && npx hyperframes@0.8.114 render -c compositions/presentacion.html --output trampa-del-mono-presentacion.mp4   # 16:9
 ```
 
 El render usa WebGL por software si no hay GPU: tarda ~1 s por cuadro. `snapshot` y `preview` miran `index.html`;

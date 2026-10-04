@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1080, height=1920" />
+    <meta name="viewport" content="width=1920, height=1080" />
     <title>La Trampa del Mono — Presentación oficial</title>
     <script src="assets/vendor/gsap.min.js"></script>
     <script src="cues.js"></script>
@@ -13,15 +13,17 @@
       window.__hf.buildReady["escena-trampa"] = new Promise(function (resolve) {
         window.__resolverEscena = resolve;
       });
-    </script>
-    <script>
-      // tiempos de la presentación (en compases de la canción; ver cues.js)
-      window.PRESENTACION = { logo: 31.476, funciones: 34.133, estribillo: 54.06, cierre: 63.36, FIN: 75.3 };
+      window.__hf.buildReady["mapa-trampa"] = new Promise(function (resolve) {
+        window.__resolverMapa = resolve;
+      });
+      // tiempos de la presentación (en compases de la canción; ver armar-presentacion.mjs)
+      window.PRESENTACION = {"app":34.133,"estribillo":54.06,"mapa":{"desde":70.002,"hasta":75.316},"plantel":75.316,"habilidades":85.944,"tarjeta":107.2,"ranking":113.843,"cierre":117.828,"FIN":128.8,"ocultas":[[70.002,75.316],[54.06,56.717]]};
     </script>
     <script type="importmap">
       { "imports": { "three": "./assets/vendor/three.module.min.js" } }
     </script>
     <script type="module" src="escena-presentacion.js"></script>
+    <script type="module" src="mapa.js"></script>
     <style>
       @font-face {
         font-family: "Anton";
@@ -62,8 +64,8 @@
       }
       html,
       body {
-        width: 1080px;
-        height: 1920px;
+        width: 1920px;
+        height: 1080px;
         overflow: hidden;
         background: var(--green-950);
       }
@@ -364,225 +366,435 @@
         display: block;
       }
       /* overlay:hasta */
-      /* vertical:desde */
-      /* ---------- 9:16 (celular) ---------- */
-      .franja {
-        display: none;
+      /* ═════════ presentación oficial (lo suma armar-presentacion.mjs) ═════════ */
+      #p-velo {
+        opacity: 0;
+        background:
+          repeating-linear-gradient(135deg, rgba(17, 53, 36, 0.35) 0 28px, rgba(12, 43, 28, 0) 28px 56px),
+          radial-gradient(130% 110% at 72% 50%, rgba(12, 43, 28, 0.42) 0%, rgba(8, 28, 18, 0.9) 70%, rgba(5, 18, 11, 0.97) 100%);
       }
-      #presenta {
-        right: 0;
-        padding-top: 760px;
+      .oculto {
+        visibility: hidden;
       }
-      .cap {
-        padding: 0 72px 280px 72px;
+      .tri {
+        position: absolute;
       }
-      .cap-grande {
-        font-size: 116px;
+      #buceo {
+        pointer-events: none;
       }
-      .cap-chica {
-        font-size: 21px;
-        letter-spacing: 0.16em;
-      }
-      #cap-quince .cap-chica {
-        font-size: 24px;
-      }
-      #cap-silencio {
-        padding: 0 0 280px 0;
-      }
-      #cap-silencio .cap-chica {
-        font-size: 22px;
-        letter-spacing: 0.34em;
-        padding-left: calc(0.34em + 16px);
-      }
-      #cap-tension {
-        justify-content: flex-end;
-        padding: 0 72px 280px 72px;
-      }
-      #cap-tension .cap-grande {
-        font-size: 150px;
-      }
-      #cap-escape .cap-grande {
-        font-size: 150px;
-      }
-      #cap-ficha {
-        padding: 230px 0 0 72px;
-      }
-      #logo-fondo {
-        background: radial-gradient(95% 42% at 50% 33%, rgba(12, 43, 28, 0.86) 0%, rgba(12, 43, 28, 0.6) 50%, rgba(12, 43, 28, 0) 82%);
-      }
-      #logo-caja {
-        margin-top: -470px;
-      }
-      #logo-l1 {
-        font-size: 132px;
-      }
-      #logo-l2 {
-        font-size: 214px;
-      }
-      #logo-banda {
-        margin-top: 22px;
-        padding: 8px 26px 6px;
-      }
-      #banda-txt {
-        font-size: 44px;
-      }
-      #logo-tag {
-        max-width: 760px;
-        font-size: 20px;
-        line-height: 1.6;
-        letter-spacing: 0.26em;
-        text-align: center;
-      }
-      #logo-sdga {
-        bottom: 190px;
-      }
-      /* vertical:hasta */
-
-      /* ---------- presentación oficial ---------- */
-      #p-oscuro {
-        background: #0c2b1c;
+      #ojo-buceo {
+        position: absolute;
+        left: 1350.9px;
+        top: 357.4px;
+        width: 126.8px;
+        height: 200.4px;
         opacity: 0;
       }
-      .feat {
+      /* ── el teléfono ── */
+      .tel {
+        position: absolute;
+        will-change: transform;
+      }
+      .tel-cuerpo {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 13px;
+        border-radius: 66px;
+        background: linear-gradient(150deg, #24342b 0%, #0b140f 38%, #050907 100%);
+        box-shadow:
+          0 50px 110px rgba(0, 0, 0, 0.6),
+          0 0 0 2px rgba(244, 238, 218, 0.1),
+          inset 0 0 0 2px rgba(244, 238, 218, 0.13);
+      }
+      .tel-pantalla {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 54px;
+        overflow: hidden;
+        background: #0c2b1c;
+      }
+      .tel-pantalla .vid {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
         display: block;
       }
-      .feat-cab {
+      .tel-brillo {
         position: absolute;
-        left: 72px;
-        right: 72px;
-        top: 96px;
+        inset: 13px;
+        border-radius: 54px;
+        pointer-events: none;
+        background: linear-gradient(118deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.03) 26%, rgba(255, 255, 255, 0) 40%);
+      }
+      /* ── cabeceras: chip, título, banda, línea ── */
+      .cab {
+        position: absolute;
         display: flex;
         flex-direction: column;
         align-items: flex-start;
       }
-      .feat-kicker {
+      .kick {
         display: block;
-        font: 800 22px/1 var(--body);
+        font: 800 24px/1 var(--body);
         letter-spacing: 0.3em;
         color: var(--cream);
         background: var(--green-900);
-        border-radius: 6px;
-        padding: 9px 14px 8px 16px;
-        margin-bottom: 18px;
+        border-radius: 7px;
+        padding: 11px 16px 10px 18px;
+        margin-bottom: 20px;
+        box-shadow: inset 0 0 0 1.5px rgba(232, 195, 74, 0.35);
       }
-      .feat-kicker b {
+      .kick b {
         color: var(--gold);
         font-weight: 800;
-        margin-right: 0.6em;
+        margin-right: 0.7em;
       }
-      .feat-tit {
-        font: 400 112px/0.92 var(--display);
+      .tit {
+        font: 400 128px/0.92 var(--display);
         letter-spacing: 0.01em;
         color: var(--cream);
-        filter: drop-shadow(0 6px 22px rgba(5, 18, 11, 0.5));
+        filter: drop-shadow(0 8px 26px rgba(5, 18, 11, 0.55));
       }
-      .feat-banda {
+      .banda {
         position: relative;
-        display: block;
-        margin-top: 16px;
-        padding: 8px 20px 6px;
+        display: inline-block;
+        margin-top: 20px;
+        padding: 9px 22px 7px;
         overflow: hidden;
       }
-      .feat-banda i {
+      .banda i {
         position: absolute;
         inset: 0;
         background: var(--gold);
       }
-      .feat-banda span {
+      .banda span {
         position: relative;
         display: block;
+        font: 400 44px/1 var(--display);
+        letter-spacing: 0.05em;
+        color: var(--green-900);
+        white-space: nowrap;
+      }
+      .banda.grande span {
+        font-size: 60px;
+      }
+      .txt {
+        display: block;
+        max-width: 660px;
+        margin-top: 20px;
+        font: 600 29px/1.38 var(--body);
+        color: var(--cream);
+        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.95));
+      }
+      /* ── notas sobre la pantalla ── */
+      .nota {
+        position: absolute;
+        width: 0;
+        height: 0;
+      }
+      .nota i {
+        position: absolute;
+        left: -11px;
+        top: -11px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 3px solid var(--gold);
+        box-shadow: 0 0 0 4px rgba(12, 43, 28, 0.6);
+      }
+      .nota b {
+        position: absolute;
+        left: 14px;
+        top: -1.5px;
+        width: 110px;
+        height: 3px;
+        background: var(--gold);
+      }
+      .nota span {
+        position: absolute;
+        left: 124px;
+        top: -27px;
+        white-space: nowrap;
         font: 400 40px/1 var(--display);
         letter-spacing: 0.05em;
         color: var(--green-900);
+        background: var(--gold);
+        padding: 8px 16px 6px;
       }
-      .feat-txt {
-        display: block;
-        max-width: 900px;
-        margin-top: 16px;
-        font: 600 25px/1.35 var(--body);
-        color: var(--cream);
-        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.9));
+      .nota.arriba span {
+        top: -46px;
       }
-      #tel {
+      .nota.abajo span {
+        top: -2px;
+      }
+      #estela {
         position: absolute;
-        left: 260px;
-        top: 660px;
-        width: 560px;
-        height: 1179px;
-        padding: 14px;
-        border-radius: 72px;
-        background: #07140d;
-        box-shadow: 0 34px 90px rgba(0, 0, 0, 0.55), inset 0 0 0 3px rgba(244, 238, 218, 0.16);
+        left: 300px;
+        top: 528px;
+        width: 1000px;
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, rgba(244, 238, 218, 0), rgba(244, 238, 218, 0.95));
+        opacity: 0;
       }
-      #tel-pantalla {
-        position: relative;
-        width: 532px;
-        height: 1151px;
-        border-radius: 58px;
+      /* ── el estribillo ── */
+      .full {
         overflow: hidden;
-        background: #14402a;
+        background: #0c2b1c;
       }
-      #tel-pantalla img {
+      .full-in {
+        position: absolute;
+        left: 0;
+        width: 1920px;
+        height: 4155px;
+      }
+      .full-in .vid {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .coro {
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-start;
+        padding: 0 0 110px 110px;
+        pointer-events: none;
+      }
+      #coro3 {
+        justify-content: center;
+        padding: 0 0 60px 110px;
+      }
+      #coro2 {
+        padding-bottom: 70px;
+      }
+      .coro-tit {
+        font: 400 168px/0.9 var(--display);
+        letter-spacing: 0.01em;
+        color: var(--cream);
+        filter: drop-shadow(0 10px 30px rgba(5, 18, 11, 0.7));
+      }
+      #coro2 .coro-tit {
+        font-size: 120px;
+      }
+      #coro3 .coro-tit {
+        font-size: 132px;
+      }
+      #coro4 {
+        padding-bottom: 90px;
+      }
+      .sello {
+        position: absolute;
+        right: 200px;
+        top: 150px;
+        font: 400 220px/1 var(--display);
+        color: var(--cream);
+        background: var(--red, #bc4b3c);
+        padding: 22px 46px 10px;
+        border-radius: 22px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+      }
+      .sello.dorado {
+        right: auto;
+        left: 110px;
+        top: auto;
+        bottom: 120px;
+        font-size: 150px;
+        background: var(--gold);
+        color: var(--green-900);
+      }
+      .tri {
+        z-index: 4;
+        left: 0;
+        right: auto;
+        top: 30px;
+        width: 560px;
+        height: 660px;
+        border-radius: 34px;
+        overflow: hidden;
+        background: #0c2b1c;
+        box-shadow: 0 40px 90px rgba(0, 0, 0, 0.55), 0 0 0 3px rgba(244, 238, 218, 0.14);
+      }
+      .tri-pant {
+        position: absolute;
+        left: 0;
+        top: -230px;
+        width: 560px;
+        height: 1212px;
+      }
+      .tri-pant .vid {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .tri-pie {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 18px 26px 22px;
+        background: linear-gradient(180deg, rgba(12, 43, 28, 0), rgba(12, 43, 28, 0.96) 38%);
+        display: flex;
+        flex-direction: column;
+      }
+      .tri-pie b {
+        font: 400 58px/1 var(--display);
+        color: var(--cream);
+      }
+      .tri-pie span {
+        margin-top: 6px;
+        font: 800 22px/1 var(--body);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+      /* ── el mapa ── */
+      #mapa {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .mapa-cartel {
         position: absolute;
         left: 0;
         top: 0;
-        width: 532px;
-        height: 1151px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         opacity: 0;
       }
-      .chip {
-        position: absolute;
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 14px 28px 14px 16px;
-        border-radius: 999px;
-        background: var(--cream);
+      .mapa-cartel b {
+        font: 400 64px/1 var(--display);
+        color: var(--cream);
+        background: var(--green-900);
+        padding: 10px 22px 6px;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      }
+      .mapa-cartel span {
+        margin-top: 8px;
+        font: 400 30px/1 var(--display);
+        letter-spacing: 0.06em;
         color: var(--green-900);
-        box-shadow: 0 8px 26px rgba(12, 43, 28, 0.45);
-        white-space: nowrap;
+        background: var(--gold);
+        padding: 7px 14px 5px;
       }
-      .chip em {
-        display: grid;
-        place-items: center;
-        width: 62px;
-        height: 62px;
+      #mapa-vineta {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(0deg, rgba(5, 18, 11, 0.85) 0%, rgba(5, 18, 11, 0) 42%),
+          radial-gradient(120% 95% at 50% 46%, rgba(5, 18, 11, 0) 55%, rgba(5, 18, 11, 0.6) 100%);
+      }
+      /* ── el plantel ── */
+      #plantel {
+        perspective: 2400px;
+        pointer-events: none;
+      }
+      #anillo-caja {
+        position: absolute;
+        left: 50%;
+        top: 700px;
+        width: 0;
+        height: 0;
+        transform-style: preserve-3d;
+      }
+      #anillo {
+        position: absolute;
+        left: 0;
+        top: 0;
+        transform-style: preserve-3d;
+      }
+      .carta {
+        position: absolute;
+        left: -160px;
+        top: -250px;
+        width: 320px;
+        height: auto;
+        border-radius: 22px;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+        backface-visibility: hidden;
+      }
+      .slam {
+        z-index: 2;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 300px;
+        text-align: center;
+        font: 400 190px/0.9 var(--display);
+        color: var(--cream);
+        filter: drop-shadow(0 12px 34px rgba(5, 18, 11, 0.75));
+      }
+      #cada-uno .banda {
+        position: absolute;
+        left: 50%;
+        top: 690px;
+        transform: translateX(-50%);
+      }
+      /* ── las placas de las habilidades ── */
+      .placa {
+        position: absolute;
+        top: 220px;
+        width: 420px;
+        display: flex;
+        flex-direction: column;
+      }
+      .placa.izq {
+        left: 70px;
+        align-items: flex-end;
+        text-align: right;
+      }
+      .placa.der {
+        left: 1430px;
+        align-items: flex-start;
+      }
+      .placa .foto {
+        width: 190px;
+        height: 190px;
         border-radius: 50%;
-        background: var(--green-100, #d9e8dc);
-        font: normal 36px/1 system-ui, "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+        object-fit: cover;
+        object-position: 50% 50%;
+        border: 6px solid var(--cream);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
       }
-      .chip b {
-        display: block;
-        font: 800 27px/1.1 var(--body);
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+      .placa b {
+        margin-top: 18px;
+        font: 400 74px/0.95 var(--display);
+        color: var(--cream);
+        filter: drop-shadow(0 6px 18px rgba(5, 18, 11, 0.6));
       }
-      .chip small {
-        display: block;
-        font: 600 20px/1.25 var(--body);
-        color: #5e6e5f;
+      .placa .banda {
+        margin-top: 12px;
       }
-      #coro1,
-      #coro2 {
-        justify-content: flex-end;
+      .placa .banda span {
+        font-size: 36px;
       }
-      #coro1 .cap-grande,
-      #coro2 .cap-grande {
-        font-size: 150px;
+      .placa .txt {
+        font-size: 25px;
+        max-width: 420px;
       }
-      #coro1 .feat-banda,
-      #coro2 .feat-banda {
-        margin-top: 20px;
+      /* ── el ranking ── */
+      #resumen-img {
+        position: absolute;
+        left: 1500px;
+        top: 250px;
+        width: 360px;
+        height: auto;
+        border-radius: 14px;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
       }
-      /* cierre: logo arriba, el jugador al medio, la app abajo */
-      #cierre {
-        display: block;
-      }
+      /* ── el cierre ── */
       #cl-caja {
         position: absolute;
         left: 0;
         right: 0;
-        top: 250px;
+        top: 54px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -595,144 +807,100 @@
         color: var(--cream);
         line-height: 0.86;
         letter-spacing: 0.012em;
-        filter: drop-shadow(0 10px 30px rgba(5, 18, 11, 0.5));
+        filter: drop-shadow(0 10px 30px rgba(5, 18, 11, 0.55));
       }
       #cl-l1 {
-        font-size: 132px;
+        font-size: 96px;
       }
       #cl-l2 {
-        font-size: 214px;
-        margin-top: 6px;
+        font-size: 158px;
+        margin-top: 4px;
+      }
+      #cl-l2 .ojo {
+        width: 0.465em;
+        height: 0.735em;
+        margin: 0 0.03em 0.07em;
+      }
+      .esp {
+        display: inline-block;
+        width: 0.22em;
       }
       #cl-banda {
-        position: relative;
-        display: block;
-        margin-top: 22px;
-        padding: 8px 26px 6px;
-        overflow: hidden;
-      }
-      #cl-banda i {
-        position: absolute;
-        inset: 0;
-        background: var(--gold);
+        margin-top: 16px;
       }
       #cl-banda span {
-        position: relative;
-        display: block;
-        font: 400 44px/1 var(--display);
-        letter-spacing: 0.06em;
-        color: var(--green-900);
+        font-size: 38px;
       }
-      #cl-tag {
-        display: block;
-        max-width: 1000px;
-        margin-top: 20px;
-        text-align: center;
-        white-space: nowrap;
-        font: 800 21px/1.6 var(--body);
-        letter-spacing: 0.2em;
-        color: var(--cream);
-        background: var(--green-900);
-        border-radius: 6px;
-        padding: 6px 12px 5px 16px;
-      }
-      #cl-app {
+      #cl-boton-caja {
         position: absolute;
         left: 0;
         right: 0;
-        top: 1380px;
+        top: 820px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #cl-boton {
+        display: block;
+        padding: 22px 78px 16px;
+        border-radius: 999px;
+        background: var(--gold);
+        color: var(--green-900);
+        font: 400 72px/1 var(--display);
+        letter-spacing: 0.05em;
+        box-shadow: 0 14px 40px rgba(12, 43, 28, 0.5);
+      }
+      #cl-url {
+        display: block;
+        margin-top: 22px;
+        font: 800 30px/1.2 var(--body);
+        color: var(--cream);
+        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.95));
+      }
+      #cl-icono-caja,
+      #cl-qr-caja {
+        position: absolute;
+        top: 740px;
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
       }
+      #cl-icono-caja {
+        left: 150px;
+      }
+      #cl-qr-caja {
+        right: 150px;
+      }
       #cl-icono {
         display: block;
-        width: 180px;
-        height: 180px;
-        border-radius: 42px;
+        width: 190px;
+        height: 190px;
+        border-radius: 44px;
         box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(244, 238, 218, 0.25);
       }
-      #cl-boton {
-        display: block;
-        margin-top: 30px;
-        padding: 22px 70px 18px;
-        border-radius: 999px;
-        background: var(--gold);
-        color: var(--green-900);
-        font: 400 66px/1 var(--display);
-        letter-spacing: 0.05em;
-        box-shadow: 0 10px 30px rgba(12, 43, 28, 0.45);
+      #cl-qr {
+        width: 190px;
+        height: 190px;
+        padding: 14px;
+        border-radius: 20px;
+        background: var(--cream);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
       }
-      #cl-url {
+      #cl-qr img {
         display: block;
-        margin-top: 26px;
-        font: 800 27px/1.2 var(--body);
-        letter-spacing: 0.02em;
-        color: var(--cream);
-        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.9));
+        width: 100%;
+        height: 100%;
       }
-      #cl-como {
-        display: block;
-        margin-top: 12px;
-        font: 600 21px/1.3 var(--body);
-        letter-spacing: 0.04em;
+      #cl-icono-caja span,
+      #cl-qr-caja span {
+        margin-top: 16px;
+        font: 800 21px/1.3 var(--body);
+        letter-spacing: 0.06em;
         color: var(--cream);
         background: var(--green-900);
-        border-radius: 6px;
+        border-radius: 7px;
         padding: 8px 14px 7px;
-      }
-      #podio {
-        position: absolute;
-        left: 180px;
-        width: 720px;
-        top: 1420px;
-        height: 500px;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        gap: 16px;
-      }
-      .pod {
-        position: relative;
-        width: 214px;
-        border-radius: 20px 20px 0 0;
-        background: var(--cream);
-        display: flex;
-        justify-content: center;
-        padding-top: 22px;
-        box-shadow: 0 -12px 44px rgba(5, 18, 11, 0.45);
-      }
-      .pod-1 {
-        height: 330px;
-        background: var(--gold);
-      }
-      .pod-2 {
-        height: 255px;
-      }
-      .pod-3 {
-        height: 200px;
-      }
-      .pod b {
-        font: 400 120px/1 var(--display);
-        color: var(--green-900);
-      }
-      .pod-q {
-        position: absolute;
-        left: 50%;
-        bottom: 100%;
-        margin-bottom: 16px;
-        font: 400 64px/1 var(--display);
-        color: var(--cream);
-        filter: drop-shadow(0 4px 14px rgba(5, 18, 11, 0.7));
-      }
-      .pod-q.vos {
-        padding: 12px 24px 8px;
-        border-radius: 999px;
-        background: var(--cream);
-        color: var(--green-900);
-        font-size: 56px;
-        white-space: nowrap;
       }
       .par {
         position: absolute;
@@ -749,9 +917,9 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="presentacion" data-start="0" data-width="1080" data-height="1920" data-duration="75.3">
-      <canvas id="escena" width="1080" height="1920"></canvas>
-      <div id="p-oscuro" class="capa"></div>
+    <div id="root" data-composition-id="presentacion" data-start="0" data-width="1920" data-height="1080" data-duration="128.8">
+      <canvas id="escena" width="1920" height="1080"></canvas>
+      <div id="p-velo" class="capa"></div>
       <!-- overlay:desde -->
 
       <!-- SDGA PRESENTA -->
@@ -826,7 +994,7 @@
       <div id="franja-abajo" class="franja"></div>
 
       <!-- LA TRAMPA DEL MONO -->
-      <section id="logo" class="clip" data-start="31.48" data-duration="2.653" data-track-index="4">
+      <section id="logo" class="clip" data-start="31.48" data-duration="2.753" data-track-index="4">
         <div id="logo-fondo"></div>
         <div id="logo-caja">
           <div id="logo-l1">
@@ -868,242 +1036,381 @@
         <img id="logo-sdga" src="assets/sdga-logo.svg" alt="SDGA" />
       </section>
 
-      <section id="f1" class="clip feat" data-start="34.133" data-duration="2.657" data-track-index="2">
-        <div class="feat-cab">
-          <span class="feat-kicker"><b>01</b>LA CANCHA</span>
-          <div class="feat-tit"><span class="linea"><span class="pal">LOS 3 HOYOS</span></span><span class="linea"><span class="pal">DE LA TRAMPA</span></span></div>
-          <span class="feat-banda"><i></i><span>15 · 16 · 17 DE SAN DIEGO</span></span>
-
-          <span class="feat-txt">El dibujo de Rorro, con las yardas reales y el tee según tu handicap.</span>
+      <section id="buceo" class="clip" data-start="33.734" data-duration="0.899" data-track-index="7"><svg class="ojo " id="ojo-buceo" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></section>
+      <div id="tel-v" class="capa oculto tel-sec">
+        <div class="tel" id="tel-v-t" style="left:1210px;top:79px;width:440px;height:922px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v1" class="clip vid " src="assets/juego/vuelta.mp4" muted playsinline data-start="34.133" data-duration="6.642" data-media-start="0.85" data-track-index="21"></video><video id="v2" class="clip vid " src="assets/juego/vuelta.mp4" muted playsinline data-start="40.775" data-duration="0.664" data-media-start="11.883" data-track-index="22"></video><video id="v3" class="clip vid " src="assets/juego/vuelta.mp4" muted playsinline data-start="41.439" data-duration="0.332" data-media-start="14.417" data-track-index="23"></video><video id="v4" class="clip vid " src="assets/juego/vuelta.mp4" muted playsinline data-start="41.771" data-duration="0.332" data-media-start="15.417" data-track-index="24"></video><video id="v5" class="clip vid " src="assets/juego/vuelta.mp4" muted playsinline data-start="42.103" data-duration="0.332" data-media-start="16.417" data-track-index="25"></video><video id="v6" class="clip vid " src="assets/juego/vuelta.mp4" muted playsinline data-start="42.435" data-duration="0.996" data-media-start="17.387" data-track-index="20"></video><video id="v7" class="clip vid " src="assets/juego/vuelta.mp4" muted playsinline data-start="43.432" data-duration="5.314" data-media-start="16.81" data-track-index="21"></video><video id="v8" class="clip vid " src="assets/juego/robo.mp4" muted playsinline data-start="48.746" data-duration="2.657" data-media-start="4.5" data-track-index="22"></video><video id="v9" class="clip vid " src="assets/juego/ladron.mp4" muted playsinline data-start="51.403" data-duration="2.657" data-media-start="1.61" data-track-index="23"></video></div><div class="tel-brillo"></div></div></div>
+      </div>
+      <section id="f-entra" class="clip cab-sec" data-start="34.133" data-duration="2.657" data-track-index="2">
+        <div class="cab" style="left:120px;width:960px;top:50%;margin-top:-210px">
+          <span class="kick"><b>01</b>LA APP</span>
+          <div class="tit"><span class="linea"><span class="pal">PONÉ TU NOMBRE</span></span><span class="linea"><span class="pal">Y A LA CANCHA</span></span></div>
+          <span class="banda"><i></i><span>SDGA TOUR · HOYOS 15 · 16 · 17</span></span>
+          <span class="txt">Los tres hoyos que más tarjetas rompieron en San Diego, en el celu.</span>
         </div>
       </section>
-      <section id="f2" class="clip feat" data-start="36.79" data-duration="2.657" data-track-index="2">
-        <div class="feat-cab">
-          <span class="feat-kicker"><b>02</b>EL PLANTEL</span>
-          <div class="feat-tit"><span class="linea"><span class="pal">ELEGÍ CON</span></span><span class="linea"><span class="pal">QUIÉN JUGAR</span></span></div>
-          <span class="feat-banda"><i></i><span>10 PLAYERS DEL SDGA</span></span>
-
-          <span class="feat-txt">Del más fácil al más difícil: medido jugando 60 vueltas con cada uno.</span>
+      <section id="f-plantel" class="clip cab-sec" data-start="36.79" data-duration="3.985" data-track-index="2">
+        <div class="cab" style="left:120px;width:960px;top:50%;margin-top:-210px">
+          <span class="kick"><b>02</b>EL PLANTEL</span>
+          <div class="tit"><span class="linea"><span class="pal">ELEGÍ</span></span><span class="linea"><span class="pal">TU PLAYER</span></span></div>
+          <span class="banda"><i></i><span>10 PLAYERS DEL SDGA</span></span>
+          <span class="txt">Del más fácil al más difícil: los medimos jugando 60 vueltas con cada uno.</span>
         </div>
       </section>
-      <section id="f3" class="clip feat" data-start="39.447" data-duration="2.657" data-track-index="2">
-        <div class="feat-cab">
-          <span class="feat-kicker"><b>03</b>HABILIDADES</span>
-          <div class="feat-tit"><span class="linea"><span class="pal">CADA UNO CON</span></span><span class="linea"><span class="pal">SU HABILIDAD</span></span></div>
-          <span class="feat-banda"><i></i><span>SACADAS DEL CHAT</span></span>
-
-          <span class="feat-txt">El Mago nunca pega derecho. La Mugre tira panchos. El Perro va a buscarla.</span>
+      <section id="f-cuenta" class="clip cab-sec" data-start="40.775" data-duration="2.657" data-track-index="2">
+        <div class="cab" style="left:120px;width:960px;top:50%;margin-top:-210px">
+          <span class="kick"><b>03</b>CONTRA RELOJ</span>
+          <div class="tit"><span class="linea"><span class="pal">3, 2, 1…</span></span><span class="linea"><span class="pal">¡YA!</span></span></div>
+          <span class="banda"><i></i><span>AL MILISEGUNDO</span></span>
+          <span class="txt">El reloj corre hasta que cae el último putt del 17.</span>
         </div>
       </section>
-      <section id="f4" class="clip feat" data-start="42.104" data-duration="2.657" data-track-index="2">
-        <div class="feat-cab">
-          <span class="feat-kicker"><b>04</b>EL TIRO</span>
-          <div class="feat-tit"><span class="linea"><span class="pal">TIRÁ PARA</span></span><span class="linea"><span class="pal">ATRÁS Y SOLTÁ</span></span></div>
-          <span class="feat-banda"><i></i><span>COMO UNA GOMERA</span></span>
-
-          <span class="feat-txt">Viento con ráfagas, rough al 70%, bunker al 50% y el óvalo de pique.</span>
+      <section id="f-tiro" class="clip cab-sec" data-start="43.432" data-duration="5.314" data-track-index="2">
+        <div class="cab" style="left:120px;width:960px;top:50%;margin-top:-210px">
+          <span class="kick"><b>04</b>EL TIRO</span>
+          <div class="tit"><span class="linea"><span class="pal">TIRÁ PARA ATRÁS</span></span><span class="linea"><span class="pal">Y SOLTÁ</span></span></div>
+          <span class="banda"><i></i><span>COMO UNA GOMERA</span></span>
+          <span class="txt">El óvalo es donde puede caer. Con viento, rough al 70% y bunker al 50%.</span>
         </div>
       </section>
-      <section id="f5" class="clip feat" data-start="44.761" data-duration="2.657" data-track-index="2">
-        <div class="feat-cab">
-          <span class="feat-kicker"><b>05</b>LOS MONOS</span>
-          <div class="feat-tit"><span class="linea"><span class="pal">¡VIENEN</span></span><span class="linea"><span class="pal">LOS MONOS!</span></span></div>
-          <span class="feat-banda"><i></i><span>SE LLEVAN LA PELOTA</span></span>
-
-          <span class="feat-txt">Si llegan antes que vos, al tee con un golpe de multa. Algunos te la devuelven.</span>
+      <section id="f-robo" class="clip cab-sec" data-start="48.746" data-duration="2.657" data-track-index="2">
+        <div class="cab" style="left:120px;width:960px;top:50%;margin-top:-210px">
+          <span class="kick"><b>05</b>LOS MONOS</span>
+          <div class="tit"><span class="linea"><span class="pal">SE LA LLEVAN</span></span><span class="linea"><span class="pal">AL VUELO</span></span></div>
+          <span class="banda"><i></i><span>+1 Y A DROPEAR</span></span>
+          <span class="txt">Cruzan de pinos a pinos: si la pelota les pega, chau.</span>
         </div>
       </section>
-      <section id="f6" class="clip feat" data-start="47.418" data-duration="1.329" data-track-index="2">
-        <div class="feat-cab">
-          <span class="feat-kicker"><b>06</b>CONTRA RELOJ</span>
-          <div class="feat-tit"><span class="linea"><span class="pal">3, 2, 1…</span></span><span class="linea"><span class="pal">¡YA!</span></span></div>
-          <span class="feat-banda"><i></i><span>Y CORRE EL RELOJ</span></span>
-
+      <section id="f-vienen" class="clip cab-sec" data-start="51.403" data-duration="2.657" data-track-index="2">
+        <div class="cab" style="left:120px;width:960px;top:50%;margin-top:-210px">
+          <span class="kick"><b>06</b>¡VIENEN LOS MONOS!</span>
+          <div class="tit"><span class="linea"><span class="pal">PEGALE ANTES</span></span><span class="linea"><span class="pal">QUE LLEGUEN</span></span></div>
+          <span class="banda"><i></i><span>O AL TEE CON +1</span></span>
+          <span class="txt">Si la pelota queda cerca de los pinos, salen a buscarla.</span>
         </div>
       </section>
-      <section id="f7" class="clip feat" data-start="48.746" data-duration="2.657" data-track-index="2">
-        <div class="feat-cab">
-          <span class="feat-kicker"><b>07</b>LA TARJETA</span>
-          <div class="feat-tit"><span class="linea"><span class="pal">FIRMALA EN</span></span><span class="linea"><span class="pal">10 SEGUNDOS</span></span></div>
-          <span class="feat-banda"><i></i><span>O 110 NETO</span></span>
-
-          <span class="feat-txt">Si no firmás, comunicado oficial del Marshall. Es inapelable.</span>
+      <section id="n-reloj" class="clip nota-sec" data-start="47.518" data-duration="1.128" data-track-index="8"><div class="nota arriba" style="left:1541.462px;top:274.585px"><i></i><b></b><span>EL RELOJ</span></div></section>
+      <section id="n-viento" class="clip nota-sec" data-start="47.768" data-duration="0.878" data-track-index="8"><div class="nota abajo" style="left:1532.969px;top:327.662px"><i></i><b></b><span>EL VIENTO</span></div></section>
+      <section id="estela-sec" class="clip" data-start="46.089" data-duration="0.6" data-track-index="8"><div id="estela"></div></section>
+      <div id="full-ladron" class="capa oculto full"><div class="full-in" style="top:-1955.077px"><video id="v10" class="clip vid " src="assets/juego/ladron.mp4" muted playsinline data-start="54.06" data-duration="2.657" data-media-start="4.267" data-track-index="24"></video></div></div>
+      <section id="coro1" class="clip coro" data-start="54.06" data-duration="5.314" data-track-index="3">
+        <div class="coro-tit"><span class="linea"><span class="pal">¡ES LA TRAMPA</span></span><span class="linea"><span class="pal">DEL MONO!</span></span></div><span class="banda grande"><i></i><span>DONDE TODO SE VA</span></span>
+      </section>
+      <section id="coro2" class="clip coro" data-start="59.374" data-duration="5.314" data-track-index="3">
+        <div class="coro-tit"><span class="linea"><span class="pal">ENTRE ÁRBOLES Y SOMBRAS</span></span></div><span class="banda grande"><i></i><span>TU SUERTE CAERÁ</span></span>
+      </section>
+      <section id="coro3" class="clip coro" data-start="64.688" data-duration="5.314" data-track-index="3">
+        <div class="coro-tit"><span class="linea"><span class="pal">HACERLE POCO</span></span><span class="linea"><span class="pal">ES CASI UN MILAGRO</span></span></div>
+      </section>
+      <section id="coro4" class="clip coro" data-start="70.002" data-duration="5.314" data-track-index="3">
+        <div class="coro-tit"><span class="linea"><span class="pal">EN SAN DIEGO</span></span><span class="linea"><span class="pal">TE ESPERA</span></span></div><span class="banda grande"><i></i><span>CON SU ABRAZO MACABRO</span></span>
+      </section>
+      <section id="mas1" class="clip" data-start="54.56" data-duration="2.157" data-track-index="9"><span class="sello">+1</span></section>
+      <div id="tri0" class="oculto tri" style="left:90px">
+        <div class="tri-pant"><video id="v11" class="clip vid " src="assets/juego/bosque.mp4" muted playsinline data-start="59.374" data-duration="5.314" data-media-start="1.75" data-track-index="25"></video></div><div class="tri-pie"><b>EL MONO MALO</b><span>la tira afuera · +1</span></div>
+      </div>
+      <div id="tri1" class="oculto tri" style="left:690px">
+        <div class="tri-pant"><video id="v12" class="clip vid " src="assets/juego/monobueno.mp4" muted playsinline data-start="60.038" data-duration="4.65" data-media-start="2.6" data-track-index="20"></video></div><div class="tri-pie"><b>EL MONO BUENO</b><span>te la salva · a veces</span></div>
+      </div>
+      <div id="tri2" class="oculto tri" style="left:1290px">
+        <div class="tri-pant"><video id="v13" class="clip vid " src="assets/juego/perro.mp4" muted playsinline data-start="60.703" data-duration="3.985" data-media-start="4.2" data-track-index="21"></video></div><div class="tri-pie"><b>EL PERRO</b><span>va a buscarla</span></div>
+      </div>
+      <div id="tel-b" class="capa oculto tel-sec">
+        <div class="tel" id="tel-b-t" style="left:1300px;top:25px;width:470px;height:987px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v14" class="clip vid " src="assets/juego/vuelta.mp4" muted playsinline data-start="64.688" data-duration="2.657" data-media-start="26.533" data-track-index="22"></video><video id="v15" class="clip vid " src="assets/juego/vuelta.mp4" muted playsinline data-start="67.345" data-duration="2.657" data-media-start="36.791" data-track-index="23"></video></div><div class="tel-brillo"></div></div></div>
+      </div>
+      <section id="milagro" class="clip" data-start="68.674" data-duration="1.328" data-track-index="9"><span class="sello dorado">¡BIRDIE!</span></section>
+      <section id="mapa-sec" class="clip" data-start="70.002" data-duration="5.314" data-track-index="4">
+        <canvas id="mapa" width="1920" height="1080"></canvas>
+        <div class="mapa-cartel" id="mapa-h15"><b>HOYO 15</b><span>PAR 4 · 392 YD</span></div><div class="mapa-cartel" id="mapa-h16"><b>HOYO 16</b><span>PAR 4 · 415 YD</span></div><div class="mapa-cartel" id="mapa-h17"><b>HOYO 17</b><span>PAR 3 · 208 YD</span></div>
+        <div id="mapa-vineta"></div>
+      </section>
+      <section id="plantel" class="clip" data-start="75.316" data-duration="10.628" data-track-index="3">
+        <div id="anillo-caja"><div id="anillo"><img class="carta" src="assets/juego/cartas/00-el-perro.webp" alt="" style="transform: rotateY(0deg) translateZ(860px)" /><img class="carta" src="assets/juego/cartas/01-el-sueco.webp" alt="" style="transform: rotateY(36deg) translateZ(860px)" /><img class="carta" src="assets/juego/cartas/02-fito.webp" alt="" style="transform: rotateY(72deg) translateZ(860px)" /><img class="carta" src="assets/juego/cartas/03-lg.webp" alt="" style="transform: rotateY(108deg) translateZ(860px)" /><img class="carta" src="assets/juego/cartas/04-mike-queboni.webp" alt="" style="transform: rotateY(144deg) translateZ(860px)" /><img class="carta" src="assets/juego/cartas/05-mugre.webp" alt="" style="transform: rotateY(180deg) translateZ(860px)" /><img class="carta" src="assets/juego/cartas/06-lechu.webp" alt="" style="transform: rotateY(216deg) translateZ(860px)" /><img class="carta" src="assets/juego/cartas/07-el-mago-rodal.webp" alt="" style="transform: rotateY(252deg) translateZ(860px)" /><img class="carta" src="assets/juego/cartas/08-el-ninja.webp" alt="" style="transform: rotateY(288deg) translateZ(860px)" /><img class="carta" src="assets/juego/cartas/09-liberty.webp" alt="" style="transform: rotateY(324deg) translateZ(860px)" /></div></div>
+      </section>
+      <section id="f-plantel2" class="clip cab-sec" data-start="75.516" data-duration="7.771" data-track-index="2">
+        <div class="cab" style="left:110px;width:1700px;top:50px">
+          <span class="kick">EL PLANTEL</span>
+          <div class="tit"><span class="linea"><span class="pal">ELEGÍ CON QUIÉN SUFRIR</span></span></div>
+          <span class="banda"><i></i><span>10 PLAYERS DEL SDGA</span></span>
+          
         </div>
       </section>
-      <section id="f8" class="clip feat" data-start="51.403" data-duration="2.657" data-track-index="2">
-        <div class="feat-cab">
-          <span class="feat-kicker"><b>08</b>EL RANKING</span>
-          <div class="feat-tit"><span class="linea"><span class="pal">SÉ EL</span></span><span class="linea"><span class="pal">PRIMERO</span></span></div>
-          <span class="feat-banda"><i></i><span>TODAVÍA NADIE FIRMÓ</span></span>
-
-          <span class="feat-txt">Menos golpes y, a igual golpes, el más rápido al milisegundo. Tabla general y una por jugador.</span>
+      <section id="cada-uno" class="clip" data-start="83.287" data-duration="2.657" data-track-index="9">
+        <div class="slam"><span class="linea"><span class="pal">CADA UNO CON</span></span><span class="linea"><span class="pal">SU HABILIDAD</span></span></div><span class="banda grande"><i></i><span>SACADAS DEL CHAT</span></span>
+      </section>
+      <div id="hab0" class="capa oculto tel-sec">
+        <div class="tel" id="hab0-t" style="left:530px;top:107px;width:400px;height:835px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v16" class="clip vid " src="assets/juego/bomba.mp4" muted playsinline data-start="85.944" data-duration="2.25" data-media-start="0.7" data-track-index="24"></video><video id="v17" class="clip vid " src="assets/juego/bomba.mp4" muted playsinline data-start="88.194" data-duration="3.064" data-media-start="9.1" data-track-index="25"></video></div><div class="tel-brillo"></div></div></div><div class="placa izq" id="hab0-p"><img class="foto" src="assets/juego/caras/mike-queboni.webp" alt="" /><b>Mike Queboni</b><span class="banda"><i></i><span>🍯 Drive al green</span></span><span class="txt">A fondo desde el tee el óvalo late: soltá en el pico y llega al green.</span></div>
+      </div>
+      <div id="hab1" class="capa oculto tel-sec">
+        <div class="tel" id="hab1-t" style="left:990px;top:107px;width:400px;height:835px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v18" class="clip vid " src="assets/juego/chip.mp4" muted playsinline data-start="86.608" data-duration="4.65" data-media-start="0" data-track-index="20"></video></div><div class="tel-brillo"></div></div></div><div class="placa der" id="hab1-p"><img class="foto" src="assets/juego/caras/fito.webp" alt="" /><b>Fito</b><span class="banda"><i></i><span>🦅 Chip in</span></span><span class="txt">La línea se sacude: soltá en el embudo y sale derecha. Cerca del green, imán al hoyo.</span></div>
+      </div>
+      <div id="hab2" class="capa oculto tel-sec">
+        <div class="tel" id="hab2-t" style="left:530px;top:107px;width:400px;height:835px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v19" class="clip vid " src="assets/juego/mago.mp4" muted playsinline data-start="91.258" data-duration="2.25" data-media-start="0.7" data-track-index="21"></video><video id="v20" class="clip vid " src="assets/juego/mago.mp4" muted playsinline data-start="93.508" data-duration="3.064" data-media-start="4.9" data-track-index="22"></video></div><div class="tel-brillo"></div></div></div><div class="placa izq" id="hab2-p"><img class="foto" src="assets/juego/caras/el-mago-rodal.webp" alt="" /><b>El Mago Rodal</b><span class="banda"><i></i><span>🥛 Golpes de mago</span></span><span class="txt">Nunca derecho: comba, gancho, slice, globo o viborita. Mirá cuál te toca.</span></div>
+      </div>
+      <div id="hab3" class="capa oculto tel-sec">
+        <div class="tel" id="hab3-t" style="left:990px;top:107px;width:400px;height:835px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v21" class="clip vid " src="assets/juego/pancho.mp4" muted playsinline data-start="91.922" data-duration="4.65" data-media-start="0.2" data-track-index="23"></video></div><div class="tel-brillo"></div></div></div><div class="placa der" id="hab3-p"><img class="foto" src="assets/juego/caras/mugre.webp" alt="" /><b>Mugre</b><span class="banda"><i></i><span>💩 Tirar panchos</span></span><span class="txt">A la Mugre los monos la huelen de lejos. Tirales un pancho: van, comen y vuelven.</span></div>
+      </div>
+      <div id="hab4" class="capa oculto tel-sec">
+        <div class="tel" id="hab4-t" style="left:530px;top:107px;width:400px;height:835px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v22" class="clip vid " src="assets/juego/perro.mp4" muted playsinline data-start="96.572" data-duration="1.3" data-media-start="1.6" data-track-index="24"></video><video id="v23" class="clip vid " src="assets/juego/perro.mp4" muted playsinline data-start="97.872" data-duration="4.014" data-media-start="4.3" data-track-index="25"></video></div><div class="tel-brillo"></div></div></div><div class="placa izq" id="hab4-p"><img class="foto" src="assets/juego/caras/el-perro.webp" alt="" /><b>El Perro</b><span class="banda"><i></i><span>🐕 Va a buscarla</span></span><span class="txt">Si va al bosque, el perro te la trae al fairway sin multa. Tarda: el reloj corre.</span></div>
+      </div>
+      <div id="hab5" class="capa oculto tel-sec">
+        <div class="tel" id="hab5-t" style="left:990px;top:107px;width:400px;height:835px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v24" class="clip vid " src="assets/juego/dada.mp4" muted playsinline data-start="97.236" data-duration="4.65" data-media-start="1" data-track-index="20"></video></div><div class="tel-brillo"></div></div></div><div class="placa der" id="hab5-p"><img class="foto" src="assets/juego/caras/lechu.webp" alt="" /><b>Lechu</b><span class="banda"><i></i><span>🦉 Todas las dadas</span></span><span class="txt">La Lechuza: el putt de menos de 1,5 yardas es dada. Entra solo.</span></div>
+      </div>
+      <div id="hab6" class="capa oculto tel-sec">
+        <div class="tel" id="hab6-t" style="left:530px;top:107px;width:400px;height:835px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v25" class="clip vid " src="assets/juego/ninja.mp4" muted playsinline data-start="101.886" data-duration="5.314" data-media-start="0" data-track-index="21"></video></div><div class="tel-brillo"></div></div></div><div class="placa izq" id="hab6-p"><img class="foto" src="assets/juego/caras/el-ninja.webp" alt="" /><b>El Ninja</b><span class="banda"><i></i><span>🥷 La tradición</span></span><span class="txt">Un LP por vuelta no te hace perder: levantás, +1 y al fairway.</span></div>
+      </div>
+      <div id="hab7" class="capa oculto tel-sec">
+        <div class="tel" id="hab7-t" style="left:990px;top:107px;width:400px;height:835px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v26" class="clip vid " src="assets/juego/lg.mp4" muted playsinline data-start="102.55" data-duration="2.6" data-media-start="0.9" data-track-index="22"></video><video id="v27" class="clip vid " src="assets/juego/lg.mp4" muted playsinline data-start="105.15" data-duration="2.05" data-media-start="6.9" data-track-index="23"></video></div><div class="tel-brillo"></div></div></div><div class="placa der" id="hab7-p"><img class="foto" src="assets/juego/caras/lg.webp" alt="" /><b>LG</b><span class="banda"><i></i><span>📺 El que se enoja pierde</span></span><span class="txt">Después de un mal tiro no se enoja: el próximo sale sin error.</span></div>
+      </div>
+      <div id="tel-firma" class="capa oculto tel-sec">
+        <div class="tel" id="tel-firma-t" style="left:860px;top:98px;width:420px;height:879px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v28" class="clip vid " src="assets/juego/firma.mp4" muted playsinline data-start="107.2" data-duration="6.643" data-media-start="0" data-track-index="24"></video></div><div class="tel-brillo"></div></div></div>
+      </div>
+      <div id="tel-marshall" class="capa oculto tel-sec">
+        <div class="tel" id="tel-marshall-t" style="left:1380px;top:98px;width:420px;height:879px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v29" class="clip vid " src="assets/juego/marshall.mp4" muted playsinline data-start="108.529" data-duration="5.314" data-media-start="8.2" data-track-index="25"></video></div><div class="tel-brillo"></div></div></div>
+      </div>
+      <section id="f-tarjeta" class="clip cab-sec" data-start="107.2" data-duration="6.643" data-track-index="2">
+        <div class="cab" style="left:110px;width:700px;top:50%;margin-top:-210px">
+          <span class="kick"><b>07</b>LA TARJETA</span>
+          <div class="tit"><span class="linea"><span class="pal">FIRMALA EN</span></span><span class="linea"><span class="pal">10 SEGUNDOS</span></span></div>
+          <span class="banda"><i></i><span>O EL MARSHALL TE PONE 110</span></span>
+          <span class="txt">Comunicado oficial del SDGA Intelligence Center. Es inapelable.</span>
         </div>
       </section>
-      <section id="p-tel" class="clip" data-start="34.133" data-duration="19.927" data-track-index="3">
-        <div id="tel"><div id="tel-pantalla"><img id="pt-cartel" src="assets/capturas/cartel.webp" alt="" /><img id="pt-carta-sueco" src="assets/capturas/carta-sueco.webp" alt="" /><img id="pt-carta-perro" src="assets/capturas/carta-perro.webp" alt="" /><img id="pt-carta-miguelon" src="assets/capturas/carta-miguelon.webp" alt="" /><img id="pt-carta-lechu" src="assets/capturas/carta-lechu.webp" alt="" /><img id="pt-carta-lg" src="assets/capturas/carta-lg.webp" alt="" /><img id="pt-carta-rodal" src="assets/capturas/carta-rodal.webp" alt="" /><img id="pt-carta-fito" src="assets/capturas/carta-fito.webp" alt="" /><img id="pt-carta-mugre" src="assets/capturas/carta-mugre.webp" alt="" /><img id="pt-todos1" src="assets/capturas/todos1.webp" alt="" /><img id="pt-todos2" src="assets/capturas/todos2.webp" alt="" /><img id="pt-tiro-arma" src="assets/capturas/tiro-arma.webp" alt="" /><img id="pt-tiro-vuelo" src="assets/capturas/tiro-vuelo.webp" alt="" /><img id="pt-tiro-relato" src="assets/capturas/tiro-relato.webp" alt="" /><img id="pt-monos" src="assets/capturas/monos.webp" alt="" /><img id="pt-pancho" src="assets/capturas/pancho.webp" alt="" /><img id="pt-cuenta3" src="assets/capturas/cuenta3.webp" alt="" /><img id="pt-cuenta-ya" src="assets/capturas/cuenta-ya.webp" alt="" /><img id="pt-tarjeta" src="assets/capturas/tarjeta.webp" alt="" /><img id="pt-marshall" src="assets/capturas/marshall.webp" alt="" /><img id="pt-ranking" src="assets/capturas/ranking.webp" alt="" /></div></div>
-        <div id="podio"><div class="pod pod-2"><span class="pod-q">?</span><b>2°</b></div><div class="pod pod-1"><span class="pod-q vos">¿VOS?</span><b>1°</b></div><div class="pod pod-3"><span class="pod-q">?</span><b>3°</b></div></div>
-        <div id="chips"><div class="chip" id="chip-0" style="left:70px;top:760px"><em>🥛</em><span><b>Golpes de mago</b><small>El Mago Rodal</small></span></div><div class="chip" id="chip-1" style="left:600px;top:830px"><em>🍯</em><span><b>Drive al green</b><small>Mike Queboni</small></span></div><div class="chip" id="chip-2" style="left:40px;top:960px"><em>🦅</em><span><b>Chip in</b><small>Fito</small></span></div><div class="chip" id="chip-3" style="left:640px;top:1050px"><em>💩</em><span><b>Tirar panchos</b><small>Mugre</small></span></div><div class="chip" id="chip-4" style="left:60px;top:1180px"><em>🐕</em><span><b>Va a buscarla</b><small>El Perro</small></span></div><div class="chip" id="chip-5" style="left:600px;top:1290px"><em>🦉</em><span><b>Todas las dadas</b><small>Lechu</small></span></div><div class="chip" id="chip-6" style="left:70px;top:1410px"><em>🥷</em><span><b>La tradición</b><small>El Ninja</small></span></div><div class="chip" id="chip-7" style="left:470px;top:1530px"><em>📺</em><span><b>El que se enoja pierde</b><small>LG</small></span></div></div>
+      <div id="tel-rk" class="capa oculto tel-sec">
+        <div class="tel" id="tel-rk-t" style="left:1060px;top:79px;width:440px;height:922px"><div class="tel-cuerpo"><div class="tel-pantalla"><video id="v30" class="clip vid " src="assets/juego/firma.mp4" muted playsinline data-start="113.843" data-duration="3.985" data-media-start="7.117" data-track-index="20"></video></div><div class="tel-brillo"></div></div></div>
+      </div>
+      <section id="f-ranking" class="clip cab-sec" data-start="113.843" data-duration="3.985" data-track-index="2">
+        <div class="cab" style="left:110px;width:760px;top:50%;margin-top:-210px">
+          <span class="kick"><b>08</b>EL RANKING</span>
+          <div class="tit"><span class="linea"><span class="pal">SÉ EL</span></span><span class="linea"><span class="pal">PRIMERO</span></span></div>
+          <span class="banda"><i></i><span>GOLPES, DESPUÉS TIEMPO</span></span>
+          <span class="txt">Una tabla general y una por jugador. Y compartí tu vuelta en el grupo.</span>
+        </div>
       </section>
-      <section id="coro1" class="clip cap" data-start="54.06" data-duration="4.982" data-track-index="2">
-        <div class="cap-grande"><span class="linea"><span class="pal">¡ES LA TRAMPA</span></span><span class="linea"><span class="pal">DEL MONO!</span></span></div>
-        <span class="feat-banda"><i></i><span>DONDE TODO SE VA</span></span>
-      </section>
-      <section id="coro2" class="clip cap" data-start="59.374" data-duration="3.986" data-track-index="2">
-        <div class="cap-grande"><span class="linea"><span class="pal">ENTRE ÁRBOLES</span></span><span class="linea"><span class="pal">Y SOMBRAS</span></span></div>
-        <span class="feat-banda"><i></i><span>TU SUERTE CAERÁ</span></span>
-      </section>
-      <section id="cierre" class="clip" data-start="63.36" data-duration="11.940" data-track-index="4">
-        <div id="cl-pares"><div class="par" id="par-0" style="left:120px;top:150px;font-size:70px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-1" style="left:470px;top:120px;font-size:56px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-2" style="left:830px;top:175px;font-size:77px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-3" style="left:70px;top:930px;font-size:63px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-4" style="left:860px;top:990px;font-size:84px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-5" style="left:170px;top:1210px;font-size:53px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-6" style="left:820px;top:1240px;font-size:60px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-7" style="left:50px;top:1560px;font-size:56px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div><div class="par" id="par-8" style="left:930px;top:1600px;font-size:63px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div></div>
+      <section id="resumen-sec" class="clip" data-start="114.839" data-duration="2.989" data-track-index="9"><img id="resumen-img" src="assets/juego/resumen.png" alt="" /></section>
+      <section id="cierre" class="clip" data-start="117.828" data-duration="10.972" data-track-index="3">
+        <div id="cl-pares"><div class="par" id="pc0" style="left:90px;top:120px;font-size:88px"><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></div><div class="par" id="pc1" style="left:330px;top:330px;font-size:64px"><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></div><div class="par" id="pc2" style="left:140px;top:560px;font-size:72px"><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></div><div class="par" id="pc3" style="left:1660px;top:110px;font-size:80px"><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></div><div class="par" id="pc4" style="left:1520px;top:350px;font-size:68px"><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></div><div class="par" id="pc5" style="left:1710px;top:580px;font-size:88px"><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></div><div class="par" id="pc6" style="left:560px;top:70px;font-size:56px"><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></div><div class="par" id="pc7" style="left:1300px;top:60px;font-size:60px"><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg><svg class="ojo " viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></div></div>
         <div id="cl-caja">
           <div id="cl-l1"><span class="lt" data-layout-allow-overlap>L</span><span class="lt" data-layout-allow-overlap>A</span><span class="esp"></span><span class="lt" data-layout-allow-overlap>T</span><span class="lt" data-layout-allow-overlap>R</span><span class="lt" data-layout-allow-overlap>A</span><span class="lt" data-layout-allow-overlap>M</span><span class="lt" data-layout-allow-overlap>P</span><span class="lt" data-layout-allow-overlap>A</span></div>
           <div id="cl-l2"><span class="lt" data-layout-allow-overlap>D</span><span class="lt" data-layout-allow-overlap>E</span><span class="lt" data-layout-allow-overlap>L</span><span class="esp"></span><span class="lt" data-layout-allow-overlap>M</span><svg class="ojo lt" id="cl-ojo-1" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg><span class="lt" data-layout-allow-overlap>N</span><svg class="ojo lt" id="cl-ojo-2" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></g></svg></div>
-          <span id="cl-banda" data-layout-allow-overlap><i></i><span>SAN DIEGO · HOYOS 15 · 16 · 17</span></span>
-          <span id="cl-tag">EN SAN DIEGO TE ESPERA, CON SU ABRAZO MACABRO</span>
+          <span id="cl-banda" class="banda" data-layout-allow-overlap><i></i><span>SAN DIEGO · HOYOS 15 · 16 · 17</span></span>
         </div>
-        <div id="cl-app">
-          <img id="cl-icono" src="assets/icono-app.png" alt="La Trampa del Mono" />
-          <span id="cl-boton">JUGALA YA</span>
-          <span id="cl-url">rodrigomateus-debug.github.io/trampa-del-mono</span>
-          <span id="cl-como">En el celu: compartir → agregar a la pantalla de inicio</span>
-        </div>
+        <div id="cl-boton-caja"><span id="cl-boton">JUGALA YA</span><span id="cl-url">rodrigomateus-debug.github.io/trampa-del-mono</span></div>
+        <div id="cl-icono-caja"><img id="cl-icono" src="assets/icono-app.png" alt="" /><span>Agregala a la pantalla<br />de inicio del celu</span></div>
+        <div id="cl-qr-caja"><div id="cl-qr"><img src="assets/qr.svg" alt="" /></div><span>Escaneá y jugá</span></div>
       </section>
       <div id="flash" class="capa"></div>
       <div id="negro" class="capa"></div>
       <div id="fundido" class="capa"></div>
 
       <!-- overlay:hasta -->
+      <audio class="sfx" id="sfx0" src="assets/juego/sfx/cuenta3.mp3" data-start="41.439" data-duration="0.6" data-volume="0.55" data-track-index="12"></audio>
+      <audio class="sfx" id="sfx1" src="assets/juego/sfx/cuenta3.mp3" data-start="41.771" data-duration="0.6" data-volume="0.55" data-track-index="13"></audio>
+      <audio class="sfx" id="sfx2" src="assets/juego/sfx/cuenta3.mp3" data-start="42.104" data-duration="0.6" data-volume="0.55" data-track-index="14"></audio>
+      <audio class="sfx" id="sfx3" src="assets/juego/sfx/cuentaYa.mp3" data-start="42.436" data-duration="1.4" data-volume="0.6" data-track-index="15"></audio>
+      <audio class="sfx" id="sfx4" src="assets/juego/sfx/golpe.mp3" data-start="46.089" data-duration="1.2" data-volume="0.75" data-track-index="12"></audio>
+      <audio class="sfx" id="sfx5" src="assets/juego/sfx/robo.mp3" data-start="54.06" data-duration="1.6" data-volume="0.7" data-track-index="13"></audio>
+      <audio class="sfx" id="sfx6" src="assets/juego/sfx/embocada.mp3" data-start="68.624" data-duration="1.6" data-volume="0.8" data-track-index="14"></audio>
+      <audio class="sfx" id="sfx7" src="assets/juego/sfx/birdie.mp3" data-start="68.824" data-duration="2.2" data-volume="0.55" data-track-index="15"></audio>
+      <audio class="sfx" id="sfx8" src="assets/juego/sfx/golpe.mp3" data-start="87.677" data-duration="1.2" data-volume="0.6" data-track-index="12"></audio>
+      <audio class="sfx" id="sfx9" src="assets/juego/sfx/golpe.mp3" data-start="87.741" data-duration="1.2" data-volume="0.45" data-track-index="13"></audio>
+      <audio class="sfx" id="sfx10" src="assets/juego/sfx/embocada.mp3" data-start="90.058" data-duration="1.6" data-volume="0.6" data-track-index="14"></audio>
+      <audio class="sfx" id="sfx11" src="assets/juego/sfx/golpe.mp3" data-start="92.891" data-duration="1.2" data-volume="0.6" data-track-index="15"></audio>
+      <audio class="sfx" id="sfx12" src="assets/juego/sfx/pancho.mp3" data-start="93.172" data-duration="1" data-volume="0.6" data-track-index="12"></audio>
+      <audio class="sfx" id="sfx13" src="assets/juego/sfx/golpe.mp3" data-start="96.555" data-duration="1.2" data-volume="0.5" data-track-index="13"></audio>
+      <audio class="sfx" id="sfx14" src="assets/juego/sfx/golpe.mp3" data-start="97.105" data-duration="1.2" data-volume="0.6" data-track-index="14"></audio>
+      <audio class="sfx" id="sfx15" src="assets/juego/sfx/perro.mp3" data-start="98.172" data-duration="0.8" data-volume="0.6" data-track-index="15"></audio>
+      <audio class="sfx" id="sfx16" src="assets/juego/sfx/perro.mp3" data-start="101.172" data-duration="0.8" data-volume="0.5" data-track-index="12"></audio>
+      <audio class="sfx" id="sfx17" src="assets/juego/sfx/putt.mp3" data-start="98.369" data-duration="0.8" data-volume="0.6" data-track-index="13"></audio>
+      <audio class="sfx" id="sfx18" src="assets/juego/sfx/tap.mp3" data-start="102.886" data-duration="0.3" data-volume="0.6" data-track-index="14"></audio>
+      <audio class="sfx" id="sfx19" src="assets/juego/sfx/tap.mp3" data-start="103.586" data-duration="0.3" data-volume="0.6" data-track-index="15"></audio>
+      <audio class="sfx" id="sfx20" src="assets/juego/sfx/lamento.mp3" data-start="103.686" data-duration="2" data-volume="0.45" data-track-index="12"></audio>
+      <audio class="sfx" id="sfx21" src="assets/juego/sfx/golpe.mp3" data-start="104.417" data-duration="1.2" data-volume="0.55" data-track-index="13"></audio>
       <audio
         id="musica"
         src="assets/trampa-del-mono.mp3"
         data-start="0"
-        data-duration="75.3"
+        data-duration="128.8"
 $1data-track-index="10"
         data-volume="1"
         data-timeline-role="music"
-        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":74.39999999999999,"v":1},{"t":75.3,"v":0}]}]}'
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":128.3,"v":1},{"t":128.8,"v":0}]}]}'
       ></audio>
     </div>
 
     <script src="textos.js"></script>
-
     <script>
       (function () {
-        var Q = window.CUES;
-        var c = Q.c;
-        var B = Q.COMPAS / 4;
-        var P = window.PRESENTACION;
         var tl = window.armarTextos({ sinFundido: true });
-        function palabras(sel, t, cada) {
-          gsap.utils.toArray(sel).forEach(function (el, i) {
-            tl.fromTo(el, { yPercent: 108, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.34, ease: "back.out(1.6)" }, t + i * cada);
-          });
-        }
         function banda(sel, t) {
           tl.fromTo(sel + " i", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.3, ease: "power3.inOut" }, t);
           tl.fromTo(sel + " span", { yPercent: 110 }, { yPercent: 0, duration: 0.26, ease: "power3.out" }, t + 0.16);
         }
-        // ---------- las funciones, una cada dos compases ----------
-        tl.to("#p-oscuro", { opacity: 0.55, duration: 0.4, ease: "power2.out" }, P.funciones - 0.1);
-        tl.to("#p-oscuro", { opacity: 0, duration: 0.2, ease: "none" }, P.estribillo - 0.05);
-        [["f1",34.133,2.657],["f2",36.79,2.657],["f3",39.447,2.657],["f4",42.104,2.657],["f5",44.761,2.657],["f6",47.418,1.3285],["f7",48.746,2.657],["f8",51.403,2.657]].forEach(function (f) {
-          var id = "#" + f[0], t = f[1];
-          tl.fromTo(id + " .feat-kicker", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t);
-          palabras(id + " .feat-tit .pal", t + 0.04, B * 0.5);
-          banda(id + " .feat-banda", t + B);
-          tl.fromTo(id + " .feat-txt", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, t + B * 1.5);
-          tl.to(id + " .feat-cab", { opacity: 0, y: -24, duration: 0.18, ease: "power2.in" }, t + f[2] - 0.2);
-        });
-        // el teléfono entra con peso y flota
-        tl.fromTo("#tel", { y: 900, rotation: 8 }, { y: 0, rotation: 0, duration: 0.7, ease: "back.out(1.2)" }, P.funciones);
-        tl.fromTo("#tel", { scale: 1 }, { scale: 1.02, duration: P.estribillo - P.funciones - 1, ease: "sine.inOut" }, P.funciones + 0.7);
-        tl.to("#tel", { y: 1300, rotation: -10, duration: 0.45, ease: "power3.in" }, P.estribillo - 0.5);
-        // las pantallas (las cartas del mazo pasan como en el Tinder, una por negra)
-        [["cartel",34.133,false],["carta-sueco",36.79,false],["carta-perro",37.122125,true],["carta-miguelon",37.45425,true],["carta-lechu",37.786375,true],["carta-lg",38.1185,true],["carta-rodal",38.450625,true],["carta-fito",38.78275,true],["carta-mugre",39.114875,true],["todos1",39.447,false],["todos2",40.7755,false],["tiro-arma",42.104,false],["tiro-vuelo",43.4325,false],["tiro-relato",44.09675,false],["monos",44.761,false],["pancho",46.0895,false],["cuenta3",47.418,false],["cuenta-ya",48.08225,false],["tarjeta",48.746,false],["marshall",50.0745,false],["ranking",51.403,false]].forEach(function (s, i, todo) {
-          var el = "#pt-" + s[0], t = s[1];
-          if (s[2]) {
-            tl.fromTo(el, { opacity: 1, xPercent: 105, rotation: 7 }, { xPercent: 0, rotation: 0, duration: 0.24, ease: "power3.out" }, t);
-            var prev = "#pt-" + todo[i - 1][0];
-            tl.to(prev, { xPercent: -110, rotation: -9, duration: 0.24, ease: "power3.in" }, t);
-          } else {
-            tl.fromTo(el, { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 0.22, ease: "power2.out" }, t);
-          }
-          var sig = todo[i + 1];
-          if (sig && !sig[2]) tl.set(el, { opacity: 0 }, sig[1] + 0.22);
-        });
-        // habilidades: los chips aparecen alrededor del teléfono, uno por negra
-        gsap.utils.toArray("#chips .chip").forEach(function (el, i) {
-          tl.fromTo(el, { scale: 0, opacity: 0, rotation: i % 2 ? 6 : -6 }, { scale: 1, opacity: 1, rotation: i % 2 ? 2 : -2, duration: 0.3, ease: "back.out(2.2)" }, c(29) + i * B);
-          tl.to(el, { scale: 0.6, opacity: 0, duration: 0.18, ease: "power2.in" }, c(31) - 0.22 + i * 0.01);
-        });
-        // ranking: el podio sube desde abajo (3°, 2°, 1°) y el ¿VOS? late
-        var R = 51.403;
-        [".pod-3", ".pod-2", ".pod-1"].forEach(function (sel, i) {
-          tl.fromTo(sel, { scaleY: 0, transformOrigin: "50% 100%" }, { scaleY: 1, duration: 0.32, ease: "back.out(1.7)" }, R + (2 + i) * B);
-          tl.fromTo(sel + " .pod-q", { scale: 0, xPercent: -50 }, { scale: 1, xPercent: -50, duration: 0.26, ease: "back.out(3)" }, R + (2.6 + i) * B);
-        });
-        for (var v = 0; R + (6 + v) * B < P.estribillo - 0.5; v++) {
-          tl.fromTo(".pod-q.vos", { scale: 1.12 }, { scale: 1, duration: B * 0.9, ease: "power2.out" }, R + (6 + v) * B);
-        }
-        tl.to("#podio", { y: 700, duration: 0.45, ease: "power3.in" }, P.estribillo - 0.5);
-        // ---------- estribillo: la trampa otra vez ----------
-        tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.85, duration: 0.04, ease: "none" }, P.estribillo - 0.02);
-        tl.to("#flash", { opacity: 0, duration: 0.3, ease: "power2.out" }, P.estribillo + 0.03);
-        ["#coro1", "#coro2"].forEach(function (id, k) {
-          var t = k ? c(44) : c(40);
-          gsap.utils.toArray(id + " .pal").forEach(function (el, i) {
-            tl.fromTo(el, { scale: 2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.22, ease: "expo.out", transformOrigin: "0% 70%" }, t + i * B * 2);
+        // las cabeceras de las funciones: chip, palabras, banda y línea; se van al final
+        gsap.utils.toArray(".cab-sec").forEach(function (sec) {
+          var t = parseFloat(sec.getAttribute("data-start"));
+          var d = parseFloat(sec.getAttribute("data-duration"));
+          var q = function (s) { return sec.querySelectorAll(s); };
+          tl.fromTo(q(".kick"), { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t);
+          gsap.utils.toArray(q(".tit .pal")).forEach(function (el, i) {
+            tl.fromTo(el, { yPercent: 108, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.34, ease: "back.out(1.6)" }, t + 0.04 + i * 0.166);
           });
-          banda(id + " .feat-banda", t + B * 6);
+          if (q(".banda").length) banda("#" + sec.id + " .banda", t + 0.332);
+          tl.fromTo(q(".txt"), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, t + 0.498);
+          tl.to(q(".cab"), { opacity: 0, x: -30, duration: 0.2, ease: "power2.in" }, t + d - 0.22);
         });
-        // ---------- cierre: como la pantalla de inicio de la app ----------
-        var L2 = P.cierre;
-        tl.set("#flash", { opacity: 1 }, L2 - 0.01);
-        tl.to("#flash", { opacity: 0, duration: 0.4, ease: "power2.out" }, L2 + 0.02);
-        tl.fromTo("#cl-l1 .lt", { yPercent: -130, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.42, ease: "back.out(2.2)", stagger: 0.032 }, L2 + 0.02);
-        tl.fromTo("#cl-l2 .lt", { scale: 1.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "power4.out", stagger: 0.045, transformOrigin: "50% 80%" }, L2 + 0.16);
-        tl.fromTo("#cl-banda i", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.42, ease: "power3.inOut" }, L2 + 0.55);
-        tl.fromTo("#cl-banda span", { yPercent: 110 }, { yPercent: 0, duration: 0.36, ease: "power3.out" }, L2 + 0.8);
-        tl.fromTo("#cierre .pupila", { scale: 0, transformOrigin: "50% 53%" }, { scale: 1, duration: 0.3, ease: "back.out(3)", stagger: 0.06 }, c(48));
-        tl.to("#cierre .pupila", { x: -15, y: 2, duration: 0.22, ease: "power3.out" }, c(50));
-        tl.to("#cierre .pupila", { x: 15, y: 2, duration: 0.22, ease: "power3.out" }, c(51));
-        tl.to("#cierre .pupila", { x: 0, y: 18, duration: 0.22, ease: "power3.out" }, c(52.5));
-        tl.to("#cierre .pupila", { x: 0, y: 0, duration: 0.22, ease: "power3.out" }, c(54));
-        tl.to("#cierre .parpado", { scaleY: 0.07, duration: 0.07, ease: "power2.in", transformOrigin: "50% 50%" }, c(54.5));
-        tl.to("#cierre .parpado", { scaleY: 1, duration: 0.12, ease: "power2.out" }, c(54.5) + 0.07);
-        tl.fromTo("#cl-icono", { scale: 0, rotation: -12 }, { scale: 1, rotation: 0, duration: 0.5, ease: "back.out(2)" }, c(48));
-        tl.fromTo("#cl-boton", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2.4)" }, c(49));
-        // JUGALA YA late con la negra, como el EMPEZAR de la app
-        for (var k = 0; c(50) + k * B < P.FIN - 0.8; k++) {
-          tl.fromTo("#cl-boton", { scale: 1.06 }, { scale: 1, duration: B * 0.9, ease: "power2.out" }, c(50) + k * B);
-        }
-        tl.fromTo("#cl-url", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, c(49.5));
-        tl.fromTo("#cl-como", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, c(50.5));
-        // "en San Diego te espera, con su abrazo macabro" aparece cuando lo canta
-        tl.fromTo("#cl-tag", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" }, c(52));
-        // ojos de mono en los huecos: se abren de a uno, miran al jugador, parpadean y se cierran
-        [[120,150,1],[470,120,0.8],[830,175,1.1],[70,930,0.9],[860,990,1.2],[170,1210,0.75],[820,1240,0.85],[50,1560,0.8],[930,1600,0.9]].forEach(function (p, i) {
-          var el = "#par-" + i;
-          var dx = 540 - p[0], dy = 1150 - p[1], n = Math.sqrt(dx * dx + dy * dy) || 1;
+        // el grano sigue corriendo toda la presentación (más suave sobre el juego)
+        tl.fromTo("#grano", { backgroundPosition: "0px 0px" }, { backgroundPosition: "9311px 6113px", duration: 92, ease: "steps(1104)", immediateRender: false }, 36.8);
+        tl.to("#grano", { opacity: 0.07, duration: 0.5 }, 34.133);
+        tl.fromTo("#ojo-buceo", { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "none" }, 33.8);
+        tl.fromTo("#ojo-buceo", { scale: 1 }, { scale: 90, duration: 0.333, ease: "expo.in", transformOrigin: "50% 53.2%" }, 33.8);
+        tl.to("#buceo", { opacity: 0, duration: 0.45, ease: "power2.out" }, 34.183);
+        tl.to("#v8", { scale: 1.6, x: -15.286, y: 186.88, duration: 0.01, ease: "power3.inOut" }, 48.746);
+        tl.to("#v8", { scale: 3.2, x: -30.572, y: 373.76, duration: 1, ease: "power3.inOut" }, 48.996);
+        tl.set("#tel-v", { visibility: "visible" }, 34.133); tl.set("#tel-v", { visibility: "hidden" }, 54.08);
+        tl.fromTo("#p-velo", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 34.133);
+        tl.fromTo("#tel-v-t", { y: 760, rotationY: -38, rotationX: 10, scale: 0.8, transformPerspective: 2400 }, { y: 0, rotationY: -14, rotationX: 3, scale: 1, duration: 0.9, ease: "back.out(1.3)" }, 34.183);
+        tl.to("#tel-v-t", { rotationY: -6, rotationX: 0, scale: 1.06, x: -40, duration: 0.6, ease: "power3.inOut" }, 36.79);
+        tl.to("#tel-v-t", { rotationY: 0, scale: 1, x: 0, duration: 0.4, ease: "power3.out" }, 40.775);
+        tl.fromTo("#tel-v-t", { scale: 1.035 }, { scale: 1, duration: 0.299, ease: "power2.out" }, 41.439);
+        tl.fromTo("#tel-v-t", { scale: 1.035 }, { scale: 1, duration: 0.299, ease: "power2.out" }, 41.771);
+        tl.fromTo("#tel-v-t", { scale: 1.035 }, { scale: 1, duration: 0.299, ease: "power2.out" }, 42.104);
+        tl.fromTo("#tel-v-t", { scale: 1.035 }, { scale: 1, duration: 0.299, ease: "power2.out" }, 42.436);
+        tl.to("#tel-v-t", {"scale":1.3,"x":-50,"y":13.16,"duration":0.55,"ease":"power3.inOut"}, 44.569);
+        tl.to("#tel-v-t", { scale: 1, x: 0, y: 0, duration: 0.5, ease: "back.out(1.4)" }, 46.129);
+        tl.fromTo("#estela", { opacity: 0.9, scaleX: 0 }, { opacity: 0, scaleX: 1, duration: 0.5, ease: "power2.out", transformOrigin: "100% 50%" }, 46.089);
+        tl.to("#tel-v-t", { rotationY: -10, rotationX: 2, duration: 0.5, ease: "power2.inOut" }, 48.746);
+        tl.to("#tel-v-t", { rotationY: 0, rotationX: 0, duration: 0.4, ease: "power2.inOut" }, 52.996);
+        tl.to("#tel-v-t", {"scale":4.63768115942029,"x":-470,"y":-417.396,"duration":0.664,"ease":"expo.in"}, 53.396);
+        tl.fromTo("#n-reloj .nota", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.25, ease: "power3.out" }, 47.518);
+        tl.fromTo("#n-viento .nota", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.25, ease: "power3.out" }, 47.768);
+        tl.set("#full-ladron", { visibility: "visible" }, 54.06); tl.set("#full-ladron", { visibility: "hidden" }, 56.717);
+        tl.fromTo("#full-ladron .full-in", { scale: 1.06 }, { scale: 1, duration: 2.657, ease: "power1.out", transformOrigin: "50% 40%" }, 54.06);
+        tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.9, duration: 0.03, ease: "none" }, 54.04);
+        tl.to("#flash", { opacity: 0, duration: 0.35, ease: "power2.out" }, 54.09);
+        tl.set("#p-velo", { opacity: 0 }, 54.06);
+        tl.set("#p-velo", { opacity: 1 }, 59.374);
+        gsap.utils.toArray("#coro1 .pal").forEach(function (el, i) { tl.fromTo(el, { yPercent: 110, scale: 1.25, opacity: 0 }, { yPercent: 0, scale: 1, opacity: 1, duration: 0.26, ease: "expo.out", transformOrigin: "0% 80%" }, 54.06 + i * 0.664); });
+        banda("#coro1 .banda", 56.053);
+        gsap.utils.toArray("#coro2 .pal").forEach(function (el, i) { tl.fromTo(el, { yPercent: 110, scale: 1.25, opacity: 0 }, { yPercent: 0, scale: 1, opacity: 1, duration: 0.26, ease: "expo.out", transformOrigin: "0% 80%" }, 59.374 + i * 0.664); });
+        banda("#coro2 .banda", 61.367);
+        gsap.utils.toArray("#coro3 .pal").forEach(function (el, i) { tl.fromTo(el, { yPercent: 110, scale: 1.25, opacity: 0 }, { yPercent: 0, scale: 1, opacity: 1, duration: 0.26, ease: "expo.out", transformOrigin: "0% 80%" }, 64.688 + i * 0.664); });
+        gsap.utils.toArray("#coro4 .pal").forEach(function (el, i) { tl.fromTo(el, { yPercent: 110, scale: 1.25, opacity: 0 }, { yPercent: 0, scale: 1, opacity: 1, duration: 0.26, ease: "expo.out", transformOrigin: "0% 80%" }, 70.002 + i * 0.664); });
+        banda("#coro4 .banda", 71.995);
+        tl.fromTo("#mas1 .sello", { scale: 3, rotation: -18, opacity: 0 }, { scale: 1, rotation: -8, opacity: 1, duration: 0.3, ease: "back.out(2.5)" }, 54.56);
+        tl.set("#tri0", { visibility: "visible" }, 59.374); tl.set("#tri0", { visibility: "hidden" }, 64.688);
+        tl.to("#v11", { scale: 3.2, x: -170.01, y: 551.549, duration: 0.6, ease: "power3.inOut" }, 61.874);
+        tl.fromTo("#tri0", { yPercent: 105, rotation: -4 }, { yPercent: 0, rotation: -1.2, duration: 0.45, ease: "back.out(1.4)" }, 59.374);
+        tl.set("#tri1", { visibility: "visible" }, 60.038); tl.set("#tri1", { visibility: "hidden" }, 64.688);
+        tl.to("#v12", { scale: 3.4, x: -73.231, y: 649.487, duration: 0.6, ease: "power3.inOut" }, 61.888);
+        tl.fromTo("#tri1", { yPercent: 105, rotation: 0 }, { yPercent: 0, rotation: 0, duration: 0.45, ease: "back.out(1.4)" }, 60.038);
+        tl.set("#tri2", { visibility: "visible" }, 60.703); tl.set("#tri2", { visibility: "hidden" }, 64.688);
+        tl.to("#v13", { scale: 3, x: -81.846, y: 508.462, duration: 0.01, ease: "power3.inOut" }, 60.703);
+        tl.fromTo("#tri2", { yPercent: 105, rotation: 4 }, { yPercent: 0, rotation: 1.2, duration: 0.45, ease: "back.out(1.4)" }, 60.703);
+        tl.to(".tri", { yPercent: -110, duration: 0.35, ease: "power3.in", stagger: 0.05 }, 64.268);
+        tl.set("#tel-b", { visibility: "visible" }, 64.688); tl.set("#tel-b", { visibility: "hidden" }, 70.002);
+        tl.fromTo("#tel-b-t", { x: 700, rotationY: -40, transformPerspective: 2400 }, { x: 0, rotationY: -8, duration: 0.6, ease: "back.out(1.2)" }, 64.688);
+        tl.to("#tel-b-t", { rotationY: 0, scale: 1.04, duration: 0.5, ease: "power2.inOut" }, 67.345);
+        tl.fromTo("#tel-b-t", { scale: 1.12 }, { scale: 1.04, duration: 0.5, ease: "back.out(2)" }, 68.674);
+        tl.to("#tel-b-t", { x: -1400, rotationY: 30, duration: 0.4, ease: "power3.in" }, 69.602);
+        tl.fromTo("#milagro .sello", { scale: 2.6, rotation: 10, opacity: 0 }, { scale: 1, rotation: -6, opacity: 1, duration: 0.3, ease: "back.out(2.4)" }, 68.674);
+        tl.fromTo("#mapa-sec", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 70.002);
+        tl.fromTo("#anillo", { rotationY: 20 }, { rotationY: -160, duration: 7.971, ease: "none" }, 75.316);
+        tl.to("#anillo", { rotationY: -520, duration: 2.657, ease: "power3.in" }, 83.287);
+        tl.to("#anillo-caja", { opacity: 0.3, duration: 0.3, ease: "power2.out" }, 83.287);
+        tl.to("#anillo-caja", { scale: 0.2, opacity: 0, duration: 0.45, ease: "power3.in" }, 85.494);
+        tl.fromTo("#plantel", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 75.316);
+        gsap.utils.toArray("#cada-uno .pal").forEach(function (el, i) { tl.fromTo(el, { scale: 2.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.24, ease: "expo.out" }, 83.287 + i * 0.664); });
+        banda("#cada-uno .banda", 84.616);
+        tl.set("#hab0", { visibility: "visible" }, 85.944); tl.set("#hab0", { visibility: "hidden" }, 91.258);
+        tl.to("#v16", { scale: 1.35, x: 38.838, y: 119.105, duration: 0.01, ease: "power3.inOut" }, 85.944);
+        tl.fromTo("#hab0-t", { y: 900, rotationY: -30, transformPerspective: 2200 }, { y: 0, rotationY: -8, duration: 0.55, ease: "back.out(1.3)" }, 85.944);
+        tl.fromTo("#hab0-p > *", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out", stagger: 0.07 }, 86.094);
+        tl.to("#hab0-t", { y: 1000, rotationY: 20, duration: 0.35, ease: "power3.in" }, 90.898);
+        tl.to("#hab0-p", { opacity: 0, duration: 0.25, ease: "power2.in" }, 90.958);
+        tl.set("#hab1", { visibility: "visible" }, 86.608); tl.set("#hab1", { visibility: "hidden" }, 91.258);
+        tl.fromTo("#hab1-t", { y: 900, rotationY: 30, transformPerspective: 2200 }, { y: 0, rotationY: 8, duration: 0.55, ease: "back.out(1.3)" }, 86.608);
+        tl.fromTo("#hab1-p > *", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out", stagger: 0.07 }, 86.758);
+        tl.to("#hab1-t", { y: 1000, rotationY: -20, duration: 0.35, ease: "power3.in" }, 90.898);
+        tl.to("#hab1-p", { opacity: 0, duration: 0.25, ease: "power2.in" }, 90.958);
+        tl.set("#hab2", { visibility: "visible" }, 91.258); tl.set("#hab2", { visibility: "hidden" }, 96.572);
+        tl.to("#v19", { scale: 1.45, x: 62.573, y: 182.109, duration: 0.01, ease: "power3.inOut" }, 91.258);
+        tl.to("#v20", { scale: 2, x: 7.672, y: 251.251, duration: 0.01, ease: "power3.inOut" }, 93.508);
+        tl.fromTo("#hab2-t", { y: 900, rotationY: -30, transformPerspective: 2200 }, { y: 0, rotationY: -8, duration: 0.55, ease: "back.out(1.3)" }, 91.258);
+        tl.fromTo("#hab2-p > *", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out", stagger: 0.07 }, 91.408);
+        tl.to("#hab2-t", { y: 1000, rotationY: 20, duration: 0.35, ease: "power3.in" }, 96.212);
+        tl.to("#hab2-p", { opacity: 0, duration: 0.25, ease: "power2.in" }, 96.272);
+        tl.set("#hab3", { visibility: "visible" }, 91.922); tl.set("#hab3", { visibility: "hidden" }, 96.572);
+        tl.fromTo("#hab3-t", { y: 900, rotationY: 30, transformPerspective: 2200 }, { y: 0, rotationY: 8, duration: 0.55, ease: "back.out(1.3)" }, 91.922);
+        tl.fromTo("#hab3-p > *", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out", stagger: 0.07 }, 92.072);
+        tl.to("#hab3-t", { y: 1000, rotationY: -20, duration: 0.35, ease: "power3.in" }, 96.212);
+        tl.to("#hab3-p", { opacity: 0, duration: 0.25, ease: "power2.in" }, 96.272);
+        tl.set("#hab4", { visibility: "visible" }, 96.572); tl.set("#hab4", { visibility: "hidden" }, 101.886);
+        tl.to("#v23", { scale: 3, x: -54.662, y: 339.477, duration: 0.01, ease: "power3.inOut" }, 97.872);
+        tl.fromTo("#hab4-t", { y: 900, rotationY: -30, transformPerspective: 2200 }, { y: 0, rotationY: -8, duration: 0.55, ease: "back.out(1.3)" }, 96.572);
+        tl.fromTo("#hab4-p > *", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out", stagger: 0.07 }, 96.722);
+        tl.to("#hab4-t", { y: 1000, rotationY: 20, duration: 0.35, ease: "power3.in" }, 101.526);
+        tl.to("#hab4-p", { opacity: 0, duration: 0.25, ease: "power2.in" }, 101.586);
+        tl.set("#hab5", { visibility: "visible" }, 97.236); tl.set("#hab5", { visibility: "hidden" }, 101.886);
+        tl.fromTo("#hab5-t", { y: 900, rotationY: 30, transformPerspective: 2200 }, { y: 0, rotationY: 8, duration: 0.55, ease: "back.out(1.3)" }, 97.236);
+        tl.fromTo("#hab5-p > *", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out", stagger: 0.07 }, 97.386);
+        tl.to("#hab5-t", { y: 1000, rotationY: -20, duration: 0.35, ease: "power3.in" }, 101.526);
+        tl.to("#hab5-p", { opacity: 0, duration: 0.25, ease: "power2.in" }, 101.586);
+        tl.set("#hab6", { visibility: "visible" }, 101.886); tl.set("#hab6", { visibility: "hidden" }, 107.2);
+        tl.to("#v25", { scale: 1.9, x: -168.3, y: 364.218, duration: 0.45, ease: "power3.inOut" }, 102.386);
+        tl.to("#v25", { scale: 1, x: 0, y: 0, duration: 0.5, ease: "power3.inOut" }, 103.736);
+        tl.fromTo("#hab6-t", { y: 900, rotationY: -30, transformPerspective: 2200 }, { y: 0, rotationY: -8, duration: 0.55, ease: "back.out(1.3)" }, 101.886);
+        tl.fromTo("#hab6-p > *", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out", stagger: 0.07 }, 102.036);
+        tl.to("#hab6-t", { y: 1000, rotationY: 20, duration: 0.35, ease: "power3.in" }, 106.84);
+        tl.to("#hab6-p", { opacity: 0, duration: 0.25, ease: "power2.in" }, 106.9);
+        tl.set("#hab7", { visibility: "visible" }, 102.55); tl.set("#hab7", { visibility: "hidden" }, 107.2);
+        tl.fromTo("#hab7-t", { y: 900, rotationY: 30, transformPerspective: 2200 }, { y: 0, rotationY: 8, duration: 0.55, ease: "back.out(1.3)" }, 102.55);
+        tl.fromTo("#hab7-p > *", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out", stagger: 0.07 }, 102.7);
+        tl.to("#hab7-t", { y: 1000, rotationY: -20, duration: 0.35, ease: "power3.in" }, 106.84);
+        tl.to("#hab7-p", { opacity: 0, duration: 0.25, ease: "power2.in" }, 106.9);
+        tl.set("#tel-firma", { visibility: "visible" }, 107.2); tl.set("#tel-firma", { visibility: "hidden" }, 113.843);
+        tl.to("#v28", { scale: 1.22, x: 0, y: 27.115, duration: 0.01, ease: "power3.inOut" }, 107.2);
+        tl.set("#tel-marshall", { visibility: "visible" }, 108.529); tl.set("#tel-marshall", { visibility: "hidden" }, 113.843);
+        tl.to("#v29", { scale: 1.22, x: 0, y: 27.115, duration: 0.01, ease: "power3.inOut" }, 108.529);
+        tl.fromTo("#tel-firma-t", { y: 900, rotationY: -25, transformPerspective: 2200 }, { y: 0, rotationY: -6, duration: 0.6, ease: "back.out(1.3)" }, 107.2);
+        tl.fromTo("#tel-marshall-t", { y: 900, rotationY: 25, transformPerspective: 2200 }, { y: 0, rotationY: 6, duration: 0.6, ease: "back.out(1.3)" }, 108.529);
+        tl.to(["#tel-firma-t", "#tel-marshall-t"], { y: 1000, duration: 0.35, ease: "power3.in", stagger: 0.06 }, 113.423);
+        tl.set("#tel-rk", { visibility: "visible" }, 113.843); tl.set("#tel-rk", { visibility: "hidden" }, 117.828);
+        tl.fromTo("#tel-rk-t", { scale: 0.6, opacity: 0, rotationY: -30, transformPerspective: 2200 }, { scale: 1, opacity: 1, rotationY: -10, duration: 0.7, ease: "back.out(1.3)" }, 113.843);
+        tl.fromTo("#resumen-img", { y: 700, rotation: 14 }, { y: 0, rotation: 7, duration: 0.6, ease: "back.out(1.4)" }, 114.839);
+        tl.to(["#tel-rk-t", "#resumen-img"], { scale: 0.2, opacity: 0, duration: 0.4, ease: "power3.in", stagger: 0.05 }, 117.378);
+        tl.to("#p-velo", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 117.528);
+        tl.set("#flash", { opacity: 1 }, 117.818);
+        tl.to("#flash", { opacity: 0, duration: 0.45, ease: "power2.out" }, 117.848);
+        tl.fromTo("#cl-l1 .lt", { yPercent: -130, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.42, ease: "back.out(2.2)", stagger: 0.03 }, 117.848);
+        tl.fromTo("#cl-l2 .lt", { scale: 1.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "power4.out", stagger: 0.045, transformOrigin: "50% 80%" }, 117.988);
+        banda("#cl-banda", 118.378);
+        tl.fromTo("#cierre .ojo.lt .pupila", { scale: 0, transformOrigin: "50% 53%" }, { scale: 1, duration: 0.3, ease: "back.out(3)", stagger: 0.06 }, 119.157);
+        tl.fromTo("#cl-boton-caja > *", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "back.out(2)", stagger: 0.12 }, 119.157);
+        tl.fromTo("#cl-icono-caja > *", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)", stagger: 0.1 }, 119.821);
+        tl.fromTo("#cl-qr-caja > *", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)", stagger: 0.1 }, 120.485);
+        for (var k = 0; 120.485 + k * 0.332 < 124.471; k++) tl.fromTo("#cl-boton", { scale: 1.07 }, { scale: 1, duration: 0.299, ease: "power2.out" }, 120.485 + k * 0.332);
+        tl.to("#cierre .ojo.lt .pupila", { x: -15, y: 2, duration: 0.22, ease: "power3.out" }, 121.814);
+        tl.to("#cierre .ojo.lt .pupila", { x: 15, y: 2, duration: 0.22, ease: "power3.out" }, 123.142);
+        [[90,120,1.1],[330,330,0.8],[140,560,0.9],[1660,110,1],[1520,350,0.85],[1710,580,1.1],[560,70,0.7],[1300,60,0.75]].forEach(function (p, i) {
+          var el = "#pc" + i;
+          var dx = 960 - p[0], dy = 600 - p[1], n = Math.sqrt(dx * dx + dy * dy) || 1;
           var mx = (dx / n) * 15, my = (dy / n) * 12;
-          tl.set(el, { scaleY: 0.04, opacity: 0 }, L2);
-          var t = c(48) + ((i * 3) % 9) * B;
-          var vuelta = 0;
-          while (t < P.FIN - 1) {
-            var dura = (8 + ((i * 5 + vuelta * 3) % 6)) * B;
-            tl.set(el, { opacity: 1 }, t);
-            tl.fromTo(el, { scaleY: 0.04 }, { scaleY: 1, duration: 0.18, ease: "back.out(3)" }, t);
-            tl.fromTo(el + " .pu", { x: 0, y: 0 }, { x: mx, y: my, duration: 0.2, ease: "power3.out" }, t + 0.2);
-            tl.to(el + " .pu", { x: (i % 2 ? -1 : 1) * 14, y: -6, duration: 0.2, ease: "power3.out" }, t + dura * 0.45);
-            tl.to(el, { scaleY: 0.06, duration: 0.06, ease: "power2.in" }, t + dura * 0.62);
-            tl.to(el, { scaleY: 1, duration: 0.1, ease: "power2.out" }, t + dura * 0.62 + 0.06);
-            tl.to(el + " .pu", { x: mx, y: my, duration: 0.2, ease: "power3.out" }, t + dura * 0.7);
-            tl.to(el, { scaleY: 0.04, duration: 0.12, ease: "power2.in" }, t + dura);
-            tl.set(el, { opacity: 0 }, t + dura + 0.12);
-            t += dura + (2 + ((i + vuelta) % 4)) * B;
-            vuelta++;
-          }
+          tl.set(el, { scaleY: 0.04, opacity: 0 }, 117.828);
+          var t = 119.157 + ((i * 3) % 8) * 0.332;
+          tl.set(el, { opacity: 1 }, t);
+          tl.fromTo(el, { scaleY: 0.04 }, { scaleY: 1, duration: 0.18, ease: "back.out(3)" }, t);
+          tl.fromTo(el + " .pupila", { x: 0, y: 0 }, { x: mx, y: my, duration: 0.2, ease: "power3.out" }, t + 0.2);
+          tl.to(el, { scaleY: 0.06, duration: 0.06, ease: "power2.in" }, t + 1.6 + i * 0.13);
+          tl.to(el, { scaleY: 1, duration: 0.1, ease: "power2.out" }, t + 1.66 + i * 0.13);
         });
-        tl.to("#fundido", { opacity: 1, duration: 0.6, ease: "power2.in" }, P.FIN - 0.6);
+        tl.to("#cierre .parpado", { scaleY: 0.06, duration: 0.12, ease: "power2.in", transformOrigin: "50% 50%" }, 124.471);
+        tl.to(".par", { scaleY: 0.05, duration: 0.12, ease: "power2.in" }, 124.471);
+        tl.to("#cierre .parpado", { scaleY: 1, duration: 0.16, ease: "back.out(3)" }, 125.799);
+        tl.to("#cierre .ojo.lt .pupila", { x: 0, y: 0, duration: 0.01 }, 125.799);
+        tl.to(".par", { scaleY: 1, duration: 0.16, ease: "back.out(3)" }, 125.799);
+        tl.fromTo("#cl-caja", { scale: 1.08 }, { scale: 1, duration: 0.5, ease: "power3.out" }, 125.799);
+        tl.fromTo("#flash", { opacity: 0.55 }, { opacity: 0, duration: 0.4, ease: "power2.out" }, 125.799);
+        tl.to("#fundido", { opacity: 1, duration: 0.7, ease: "power2.in" }, 128.1);
         window.__timelines["presentacion"] = tl;
       })();
     </script>

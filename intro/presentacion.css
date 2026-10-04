@@ -1,0 +1,548 @@
+      /* ═════════ presentación oficial (lo suma armar-presentacion.mjs) ═════════ */
+      #p-velo {
+        opacity: 0;
+        background:
+          repeating-linear-gradient(135deg, rgba(17, 53, 36, 0.35) 0 28px, rgba(12, 43, 28, 0) 28px 56px),
+          radial-gradient(130% 110% at 72% 50%, rgba(12, 43, 28, 0.42) 0%, rgba(8, 28, 18, 0.9) 70%, rgba(5, 18, 11, 0.97) 100%);
+      }
+      .oculto {
+        visibility: hidden;
+      }
+      .tri {
+        position: absolute;
+      }
+      #buceo {
+        pointer-events: none;
+      }
+      #ojo-buceo {
+        position: absolute;
+        left: 1350.9px;
+        top: 357.4px;
+        width: 126.8px;
+        height: 200.4px;
+        opacity: 0;
+      }
+      /* ── el teléfono ── */
+      .tel {
+        position: absolute;
+        will-change: transform;
+      }
+      .tel-cuerpo {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 13px;
+        border-radius: 66px;
+        background: linear-gradient(150deg, #24342b 0%, #0b140f 38%, #050907 100%);
+        box-shadow:
+          0 50px 110px rgba(0, 0, 0, 0.6),
+          0 0 0 2px rgba(244, 238, 218, 0.1),
+          inset 0 0 0 2px rgba(244, 238, 218, 0.13);
+      }
+      .tel-pantalla {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 54px;
+        overflow: hidden;
+        background: #0c2b1c;
+      }
+      .tel-pantalla .vid {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .tel-brillo {
+        position: absolute;
+        inset: 13px;
+        border-radius: 54px;
+        pointer-events: none;
+        background: linear-gradient(118deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.03) 26%, rgba(255, 255, 255, 0) 40%);
+      }
+      /* ── cabeceras: chip, título, banda, línea ── */
+      .cab {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .kick {
+        display: block;
+        font: 800 24px/1 var(--body);
+        letter-spacing: 0.3em;
+        color: var(--cream);
+        background: var(--green-900);
+        border-radius: 7px;
+        padding: 11px 16px 10px 18px;
+        margin-bottom: 20px;
+        box-shadow: inset 0 0 0 1.5px rgba(232, 195, 74, 0.35);
+      }
+      .kick b {
+        color: var(--gold);
+        font-weight: 800;
+        margin-right: 0.7em;
+      }
+      .tit {
+        font: 400 128px/0.92 var(--display);
+        letter-spacing: 0.01em;
+        color: var(--cream);
+        filter: drop-shadow(0 8px 26px rgba(5, 18, 11, 0.55));
+      }
+      .banda {
+        position: relative;
+        display: inline-block;
+        margin-top: 20px;
+        padding: 9px 22px 7px;
+        overflow: hidden;
+      }
+      .banda i {
+        position: absolute;
+        inset: 0;
+        background: var(--gold);
+      }
+      .banda span {
+        position: relative;
+        display: block;
+        font: 400 44px/1 var(--display);
+        letter-spacing: 0.05em;
+        color: var(--green-900);
+        white-space: nowrap;
+      }
+      .banda.grande span {
+        font-size: 60px;
+      }
+      .txt {
+        display: block;
+        max-width: 660px;
+        margin-top: 20px;
+        font: 600 29px/1.38 var(--body);
+        color: var(--cream);
+        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.95));
+      }
+      /* ── notas sobre la pantalla ── */
+      .nota {
+        position: absolute;
+        width: 0;
+        height: 0;
+      }
+      .nota i {
+        position: absolute;
+        left: -11px;
+        top: -11px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 3px solid var(--gold);
+        box-shadow: 0 0 0 4px rgba(12, 43, 28, 0.6);
+      }
+      .nota b {
+        position: absolute;
+        left: 14px;
+        top: -1.5px;
+        width: 110px;
+        height: 3px;
+        background: var(--gold);
+      }
+      .nota span {
+        position: absolute;
+        left: 124px;
+        top: -27px;
+        white-space: nowrap;
+        font: 400 40px/1 var(--display);
+        letter-spacing: 0.05em;
+        color: var(--green-900);
+        background: var(--gold);
+        padding: 8px 16px 6px;
+      }
+      .nota.arriba span {
+        top: -46px;
+      }
+      .nota.abajo span {
+        top: -2px;
+      }
+      #estela {
+        position: absolute;
+        left: 300px;
+        top: 528px;
+        width: 1000px;
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, rgba(244, 238, 218, 0), rgba(244, 238, 218, 0.95));
+        opacity: 0;
+      }
+      /* ── el estribillo ── */
+      .full {
+        overflow: hidden;
+        background: #0c2b1c;
+      }
+      .full-in {
+        position: absolute;
+        left: 0;
+        width: 1920px;
+        height: 4155px;
+      }
+      .full-in .vid {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .coro {
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-start;
+        padding: 0 0 110px 110px;
+        pointer-events: none;
+      }
+      #coro3 {
+        justify-content: center;
+        padding: 0 0 60px 110px;
+      }
+      #coro2 {
+        padding-bottom: 70px;
+      }
+      .coro-tit {
+        font: 400 168px/0.9 var(--display);
+        letter-spacing: 0.01em;
+        color: var(--cream);
+        filter: drop-shadow(0 10px 30px rgba(5, 18, 11, 0.7));
+      }
+      #coro2 .coro-tit {
+        font-size: 120px;
+      }
+      #coro3 .coro-tit {
+        font-size: 132px;
+      }
+      #coro4 {
+        padding-bottom: 90px;
+      }
+      .sello {
+        position: absolute;
+        right: 200px;
+        top: 150px;
+        font: 400 220px/1 var(--display);
+        color: var(--cream);
+        background: var(--red, #bc4b3c);
+        padding: 22px 46px 10px;
+        border-radius: 22px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+      }
+      .sello.dorado {
+        right: auto;
+        left: 110px;
+        top: auto;
+        bottom: 120px;
+        font-size: 150px;
+        background: var(--gold);
+        color: var(--green-900);
+      }
+      .tri {
+        z-index: 4;
+        left: 0;
+        right: auto;
+        top: 30px;
+        width: 560px;
+        height: 660px;
+        border-radius: 34px;
+        overflow: hidden;
+        background: #0c2b1c;
+        box-shadow: 0 40px 90px rgba(0, 0, 0, 0.55), 0 0 0 3px rgba(244, 238, 218, 0.14);
+      }
+      .tri-pant {
+        position: absolute;
+        left: 0;
+        top: -230px;
+        width: 560px;
+        height: 1212px;
+      }
+      .tri-pant .vid {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .tri-pie {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 18px 26px 22px;
+        background: linear-gradient(180deg, rgba(12, 43, 28, 0), rgba(12, 43, 28, 0.96) 38%);
+        display: flex;
+        flex-direction: column;
+      }
+      .tri-pie b {
+        font: 400 58px/1 var(--display);
+        color: var(--cream);
+      }
+      .tri-pie span {
+        margin-top: 6px;
+        font: 800 22px/1 var(--body);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+      /* ── el mapa ── */
+      #mapa {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .mapa-cartel {
+        position: absolute;
+        left: 0;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        opacity: 0;
+      }
+      .mapa-cartel b {
+        font: 400 64px/1 var(--display);
+        color: var(--cream);
+        background: var(--green-900);
+        padding: 10px 22px 6px;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      }
+      .mapa-cartel span {
+        margin-top: 8px;
+        font: 400 30px/1 var(--display);
+        letter-spacing: 0.06em;
+        color: var(--green-900);
+        background: var(--gold);
+        padding: 7px 14px 5px;
+      }
+      #mapa-vineta {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(0deg, rgba(5, 18, 11, 0.85) 0%, rgba(5, 18, 11, 0) 42%),
+          radial-gradient(120% 95% at 50% 46%, rgba(5, 18, 11, 0) 55%, rgba(5, 18, 11, 0.6) 100%);
+      }
+      /* ── el plantel ── */
+      #plantel {
+        perspective: 2400px;
+        pointer-events: none;
+      }
+      #anillo-caja {
+        position: absolute;
+        left: 50%;
+        top: 700px;
+        width: 0;
+        height: 0;
+        transform-style: preserve-3d;
+      }
+      #anillo {
+        position: absolute;
+        left: 0;
+        top: 0;
+        transform-style: preserve-3d;
+      }
+      .carta {
+        position: absolute;
+        left: -160px;
+        top: -250px;
+        width: 320px;
+        height: auto;
+        border-radius: 22px;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+        backface-visibility: hidden;
+      }
+      .slam {
+        z-index: 2;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 300px;
+        text-align: center;
+        font: 400 190px/0.9 var(--display);
+        color: var(--cream);
+        filter: drop-shadow(0 12px 34px rgba(5, 18, 11, 0.75));
+      }
+      #cada-uno .banda {
+        position: absolute;
+        left: 50%;
+        top: 690px;
+        transform: translateX(-50%);
+      }
+      /* ── las placas de las habilidades ── */
+      .placa {
+        position: absolute;
+        top: 220px;
+        width: 420px;
+        display: flex;
+        flex-direction: column;
+      }
+      .placa.izq {
+        left: 70px;
+        align-items: flex-end;
+        text-align: right;
+      }
+      .placa.der {
+        left: 1430px;
+        align-items: flex-start;
+      }
+      .placa .foto {
+        width: 190px;
+        height: 190px;
+        border-radius: 50%;
+        object-fit: cover;
+        object-position: 50% 50%;
+        border: 6px solid var(--cream);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      }
+      .placa b {
+        margin-top: 18px;
+        font: 400 74px/0.95 var(--display);
+        color: var(--cream);
+        filter: drop-shadow(0 6px 18px rgba(5, 18, 11, 0.6));
+      }
+      .placa .banda {
+        margin-top: 12px;
+      }
+      .placa .banda span {
+        font-size: 36px;
+      }
+      .placa .txt {
+        font-size: 25px;
+        max-width: 420px;
+      }
+      /* ── el ranking ── */
+      #resumen-img {
+        position: absolute;
+        left: 1500px;
+        top: 250px;
+        width: 360px;
+        height: auto;
+        border-radius: 14px;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+      }
+      /* ── el cierre ── */
+      #cl-caja {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 54px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #cl-l1,
+      #cl-l2 {
+        display: flex;
+        align-items: flex-end;
+        font-family: var(--display);
+        color: var(--cream);
+        line-height: 0.86;
+        letter-spacing: 0.012em;
+        filter: drop-shadow(0 10px 30px rgba(5, 18, 11, 0.55));
+      }
+      #cl-l1 {
+        font-size: 96px;
+      }
+      #cl-l2 {
+        font-size: 158px;
+        margin-top: 4px;
+      }
+      #cl-l2 .ojo {
+        width: 0.465em;
+        height: 0.735em;
+        margin: 0 0.03em 0.07em;
+      }
+      .esp {
+        display: inline-block;
+        width: 0.22em;
+      }
+      #cl-banda {
+        margin-top: 16px;
+      }
+      #cl-banda span {
+        font-size: 38px;
+      }
+      #cl-boton-caja {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 820px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #cl-boton {
+        display: block;
+        padding: 22px 78px 16px;
+        border-radius: 999px;
+        background: var(--gold);
+        color: var(--green-900);
+        font: 400 72px/1 var(--display);
+        letter-spacing: 0.05em;
+        box-shadow: 0 14px 40px rgba(12, 43, 28, 0.5);
+      }
+      #cl-url {
+        display: block;
+        margin-top: 22px;
+        font: 800 30px/1.2 var(--body);
+        color: var(--cream);
+        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.95));
+      }
+      #cl-icono-caja,
+      #cl-qr-caja {
+        position: absolute;
+        top: 740px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      #cl-icono-caja {
+        left: 150px;
+      }
+      #cl-qr-caja {
+        right: 150px;
+      }
+      #cl-icono {
+        display: block;
+        width: 190px;
+        height: 190px;
+        border-radius: 44px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(244, 238, 218, 0.25);
+      }
+      #cl-qr {
+        width: 190px;
+        height: 190px;
+        padding: 14px;
+        border-radius: 20px;
+        background: var(--cream);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      }
+      #cl-qr img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #cl-icono-caja span,
+      #cl-qr-caja span {
+        margin-top: 16px;
+        font: 800 21px/1.3 var(--body);
+        letter-spacing: 0.06em;
+        color: var(--cream);
+        background: var(--green-900);
+        border-radius: 7px;
+        padding: 8px 14px 7px;
+      }
+      .par {
+        position: absolute;
+        display: flex;
+        gap: 0.1em;
+        transform-origin: 50% 50%;
+        filter: drop-shadow(0 0 0.3em rgba(232, 195, 74, 0.3));
+      }
+      .par svg {
+        display: block;
+        width: 0.465em;
+        height: 0.735em;
+      }

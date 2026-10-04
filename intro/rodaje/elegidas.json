@@ -1,0 +1,417 @@
+{
+ "tomas": {
+  "vuelta": {
+   "dir": "vuelta-3",
+   "crf": 22,
+   "extra": {
+    "pelota": [
+     195,
+     518
+    ],
+    "hud": {
+     "reloj": [
+      300,
+      172
+     ],
+     "viento": [
+      292,
+      222
+     ]
+    },
+    "adentro": 38.12
+   }
+  },
+  "robo": {
+   "dir": "aguila-1",
+   "extra": {
+    "pant": [
+     204,
+     312
+    ],
+    "desde": 4.5
+   },
+   "ancho": 1170,
+   "crf": 26
+  },
+  "ladron": {
+   "dir": "ladron-1",
+   "crf": 25,
+   "extra": {
+    "pelota": [
+     195,
+     519
+    ]
+   },
+   "ancho": 1170
+  },
+  "bosque": {
+   "dir": "bosque-1",
+   "ancho": 1170,
+   "crf": 26
+  },
+  "monobueno": {
+   "dir": "bosque-2",
+   "ancho": 1170,
+   "crf": 26
+  },
+  "bomba": {
+   "dir": "bomba-5"
+  },
+  "chip": {
+   "dir": "chipin-3"
+  },
+  "mago": {
+   "dir": "mago-1"
+  },
+  "perro": {
+   "dir": "perro-1",
+   "ancho": 1170,
+   "crf": 26
+  },
+  "dada": {
+   "dir": "dada-1"
+  },
+  "firma": {
+   "dir": "final-firma-3"
+  },
+  "marshall": {
+   "dir": "final-marshall-3"
+  },
+  "pancho": {
+   "dir": "pancho-3"
+  },
+  "ninja": {
+   "dir": "ninja-2"
+  },
+  "lg": {
+   "dir": "lg-6"
+  }
+ },
+ "triptico": [
+  {
+   "toma": "bosque",
+   "desde": 1.75,
+   "tit": "EL MONO MALO",
+   "sub": "la tira afuera · +1",
+   "zoom": [
+    {
+     "t": 4.25,
+     "s": 3.2,
+     "p": [
+      232,
+      302
+     ],
+     "d": 0.6
+    }
+   ]
+  },
+  {
+   "toma": "monobueno",
+   "desde": 2.6,
+   "tit": "EL MONO BUENO",
+   "sub": "te la salva · a veces",
+   "zoom": [
+    {
+     "t": 4.45,
+     "s": 3.4,
+     "p": [
+      210,
+      289
+     ],
+     "d": 0.6
+    }
+   ]
+  },
+  {
+   "toma": "perro",
+   "desde": 4.2,
+   "tit": "EL PERRO",
+   "sub": "va a buscarla",
+   "zoom": [
+    {
+     "t": 4.2,
+     "s": 3.0,
+     "p": [
+      214,
+      304
+     ],
+     "d": 0.01
+    }
+   ]
+  }
+ ],
+ "habilidades": [
+  {
+   "toma": "bomba",
+   "apodo": "Mike Queboni",
+   "foto": "?",
+   "emoji": "🍯",
+   "nombre": "Drive al green",
+   "texto": "A fondo desde el tee el óvalo late: soltá en el pico y llega al green.",
+   "segs": [
+    {
+     "desde": 0.7,
+     "hasta": 2.95,
+     "zoom": [
+      {
+       "t": 0.7,
+       "s": 1.35,
+       "p": [
+        165,
+        330
+       ],
+       "d": 0.01
+      }
+     ],
+     "sfx": [
+      [
+       "golpe",
+       2.433,
+       0.6
+      ]
+     ]
+    },
+    {
+     "desde": 9.1
+    }
+   ]
+  },
+  {
+   "toma": "chip",
+   "apodo": "Fito",
+   "foto": "?",
+   "emoji": "🦅",
+   "nombre": "Chip in",
+   "texto": "La línea se sacude: soltá en el embudo y sale derecha. Cerca del green, imán al hoyo.",
+   "segs": [
+    {
+     "desde": 0.0,
+     "sfx": [
+      [
+       "golpe",
+       1.133,
+       0.45
+      ],
+      [
+       "embocada",
+       3.45,
+       0.6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "toma": "mago",
+   "apodo": "El Mago Rodal",
+   "foto": "?",
+   "emoji": "🥛",
+   "nombre": "Golpes de mago",
+   "texto": "Nunca derecho: comba, gancho, slice, globo o viborita. Mirá cuál te toca.",
+   "segs": [
+    {
+     "desde": 0.7,
+     "hasta": 2.95,
+     "zoom": [
+      {
+       "t": 0.7,
+       "s": 1.45,
+       "p": [
+        150,
+        250
+       ],
+       "d": 0.01
+      }
+     ],
+     "sfx": [
+      [
+       "golpe",
+       2.333,
+       0.6
+      ]
+     ]
+    },
+    {
+     "desde": 4.9,
+     "zoom": [
+      {
+       "t": 4.9,
+       "s": 2.0,
+       "p": [
+        191,
+        291
+       ],
+       "d": 0.01
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "toma": "pancho",
+   "apodo": "Mugre",
+   "foto": "?",
+   "emoji": "💩",
+   "nombre": "Tirar panchos",
+   "texto": "A la Mugre los monos la huelen de lejos. Tirales un pancho: van, comen y vuelven.",
+   "segs": [
+    {
+     "desde": 0.2,
+     "sfx": [
+      [
+       "pancho",
+       1.45,
+       0.6
+      ],
+      [
+       "golpe",
+       4.833,
+       0.5
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "toma": "perro",
+   "apodo": "El Perro",
+   "foto": "?",
+   "emoji": "🐕",
+   "nombre": "Va a buscarla",
+   "texto": "Si va al bosque, el perro te la trae al fairway sin multa. Tarda: el reloj corre.",
+   "segs": [
+    {
+     "desde": 1.6,
+     "hasta": 2.9,
+     "sfx": [
+      [
+       "golpe",
+       2.133,
+       0.6
+      ]
+     ]
+    },
+    {
+     "desde": 4.3,
+     "zoom": [
+      {
+       "t": 4.3,
+       "s": 3.0,
+       "p": [
+        214,
+        304
+       ],
+       "d": 0.01
+      }
+     ],
+     "sfx": [
+      [
+       "perro",
+       4.6,
+       0.6
+      ],
+      [
+       "perro",
+       7.6,
+       0.5
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "toma": "dada",
+   "apodo": "Lechu",
+   "foto": "?",
+   "emoji": "🦉",
+   "nombre": "Todas las dadas",
+   "texto": "La Lechuza: el putt de menos de 1,5 yardas es dada. Entra solo.",
+   "segs": [
+    {
+     "desde": 1.0,
+     "sfx": [
+      [
+       "putt",
+       2.133,
+       0.6
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "toma": "ninja",
+   "apodo": "El Ninja",
+   "foto": "?",
+   "emoji": "🥷",
+   "nombre": "La tradición",
+   "texto": "Un LP por vuelta no te hace perder: levantás, +1 y al fairway.",
+   "segs": [
+    {
+     "desde": 0.0,
+     "zoom": [
+      {
+       "t": 0.5,
+       "s": 1.9,
+       "p": [
+        300,
+        170
+       ],
+       "d": 0.45
+      },
+      {
+       "t": 1.85,
+       "s": 1.0,
+       "p": [
+        195,
+        422
+       ],
+       "d": 0.5
+      }
+     ],
+     "sfx": [
+      [
+       "tap",
+       1.0,
+       0.6
+      ],
+      [
+       "tap",
+       1.7,
+       0.6
+      ],
+      [
+       "lamento",
+       1.8,
+       0.45
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "toma": "lg",
+   "apodo": "LG",
+   "foto": "?",
+   "emoji": "📺",
+   "nombre": "El que se enoja pierde",
+   "texto": "Después de un mal tiro no se enoja: el próximo sale sin error.",
+   "segs": [
+    {
+     "desde": 0.9,
+     "hasta": 3.5,
+     "sfx": [
+      [
+       "golpe",
+       2.767,
+       0.55
+      ]
+     ]
+    },
+    {
+     "desde": 6.9
+    }
+   ]
+  }
+ ]
+}

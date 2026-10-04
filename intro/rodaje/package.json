@@ -1,0 +1,10 @@
+{
+  "name": "rodaje",
+  "private": true,
+  "description": "Graba el juego cuadro por cuadro para la presentación oficial (ver README.md)",
+  "devDependencies": {
+    "@fontsource/anton": "^5.3.0",
+    "@fontsource/archivo": "^5.3.0",
+    "playwright-core": "1.63.0"
+  }
+}
