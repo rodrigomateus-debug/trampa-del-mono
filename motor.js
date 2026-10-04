@@ -284,44 +284,87 @@ export function crearCampo() {
 }
 
 // ── el carrito de Marcos ──
-// Se maneja con acelerar, reversa e izquierda/derecha. Los árboles y el afuera no se atraviesan (rebota y se frena);
-// en el rough y el bunker anda más lento. `llegar` = a cuántas yardas de la pelota se baja (en el bosque, `llegarBosque`:
-// el último tramo lo hace a pie). Velocidades en yardas del dibujo por segundo.
+// Se maneja con acelerar, freno, reversa e izquierda/derecha. Velocidades en yardas del dibujo por segundo:
+// acelera fuerte hasta `vmax` y, si seguís apretando, de menos a más hasta el `turbo` (el triple). Rápido y doblando
+// (o frenando y doblando) pierde agarre y COLEA: la cola se va para afuera y la velocidad no sigue a la trompa.
+// Los árboles y el afuera no se atraviesan (rebota); en el rough y el bunker anda más lento. `llegar` = a cuántas
+// yardas de la pelota se baja (en el bosque, `llegarBosque`: el último tramo lo hace a pie).
 export const CARRITO = {
-  vmax: 16, atras: 6, acel: 10, freno: 16, roce: 5, giro: 2.3, largo: 2.6,
+  vmax: 16, turbo: 48, acel: 10, acelTurbo: 4.5, atras: 6, freno: 30, frenoMotor: 16, roce: 5, giro: 2.3, largo: 2.6,
+  agarre: 12, agarreColea: 1.6, colea: 20, coleaFreno: 8, // agarre lateral (por segundo) y desde qué velocidad colea
   terreno: { rough: 0.7, bunker: 0.45 },
   llegar: 4, llegarBosque: 10,
 }
 const NO_SE_PASA = new Set(['t', 'x'])
 /** El carrito donde Marcos se baja: al lado de la pelota, mirando para donde va. */
 export function crearCarro(pos, ang = -Math.PI / 2) {
-  return { pos: [...pos], ang, v: 0 }
+  return { pos: [...pos], ang, v: 0, vl: 0, colea: false }
 }
 /**
- * Un paso del carrito. `mando` = { acelerar, reversa, izq, der } (true/false). Muta el carro; devuelve 'choque' si
- * se pegó contra un árbol o el afuera en este paso.
+ * Un paso del carrito. `mando` = { acelerar, frenar, reversa, izq, der } (true/false). Muta el carro (`v` = velocidad
+ * hacia adelante, `vl` = de costado, `colea` = si está derrapando); devuelve 'choque' si se pegó contra un árbol o el afuera.
  */
 export function manejar(campo, carro, mando, dt) {
   const c = CARRITO
-  const lim = c.vmax * (c.terreno[terreno(campo, carro.pos).tipo] ?? 1)
-  if (mando.acelerar && !mando.reversa) carro.v = Math.min(lim, carro.v + (carro.v < 0 ? c.freno : c.acel) * dt)
-  else if (mando.reversa && !mando.acelerar) carro.v = Math.max(-c.atras, carro.v - (carro.v > 0 ? c.freno : c.acel) * dt)
-  else carro.v -= Math.sign(carro.v) * Math.min(Math.abs(carro.v), c.roce * dt) // suelta: se frena solo
-  if (carro.v > lim) carro.v = Math.max(lim, carro.v - c.freno * dt) // entró al rough rápido: frena
-  // dobla según la velocidad (quieto no dobla; en reversa, al revés)
+  const piso = c.terreno[terreno(campo, carro.pos).tipo] ?? 1
+  const base = c.vmax * piso, tope = c.turbo * piso
+  let v = carro.v
+  if (mando.frenar) v -= Math.sign(v) * Math.min(Math.abs(v), c.freno * dt)
+  else if (mando.acelerar && !mando.reversa) {
+    if (v < 0) v += c.frenoMotor * dt
+    else if (v < base) v = Math.min(base + 0.01, v + c.acel * dt)
+    else v = Math.min(tope, v + c.acelTurbo * Math.max(0.3, 1 - (v - base) / (tope - base)) * dt) // turbo: de menos a más
+  } else if (mando.reversa && !mando.acelerar) v = Math.max(-c.atras, v - (v > 0 ? c.frenoMotor : c.acel) * dt)
+  else v -= Math.sign(v) * Math.min(Math.abs(v), (c.roce + Math.abs(v) * 0.08) * dt) // suelta: se frena solo
+  if (v > tope) v = Math.max(tope, v - c.freno * dt) // entró al rough rápido: frena
+  // dobla según la velocidad (quieto no dobla; en reversa, al revés). La velocidad de antes queda: si no agarra, colea
   const giro = (mando.der ? 1 : 0) - (mando.izq ? 1 : 0)
-  carro.ang += giro * c.giro * dt * Math.max(-1, Math.min(1, carro.v / 4))
-  const nueva = [carro.pos[0] + Math.cos(carro.ang) * carro.v * dt, carro.pos[1] + Math.sin(carro.ang) * carro.v * dt]
+  const wx = Math.cos(carro.ang) * v - Math.sin(carro.ang) * (carro.vl ?? 0)
+  const wy = Math.sin(carro.ang) * v + Math.cos(carro.ang) * (carro.vl ?? 0)
+  carro.ang += giro * c.giro * dt * Math.max(-1, Math.min(1, v / 4))
+  const f = [Math.cos(carro.ang), Math.sin(carro.ang)], l = [-f[1], f[0]]
+  v = wx * f[0] + wy * f[1]
+  let vl = wx * l[0] + wy * l[1]
+  const suelta = giro !== 0 && (Math.abs(v) > c.colea || (mando.frenar && Math.abs(v) > c.coleaFreno))
+  vl *= Math.exp(-(suelta ? c.agarreColea : c.agarre) * dt)
+  v -= Math.sign(v) * Math.min(Math.abs(v), Math.abs(vl) * 0.25 * dt) // de costado, la goma frena un poco
+  carro.v = v
+  carro.vl = vl
+  carro.colea = Math.abs(vl) > 2.5
+  const nueva = [carro.pos[0] + (f[0] * v + l[0] * vl) * dt, carro.pos[1] + (f[1] * v + l[1] * vl) * dt]
   // la trompa (o la cola, en reversa) y el centro no pueden entrar a un árbol
-  const punta = Math.sign(carro.v || 1) * c.largo * 0.5
-  const frente = [nueva[0] + Math.cos(carro.ang) * punta, nueva[1] + Math.sin(carro.ang) * punta]
+  const punta = Math.sign(v || 1) * c.largo * 0.5
+  const frente = [nueva[0] + f[0] * punta, nueva[1] + f[1] * punta]
   if (NO_SE_PASA.has(celda(campo, nueva)) || NO_SE_PASA.has(celda(campo, frente))) {
-    carro.v = -carro.v * 0.25 // rebota un poquito
+    carro.v = -v * 0.25 // rebota un poquito
+    carro.vl = 0
+    carro.colea = false
     return 'choque'
   }
   carro.pos = nueva
   return null
 }
+// Los monos persiguen el carrito; si lo pisás andando, queda aplastado ahí (el resto de la ronda) y es un golpe de multa.
+export const ATROPELLO = { radio: 2, vel: 2 }
+/** Los monos que el carrito pisó en este paso (cada uno, +1 golpe). */
+export function atropellar(r) {
+  const c = r.carro
+  const pisados = []
+  if (!c || Math.abs(c.v) < ATROPELLO.vel) return pisados
+  for (const s of r.monos) {
+    if (!monoActivo(s) || dist(s.pos, c.pos) > ATROPELLO.radio) continue
+    s.modo = 'aplastado'
+    s.pancho = null
+    s.aplastadoAng = c.ang
+    r.golpes += 1
+    r.aplastados = (r.aplastados ?? 0) + 1
+    pisados.push(s)
+  }
+  return pisados
+}
+/** Arriba del carrito: los monos cercanos salen a buscarlo a él (no a la pelota). */
+export const perseguirCarro = (r) => despertarMonos(r.monos, r.carro.pos, alertaDe(r))
+
 /** ¿Llegó a la pelota? (en el bosque alcanza con acercarse: el último tramo, a pie) */
 export function carroLlego(campo, carro, pelota) {
   const lejos = NO_SE_PASA.has(celda(campo, pelota)) ? CARRITO.llegarBosque : CARRITO.llegar
@@ -434,7 +477,7 @@ export function crearMonos() {
   return HOYOS.flatMap((h) => h.monos.map((m) => ({ m, hoyo: h.n, pos: [...m.a], hacia: 'b', espera: m.fase % 6, modo: 'ronda', reaccion: 0 })))
 }
 /** Un mono está "en la cancha" (se lo puede golpear) cuando camina o caza; esperando en los pinos, no. */
-export const monoActivo = (s) => s.modo === 'caza' || s.espera <= 0
+export const monoActivo = (s) => s.modo !== 'aplastado' && (s.modo === 'caza' || s.espera <= 0)
 
 function caminar(s, destino, vel, dt) {
   const d = dist(s.pos, destino)
@@ -451,6 +494,7 @@ function caminar(s, destino, vel, dt) {
 export function moverMonos(monos, dt, pelota) {
   let llego = null
   for (const s of monos) {
+    if (s.modo === 'aplastado') continue // el que pisó el carrito de Marcos queda ahí
     if (s.modo === 'caza') {
       if (s.pancho) {
         // la Mugre le tiró un pancho: va, se lo come y después vuelve a la pelota (más rápido)
@@ -478,7 +522,7 @@ export function moverMonos(monos, dt, pelota) {
 export function despertarMonos(monos, pelota, alerta = MONO.alerta) {
   let n = 0
   for (const s of monos) {
-    if (dist(s.pos, pelota) > alerta) continue
+    if (s.modo === 'aplastado' || dist(s.pos, pelota) > alerta) continue
     if (s.modo !== 'caza') {
       s.modo = 'caza'
       s.reaccion = MONO.reaccion
@@ -1145,9 +1189,19 @@ export function cerrarHoyo(r, rng) {
 export function totales(tarjeta) {
   const par = tarjeta.reduce((s, f) => s + f.par, 0)
   const lp = tarjeta.some((f) => f.lp)
-  const golpes = lp ? null : tarjeta.reduce((s, f) => s + f.golpes, 0)
+  // Marcos: la apuesta de "¿jugaste con Rorro?" (−1 o +1 al total; ver apostarRorro)
+  const golpes = lp ? null : tarjeta.reduce((s, f) => s + f.golpes, 0) + (tarjeta.rorro ?? 0)
   return { golpes, par, vsPar: lp ? null : golpes - par, lp }
 }
+/**
+ * Marcos, al final de la vuelta: "¿Jugaste con Rorro?". Si dice que sí es una apuesta: 50 y 50 de que le reste
+ * un golpe al total o de que le sume uno. Queda en la tarjeta (`tarjeta.rorro`, que `totales` suma). Devuelve −1 o +1.
+ */
+export function apostarRorro(r, rng) {
+  r.tarjeta.rorro = rng() < 0.5 ? -1 : 1
+  return r.tarjeta.rorro
+}
+
 // ── ranking: arriba el de menos golpes; a igual golpes, el más rápido (al milisegundo) ──
 export const compararMarcas = (a, b) => a.golpes - b.golpes || a.ms - b.ms
 
@@ -1370,7 +1424,7 @@ export function textoCompartir(r, firmada) {
   const { vsPar } = totales(r.tarjeta)
   const j = r.jugador
   const score = r.lp ? `LP 💅 (levantó en el ${r.lp})` : firmada ? formatoPar(vsPar) : `${NETO_SIN_FIRMA} neto (no firmó la tarjeta)`
-  const hoyos = r.tarjeta.map((f) => (f.lp ? 'LP' : f.golpes)).join(' · ')
+  const hoyos = r.tarjeta.map((f) => (f.lp ? 'LP' : f.golpes)).join(' · ') + (r.tarjeta.rorro ? ` · 🥃 Rorro ${r.tarjeta.rorro > 0 ? '+1' : '−1'}` : '')
   return [
     '⛳ LA TRAMPA DEL MONO · SDGA',
     `${j.emoji} ${j.apodo} (HCP ${j.hcp ?? '—'}): ${score} (${hoyos})`,

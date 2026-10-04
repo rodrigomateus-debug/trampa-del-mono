@@ -305,17 +305,54 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 #sonido { pointer-events: auto; cursor: pointer; border: 0; width: 40px; padding: 0; justify-content: center; font-size: 17px; }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
-/* el carrito de Marcos: los mandos (solo mientras manejás) */
-#mandos { position: fixed; left: 0; right: 0; bottom: calc(var(--safe-bot) + 18px); z-index: 25; display: none; justify-content: space-between; align-items: flex-end; padding: 0 16px; pointer-events: none; }
+/* el carrito de Marcos: los mandos (solo mientras manejás), con la pinta del SDGA: crema, verde, dorado y Anton */
+#mandos { position: fixed; left: 0; right: 0; bottom: calc(var(--safe-bot) + 16px); z-index: 25; display: none; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 0 14px; pointer-events: none; }
 body.manejando #mandos { display: flex; }
-#mandos .grupo { display: flex; gap: 12px; align-items: flex-end; pointer-events: auto; }
-#mandos button { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; border: 3px solid var(--cream); color: var(--cream); background: rgba(12, 43, 28, .78); box-shadow: 0 6px 16px rgba(8, 26, 16, .45); font-family: var(--font-display); cursor: pointer; display: grid; place-items: center; transition: transform 90ms var(--ease-snap), background 90ms; }
-#mandos .dir { width: 74px; height: 74px; border-radius: 50%; font-size: 30px; }
-#mandos #m-acel { width: 104px; height: 104px; border-radius: 50%; background: var(--gold); color: var(--green-900); font-size: 17px; letter-spacing: .04em; line-height: 1; }
-#mandos #m-acel small { display: block; font-size: 26px; }
-#mandos #m-reversa { width: 66px; height: 66px; border-radius: 50%; font-size: 13px; letter-spacing: .06em; }
-#mandos button.on { transform: scale(.92); background: var(--cream); color: var(--green-900); }
-#mandos #m-acel.on { background: #f3d76e; }
+#mandos .grupo { display: flex; gap: 10px; align-items: flex-end; pointer-events: auto; }
+#mandos button { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; cursor: pointer; font-family: var(--font-display); letter-spacing: .05em; display: grid; place-items: center; padding: 0; transition: transform 80ms var(--ease-snap), box-shadow 80ms, filter 80ms; }
+/* el volante: dos discos crema con el chevron verde */
+#mandos .dir { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--green-900); background: var(--cream); color: var(--green-900); box-shadow: 0 5px 0 var(--green-900), 0 10px 18px rgba(8, 26, 16, .45); }
+#mandos .dir svg { width: 30px; height: 30px; }
+#mandos .dir.on { transform: translateY(4px); box-shadow: 0 1px 0 var(--green-900), 0 4px 10px rgba(8, 26, 16, .4); background: var(--gold); }
+/* los pedales: estrías de goma; el acelerador dorado, el freno crema con letras rojas */
+#mandos .pedal { border: 3px solid var(--green-900); border-radius: 20px 20px 14px 14px; color: var(--green-900); line-height: 1; text-align: center; background-image: repeating-linear-gradient(0deg, rgba(12, 43, 28, .13) 0 4px, transparent 4px 11px); }
+#mandos #m-acel { width: 86px; height: 120px; background-color: var(--gold); font-size: 16px; box-shadow: 0 6px 0 var(--green-900), 0 12px 20px rgba(8, 26, 16, .45); }
+#mandos #m-freno { width: 72px; height: 92px; background-color: var(--cream); color: var(--red); font-size: 15px; box-shadow: 0 6px 0 var(--green-900), 0 12px 20px rgba(8, 26, 16, .45); }
+#mandos .pedal b { display: block; font-size: 24px; margin-bottom: 4px; }
+#mandos .pedal.on { transform: translateY(5px); box-shadow: 0 1px 0 var(--green-900), 0 4px 10px rgba(8, 26, 16, .4); filter: brightness(1.06); }
+#mandos .col { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+#mandos #m-reversa { height: 34px; padding: 0 12px; border-radius: 999px; border: 2px solid var(--cream); background: var(--green-900); color: var(--cream); font-size: 13px; box-shadow: 0 4px 10px rgba(8, 26, 16, .4); }
+#mandos #m-reversa.on { background: var(--cream); color: var(--green-900); transform: translateY(2px); }
+/* el velocímetro: se llena de dorado y en el turbo se pone al rojo */
+#m-velo { position: absolute; left: 50%; bottom: calc(100% + 12px); transform: translateX(-50%); width: 132px; padding: 6px 9px 7px; border-radius: 12px; background: rgba(12, 43, 28, .82); border: 2px solid rgba(244, 238, 218, .5); color: var(--cream); font: 13px var(--font-display); letter-spacing: .08em; text-align: center; pointer-events: none; }
+#m-velo .barra { height: 7px; margin-top: 4px; border-radius: 4px; background: rgba(244, 238, 218, .2); overflow: hidden; }
+#m-velo .barra i { display: block; height: 100%; width: 0; background: var(--gold); border-radius: 4px; transition: width 80ms linear; }
+#m-velo.turbo { border-color: var(--gold); }
+#m-velo.turbo .barra i { background: linear-gradient(90deg, var(--gold), #e8712e 60%, var(--red)); }
+#m-velo.colea { animation: velo-tiembla 120ms linear infinite; }
+@keyframes velo-tiembla { 0%, 100% { transform: translateX(-50%); } 50% { transform: translateX(calc(-50% + 2px)) rotate(-1deg); } }
+/* Marcos, al final: "¿Jugaste con Rorro?" (la apuesta), un modal orgánico */
+#rorro { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(8, 26, 16, .62); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+#rorro[hidden] { display: none; }
+#rorro .carta-rorro { position: relative; width: min(340px, 100%); padding: 72px 22px 22px; background: var(--cream); color: var(--green-900); text-align: center; border: 3px solid var(--green-900); box-shadow: 0 18px 40px rgba(8, 26, 16, .55); animation: rorro-entra 620ms cubic-bezier(.2, 1.3, .4, 1) both, rorro-blob 4.5s 620ms ease-in-out infinite; border-radius: 34px 28px 36px 26px / 28px 36px 26px 34px; }
+#rorro .cara { position: absolute; left: 50%; top: -54px; width: 112px; height: 112px; margin-left: -56px; border-radius: 50%; border: 4px solid var(--gold); object-fit: cover; background: var(--green-900); box-shadow: 0 8px 20px rgba(8, 26, 16, .45); animation: rorro-cara 2.4s ease-in-out infinite; }
+#rorro h2 { margin: 0; font: 34px/1 var(--font-display); letter-spacing: .02em; }
+#rorro p { margin: 10px 0 18px; font: 600 15px/1.35 var(--font-body); color: var(--text-muted, #4a5a50); }
+#rorro .botones { display: flex; gap: 10px; justify-content: center; }
+#rorro .botones .btn { flex: 1; font-size: 22px; height: 54px; }
+#rorro .resultado { display: none; }
+#rorro.jugado .pregunta { display: none; }
+#rorro.jugado .resultado { display: block; }
+#rorro .sello { display: inline-block; margin: 2px 0 10px; padding: 6px 18px; font: 64px/1 var(--font-display); border: 5px solid currentColor; border-radius: 18px; transform: rotate(-8deg); animation: rorro-sello 560ms cubic-bezier(.2, 1.6, .4, 1) both; }
+#rorro .gano .sello { color: #2e7d4f; }
+#rorro .perdio .sello { color: var(--red); }
+#rorro .lluvia { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+#rorro .lluvia span { position: absolute; top: -60px; font-size: 34px; animation: rorro-lluvia linear forwards; }
+@keyframes rorro-entra { 0% { opacity: 0; transform: translateY(40px) scale(.7) rotate(-6deg); } 100% { opacity: 1; transform: none; } }
+@keyframes rorro-blob { 0%, 100% { border-radius: 34px 28px 36px 26px / 28px 36px 26px 34px; } 33% { border-radius: 26px 38px 28px 34px / 36px 26px 34px 28px; } 66% { border-radius: 38px 26px 30px 36px / 26px 32px 38px 28px; } }
+@keyframes rorro-cara { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(3deg); } }
+@keyframes rorro-sello { 0% { opacity: 0; transform: scale(2.6) rotate(-20deg); } 100% { opacity: 1; transform: scale(1) rotate(-8deg); } }
+@keyframes rorro-lluvia { to { transform: translateY(calc(100vh + 120px)) rotate(360deg); } }
 /* Lucas (LG) en persona: con Rodal aparece abajo a la izquierda y lo adula con un globo de diálogo */
 #lucas { position: fixed; left: 0; bottom: 0; z-index: 30; width: min(46vw, 230px); pointer-events: none; opacity: 0; transform: translateY(70%) rotate(-7deg); transform-origin: 30% 100%; }
 #lucas.entra { animation: lucas-entra 620ms cubic-bezier(.2, 1.25, .4, 1) forwards; }
@@ -456,8 +493,27 @@ input { -webkit-user-select: text; user-select: text; }
 
 <div id="hud-bot" hidden></div>
 <div id="mandos" aria-label="Manejar el carrito">
-  <div class="grupo"><button class="dir" id="m-izq" type="button" aria-label="Izquierda">◀</button><button class="dir" id="m-der" type="button" aria-label="Derecha">▶</button></div>
-  <div class="grupo"><button id="m-reversa" type="button" aria-label="Reversa">REVERSA</button><button id="m-acel" type="button" aria-label="Acelerar"><span><small>▲</small>ACELERAR</span></button></div>
+  <div class="grupo">
+    <button class="dir" id="m-izq" type="button" aria-label="Izquierda"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="dir" id="m-der" type="button" aria-label="Derecha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 4 8 8-8 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+  <div id="m-velo" aria-hidden="true"><span>VELOCIDAD</span><div class="barra"><i></i></div></div>
+  <div class="grupo">
+    <div class="col"><button id="m-reversa" type="button" aria-label="Reversa">REVERSA</button><button class="pedal" id="m-freno" type="button" aria-label="Freno"><span><b>■</b>FRENO</span></button></div>
+    <button class="pedal" id="m-acel" type="button" aria-label="Acelerar"><span><b>▲</b>ACELE<br>RAR</span></button>
+  </div>
+</div>
+<div id="rorro" hidden role="dialog" aria-modal="true" aria-labelledby="rorro-titulo">
+  <div class="carta-rorro">
+    <img class="cara" src="jugadores/rorro.jpeg" alt="Rorro">
+    <div class="pregunta">
+      <h2 id="rorro-titulo">¿JUGASTE CON RORRO? 🥃</h2>
+      <p>Si jugaste con él, Rorro te anotó la tarjeta… y Rorro se equivoca.<br>50 y 50: un golpe menos o uno más.</p>
+      <div class="botones"><button class="btn" id="rorro-si" type="button">¡SÍ!</button><button class="btn oscuro" id="rorro-no" type="button">NO</button></div>
+    </div>
+    <div class="resultado"><div class="sello"></div><h2 class="titulo-res"></h2><p class="texto-res"></p></div>
+  </div>
+  <div class="lluvia" aria-hidden="true"></div>
 </div>
 <div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
@@ -882,8 +938,8 @@ function actualizar(dt) {
   }
   if (estado === 'manejar' && ronda?.carro) manejarCuadro(dt)
   if (ronda && estado !== 'tiro') {
-    // con la pelota quieta, los monos que cazan van hacia ella
-    const llego = M.moverMonos(ronda.monos, dt, estado === 'apuntar' ? ronda.pelota : null)
+    // con la pelota quieta, los monos que cazan van hacia ella (arriba del carrito, hacia el carrito)
+    const llego = M.moverMonos(ronda.monos, dt, estado === 'apuntar' ? ronda.pelota : estado === 'manejar' ? ronda.carro?.pos : null)
     if (llego && estado === 'apuntar') llegaronMonos(llego)
   }
   moverRafagas(dt)
@@ -983,7 +1039,7 @@ function aApuntar() {
   hud()
 }
 // ── el carrito de Marcos ──
-const mando = { acelerar: false, reversa: false, izq: false, der: false }
+const mando = { acelerar: false, frenar: false, reversa: false, izq: false, der: false }
 let manejo = null // { luego, a: 'pelota' | 'tee', choque: 0 }
 function empezarManejo(luego, a) {
   manejo = { luego, a, choque: 0 }
@@ -992,12 +1048,15 @@ function empezarManejo(luego, a) {
   document.body.classList.add('manejando')
   obj = vistaManejo(ronda.carro)
   velCam = 2.5
+  ruedasAntes = null
   relatar({ lg: a === 'tee' ? '🛺 Al tee del próximo hoyo' : '🛺 Arriba del carrito', verso: 'Manejá hasta la pelota: los árboles no se atraviesan' })
   hud()
 }
 function terminarManejo() {
   const luego = manejo?.luego
   manejo = null
+  M.calmarMonos(ronda.monos) // te bajás: los que te perseguían vuelven; la pelota la buscan desde cero
+  if (M.necesitaLP(ronda)) { document.body.classList.remove('manejando'); levantarVuelta(); return } // con las multas llegó a 10
   ronda.carro.v = 0
   for (const k in mando) mando[k] = false
   document.body.classList.remove('manejando')
@@ -1006,19 +1065,49 @@ function terminarManejo() {
 }
 /** La cámara del carrito: lo sigue de cerca, con la trompa para arriba y lugar adelante para ver a dónde va. */
 function vistaManejo(c) {
-  const adelante = 9 + Math.max(0, c.v) * 0.6
+  const adelante = 9 + Math.max(0, c.v) * 0.55
   // más rápido, la cámara se abre: se ve más lejos
-  return { cx: c.pos[0] + Math.cos(c.ang) * adelante, cy: c.pos[1] + Math.sin(c.ang) * adelante, esc: 6.5 - Math.max(0, c.v) * 0.12, rot: -Math.PI / 2 - c.ang, sy: H * 0.5, techo: obj?.techo ?? 120 }
+  return { cx: c.pos[0] + Math.cos(c.ang) * adelante, cy: c.pos[1] + Math.sin(c.ang) * adelante, esc: Math.max(2.6, 6.5 - Math.max(0, c.v) * 0.085), rot: -Math.PI / 2 - c.ang, sy: H * 0.5, techo: obj?.techo ?? 120 }
 }
+let huellas = [] // las marcas de goma cuando colea: { a, b, t } (las dos ruedas de atrás)
+let humo = [] // { p, t }
+let ruedasAntes = null
 function manejarCuadro(dt) {
   const c = ronda.carro
   if (M.manejar(campo, c, mando, dt) === 'choque' && performance.now() - manejo.choque > 400) { manejo.choque = performance.now(); S.palo() }
+  // coleando: marcas de goma de las ruedas de atrás y humito
+  const f = [Math.cos(c.ang), Math.sin(c.ang)], l = [-f[1], f[0]]
+  const atras = M.CARRITO.largo * 0.32, ancho = M.CARRITO.largo * 0.3
+  const ruedas = [-1, 1].map((sg) => [c.pos[0] - f[0] * atras + l[0] * ancho * sg, c.pos[1] - f[1] * atras + l[1] * ancho * sg])
+  const ahora = performance.now()
+  if (c.colea && ruedasAntes) {
+    for (let k = 0; k < 2; k++) huellas.push({ a: ruedasAntes[k], b: ruedas[k], t: ahora })
+    if (Math.random() < 0.5) humo.push({ p: ruedas[Math.random() < 0.5 ? 0 : 1], t: ahora })
+  }
+  ruedasAntes = ruedas
+  if (huellas.length > 600) huellas.splice(0, huellas.length - 600)
+  // el velocímetro
+  const vel = Math.abs(c.v), velo = $('#m-velo')
+  velo.querySelector('i').style.width = `${Math.min(100, (vel / M.CARRITO.turbo) * 100)}%`
+  const turbo = vel > M.CARRITO.vmax + 0.5
+  velo.classList.toggle('turbo', turbo)
+  velo.classList.toggle('colea', c.colea)
+  velo.querySelector('span').textContent = c.colea ? '¡COLEANDO!' : turbo ? '🔥 TURBO' : 'VELOCIDAD'
   obj = vistaManejo(c)
   velCam = 3.2
+  // los monos lo persiguen; el que pisás queda aplastado y es un golpe de multa
+  if (M.perseguirCarro(ronda) && !manejo.avisado) { manejo.avisado = true; S.monosVienen() }
+  for (const s of M.atropellar(ronda)) {
+    S.robo()
+    pisados.push({ p: [...s.pos], t: ahora })
+    relatar({ lg: `🐒 ¡Pisaste un mono! +1 golpe`, verso: ronda.aplastados > 1 ? `Ya van ${ronda.aplastados} aplastados` : 'Queda ahí, de recuerdo' })
+    hud()
+  }
   if (M.carroLlego(campo, c, ronda.pelota)) terminarManejo()
 }
+let pisados = [] // el "+1" que sube donde pisaste un mono
 // los mandos en pantalla (multitáctil: cada botón con su dedo) y las flechas / WASD
-for (const [id, k] of [['m-izq', 'izq'], ['m-der', 'der'], ['m-acel', 'acelerar'], ['m-reversa', 'reversa']]) {
+for (const [id, k] of [['m-izq', 'izq'], ['m-der', 'der'], ['m-acel', 'acelerar'], ['m-freno', 'frenar'], ['m-reversa', 'reversa']]) {
   const b = document.getElementById(id)
   const on = (e) => { e.preventDefault(); if (estado !== 'manejar') return; mando[k] = true; b.classList.add('on'); try { b.setPointerCapture(e.pointerId) } catch {} }
   const off = () => { mando[k] = false; b.classList.remove('on') }
@@ -1026,7 +1115,7 @@ for (const [id, k] of [['m-izq', 'izq'], ['m-der', 'der'], ['m-acel', 'acelerar'
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, off)
   b.addEventListener('contextmenu', (e) => e.preventDefault())
 }
-const TECLAS = { ArrowUp: 'acelerar', w: 'acelerar', ArrowDown: 'reversa', s: 'reversa', ArrowLeft: 'izq', a: 'izq', ArrowRight: 'der', d: 'der' }
+const TECLAS = { ArrowUp: 'acelerar', w: 'acelerar', ' ': 'frenar', ArrowDown: 'reversa', s: 'reversa', ArrowLeft: 'izq', a: 'izq', ArrowRight: 'der', d: 'der' }
 window.addEventListener('keydown', (e) => { const k = TECLAS[e.key]; if (k && estado === 'manejar') { mando[k] = true; e.preventDefault() } })
 window.addEventListener('keyup', (e) => { const k = TECLAS[e.key]; if (k) mando[k] = false })
 
@@ -1242,7 +1331,7 @@ function pintarVoz() {
     extra = ronda.panchos ? `…o tirales un pancho 🌭 (te quedan ${ronda.panchos})` : 'Si llegan, se la llevan: al tee con un golpe de multa'
   } else if (estado === 'manejar' && ronda?.carro) {
     const yd = Math.round(M.aYardas(ronda, M.dist(ronda.carro.pos, ronda.pelota)))
-    clase = ''; dice = manejo?.a === 'tee' ? `🛺 Al tee: ${yd} yd` : `🛺 A la pelota: ${yd} yd`; extra = 'Acelerá, doblá y no le pegues a los árboles'
+    clase = ''; dice = manejo?.a === 'tee' ? `🛺 Al tee: ${yd} yd` : `🛺 A la pelota: ${yd} yd`; extra = 'Mantené el acelerador para el turbo; rápido y doblando, colea'
   } else if (voz && performance.now() < voz.hasta) {
     clase = ''; dice = voz.lg; extra = voz.extra
   } else if (estado === 'apuntar' && !datos.vistoTip) {
@@ -1616,6 +1705,21 @@ function dibujarMonos() {
   ctx.textBaseline = 'middle'
   for (const s of ronda.monos) {
     let [x, y] = w2s(s.pos)
+    if (s.modo === 'aplastado') {
+      // aplastado por el carrito: chato, de costado, con estrellitas
+      if (x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1) continue
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.rotate((s.aplastadoAng ?? 0) + cam.rot + Math.PI / 2)
+      ctx.scale(1.35, 0.32)
+      ctx.globalAlpha = 0.9
+      ctx.font = `${tam}px ${EMOJI}`
+      ctx.fillText('🐒', 0, 0)
+      ctx.restore()
+      ctx.font = `${Math.round(tam * 0.45)}px ${EMOJI}`
+      ctx.fillText('💫', x + tam * 0.4, y - tam * 0.35 + Math.sin(ahora * 4 + s.m.fase) * 2)
+      continue
+    }
     const activo = M.monoActivo(s)
     const salta = activo && !(s.modo === 'caza' && s.reaccion > 0) ? Math.abs(Math.sin(ahora * 12 + s.m.fase)) * 4 : 0
     const afuera = x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1
@@ -1746,6 +1850,38 @@ function bandera([x, y], n, actual, color = 'blanca') {
 
 /** El carrito verde de Marcos, visto de arriba (con su bolsa atrás). Manejando: el destino y una flecha hacia la pelota. */
 function dibujarCarro(c) {
+  const ahora = performance.now()
+  // las marcas de goma (se borran de a poco) y el humo
+  if (huellas.length && ahora - huellas[0].t > 7000) huellas = huellas.filter((h) => ahora - h.t < 7000)
+  if (humo.length && ahora - humo[0].t > 900) humo = humo.filter((h) => ahora - h.t < 900)
+  ctx.lineCap = 'round'
+  ctx.lineWidth = Math.max(2, 0.32 * cam.esc)
+  for (const h of huellas) {
+    const [ax, ay] = w2s(h.a), [bx, by] = w2s(h.b)
+    ctx.strokeStyle = `rgba(28,22,16,${0.42 * (1 - (ahora - h.t) / 7000)})`
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke()
+  }
+  for (const h of humo) {
+    const u = (ahora - h.t) / 900
+    const [hx, hy] = w2s(h.p)
+    ctx.fillStyle = `rgba(244,238,218,${0.5 * (1 - u)})`
+    ctx.beginPath(); ctx.arc(hx, hy, 4 + u * 14, 0, 7); ctx.fill()
+  }
+  // el "+1" de cada mono pisado, que sube y se apaga
+  if (pisados.length && ahora - pisados[0].t > 1600) pisados = pisados.filter((p) => ahora - p.t < 1600)
+  for (const p of pisados) {
+    const u = (ahora - p.t) / 1600
+    const [px, py] = w2s(p.p)
+    ctx.globalAlpha = 1 - u
+    ctx.font = '28px Anton, "Arial Narrow", sans-serif'
+    ctx.textAlign = 'center'
+    ctx.lineWidth = 4
+    ctx.strokeStyle = C.g900
+    ctx.strokeText('+1', px, py - 20 - u * 40)
+    ctx.fillStyle = C.red
+    ctx.fillText('+1', px, py - 20 - u * 40)
+    ctx.globalAlpha = 1
+  }
   const [x, y] = w2s(c.pos)
   const L = Math.max(44, M.CARRITO.largo * cam.esc * 1.5), A = L * 0.58
   if (estado === 'manejar') {
@@ -2106,7 +2242,46 @@ function dibujarApunte(a) {
 
 // ── tarjeta final ──
 let firmaTimer = 0, firmaHasta = 0, firmada = false
+/** Marcos, al final: "¿Jugaste con Rorro?" (la apuesta). Después, la tarjeta. */
+function preguntarRorro(luego) {
+  const el = $('#rorro')
+  el.className = ''
+  el.querySelector('.resultado').className = 'resultado'
+  el.querySelector('.lluvia').innerHTML = ''
+  el.hidden = false
+  el.onclick = null
+  const cerrarRorro = () => { el.hidden = true; luego() }
+  $('#rorro-no').onclick = () => { ronda.tarjeta.rorro = 0; S.lamento?.(); cerrarRorro() }
+  $('#rorro-si').onclick = () => {
+    const d = M.apostarRorro(ronda, rng)
+    const gano = d < 0
+    const res = el.querySelector('.resultado')
+    res.classList.add(gano ? 'gano' : 'perdio')
+    res.querySelector('.sello').textContent = gano ? '−1' : '+1'
+    res.querySelector('.titulo-res').textContent = 'RORRO SE EQUIVOCÓ AL ANOTAR'
+    res.querySelector('.texto-res').textContent = gano ? '…y te anotó un golpe menos. Vos calladito y firmá rápido 🤫🥃' : '…y te anotó un golpe de más. Reclamale en el hoyo 19 🥃'
+    el.classList.add('jugado')
+    if (gano) S.monoBueno(); else S.lamento()
+    // la lluvia: vasitos de whisky si ganó, billetes si perdió
+    const lluvia = el.querySelector('.lluvia')
+    for (let i = 0; i < 26; i++) {
+      const e = document.createElement('span')
+      e.textContent = gano ? (i % 3 ? '🥃' : '⛳') : (i % 3 ? '💸' : '😬')
+      e.style.left = `${Math.random() * 100}%`
+      e.style.animationDuration = `${1.6 + Math.random() * 1.6}s`
+      e.style.animationDelay = `${Math.random() * 0.8}s`
+      lluvia.appendChild(e)
+    }
+    // se lee y se va solo (o tocás y seguís)
+    let listo = false
+    const seguir = () => { if (listo) return; listo = true; clearTimeout(t); el.onclick = null; cerrarRorro() }
+    const t = setTimeout(seguir, 4200)
+    setTimeout(() => { el.onclick = seguir }, 700)
+  }
+}
 function tarjetaFinal() {
+  // Marcos: antes de la tarjeta, la apuesta de Rorro (una vez; si levantó, no hay apuesta)
+  if (M.usaCarrito(ronda) && !ronda.lp && ronda.tarjeta.rorro === undefined) { estado = 'fin'; preguntarRorro(tarjetaFinal); return }
   R.contarVuelta({ apodo: ronda.jugador.apodo, lp: !!ronda.lp })
   pintarConteo()
   S.viento(0)
@@ -2128,6 +2303,7 @@ function tarjetaFinal() {
     const marca = f.lp || f.golpes > f.par ? 'sobre' : f.golpes < f.par ? 'bajo' : ''
     return `<tr><td>${f.n}</td><td class="num">${f.par}</td><td class="num">${f.golpes ?? '—'}</td><td class="res"><i class="${marca}"></i>${nombre === 'LP' ? 'LP 💅' : nombre}</td></tr>`
   })
+  if (ronda.tarjeta.rorro) filas.push(`<tr><td>🥃</td><td class="num">—</td><td class="num">${ronda.tarjeta.rorro > 0 ? '+1' : '−1'}</td><td class="res"><i class="${ronda.tarjeta.rorro > 0 ? 'sobre' : 'bajo'}"></i>Rorro anotó mal</td></tr>`)
   const t = M.totales(ronda.tarjeta)
   filas.push(`<tr class="total"><td>TOTAL</td><td class="num">${t.par}</td><td class="num">${t.golpes ?? '—'}</td><td class="res"><span class="band" style="font-family: var(--font-display); font-size: 22px; font-weight: 400">${M.formatoPar(t.vsPar)}</span></td></tr>`)
   $('#t-filas').innerHTML = filas.join('')

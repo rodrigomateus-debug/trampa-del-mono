@@ -449,10 +449,88 @@ ok('Marcos: el carrito acelera, dobla, frena solo, no atraviesa árboles y llega
   let choco = false
   for (let i = 0; i < 300; i++) { if (M.manejar(campo, t, { acelerar: true }, 1 / 60) === 'choque') choco = true; assert.notEqual(M.celda(campo, t.pos), 't') }
   assert.ok(choco, 'chocó contra el árbol')
+  // frena: con el freno para mucho antes que soltando
+  const fr = M.crearCarro([48, 200], -Math.PI / 2), su = M.crearCarro([48, 200], -Math.PI / 2)
+  for (const k of [fr, su]) { k.v = 14 }
+  for (let i = 0; i < 30; i++) { M.manejar(campo, fr, { frenar: true }, 1 / 60); M.manejar(campo, su, {}, 1 / 60) }
+  assert.equal(fr.v, 0)
+  assert.ok(su.v > 8)
+  // en una cancha toda de fairway (para tener lugar): de menos a más, hasta el triple
+  const liso = { ...campo, cancha: { ...campo.cancha, filas: campo.cancha.filas.map((f) => 'f'.repeat(f.length)) } }
+  const rapido = M.crearCarro([110, 440], -Math.PI / 2)
+  const vel = []
+  for (let i = 1; i <= 60 * 16; i++) { M.manejar(liso, rapido, { acelerar: true }, 1 / 60); if (i % 60 === 0) { vel.push(rapido.v); rapido.pos = [110, 400] } } // (cada segundo, de vuelta abajo: lo que importa es la velocidad)
+  assert.ok(vel[0] <= M.CARRITO.vmax + 0.1, `al segundo, ${vel[0]}`) // primero, lo normal
+  assert.ok(vel[1] < M.CARRITO.vmax + 3, `a los 2 s, ${vel[1]}`) // y el turbo arranca de a poco
+  assert.ok(vel[6] > M.CARRITO.vmax + 5 && vel[6] < M.CARRITO.turbo - 5, `a los 7 s, ${vel[6]}`) // después sigue subiendo
+  assert.ok(vel[15] > M.CARRITO.turbo * 0.95 && vel[15] <= M.CARRITO.turbo, `a los 16 s, ${vel[15]}`) // casi el triple
+  // colea: rápido y doblando la cola se va; despacio, no
+  const co = M.crearCarro([110, 300], -Math.PI / 2)
+  co.v = 30
+  let coleo = false
+  for (let i = 0; i < 40; i++) { M.manejar(liso, co, { acelerar: true, der: true }, 1 / 60); if (co.colea) coleo = true }
+  assert.ok(coleo, 'rápido, colea')
+  const lento = M.crearCarro([110, 300], -Math.PI / 2)
+  lento.v = 8
+  for (let i = 0; i < 40; i++) { M.manejar(liso, lento, { acelerar: true, der: true }, 1 / 60); assert.ok(!lento.colea, 'despacio no colea') }
+  // freno de mano: frenando y doblando, también colea
+  const fm = M.crearCarro([110, 300], -Math.PI / 2)
+  fm.v = 14
+  let coleoFreno = false
+  for (let i = 0; i < 30; i++) { M.manejar(liso, fm, { frenar: true, izq: true }, 1 / 60); if (fm.colea) coleoFreno = true }
+  assert.ok(coleoFreno, 'freno y doblo: colea')
   // llegar a la pelota
   assert.ok(M.carroLlego(campo, M.crearCarro([50, 200]), [52, 202]))
   assert.ok(!M.carroLlego(campo, M.crearCarro([50, 200]), [50, 220]))
   assert.ok(M.carroLlego(campo, M.crearCarro([ini[0] + 1, ini[1]]), [ini[0] + 9, ini[1]]), 'en el bosque, el último tramo a pie')
+})
+
+ok('Marcos: los monos persiguen el carrito; si pisás uno queda aplastado y es +1 golpe', () => {
+  const r = M.nuevaRonda({ apodo: 'El Flaco Ordoñez', emoji: '🏎️', hcp: 7.2 }, fijo(0.5))
+  r.carro = M.crearCarro([48, 200], -Math.PI / 2)
+  r.monos = [{ ...r.monos[0], pos: [48, 170], modo: 'ronda', espera: 0 }, { ...r.monos[1], pos: [120, 400], modo: 'ronda', espera: 0 }]
+  assert.equal(M.perseguirCarro(r), 1) // el cercano sale a buscar el carrito
+  for (let i = 0; i < 120; i++) M.moverMonos(r.monos, 1 / 60, r.carro.pos)
+  assert.ok(M.dist(r.monos[0].pos, r.carro.pos) < 30, 'se acerca al carrito')
+  // quieto, no lo pisa
+  r.monos[0].pos = [48, 199]
+  assert.deepEqual(M.atropellar(r), [])
+  // andando, sí: +1 golpe y queda aplastado (no camina más ni roba)
+  const antes = r.golpes
+  r.carro.v = 10
+  assert.equal(M.atropellar(r).length, 1)
+  assert.equal(r.golpes, antes + 1)
+  assert.equal(r.monos[0].modo, 'aplastado')
+  assert.ok(!M.monoActivo(r.monos[0]))
+  const quieto = [...r.monos[0].pos]
+  M.moverMonos(r.monos, 1, r.carro.pos)
+  assert.deepEqual(r.monos[0].pos, quieto)
+  assert.equal(M.despertarMonos(r.monos, quieto), 0)
+  // el mismo mono no se cuenta dos veces
+  assert.equal(M.atropellar(r).length, 0)
+  assert.equal(r.aplastados, 1)
+})
+
+ok('Marcos: "¿jugaste con Rorro?" es una apuesta: 50 y 50 de −1 o +1 al total', () => {
+  const vuelta = () => {
+    const r = M.nuevaRonda({ apodo: 'El Flaco Ordoñez', emoji: '🏎️', hcp: 7.2 }, fijo(0.5))
+    r.tarjeta.push({ n: 15, par: 4, golpes: 4, lp: false }, { n: 16, par: 4, golpes: 5, lp: false }, { n: 17, par: 3, golpes: 3, lp: false })
+    return r
+  }
+  const sin = vuelta()
+  assert.equal(M.totales(sin.tarjeta).golpes, 12)
+  const gana = vuelta()
+  assert.equal(M.apostarRorro(gana, fijo(0.2)), -1)
+  assert.equal(M.totales(gana.tarjeta).golpes, 11)
+  assert.equal(M.totales(gana.tarjeta).vsPar, 0)
+  const pierde = vuelta()
+  assert.equal(M.apostarRorro(pierde, fijo(0.8)), 1)
+  assert.equal(M.totales(pierde.tarjeta).golpes, 13)
+  // más o menos la mitad y la mitad
+  let menos = 0
+  const rng = M.rngDesde(7)
+  for (let i = 0; i < 400; i++) if (M.apostarRorro(vuelta(), rng) < 0) menos++
+  assert.ok(menos > 160 && menos < 240, `${menos} de 400`)
 })
 
 ok('más handicap, más difícil: más error y menos distancia', () => {
