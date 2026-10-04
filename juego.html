@@ -401,9 +401,40 @@ body.manejando #mandos { display: flex; }
 @keyframes sec-letra { 0% { opacity: 0; transform: translateY(-26px) scale(2.2) rotate(-12deg); } 100% { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { #secreto *, #secreto { animation-duration: 1ms !important; animation-iteration-count: 1 !important; } }
 /* la carta de Demetrio: dorada y retro */
-.carta.dorada { background: linear-gradient(170deg, #fbe9ad, #e8c35b 40%, #c8952c 75%, #f2d47e); color: #2b1d08; box-shadow: 0 0 0 3px #7a5a1c, 0 0 0 6px #f3d27a, 0 0 34px rgba(255, 210, 100, .6), 0 10px 30px rgba(12, 43, 28, .45); }
-.carta.dorada .carta-foto { margin: 10px 10px 0; border-radius: 16px; overflow: hidden; background: #3b2a12; box-shadow: inset 0 0 0 2px #7a5a1c; }
-.carta.dorada .carta-foto img:not(.carta-dicky) { filter: sepia(.55) contrast(1.05) saturate(.9); }
+/* lámina dorada de metal (con vetas de cepillado) + foil holográfico que se mueve solo y sigue el dedo */
+@property --holo-ang { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
+@property --hx { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+@property --hy { syntax: '<percentage>'; inherits: true; initial-value: 30%; }
+.carta.dorada { position: relative; isolation: isolate; color: #2b1d08; border: 5px solid transparent; border-radius: 24px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .07) 0 1px, transparent 1px 3px) padding-box,
+    linear-gradient(135deg, #fbe7a1 0%, #e9bf4e 14%, #b47a1b 30%, #f3d273 46%, #a86f15 62%, #ecc65f 78%, #946010 92%, #e8c562 100%) padding-box,
+    conic-gradient(from var(--holo-ang), #ffd36e, #ff8fb6, #b68cff, #6fd0ff, #7dffc5, #fff08a, #ffd36e) border-box;
+  box-shadow: 0 0 0 2px #6b4a12, 0 0 30px rgba(255, 210, 100, .75), 0 0 70px rgba(180, 140, 255, .28), 0 12px 32px rgba(12, 43, 28, .5);
+  animation: holo-borde 5s linear infinite, holo-paseo 7s ease-in-out infinite; }
+/* el arcoíris del foil (encima de todo, también de la foto: como las cartas holográficas de verdad) */
+.carta.dorada::before { content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit; mix-blend-mode: color-dodge; opacity: .34;
+  background:
+    repeating-linear-gradient(115deg, #ff6fa8 0%, #ffcf5a 7%, #6dffbf 14%, #5cc6ff 21%, #b884ff 28%, #ff6fa8 35%),
+    repeating-linear-gradient(25deg, rgba(255, 255, 255, .0) 0 10px, rgba(255, 255, 255, .22) 10px 11px);
+  background-size: 260% 260%, 100% 100%; background-position: var(--hx) var(--hy), 0 0;
+  -webkit-mask: radial-gradient(farthest-corner circle at var(--hx) var(--hy), #000 0%, rgba(0, 0, 0, .55) 45%, rgba(0, 0, 0, .25) 100%);
+  mask: radial-gradient(farthest-corner circle at var(--hx) var(--hy), #000 0%, rgba(0, 0, 0, .55) 45%, rgba(0, 0, 0, .25) 100%); }
+/* el brillo: una mancha de luz donde pega la luz y destellitos de purpurina */
+.carta.dorada::after { content: ''; position: absolute; inset: 0; z-index: 6; pointer-events: none; border-radius: inherit; mix-blend-mode: overlay;
+  background:
+    radial-gradient(farthest-corner circle at var(--hx) var(--hy), rgba(255, 255, 255, .6) 0%, rgba(255, 255, 255, .18) 22%, transparent 46%),
+    radial-gradient(circle at 18% 22%, #fff 0 1px, transparent 2px), radial-gradient(circle at 72% 14%, #fff 0 1.2px, transparent 2.4px),
+    radial-gradient(circle at 84% 58%, #fff 0 1px, transparent 2px), radial-gradient(circle at 33% 71%, #fff 0 1.3px, transparent 2.6px),
+    radial-gradient(circle at 57% 88%, #fff 0 1px, transparent 2px), radial-gradient(circle at 9% 54%, #fff 0 1.1px, transparent 2.2px);
+  animation: holo-destellos 2.4s ease-in-out infinite; }
+.carta.dorada.tocando { animation: holo-borde 5s linear infinite; } /* el dedo manda: el foil sigue al dedo */
+@keyframes holo-borde { to { --holo-ang: 360deg; } }
+@keyframes holo-paseo { 0%, 100% { --hx: 18%; --hy: 12%; } 25% { --hx: 82%; --hy: 30%; } 50% { --hx: 70%; --hy: 85%; } 75% { --hx: 22%; --hy: 66%; } }
+@keyframes holo-destellos { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .carta.dorada { animation: none; } .carta.dorada::after { animation: none; } }
+.carta.dorada .carta-foto { margin: 9px 9px 0; border-radius: 16px; overflow: hidden; background: #3b2a12; box-shadow: 0 0 0 2px #7a5a1c, 0 0 0 4px #f6dc8d, 0 0 0 5px #7a5a1c; }
+.carta.dorada .carta-foto img:not(.carta-dicky) { filter: sepia(.55) contrast(1.08) saturate(.9) brightness(.86); }
 .carta.dorada .carta-foto::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(40, 24, 6, .55)); }
 .carta.dorada .carta-degrade { background: linear-gradient(to top, rgba(43, 29, 8, .92), transparent); }
 .carta.dorada .carta-nivel { background: #2b1d08; color: #f3d27a; }
@@ -414,7 +445,8 @@ body.manejando #mandos { display: flex; }
 .carta.dorada dt, .carta.dorada dd .sub { color: #6b4c16; }
 .carta.dorada .carta-prev { background: #2b1d08; }
 .carta.dorada .carta-prev b { color: #f3d27a; }
-.carta.dorada .carta-jugar { background: #2b1d08; color: #f3d27a; box-shadow: inset 0 0 0 2px #f3d27a; }
+.carta.dorada .carta-jugar { position: relative; z-index: 7; background: linear-gradient(180deg, #3a2709, #1f1504); color: #ffe69a; box-shadow: inset 0 0 0 2px #f3d27a, 0 0 14px rgba(255, 210, 100, .5); }
+.carta.dorada .carta-prev { position: relative; z-index: 7; }
 .carta.dorada .sello-1960 { position: absolute; right: 12px; top: 44px; padding: 5px 9px 4px; font: 15px/1 var(--font-display); letter-spacing: .08em; color: #f3d27a; background: #2b1d08; border: 2px solid #f3d27a; border-radius: 8px; transform: rotate(6deg); }
 /* la cancha de Demetrio: 1960, sepia, viñeta y grano de película */
 body.retro #cancha { filter: sepia(.85) saturate(.8) contrast(1.06) brightness(.98); }
@@ -3544,6 +3576,21 @@ function cartaDe(j) {
     </div>
   </article>`
   el.querySelector('.carta-jugar').addEventListener('click', () => empezar(j))
+  if (j.retro) {
+    // la carta holográfica: la luz y el arcoíris siguen al dedo (o al mouse); al soltar, vuelven a pasear solos
+    const carta = el.querySelector('.carta')
+    const mover = (e) => {
+      const r = carta.getBoundingClientRect()
+      carta.classList.add('tocando')
+      carta.style.setProperty('--hx', `${Math.round(((e.clientX - r.left) / r.width) * 100)}%`)
+      carta.style.setProperty('--hy', `${Math.round(((e.clientY - r.top) / r.height) * 100)}%`)
+    }
+    const soltar = () => { carta.classList.remove('tocando'); carta.style.removeProperty('--hx'); carta.style.removeProperty('--hy') }
+    carta.addEventListener('pointermove', mover)
+    carta.addEventListener('pointerdown', mover)
+    carta.addEventListener('pointerleave', soltar)
+    carta.addEventListener('pointerup', soltar)
+  }
   el.querySelector('button.carta-prev')?.addEventListener('click', () => verHabilidad(j))
   el.addEventListener('pointerdown', mazoDown)
   el.addEventListener('pointermove', mazoMove)
