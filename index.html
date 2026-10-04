@@ -3033,20 +3033,20 @@ function dibujarFantasma() {
   ctx.textBaseline = 'alphabetic'
   ctx.globalAlpha = 1
 }
-/** El mensaje para el desafiado, armado con tu vuelta. */
+/** El mensaje para el desafiado, armado con tu vuelta. Sin tu score: que no sepa cómo te fue, así no se condiciona. */
 function mensajeDesafio(r, rival, mia) {
   const nombre = rival.nombre.split(' ')[0]
   const j = r.jugador
-  const vuelta = mia.lp ? `levanté la pelota (LP 💅), así que la vara está en el piso` : `hice ${mia.golpes} golpes (${M.formatoPar(mia.vsPar)}) en ${M.formatoTiempo(mia.ms)}`
-  const pique = mia.lp ? M.elegir(rng, ['Ni vos podés perder esto. ¿O sí? 🤔', 'Te la dejé servida. Si perdés, el Marshall te pone 110.'])
-    : mia.vsPar < 0 ? M.elegir(rng, ['Bajo par en la Trampa. Andá calentando, que esto no se empata solo. 🔥', 'Te dejé la vara por las nubes. Los monos todavía aplauden. 🐒👏'])
-    : mia.vsPar === 0 ? M.elegir(rng, ['Par redondo. Para ganarme vas a tener que jugar en serio. 😏', 'Ni un golpe de más. ¿Te animás o levantás?'])
-    : mia.vsPar <= 2 ? M.elegir(rng, ['Se puede mejorar, sí. Pero primero tenés que hacerlo vos. 😌', 'Los monos se llevaron algo, pero la tarjeta está firmada.'])
-    : M.elegir(rng, ['Fue una vuelta "con carácter". Igual te gano. 🙃', 'Sí, los monos ganaron esta. Vos no vas a ganar la próxima.'])
+  const pique = M.elegir(rng, [
+    '¿Cómo me fue? No te voy a decir. Lo vas a ver en vivo. 😏',
+    'Mi tarjeta está firmada y bajo llave. Si querés saber, jugá. 🔒',
+    'Los monos vieron todo, pero no hablan. 🐒🤐',
+    'Puede que haya sido la vuelta de mi vida. Puede que no. Averigualo.',
+  ])
   return [
     `⚔️ ${nombre}, quedaste DESAFIADO en La Trampa del Mono 🐒`,
     '',
-    `Jugué con ${j.emoji} ${j.apodo} y ${vuelta}.`,
+    `Ya jugué mi vuelta con ${j.emoji} ${j.apodo}.`,
     pique,
     '',
     `Te toca: mismo player (${j.emoji} ${j.apodo}), mismo viento y mismas banderas. Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
