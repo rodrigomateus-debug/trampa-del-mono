@@ -181,3 +181,5 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 ## Barra de estado y conteo (2026-10-04)
 - En la SDGApp el juego avisa el color de arriba de lo que muestra (`trampa:color`: intro/mazo `#1f5f3e`, menús `#16392a`, juego `#1c4630`) y la app tiñe la barra de estado del iPhone con ese color.
 - Conteo: cada vuelta que llega a la tarjeta final (firmada o no, LP incluido) se cuenta (`R.contarVuelta`): en el teléfono y, con sesión, en `trampa_vueltas` de la SDGApp. Portada: "Jugaste N vueltas · M LP 💅". Ranking: "Entre todos: X vueltas · Y LP (Z%)" en el general y "Con <player>: …" en cada pestaña, más lo tuyo.
+- Tarjeta final (2026-10-04, versión compacta elegida por Rorro): COMPARTIR MI VUELTA 📸 (grande, dorado: imagen + texto, el menú del teléfono elige WhatsApp/historias) · OTRA VUELTA y RANKING 🏆 en una fila · "Cambiar jugador" como link. Fuera MANDAR TEXTO y COPIAR. El pie de la imagen y el texto llevan `fedecup.vercel.app` (antes el link de GitHub).
+- Ranking general (Mundial y SDGA): cada fila dice "con <player>" debajo del nombre.

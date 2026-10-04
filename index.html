@@ -302,7 +302,7 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 .acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .acciones .ancho { grid-column: 1 / -1; }
 .acciones .btn { font-size: 16px; padding: 0 12px; }
-#copia { width: 100%; box-sizing: border-box; font: 13px/1.4 var(--font-body); border-radius: 10px; border: 1px solid var(--border-subtle); padding: 8px; color: var(--green-900); background: #fffdf5; }
+.acciones .link-chico { border: 0; background: transparent; color: var(--green-900); font: 700 14px var(--font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px 0 0; }
 
 /* ── comunicado del Marshall ── */
 .comunicado { width: min(100%, 400px); overflow: hidden; text-align: left; border-radius: 20px; }
@@ -538,12 +538,9 @@ input { -webkit-user-select: text; user-select: text; }
     <p class="rk-pos-final" id="t-ranking" hidden></p>
     <div class="acciones" id="t-acciones" hidden>
       <button class="btn ancho" id="compartir-img" type="button">COMPARTIR MI VUELTA 📸</button>
-      <a class="btn oscuro ancho" id="compartir" href="#" target="_blank" rel="noopener">MANDAR TEXTO AL GRUPO</a>
-      <button class="btn oscuro ancho" id="fin-ranking" type="button">VER RANKING 🏆</button>
-      <button class="btn oscuro" id="copiar" type="button">COPIAR</button>
       <button class="btn oscuro" id="otra" type="button">OTRA VUELTA</button>
-      <button class="btn oscuro ancho" id="cambiar" type="button">CAMBIAR JUGADOR</button>
-      <textarea id="copia" class="ancho" rows="4" readonly hidden></textarea>
+      <button class="btn oscuro" id="fin-ranking" type="button">RANKING 🏆</button>
+      <button class="link-chico ancho" id="cambiar" type="button">Cambiar jugador</button>
     </div>
   </div>
 </section>
@@ -590,11 +587,11 @@ input { -webkit-user-select: text; user-select: text; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=74fd9a2396'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=74fd9a2396'
+import * as M from './motor.js?v=1e7ab15403'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=1e7ab15403'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=74fd9a2396'
-import * as S from './sonido.js?v=74fd9a2396'
+import * as R from './ranking.js?v=1e7ab15403'
+import * as S from './sonido.js?v=1e7ab15403'
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 const promReal = (j) => DIFICULTAD_REAL[j.apodo]?.prom ?? 10 + (j.hcp ?? M.HCP_SIN_CARGAR) / 10
@@ -1875,7 +1872,6 @@ function tarjetaFinal() {
   $('#t-firma').hidden = false
   $('#t-firmada').hidden = true
   $('#t-acciones').hidden = true
-  $('#copia').hidden = true
   $('#fin').hidden = false
   firmaHasta = performance.now() + M.SEGUNDOS_FIRMA * 1000
   clearTimeout(firmaTimer)
@@ -1990,7 +1986,7 @@ async function imagenVuelta() {
   const lg = r.lp ? 'Entraste en la lista LP 💅' : adulado ? 'El Mago siempre gana' : !firmada ? 'El Marshall no perdona' : t.vsPar < 0 ? 'QUE HOMBRE' : t.vsPar === 0 ? 'Hermoso. Par y a casa' : t.vsPar <= 3 ? 'Tremendo. Nada que no arregle un approach' : 'La Trampa del Mono siempre tendrá la razón'
   g.fillStyle = '#f4eeda'; g.font = B(34, 400, 'italic'); g.fillText(`📺 LG: “${lg}”`, W2 / 2, y)
   g.font = B(24, 600); g.fillStyle = 'rgba(244,238,218,.7)'
-  g.fillText(`🐒 ${r.monosMalos} malos · ${r.monosBuenos} buenos · ${r.robos} robos   ·   rodrigomateus-debug.github.io/trampa-del-mono`, W2 / 2, H2 - 36)
+  g.fillText(`🐒 ${r.monosMalos} malos · ${r.monosBuenos} buenos · ${r.robos} robos   ·   fedecup.vercel.app`, W2 / 2, H2 - 36)
   const blob = await new Promise((ok) => c.toBlob(ok, 'image/png'))
   return { blob, url: URL.createObjectURL(blob) }
 }
@@ -2014,16 +2010,8 @@ $('#resumen-compartir').addEventListener('click', async () => {
 })
 
 function acciones() {
-  $('#compartir').href = 'https://wa.me/?text=' + encodeURIComponent(M.textoCompartir(ronda, firmada))
-  $('#copiar').textContent = 'COPIAR'
   $('#t-acciones').hidden = false
 }
-$('#copiar').addEventListener('click', () => {
-  const texto = M.textoCompartir(ronda, firmada)
-  const mostrar = () => { const ta = $('#copia'); ta.value = texto; ta.hidden = false; ta.focus(); ta.select() }
-  if (!navigator.clipboard) return mostrar()
-  navigator.clipboard.writeText(texto).then(() => { $('#copiar').textContent = 'COPIADO ✓' }, mostrar)
-})
 $('#otra').addEventListener('click', () => empezar(ronda.jugador))
 $('#fin-ranking').addEventListener('click', () => mostrarRanking(ronda?.jugador.apodo ?? 'general'))
 

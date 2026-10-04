@@ -1150,5 +1150,6 @@ export function textoCompartir(r, firmada) {
     ...(r.ms != null && !r.lp ? [`⏱ ${formatoTiempo(r.ms)}`] : []),
     `🐒 Monos: ${r.monosMalos} malos, ${r.monosBuenos} buenos, ${r.robos} robos`,
     'Hacerle poco a este tramo es casi un milagro.',
+    '👉 Jugalo en la SDGApp: fedecup.vercel.app (Más → Juegos)',
   ].join('\n')
 }
