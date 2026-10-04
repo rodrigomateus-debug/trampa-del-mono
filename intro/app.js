@@ -3,6 +3,8 @@
 // Al final queda la pantalla de inicio: el logo fijo, el jugador caminando para siempre y el riff de la canción
 // en loop (compases 16 a 23, de corrido), hasta que tocás EMPEZAR y aparece la portada del juego.
 // Las veces siguientes la app abre directo en la pantalla de inicio (con "VER INTRO").
+// Adentro de la SDGApp (en un iframe) no hay puerta: mientras carga se ve el logo y la primera vez la intro
+// arranca sola. Con sonido si el teléfono deja; si no, muda y el botón de sonido late (un toque y entra la canción).
 // Se saltea con ?sinintro. Si no hay WebGL, no se muestra.
 import * as THREE from './assets/vendor/three.module.min.js'
 import { crearEscena } from './escena-core.js'
@@ -19,7 +21,7 @@ const FRASES = [
 ]
 
 const raiz = document.getElementById('intro-app')
-
+const enApp = window.parent !== window // adentro de la SDGApp
 function cargarScript(src) {
   return new Promise((ok, mal) => {
     const s = document.createElement('script')
@@ -71,6 +73,7 @@ async function iniciar() {
       </div>
     </div>`
   const $ = (s) => raiz.querySelector(s)
+  if (enApp) raiz.classList.add('en-app') // la puerta queda solo como pantalla de carga (sin botones)
   const escenario = $('.ia-escenario')
   const lienzo = $('.ia-lienzo')
   // grano, viñeta y fundidos a pantalla completa (no solo dentro del escenario escalado)
@@ -193,6 +196,27 @@ async function iniciar() {
     tocarDesde(0)
     correr()
   }
+  // adentro de la app, la primera vez: la intro sola, sin la puerta
+  async function arrancarSola() {
+    puerta.hidden = true
+    if (audio) {
+      audio.despertar()
+      await new Promise((ok) => setTimeout(ok, 150))
+      if (audio.ctx.state === 'running') return verIntro() // el teléfono deja sonar: con la canción
+    }
+    // sin un toque no suena: arranca muda, con el reloj del teléfono, y el botón de sonido pide que lo toquen
+    ojos.vaciar()
+    sonido = false
+    pintarSonido()
+    estado = 'intro'
+    inicio.hidden = true
+    inicio.classList.remove('visible')
+    saltar.hidden = false
+    btnSonido.hidden = !audio
+    btnSonido.classList.toggle('pide', !!audio)
+    ponerReloj(0, false)
+    correr()
+  }
   function aInicio(desdeSalto) {
     estado = 'inicio'
     marcarVista()
@@ -256,6 +280,7 @@ async function iniciar() {
   empezar.addEventListener('click', cerrar)
   $('.ia-reintro').addEventListener('click', verIntro)
   btnSonido.addEventListener('click', () => {
+    btnSonido.classList.remove('pide')
     sonido = !sonido
     pintarSonido()
     if (!audio) return
@@ -276,6 +301,8 @@ async function iniciar() {
     pintarSonido()
     ponerReloj(Q.logo, false)
     aInicio(false)
+  } else if (enApp) {
+    arrancarSola()
   } else {
     pintarSonido()
     raiz.querySelector('.ia-ir').disabled = false
@@ -424,6 +451,11 @@ const CSS_APP = `
 #intro-app .ia-saltar, #intro-app .ia-sonido { position: absolute; border: 0; cursor: pointer;
   background: var(--green-900); color: var(--cream); box-shadow: 0 2px 0 rgba(12, 43, 28, .25); }
 #intro-app .ia-saltar { right: 16px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); font: 800 15px/1 var(--body); letter-spacing: .18em; padding: 13px 18px 12px 20px; border-radius: 999px; }
+#intro-app.en-app .ia-botones, #intro-app.en-app .ia-tip { display: none; }
+#intro-app .ia-sonido.pide { animation: ia-pide 1.1s ease-in-out infinite; }
+#intro-app .ia-sonido.pide::after { content: 'Tocá para escuchar'; position: absolute; left: 56px; top: 50%; translate: 0 -50%; white-space: nowrap;
+  font: 800 12px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--cream); background: var(--green-900); padding: 8px 10px 7px; border-radius: 6px; }
+@keyframes ia-pide { 0%, 100% { box-shadow: 0 0 0 0 rgba(232, 195, 74, .7); } 50% { box-shadow: 0 0 0 10px rgba(232, 195, 74, 0); } }
 #intro-app .ia-sonido { left: 14px; top: calc(14px + env(safe-area-inset-top, 0px)); width: 46px; height: 46px; border-radius: 50%; font-size: 20px; line-height: 46px; padding: 0; }
 #intro-app .ia-inicio { position: absolute; left: 0; right: 0; bottom: calc(8vh + env(safe-area-inset-bottom, 0px));
   display: flex; flex-direction: column; align-items: center; gap: 16px; opacity: 0; transition: opacity .6s ease; }
