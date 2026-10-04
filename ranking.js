@@ -337,6 +337,26 @@ export async function leerFantasma(id) {
   const filas = await rest(`trampa_desafios?select=fantasma&id=eq.${encodeURIComponent(id)}`)
   return filas?.[0]?.fantasma ?? null
 }
+/**
+ * El ranking de matches de todos (vista `trampa_match_ranking`: totales por jugador, sin los desafíos de nadie):
+ * [{ uid, nombre, sdga, jugados, ganados, empatados, perdidos, ultimo, rivales: [{ nombre, g, e, p }] }].
+ * Si la app o la base todavía no lo tienen, tira un error con `pronto = true`.
+ */
+export async function leerRankingMatch() {
+  let filas
+  try {
+    filas = puente.enApp ? await porApp('ranking') : await rest('trampa_match_ranking?select=user_id,nombre,sdga,jugados,ganados,empatados,perdidos,ultimo,rivales')
+  } catch (e) {
+    const msg = String(e?.message ?? '')
+    if (/desconocida|HTTP 404|HTTP 400/.test(msg)) e.pronto = true
+    throw e
+  }
+  return (filas ?? []).map((f) => ({
+    uid: f.user_id ?? f.uid, nombre: f.nombre ?? '—', sdga: !!f.sdga,
+    jugados: +f.jugados || 0, ganados: +f.ganados || 0, empatados: +f.empatados || 0, perdidos: +f.perdidos || 0,
+    ultimo: f.ultimo ?? null, rivales: Array.isArray(f.rivales) ? f.rivales : [],
+  })).filter((f) => f.uid && f.jugados > 0)
+}
 /** El desafiado jugó: anota su vuelta y el match queda cerrado. */
 export async function responderDesafio(id, { apodo, emoji, golpes, vsPar, ms, lp }) {
   const datos = { desafioId: id, apodo, emoji, golpes, vsPar, ms, lp: !!lp }
