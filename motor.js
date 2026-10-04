@@ -81,9 +81,9 @@ export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: cada golpe le toca uno de 5 efectos (mirá cuál antes de pegar). El putt siempre lleva comba.' },
   'Mike Queboni (Đ)': { id: 'bomba', nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green.' },
   'El Sueco': { id: 'derecho', nombre: 'Siempre derecho', texto: 'Mati no la tuerce nunca: todo sale derecho, hasta el putt.' },
-  'Fito (Đ)': { id: 'aguila', nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán al hoyo.' },
+  'Fito (Đ)': { id: 'aguila', nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
   // del chat del SDGA:
-  Lechu: { id: 'dadas', nombre: 'Contando todas las dadas', texto: 'La Lechuza: el putt de menos de 1,5 yardas es dada (cuenta el golpe y entra solo).' },
+  Lechu: { id: 'dadas', nombre: 'Contando todas las dadas', texto: 'Joaco no falla los putts de 3 metros o menos: le pegues como le pegues, entra.' },
   'El Ninja (Đ)': { id: 'tradicion', nombre: 'La tradición', texto: 'Un LP por vuelta no te hace perder: levantás, +1 y dropeás en el fairway. El segundo, sí.' },
   'El Perro': { id: 'perro', nombre: 'Va a buscarla', texto: 'Los greens están habilitados (sin caída) y si va al bosque el perro te la trae al fairway sin multa. Tarda: el reloj corre.' },
   Mugre: { id: 'panchitos', nombre: 'Tirar panchos', texto: 'A la Mugre los monos la huelen de lejos y vienen más. Pero tiene 3 panchos por hoyo: se los tirás, van, comen un segundo y vuelven.' },
@@ -101,9 +101,12 @@ export function dificultad(hcp) {
   const nivel = h < 5 ? 1 : h < 10 ? 2 : h < 15 ? 3 : h < 20 ? 4 : 5
   return { hcp: h, cargado: hcp != null, error: 0.75 + h * 0.035, distancia: (DRIVE.max - DRIVE.porHcp * h) / DRIVE.max, nivel, nombre: NIVELES[nivel - 1] }
 }
-/** La dificultad medida (promedio vs. par del bot de calibrar.mjs) en los mismos 5 niveles. */
-export function dificultadReal(prom) {
-  const nivel = prom < 3 ? 1 : prom < 4.6 ? 2 : prom < 5.3 ? 3 : prom < 6 ? 4 : 5
+/**
+ * La dificultad medida (promedio vs. par del bot de calibrar.mjs) en los mismos 5 niveles. `nivel` la fija a mano
+ * (Fito: el bot acierta el embudo la mitad de las veces, la gente casi nunca → Trampa total).
+ */
+export function dificultadReal(prom, nivel = null) {
+  nivel ??= prom < 1.5 ? 1 : prom < 2.5 ? 2 : prom < 3.3 ? 3 : prom < 4 ? 4 : 5
   return { nivel, nombre: NIVELES[nivel - 1], prom }
 }
 // la comba de Rodal: cuánto se cierra la curva (grados entre la salida y dónde cae) y qué parte del error lateral le queda
@@ -124,12 +127,12 @@ export const PUTT_MAGO = { giro: 0.3 }
 // azules); pasando `zona` yardas el óvalo late (periodo, en segundos) y es perfecta si suelta con precisión >= perfecta
 export const BOMBA = { carry: 365, zona: 285, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
 // el Águila (Fito): la línea de tiro se sacude ±amplitud grados cada `periodo` s; si suelta con el desvío dentro de
-// ±ventana (el embudo) sale derecha. A `chip` yardas o menos del hoyo, en el green tiene imán: la deja a `alLado`
-// yardas del hoyo; si además el tiro fue perfecto y apuntado a la bandera (±metida grados), entra.
+// ±ventana (el embudo) sale derecha. A `chip` yardas o menos del hoyo, si cae en el green el imán la mete.
+// (`alLado`: dónde la dejaría un imán que no la mete; hoy siempre la mete.)
 // Mati (El Sueco): sin error de dirección (pega lo que pega su handicap)
 export const AGUILA = { amplitud: 25, periodo: 0.7, ventana: 5, chip: 40, alLado: 0.85, metida: 4 }
-// Lechu: dada hasta `dada` yardas. El Perro: tarda `segundos` en traerla. Liberty: approach entre `desde` y `hasta` yd, error x`error`.
-export const DADA = 1.5
+// Lechu (Joaco): el putt desde DADA yardas o menos (3 metros) entra siempre, le pegue como le pegue. El Perro: tarda `segundos` en traerla. Liberty: approach entre `desde` y `hasta` yd, error x`error`.
+export const DADA = 3.28 // 3 metros
 export const PERRO = { segundos: 4 }
 // Mugre: los monos lo huelen desde `alerta` yd; `panchos` por hoyo; los tira a `tiro` yd (para el lado de los monos) y comen `comer` s
 export const MUGRE = { alerta: 90, panchos: 3, tiro: 26, comer: 1 }
@@ -410,7 +413,8 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
     // el putt del Mago dobla hacia el hoyo: apuntando a la derecha del hoyo gira a la izquierda, y al revés
     const pin = hoyoActual(r).pin
     const giro = hab?.id === 'comba' ? (difAng(angulo, Math.atan2(pin[1] - b[1], pin[0] - b[0])) >= 0 ? -1 : 1) * PUTT_MAGO.giro : 0
-    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: dif.error, recto: hab?.id === 'derecho' || !!r.calma, giro }
+    const noLaFalla = hab?.id === 'dadas' && dist(b, pin) <= DADA
+    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: dif.error, recto: hab?.id === 'derecho' || !!r.calma, giro, noLaFalla }
   }
   const tee = r.lie === 'tee'
   const plan = planBase(angulo, potencia, r.lie)
@@ -466,10 +470,8 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
     plan.aguila = { desvio, enVentana }
     plan.cuerda = angulo + (desvio * Math.PI) / 180
     if (enVentana) plan.disp = { ...plan.disp, ang: 0 } // sale derecha
-    if (dist(b, pin) <= AGUILA.chip) {
-      const apuntada = Math.abs(difAng(angulo, Math.atan2(pin[1] - b[1], pin[0] - b[0]))) <= (AGUILA.metida * Math.PI) / 180
-      plan.iman = { meter: enVentana && apuntada }
-    }
+    // cerca del green el imán la mete (antes la dejaba dada al lado; pedido de Rorro, 2026-10-04: "así es más justo")
+    if (dist(b, pin) <= AGUILA.chip) plan.iman = { meter: true }
   }
   plan.destino = [b[0] + Math.cos(plan.cuerda) * plan.carry, b[1] + Math.sin(plan.cuerda) * plan.carry]
   return plan
@@ -770,6 +772,30 @@ export const golpeMagoDe = (r) => GOLPES_MAGO.find((g) => g.id === r.golpeMago) 
 export const hoyoActual = (r) => HOYOS[r.idx]
 export const enModoPutt = (campo, r) => r.lie === 'green' && terreno(campo, r.pelota).hoyo === hoyoActual(r).n
 
+/**
+ * El árbol contra el que pega el tiro apuntado en la SALIDA (la primera mitad del vuelo, todavía bajo),
+ * sin error ni viento: para marcarlo al apuntar. Null si no pega (o si pasa por arriba).
+ */
+export function pinoEnLaSalida(campo, pelota, plan) {
+  if (!plan || plan.putt || (plan.comba && !plan.rasante) || !plan.carry) return null
+  const carryVec = [Math.cos(plan.cuerda) * plan.carry, Math.sin(plan.cuerda) * plan.carry]
+  const controlVec = plan.control ? [plan.control[0] - pelota[0], plan.control[1] - pelota[1]] : [carryVec[0] / 2, carryVec[1] / 2]
+  const hMax = (8 + plan.carry * 0.12) * (plan.alto ?? 1)
+  const n = Math.ceil(plan.carry / 0.25)
+  for (let i = 1; i <= n / 2; i++) {
+    const u = i / n
+    const alt = 4 * hMax * u * (1 - u)
+    if (alt >= FISICA.alturaPino) break // ya pasa por arriba de los pinos
+    const b1 = 2 * u * (1 - u)
+    const b2 = u * u
+    const pos = [pelota[0] + controlVec[0] * b1 + carryVec[0] * b2, pelota[1] + controlVec[1] * b1 + carryVec[1] * b2]
+    const pino = pinoEn(campo, pos)
+    // el de abajo de la copa (la pelota debajo del árbol) no la frena al salir, como en el vuelo
+    if (pino && Math.hypot(pino.x - pelota[0], pino.y - pelota[1]) >= pino.r) return { pos, pino, u }
+  }
+  return null
+}
+
 /** Pegarle: cuenta el golpe y devuelve el tiro para animarlo con `avanzar` (que también mueve los monos). */
 export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0) {
   const plan = planTiro(campo, r, angulo, potencia, precision, tiempo)
@@ -783,6 +809,8 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   tiro.greenPlano = hab?.id === 'perro'
   tiro.calma = !!r.calma
   r.calma = false
+  // Joaco: de 3 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola)
+  if (plan.noLaFalla) tiro.iman = { meter: true, lechu: true }
   if (r.golpeMago && !plan.putt) r.golpeMago = sortearGolpeMago(rng, r.golpeMago) // el próximo, otro efecto
   return tiro
 }
@@ -899,14 +927,6 @@ function resolver(campo, r, tiro, rng) {
 }
 
 export const necesitaLP = (r) => r.golpes >= MAX_GOLPES
-
-/** Lechu: en el green, a menos de DADA yardas del hoyo, es dada. */
-export const esDada = (campo, r) => habilidadDe(r.jugador)?.id === 'dadas' && enModoPutt(campo, r) && dist(r.pelota, hoyoActual(r).pin) <= DADA
-/** La dada: cuenta el golpe y la pelota entra. */
-export function darDada(r) {
-  r.golpes += 1
-  r.pelota = [...hoyoActual(r).pin]
-}
 
 /** El Ninja: el primer LP de la vuelta no la pierde (+1 y drop en el fairway). */
 export const tieneLPNinja = (r) => habilidadDe(r.jugador)?.id === 'tradicion' && !r.lpNinja
@@ -1035,7 +1055,7 @@ export const RELATO = {
   monoLadron: ['¡LE PEGASTE A UN MONO! Se la llevó. +1', 'Un mono se la robó al vuelo. +1', 'Mono ladrón. +1 y dropeá ahí'],
   lp: ['Entraste en la lista LP 💅'],
   putt: ['Uff, le faltó', 'Casi', 'Se pasó. Uff'],
-  dada: ['Dada. Contando todas las dadas', 'La Lechuza no patea esas', 'Dada, como corresponde al campeón'],
+  dada: ['Esas Joaco no las falla', 'De tres metros, la Lechuza no perdona', 'Adentro, como corresponde al campeón', 'Contando todas las dadas'],
   ninjaLP: ['Manteniendo viva la tradición de un LP por finde', 'El Ninja levantó. Tradición Dicky', 'LP de Ninja: +1 y a seguir'],
   perro: ['¡El perro la trajo! Al fairway, sin multa', 'Buen perro. La vida no es mucho más que esto', 'Perrolo fue a buscarla'],
   approach: ['Si no era por el approach ganaba', 'Los wedges ya van a funcionar', 'El approach, otra vez'],

@@ -262,19 +262,42 @@ ok('Fito: la línea se sacude; en el embudo sale derecha', () => {
   assert.ok(Math.abs(embudo.cuerda - linea) < 1e-9)
 })
 
-ok('Fito: cerca del green, el chip queda al lado del hoyo; perfecto y apuntado, entra', () => {
+ok('Fito: cerca del green, si el chip cae en el green, entra (aunque no vaya apuntado)', () => {
   const desde = [h15.pin[0] + 2, h15.pin[1] + 24]
   const fito = () => ({ ...M.nuevaRonda({ apodo: 'Fito (Đ)', emoji: '🦅', hcp: 22 }, fijo(0.5)), monos: [], viento: calma, pelota: [...desde], lie: M.terreno(campo, desde).tipo })
   const alPin = angulo(desde, h15.pin)
   const p = (14 * h15.escala) / (M.carryDe(22) * (M.FISICA.factorLie[fito().lie] ?? 1))
-  // apuntando torcido (15°): cae en el green y el imán la deja al lado, sin meterla
+  // apuntando torcido (15°): cae en el green y el imán la mete igual
   const torcido = M.simular(quieto, M.golpear(quieto, fito(), alPin + 0.26, p, sinRuido(), 0, 0), h15.pin)
   assert.ok(torcido.iman?.aplicado)
-  assert.notEqual(torcido.embocada, true)
-  assert.ok(M.dist(torcido.pos, h15.pin) < 1.2, `quedó a ${M.dist(torcido.pos, h15.pin).toFixed(2)} yd`)
-  // perfecto (en el embudo) y apuntado a la bandera: chip in
+  assert.equal(torcido.embocada, true)
   const perfecto = M.simular(quieto, M.golpear(quieto, fito(), alPin, p, sinRuido(), 0, 0), h15.pin)
   assert.equal(perfecto.embocada, true)
+  // lejos del green (más de 40 yd) no hay imán
+  const lejos = [h15.pin[0], h15.pin[1] + 120]
+  const r = { ...fito(), pelota: lejos, lie: M.terreno(campo, lejos).tipo }
+  assert.ok(!M.golpear(quieto, r, angulo(lejos, h15.pin), 0.3, sinRuido(), 0, 0).iman)
+})
+
+ok('al apuntar se marca el árbol que pega en la salida (y no si pasa por arriba)', () => {
+  // un árbol con pasto libre 5 yd abajo, desde donde pegarle de frente
+  let arbol = null
+  for (let y = 80; y < 380 && !arbol; y++) for (let x = 40; x < 200 && !arbol; x++) {
+    const p = [x + 0.5, y + 0.5]
+    const desde = [p[0], p[1] + 5]
+    if (M.celda(campo, p) === 't' && ['.', 'f'].includes(M.celda(campo, desde)) && [1, 2, 3, 4].every((k) => M.celda(campo, [p[0], p[1] + k]) !== 't')) arbol = { p, desde }
+  }
+  assert.ok(arbol, 'hay un árbol para probar')
+  const r = { ...M.nuevaRonda({ apodo: 'X', emoji: '⛳', hcp: 7 }, fijo(0.5)), monos: [], viento: calma, pelota: arbol.desde, lie: M.terreno(campo, arbol.desde).tipo }
+  const plan = M.planTiro(quieto, r, -Math.PI / 2, 0.5)
+  const marca = M.pinoEnLaSalida(quieto, arbol.desde, plan)
+  assert.ok(marca, 'lo marca')
+  assert.ok(M.dist(marca.pos, arbol.p) < 1.3)
+  // y en el vuelo de verdad (sin error) le pega
+  const tiro = M.simular(quieto, M.golpear(quieto, { ...r, pelota: [...arbol.desde] }, -Math.PI / 2, 0.5, sinRuido()), h15.pin)
+  assert.ok(tiro.eventos.some((e) => e.tipo === 'palo'))
+  // para el otro lado no hay árbol; el putt nunca
+  assert.equal(M.pinoEnLaSalida(quieto, arbol.desde, { ...plan, putt: true }), null)
 })
 
 ok('más handicap, más difícil: más error y menos distancia', () => {
@@ -569,18 +592,23 @@ ok('ranking: menos golpes arriba; a igual golpes, el más rápido al milisegundo
 })
 
 
-ok('Lechu: contando todas las dadas (a 1,5 yd o menos)', () => {
+ok('Lechu: de 3 metros o menos no la falla, le pegue como le pegue', () => {
   const r = { ...M.nuevaRonda({ apodo: 'Lechu', emoji: '🦉' }, fijo(0.5)), monos: [] }
-  r.pelota = [h15.pin[0], h15.pin[1] + 1.4]
   r.lie = 'green'
-  r.golpes = 2
-  assert.ok(M.esDada(campo, r))
-  M.darDada(r)
-  assert.equal(r.golpes, 3)
-  assert.deepEqual(r.pelota, h15.pin)
-  r.pelota = [h15.pin[0], h15.pin[1] + 2]
-  assert.ok(!M.esDada(campo, r))
-  assert.ok(!M.esDada(campo, { ...r, jugador: { apodo: 'Rorro' }, pelota: [h15.pin[0], h15.pin[1] + 1] }))
+  const putt = (desde, ang, p) => {
+    r.pelota = desde
+    return M.simular(plano, M.golpear(plano, r, ang, p, fijo(0.9)), h15.pin)
+  }
+  // a 3 yd: para cualquier lado y con cualquier fuerza, entra
+  for (const [ang, p] of [[-Math.PI / 2, 0.02], [0, 1], [Math.PI / 2, 0.5], [-Math.PI / 2, 1]]) {
+    const t = putt([h15.pin[0], h15.pin[1] + 3], ang, p)
+    assert.equal(t.embocada, true, `ang ${ang} p ${p}`)
+  }
+  // a 5 yd ya es un putt normal: tirado para atrás, no entra
+  assert.notEqual(putt([h15.pin[0], h15.pin[1] + 5], Math.PI / 2, 0.3).embocada, true)
+  // otro jugador a 3 yd, tirado para atrás, no entra
+  const o = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [], lie: 'green', pelota: [h15.pin[0], h15.pin[1] + 3] }
+  assert.notEqual(M.simular(plano, M.golpear(plano, o, Math.PI / 2, 0.3, fijo(0.9)), h15.pin).embocada, true)
 })
 
 ok('El Ninja: el primer LP no pierde la vuelta (+1 y al fairway, no más cerca)', () => {

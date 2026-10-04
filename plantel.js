@@ -322,9 +322,10 @@ export const DIFICULTAD_REAL = {
   'El Mago Rodal': { prom: 1.83, lp: 2 },
   LG: { prom: 2.46, lp: 2 },
   'Mike Queboni (Đ)': { prom: 2.71, lp: 8 },
-  'Fito (Đ)': { prom: 3.18, lp: 7 },
   Mugre: { prom: 3.52, lp: 13 },
   Liberty: { prom: 3.57, lp: 12 },
   'El Ninja (Đ)': { prom: 3.72, lp: 12 },
-  Lechu: { prom: 3.82, lp: 15 },
+  Lechu: { prom: 4.19, lp: 12 },
+  // Trampa total a mano (dicen los que juegan que es el más difícil: el embudo de la línea que se sacude)
+  'Fito (Đ)': { prom: 2.76, lp: 8, nivel: 5 },
 }

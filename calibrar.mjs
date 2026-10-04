@@ -73,7 +73,6 @@ export function jugarVuelta(jugador, seed) {
   const r = M.nuevaRonda(jugador, rng)
   while (!r.terminada) {
     if (M.necesitaLP(r)) { M.levantar(r); break }
-    if (M.esDada(campo, r)) { M.darDada(r); M.cerrarHoyo(r, rng); continue }
     const t = elegirTiro(r)
     // timing humano: Miguelón suelta el latido con precisión entre 0,5 y 1; Fito cae en el embudo la mitad de las veces
     const q = 0.5 + 0.5 * rng()
