@@ -311,17 +311,19 @@ export const PLANTEL = [
   }
 ]
 
-// 🤫 No está en el mazo: aparece cuando lo desbloqueás (no se dice cómo).
-export const EL_MONO = {
-  "apodo": "El Mono",
-  "emoji": "🐒",
-  "hcp": 12,
-  "aprox": true,
-  "frase": "Uh uh ah ah",
-  "foto": null,
+// 🤫 No está en el mazo: aparece cuando lo desbloqueás (no se dice cómo). Pro en 1960: carta dorada y cancha en sepia.
+export const DEMETRIO = {
+  "apodo": "Demetrio López",
+  "emoji": "🏌️",
+  "hcp": 0,
+  "frase": "En mi época el viento no existía",
+  "foto": "jugadores/demetrio-lopez.webp",
   "stats": null,
-  "secreto": true
+  "secreto": true,
+  "retro": true
 }
+/** Cómo lo ven los que todavía no lo desbloquearon (en el ranking, en lo que se comparte). */
+export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp": null, "foto": null, "misterio": true }
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
 export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa']
@@ -330,6 +332,7 @@ export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni
 // (`node calibrar.mjs 60`, 2026-10-04, con el hoyo nuevo, la caída por zonas, el tope del par 3, el viento que pesa con el cuadrado del largo, el bunker a la mitad, sin árboles fantasma junto a los greens, sin monos en la salida, la bandera en otro lugar cada vuelta y los umbrales de las habilidades en yardas reales; el bot putea con la fuerza del medio de las que entran). El mazo se ordena por esto, no por el handicap.
 export const DIFICULTAD_REAL = {
   'El Sueco': { prom: -0.27, lp: 0 },
+  'Demetrio López': { prom: 0, lp: 0 }, // siempre par: E justo
   LG: { prom: 0.56, lp: 2 },
   'El Perro': { prom: 0.88, lp: 0 },
   'Mike Queboni (Đ)': { prom: 1, lp: 0 },

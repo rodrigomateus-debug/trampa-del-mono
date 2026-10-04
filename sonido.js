@@ -336,12 +336,27 @@ export const monosVienen = () => chillido(0, 4, 1)
 export function robo() { chillido(0, 6, 1.3); tono(600, 0.5, { vol: 0.08, f2: 200, tipo: 'triangle', at: 0.6 }) }
 /** El Mono bueno: un glissando mágico para arriba. */
 export function monoBueno() { [659.25, 783.99, 987.77, 1318.5, 1567.98].forEach((f, i) => campana(f, i * 0.07, 0.12)) }
-/** 🤫 Un acorde raro que se abre, las campanas y los monos que se ríen. */
+/** 🤫 El hoyo equivocado brilla: un acorde misterioso que se abre y un brillo de campanitas. */
 export function secreto() {
+  agachar(6)
+  ;[311.13, 369.99, 466.16, 554.37].forEach((f, i) => tono(f, 1.1, { vol: 0.07, tipo: 'triangle', at: i * 0.12 }))
+  ;[1567.98, 1975.53, 2349.32, 2637.02, 3135.96, 2637.02, 2349.32, 3135.96].forEach((f, i) => campana(f, 0.5 + i * 0.09, 0.07))
+  ruido(1.6, { f: 4000, f2: 9000, q: 0.6, vol: 0.05, ataque: 0.6, at: 0.3 })
+}
+/** Tocaste DESBLOQUEAR: un tono que sube (lo que dura el temblor). */
+export function cargarSecreto() {
+  tono(196, 0.65, { vol: 0.08, tipo: 'sawtooth', f2: 784 })
+  tono(294, 0.65, { vol: 0.05, tipo: 'triangle', f2: 1175 })
+  ruido(0.65, { f: 800, f2: 7000, q: 0.7, vol: 0.08, ataque: 0.5 })
+}
+/** ¡Desbloqueado! Platillo, fanfarria de bronces y campanas. */
+export function revelar() {
   agachar(5)
-  ;[311.13, 369.99, 466.16, 554.37].forEach((f, i) => tono(f, 0.9, { vol: 0.07, tipo: 'triangle', at: i * 0.11 }))
-  ;[783.99, 987.77, 1174.66, 1567.98, 1975.53, 2349.32].forEach((f, i) => campana(f, 0.7 + i * 0.08, 0.12))
-  chillido(1.3, 6, 1.15)
+  ruido(1.4, { filtro: 'highpass', f: 5000, vol: 0.12, ataque: 0.003 })
+  tono(65.41, 0.6, { vol: 0.22, tipo: 'sine', f2: 45 })
+  const acordes = [[523.25, 659.25, 783.99], [587.33, 739.99, 880], [659.25, 830.61, 987.77], [783.99, 987.77, 1174.66, 1567.98]]
+  acordes.forEach((ac, k) => ac.forEach((f) => { tono(f, k === 3 ? 1.2 : 0.18, { vol: 0.07, tipo: 'square', at: 0.08 + k * 0.16 }); tono(f / 2, k === 3 ? 1.2 : 0.2, { vol: 0.06, tipo: 'sawtooth', at: 0.08 + k * 0.16 }) }))
+  ;[1046.5, 1318.5, 1567.98, 2093, 2637.02].forEach((f, i) => campana(f, 0.75 + i * 0.07, 0.1))
 }
 /** Tensión: un "tic" que se acelera cuanto más cerca está el mono más cercano (lo llama el juego en cada cuadro). */
 let proxTic = 0
