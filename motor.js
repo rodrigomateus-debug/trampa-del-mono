@@ -108,6 +108,7 @@ export const HABILIDADES = {
   'El Perro': { id: 'perro', nombre: 'Va a buscarla', texto: 'Los greens están habilitados (sin caída) y si va al bosque el perro te la trae al fairway sin multa. Tarda: el reloj corre.' },
   Mugre: { id: 'panchitos', nombre: 'Tirar panchos', texto: 'A la Mugre los monos la huelen de lejos y vienen más. Pero tiene 3 panchos por hoyo: se los tirás, van, comen un segundo y vuelven.' },
   Liberty: { id: 'approach', nombre: 'Si no era por el approach', texto: 'El drive sale derecho siempre. Los approach (de 30 a 100 yd del hoyo) tienen el triple de error.' },
+  Grandpa: { id: 'deme', nombre: 'Invocar a Deme', texto: 'Maxi, una vez por vuelta (no desde el tee): llama a Deme, el mentor. Te enseña a agarrar el palo y el próximo tiro entra de una, le pegues como le pegues.' },
   'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro (y de tee a tee) lo manejás vos hasta la pelota. Los árboles no se atraviesan. El reloj corre.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
 }
@@ -759,9 +760,9 @@ export function avanzar(campo, tiro, dt, pin) {
       tiro.desde[1] + tiro.controlVec[1] * b1 + tiro.carryVec[1] * b2 + tiro.deriva[1] * b2,
     ]
     tiro.alt = 4 * tiro.hMax * u * (1 - u)
-    if (u > 0.02 && robo(tiro)) return tiro.fase
+    if (u > 0.02 && !tiro.deme && robo(tiro)) return tiro.fase // el tiro de Deme no lo para nadie
     // los golpes del Mago vuelan por arriba de los pinos (menos la viborita, que va al ras)
-    const pino = (!tiro.comba || tiro.rasante) && u > 0.02 && u < 1 && tiro.alt < FISICA.alturaPino ? pinoEn(campo, tiro.pos) : null
+    const pino = !tiro.deme && (!tiro.comba || tiro.rasante) && u > 0.02 && u < 1 && tiro.alt < FISICA.alturaPino ? pinoEn(campo, tiro.pos) : null
     // el pino que tiene la pelota debajo de la copa no la frena al salir
     if (pino && Math.hypot(pino.x - tiro.desde[0], pino.y - tiro.desde[1]) >= pino.r) {
       tiro.eventos.push({ tipo: 'palo' })
@@ -780,7 +781,7 @@ export function avanzar(campo, tiro, dt, pin) {
         return tiro.fase
       }
       // cayó en la boca del hoyo: puede quedar adentro de aire
-      if (pin && tiro.modo === 'full' && suerteDe(tiro) < chanceClavada(dist(tiro.pos, pin))) {
+      if (pin && tiro.modo === 'full' && (tiro.deme || suerteDe(tiro) < chanceClavada(dist(tiro.pos, pin)))) {
         tiro.pos = [...pin]
         tiro.v = [0, 0]
         tiro.embocada = true
@@ -965,6 +966,7 @@ export function nuevaRonda(jugador, rng) {
   if (habilidadDe(jugador)?.id === 'comba') r.golpeMago = sortearGolpeMago(rng, null)
   // Marcos arranca con el carrito estacionado al lado del tee del 15
   if (habilidadDe(jugador)?.id === 'carrito') r.carro = carroAlLado(r.pelota)
+  if (habilidadDe(jugador)?.id === 'deme') r.deme = { usado: false, listo: false }
   return r
 }
 /** El golpe del Mago para el próximo tiro: al azar, distinto del anterior. */
@@ -1007,6 +1009,8 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   r.lieDesde = r.lie
   r.golpes += 1
   calmarMonos(r.monos)
+  // Maxi invocó a Deme: este tiro, pegue como pegue, va derecho al hoyo y entra (sin error, sin viento)
+  if (r.deme?.listo) return tiroDeDeme(campo, r, plan, rng)
   const tiro = lanzar(campo, { pelota: r.pelota, angulo, potencia, viento: r.viento, putt: plan.putt, lie: r.lie, rng, plan })
   tiro.monos = r.monos
   const hab = habilidadDe(r.jugador)
@@ -1016,6 +1020,35 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   // Joaco: de 3 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola)
   if (plan.noLaFalla) tiro.iman = { meter: true, lechu: true }
   if (r.golpeMago && !plan.putt) r.golpeMago = sortearGolpeMago(rng, r.golpeMago) // el próximo, otro efecto
+  return tiro
+}
+
+// ── Deme, el mentor (la habilidad de Maxi Vacca, "Grandpa") ──
+/** ¿Puede llamar a Deme ahora? Una vez por vuelta y nunca desde el tee (en la salida, Deme no viene). */
+export const puedeInvocarDeme = (r) => habilidadDe(r.jugador)?.id === 'deme' && !!r.deme && !r.deme.usado && !r.deme.listo && r.lie !== 'tee'
+/** Deme le dio el consejo: el próximo tiro es el de Deme. */
+export function invocarDeme(r) {
+  if (!puedeInvocarDeme(r)) return false
+  r.deme.usado = true
+  r.deme.listo = true
+  return true
+}
+/** El tiro de Deme: derecho al hoyo desde donde esté; en el green, el putt rueda solo adentro. */
+function tiroDeDeme(campo, r, plan, rng) {
+  r.deme.listo = false
+  const pin = hoyoActual(r).pin
+  const ang = Math.atan2(pin[1] - r.pelota[1], pin[0] - r.pelota[0])
+  const calma = { ang: 0, kmh: 0 }
+  let tiro
+  if (plan.putt) {
+    tiro = lanzar(campo, { pelota: r.pelota, angulo: ang, potencia: 0.2, viento: calma, putt: true, lie: r.lie, rng, plan: { ...plan, recto: true, giro: 0 } })
+    tiro.iman = { meter: true, deme: true }
+  } else {
+    const derecho = { putt: false, cuerda: ang, carry: dist(r.pelota, pin), disp: { ang: 0, carry: 0 }, control: null, real: 1, alto: 1.3 }
+    tiro = lanzar(campo, { pelota: r.pelota, angulo: ang, potencia: 1, viento: calma, putt: false, lie: r.lie, rng, plan: derecho })
+  }
+  tiro.deme = true
+  tiro.monos = r.monos
   return tiro
 }
 

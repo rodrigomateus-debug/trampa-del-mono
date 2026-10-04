@@ -73,7 +73,10 @@ export function jugarVuelta(jugador, seed) {
   const r = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // como en el juego: la bandera, en otro lugar cada vuelta
   while (!r.terminada) {
     if (M.necesitaLP(r)) { M.levantar(r); break }
-    const t = elegirTiro(r)
+    // Maxi: llama a Deme en el primer tiro que puede y que no sea un putt corto (a más de 30 yd)
+    if (M.puedeInvocarDeme(r) && M.dist(r.pelota, M.hoyoActual(r).pin) > 30) M.invocarDeme(r)
+    // con el tiro de Deme listo no hace falta apuntar (entra igual); y probar tiros lo gastaría
+    const t = r.deme?.listo ? { ang: 0, p: 0.5 } : elegirTiro(r)
     // timing humano: Miguelón suelta el latido con precisión entre 0,5 y 1; Fito cae en el embudo la mitad de las veces
     const q = 0.5 + 0.5 * rng()
     const tiempo = rng() < 0.5 ? 0 : rng() * M.AGUILA.periodo

@@ -146,7 +146,7 @@ body {
 body.apuntando #hud-top .card { opacity: .18; }
 body.apuntando #crono, body.apuntando #viento, body.apuntando #efecto { opacity: .45; }
 #hud-chips > * { transition: opacity 150ms; }
-body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho { opacity: .25; pointer-events: none; }
+body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando #deme-btn { opacity: .25; pointer-events: none; }
 
 /* ── banda central (intro de hoyo y resultado) ── */
 #banda {
@@ -377,6 +377,19 @@ body.manejando #mandos { display: flex; }
 @keyframes multa-sello { 0% { opacity: 0; transform: scale(2.8) rotate(-14deg); } 14% { opacity: 1; transform: scale(.94) rotate(-6deg); } 22% { transform: scale(1.04) rotate(-7deg); } 30%, 78% { opacity: 1; transform: scale(1) rotate(-6deg); } 100% { opacity: 0; transform: scale(.9) translateY(-30px) rotate(-6deg); } }
 #cancha.sacudida { animation: sacudida 380ms linear; }
 @keyframes sacudida { 0%, 100% { transform: translate(0, 0); } 15% { transform: translate(-7px, 4px); } 30% { transform: translate(6px, -5px); } 45% { transform: translate(-5px, -3px); } 60% { transform: translate(4px, 5px); } 80% { transform: translate(-2px, 2px); } }
+/* Deme, el mentor (Maxi / Grandpa): el botón para llamarlo y él, en persona, con su consejo */
+#deme-btn { position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 88px; height: 88px; border-radius: 50%; border: 3px solid var(--gold); background: var(--green-900); color: var(--cream); box-shadow: 0 6px 18px rgba(12, 43, 28, .5), 0 0 0 6px rgba(232, 195, 74, .25); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; cursor: pointer; font-family: var(--font-display); transition: transform 120ms var(--ease-snap), opacity 150ms; animation: deme-llama 2.4s ease-in-out infinite; }
+#deme-btn img { width: 62px; height: auto; margin-top: -6px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4)); }
+#deme-btn span { font-size: 13px; letter-spacing: .08em; line-height: 1; margin-top: -2px; }
+#deme-btn:active { transform: scale(.93); }
+#deme-btn[disabled] { animation: none; opacity: .45; box-shadow: 0 6px 18px rgba(12, 43, 28, .5); }
+@keyframes deme-llama { 0%, 100% { box-shadow: 0 6px 18px rgba(12, 43, 28, .5), 0 0 0 4px rgba(232, 195, 74, .2); } 50% { box-shadow: 0 6px 18px rgba(12, 43, 28, .5), 0 0 0 12px rgba(232, 195, 74, .38); } }
+#deme { position: fixed; left: 0; bottom: var(--safe-bot); z-index: 30; width: min(84vw, 360px); pointer-events: none; transition: opacity 450ms; }
+#deme svg { display: block; width: 100%; height: auto; overflow: visible; }
+#deme .globo { position: absolute; left: 40%; bottom: 76%; width: max-content; max-width: min(58vw, 215px); padding: 10px 14px; background: var(--cream); color: var(--green-900); font: 800 15px/1.25 var(--font-body); border: 2.5px solid var(--green-900); border-radius: 22px 26px 24px 18px; box-shadow: 0 6px 16px rgba(8, 26, 16, .4); transform-origin: 0% 100%; opacity: 0; }
+#deme .globo b { display: block; font: 19px/1.1 var(--font-display); letter-spacing: .02em; margin-bottom: 4px; }
+#deme .globo::after { content: ''; position: absolute; left: 6px; bottom: -14px; width: 22px; height: 18px; background: var(--cream); border-left: 2.5px solid var(--green-900); border-bottom: 2.5px solid var(--green-900); border-bottom-left-radius: 18px 14px; transform: skewX(-28deg); }
+#deme .globo.ve { animation: globo-sale 520ms cubic-bezier(.2, 1.5, .4, 1) forwards, globo-respira 2.2s 520ms ease-in-out infinite; }
 /* Lucas (LG) en persona: con Rodal aparece abajo a la izquierda y lo adula con un globo de diálogo */
 #lucas { position: fixed; left: 0; bottom: 0; z-index: 30; width: min(46vw, 230px); pointer-events: none; opacity: 0; transform: translateY(70%) rotate(-7deg); transform-origin: 30% 100%; }
 #lucas.entra { animation: lucas-entra 620ms cubic-bezier(.2, 1.25, .4, 1) forwards; }
@@ -540,6 +553,8 @@ input { -webkit-user-select: text; user-select: text; }
   </div>
   <div class="lluvia" aria-hidden="true"></div>
 </div>
+<button id="deme-btn" type="button" hidden aria-label="Invocar a Deme"><img src="jugadores/deme-cabeza.webp" alt="" width="260" height="207"><span>DEME</span></button>
+<div id="deme" hidden aria-live="polite"><svg viewBox="0 0 360 300" aria-label="Deme"></svg><p class="globo"></p></div>
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
 <div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
@@ -684,11 +699,11 @@ input { -webkit-user-select: text; user-select: text; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=38245d821a'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=38245d821a'
+import * as M from './motor.js?v=b408dc0714'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=b408dc0714'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=38245d821a'
-import * as S from './sonido.js?v=38245d821a'
+import * as R from './ranking.js?v=b408dc0714'
+import * as S from './sonido.js?v=b408dc0714'
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 // el nivel fijado a mano manda (Fito, Trampa total, va al final)
@@ -1016,7 +1031,7 @@ function alReposo() {
   lucasDice(dicho.lucas) // con Rodal: Lucas en persona
   if (res.tipo === 'embocada') {
     const hab = M.habilidadDe(ronda.jugador)
-    const frase = hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
+    const frase = tiro.deme ? '¡LO DIJO DEME! 🧙' : hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
     embocar(frase)
     return
   }
@@ -1343,6 +1358,147 @@ $('#banda').addEventListener('click', () => { if (bandaLuego) cerrarBanda() })
 // ── la voz de LG (franja fija del marcador): aviso de monos > relato > tip ──
 let voz = null // { lg, extra, hasta }
 let vozPintada = ''
+// ── Deme, el mentor: entra caminando por el pasto, se mete las manos en los bolsillos y te enseña ──
+const DEME_CONSEJOS = ['Las manos suaves, como si tuvieras un pajarito.', 'Los dos pulgares para abajo, y respirá.', 'Firme pero sin apretar: el palo hace el trabajo.', 'Grip neutro, hombros sueltos. Ahora sí.']
+const DEME_P = { piel: '#d5a56a', pielOsc: '#b8874f', ropa: '#c8352e', ropaOsc: '#9e2620', raya: '#f3e7d6', pantalon: '#d9c38f', pantalonOsc: '#a68d58', zapato: '#8b4a25', cinto: '#1e1e1e' }
+/** Dos segmentos (hombro-codo-mano) que llegan a un punto, con el codo para afuera. Ángulos de SVG (0 = para abajo). */
+function ikBrazo(sx, sy, tx, ty, L1, L2, afuera) {
+  const dx = tx - sx, dy = ty - sy
+  const d = Math.min(Math.hypot(dx, dy), L1 + L2 - 0.01)
+  const base = Math.atan2(-dx, dy)
+  const a = Math.acos((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d))
+  let mejor = null
+  for (const sg of [1, -1]) {
+    const t1 = base + sg * a
+    const ex = sx - Math.sin(t1) * L1, ey = sy + Math.cos(t1) * L1
+    if (!mejor || (ex - sx) * afuera > (mejor.ex - sx) * afuera) mejor = { t1, ex, ey }
+  }
+  const t = Math.atan2(-(tx - mejor.ex), ty - mejor.ey)
+  return [mejor.t1 * 180 / Math.PI, (t - mejor.t1) * 180 / Math.PI]
+}
+function demeArmar(svg) {
+  const P = DEME_P
+  const pierna = (id, x) => `<g transform="translate(${x},-92)"><g data-p="${id}">
+      <rect x="-13" y="-4" width="26" height="86" rx="11" fill="${P.pantalon}" stroke="${P.pantalonOsc}" stroke-width="1.5"/>
+      <rect x="-13" y="70" width="26" height="9" rx="4" fill="${P.pantalonOsc}" opacity=".45"/>
+      <ellipse cx="${x < 0 ? -3 : 3}" cy="87" rx="17" ry="8" fill="${P.zapato}"/></g></g>`
+  const brazo = (id, x) => `<g transform="translate(${x},-166)"><g data-p="${id}u">
+      <rect x="-11" y="-5" width="22" height="27" rx="9" fill="${P.ropa}"/><rect x="-11" y="8" width="22" height="4" fill="${P.raya}" opacity=".85"/>
+      <rect x="-7" y="19" width="14" height="24" rx="7" fill="${P.piel}"/>
+      <g transform="translate(0,40)"><g data-p="${id}f"><rect x="-7" y="-3" width="14" height="40" rx="7" fill="${P.piel}"/>
+      <circle data-p="${id}h" cy="40" r="8.5" fill="${P.piel}" stroke="${P.pielOsc}" stroke-width="1"/></g></g></g></g>`
+  const torso = 'M-40,-96 C-55,-112 -56,-150 -45,-171 Q0,-186 45,-171 C56,-150 55,-112 40,-96 Z'
+  svg.innerHTML = `<defs><clipPath id="deme-torso"><path d="${torso}"/></clipPath><radialGradient id="deme-aura"><stop offset="0" stop-color="#ffe9a3" stop-opacity=".9"/><stop offset=".6" stop-color="#f3c74f" stop-opacity=".35"/><stop offset="1" stop-color="#f3c74f" stop-opacity="0"/></radialGradient></defs>
+    <g data-p="actor"><ellipse data-p="aura" cx="0" cy="-130" rx="105" ry="140" fill="url(#deme-aura)" opacity="0"/>
+    <ellipse data-p="sombra" cx="0" cy="2" rx="46" ry="7" fill="#000" opacity=".25"/>
+    <g data-p="cuerpo">${pierna('pi', -15)}${pierna('pd', 15)}
+      <path d="M-41,-100 h82 v20 q0,9 -10,11 h-62 q-10,-2 -10,-11 z" fill="${P.pantalon}" stroke="${P.pantalonOsc}" stroke-width="1.5"/>
+      <path d="M-35,-94 q4,10 12,14 M35,-94 q-4,10 -12,14" stroke="${P.pantalonOsc}" stroke-width="2" fill="none"/>
+      <path d="${torso}" fill="${P.ropa}"/>
+      <g clip-path="url(#deme-torso)">${[-163, -150, -137, -124, -111].map((y) => `<rect x="-60" y="${y}" width="120" height="4.5" fill="${P.raya}" opacity=".9"/>`).join('')}</g>
+      <path d="M-17,-179 L0,-163 L17,-179 L11,-183 L0,-171 L-11,-183 Z" fill="${P.ropaOsc}"/>
+      <rect x="-41" y="-102" width="82" height="8" rx="2" fill="${P.cinto}"/><rect x="-6" y="-103" width="12" height="10" rx="2" fill="none" stroke="#c9cdd2" stroke-width="2"/>
+      ${brazo('bi', -43)}${brazo('bd', 43)}
+      <ellipse data-p="bolsi" cx="-27" cy="-86" rx="8" ry="5" fill="${P.pantalon}" stroke="${P.pantalonOsc}" stroke-width="1.5" opacity="0"/>
+      <ellipse data-p="bolsd" cx="27" cy="-86" rx="8" ry="5" fill="${P.pantalon}" stroke="${P.pantalonOsc}" stroke-width="1.5" opacity="0"/>
+      <g transform="translate(0,-180)"><g data-p="cabeza"><image href="jugadores/deme-cabeza.webp" x="-56" y="-80" width="112" height="89"/></g></g>
+    </g></g>`
+  const el = {}
+  svg.querySelectorAll('[data-p]').forEach((n) => { el[n.dataset.p] = n })
+  const [ti1, ti2] = ikBrazo(-43, -166, -31, -91, 40, 40, -1)
+  const [td1, td2] = ikBrazo(43, -166, 31, -91, 40, 40, 1)
+  const T = { camina: 3.1, frena: 0.45, bolsillo: 0.8 }
+  const r01 = (x) => Math.max(0, Math.min(1, x))
+  const suave = (x) => { x = r01(x); return x * x * (3 - 2 * x) }
+  const lerp = (a, b, u) => a + (b - a) * u
+  return (t) => {
+    const fin = T.camina, quieto = fin + T.frena, bols = quieto + T.bolsillo
+    const u = r01(t / T.camina)
+    const x = lerp(-70, 120, 1 - Math.pow(1 - u, 1.6))
+    const fase = t * 2 * Math.PI * 1.05
+    const amp = t < fin ? 1 : Math.max(0, 1 - (t - fin) / T.frena)
+    const paso = Math.sin(fase) * amp
+    const salto = Math.abs(Math.sin(fase)) * 7 * amp
+    const respira = t < fin ? 0 : Math.sin(t * 2.2) * 1.2
+    el.actor.setAttribute('transform', `translate(${x},288) scale(.82)`)
+    el.cuerpo.setAttribute('transform', `translate(0,${-salto - respira * 0.6})`)
+    el.sombra.setAttribute('rx', 46 - salto * 0.8)
+    el.pi.setAttribute('transform', `rotate(${paso * 20})`)
+    el.pd.setAttribute('transform', `rotate(${-paso * 20})`)
+    const b = suave((t - quieto) / T.bolsillo)
+    el.biu.setAttribute('transform', `rotate(${lerp(-paso * 18, ti1, b)})`)
+    el.bif.setAttribute('transform', `rotate(${lerp(-6, ti2, b)})`)
+    el.bdu.setAttribute('transform', `rotate(${lerp(paso * 18, td1, b)})`)
+    el.bdf.setAttribute('transform', `rotate(${lerp(6, td2, b)})`)
+    const adentro = r01((b - 0.75) / 0.25)
+    el.bih.setAttribute('opacity', 1 - adentro); el.bdh.setAttribute('opacity', 1 - adentro)
+    el.bolsi.setAttribute('opacity', adentro); el.bolsd.setAttribute('opacity', adentro)
+    const asiente = Math.sin(r01((t - bols) / 0.9) * Math.PI) * 5
+    el.cabeza.setAttribute('transform', `rotate(${Math.sin(fase * 0.5) * 9 * amp + Math.sin(t * 1.6) * 2}) translate(0,${asiente * 0.6})`)
+    const aura = 0.25 + 0.75 * suave((t - bols) / 0.9)
+    el.aura.setAttribute('opacity', aura)
+    el.aura.setAttribute('transform', `translate(0,-130) scale(${(1 + Math.sin(t * 3) * 0.05) * (0.85 + 0.25 * aura)}) translate(0,130)`)
+    return bols
+  }
+}
+let demeCuadro = null
+function llamarADeme() {
+  if (estado !== 'apuntar' || !M.puedeInvocarDeme(ronda)) return
+  drag = null
+  S.cargaFin()
+  estado = 'deme' // mientras habla, todo espera (los monos también)
+  hud()
+  const el = $('#deme'), globo = el.querySelector('.globo')
+  demeCuadro ??= demeArmar(el.querySelector('svg'))
+  globo.className = 'globo'
+  globo.innerHTML = `<b>MIRÁ, ASÍ TENÉS QUE AGARRAR EL PALO.</b>${M.elegir(rng, DEME_CONSEJOS)}`
+  el.style.opacity = '1'
+  el.hidden = false
+  relatar({ lg: '🧙 Llegó Deme', verso: 'El mentor. Escuchalo.' })
+  const t0 = performance.now()
+  let hablo = false
+  const paso = (ahora) => {
+    const t = (ahora - t0) / 1000
+    const plantado = demeCuadro(t)
+    if (!hablo && t > plantado + 0.2) { hablo = true; globo.classList.add('ve') }
+    if (t < plantado + 4.2) { requestAnimationFrame(paso); return }
+    // terminó el consejo: Deme se va y la pelota queda con el aura
+    el.style.opacity = '0'
+    setTimeout(() => { el.hidden = true; globo.className = 'globo' }, 460)
+    M.invocarDeme(ronda)
+    S.monoBueno()
+    estado = 'apuntar'
+    apuntarDesde = performance.now()
+    relatar({ lg: '✨ El tiro de Deme', verso: 'Pegale como quieras: este entra' })
+    hud()
+  }
+  requestAnimationFrame(paso)
+}
+/** El aura de Deme: la pelota (quieta o volando) brilla y le giran destellos alrededor. */
+function auraDeme(pos, alt = 0) {
+  const [x, y0] = w2s(pos)
+  const y = y0 - alt * levante()
+  const t = performance.now() / 1000
+  const r = Math.max(26, radioPelota() * 4) * (1 + Math.sin(t * 4) * 0.08)
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r)
+  g.addColorStop(0, 'rgba(255,240,170,.85)')
+  g.addColorStop(0.45, 'rgba(243,199,79,.4)')
+  g.addColorStop(1, 'rgba(243,199,79,0)')
+  ctx.fillStyle = g
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+  ctx.fillStyle = '#fff3b5'
+  for (let i = 0; i < 8; i++) {
+    const a = t * 1.6 + (i * Math.PI) / 4
+    const rr = r * (0.75 + 0.15 * Math.sin(t * 3 + i))
+    const sx = x + Math.cos(a) * rr, sy = y + Math.sin(a) * rr * 0.8
+    const k = 3 + 2 * Math.abs(Math.sin(t * 5 + i))
+    ctx.beginPath()
+    ctx.moveTo(sx, sy - k); ctx.lineTo(sx + k * 0.3, sy - k * 0.3); ctx.lineTo(sx + k, sy); ctx.lineTo(sx + k * 0.3, sy + k * 0.3)
+    ctx.lineTo(sx, sy + k); ctx.lineTo(sx - k * 0.3, sy + k * 0.3); ctx.lineTo(sx - k, sy); ctx.lineTo(sx - k * 0.3, sy - k * 0.3)
+    ctx.closePath(); ctx.fill()
+  }
+}
+
 /** Lucas en persona (con Rodal): entra con movimiento, dice la frase en un globo y se va. */
 let lucasTimer = 0
 function lucasDice(texto) {
@@ -1425,6 +1581,10 @@ function hud() {
     $('#pancho-n').textContent = ronda.panchos
     $('#pancho').disabled = !ronda.panchos || estado !== 'apuntar'
   }
+  // Maxi: el botón de Deme (una vez por vuelta; en el tee, apagado)
+  const maxi = M.habilidadDe(ronda.jugador)?.id === 'deme'
+  $('#deme-btn').hidden = !maxi || $('#hud-top').hidden || !ronda.deme || ronda.deme.usado
+  if (maxi && ronda.deme) $('#deme-btn').disabled = !M.puedeInvocarDeme(ronda) || estado !== 'apuntar'
   // el golpe del Mago: el que le toca (o, mientras vuela, el que pegó)
   const g = !ronda.golpeMago ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? PUTT_MAGO : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
   $('#efecto').hidden = !g
@@ -1447,6 +1607,7 @@ function golpeMago() {
 }
 let lpArmado = 0
 $('#pancho').addEventListener('click', tirarPancho)
+$('#deme-btn').addEventListener('click', llamarADeme)
 $('#lp').addEventListener('click', () => {
   if (estado !== 'apuntar') return
   const ninja = M.tieneLPNinja(ronda)
@@ -1580,8 +1741,8 @@ function dibujar() {
   dibujarMonos()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
-    else if (tiro) pelota(tiro.pos, tiro.alt)
-    else pelotaQuieta()
+    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); pelota(tiro.pos, tiro.alt) }
+    else { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
   }
   const a = estado === 'apuntar' ? apunte() : null
   if (drag) drag.visto = a // lo que se ve es lo que sale al soltar

@@ -542,6 +542,37 @@ ok('Marcos: "¿jugaste con Rorro?" es una apuesta: 50 y 50 de −1 o +1 al total
   assert.ok(menos > 160 && menos < 240, `${menos} de 400`)
 })
 
+ok('Maxi (Grandpa): una vez por vuelta invoca a Deme y el próximo tiro entra de una, pegue como pegue (nunca desde el tee)', () => {
+  const maxi = { apodo: 'Grandpa', emoji: '👴', hcp: 6.3 }
+  const r = { ...M.nuevaRonda(maxi, fijo(0.5)), monos: [], viento: { ang: 0, kmh: 30 } }
+  // en el tee, no
+  assert.equal(r.lie, 'tee')
+  assert.ok(!M.puedeInvocarDeme(r))
+  assert.ok(!M.invocarDeme(r))
+  // desde el fairway, lejos, para el lado equivocado y a media fuerza: entra igual
+  r.pelota = [h15.pin[0] + 3, h15.pin[1] + 120]
+  r.lie = M.terreno(campo, r.pelota).tipo
+  assert.ok(M.invocarDeme(r))
+  assert.ok(!M.puedeInvocarDeme(r), 'una sola vez')
+  const t = M.simular(quieto, M.golpear(quieto, r, Math.PI / 2, 0.37, sinRuido()), h15.pin)
+  assert.ok(t.deme)
+  assert.equal(t.embocada, true)
+  // el siguiente tiro ya es normal
+  r.pelota = [h15.pin[0], h15.pin[1] + 100]
+  r.lie = 'fairway'
+  const normal = M.simular(quieto, M.golpear(quieto, r, Math.PI / 2, 0.37, sinRuido()), h15.pin)
+  assert.ok(!normal.deme && !normal.embocada)
+  assert.ok(!M.invocarDeme(r), 'ya la usó en la vuelta')
+  // en el green: el putt entra solo
+  const g = { ...M.nuevaRonda(maxi, fijo(0.5)), monos: [] }
+  g.pelota = [h15.pin[0] + 4, h15.pin[1] + 6]
+  g.lie = 'green'
+  assert.ok(M.invocarDeme(g))
+  assert.equal(M.simular(quieto, M.golpear(quieto, g, 0, 1, sinRuido()), h15.pin).embocada, true)
+  // los demás no tienen a Deme
+  assert.ok(!M.puedeInvocarDeme({ ...M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5)), lie: 'fairway' }))
+})
+
 ok('más handicap, más difícil: más error y menos distancia', () => {
   const crack = M.dificultad(1.5)
   const malo = M.dificultad(22)
