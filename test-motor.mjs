@@ -480,6 +480,14 @@ ok('Marcos: el carrito acelera, dobla, frena solo, no atraviesa árboles y llega
   let coleoFreno = false
   for (let i = 0; i < 30; i++) { M.manejar(liso, fm, { frenar: true, izq: true }, 1 / 60); if (fm.colea) coleoFreno = true }
   assert.ok(coleoFreno, 'freno y doblo: colea')
+  // si los monos se la llevan y vuelve al tee, el carrito vuelve con él (no maneja de vuelta)
+  const rr = M.nuevaRonda({ apodo: 'El Flaco Ordoñez', emoji: '🏎️', hcp: 7.2 }, fijo(0.5))
+  rr.pelota = [48, 200]; rr.lie = 'fairway'; rr.golpes = 2
+  rr.carro = M.crearCarro([50, 203])
+  M.monosLlegaron(rr)
+  assert.deepEqual(rr.pelota, M.teeDe(rr))
+  assert.ok(M.carroLlego(campo, rr.carro, rr.pelota), 'el carrito está en el tee')
+  assert.equal(rr.carro.v, 0)
   // llegar a la pelota
   assert.ok(M.carroLlego(campo, M.crearCarro([50, 200]), [52, 202]))
   assert.ok(!M.carroLlego(campo, M.crearCarro([50, 200]), [50, 220]))

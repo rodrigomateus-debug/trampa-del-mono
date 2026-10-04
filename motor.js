@@ -365,6 +365,9 @@ export function atropellar(r) {
 /** Arriba del carrito: los monos cercanos salen a buscarlo a él (no a la pelota). */
 export const perseguirCarro = (r) => despertarMonos(r.monos, r.carro.pos, alertaDe(r))
 
+/** El carrito estacionado al lado de una salida (al empezar, o al volver al tee porque los monos se la llevaron). */
+export const carroAlLado = (p) => crearCarro([p[0] + 2.5, p[1] + 2])
+
 /** ¿Llegó a la pelota? (en el bosque alcanza con acercarse: el último tramo, a pie) */
 export function carroLlego(campo, carro, pelota) {
   const lejos = NO_SE_PASA.has(celda(campo, pelota)) ? CARRITO.llegarBosque : CARRITO.llegar
@@ -961,7 +964,7 @@ export function nuevaRonda(jugador, rng) {
   }
   if (habilidadDe(jugador)?.id === 'comba') r.golpeMago = sortearGolpeMago(rng, null)
   // Marcos arranca con el carrito estacionado al lado del tee del 15
-  if (habilidadDe(jugador)?.id === 'carrito') r.carro = crearCarro([r.pelota[0] + 2.5, r.pelota[1] + 2])
+  if (habilidadDe(jugador)?.id === 'carrito') r.carro = carroAlLado(r.pelota)
   return r
 }
 /** El golpe del Mago para el próximo tiro: al azar, distinto del anterior. */
@@ -1026,6 +1029,8 @@ export function monosLlegaron(r) {
   r.desde = [...teeDe(r)]
   r.lie = 'tee'
   r.lieDesde = 'tee'
+  // Marcos no maneja de vuelta hasta el tee: arranca de nuevo con el carrito ahí
+  if (r.carro) r.carro = carroAlLado(r.pelota)
   return { tipo: 'reinicio', n: h.n }
 }
 
