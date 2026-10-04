@@ -134,10 +134,10 @@ const NOTAS = [523.25, 587.33, 659.25, 783.99, 880, 1046.5] // pentatónica de D
 function ambiente(prender) {
   clearInterval(ambTimer)
   clearTimeout(pajaroTimer)
-  if (!prender) {
-    if (ambGain) { ambGain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.8); const g = ambGain; setTimeout(() => g.disconnect(), 4000); ambGain = null }
-    return
-  }
+  // el fondo que estaba (también al volver a prenderlo: con el 🔊 o cuando termina de cargar la canción) se apaga y se
+  // suelta; antes quedaba conectado y su acorde se pisaba con el nuevo
+  if (ambGain) { ambGain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.8); const g = ambGain; setTimeout(() => g.disconnect(), 4000); ambGain = null }
+  if (!prender) return
   ambGain = ctx.createGain()
   ambGain.gain.value = 0.0001
   const fl = ctx.createBiquadFilter()

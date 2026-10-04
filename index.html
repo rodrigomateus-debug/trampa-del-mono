@@ -603,11 +603,11 @@ input { -webkit-user-select: text; user-select: text; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=e8cf47a801'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=e8cf47a801'
+import * as M from './motor.js?v=7289a20277'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=7289a20277'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=e8cf47a801'
-import * as S from './sonido.js?v=e8cf47a801'
+import * as R from './ranking.js?v=7289a20277'
+import * as S from './sonido.js?v=7289a20277'
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 // el nivel fijado a mano manda (Fito, Trampa total, va al final)
@@ -682,9 +682,25 @@ function medir() {
   lienzo.style.width = W + 'px'
   lienzo.style.height = H + 'px'
 }
+/**
+ * Dónde termina el marcador. En cada cuadro se mide UNA vez, al principio (el DOM todavía está limpio y leerlo no
+ * fuerza un layout): antes se medía después de escribir el cronómetro y una vez por mono, y eso forzaba un layout
+ * sincrónico en cada cuadro. Fuera del cuadro (toques, timers, resize) se mide en el momento.
+ */
+let hudCuadro = null
+function medirHud() {
+  if (hudCuadro) return hudCuadro
+  const top = $('#hud-top'), card = $('#hud-top .card'), bot = $('#hud-bot')
+  return {
+    top: top.hidden ? null : top.getBoundingClientRect().bottom,
+    card: card && !top.hidden ? card.getBoundingClientRect().bottom : null,
+    bot: bot.hidden ? null : bot.getBoundingClientRect().top,
+  }
+}
 function zona() {
-  const top = $('#hud-top').hidden ? 20 : $('#hud-top').getBoundingClientRect().bottom
-  const bot = $('#hud-bot').hidden ? H - 20 : $('#hud-bot').getBoundingClientRect().top
+  const m = medirHud()
+  const top = m.top ?? 20
+  const bot = m.bot ?? H - 20
   // la pelota queda lo bastante arriba como para arrastrar para abajo un tiro a fondo
   return { top: top + 36, bot: bot - 34 }
 }
@@ -704,8 +720,7 @@ function encuadre(a, b) {
  * Abajo queda lugar para tirar para atrás. Se ve ~75 yd para adelante (o hasta el hoyo si está más cerca).
  */
 function vistaApuntar(b, pin) {
-  const card = $('#hud-top .card')
-  const techo = (card && !$('#hud-top').hidden ? card.getBoundingClientRect().bottom : 20) + 46
+  const techo = (medirHud().card ?? 20) + 46
   const sy = techo + (H - techo) * 0.5
   const d = Math.max(M.dist(b, pin), 1)
   const putt = ronda && M.enModoPutt(campo, ronda)
@@ -789,7 +804,8 @@ lienzo.addEventListener('pointerup', (e) => {
   if (a && estado === 'apuntar') pegar(a, base)
   else if (base) obj = base // no pegó: vuelve el zoom de antes
 })
-lienzo.addEventListener('pointercancel', () => {
+lienzo.addEventListener('pointercancel', (e) => {
+  if (drag && e.pointerId !== drag.id) return // se canceló otro dedo: el tiro que estás armando sigue
   S.cargaFin()
   if (drag?.base) obj = drag.base
   drag = null
@@ -815,6 +831,8 @@ function zoomApunte() {
 // el zoom mientras vuela un tiro completo: el de apuntar (antes de alejarte tirando para atrás), un poco más cerca
 let escVuelo = null
 function pegar(a, base = null) {
+  // pegar desarma el LP: si no, un toque al LP después de un putt corto confirmaba sin volver a preguntar
+  if (lpArmado) { lpArmado = 0; $('#lp').textContent = textoLP() }
   S.golpe(a.p, a.putt)
   velCam = 3.5
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
@@ -828,11 +846,20 @@ function pegar(a, base = null) {
 
 // ── ciclo ──
 let ultimo = performance.now(), acc = 0
+// Las pantallas opacas que tapan la cancha entera: con una de estas arriba, dibujarla es trabajo tirado (y en la intro
+// compite con la escena 3D). La lógica y la cámara siguen corriendo igual.
+const TAPAN = ['#elegir', '#todos', '#resumen'].map($)
+const introApp = $('#intro-app')
+// (con ?sinintro o sin WebGL la intro se borra del DOM: ahí no tapa nada)
+const tapada = () => (introApp?.isConnected && !introApp.hidden && !introApp.classList.contains('cerrando')) || TAPAN.some((el) => !el.hidden)
 function cuadro(t) {
   const dt = Math.min(0.05, (t - ultimo) / 1000)
   ultimo = t
+  hudCuadro = null
+  hudCuadro = medirHud() // antes de escribir el DOM en este cuadro
   actualizar(dt)
-  dibujar()
+  if (!tapada()) dibujar()
+  hudCuadro = null
   requestAnimationFrame(cuadro)
 }
 function actualizar(dt) {
@@ -908,6 +935,10 @@ function alReposo() {
     return
   }
   relatar(dicho)
+  // el sonido va antes de las animaciones (que cortan acá con return: si no, el Mono bueno y el malo no sonaban nunca)
+  if (res.tipo === 'mono-bueno') S.monoBueno()
+  else if (res.tipo === 'mono-malo') S.robo()
+  else if (res.tipo === 'perro') S.perro()
   if (res.tipo === 'mono-malo' || res.tipo === 'mono-bueno') {
     estado = 'anim'
     anim = { tipo: 'mono', bueno: res.tipo === 'mono-bueno', desde: donde, hasta: [...ronda.pelota], t: 0, T: 2, fin: siguienteTiro }
@@ -918,9 +949,6 @@ function alReposo() {
     anim = { tipo: 'ladron', mono: res.mono, hasta: [...ronda.pelota], t: 0, T: 2.2, fin: siguienteTiro }
     return
   }
-  if (res.tipo === 'mono-bueno') S.monoBueno()
-  else if (res.tipo === 'mono-malo') S.robo()
-  else if (res.tipo === 'perro') S.perro()
   if (res.tipo === 'perro') {
     // el perro sale del fairway, la busca en el bosque y la trae (tarda: el reloj corre)
     estado = 'anim'
@@ -1455,8 +1483,8 @@ const tamMono = () => Math.max(22, Math.min(36, cam.esc * 3.4))
 
 /** La parte de la pantalla donde se ve la cancha (sin el marcador de arriba). */
 function visible() {
-  const card = $('#hud-top .card')
-  const y0 = card && !$('#hud-top').hidden ? card.getBoundingClientRect().bottom + 10 : 16
+  const card = medirHud().card
+  const y0 = card != null ? card + 10 : 16
   return { x0: 16, x1: W - 16, y0, y1: H - 16 }
 }
 // verde (lejos) → amarillo → naranja → rojo (encima)
@@ -1519,13 +1547,13 @@ function dibujarMonos() {
   if (!ronda) return
   const tam = tamMono()
   const ahora = performance.now() / 1000
+  const v = visible()
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   for (const s of ronda.monos) {
     let [x, y] = w2s(s.pos)
     const activo = M.monoActivo(s)
     const salta = activo && !(s.modo === 'caza' && s.reaccion > 0) ? Math.abs(Math.sin(ahora * 12 + s.m.fase)) * 4 : 0
-    const v = visible()
     const afuera = x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1
     if (afuera) {
       if (s.modo === 'caza') indicadorMono(s, x, y, v) // viene y no se ve: marca en el borde
@@ -1976,6 +2004,7 @@ function tarjetaFinal() {
   $('#t-ranking').hidden = true
   posRanking = null
   resumenListo = null
+  soltarResumenes()
   $('#t-extras').textContent = `🐒 Monos: ${ronda.monosMalos} malos · ${ronda.monosBuenos} buenos · ${ronda.robos} robos${ronda.lp ? ` · LP en el ${ronda.lp}: no cuenta para el récord` : ''}`
   $('#t-firma').hidden = false
   $('#t-firmada').hidden = true
@@ -2096,7 +2125,15 @@ async function imagenVuelta() {
   g.font = B(24, 600); g.fillStyle = 'rgba(244,238,218,.7)'
   g.fillText(`🐒 ${r.monosMalos} malos · ${r.monosBuenos} buenos · ${r.robos} robos   ·   fedecup.vercel.app`, W2 / 2, H2 - 36)
   const blob = await new Promise((ok) => c.toBlob(ok, 'image/png'))
-  return { blob, url: URL.createObjectURL(blob) }
+  const url = URL.createObjectURL(blob)
+  urlsResumen.push(url)
+  return { blob, url }
+}
+/** Las imágenes de la vuelta anterior (cada una, un PNG de 1080×1350): se sueltan al llegar a la tarjeta de la próxima. */
+let urlsResumen = []
+function soltarResumenes() {
+  for (const u of urlsResumen) URL.revokeObjectURL(u)
+  urlsResumen = []
 }
 async function mostrarResumen() {
   $('#resumen').hidden = false
