@@ -645,6 +645,47 @@ input { -webkit-user-select: text; user-select: text; }
 .wdl .p { background: rgba(188, 75, 60, .18); }
 #h-fantasma { background: rgba(244, 238, 218, .9); color: var(--green-900); justify-self: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 #h-fantasma[hidden] { display: none; }
+.rk-fila.tocable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 120ms; }
+.rk-fila.tocable:active { background: rgba(20, 64, 42, .1); }
+.rk-fila.tocable:focus-visible { outline: 3px solid var(--gold); outline-offset: -2px; border-radius: 10px; }
+/* el sello del SDGA: los socios, en el ranking Mundial */
+.sello-sdga { flex: none; display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 5px; background: var(--green-900); color: var(--gold); box-shadow: inset 0 0 0 1.5px var(--gold); vertical-align: middle; }
+.sello-sdga svg { display: block; height: 7.5px; width: auto; }
+.rk-nombre .linea b { min-width: 0; flex: 0 1 auto; }
+.rk-nombre .linea { display: flex; align-items: center; gap: 6px; min-width: 0; }
+/* el resumen de una vuelta del ranking */
+.rs-caja { position: relative; width: min(100%, 370px); max-height: calc(100dvh - 32px); overflow-y: auto; box-sizing: border-box; background: var(--cream); color: var(--green-900); border-radius: 22px; padding: 16px 16px 14px; box-shadow: 0 18px 48px rgba(0, 0, 0, .5); display: grid; gap: 12px; animation: hab-pop .22s cubic-bezier(.2, .9, .3, 1.2); }
+.rs-caja .hab-x { background: rgba(20, 64, 42, .12); color: var(--green-900); }
+.rs-kicker { margin: 0; padding-right: 40px; font: 800 11px/1.2 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); }
+.rs-quien { display: flex; align-items: center; gap: 8px; margin: -4px 0 0; font: 32px/1 var(--font-display); letter-spacing: .02em; overflow-wrap: anywhere; }
+.rs-quien .sello-sdga { height: 22px; padding: 0 7px; }
+.rs-quien .sello-sdga svg { height: 11px; }
+.rs-player { display: grid; grid-template-columns: 58px 1fr; gap: 12px; align-items: center; padding: 10px; border-radius: 16px; background: var(--green-900); color: var(--cream); }
+.rs-player .cara { position: relative; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: var(--green-700); display: grid; place-items: center; font-size: 30px; box-shadow: 0 0 0 2px var(--gold); }
+.rs-player .cara img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.rs-player .cara.misterio { background: #12141a; color: #fff3c4; font: 34px/1 var(--font-display); }
+.rs-player small { display: block; font: 800 10.5px/1.2 var(--font-body); letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+.rs-player b { display: block; font: 22px/1.05 var(--font-display); letter-spacing: .02em; font-weight: 400; }
+.rs-player span { display: block; margin-top: 2px; font: 700 12px/1.3 var(--font-body); color: var(--gold); }
+.rs-score { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+.rs-score .grande { min-width: 86px; padding: 8px 12px 6px; text-align: center; font: 52px/1 var(--font-display); background: var(--gold); border-radius: 14px; }
+.rs-score .grande.bajo { background: #2e7d4f; color: var(--cream); }
+.rs-score .grande.sobre { background: var(--red); color: var(--cream); }
+.rs-score p { margin: 0; font: 700 14px/1.4 var(--font-body); }
+.rs-score p b { font: 22px/1.1 var(--font-display); font-weight: 400; display: block; }
+.rs-datos { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rs-datos div { padding: 8px 10px; border-radius: 12px; background: rgba(20, 64, 42, .07); }
+.rs-datos dt { font: 800 10px/1.2 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.rs-datos dd { margin: 3px 0 0; font: 18px/1.1 var(--font-display); font-variant-numeric: tabular-nums; }
+.rs-datos dd small { display: block; margin-top: 2px; font: 600 11.5px/1.3 var(--font-body); color: var(--text-muted); }
+.rs-datos .ancho { grid-column: 1 / -1; }
+.rs-hoyos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.rs-hoyos div { padding: 6px 4px; border-radius: 10px; text-align: center; background: rgba(20, 64, 42, .07); font: 700 11px/1.2 var(--font-body); color: var(--text-muted); }
+.rs-hoyos b { display: block; font: 24px/1 var(--font-display); font-weight: 400; color: var(--green-900); margin-top: 2px; }
+.rs-hoyos .bajo b { color: #2e7d4f; }
+.rs-hoyos .sobre b { color: var(--red); }
+.rs-titulo { margin: 2px 0 -4px; font: 800 11px/1 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); }
+.rs-caja .carta-jugar { height: 44px; }
 .rk-vacio { margin: 0; padding: 18px 4px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -808,6 +849,14 @@ input { -webkit-user-select: text; user-select: text; }
   <ol class="todos-lista" id="todos-lista"></ol>
 </section>
 
+<div class="hab-modal" id="rk-resumen" hidden style="z-index: 52">
+  <div class="hab-fondo" data-cerrar></div>
+  <div class="rs-caja" role="dialog" aria-modal="true" aria-labelledby="rs-quien">
+    <button class="hab-x" type="button" data-cerrar aria-label="Cerrar">×</button>
+    <div id="rs-cuerpo" style="display: grid; gap: 12px"></div>
+    <button class="carta-jugar" type="button" data-cerrar>Cerrar</button>
+  </div>
+</div>
 <div class="hab-modal" id="hab-modal" hidden>
   <div class="hab-fondo" data-cerrar></div>
   <div class="hab-caja" role="dialog" aria-modal="true" aria-labelledby="hab-tit">
@@ -3091,6 +3140,10 @@ async function anotarVuelta() {
   const marca = M.marcaDe(ronda, datos.usuario)
   if (!marca || !marca.usuario) return
   if (R.puente.activo) marca.uid = R.puente.identidad.uid
+  // el detalle queda en el teléfono (la base de la SDGApp guarda solo el total)
+  marca.hoyos = ronda.tarjeta.map((f) => f.golpes)
+  if (ronda.tarjeta.rorro) marca.rorro = ronda.tarjeta.rorro
+  marca.monos = { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }
   const jugador = ronda.jugador
   await R.anotar(marca)
   const { marcas } = await R.leerMarcas()
@@ -3461,8 +3514,75 @@ const esYo = (m) => (R.puente.activo ? m.uid === R.puente.identidad.uid : m.usua
 let rkAmbito = 'mundial'
 let rkTab = 'general'
 let rkMarcas = []
+let rkVista = [] // las filas que se ven (para abrir el resumen de la que tocás)
 let rkCompartido = false
 let rkApp = false // el ranking de la SDGApp (Mundial / SDGA), por la app o directo
+// ── el resumen de una vuelta del ranking ──
+const selloSdga = () => `<span class="sello-sdga" title="Socio del SDGA" aria-label="Socio del SDGA">${$('.portada .logo svg').outerHTML}</span>`
+const fechaLarga = (iso) => {
+  const d = iso ? new Date(iso) : null
+  if (!d || isNaN(d)) return null
+  const dia = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  return { dia: dia.charAt(0).toUpperCase() + dia.slice(1), hora: d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) }
+}
+const deltaTiempo = (ms) => `+${M.formatoTiempo(ms).replace(/^0:/, '')}`
+function abrirResumen(m) {
+  if (!m) return
+  const app = rkApp
+  const base = app && rkAmbito === 'sdga' ? rkMarcas.filter((x) => x.sdga) : rkMarcas
+  const general = M.armarRanking(base)
+  const conEl = M.armarRanking(base, m.apodo)
+  const misma = (x) => x.golpes === m.golpes && x.ms === m.ms && x.apodo === m.apodo
+  const posG = general.find((x) => M.duenoDe(x) === M.duenoDe(m) && misma(x))?.pos
+  const posJ = conEl.find((x) => M.duenoDe(x) === M.duenoDe(m) && misma(x))?.pos
+  const lider = general[0]
+  const ambito = app ? (rkAmbito === 'sdga' ? 'SDGA' : 'Mundial') : 'General'
+  // el player (Demetrio, misterioso para el que no lo desbloqueó)
+  const real = [...TODOS, DEMETRIO].find((x) => x.apodo === m.apodo)
+  const j = publico(real ?? { apodo: m.apodo, emoji: m.emoji, foto: null })
+  const hab = j.misterio ? null : M.habilidadDe(j)
+  const nombreJ = (j.apodo ?? '').replace(/ \(Đ\)$/, '')
+  const cara = j.misterio ? '<div class="cara misterio" aria-hidden="true">?</div>' : j.foto ? `<div class="cara"><img src="${j.foto}" alt=""></div>` : `<div class="cara" aria-hidden="true">${j.emoji ?? m.emoji}</div>`
+  // todas sus vueltas firmadas (del mismo usuario)
+  const suyas = rkMarcas.filter((x) => M.duenoDe(x) === M.duenoDe(m) && x.golpes > 0)
+  const prom = suyas.length ? suyas.reduce((a, x) => a + x.golpes, 0) / suyas.length : null
+  const mejor = suyas.length ? suyas.reduce((a, x) => (M.compararMarcas(x, a) < 0 ? x : a)) : null
+  const usados = {}
+  for (const x of suyas) usados[x.apodo] = (usados[x.apodo] ?? 0) + 1
+  const favorito = Object.entries(usados).sort((a, b) => b[1] - a[1])[0]?.[0]
+  const fav = favorito ? publico([...TODOS, DEMETRIO].find((x) => x.apodo === favorito) ?? { apodo: favorito }).apodo.replace(/ \(Đ\)$/, '') : null
+  // el hoyo por hoyo: solo si la vuelta se jugó en este teléfono
+  const det = m.hoyos ? m : R.marcasDelTelefono().find((x) => misma(x) && x.hoyos && (!m.fecha || !x.fecha || Math.abs(new Date(x.fecha) - new Date(m.fecha)) < 6e5))
+  const f = fechaLarga(m.fecha)
+  const clase = m.vsPar < 0 ? 'bajo' : m.vsPar > 0 ? 'sobre' : ''
+  const alLider = lider && posG !== 1 && posG ? `${lider.golpes === m.golpes ? 'Mismos golpes' : `+${m.golpes - lider.golpes} ${m.golpes - lider.golpes === 1 ? 'golpe' : 'golpes'}`}<small>${lider.golpes === m.golpes ? `${deltaTiempo(m.ms - lider.ms)} más lento` : `el líder: ${esc(lider.usuario)}`}</small>` : 'Es el líder<small>nadie la hizo mejor</small>'
+  $('#rs-cuerpo').innerHTML = `
+    <p class="rs-kicker">Ranking ${ambito}${posG ? ` · ${posG}° puesto` : ''}</p>
+    <h3 class="rs-quien" id="rs-quien">${esc(m.usuario)}${m.sdga ? selloSdga() : ''}</h3>
+    <div class="rs-player">${cara}<div><small>Jugó con</small><b>${esc(nombreJ)}</b>${hab ? `<span>✦ ${esc(hab.nombre)}</span>` : j.misterio ? '<span>Un player secreto</span>' : ''}</div></div>
+    <div class="rs-score"><div class="grande ${clase}">${M.formatoPar(m.vsPar)}</div><p><b>${m.golpes} golpes</b>par ${M.PAR_TOTAL} · hoyos 15, 16 y 17</p></div>
+    <dl class="rs-datos">
+      <div><dt>Tiempo</dt><dd>${M.formatoTiempo(m.ms)}</dd></div>
+      <div><dt>Puesto</dt><dd>${posG ? `${posG}°` : '—'}<small>${posJ ? `${posJ}° con ${esc(nombreJ)}` : ''}</small></dd></div>
+      <div class="ancho"><dt>Fecha</dt><dd>${f ? `${esc(f.dia)}<small>a las ${f.hora} h</small>` : '—'}</dd></div>
+      <div class="ancho"><dt>Contra el líder</dt><dd>${alLider}</dd></div>
+    </dl>
+    ${det?.hoyos ? `<p class="rs-titulo">Hoyo por hoyo</p><div class="rs-hoyos">${M.HOYOS.map((h, i) => { const g = det.hoyos[i]; const c = g < h.par ? 'bajo' : g > h.par ? 'sobre' : ''; return `<div class="${c}">HOYO ${h.n} · PAR ${h.par}<b>${g ?? '—'}</b></div>` }).join('')}</div>${det.monos ? `<p class="rs-titulo" style="margin-top:4px">Los monos: ${det.monos.robos} robos · ${det.monos.malos} malos · ${det.monos.buenos} buenos${det.rorro ? ` · Rorro anotó ${det.rorro > 0 ? '+1' : '−1'}` : ''}</p>` : ''}` : ''}
+    <p class="rs-titulo">Sus vueltas</p>
+    <dl class="rs-datos">
+      <div><dt>Firmadas</dt><dd>${suyas.length}</dd></div>
+      <div><dt>Promedio</dt><dd>${prom != null ? `${prom.toFixed(1).replace('.', ',')}<small>golpes por vuelta</small>` : '—'}</dd></div>
+      <div><dt>Su mejor</dt><dd>${mejor ? `${M.formatoPar(mejor.vsPar)}<small>${M.formatoTiempo(mejor.ms)}</small>` : '—'}</dd></div>
+      <div><dt>Su player</dt><dd>${fav ? esc(fav) : '—'}<small>el que más usa</small></dd></div>
+    </dl>`
+  $('#rk-resumen').hidden = false
+  $('#rk-resumen .hab-x').focus({ preventScroll: true })
+}
+const cerrarResumen = () => { $('#rk-resumen').hidden = true }
+$('#rk-resumen').addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) cerrarResumen() })
+$('#rk-lista').addEventListener('click', (e) => { const li = e.target.closest('.rk-fila[data-k]'); if (li) abrirResumen(rkVista[+li.dataset.k]) })
+$('#rk-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const li = e.target.closest('.rk-fila[data-k]'); if (li) { e.preventDefault(); abrirResumen(rkVista[+li.dataset.k]) } })
+
 async function mostrarRanking(tab = 'general') {
   rkTab = tab
   rkMarcas = null
@@ -3494,9 +3614,12 @@ function pintarRanking(error = false) {
   for (const b of $('#rk-ambito').children) b.setAttribute('aria-selected', String(b.dataset.ambito === rkAmbito))
   const base = app && rkAmbito === 'sdga' ? rkMarcas.filter((m) => m.sdga) : rkMarcas
   const lista = M.armarRanking(base, j ? j.apodo : null)
-  const fila = (m, salto) => `<li class="rk-fila${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}">
+  rkVista = lista
+  // el sello del SDGA: en el Mundial, al lado del nombre de los socios
+  const sello = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '')
+  const fila = (m, salto) => `<li class="rk-fila tocable${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}" data-k="${lista.indexOf(m)}" tabindex="0" role="button" aria-label="Ver la vuelta de ${esc(m.usuario)}">
       <span class="rk-pos">${m.pos}</span>
-      <span class="rk-quien">${j ? `<b>${esc(m.usuario)}</b>` : `<span class="mini${publico(m).misterio ? ' misterio' : ''}" aria-hidden="true">${publico(m).emoji}</span><span class="rk-nombre"><b>${esc(m.usuario)}</b><small>con ${esc(publico(m).apodo.replace(/ \(Đ\)$/, ''))}</small></span>`}</span>
+      <span class="rk-quien">${j ? `<span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span></span>` : `<span class="mini${publico(m).misterio ? ' misterio' : ''}" aria-hidden="true">${publico(m).emoji}</span><span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span><small>con ${esc(publico(m).apodo.replace(/ \(Đ\)$/, ''))}</small></span>`}</span>
       <span class="rk-score">${M.formatoPar(m.vsPar)}<small>${m.golpes} golpes</small></span>
       <span class="rk-tiempo">${M.formatoTiempo(m.ms)}</span>
     </li>`
@@ -3750,6 +3873,7 @@ $('#mazo-cerrar').addEventListener('click', () => {
 })
 window.addEventListener('keydown', (e) => {
   if (!$('#hab-modal').hidden) { if (e.key === 'Escape') cerrarHabilidad(); return }
+  if (!$('#rk-resumen').hidden) { if (e.key === 'Escape') cerrarResumen(); return }
   if (!$('#ranking').hidden && e.key === 'Escape') { $('#ranking').hidden = true; return }
   if (!$('#match').hidden) { if (e.key === 'Escape') $('#mt-volver').click(); return }
   if (!$('#todos').hidden) { if (e.key === 'Escape') $('#todos').hidden = true; return }
