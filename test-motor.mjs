@@ -461,9 +461,10 @@ ok('Marcos: el carrito acelera, dobla, frena solo, no atraviesa árboles y llega
   const vel = []
   for (let i = 1; i <= 60 * 16; i++) { M.manejar(liso, rapido, { acelerar: true }, 1 / 60); if (i % 60 === 0) { vel.push(rapido.v); rapido.pos = [110, 400] } } // (cada segundo, de vuelta abajo: lo que importa es la velocidad)
   assert.ok(vel[0] <= M.CARRITO.vmax + 0.1, `al segundo, ${vel[0]}`) // primero, lo normal
-  assert.ok(vel[1] < M.CARRITO.vmax + 3, `a los 2 s, ${vel[1]}`) // y el turbo arranca de a poco
-  assert.ok(vel[6] > M.CARRITO.vmax + 5 && vel[6] < M.CARRITO.turbo - 5, `a los 7 s, ${vel[6]}`) // después sigue subiendo
-  assert.ok(vel[15] > M.CARRITO.turbo * 0.95 && vel[15] <= M.CARRITO.turbo, `a los 16 s, ${vel[15]}`) // casi el triple
+  assert.ok(vel[1] > M.CARRITO.vmax && vel[1] < M.CARRITO.turbo * 0.6, `a los 2 s, ${vel[1]}`) // el turbo arranca y sigue subiendo
+  assert.ok(vel[2] > vel[1] && vel[3] > vel[2], 'de menos a más')
+  assert.ok(vel[5] > M.CARRITO.turbo * 0.95 && vel[5] <= M.CARRITO.turbo, `a los 6 s, ${vel[5]}`) // en ~5 s, el triple
+  assert.ok(vel[15] <= M.CARRITO.turbo)
   // colea: rápido y doblando la cola se va; despacio, no
   const co = M.crearCarro([110, 300], -Math.PI / 2)
   co.v = 30

@@ -290,7 +290,7 @@ export function crearCampo() {
 // Los árboles y el afuera no se atraviesan (rebota); en el rough y el bunker anda más lento. `llegar` = a cuántas
 // yardas de la pelota se baja (en el bosque, `llegarBosque`: el último tramo lo hace a pie).
 export const CARRITO = {
-  vmax: 16, turbo: 48, acel: 10, acelTurbo: 4.5, atras: 6, freno: 30, frenoMotor: 16, roce: 5, giro: 2.3, largo: 2.6,
+  vmax: 16, turbo: 48, acel: 10, acelTurbo: 18, atras: 6, freno: 30, frenoMotor: 16, roce: 5, giro: 2.3, largo: 2.6,
   agarre: 12, agarreColea: 1.6, colea: 20, coleaFreno: 8, // agarre lateral (por segundo) y desde qué velocidad colea
   terreno: { rough: 0.7, bunker: 0.45 },
   llegar: 4, llegarBosque: 10,
@@ -313,7 +313,7 @@ export function manejar(campo, carro, mando, dt) {
   else if (mando.acelerar && !mando.reversa) {
     if (v < 0) v += c.frenoMotor * dt
     else if (v < base) v = Math.min(base + 0.01, v + c.acel * dt)
-    else v = Math.min(tope, v + c.acelTurbo * Math.max(0.3, 1 - (v - base) / (tope - base)) * dt) // turbo: de menos a más
+    else v = Math.min(tope, v + c.acelTurbo * Math.max(0.5, 1 - (v - base) / (tope - base)) * dt) // turbo: de menos a más
   } else if (mando.reversa && !mando.acelerar) v = Math.max(-c.atras, v - (v > 0 ? c.frenoMotor : c.acel) * dt)
   else v -= Math.sign(v) * Math.min(Math.abs(v), (c.roce + Math.abs(v) * 0.08) * dt) // suelta: se frena solo
   if (v > tope) v = Math.max(tope, v - c.freno * dt) // entró al rough rápido: frena
