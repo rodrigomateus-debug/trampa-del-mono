@@ -5,7 +5,7 @@ import * as M from './motor.js'
 const campo = M.crearCampo()
 // para probar la física sola: sin monos cruzando y con greens planos
 const quieto = { ...campo, hoyos: M.HOYOS.map((h) => ({ ...h, monos: [] })) }
-const plano = { ...quieto, hoyos: quieto.hoyos.map((h) => ({ ...h, caida: [0, 0] })) }
+const plano = { ...quieto, hoyos: quieto.hoyos.map((h) => ({ ...h, caida: [0, 0], caidas: null })) }
 const [h15, h16, h17] = M.HOYOS
 // rng que deja el error humano en cero: gauss usa pares (u, 0.25) → cos(π/2) = 0
 const sinRuido = () => {
@@ -300,6 +300,46 @@ ok('al apuntar se marca el árbol que pega en la salida (y no si pasa por arriba
   assert.equal(M.pinoEnLaSalida(quieto, arbol.desde, { ...plan, putt: true }), null)
 })
 
+ok('la caída del green cambia por zonas, fluida (de 2 a 4 por hoyo)', () => {
+  for (const h of M.HOYOS) {
+    assert.ok(h.caidas.length >= 2 && h.caidas.length <= 4, `hoyo ${h.n}`)
+    // en cada zona, casi su caída
+    for (const z of h.caidas) {
+      const c = M.caidaEn(h, z.p)
+      assert.ok(Math.hypot(c[0] - z.v[0], c[1] - z.v[1]) < 0.25, `hoyo ${h.n} zona ${z.p}`)
+    }
+    // fluida: medio paso cambia poco
+    const [a, b] = h.caidas
+    const m = [(a.p[0] + b.p[0]) / 2, (a.p[1] + b.p[1]) / 2]
+    const c1 = M.caidaEn(h, m)
+    const c2 = M.caidaEn(h, [m[0] + 0.5, m[1]])
+    assert.ok(Math.hypot(c2[0] - c1[0], c2[1] - c1[1]) < 0.1)
+  }
+  // un putt dobla distinto según la zona del green
+  const h = M.HOYOS[1]
+  const putt = (desde) => M.simular(quieto, M.lanzar(quieto, { pelota: desde, angulo: 0, potencia: 0.12, viento: calma, putt: true, rng: sinRuido() }), h.pin)
+  for (const k of [0, 2]) assert.equal(M.terreno(campo, [h.caidas[k].p[0] - 2, h.caidas[k].p[1]]).tipo, 'green')
+  const z0 = putt([h.caidas[0].p[0] - 2, h.caidas[0].p[1]])
+  const z2 = putt([h.caidas[2].p[0] - 2, h.caidas[2].p[1]])
+  assert.ok(z0.pos[1] > h.caidas[0].p[1] && z2.pos[1] < h.caidas[2].p[1], 'doblan para lados distintos')
+})
+
+ok('en el par 3 (el 17) no hay driver: a fondo llega de 240 yd (hcp 0) a 200 (hcp 24 o más)', () => {
+  assert.equal(M.carryMaxDe(0, 3), 240)
+  assert.equal(M.carryMaxDe(24, 3), 200)
+  assert.equal(M.carryMaxDe(30, 3), 200)
+  assert.ok(M.carryMaxDe(12, 3) > 200 && M.carryMaxDe(12, 3) < 240)
+  assert.equal(M.carryMaxDe(5, 4), M.carryDe(5))
+  for (const j of [{ apodo: 'X', emoji: '⛳', hcp: 1.5 }, { apodo: 'Mike Queboni (Đ)', emoji: '🍯', hcp: 5 }]) {
+    const r = { ...M.nuevaRonda(j, fijo(0.5)), monos: [] }
+    r.idx = 2
+    r.pelota = [...M.teeDe(r)]
+    r.lie = 'tee'
+    const plan = M.planTiro(quieto, r, -Math.PI / 2, 1, 1)
+    assert.ok(plan.carry * h17.escala <= 240 + 1e-6, `${j.apodo}: ${plan.carry * h17.escala}`)
+  }
+})
+
 ok('más handicap, más difícil: más error y menos distancia', () => {
   const crack = M.dificultad(1.5)
   const malo = M.dificultad(22)
@@ -315,9 +355,16 @@ ok('más handicap, más difícil: más error y menos distancia', () => {
 
 ok('el viento desvía la pelota', () => {
   const a = angulo(h15.tee, h15.pin)
-  const sin = M.simular(quieto, M.lanzar(quieto, { pelota: h15.tee, angulo: a, potencia: 0.5, viento: calma, lie: 'tee', rng: sinRuido() }), h15.pin)
-  const con = M.simular(quieto, M.lanzar(quieto, { pelota: h15.tee, angulo: a, potencia: 0.5, viento: { ang: 0, kmh: 20 }, lie: 'tee', rng: sinRuido() }), h15.pin)
-  assert.ok(con.pos[0] - sin.pos[0] > 5)
+  // cuánto corre el viento el pique (yardas)
+  const deriva = (potencia, kmh) => M.lanzar(quieto, { pelota: h15.tee, angulo: a, potencia, viento: { ang: 0, kmh }, lie: 'tee', rng: sinRuido() }).deriva[0]
+  const sin = M.simular(quieto, M.lanzar(quieto, { pelota: h15.tee, angulo: a, potencia: 0.8, viento: calma, lie: 'tee', rng: sinRuido() }), h15.pin)
+  const con = M.simular(quieto, M.lanzar(quieto, { pelota: h15.tee, angulo: a, potencia: 0.8, viento: { ang: 0, kmh: 20 }, lie: 'tee', rng: sinRuido() }), h15.pin)
+  assert.ok(con.pos[0] - sin.pos[0] > 5, 'la pelota termina corrida')
+  assert.ok(deriva(0.8, 20) > 10, 'el tiro largo se lo lleva')
+  // más largo, mucho más: el doble de largo, cuatro veces la deriva
+  assert.ok(Math.abs(deriva(0.8, 20) / deriva(0.4, 20) - 4) < 0.6)
+  // un approach de menos de 50 yd casi ni se mueve, aun con viento fuerte
+  assert.ok(deriva(45 / M.FISICA.carryMax, 30) < 1.5)
 })
 
 ok('putt de 4 yardas con la fuerza justa entra; a fondo hace labio', () => {

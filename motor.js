@@ -21,6 +21,7 @@ export const FISICA = {
   velMedio: 3.8, // por el medio entra hasta esto (la que se pasaría ~3 yd). Más fuerte: salta por arriba
   vientoMax: 30, // km/h
   vientoYd: 1, // yardas de deriva por km/h en un tiro de carryMax
+  vientoExp: 2, // la deriva crece con el cuadrado del largo: el drive se lo lleva, el approach de 50 yd casi ni se mueve
   factorLie: { tee: 1, fairway: 1, green: 1, rough: 0.7, bunker: 0.5, bosque: 0.5, afuera: 1 },
   roce: { tee: 9, fairway: 9, green: 2.2, rough: 26, bunker: 70, bosque: 45, afuera: 9 },
   pique: { tee: 1, fairway: 1, green: 0.5, rough: 0.5, bunker: 0.05, bosque: 0.2, afuera: 1 },
@@ -71,6 +72,23 @@ export function limiteEmbocar(d) {
   return FISICA.velMedio + (FISICA.velEmbocar * 0.7 - FISICA.velMedio) * t
 }
 
+// La caída del green, fluida como en uno real: cada hoyo tiene de 2 a 4 zonas (`caidas`, un punto y su caída en
+// yd/s²) y en cada lugar del green la caída es la mezcla de todas, pesada por cercanía (campana de `ancho` yardas).
+export const CAIDA = { ancho: 8 }
+/** La caída del green en ese punto (yd/s²). Sin zonas, la del hoyo. */
+export function caidaEn(h, p) {
+  if (!h.caidas?.length) return h.caida
+  let sx = 0, sy = 0, sw = 0
+  for (const z of h.caidas) {
+    const d2 = (p[0] - z.p[0]) ** 2 + (p[1] - z.p[1]) ** 2
+    const w = Math.exp(-d2 / (2 * CAIDA.ancho * CAIDA.ancho)) + 1e-9
+    sx += z.v[0] * w
+    sy += z.v[1] * w
+    sw += w
+  }
+  return [sx / sw, sy / sw]
+}
+
 // Monos que cruzan de pinos a pinos: si la pelota (baja) les pega, se la llevan.
 // Cuando la pelota se frena cerca (alerta), salen a buscarla: si llegan antes de que pegues, es LP.
 // minimo = segundos que siempre tenés para pegar: el que está muy cerca se acerca despacio, al acecho.
@@ -106,7 +124,7 @@ export function dificultad(hcp) {
  * (Fito: el bot acierta el embudo la mitad de las veces, la gente casi nunca → Trampa total).
  */
 export function dificultadReal(prom, nivel = null) {
-  nivel ??= prom < 1.5 ? 1 : prom < 2.5 ? 2 : prom < 3.3 ? 3 : prom < 4 ? 4 : 5
+  nivel ??= prom < 0.9 ? 1 : prom < 1.8 ? 2 : prom < 2.45 ? 3 : prom < 3 ? 4 : 5
   return { nivel, nombre: NIVELES[nivel - 1], prom }
 }
 // la comba de Rodal: cuánto se cierra la curva (grados entre la salida y dónde cae) y qué parte del error lateral le queda
@@ -151,6 +169,8 @@ export const HOYOS = [
     verso: 'Pero al llegar al quince, cambia la situación.',
     calle: [[58, 278], [50, 237.5], [47.5, 186], [46.3, 135], [43.8, 80]],
     caida: [0.55, -0.35],
+    // la caída cambia por zonas (centros de cada parte del green; se mezclan suave, ver caidaEn)
+    caidas: [{ p: [40, 31], v: [-0.5, 0.3] }, { p: [29, 43], v: [0.55, -0.35] }, { p: [39, 53], v: [0.3, 0.55] }],
     monos: [{ a: [26.5, 200.5], b: [72.5, 195.5], fase: 0 }, { a: [22.5, 106.5], b: [62.5, 117.5], fase: 11 }],
   },
   {
@@ -163,6 +183,7 @@ export const HOYOS = [
     verso: 'El dieciséis no es más fácil, te desafía sin piedad.',
     calle: [[105, 172.5], [105.5, 222.5], [106.3, 275], [104.5, 325], [103.8, 347.5]],
     caida: [-0.5, 0.45],
+    caidas: [{ p: [105, 386], v: [0.45, 0.4] }, { p: [107, 401], v: [-0.5, 0.45] }, { p: [118, 414], v: [-0.3, -0.5] }, { p: [103, 420], v: [0.5, -0.3] }],
     monos: [{ a: [75.5, 225.5], b: [130.5, 220.5], fase: 4 }, { a: [77.5, 315.5], b: [128.5, 323.5], fase: 15 }],
   },
   {
@@ -175,6 +196,7 @@ export const HOYOS = [
     verso: 'El diecisiete llega, pensás que vas a escapar…',
     calle: [[148.8, 265], [151.3, 212.5], [155, 162.5], [156.3, 120]],
     caida: [0.45, 0.55],
+    caidas: [{ p: [149, 65], v: [0.45, 0.55] }, { p: [155, 89], v: [-0.55, -0.2] }],
     monos: [{ a: [124.5, 174.5], b: [180.5, 172.5], fase: 7 }, { a: [129.5, 271.5], b: [174.5, 264.5], fase: 18 }],
   },
 ]
@@ -206,6 +228,11 @@ export const aYardas = (r, d) => d * (HOYOS[Math.min(r.idx, HOYOS.length - 1)].e
 // (~265 con el rodaje; a fondo y con error, promedian 230–250).
 export const DRIVE = { max: 273, porHcp: 1.45 }
 export const carryDe = (hcp) => DRIVE.max - DRIVE.porHcp * (hcp ?? HCP_SIN_CARGAR)
+// En el par 3 (el 17) no hay driver: el palo más largo llega de `max` yd (hcp 0) a `min` yd (hcp `hcpMin` o más).
+export const PAR3 = { max: 240, min: 200, hcpMin: 24 }
+export const carryPar3De = (hcp) => PAR3.max - (PAR3.max - PAR3.min) * Math.min(1, Math.max(0, (hcp ?? HCP_SIN_CARGAR) / PAR3.hcpMin))
+/** Lo más lejos que llega a fondo en este hoyo (yardas reales). */
+export const carryMaxDe = (hcp, par) => (par === 3 ? Math.min(carryDe(hcp), carryPar3De(hcp)) : carryDe(hcp))
 
 // ── geometría ───────────────────────────────────────────────────────────
 export function dentro(poly, [x, y]) {
@@ -420,9 +447,10 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
   const plan = planBase(angulo, potencia, r.lie)
   // el carry en yardas reales (según el handicap) pasado a yardas del dibujo con la escala del hoyo
   const escala = hoyoActual(r).escala
-  plan.carry = (potencia * carryDe(r.jugador?.hcp) * (FISICA.factorLie[r.lie] ?? 1)) / escala
+  const par = hoyoActual(r).par
+  plan.carry = (potencia * carryMaxDe(r.jugador?.hcp, par) * (FISICA.factorLie[r.lie] ?? 1)) / escala
   plan.disp = { ...plan.disp, ang: plan.disp.ang * dif.error, carry: plan.disp.carry * dif.error }
-  if (hab?.id === 'bomba' && tee) plan.carry = (potencia * BOMBA.carry) / escala
+  if (hab?.id === 'bomba' && tee) plan.carry = (potencia * (par === 3 ? carryPar3De(r.jugador?.hcp) : BOMBA.carry)) / escala // en el par 3, sin bomba
   if (hab?.id === 'bomba' && tee && plan.carry * escala > BOMBA.zona) {
     const q = Math.max(0, Math.min(1, precision))
     plan.bomba = true
@@ -501,7 +529,7 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     const cy = p.control[1] - pelota[1]
     controlVec = [(cx * Math.cos(err) - cy * Math.sin(err)) * k, (cx * Math.sin(err) + cy * Math.cos(err)) * k]
   }
-  const kv = viento.kmh * FISICA.vientoYd * (carry / FISICA.carryMax)
+  const kv = viento.kmh * FISICA.vientoYd * Math.pow(carry / FISICA.carryMax, FISICA.vientoExp)
   return {
     modo: 'full',
     fase: 'vuelo',
@@ -620,7 +648,8 @@ export function avanzar(campo, tiro, dt, pin) {
     }
   } else if (ter.tipo === 'green' && !tiro.greenPlano) {
     const h = campo.hoyos.find((x) => x.n === ter.hoyo)
-    tiro.v = [tiro.v[0] + h.caida[0] * dt, tiro.v[1] + h.caida[1] * dt]
+    const c = caidaEn(h, tiro.pos)
+    tiro.v = [tiro.v[0] + c[0] * dt, tiro.v[1] + c[1] * dt]
   }
   if (tiro.giro) {
     // el putt del Mago: la pelota va doblando mientras rueda (más se nota cuando va despacio)
