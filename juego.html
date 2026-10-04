@@ -3140,10 +3140,9 @@ async function anotarVuelta() {
   const marca = M.marcaDe(ronda, datos.usuario)
   if (!marca || !marca.usuario) return
   if (R.puente.activo) marca.uid = R.puente.identidad.uid
-  // el detalle queda en el teléfono (la base de la SDGApp guarda solo el total)
-  marca.hoyos = ronda.tarjeta.map((f) => f.golpes)
-  if (ronda.tarjeta.rorro) marca.rorro = ronda.tarjeta.rorro
-  marca.monos = { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }
+  // el detalle de la vuelta: hoyo por hoyo, los monos y la apuesta de Rorro (queda en el teléfono y, cuando la
+  // base de la SDGApp tenga la columna `detalle`, también allá: así se ve en el resumen del ranking de todos)
+  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}) }
   const jugador = ronda.jugador
   await R.anotar(marca)
   const { marcas } = await R.leerMarcas()
@@ -3551,8 +3550,10 @@ function abrirResumen(m) {
   for (const x of suyas) usados[x.apodo] = (usados[x.apodo] ?? 0) + 1
   const favorito = Object.entries(usados).sort((a, b) => b[1] - a[1])[0]?.[0]
   const fav = favorito ? publico([...TODOS, DEMETRIO].find((x) => x.apodo === favorito) ?? { apodo: favorito }).apodo.replace(/ \(Đ\)$/, '') : null
-  // el hoyo por hoyo: solo si la vuelta se jugó en este teléfono
-  const det = m.hoyos ? m : R.marcasDelTelefono().find((x) => misma(x) && x.hoyos && (!m.fecha || !x.fecha || Math.abs(new Date(x.fecha) - new Date(m.fecha)) < 6e5))
+  // el hoyo por hoyo: de la base (columna `detalle`) o, si no, de las vueltas de este teléfono
+  // (vueltas viejas del teléfono: el detalle venía suelto en la marca)
+  const detDe = (x) => x?.detalle ?? (x?.hoyos ? x : null)
+  const det = detDe(m) ?? detDe(R.marcasDelTelefono().find((x) => misma(x) && detDe(x) && (!m.fecha || !x.fecha || Math.abs(new Date(x.fecha) - new Date(m.fecha)) < 6e5)))
   const f = fechaLarga(m.fecha)
   const clase = m.vsPar < 0 ? 'bajo' : m.vsPar > 0 ? 'sobre' : ''
   const alLider = lider && posG !== 1 && posG ? `${lider.golpes === m.golpes ? 'Mismos golpes' : `+${m.golpes - lider.golpes} ${m.golpes - lider.golpes === 1 ? 'golpe' : 'golpes'}`}<small>${lider.golpes === m.golpes ? `${deltaTiempo(m.ms - lider.ms)} más lento` : `el líder: ${esc(lider.usuario)}`}</small>` : 'Es el líder<small>nadie la hizo mejor</small>'
