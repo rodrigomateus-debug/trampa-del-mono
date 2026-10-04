@@ -846,4 +846,39 @@ ok('yardas reales: cada tee a sus yardas de la tarjeta; el color sale del handic
   assert.deepEqual(r.pelota, h16.tees.amarilla)
 })
 
+ok('umbrales en yardas reales: los 3 metros de Lechu y el chip de Fito se miden como el marcador', () => {
+  // en el 17 (escala 0,75) 3,5 yd del dibujo son 2,6 yd reales: dada. 4,6 del dibujo son 3,45 reales: ya no
+  const r = { ...M.nuevaRonda({ apodo: 'Lechu', emoji: '🦉' }, fijo(0.5)), monos: [], idx: 2, lie: 'green' }
+  r.pelota = [h17.pin[0], h17.pin[1] + 3.5]
+  assert.equal(M.terreno(plano, r.pelota).tipo, 'green')
+  assert.equal(M.planTiro(plano, r, -Math.PI / 2, 0.2).noLaFalla, true)
+  r.pelota = [h17.pin[0], h17.pin[1] + 4.6]
+  assert.equal(M.planTiro(plano, r, -Math.PI / 2, 0.2).noLaFalla, false)
+  // en el 16 (escala 1,14) 3,2 yd del dibujo son 3,65 reales: ya no es dada (antes lo era)
+  const r16 = { ...r, idx: 1, pelota: [h16.pin[0], h16.pin[1] + 3.2] }
+  assert.equal(M.terreno(plano, r16.pelota).tipo, 'green')
+  assert.equal(M.planTiro(plano, r16, -Math.PI / 2, 0.2).noLaFalla, false)
+  // Fito: el imán lo tiene a AGUILA.chip yardas REALES del hoyo (en el 17, 53 yd del dibujo)
+  const f = { ...M.nuevaRonda({ apodo: 'Fito (Đ)', emoji: '🦅' }, fijo(0.5)), monos: [], idx: 2, lie: 'fairway' }
+  f.pelota = [h17.pin[0], h17.pin[1] + 50] // 37,5 yd reales
+  assert.ok(M.planTiro(quieto, f, -Math.PI / 2, 0.3).iman?.meter)
+  f.pelota = [h17.pin[0], h17.pin[1] + 56] // 42 yd reales
+  assert.equal(M.planTiro(quieto, f, -Math.PI / 2, 0.3).iman, undefined)
+})
+
+ok('salida: solo el tee del hoyo que se juega; en el tee de otro hoyo no hay bomba ni drive de Liberty', () => {
+  const m = { ...M.nuevaRonda({ apodo: 'Mike Queboni (Đ)', emoji: '💣', hcp: 3 }, fijo(0.5)), monos: [] }
+  assert.equal(M.planTiro(quieto, m, angulo(m.pelota, h15.pin), 1, 1).bomba, true) // desde su tee, la bomba
+  m.pelota = [...h16.tees.blanca] // jugando el 15, la pelota quedó en el tee del 16
+  m.lie = 'tee'
+  assert.equal(M.terreno(quieto, m.pelota).tipo, 'tee')
+  assert.notEqual(M.planTiro(quieto, m, angulo(m.pelota, h15.pin), 1, 1).bomba, true)
+  const l = { ...M.nuevaRonda({ apodo: 'Liberty', emoji: '🗽' }, fijo(0.5)), monos: [], pelota: [...h16.tees.blanca], lie: 'tee' }
+  assert.notEqual(M.planTiro(quieto, l, angulo(l.pelota, h15.pin), 0.6).disp.ang, 0)
+  const t = M.golpear(quieto, l, angulo(l.pelota, h15.pin), 0.6, fijo(0.5))
+  assert.equal(t.salida, false)
+  assert.equal(t.liberty, false)
+  assert.equal(M.tipoDeTiro(t, h15, l.desde, 'tee'), 'approach')
+})
+
 console.log('\nTodo verde.')

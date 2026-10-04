@@ -780,7 +780,11 @@ lienzo.addEventListener('pointerdown', (e) => {
 lienzo.addEventListener('pointermove', (e) => { if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY } })
 lienzo.addEventListener('pointerup', (e) => {
   if (!drag || e.pointerId !== drag.id) return
-  const a = apunte()
+  // sale el tiro que se vio en pantalla (el último dibujado), no uno recalculado al soltar: el embudo del Águila y el
+  // latido de la bomba se mueven hasta ~4° por cuadro, y soltando en "¡DERECHA!" o "¡PERFECTA!" a veces no salía así
+  // (si al soltar el dedo ya volvió al lugar, no sale nada: así se cancela un tiro)
+  const ahora = apunte()
+  const a = ahora && (drag.visto ?? ahora)
   const base = drag.base
   drag = null
   S.cargaFin()
@@ -1376,6 +1380,7 @@ function dibujar() {
     else pelotaQuieta()
   }
   const a = estado === 'apuntar' ? apunte() : null
+  if (drag) drag.visto = a // lo que se ve es lo que sale al soltar
   if (a) dibujarApunte(a)
   else dibujarGuia()
 

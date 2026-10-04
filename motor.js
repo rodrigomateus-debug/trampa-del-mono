@@ -147,11 +147,12 @@ export const PUTT_MAGO = { giro: 0.3 }
 // azules); pasando `zona` yardas el óvalo late (periodo, en segundos) y es perfecta si suelta con precisión >= perfecta
 export const BOMBA = { carry: 365, zona: 285, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
 // el Águila (Fito): la línea de tiro se sacude ±amplitud grados cada `periodo` s; si suelta con el desvío dentro de
-// ±ventana (el embudo) sale derecha. A `chip` yardas o menos del hoyo, si cae en el green el imán la mete.
+// ±ventana (el embudo) sale derecha. A `chip` yardas reales o menos del hoyo, si cae en el green el imán la mete.
 // (`alLado`: dónde la dejaría un imán que no la mete; hoy siempre la mete.)
 // Mati (El Sueco): sin error de dirección (pega lo que pega su handicap)
 export const AGUILA = { amplitud: 25, periodo: 0.7, ventana: 5, chip: 40, alLado: 0.85, metida: 4 }
 // Lechu (Joaco): el putt desde DADA yardas o menos (3 metros) entra siempre, le pegue como le pegue. El Perro: tarda `segundos` en traerla. Liberty: approach entre `desde` y `hasta` yd, error x`error`.
+// DADA, AGUILA.chip y APPROACH van en yardas REALES (las del marcador): se comparan con la distancia del dibujo × la escala del hoyo.
 export const DADA = 3.28 // 3 metros
 export const PERRO = { segundos: 4 }
 // Mugre: los monos lo huelen desde `alerta` yd; `panchos` por hoyo; los tira a `tiro` yd (para el lado de los monos) y comen `comer` s
@@ -448,6 +449,11 @@ export function calmarMonos(monos) {
 
 /** El tiro de salida de cada hoyo: ahí los monos no salen a cazar (te dejan pegar tranquilo desde el tee). */
 export const esSalida = (r) => r.golpes === 0 && r.lie === 'tee'
+/**
+ * ¿Pega desde el tee del hoyo que se juega? (la bomba de Miguelón, el drive de Liberty, "drive" en el relato).
+ * La pelota que quedó en el tee de OTRO hoyo se juega como cualquier otra, no como salida.
+ */
+export const desdeLaSalida = (campo, r) => r.lie === 'tee' && terreno(campo, r.pelota).hoyo === hoyoActual(r).n
 /** Los monos cercanos salen a buscar la pelota, menos en la salida. Devuelve cuántos vienen. */
 export function despertarMonosDe(r) {
   if (esSalida(r)) return 0
@@ -507,11 +513,13 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
     // el putt del Mago dobla hacia el hoyo: apuntando a la derecha del hoyo gira a la izquierda, y al revés
     const pin = hoyoActual(r).pin
     const giro = hab?.id === 'comba' ? (difAng(angulo, Math.atan2(pin[1] - b[1], pin[0] - b[0])) >= 0 ? -1 : 1) * PUTT_MAGO.giro : 0
-    const noLaFalla = hab?.id === 'dadas' && dist(b, pin) <= DADA
+    // los 3 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
+    const noLaFalla = hab?.id === 'dadas' && dist(b, pin) * hoyoActual(r).escala <= DADA
     return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: dif.error, recto: hab?.id === 'derecho' || !!r.calma, giro, noLaFalla }
   }
-  const tee = r.lie === 'tee'
+  const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
+  plan.salida = tee
   // el carry en yardas reales (según el handicap) pasado a yardas del dibujo con la escala del hoyo
   const escala = hoyoActual(r).escala
   const par = hoyoActual(r).par
@@ -528,7 +536,7 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
   }
   if (hab?.id === 'approach') {
     // Liberty: el drive, perfecto; el approach, una tragedia
-    const d = dist(b, hoyoActual(r).pin)
+    const d = dist(b, hoyoActual(r).pin) * escala // yardas reales
     if (tee) plan.disp = { ...plan.disp, ang: 0, carry: plan.disp.carry * 0.5 }
     else if (d >= APPROACH.desde && d <= APPROACH.hasta) { plan.disp = { ...plan.disp, ang: plan.disp.ang * APPROACH.error, carry: plan.disp.carry * APPROACH.error }; plan.approach = true }
   }
@@ -567,7 +575,8 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
     plan.cuerda = angulo + (desvio * Math.PI) / 180
     if (enVentana) plan.disp = { ...plan.disp, ang: 0 } // sale derecha
     // cerca del green el imán la mete (antes la dejaba dada al lado; pedido de Rorro, 2026-10-04: "así es más justo")
-    if (dist(b, pin) <= AGUILA.chip) plan.iman = { meter: true }
+    // AGUILA.chip son yardas reales; `radio` = hasta dónde tira el imán, en yardas del dibujo
+    if (dist(b, pin) * escala <= AGUILA.chip) plan.iman = { meter: true, radio: AGUILA.chip / escala }
   }
   plan.destino = [b[0] + Math.cos(plan.cuerda) * plan.carry, b[1] + Math.sin(plan.cuerda) * plan.carry]
   return plan
@@ -611,7 +620,8 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     comba: !!p.comba,
     golpe: p.golpe ?? null,
     approach: !!p.approach,
-    liberty: lie === 'tee' && !p.putt,
+    salida: p.salida ?? lie === 'tee', // el tiro de salida (desde el tee del hoyo que se juega, no el de otro)
+    liberty: (p.salida ?? lie === 'tee') && !p.putt,
     rasante: !!p.rasante,
     rueda: p.rueda ?? 1,
     derecha: !!p.aguila?.enVentana,
@@ -704,7 +714,7 @@ export function avanzar(campo, tiro, dt, pin) {
     tiro.fase = 'quieta'
     return tiro.fase
   }
-  if (ter.tipo === 'green' && tiro.iman && pin && dist(tiro.pos, pin) < 40) {
+  if (ter.tipo === 'green' && tiro.iman && pin && dist(tiro.pos, pin) < (tiro.iman.radio ?? AGUILA.chip)) {
     if (!tiro.iman.aplicado) {
       // el chip del Águila: al tocar el green va derecho a quedar al lado del hoyo (o adentro, si fue perfecto)
       tiro.iman.aplicado = true
@@ -1234,7 +1244,7 @@ export const ADULACION = {
 /** Qué tiro fue: el drive (tee de par 4), el hierro (tee del par 3 o de más de 110 yd), el approach o el putt. */
 export function tipoDeTiro(tiro, hoyo, desde, lieDesde) {
   if (tiro.modo === 'putt') return 'putt'
-  if (lieDesde === 'tee') return hoyo.par === 3 ? 'hierro' : 'drive'
+  if (tiro.salida ?? lieDesde === 'tee') return hoyo.par === 3 ? 'hierro' : 'drive'
   const yd = desde ? dist(desde, hoyo.pin) * (hoyo.escala ?? 1) : Infinity
   return yd > 110 ? 'hierro' : 'approach'
 }
@@ -1242,7 +1252,7 @@ export function tipoDeTiro(tiro, hoyo, desde, lieDesde) {
 /** Lo que Lucas le dice a Rodal después del tiro (con el tipo de tiro y cómo salió). */
 export function adular(rng, res, tiro, hoyo, { desde, lieDesde } = {}) {
   const tipo = tipoDeTiro(tiro, hoyo, desde, lieDesde)
-  if (res.tipo === 'embocada') return elegir(rng, tipo === 'putt' ? ADULACION.embocada.putt : lieDesde === 'tee' ? ADULACION.embocada.hoyoEnUno : ADULACION.embocada.chip)
+  if (res.tipo === 'embocada') return elegir(rng, tipo === 'putt' ? ADULACION.embocada.putt : (tiro.salida ?? lieDesde === 'tee') ? ADULACION.embocada.hoyoEnUno : ADULACION.embocada.chip)
   if (res.tipo === 'afuera') return elegir(rng, ADULACION.afuera)
   if (res.tipo?.startsWith('mono')) return elegir(rng, ADULACION.mono)
   if (tipo === 'putt') {
