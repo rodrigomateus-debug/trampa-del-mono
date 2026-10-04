@@ -22,7 +22,9 @@ export const FISICA = {
   vientoMax: 30, // km/h
   vientoYd: 1, // yardas de deriva por km/h en un tiro de carryMax
   vientoExp: 2, // la deriva crece con el cuadrado del largo: el drive se lo lleva, el approach de 50 yd casi ni se mueve
-  factorLie: { tee: 1, fairway: 1, green: 1, rough: 0.7, bunker: 0.5, bosque: 0.5, afuera: 1 },
+  factorLie: { tee: 1, fairway: 1, green: 1, rough: 0.7, bunker: 1, bosque: 0.5, afuera: 1 }, // lo que se ve al apuntar
+  // y lo que de verdad sale: desde el bunker la línea muestra el tiro entero, pero la pelota llega a la mitad
+  factorReal: { bunker: 0.5 },
   roce: { tee: 9, fairway: 9, green: 2.2, rough: 26, bunker: 70, bosque: 45, afuera: 9 },
   pique: { tee: 1, fairway: 1, green: 0.5, rough: 0.5, bunker: 0.05, bosque: 0.2, afuera: 1 },
   // error humano (desvío estándar): ángulo en grados, carry en fracción
@@ -124,7 +126,7 @@ export function dificultad(hcp) {
  * (Fito: el bot acierta el embudo la mitad de las veces, la gente casi nunca → Trampa total).
  */
 export function dificultadReal(prom, nivel = null) {
-  nivel ??= prom < 0.9 ? 1 : prom < 1.8 ? 2 : prom < 2.45 ? 3 : prom < 3 ? 4 : 5
+  nivel ??= prom < 0.65 ? 1 : prom < 1.2 ? 2 : prom < 1.95 ? 3 : prom < 3 ? 4 : 5
   return { nivel, nombre: NIVELES[nivel - 1], prom }
 }
 // la comba de Rodal: cuánto se cierra la curva (grados entre la salida y dónde cae) y qué parte del error lateral le queda
@@ -387,6 +389,14 @@ export function calmarMonos(monos) {
   for (const s of monos) if (s.modo === 'caza') { s.modo = 'ronda'; s.espera = 0; s.pancho = null }
 }
 
+/** El tiro de salida de cada hoyo: ahí los monos no salen a cazar (te dejan pegar tranquilo desde el tee). */
+export const esSalida = (r) => r.golpes === 0 && r.lie === 'tee'
+/** Los monos cercanos salen a buscar la pelota, menos en la salida. Devuelve cuántos vienen. */
+export function despertarMonosDe(r) {
+  if (esSalida(r)) return 0
+  return despertarMonos(r.monos, r.pelota, alertaDe(r))
+}
+
 /** La alerta de los monos para este jugador (a la Mugre la huelen de más lejos). */
 export const alertaDe = (r) => (habilidadDe(r.jugador)?.id === 'panchitos' ? MUGRE.alerta : MONO.alerta)
 
@@ -449,6 +459,7 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
   const escala = hoyoActual(r).escala
   const par = hoyoActual(r).par
   plan.carry = (potencia * carryMaxDe(r.jugador?.hcp, par) * (FISICA.factorLie[r.lie] ?? 1)) / escala
+  plan.real = FISICA.factorReal[r.lie] ?? 1 // el bunker: la mitad de lo que se ve
   plan.disp = { ...plan.disp, ang: plan.disp.ang * dif.error, carry: plan.disp.carry * dif.error }
   if (hab?.id === 'bomba' && tee) plan.carry = (potencia * (par === 3 ? carryPar3De(r.jugador?.hcp) : BOMBA.carry)) / escala // en el par 3, sin bomba
   if (hab?.id === 'bomba' && tee && plan.carry * escala > BOMBA.zona) {
@@ -519,7 +530,7 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
   const err = gauss(rng) * p.disp.ang
   const g = gauss(rng)
   // una bomba mal pegada nunca va más lejos: se queda corta
-  const carry = Math.max(0, p.carry * (p.bomba ? 1 - Math.abs(g) * p.disp.carry : 1 + g * p.disp.carry))
+  const carry = Math.max(0, p.carry * (p.real ?? FISICA.factorReal[lie] ?? 1) * (p.bomba ? 1 - Math.abs(g) * p.disp.carry : 1 + g * p.disp.carry))
   const a = p.cuerda + err
   const carryVec = [Math.cos(a) * carry, Math.sin(a) * carry]
   let controlVec = [carryVec[0] / 2, carryVec[1] / 2] // recto: el control en el medio

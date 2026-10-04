@@ -603,11 +603,11 @@ input { -webkit-user-select: text; user-select: text; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=d4a0f98d27'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=d4a0f98d27'
+import * as M from './motor.js?v=e8cf47a801'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=e8cf47a801'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=d4a0f98d27'
-import * as S from './sonido.js?v=d4a0f98d27'
+import * as R from './ranking.js?v=e8cf47a801'
+import * as S from './sonido.js?v=e8cf47a801'
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 // el nivel fijado a mano manda (Fito, Trampa total, va al final)
@@ -947,7 +947,7 @@ function siguienteTiro() {
 }
 /** Pelota quieta: los monos cercanos salen a buscarla (a la Mugre la huelen de más lejos). */
 function despertar() {
-  if (M.despertarMonos(ronda.monos, ronda.pelota, M.alertaDe(ronda))) S.monosVienen()
+  if (M.despertarMonosDe(ronda)) S.monosVienen() // en la salida no vienen
 }
 // ── los panchos de la Mugre ──
 let pancho = null // { desde, hasta, t0 } — el que va volando / está en el piso
@@ -1290,20 +1290,24 @@ function dibujar() {
 
   // caída del green cuando hay que patear
   if (hoyo && estado === 'apuntar' && M.enModoPutt(campo, ronda) && M.habilidadDe(ronda.jugador)?.id !== 'perro') {
-    // todo el green, una marca cada 2 yd, cada una con la caída de ese lugar (cambia por zonas, fluida)
+    // todo el green, una marca cada 2 yd con la caída de ese lugar (cambia por zonas, fluida). Animadas: cada una
+    // corre para donde cae, aparece y se apaga, y vuelve a empezar; donde cae más, corren más rápido.
+    const ahora = performance.now() / 1000
     ctx.strokeStyle = 'rgb(20,64,42)'
-    ctx.lineWidth = 0.17
+    ctx.lineWidth = 0.12
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     for (const m of marcasCaida(hoyo)) {
-      ctx.globalAlpha = m.alfa
-      ctx.save()
-      ctx.translate(m.x, m.y)
-      ctx.rotate(m.ang)
+      const u = (ahora * m.vel / CAIDA_VIAJE + m.fase) % 1
+      const a = m.alfa * Math.sin(Math.PI * u)
+      if (a < 0.02) continue
+      const cx = m.x + m.dx * (u - 0.5) * CAIDA_VIAJE, cy = m.y + m.dy * (u - 0.5) * CAIDA_VIAJE
+      ctx.globalAlpha = a
       ctx.beginPath()
-      ctx.moveTo(-0.5, -0.45); ctx.lineTo(0.1, 0); ctx.lineTo(-0.5, 0.45)
+      ctx.moveTo(cx - m.dx * 0.32 - m.dy * 0.3, cy - m.dy * 0.32 + m.dx * 0.3)
+      ctx.lineTo(cx + m.dx * 0.07, cy + m.dy * 0.07)
+      ctx.lineTo(cx - m.dx * 0.32 + m.dy * 0.3, cy - m.dy * 0.32 - m.dx * 0.3)
       ctx.stroke()
-      ctx.restore()
     }
     ctx.globalAlpha = 1
   }
@@ -1594,6 +1598,7 @@ function hoyoNitido([x, y]) {
 const escalaZoom = () => Math.min(3.5, Math.max(0.45, cam.esc / 10))
 /** Las marcas de la caída de un green (una cada 2 yd, sobre todo el green del hoyo), calculadas una vez. */
 const MARCAS_CAIDA = new Map()
+const CAIDA_VIAJE = 1.6 // yardas que corre cada marca antes de volver a empezar
 function marcasCaida(h) {
   if (MARCAS_CAIDA.has(h.n)) return MARCAS_CAIDA.get(h.n)
   const lista = []
@@ -1604,7 +1609,13 @@ function marcasCaida(h) {
     if (t.tipo !== 'green' || t.hoyo !== h.n) continue
     const c = M.caidaEn(h, p)
     const fuerza = Math.hypot(c[0], c[1])
-    lista.push({ x: p[0], y: p[1], ang: Math.atan2(c[1], c[0]), alfa: Math.min(0.6, 0.2 + 0.55 * fuerza) })
+    const fase = (Math.sin(p[0] * 12.9898 + p[1] * 78.233) * 43758.5453) % 1 // cada una a su tiempo: orgánico
+    lista.push({
+      x: p[0], y: p[1], dx: c[0] / (fuerza || 1), dy: c[1] / (fuerza || 1),
+      alfa: Math.min(0.42, 0.14 + 0.38 * fuerza), // más tenues que antes
+      vel: 0.35 + 2.4 * fuerza, // yd/s: donde cae más, más rápido
+      fase: Math.abs(fase),
+    })
   }
   MARCAS_CAIDA.set(h.n, lista)
   return lista

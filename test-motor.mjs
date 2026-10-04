@@ -359,6 +359,33 @@ ok('en el par 3 (el 17) no hay driver: a fondo llega de 240 yd (hcp 0) a 200 (hc
   }
 })
 
+ok('desde el bunker la línea muestra el tiro entero, pero la pelota llega a la mitad', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'X', emoji: '⛳', hcp: 7 }, fijo(0.5)), monos: [], viento: calma }
+  const desde = [h15.pin[0], h15.pin[1] + 60]
+  const ver = (lie) => M.planTiro(quieto, { ...r, pelota: desde, lie }, -Math.PI / 2, 0.5).carry
+  assert.equal(ver('bunker'), ver('fairway')) // se ve igual que del fairway
+  const sale = (lie) => M.lanzar(quieto, { pelota: desde, angulo: -Math.PI / 2, potencia: 0.5, viento: calma, lie, rng: sinRuido(), plan: M.planTiro(quieto, { ...r, pelota: desde, lie }, -Math.PI / 2, 0.5) }).carry
+  assert.ok(Math.abs(sale('bunker') - sale('fairway') / 2) < 1e-6)
+})
+
+ok('en la salida de cada hoyo los monos no vienen a robar; después sí', () => {
+  const r = M.nuevaRonda({ apodo: 'X', emoji: '⛳', hcp: 7 }, fijo(0.5))
+  r.idx = 2
+  r.lie = 'tee'
+  r.golpes = 0
+  r.pelota = [...M.teeDe(r)]
+  // un mono justo al lado del tee del 17
+  r.monos = [{ ...r.monos[0], pos: [r.pelota[0] + 5, r.pelota[1]], modo: 'ronda' }]
+  assert.ok(M.esSalida(r))
+  assert.equal(M.despertarMonosDe(r), 0)
+  assert.notEqual(r.monos[0].modo, 'caza')
+  // en el segundo tiro, desde el mismo lugar, sí vienen
+  r.golpes = 1
+  r.lie = 'rough'
+  assert.equal(M.despertarMonosDe(r), 1)
+  assert.equal(r.monos[0].modo, 'caza')
+})
+
 ok('más handicap, más difícil: más error y menos distancia', () => {
   const crack = M.dificultad(1.5)
   const malo = M.dificultad(22)

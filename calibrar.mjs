@@ -80,7 +80,7 @@ export function jugarVuelta(jugador, seed) {
     const tiro = M.simular(campo, M.golpear(campo, r, t.ang, t.p, rng, q, tiempo), M.hoyoActual(r).pin)
     const res = M.resolverReposo(campo, r, tiro, rng)
     if (res.tipo === 'embocada') M.cerrarHoyo(r, rng)
-    else M.despertarMonos(r.monos, r.pelota, M.alertaDe(r)), M.calmarMonos(r.monos)
+    else M.despertarMonosDe(r), M.calmarMonos(r.monos)
   }
   const t = M.totales(r.tarjeta)
   return { vsPar: t.vsPar, hoyos: r.tarjeta.map((f) => f.golpes) }

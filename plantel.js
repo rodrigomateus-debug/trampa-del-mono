@@ -315,17 +315,17 @@ export const PLANTEL = [
 export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)']
 
 // La dificultad real de cada uno con su habilidad: promedio vs. par y % de LP de un bot que juega 60 vueltas
-// (`node calibrar.mjs 60`, 2026-10-04, con el hoyo nuevo, la caída por zonas, el tope del par 3 y el viento que pesa con el cuadrado del largo; el bot putea con la fuerza del medio de las que entran). El mazo se ordena por esto, no por el handicap.
+// (`node calibrar.mjs 60`, 2026-10-04, con el hoyo nuevo, la caída por zonas, el tope del par 3, el viento que pesa con el cuadrado del largo, el bunker a la mitad, sin árboles fantasma junto a los greens y sin monos en la salida; el bot putea con la fuerza del medio de las que entran). El mazo se ordena por esto, no por el handicap.
 export const DIFICULTAD_REAL = {
-  'El Sueco': { prom: -0.53, lp: 0 },
-  'El Mago Rodal': { prom: 0.74, lp: 3 },
-  LG: { prom: 1.13, lp: 0 },
-  'El Perro': { prom: 1.34, lp: 2 },
-  'Mike Queboni (Đ)': { prom: 1.39, lp: 5 },
-  Liberty: { prom: 2.34, lp: 12 },
-  'El Ninja (Đ)': { prom: 2.4, lp: 5 },
-  Mugre: { prom: 2.49, lp: 5 },
-  Lechu: { prom: 2.54, lp: 7 },
+  'El Sueco': { prom: -0.98, lp: 0 },
+  'El Mago Rodal': { prom: 0.62, lp: 3 },
+  'El Perro': { prom: 0.69, lp: 2 },
+  LG: { prom: 0.72, lp: 0 },
+  'Mike Queboni (Đ)': { prom: 1, lp: 3 },
+  Lechu: { prom: 1.78, lp: 3 },
+  Liberty: { prom: 1.83, lp: 12 },
+  'El Ninja (Đ)': { prom: 2.08, lp: 2 },
+  Mugre: { prom: 2.41, lp: 3 },
   // Trampa total a mano (dicen los que juegan que es el más difícil: el embudo de la línea que se sacude)
-  'Fito (Đ)': { prom: 2.46, lp: 5, nivel: 5 },
+  'Fito (Đ)': { prom: 2.12, lp: 2, nivel: 5 },
 }
