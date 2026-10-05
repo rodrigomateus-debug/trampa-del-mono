@@ -111,6 +111,7 @@ export const HABILIDADES = {
   Grandpa: { id: 'deme', nombre: 'Invocar a Deme', texto: 'Maxi, una vez por vuelta (no desde el tee): llama a Deme, el mentor. Te enseña a agarrar el palo y el próximo tiro entra de una, le pegues como le pegues.' },
   'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro (y de tee a tee) lo manejás vos hasta la pelota. Los árboles no se atraviesan. El reloj corre.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
+  'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
 export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
@@ -394,6 +395,7 @@ export function aplicarMatch(r, cond) {
   r.match = cond
   r.hoyos = HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera }))
   r.viento = { ...cond.vientos[r.idx] }
+  if (r.ruleta) r.ruleta.rng = rngDesde((cond.semilla ^ 0x2545f491) >>> 0) // la Ruleta: la misma tanda de players para los dos
   return r
 }
 /**
@@ -1049,9 +1051,11 @@ export function simular(campo, tiro, pin, dt = 1 / 60) {
 
 // ── ronda ───────────────────────────────────────────────────────────────
 export function nuevaRonda(jugador, rng) {
-  const tee = colorTee(jugador)
+  const ruleta = esRuleta(jugador)
+  const tee = ruleta ? 'blanca' : colorTee(jugador) // en la Ruleta pega cada uno, de las blancas para todos
   const r = {
-    jugador,
+    jugador, // el que pega (en la Ruleta, cambia en cada tiro; ver turnoRuleta)
+    carta: jugador, // la que elegiste en el mazo: la de la tarjeta, el ranking y el récord
     tee, // azul, blanca o amarilla (según el handicap)
     idx: 0,
     golpes: 0,
@@ -1076,7 +1080,51 @@ export function nuevaRonda(jugador, rng) {
   if (habilidadDe(jugador)?.id === 'carrito') r.carro = carroAlLado(r.pelota)
   if (habilidadDe(jugador)?.id === 'deme') r.deme = { usado: false, listo: false }
   if (habilidadDe(jugador)?.id === 'retro') r.monos = [] // 1960: en la cancha de Demetrio no hay monos
+  // la Ruleta: hasta que gire por primera vez, "pega" la carta de la Ruleta (sin habilidad)
+  if (ruleta) { r.ruleta = { pool: jugador.pool ?? [], tiros: [], rng: null }; r.ruletaToca = true }
   return r
+}
+
+// ── La Ruleta: cada tiro lo pega un player distinto ──
+export const esRuleta = (j) => habilidadDe(j)?.id === 'ruleta'
+/** La carta de la vuelta (la del mazo). En la Ruleta, `r.jugador` es el que pega ahora; la carta es la Ruleta. */
+export const cartaDe = (r) => r.carta ?? r.jugador
+/**
+ * Gira la Ruleta si toca (al empezar y después de cada golpe; no si no pegaste: los monos que te la roban
+ * antes de pegar o el LP del Ninja no cuentan como tiro). Sale cualquiera del mazo menos el que pegó el
+ * anterior, y la ronda queda lista para él: el golpe del Mago, los panchos de la Mugre, el carrito de Marcos
+ * (estacionado donde pegó el anterior: maneja hasta la pelota) y el Deme de Maxi (uno por vuelta, de cualquiera).
+ * En un match la Ruleta sale de la semilla (`r.ruleta.rng`): los dos juegan con la misma tanda.
+ * Devuelve el que pega, o null si no giró.
+ */
+export function turnoRuleta(r, rng) {
+  if (!r.ruleta || !r.ruletaToca || r.terminada) return null
+  r.ruletaToca = false
+  const antes = r.jugador
+  const pool = r.ruleta.pool.filter((j) => j.apodo !== antes?.apodo)
+  if (!pool.length) return null
+  const j = elegir(r.ruleta.rng ?? rng, pool)
+  r.jugador = j
+  const id = habilidadDe(j)?.id
+  r.golpeMago = id === 'comba' ? sortearGolpeMago(rng, null) : null
+  r.panchos = id === 'panchitos' ? MUGRE.panchos : 0
+  r.carro = id === 'carrito' ? carroAlLado(r.desde) : null
+  if (id === 'deme') r.deme ??= { usado: false, listo: false }
+  r.ruleta.tiros.push({ n: hoyoActual(r).n, apodo: j.apodo, emoji: j.emoji })
+  return j
+}
+/** Quién pegó cada tiro, por hoyo: [{ n, tiros: [{ apodo, emoji }] }] (para la tarjeta y lo que se comparte). */
+export function tirosRuleta(r) {
+  if (!r.ruleta) return []
+  // si terminó levantando, el último que salió no llegó a pegar: no va
+  const tiros = r.terminada && !r.ruletaToca ? r.ruleta.tiros.slice(0, -1) : r.ruleta.tiros
+  const por = []
+  for (const t of tiros) {
+    let h = por.find((x) => x.n === t.n)
+    if (!h) por.push((h = { n: t.n, tiros: [] }))
+    h.tiros.push(t)
+  }
+  return por
 }
 /** El golpe del Mago para el próximo tiro: al azar, distinto del anterior. */
 export function sortearGolpeMago(rng, antes) {
@@ -1117,6 +1165,7 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   r.desde = [...r.pelota]
   r.lieDesde = r.lie
   r.golpes += 1
+  if (r.ruleta) r.ruletaToca = true // pegó: el próximo tiro, gira la Ruleta
   calmarMonos(r.monos)
   // Maxi invocó a Deme: este tiro, pegue como pegue, va derecho al hoyo y entra (sin error, sin viento)
   if (r.deme?.listo) { r.deme.listo = false; const t = tiroAlHoyo(campo, r, plan, rng); t.deme = true; return t }
@@ -1386,7 +1435,8 @@ export const compararMarcas = (a, b) => a.golpes - b.golpes || a.ms - b.ms
 export function marcaDe(r, usuario) {
   const t = totales(r.tarjeta)
   if (t.lp || r.ms == null || !r.terminada) return null
-  return { usuario: String(usuario ?? '').trim(), apodo: r.jugador.apodo, emoji: r.jugador.emoji, golpes: t.golpes, vsPar: t.vsPar, ms: Math.round(r.ms) }
+  const j = cartaDe(r)
+  return { usuario: String(usuario ?? '').trim(), apodo: j.apodo, emoji: j.emoji, golpes: t.golpes, vsPar: t.vsPar, ms: Math.round(r.ms) }
 }
 
 /** De quién es una marca: el usuario de la SDGApp (uid) si viene de ahí; si no, el nombre que puso. */
@@ -1599,12 +1649,13 @@ export function fraseResultado(rng, nombre, jugador) {
 
 export function textoCompartir(r, firmada) {
   const { vsPar } = totales(r.tarjeta)
-  const j = r.jugador
+  const j = cartaDe(r)
   const score = r.lp ? `LP 💅 (levantó en el ${r.lp})` : firmada ? formatoPar(vsPar) : `${NETO_SIN_FIRMA} neto (no firmó la tarjeta)`
   const hoyos = r.tarjeta.map((f) => (f.lp ? 'LP' : f.golpes)).join(' · ') + (r.tarjeta.rorro ? ` · 🥃 Rorro ${r.tarjeta.rorro > 0 ? '+1' : '−1'}` : '')
   return [
     '⛳ LA TRAMPA DEL MONO · SDGA',
-    `${j.emoji} ${j.apodo} (HCP ${j.hcp ?? '—'}): ${score} (${hoyos})`,
+    j.ruleta ? `${j.emoji} ${j.apodo} (un player por tiro): ${score} (${hoyos})` : `${j.emoji} ${j.apodo} (HCP ${j.hcp ?? '—'}): ${score} (${hoyos})`,
+    ...tirosRuleta(r).map((h) => `   ${h.n}: ${h.tiros.map((t) => t.emoji).join(' → ')}`),
     ...(r.ms != null && !r.lp ? [`⏱ ${formatoTiempo(r.ms)}`] : []),
     `🐒 Monos: ${r.monosMalos} malos, ${r.monosBuenos} buenos, ${r.robos} robos`,
     'Hacerle poco a este tramo es casi un milagro.',

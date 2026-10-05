@@ -327,7 +327,23 @@ export const DEMETRIO = {
 export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp": null, "foto": null, "misterio": true }
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa']
+export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'La Ruleta']
+
+// 🎰 La Ruleta (2026-10-05): no es un player, es una carta del mazo. Cada tiro lo pega uno del mazo al azar, con su
+// handicap y su habilidad, y nunca el mismo dos veces seguidas (`turnoRuleta` en motor.js). `pool`: los que pueden salir
+// (los del mazo; Demetrio, que es secreto, no).
+export const RULETA = {
+  "apodo": "La Ruleta",
+  "emoji": "🎰",
+  "hcp": null,
+  "hcpTexto": "HCP c/u",
+  "frase": "¿Y ahora quién pega?",
+  "foto": null,
+  "stats": null,
+  "ruleta": true,
+  "pool": PLANTEL.filter((j) => EN_PRUEBA.includes(j.apodo))
+}
+PLANTEL.push(RULETA)
 
 // La dificultad real de cada uno con su habilidad: promedio vs. par y % de LP de un bot que juega 60 vueltas
 // (`node calibrar.mjs 60`, 2026-10-04, con el hoyo nuevo, la caída por zonas, el tope del par 3, el viento que pesa con el cuadrado del largo, el bunker a la mitad, sin árboles fantasma junto a los greens, sin monos en la salida, la bandera en otro lugar cada vuelta y los umbrales de las habilidades en yardas reales; el bot putea con la fuerza del medio de las que entran). El mazo se ordena por esto, no por el handicap.
@@ -345,4 +361,6 @@ export const DIFICULTAD_REAL = {
   Mugre: { prom: 2.86, lp: 2 },
   // Trampa total a mano (dicen los que juegan que es el más difícil: el embudo de la línea que se sacude)
   'Fito (Đ)': { prom: 1.59, lp: 2, nivel: 5 },
+  // el bot no sufre el cambio (apunta perfecto con cualquiera); la gente sí: cada tiro es otra habilidad y otro handicap
+  'La Ruleta': { prom: 1.02, lp: 0, nivel: 4 },
 }
