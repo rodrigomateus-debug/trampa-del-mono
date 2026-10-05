@@ -213,7 +213,8 @@ ok('Miguelón: la bomba perfecta llega al green; mal pegada se abre y queda cort
   })
   assert.ok(alGreen)
   const mala = M.planTiro(quieto, r, linea, 1, 0.4)
-  assert.ok(!mala.perfecta && mala.disp.ang > (8 * Math.PI) / 180)
+  // mal pegada se abre (con HCP 5, la mitad del tope de dispersión: ~5,7° con 0,4 de precisión) y mucho más que la perfecta
+  assert.ok(!mala.perfecta && mala.disp.ang > (5 * Math.PI) / 180 && mala.disp.ang > perfecta.disp.ang * 4)
   // por debajo de la zona de bomba es un drive normal (aunque más largo)
   const corto = M.planTiro(quieto, r, linea, 0.7, 0)
   assert.ok(!corto.bomba && corto.carry * h15.escala > M.carryDe(5) * 0.9)
@@ -616,6 +617,23 @@ ok('match: gana el de menos golpes; a igual golpes, el más rápido; LP pierde',
   assert.equal(M.ganadorMatch({ golpes: null }, { golpes: 20, ms: 1 }), -1)
   assert.equal(M.ganadorMatch({ golpes: null }, { golpes: null }), 0)
   assert.equal(M.ganadorMatch({ golpes: 12, ms: 5 }, { golpes: 12, ms: 5 }), 0)
+})
+
+ok('la dispersión sale del handicap: 0 con HCP 0, en línea recta hasta HCP 25, y de ahí todos igual', () => {
+  assert.equal(M.dificultad(0).error, 0)
+  assert.equal(M.dificultad(-2).error, 0) // un "plus" cuenta como 0
+  const tope = M.DISPERSION_HCP.error
+  assert.ok(Math.abs(M.dificultad(12.5).error - tope / 2) < 1e-9) // la mitad del tope, la mitad de la dispersión
+  assert.ok(M.dificultad(5).error < M.dificultad(10).error && M.dificultad(10).error < M.dificultad(20).error)
+  assert.equal(M.dificultad(25).error, tope)
+  assert.equal(M.dificultad(30).error, tope)
+  assert.equal(M.dificultad(54).error, tope)
+  // con HCP 0 el tiro y el putt no tienen error: va exacto adonde apunta (sin viento)
+  const linea = angulo(h15.tee, h15.pin)
+  const ronda = (hcp) => ({ ...M.nuevaRonda({ apodo: 'X', emoji: '⛳', hcp }, fijo(0.5)), monos: [] })
+  const plan = M.planTiro(quieto, ronda(0), linea, 0.8)
+  assert.equal(plan.disp.ang, 0)
+  assert.equal(plan.disp.carry, 0)
 })
 
 ok('más handicap, más difícil: más error y menos distancia', () => {

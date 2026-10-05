@@ -52,11 +52,36 @@ export function aliasDeGoogle(meta, email) {
   return recortar(String(email ?? '').split('@')[0] ?? '') || 'Jugador'
 }
 
+// ── los handicaps reales (los de la FedE Cup) ────────────────────────────────
+// La app manda el HCP index de cada jugador del club (players.handicap, el que cada uno carga en su perfil).
+// Llegan por nombre; el juego los pisa en su plantel (los que no están en la app quedan con el de plantel.js).
+/** Normaliza un nombre para cruzar el plantel con los jugadores de la app ("El Ninja (Đ)" = "el ninja (đ)"). */
+export const claveNombre = (s) => String(s ?? '').normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
+/** Map nombre normalizado → hcp. Descarta lo raro sin tirar: hasta 300 filas, hcp numérico entre -10 y 54. */
+export function validarHandicaps(raw) {
+  const m = new Map()
+  if (!Array.isArray(raw)) return m
+  for (const f of raw.slice(0, 300)) {
+    const nombre = claveNombre(f?.nombre)
+    const hcp = typeof f?.hcp === 'number' ? f.hcp : NaN
+    if (nombre && Number.isFinite(hcp) && hcp >= -10 && hcp <= 54) m.set(nombre, Math.round(hcp * 10) / 10)
+  }
+  return m
+}
+let plantelApp = null
+const alPlantelCbs = []
+/** Avisa cada vez que la app manda los handicaps (y enseguida, si ya llegaron). */
+export function alPlantel(cb) {
+  alPlantelCbs.push(cb)
+  if (plantelApp) cb(plantelApp)
+}
+
 // ── adentro de la SDGApp ─────────────────────────────────────────────────────
 // La app abre el juego en un iframe y le habla por postMessage. El juego nunca ve una clave ni un token.
 //   juego → app: trampa:hola · trampa:leer {id} · trampa:anotar {id, marca} · trampa:cerrar
 //   app → juego: sdga:identidad {uid, alias, sdga, match?} · sdga:marco {top, bottom} · sdga:marcas {id, marcas, error} · sdga:anotada {id, ok}
 //   el match: juego → app trampa:match {id, accion, datos} · app → juego sdga:match {id, ok, datos} (ver más abajo)
+//   los handicaps: app → juego sdga:plantel {handicaps: [{nombre, hcp}]} (el HCP index de cada uno en la FedE Cup, ver alPlantel)
 const enMarco = typeof window !== 'undefined' && window.parent !== window
 let origenApp = null
 const esperando = new Map()
@@ -68,6 +93,10 @@ if (enMarco) {
     if (d.tipo === 'sdga:identidad' && d.uid && d.alias) {
       origenApp = e.origin
       entro({ uid: String(d.uid), alias: String(d.alias).slice(0, 24), sdga: !!d.sdga, match: d.match === true }, true)
+    } else if (d.tipo === 'sdga:plantel') {
+      origenApp ??= e.origin
+      const handicaps = validarHandicaps(d.handicaps)
+      if (handicaps.size) { plantelApp = handicaps; alPlantelCbs.forEach((cb) => cb(handicaps)) }
     } else if (d.tipo === 'sdga:marco') {
       // los bordes seguros del teléfono (adentro del iframe env() da 0): el juego va de borde a borde
       origenApp ??= e.origin
