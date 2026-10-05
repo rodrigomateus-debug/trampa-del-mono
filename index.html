@@ -39,6 +39,24 @@
   --ease-snap: cubic-bezier(.2, .9, .3, 1.2);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
+  /* botones del juego, estilo Afiche (design system SDGA › Game UI): contorno tinta + sombra dura sin blur */
+  --game-ink: #0c2b1c;
+  --game-stroke: 3px;
+  --game-shadow-lg: 5px 6px 0 var(--game-ink);
+  --game-shadow-md: 4px 5px 0 var(--game-ink);
+  --game-shadow-sm: 3px 4px 0 var(--game-ink);
+  --game-shadow-xs: 2px 3px 0 var(--game-ink); /* solo para los botoncitos dentro de las filas de una lista */
+  --game-tilt: -1.5deg;
+  --game-h-lg: 62px;
+  --game-h-md: 50px;
+  --game-h-sm: 44px;
+  --game-ghost-press: rgba(244, 238, 218, .16);
+  --game-press-dur: 90ms;
+  --game-release-dur: 160ms;
+  --game-enter-dur: 420ms;
+  --game-stagger: 70ms;
+  --game-pop-dur: 320ms;
+  --game-ease-bounce: cubic-bezier(.34, 1.56, .64, 1);
   color-scheme: dark;
 }
 html, body { height: 100%; overscroll-behavior: none; }
@@ -69,30 +87,72 @@ body {
   padding: .1em .5em .05em;
   line-height: 1.15;
 }
+/* ── BOTONES · estilo Afiche ──
+   Todo botón es un sticker: contorno tinta de 3px y una sombra dura corrida abajo a la derecha.
+   Al tocarlo cae sobre su sombra (se corre justo lo que mide la sombra, 90ms, con `translate`) y al soltarlo vuelve con rebote (160ms).
+   Cada botón define su sombra (--sh) y cuánto se corre (--dx/--dy); --rot es la inclinación de afiche del CTA principal.
+   Colores: oro = la acción principal (una por pantalla) · crema = secundaria sobre verde · verde = sobre superficies crema
+   · rojo = salir/borrar · ghost = terciaria sobre verde (borde crema, sin sombra). */
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #sonido, .volver-app) {
+  --sh: var(--game-shadow-md); --dx: 4px; --dy: 5px; --rot: rotate(0deg);
+  box-sizing: border-box;
+  border: var(--game-stroke) solid var(--game-ink);
+  box-shadow: var(--sh);
+  transform: var(--rot);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  translate: 0 0;
+  transition: translate var(--game-release-dur) var(--game-ease-bounce), box-shadow var(--game-release-dur) var(--game-ease-bounce), background-color var(--game-press-dur), opacity 150ms;
+}
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #sonido, .volver-app):active:not([disabled]) {
+  translate: var(--dx) var(--dy); /* translate, no transform: así se suma a la inclinación y a las animaciones */
+  box-shadow: 0 0 0 var(--game-ink);
+  transition-duration: var(--game-press-dur);
+  transition-timing-function: ease-out;
+}
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #sonido, .volver-app)[disabled] { opacity: .45; cursor: not-allowed; }
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #sonido, .volver-app):focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+/* los íconos del set SDGA (GameIcon): trazo tinta 2,5px, papel crema y acento dorado; cada botón cambia los tres */
+.gi { display: block; flex: none; width: 24px; height: 24px; overflow: visible; --gi-s: var(--game-ink); --gi-f: var(--cream); --gi-a: var(--gold); }
+.gi g { fill: none; stroke: var(--gi-s); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+/* el botón de siempre: pill Anton, md 50px (sm 44 · lg 62) */
 .btn {
+  --gi-a: var(--gold);
   font-family: var(--font-display);
-  font-size: 18px;
-  letter-spacing: .05em;
-  height: 46px;
+  font-size: 21px;
+  line-height: 1;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  height: var(--game-h-md);
   padding: 0 20px;
-  border: 0;
   border-radius: 999px;
   background: var(--gold);
   color: var(--green-900);
-  box-shadow: var(--shadow-card);
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   text-decoration: none;
-  transition: transform 120ms var(--ease-snap), background 120ms;
 }
-.btn:active { transform: scale(.97); }
-.btn:focus-visible, .redondo:focus-visible { outline: 3px solid var(--cream); outline-offset: 2px; }
-.btn.ghost { background: transparent; color: var(--cream); box-shadow: inset 0 0 0 2px rgba(244, 238, 218, .6); }
-.btn.oscuro { background: var(--green-900); color: var(--cream); }
-.btn[disabled] { opacity: .45; pointer-events: none; }
+.btn .gi { --gi-a: var(--cream); }
+.btn.chico { --sh: var(--game-shadow-sm); --dx: 3px; --dy: 4px; height: var(--game-h-sm); padding: 0 16px; font-size: 17px; }
+.btn.grande { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; height: var(--game-h-lg); padding: 0 28px; font-size: 28px; }
+.btn.crema { background: var(--cream); }
+.btn.crema .gi, .btn.verde .gi, .btn.rojo .gi { --gi-a: var(--gold); }
+.btn.verde { background: var(--green-500); color: var(--cream); }
+.btn.rojo { background: var(--red); color: var(--cream); }
+.btn.ghost { --sh: none; --dx: 0px; --dy: 0px; border-color: var(--cream); background: transparent; color: var(--cream); }
+.btn.ghost:active { background: var(--game-ghost-press); }
+.btn.ghost .gi { --gi-s: var(--cream); --gi-f: transparent; }
+/* el contador: un sticker girado 8° arriba a la derecha, que hace pop al aparecer */
+.aviso { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 6px; margin-left: 8px; border-radius: 999px; border: 2px solid var(--game-ink); background: var(--gold); color: var(--green-900); font: 13px/1 var(--font-display); letter-spacing: 0; vertical-align: 1px; box-sizing: border-box; transform: rotate(8deg); animation: g-pop var(--game-pop-dur) var(--ease-snap) both; }
+.aviso[hidden] { display: none; }
+/* movimiento: entrada de pantalla (cae −18px y reposa, escalonado), llamar la atención (wiggle cada 3,6 s) y el pop del contador */
+@keyframes g-entra { 0% { opacity: 0; transform: var(--rot, rotate(0deg)) translateY(-18px) scale(.94); } 70% { opacity: 1; transform: var(--rot, rotate(0deg)) translateY(3px) scale(1.01); } 100% { opacity: 1; transform: var(--rot, rotate(0deg)); } }
+@keyframes g-wiggle { 0%, 78%, 100% { transform: var(--rot, rotate(0deg)); } 82% { transform: var(--rot, rotate(0deg)) rotate(-3deg) scale(1.03); } 86% { transform: var(--rot, rotate(0deg)) rotate(2.5deg) scale(1.03); } 90% { transform: var(--rot, rotate(0deg)) rotate(-2deg) scale(1.02); } 94% { transform: var(--rot, rotate(0deg)) rotate(1deg); } }
+@keyframes g-pop { 0% { transform: rotate(8deg) scale(0); } 60% { transform: rotate(8deg) scale(1.2); } 100% { transform: rotate(8deg) scale(1); } }
+.entra { animation: g-entra var(--game-enter-dur) var(--ease-snap) backwards; animation-delay: calc(var(--i, 0) * var(--game-stagger)); }
 .kicker { font-weight: 800; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; }
 
 /* ── HUD ── */
@@ -138,9 +198,7 @@ body {
 /* debajo del marcador: dónde estás (izq.), reloj (centro) y LP (der.); la parte de abajo queda libre para la cancha */
 #lie { justify-self: start; display: block; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 30px; }
 /* LP: un botón de verdad (crema, con sombra), abajo del reloj y el viento */
-#lp { height: 38px; padding: 0 16px; font-size: 16px; background: var(--cream); color: var(--green-900); border: 2px solid var(--green-900); box-shadow: 0 3px 0 var(--green-950), 0 6px 14px rgba(12, 43, 28, .45); pointer-events: auto; }
-#lp:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--green-950); }
-#lp[disabled] { opacity: .5; }
+#lp { pointer-events: auto; }
 /* mientras apretás para pegar, el marcador de arriba se vuelve transparente: se ve la cancha */
 #hud-top .card { transition: opacity 180ms; }
 body.apuntando #hud-top .card { opacity: .18; }
@@ -202,16 +260,15 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 }
 .mazo-cab, .mazo-pie { width: 100%; max-width: 440px; margin: 0 auto; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .mazo-cab { padding: 12px 16px 8px; }
-.mazo-pie { padding: 4px 16px 16px; }
-.pill { flex: none; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(244, 238, 218, .35); background: rgba(244, 238, 218, .1); color: var(--cream); font: 800 11px var(--font-body); letter-spacing: .1em; cursor: pointer; margin-left: auto; }
-.pill:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.mazo-pie { padding: 4px 16px 20px; }
+.pill { --sh: var(--game-shadow-sm); --dx: 3px; --dy: 4px; flex: none; height: var(--game-h-sm); padding: 0 14px; border-radius: 999px; background: var(--cream); color: var(--green-900); font: 17px/1 var(--font-display); letter-spacing: .03em; margin-left: auto; }
 #todos { background: var(--green-950); justify-content: flex-start; gap: 10px; }
 #todos h2 { font-size: 28px; text-align: left; }
 .todos-cab { width: min(100%, 520px); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .todos-sub { margin: 0; width: min(100%, 520px); text-align: left; font-size: 13px; opacity: .8; }
 .todos-lista { list-style: none; margin: 0; padding: 0; width: min(100%, 520px); display: grid; gap: 10px; text-align: left; }
 .todo.dorado { background: linear-gradient(135deg, #fbe7a1 0%, #e9bf4e 30%, #b47a1b 55%, #f3d273 80%, #c99236 100%); color: #2b1d08; box-shadow: 0 0 0 2px #7a5a1c, 0 0 24px rgba(255, 210, 100, .5); }
-.todo.dorado .carta-jugar { background: #2b1d08; color: #ffe69a; box-shadow: inset 0 0 0 2px #f3d27a; }
+.todo.dorado .carta-jugar { --sh: 3px 4px 0 #7a5a1c; border-color: #2b1d08; background: #2b1d08; color: #ffe69a; }
 .todo { background: var(--cream); color: var(--green-900); border-radius: 16px; padding: 12px; display: grid; gap: 10px; box-shadow: var(--shadow-card); }
 .todo-cab { display: flex; align-items: center; gap: 12px; }
 .todo-cab .cara { width: 52px; height: 52px; }
@@ -221,12 +278,16 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .todo-nombre { flex: 1; min-width: 0; }
 .todo-nombre b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 22px; line-height: 1.1; overflow-wrap: anywhere; }
 .todo-nombre span { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; }
-.todo .carta-jugar { width: auto; height: 38px; font-size: 14px; padding: 0 14px; flex: none; }
+.todo .carta-jugar { --sh: var(--game-shadow-sm); --dx: 3px; --dy: 4px; width: auto; height: var(--game-h-sm); font-size: 17px; padding: 0 16px; flex: none; }
 .todo .carta-prev p { -webkit-line-clamp: unset; display: block; }
 .mazo-tit { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.05; letter-spacing: .04em; text-transform: uppercase; }
 .mazo-sub { margin: 4px 0 0; font-size: 12px; opacity: .75; }
-.redondo { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(244, 238, 218, .25); background: transparent; color: var(--cream); font-size: 22px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
-.redondo.claro { width: 44px; height: 44px; border: 0; background: rgba(244, 238, 218, .1); font-size: 26px; }
+/* botón de ícono (cerrar, anterior, siguiente): círculo crema, sm 44px · .claro md 56px */
+.redondo { --sh: 3px 3px 0 var(--game-ink); --dx: 3px; --dy: 3px; flex: none; width: var(--game-h-sm); height: var(--game-h-sm); padding: 0; border-radius: 50%; background: var(--cream); display: grid; place-items: center; }
+.redondo .gi { width: 24px; height: 24px; }
+.redondo.claro { --sh: 3px 4px 0 var(--game-ink); --dy: 4px; width: 56px; height: 56px; }
+.redondo.claro .gi { width: 30px; height: 30px; }
+.gi.espejo { transform: scaleX(-1); }
 .mazo-pila { position: relative; flex: 1; min-height: 0; width: 100%; max-width: 440px; margin: 0 auto; padding: 0 16px 8px; box-sizing: border-box; }
 .mazo-cartas { position: relative; width: 100%; height: 100%; }
 .envoltorio { position: absolute; inset: 0; will-change: transform; -webkit-user-select: none; user-select: none; }
@@ -259,7 +320,7 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 /* en la carta la habilidad es un botón: la flechita avisa que se abre entera */
 button.carta-prev { width: 100%; border: 0; font: inherit; text-align: left; cursor: pointer; grid-template-columns: 112px 1fr 26px; -webkit-tap-highlight-color: transparent; transition: transform .12s ease, background .12s ease; }
 button.carta-prev:active { transform: scale(.98); background: #0f3a26; }
-.carta-prev .mas { width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: var(--green-900); display: grid; place-items: center; font-size: 18px; font-weight: 800; line-height: 1; padding-bottom: 2px; box-sizing: border-box; }
+.carta-prev .mas { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--game-ink); background: var(--gold); color: var(--green-900); display: grid; place-items: center; font-size: 18px; font-weight: 800; line-height: 1; padding-bottom: 2px; box-sizing: border-box; }
 /* el modal de la habilidad: una tarjetita sobre el mazo, no toda la pantalla */
 .hab-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; }
 .hab-modal[hidden] { display: none; }
@@ -267,13 +328,13 @@ button.carta-prev:active { transform: scale(.98); background: #0f3a26; }
 .hab-caja { position: relative; width: min(100%, 360px); max-height: calc(100dvh - 32px); overflow-y: auto; box-sizing: border-box; background: var(--green-900); color: var(--cream); border-radius: 20px; padding: 14px 16px 16px; box-shadow: 0 18px 48px rgba(0, 0, 0, .5); display: grid; gap: 10px; animation: hab-pop .22s cubic-bezier(.2, .9, .3, 1.2); }
 .hab-caja svg { width: 100%; height: auto; aspect-ratio: 112 / 52; display: block; border-radius: 12px; }
 .hab-de { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(244, 238, 218, .65); }
-.hab-caja h3 { margin: -6px 0 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; line-height: 1.05; color: var(--gold); padding-right: 36px; }
+.hab-caja h3 { margin: -6px 0 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; line-height: 1.05; color: var(--gold); padding-right: 52px; }
 .hab-caja p.hab-texto { margin: 0; font-size: 15px; line-height: 1.45; }
 .hab-extra { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .hab-extra li { background: rgba(244, 238, 218, .08); border-radius: 10px; padding: 7px 10px; font-size: 13px; line-height: 1.35; }
 .hab-extra li b { color: var(--gold); }
-.hab-x { position: absolute; right: 10px; top: 10px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(8, 26, 16, .75); color: var(--cream); font-size: 22px; line-height: 1; cursor: pointer; z-index: 1; }
-.hab-caja .carta-jugar { background: var(--gold); color: var(--green-900); height: 42px; }
+.hab-x { --sh: 3px 3px 0 var(--game-ink); --dx: 3px; --dy: 3px; position: absolute; right: 10px; top: 10px; z-index: 1; width: var(--game-h-sm); height: var(--game-h-sm); padding: 0; border-radius: 50%; background: var(--cream); display: grid; place-items: center; }
+.hab-x .gi { width: 22px; height: 22px; }
 @keyframes hab-in { from { opacity: 0; } }
 @keyframes hab-pop { from { opacity: 0; transform: translateY(14px) scale(.94); } }
 .carta dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
@@ -286,8 +347,8 @@ button.carta-prev:active { transform: scale(.98); background: #0f3a26; }
 .barras i.on { background: var(--green-500); }
 .barras.d3 i.on { background: var(--gold); }
 .barras.d4 i.on, .barras.d5 i.on { background: var(--red); }
-.carta-jugar { width: 100%; height: 46px; border: 0; border-radius: 999px; background: var(--green-900); color: var(--cream); font-family: var(--font-display); font-size: 17px; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 16px; }
-.carta-jugar:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+/* JUGAR CON …: la acción principal de cada carta (oro, md 50px) */
+.carta-jugar { width: 100%; height: var(--game-h-md); border-radius: 999px; background: var(--gold); color: var(--green-900); font: 21px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 16px; }
 .puntos { display: flex; align-items: center; gap: 3px; }
 .puntos span { width: 5px; height: 5px; border-radius: 3px; background: rgba(244, 238, 218, .35); transition: width 200ms; }
 .puntos span.activo { width: 16px; background: var(--gold); }
@@ -308,14 +369,14 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 .num { text-align: right; }
 .extras { font-size: 13px; color: var(--text-muted); margin: 0; }
 .firma { display: grid; gap: 8px; }
-.firma .btn { width: 100%; font-size: 20px; }
+.firma .btn { width: 100%; }
 .reloj { height: 6px; border-radius: 3px; background: var(--cream-dark); overflow: hidden; }
 .reloj div { height: 100%; width: 100%; background: var(--red); }
 .firma p, .firmada { margin: 0; font-size: 13px; color: var(--text-muted); }
 .firmada { font-weight: 800; color: var(--green-500); letter-spacing: .04em; text-transform: uppercase; }
-.acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px; }
 .acciones .ancho { grid-column: 1 / -1; }
-.acciones .btn { font-size: 16px; padding: 0 12px; }
+.acciones .btn { padding: 0 12px; }
 .acciones .portada-tejas { gap: 8px; }
 .acciones .teja-btn { padding-inline: 3px; }
 .acciones .teja-btn span { font-size: 12px; letter-spacing: .02em; white-space: nowrap; }
@@ -334,27 +395,29 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 /* ── cronómetro y golpe del Mago: debajo del marcador ── */
 #hud-chips { width: 100%; max-width: 520px; justify-self: center; display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
 #hud-chips .izq { min-width: 0; display: grid; gap: 6px; justify-items: start; }
-#sonido { pointer-events: auto; cursor: pointer; border: 0; width: 40px; padding: 0; justify-content: center; font-size: 17px; }
+/* el sonido: botón de ícono crema chico (44px, el mínimo para el dedo) */
+#sonido { --sh: var(--game-shadow-sm); --dx: 3px; --dy: 3px; pointer-events: auto; width: 44px; height: 44px; padding: 0; border-radius: 50%; background: var(--cream); display: grid; place-items: center; }
+#sonido .gi { width: 26px; height: 26px; }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
 /* el carrito de Marcos: los mandos (solo mientras manejás), con la pinta del SDGA: crema, verde, dorado y Anton */
 #mandos { position: fixed; left: 0; right: 0; bottom: calc(var(--safe-bot) + 16px); z-index: 25; display: none; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 0 14px; pointer-events: none; }
 body.manejando #mandos { display: flex; }
 #mandos .grupo { display: flex; gap: 10px; align-items: flex-end; pointer-events: auto; }
-#mandos button { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; cursor: pointer; font-family: var(--font-display); letter-spacing: .05em; display: grid; place-items: center; padding: 0; transition: transform 80ms var(--ease-snap), box-shadow 80ms, filter 80ms; }
+#mandos button { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; cursor: pointer; font-family: var(--font-display); letter-spacing: .05em; display: grid; place-items: center; padding: 0; transition: transform var(--game-press-dur) ease-out, box-shadow var(--game-press-dur) ease-out, background-color var(--game-press-dur), filter var(--game-press-dur); }
 /* el volante: dos discos crema con el chevron verde */
-#mandos .dir { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--green-900); background: var(--cream); color: var(--green-900); box-shadow: 0 5px 0 var(--green-900), 0 10px 18px rgba(8, 26, 16, .45); }
+#mandos .dir { width: 70px; height: 70px; border-radius: 50%; border: var(--game-stroke) solid var(--game-ink); background: var(--cream); color: var(--green-900); box-shadow: 4px 5px 0 var(--game-ink); }
 #mandos .dir svg { width: 30px; height: 30px; }
-#mandos .dir.on { transform: translateY(4px); box-shadow: 0 1px 0 var(--green-900), 0 4px 10px rgba(8, 26, 16, .4); background: var(--gold); }
+#mandos .dir.on { transform: translate(4px, 5px); box-shadow: 0 0 0 var(--game-ink); background: var(--gold); }
 /* los pedales: estrías de goma; el acelerador dorado, el freno crema con letras rojas */
-#mandos .pedal { border: 3px solid var(--green-900); border-radius: 20px 20px 14px 14px; color: var(--green-900); line-height: 1; text-align: center; background-image: repeating-linear-gradient(0deg, rgba(12, 43, 28, .13) 0 4px, transparent 4px 11px); }
-#mandos #m-acel { width: 86px; height: 120px; background-color: var(--gold); font-size: 16px; box-shadow: 0 6px 0 var(--green-900), 0 12px 20px rgba(8, 26, 16, .45); }
-#mandos #m-freno { width: 72px; height: 92px; background-color: var(--cream); color: var(--red); font-size: 15px; box-shadow: 0 6px 0 var(--green-900), 0 12px 20px rgba(8, 26, 16, .45); }
+#mandos .pedal { border: var(--game-stroke) solid var(--game-ink); border-radius: 20px 20px 14px 14px; color: var(--green-900); line-height: 1; text-align: center; background-image: repeating-linear-gradient(0deg, rgba(12, 43, 28, .13) 0 4px, transparent 4px 11px); }
+#mandos #m-acel { width: 86px; height: 120px; background-color: var(--gold); font-size: 16px; box-shadow: var(--game-shadow-lg); }
+#mandos #m-freno { width: 72px; height: 92px; background-color: var(--cream); color: var(--red); font-size: 15px; box-shadow: var(--game-shadow-lg); }
 #mandos .pedal b { display: block; font-size: 24px; margin-bottom: 4px; }
-#mandos .pedal.on { transform: translateY(5px); box-shadow: 0 1px 0 var(--green-900), 0 4px 10px rgba(8, 26, 16, .4); filter: brightness(1.06); }
+#mandos .pedal.on { transform: translate(5px, 6px); box-shadow: 0 0 0 var(--game-ink); filter: brightness(1.06); }
 #mandos .col { display: flex; flex-direction: column; gap: 8px; align-items: center; }
-#mandos #m-reversa { height: 34px; padding: 0 12px; border-radius: 999px; border: 2px solid var(--cream); background: var(--green-900); color: var(--cream); font-size: 13px; box-shadow: 0 4px 10px rgba(8, 26, 16, .4); }
-#mandos #m-reversa.on { background: var(--cream); color: var(--green-900); transform: translateY(2px); }
+#mandos #m-reversa { height: 40px; padding: 0 14px; border-radius: 999px; border: var(--game-stroke) solid var(--game-ink); background: var(--cream); color: var(--green-900); font-size: 15px; box-shadow: var(--game-shadow-sm); }
+#mandos #m-reversa.on { background: var(--gold); transform: translate(3px, 4px); box-shadow: 0 0 0 var(--game-ink); }
 /* el velocímetro: se llena de dorado y en el turbo se pone al rojo */
 #m-velo { position: absolute; left: 50%; bottom: calc(100% + 12px); transform: translateX(-50%); width: 132px; padding: 6px 9px 7px; border-radius: 12px; background: rgba(12, 43, 28, .82); border: 2px solid rgba(244, 238, 218, .5); color: var(--cream); font: 13px var(--font-display); letter-spacing: .08em; text-align: center; pointer-events: none; }
 #m-velo .barra { height: 7px; margin-top: 4px; border-radius: 4px; background: rgba(244, 238, 218, .2); overflow: hidden; }
@@ -371,7 +434,7 @@ body.manejando #mandos { display: flex; }
 #rorro h2 { margin: 0; font: 34px/1 var(--font-display); letter-spacing: .02em; }
 #rorro p { margin: 10px 0 18px; font: 600 15px/1.35 var(--font-body); color: var(--text-muted, #4a5a50); }
 #rorro .botones { display: flex; gap: 10px; justify-content: center; }
-#rorro .botones .btn { flex: 1; font-size: 22px; height: 54px; }
+#rorro .botones .btn { flex: 1; }
 #rorro .resultado { display: none; }
 #rorro.jugado .pregunta { display: none; }
 #rorro.jugado .resultado { display: block; }
@@ -405,8 +468,7 @@ body.manejando #mandos { display: flex; }
 #secreto .hab { display: none; margin-top: 12px; padding: 10px 12px; text-align: left; background: rgba(255, 248, 225, .78); border: 1.5px solid rgba(90, 60, 15, .45); border-radius: 12px; font: 600 13px/1.35 var(--font-body); color: #3b2a12; }
 #secreto .hab b { display: block; margin-bottom: 3px; font: 18px/1.1 var(--font-display); letter-spacing: .03em; }
 #secreto .nota { display: none; margin-top: 8px; font: 700 11.5px/1.3 var(--font-body); color: #6b4c16; }
-#secreto .btn-sec { position: relative; margin-top: 16px; width: 100%; height: 56px; border: 0; border-radius: 16px; cursor: pointer; font: 24px/1 var(--font-display); letter-spacing: .05em; color: #fff4cf; background: linear-gradient(180deg, #3a2709, #1f1504); box-shadow: 0 4px 0 #0e0902, inset 0 0 0 2px #f3d27a; animation: sec-boton 1.6s ease-in-out infinite; }
-#secreto .btn-sec:active { transform: translateY(3px); box-shadow: 0 1px 0 #0e0902, inset 0 0 0 2px #f3d27a; }
+#secreto .btn-sec { --sh: 5px 6px 0 #7a5a1c; --dx: 5px; --dy: 6px; position: relative; margin-top: 16px; width: 100%; height: 56px; border-color: #2b1d08; border-radius: 999px; font: 24px/1 var(--font-display); letter-spacing: .05em; color: #fff4cf; background: #2b1d08; animation: sec-boton 1.6s ease-in-out infinite; }
 #secreto .destello { position: fixed; inset: 0; z-index: 4; background: #fffbe8; opacity: 0; pointer-events: none; }
 #secreto .chispas { position: fixed; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
 #secreto .chispas i { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: radial-gradient(circle, #fff 0 22%, #ffd76a 50%, transparent 70%); }
@@ -423,7 +485,7 @@ body.manejando #mandos { display: flex; }
 @keyframes sec-gira { to { transform: rotate(360deg); } }
 @keyframes sec-brillo { 0% { background-position: 130% 0; } 100% { background-position: -130% 0; } }
 @keyframes sec-late { 0%, 100% { transform: scale(1) rotate(-4deg); } 50% { transform: scale(1.1) rotate(4deg); } }
-@keyframes sec-boton { 0%, 100% { box-shadow: 0 4px 0 #0e0902, inset 0 0 0 2px #f3d27a, 0 0 0 0 rgba(255, 215, 110, .0); } 50% { box-shadow: 0 4px 0 #0e0902, inset 0 0 0 2px #f3d27a, 0 0 22px 4px rgba(255, 215, 110, .65); } }
+@keyframes sec-boton { 0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 215, 110, 0)); } 50% { filter: drop-shadow(0 0 14px rgba(255, 215, 110, .75)); } }
 @keyframes sec-tiembla { 0%, 100% { transform: none; } 10% { transform: translate(-3px, 1px) rotate(-3deg); } 20% { transform: translate(3px, -1px) rotate(3deg); } 30% { transform: translate(-4px, 2px) rotate(-4deg) scale(1.03); } 40% { transform: translate(4px, -2px) rotate(4deg) scale(1.04); } 50% { transform: translate(-5px, 1px) rotate(-5deg) scale(1.06); } 60% { transform: translate(5px, -1px) rotate(5deg) scale(1.08); } 70% { transform: translate(-6px, 2px) rotate(-6deg) scale(1.1); } 80% { transform: translate(6px, -2px) rotate(6deg) scale(1.12); } 90% { transform: translate(-3px, 1px) rotate(-3deg) scale(1.14); } }
 @keyframes sec-pregunta-sale { to { opacity: 0; transform: scale(2.6) rotate(25deg); filter: blur(4px); } }
 @keyframes sec-fade { to { opacity: 0; } }
@@ -477,7 +539,7 @@ body.manejando #mandos { display: flex; }
 .carta.dorada dt, .carta.dorada dd .sub { color: #6b4c16; }
 .carta.dorada .carta-prev { background: #2b1d08; }
 .carta.dorada .carta-prev b { color: #f3d27a; }
-.carta.dorada .carta-jugar { position: relative; z-index: 7; background: linear-gradient(180deg, #3a2709, #1f1504); color: #ffe69a; box-shadow: inset 0 0 0 2px #f3d27a, 0 0 14px rgba(255, 210, 100, .5); }
+.carta.dorada .carta-jugar { --sh: 4px 5px 0 #6b4a12; position: relative; z-index: 7; border-color: #2b1d08; background: #2b1d08; color: #ffe69a; }
 .carta.dorada .carta-prev { position: relative; z-index: 7; }
 .carta.dorada .sello-1960 { position: absolute; right: 12px; top: 44px; padding: 5px 9px 4px; font: 15px/1 var(--font-display); letter-spacing: .08em; color: #f3d27a; background: #2b1d08; border: 2px solid #f3d27a; border-radius: 8px; transform: rotate(6deg); }
 /* la cancha de Demetrio: 1960, sepia, viñeta y grano de película */
@@ -501,12 +563,11 @@ body.retro #retro::after { content: ''; position: absolute; inset: 0; background
 #cancha.sacudida { animation: sacudida 380ms linear; }
 @keyframes sacudida { 0%, 100% { transform: translate(0, 0); } 15% { transform: translate(-7px, 4px); } 30% { transform: translate(6px, -5px); } 45% { transform: translate(-5px, -3px); } 60% { transform: translate(4px, 5px); } 80% { transform: translate(-2px, 2px); } }
 /* Deme, el mentor (Maxi / Grandpa): el botón para llamarlo y él, en persona, con su consejo */
-#deme-btn { position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 88px; height: 88px; border-radius: 50%; border: 3px solid var(--gold); background: var(--green-900); color: var(--cream); box-shadow: 0 6px 18px rgba(12, 43, 28, .5), 0 0 0 6px rgba(232, 195, 74, .25); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; cursor: pointer; font-family: var(--font-display); transition: transform 120ms var(--ease-snap), opacity 150ms; animation: deme-llama 2.4s ease-in-out infinite; }
+/* Deme y el pancho: los botones de ícono grandes de la cancha (lg, con su sombra dura de 5×6) */
+#deme-btn { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 88px; height: 88px; border-radius: 50%; background: var(--green-500); color: var(--cream); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; font-family: var(--font-display); animation: g-wiggle 3.6s ease-in-out 1.2s infinite; }
 #deme-btn img { width: 62px; height: auto; margin-top: -6px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4)); }
 #deme-btn span { font-size: 13px; letter-spacing: .08em; line-height: 1; margin-top: -2px; }
-#deme-btn:active { transform: scale(.93); }
-#deme-btn[disabled] { animation: none; opacity: .45; box-shadow: 0 6px 18px rgba(12, 43, 28, .5); }
-@keyframes deme-llama { 0%, 100% { box-shadow: 0 6px 18px rgba(12, 43, 28, .5), 0 0 0 4px rgba(232, 195, 74, .2); } 50% { box-shadow: 0 6px 18px rgba(12, 43, 28, .5), 0 0 0 12px rgba(232, 195, 74, .38); } }
+#deme-btn[disabled] { animation: none; }
 #deme { position: fixed; left: 0; bottom: var(--safe-bot); z-index: 30; width: min(84vw, 360px); pointer-events: none; transition: opacity 450ms; }
 #deme svg { display: block; width: 100%; height: auto; overflow: visible; }
 #deme .globo { position: absolute; left: 40%; bottom: 76%; width: max-content; max-width: min(58vw, 215px); padding: 10px 14px; background: var(--cream); color: var(--green-900); font: 800 15px/1.25 var(--font-body); border: 2.5px solid var(--green-900); border-radius: 22px 26px 24px 18px; box-shadow: 0 6px 16px rgba(8, 26, 16, .4); transform-origin: 0% 100%; opacity: 0; }
@@ -528,15 +589,12 @@ body.retro #retro::after { content: ''; position: absolute; inset: 0; background
 @keyframes globo-sale { 0% { opacity: 0; transform: scale(.25) rotate(-10deg); } 65% { opacity: 1; transform: scale(1.08) rotate(2deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
 @keyframes globo-respira { 0%, 100% { opacity: 1; transform: scale(1) rotate(0); border-radius: 22px 26px 24px 18px; } 35% { opacity: 1; transform: scale(1.035) rotate(-1.2deg); border-radius: 26px 20px 28px 20px; } 70% { opacity: 1; transform: scale(.99) rotate(.9deg); border-radius: 20px 28px 20px 24px; } }
 @media (prefers-reduced-motion: reduce) { #lucas.entra, #lucas.entra .globo, #lucas .cuerpo { animation-duration: 1ms; animation-iteration-count: 1; } }
-#pancho { position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--cream); background: var(--gold); color: var(--green-900); box-shadow: 0 6px 18px rgba(12, 43, 28, .5); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; cursor: pointer; font-family: var(--font-display); transition: transform 120ms var(--ease-snap), opacity 150ms; }
-#pancho:active { transform: scale(.93); }
+#pancho { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 84px; height: 84px; border-radius: 50%; background: var(--gold); color: var(--green-900); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; font-family: var(--font-display); }
 #pancho .pancho-emo { font-size: 34px; line-height: 1; }
 #pancho .pancho-txt { font-size: 12px; letter-spacing: .06em; line-height: 1.1; }
-#pancho b { position: absolute; top: -4px; right: -4px; min-width: 28px; height: 28px; border-radius: 14px; background: var(--green-900); color: var(--cream); border: 2px solid var(--cream); font-weight: 400; font-size: 16px; display: grid; place-items: center; }
-#pancho[disabled] { opacity: .45; filter: grayscale(.6); }
-#pancho:focus-visible { outline: 3px solid var(--cream); outline-offset: 3px; }
+#pancho b { position: absolute; top: -8px; right: -8px; min-width: 30px; height: 30px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--cream); color: var(--green-900); border: 2px solid var(--game-ink); font: 17px/1 var(--font-display); display: grid; place-items: center; transform: rotate(8deg); }
 body.monos-vienen #pancho:not([disabled]) { animation: latePancho .5s ease-in-out infinite alternate; }
-@keyframes latePancho { to { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(232, 195, 74, .35), 0 6px 18px rgba(12, 43, 28, .5); } }
+@keyframes latePancho { to { transform: scale(1.1); } }
 .chip { font-family: var(--font-display); font-size: 16px; letter-spacing: .05em; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); border-radius: 999px; padding: 0 12px; height: 30px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 #crono { color: var(--gold); min-width: 10ch; justify-content: center; }
 #efecto { background: var(--gold); color: var(--green-900); }
@@ -556,35 +614,28 @@ input { -webkit-user-select: text; user-select: text; }
 .quien-juega.falta input { border-color: var(--red); }
 .quien-juega.falta .kicker { color: #f0a497; }
 .portada-botones { display: grid; gap: 10px; width: min(100%, 400px); }
-/* JUGAR: el botón principal, dorado y con relieve, como una ficha del SDGA */
-.btn-jugar { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 8px 14px 8px 9px; border: 0; border-radius: 18px; cursor: pointer; text-align: left; color: var(--green-900); background: linear-gradient(180deg, #f2d26a 0%, var(--gold) 55%, #d9ae35 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 0 0 2px rgba(20, 64, 42, .18), 0 5px 0 #8f6d18, 0 12px 22px rgba(8, 26, 16, .45); overflow: hidden; transition: transform 110ms var(--ease-snap), box-shadow 110ms; -webkit-tap-highlight-color: transparent; }
-.btn-jugar::after { content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; background: linear-gradient(105deg, transparent, rgba(255, 255, 255, .45), transparent); transform: skewX(-18deg); animation: jugar-brillo 4.5s ease-in-out infinite 1.2s; pointer-events: none; }
-.btn-jugar:active { transform: translateY(4px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 0 0 2px rgba(20, 64, 42, .18), 0 1px 0 #8f6d18, 0 4px 10px rgba(8, 26, 16, .4); }
-.btn-jugar:focus-visible { outline: 3px solid var(--cream); outline-offset: 3px; }
-.btn-jugar .ic { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; background: var(--green-900); color: var(--gold); box-shadow: inset 0 0 0 2px rgba(244, 238, 218, .25); }
-.btn-jugar .ic svg { width: 27px; height: 27px; }
-.btn-jugar .txt { display: grid; gap: 3px; }
-.btn-jugar .txt b { font: 29px/0.95 var(--font-display); letter-spacing: .06em; font-weight: 400; }
-.btn-jugar .txt small { font: 800 11px/1 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: rgba(20, 64, 42, .72); }
-.btn-jugar .flecha { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgba(20, 64, 42, .12); }
-.btn-jugar .flecha svg { width: 18px; height: 18px; }
-@keyframes jugar-brillo { 0%, 70% { left: -60%; } 100% { left: 130%; } }
-/* las tejas: verde del SDGA, borde crema de tarjeta de score y relieve */
-.portada-tejas { display: flex; gap: 10px; }
-.teja-btn { position: relative; flex: 1 1 0; min-width: 0; display: grid; justify-items: center; align-content: center; gap: 5px; min-height: 68px; padding: 9px 6px 8px; border: 0; border-radius: 16px; cursor: pointer; color: var(--cream); background: linear-gradient(180deg, #1f5a3b 0%, var(--green-900) 100%); box-shadow: inset 0 0 0 2px rgba(244, 238, 218, .55), inset 0 0 0 5px var(--green-900), inset 0 0 0 6px rgba(232, 195, 74, .35), 0 4px 0 #0a2416, 0 10px 18px rgba(8, 26, 16, .4); transition: transform 110ms var(--ease-snap), box-shadow 110ms; -webkit-tap-highlight-color: transparent; }
+/* JUGAR: la acción principal (oro, lg), inclinada como en el afiche; entra cayendo y cada 3,6 s se mueve para llamar la atención */
+.btn-jugar { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; --rot: rotate(var(--game-tilt)); position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; width: 100%; min-height: 68px; padding: 7px 12px 7px 7px; border-radius: 999px; text-align: left; color: var(--green-900); background: var(--gold); animation: g-entra var(--game-enter-dur) var(--ease-snap) backwards, g-wiggle 3.6s ease-in-out 1.6s infinite; }
+.btn-jugar .ic { width: 50px; height: 50px; box-sizing: border-box; border-radius: 50%; border: 2px solid var(--game-ink); display: grid; place-items: center; background: var(--cream); }
+.btn-jugar .ic .gi { width: 32px; height: 32px; }
+.btn-jugar .txt { display: grid; gap: 4px; }
+.btn-jugar .txt b { font: 30px/0.95 var(--font-display); letter-spacing: .04em; font-weight: 400; }
+.btn-jugar .txt small { font: 800 11px/1 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: rgba(20, 64, 42, .75); }
+.btn-jugar .flecha { width: 38px; height: 38px; box-sizing: border-box; border-radius: 50%; border: 2px solid var(--game-ink); display: grid; place-items: center; background: var(--green-900); }
+.btn-jugar .flecha .gi { width: 24px; height: 24px; --gi-s: var(--gold); --gi-a: var(--gold); }
+/* las tejas: las secundarias en fila (crema sobre verde · verde adentro de una tarjeta crema), con su ícono SDGA arriba */
+.portada-tejas { display: flex; gap: 12px; padding-right: 4px; }
+.teja-btn { position: relative; flex: 1 1 0; min-width: 0; display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 74px; padding: 9px 6px 8px; border-radius: 18px; color: var(--green-900); background: var(--cream); }
 .teja-btn[hidden] { display: none; }
-.teja-btn:active { transform: translateY(3px); box-shadow: inset 0 0 0 2px rgba(244, 238, 218, .55), inset 0 0 0 5px var(--green-900), inset 0 0 0 6px rgba(232, 195, 74, .35), 0 1px 0 #0a2416, 0 4px 8px rgba(8, 26, 16, .4); }
-.teja-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-.teja-btn svg { width: 28px; height: 28px; color: var(--gold); }
-.teja-btn span { font: 15px/1 var(--font-display); letter-spacing: .07em; }
-.teja-btn .aviso { position: absolute; top: -6px; right: -4px; margin: 0; box-shadow: 0 0 0 2px var(--green-900); }
-@media (prefers-reduced-motion: reduce) { .btn-jugar::after { animation: none; } }
-.volver-app svg { width: 15px; height: 15px; vertical-align: -2px; margin-right: 4px; }
+.teja-btn .gi { width: 32px; height: 32px; }
+.teja-btn span { font: 16px/1 var(--font-display); letter-spacing: .04em; }
+.teja-btn .aviso { position: absolute; top: -10px; right: -8px; margin: 0; }
+.card .teja-btn { background: var(--green-500); color: var(--cream); }
 
 /* ── resumen de la vuelta para compartir ── */
 #resumen { background: var(--green-950); justify-content: center; gap: 14px; }
 #resumen-img { width: min(100%, 420px, calc((100dvh - 190px) * .8)); height: auto; border-radius: 16px; box-shadow: var(--shadow-pop); background: var(--green-900); }
-.resumen-acciones { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.resumen-acciones { display: flex; flex-wrap: wrap; gap: 12px 10px; justify-content: center; padding-right: 4px; }
 .resumen-nota { margin: 0; font-size: 13px; opacity: .8; max-width: 36ch; }
 
 /* ── ranking ── */
@@ -593,13 +644,17 @@ input { -webkit-user-select: text; user-select: text; }
 .tiempo-final { margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; border-top: 1px solid var(--border-subtle); padding-top: 10px; }
 .tiempo-final b { font-family: var(--font-display); font-weight: 400; font-size: 30px; font-variant-numeric: tabular-nums; }
 .rk-pos-final { margin: 0; font-weight: 800; font-size: 14px; }
-.rk-ambito { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(20, 64, 42, .1); }
+/* el selector (Mundial/SDGA, las pestañas del match): riel verde con contorno y la pastilla dorada en la elegida */
+.rk-ambito { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border: var(--game-stroke) solid var(--game-ink); border-radius: 999px; background: var(--green-900); box-shadow: var(--game-shadow-md); margin-right: 4px; }
 .rk-ambito[hidden] { display: none; }
-.rk-ambito button { height: 34px; border: 0; border-radius: 999px; background: transparent; color: var(--green-900); font: 800 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.rk-ambito button { height: 38px; border: 2px solid transparent; border-radius: 999px; background: transparent; color: var(--cream); font: 17px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color 120ms, color 120ms; }
+.rk-ambito button[aria-selected="true"] { background: var(--gold); color: var(--green-900); border-color: var(--game-ink); }
+.rk-ambito button:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
+.rk-ambito .aviso { margin-left: 6px; }
 .rk-ambito:has(> :nth-child(3)) { grid-template-columns: repeat(3, 1fr); }
-.rk-ambito:has(> :nth-child(3)) button { font-size: 11px; letter-spacing: .02em; padding: 0 4px; }
-.rk-ambito:has(> :nth-child(4)) { grid-template-columns: repeat(2, 1fr); border-radius: 18px; }
-.rk-ambito:has(> :nth-child(4)) button { font-size: 12px; }
+.rk-ambito:has(> :nth-child(3)) button { font-size: 14px; letter-spacing: .02em; padding: 0 4px; }
+.rk-ambito:has(> :nth-child(4)) { grid-template-columns: repeat(2, 1fr); border-radius: 24px; }
+.rk-ambito:has(> :nth-child(4)) button { font-size: 16px; }
 /* el ranking de matches */
 .mtr-fila .rk-pos { font-size: 18px; }
 .mtr-fila .wdl { justify-self: end; }
@@ -613,27 +668,32 @@ input { -webkit-user-select: text; user-select: text; }
 .rs-record span { font: 800 10px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
 .rs-record .g { background: rgba(46, 125, 79, .16); color: #2e7d4f; }
 .rs-record .p { background: rgba(188, 75, 60, .13); color: var(--red); }
-/* el botón de WhatsApp (resultado del match) */
-.btn-wa { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border: 0; border-radius: 999px; background: #25d366; color: #fff; font: 800 14px var(--font-body); letter-spacing: .04em; cursor: pointer; box-shadow: 0 3px 0 #128c4b; }
-.btn-wa:active { transform: translateY(2px); box-shadow: 0 1px 0 #128c4b; }
-.btn-wa svg { width: 20px; height: 20px; }
-.wa-mini { width: 36px; height: 36px; border-radius: 50%; border: 0; display: grid; place-items: center; background: #25d366; color: #fff; cursor: pointer; box-shadow: 0 2px 0 #128c4b; flex: none; }
-.wa-mini svg { width: 19px; height: 19px; }
-.rk-ambito button[aria-selected="true"] { background: var(--green-900); color: var(--cream); }
+/* WhatsApp (mandar al grupo): verde SDGA con el ícono de mensaje propio, no el logo de WhatsApp (design system › Iconografía) */
+.btn-wa { --sh: var(--game-shadow-sm); --dx: 3px; --dy: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--game-h-sm); padding: 0 16px; border-radius: 999px; background: var(--green-500); color: var(--cream); font: 17px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; }
+.btn-wa .gi { width: 24px; height: 24px; }
+/* los botoncitos de ícono adentro de las filas de una lista: 38px, contorno 2,5 y sombra de 2×3 (más no entra en la fila) */
+.wa-mini, .rp-mini { --sh: var(--game-shadow-xs); --dx: 2px; --dy: 3px; flex: none; width: 38px; height: 38px; padding: 0; border-width: 2.5px; border-radius: 50%; display: grid; place-items: center; }
+.wa-mini { background: var(--green-500); }
+.wa-mini .gi, .rp-mini .gi { width: 22px; height: 22px; }
 .conteo { margin: 0; font-size: 13px; color: rgba(244, 238, 218, .75); }
 .conteo b { color: var(--cream); }
 .rk-conteo { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--green-900); background: rgba(20, 64, 42, .08); border-radius: 10px; padding: 8px 10px; }
 .rk-conteo[hidden] { display: none; }
 .como-app { margin: 0; font-size: 15px; color: rgba(244, 238, 218, .85); display: flex; gap: 8px; align-items: baseline; justify-content: center; }
 .como-app .salir { border: 0; background: transparent; color: rgba(244, 238, 218, .6); font: 600 12px var(--font-body); text-decoration: underline; cursor: pointer; padding: 0; }
-.btn-google { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 50px; padding: 0 22px; border-radius: 999px; border: 0; background: #fff; color: #14402a; font: 800 15px var(--font-body); cursor: pointer; box-shadow: 0 4px 14px rgba(12, 43, 28, .35); }
+.btn-google { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: var(--game-h-md); padding: 0 22px; border-radius: 999px; background: #fff; color: #14402a; font: 800 15px var(--font-body); }
 .nota-google { margin: -4px 0 0; max-width: 300px; font-size: 12px; line-height: 1.4; color: rgba(244, 238, 218, .7); }
 .como-app b { color: var(--gold); }
-.volver-app { border: 0; background: transparent; color: rgba(244, 238, 218, .8); font: 700 14px var(--font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px 10px; }
+/* volver a la SDGApp: terciaria, ghost (borde crema, sin sombra; al tocarla se llena apenas) */
+.volver-app { --sh: none; --dx: 0px; --dy: 0px; display: inline-flex; align-items: center; gap: 8px; height: var(--game-h-sm); padding: 0 18px 0 14px; border-color: var(--cream); border-radius: 999px; background: transparent; color: var(--cream); font: 17px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; }
+.volver-app[hidden] { display: none; }
+.volver-app:active { background: var(--game-ghost-press); }
+.volver-app .gi { width: 20px; height: 20px; --gi-s: var(--cream); }
 .rk-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
-.rk-tab { flex: none; height: 36px; padding: 0 12px; border-radius: 999px; border: 0; background: var(--cream-dark); color: var(--green-900); font: 800 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.rk-tabs { padding: 2px 4px 6px 2px; }
+.rk-tab { flex: none; height: 40px; padding: 0 14px; border-radius: 999px; border: 2px solid var(--game-ink); background: var(--cream-dark); color: var(--green-900); font: 16px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; -webkit-tap-highlight-color: transparent; transition: background-color 120ms; }
 .rk-tab .e { font-size: 18px; letter-spacing: 0; }
-.rk-tab[aria-selected="true"] { background: var(--green-900); color: var(--cream); }
+.rk-tab[aria-selected="true"] { background: var(--gold); box-shadow: var(--game-shadow-xs); }
 .rk-tab:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .rk-lista { list-style: none; margin: 0; padding: 0; display: grid; }
 .rk-fila { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 4px; border-top: 1px solid var(--border-subtle); }
@@ -651,14 +711,12 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-tiempo { font-family: var(--font-display); font-size: 17px; font-variant-numeric: tabular-nums; text-align: right; min-width: 7.5ch; }
 /* ── match ── */
 #match { background: rgba(12, 43, 28, .97); }
-.aviso { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; margin-left: 8px; border-radius: 999px; background: var(--red); color: var(--cream); font: 800 12px var(--font-body); letter-spacing: 0; vertical-align: 2px; box-sizing: border-box; }
-.aviso[hidden] { display: none; }
 .mt-buscar { height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border-subtle); background: #fff; color: var(--green-900); font: 600 15px var(--font-body); }
 .mt-buscar[hidden] { display: none; }
 .mt-fila { grid-template-columns: 30px minmax(0, 1fr) auto; text-align: left; }
 .mt-fila:has(.wa-mini) { grid-template-columns: 30px minmax(0, 1fr) auto auto; }
 .mt-fila:has(.rp-mini) { grid-template-columns: 30px minmax(0, 1fr) auto auto auto; gap: 7px; }
-.mt-fila .rp-mini, .mt-fila:has(.rp-mini) .wa-mini { width: 34px; height: 34px; }
+.mt-fila .rp-mini, .mt-fila:has(.rp-mini) .wa-mini { width: 36px; height: 36px; }
 .mt-fila .mini { width: 30px; height: 30px; font-size: 16px; }
 .mt-fila .rk-nombre small.gana { color: var(--green-500); }
 .mt-fila .rk-nombre small.pierde { color: var(--red); }
@@ -700,29 +758,30 @@ input { -webkit-user-select: text; user-select: text; }
 #rp-barra:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
 .rp-botones { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .rp-transporte { display: flex; align-items: center; gap: 6px; }
-.rp-b { width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; background: rgba(244, 238, 218, .1); color: var(--cream); cursor: pointer; padding: 0; }
+/* el transporte del replay: ±10 s en ghost (borde crema, sin sombra) y play/pausa en oro */
+.rp-b { --sh: none; --dx: 0px; --dy: 0px; width: var(--game-h-sm); height: var(--game-h-sm); padding: 0; border-color: var(--cream); border-radius: 50%; display: grid; place-items: center; background: transparent; color: var(--cream); }
+.rp-b:active { background: var(--game-ghost-press); }
 .rp-b svg { width: 24px; height: 24px; }
-.rp-b.grande { width: 48px; height: 48px; background: var(--gold); color: var(--green-900); box-shadow: 0 3px 0 #a8842a; }
-.rp-b.grande svg { width: 26px; height: 26px; }
-.rp-b:active { transform: translateY(1px); }
-.rp-vel { display: flex; padding: 3px; border-radius: 999px; background: rgba(244, 238, 218, .1); }
-.rp-vel button { min-width: 38px; height: 32px; padding: 0 6px; border: 0; border-radius: 999px; background: transparent; color: rgba(244, 238, 218, .8); font: 800 12px var(--font-body); font-variant-numeric: tabular-nums; cursor: pointer; }
-.rp-vel button[aria-checked="true"] { background: var(--cream); color: var(--green-900); }
+.rp-b.grande { --sh: 3px 4px 0 #000; --dx: 3px; --dy: 4px; width: 56px; height: 56px; border-color: var(--game-ink); background: var(--gold); color: var(--green-900); }
+.rp-b.grande:active { background: var(--gold); }
+.rp-b.grande .gi { width: 30px; height: 30px; --gi-a: var(--cream); --gi-f: var(--cream); }
+.rp-vel { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(244, 238, 218, .1); }
+.rp-vel button { min-width: 40px; height: 38px; padding: 0 6px; border: 2px solid transparent; border-radius: 999px; background: transparent; color: rgba(244, 238, 218, .85); font: 15px/1 var(--font-display); letter-spacing: .02em; font-variant-numeric: tabular-nums; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color 120ms, color 120ms; }
+.rp-vel button[aria-checked="true"] { background: var(--gold); color: var(--green-900); border-color: var(--game-ink); }
 .rp-b:focus-visible, .rp-vel button:focus-visible, .rp-jug:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.rp-mini { width: 36px; height: 36px; border-radius: 50%; border: 0; display: grid; place-items: center; background: var(--gold); color: var(--green-900); cursor: pointer; box-shadow: 0 2px 0 #a8842a; flex: none; padding: 0; }
-.rp-mini svg { width: 18px; height: 18px; margin-left: 2px; }
+.rp-mini { background: var(--gold); }
+.rp-mini .gi { --gi-a: var(--cream); }
 .rp-mini.cargando { opacity: .55; animation: rp-carga 900ms ease-in-out infinite alternate; }
 @keyframes rp-carga { to { opacity: .25; } }
-.btn-replay { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--green-900); color: var(--cream); font: 800 14px var(--font-body); letter-spacing: .04em; cursor: pointer; box-shadow: 0 3px 0 var(--green-950); }
-.btn-replay:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--green-950); }
-.btn-replay svg { width: 18px; height: 18px; }
-.t-match-botones { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+.btn-replay { --sh: var(--game-shadow-sm); --dx: 3px; --dy: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--game-h-sm); padding: 0 16px; border-radius: 999px; background: var(--cream); color: var(--green-900); font: 17px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; }
+.btn-replay .gi { width: 22px; height: 22px; }
+.t-match-botones { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; }
 .t-match .t-match-botones button { margin-top: 0; }
 .aviso-error { color: var(--red) !important; font-weight: 700; }
-@media (max-width: 359px) { .rp-vel button { min-width: 32px; padding: 0 4px; font-size: 11px; } .rp-b { width: 36px; height: 36px; } .rp-b.grande { width: 44px; height: 44px; } }
-.mt-btn { height: 34px; padding: 0 14px; border-radius: 999px; border: 0; background: var(--green-900); color: var(--cream); font: 800 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+@media (max-width: 359px) { .rp-vel button { min-width: 32px; padding: 0 4px; font-size: 13px; } .rp-b { width: 40px; height: 40px; } .rp-b.grande { width: 50px; height: 50px; } }
+/* Desafiar / Jugar en las filas del match: chicos (38px) para que entren en la fila; verde sobre la tarjeta crema, oro el que te toca jugar */
+.mt-btn { --sh: var(--game-shadow-xs); --dx: 2px; --dy: 3px; height: 38px; padding: 0 14px; border-width: 2.5px; border-radius: 999px; background: var(--green-500); color: var(--cream); font: 16px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; }
 .mt-btn.oro { background: var(--gold); color: var(--green-900); }
-.mt-btn[disabled] { opacity: .5; }
 .mt-estado { font: 700 12px var(--font-body); color: var(--text-muted); text-align: right; }
 .mt-sec { padding: 12px 4px 4px; font: 800 11px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); text-align: left; list-style: none; }
 .t-match { margin: 0; padding: 10px 12px; border-radius: 12px; background: rgba(20, 64, 42, .08); font-size: 14px; line-height: 1.4; }
@@ -730,9 +789,7 @@ input { -webkit-user-select: text; user-select: text; }
 .t-match .gran { display: block; font-family: var(--font-display); font-size: 24px; line-height: 1.1; letter-spacing: .02em; }
 .t-match.gana { background: var(--gold); }
 .t-match.pierde { background: rgba(188, 75, 60, .15); }
-.t-match button { margin-top: 6px; }
-.t-match .wa { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; margin-top: 10px; border: 0; border-radius: 999px; background: #25d366; color: #fff; font: 800 14px var(--font-body); letter-spacing: .04em; cursor: pointer; box-shadow: 0 3px 0 #128c4b; }
-.t-match .wa:active { transform: translateY(2px); box-shadow: 0 1px 0 #128c4b; }
+.t-match button { margin-top: 8px; }
 .mt-record { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; list-style: none; padding: 4px 0 8px; }
 .mt-record div { border-radius: 12px; padding: 8px 4px; text-align: center; background: rgba(20, 64, 42, .08); }
 .mt-record b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1; }
@@ -755,8 +812,8 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-nombre .linea { display: flex; align-items: center; gap: 6px; min-width: 0; }
 /* el resumen de una vuelta del ranking */
 .rs-caja { position: relative; width: min(100%, 370px); max-height: calc(100dvh - 32px); overflow-y: auto; box-sizing: border-box; background: var(--cream); color: var(--green-900); border-radius: 22px; padding: 16px 16px 14px; box-shadow: 0 18px 48px rgba(0, 0, 0, .5); display: grid; gap: 12px; animation: hab-pop .22s cubic-bezier(.2, .9, .3, 1.2); }
-.rs-caja .hab-x { background: rgba(20, 64, 42, .12); color: var(--green-900); }
-.rs-kicker { margin: 0; padding-right: 40px; font: 800 11px/1.2 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); }
+.rs-caja .hab-x { background: var(--cream-dark); }
+.rs-kicker { margin: 0; padding-right: 54px; font: 800 11px/1.2 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); }
 .rs-quien { display: flex; align-items: center; gap: 8px; margin: -4px 0 0; font: 32px/1 var(--font-display); letter-spacing: .02em; overflow-wrap: anywhere; }
 .rs-quien .sello-sdga { height: 22px; padding: 0 7px; }
 .rs-quien .sello-sdga svg { height: 11px; }
@@ -785,11 +842,13 @@ input { -webkit-user-select: text; user-select: text; }
 .rs-hoyos .bajo b { color: #2e7d4f; }
 .rs-hoyos .sobre b { color: var(--red); }
 .rs-titulo { margin: 2px 0 -4px; font: 800 11px/1 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); }
-.rs-caja .carta-jugar { height: 44px; }
+.rs-caja .carta-jugar { background: var(--green-500); color: var(--cream); }
 /* 🔒 el player secreto, para el que todavía no lo desbloqueó */
 .rs-caja.bloqueado { background: radial-gradient(120% 70% at 50% 0%, #2a3140 0%, #12141a 70%); color: #fff3c4; box-shadow: 0 0 0 2px #e8c34a, 0 0 40px rgba(232, 195, 74, .35), 0 18px 48px rgba(0, 0, 0, .6); }
-.rs-caja.bloqueado .hab-x { background: rgba(255, 243, 196, .12); color: #fff3c4; }
-.rs-caja.bloqueado > .carta-jugar { background: transparent; color: #fff3c4; box-shadow: inset 0 0 0 2px rgba(255, 243, 196, .35); }
+.rs-caja.bloqueado .hab-x { --sh: none; --dx: 0px; --dy: 0px; border-color: rgba(255, 243, 196, .55); background: transparent; }
+.rs-caja.bloqueado .hab-x .gi { --gi-s: #fff3c4; }
+.rs-caja.bloqueado > .carta-jugar { --sh: none; --dx: 0px; --dy: 0px; border-color: rgba(255, 243, 196, .55); background: transparent; color: #fff3c4; }
+.rs-caja.bloqueado > .carta-jugar:active { background: rgba(255, 243, 196, .12); }
 .rb-cara { position: relative; width: 120px; height: 120px; margin: 4px auto 0; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, #444a57, #101217 76%); box-shadow: 0 0 0 4px #e8c34a, 0 0 34px rgba(232, 195, 74, .6); font: 86px/1 var(--font-display); color: #fff3c4; text-shadow: 0 0 18px rgba(255, 220, 120, .9); animation: sec-late 1.6s ease-in-out infinite; }
 .rb-cara svg { position: absolute; right: -6px; bottom: -4px; width: 44px; height: 44px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
 .rb-kicker { margin: 6px 0 0; text-align: center; font: 800 11px/1.2 var(--font-body); letter-spacing: .24em; text-transform: uppercase; color: #e8c34a; }
@@ -800,8 +859,7 @@ input { -webkit-user-select: text; user-select: text; }
 .rb-fichas li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 12px; background: rgba(255, 243, 196, .07); box-shadow: inset 0 0 0 1px rgba(232, 195, 74, .25); font: 700 13px/1.2 var(--font-body); color: rgba(255, 243, 196, .75); }
 .rb-fichas li b { font: 16px/1 var(--font-display); letter-spacing: .08em; color: #fff3c4; }
 .rb-pista { margin: 0; padding: 10px 12px; border-radius: 12px; border: 1.5px dashed rgba(232, 195, 74, .55); text-align: center; font: italic 600 13.5px/1.4 var(--font-body); color: #e8c34a; }
-.rb-ir { width: 100%; height: 52px; border: 0; border-radius: 16px; cursor: pointer; font: 22px/1 var(--font-display); letter-spacing: .05em; color: #2b1d08; background: linear-gradient(180deg, #f6dc8d, #e0b23c); box-shadow: 0 4px 0 #8f6d18, 0 0 22px rgba(232, 195, 74, .45); }
-.rb-ir:active { transform: translateY(3px); box-shadow: 0 1px 0 #8f6d18; }
+.rb-ir { --sh: 4px 5px 0 #8f6d18; width: 100%; height: var(--game-h-md); border-color: #2b1d08; border-radius: 999px; font: 22px/1 var(--font-display); letter-spacing: .04em; color: #2b1d08; background: var(--gold); }
 .rk-vacio { margin: 0; padding: 18px 4px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -903,13 +961,13 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
   <div id="hud-chips">
     <div class="izq">
       <span class="chip" id="lie">TEE</span>
-      <button class="chip" id="sonido" type="button" aria-label="Sonido">🔊</button>
+      <button id="sonido" type="button" aria-label="Sonido"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" style="fill:var(--gi-f)"/><path d="M20 12a5.5 5.5 0 0 1 0 8M23.5 8.5a10 10 0 0 1 0 15"/></g></svg></button>
       <span class="chip" id="efecto" hidden></span>
     </div>
     <div class="der">
       <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
       <div class="viento" id="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="v-txt"><b id="v-kmh">0</b><small id="v-uni">KM/H</small></span></div>
-      <button class="btn" id="lp" type="button">LP 💅</button>
+      <button class="btn crema chico" id="lp" type="button">LP 💅</button>
     </div>
   </div>
   <span class="chip" id="h-fantasma" hidden></span>
@@ -947,7 +1005,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
     <div class="pregunta">
       <h2 id="rorro-titulo">¿JUGASTE CON RORRO? 🥃</h2>
       <p>Si jugaste con él, Rorro te anotó la tarjeta… y Rorro se equivoca.<br>50 y 50: un golpe menos o uno más.</p>
-      <div class="botones"><button class="btn" id="rorro-si" type="button">¡SÍ!</button><button class="btn oscuro" id="rorro-no" type="button">NO</button></div>
+      <div class="botones"><button class="btn entra" id="rorro-si" type="button">¡SÍ!</button><button class="btn verde entra" id="rorro-no" type="button" style="--i: 1">NO</button></div>
     </div>
     <div class="resultado"><div class="sello"></div><h2 class="titulo-res"></h2><p class="texto-res"></p></div>
   </div>
@@ -1004,17 +1062,17 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
   <label class="quien-juega" id="quien-juega"><span class="kicker">¿Quién juega?</span><input id="usuario" type="text" maxlength="20" autocomplete="nickname" autocapitalize="words" spellcheck="false" placeholder="Tu nombre para el ranking"></label>
   <div class="portada-botones">
     <button class="btn-jugar" id="jugar" type="button">
-      <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="16" cy="27" rx="9" ry="2.6" stroke-width="2"/><path d="M12 27V4"/><path d="M12 5l13 4.5L12 14z" fill="currentColor"/><circle cx="21" cy="25.6" r="1.9" fill="currentColor" stroke="none"/></svg></span>
+      <span class="ic" aria-hidden="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><ellipse cx="16" cy="25.5" rx="10" ry="3" style="fill:var(--gi-f)"/><ellipse cx="12" cy="25.5" rx="2.4" ry="1" style="fill:var(--gi-s)" stroke="none"/><path d="M12 25.5V4.5"/><path d="M12 5l12 4.5L12 14z" style="fill:var(--gi-a)"/></g></svg></span>
       <span class="txt"><b>JUGAR</b><small>Hoyos 15 · 16 · 17 · Par 11</small></span>
-      <span class="flecha" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l6 6-6 6"/></svg></span>
+      <span class="flecha" aria-hidden="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M11 7.5L25 16 11 24.5z" style="fill:var(--gi-a)"/></g></svg></span>
     </button>
     <div class="portada-tejas">
-      <button class="teja-btn" id="ver-match" type="button" hidden><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 26L22 8"/><path d="M22 8l2.5-2.8 3.3 1.6-1.4 3.6-3.4 .4"/><path d="M26 26L10 8"/><path d="M10 8L7.5 5.2 4.2 6.8l1.4 3.6 3.4 .4"/><circle cx="16" cy="25" r="2.2" fill="currentColor" stroke="none"/></svg><span>MATCH</span><b class="aviso" id="match-aviso" hidden></b></button>
-      <button class="teja-btn" id="ver-ranking" type="button"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5h12v7a6 6 0 0 1-12 0z"/><path d="M10 7H6.5a3.5 3.5 0 0 0 4 4.4"/><path d="M22 7h3.5a3.5 3.5 0 0 1-4 4.4"/><path d="M16 18v4"/><path d="M11 27h10l-1.2-5h-7.6z"/><path d="M14.6 8.6l1.4-1 v5.4" stroke-width="2"/></svg><span>RANKING</span></button>
-      <button class="teja-btn" id="ver-intro" type="button"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="24" height="16" rx="2.5"/><path d="M4.6 11L26 5.2l1.2 4.4"/><path d="M10 9.4l3.4 1.6M16.6 7.6l3.4 1.6" stroke-width="2"/><path d="M14 15.5v7l6-3.5z" fill="currentColor"/></svg><span>INTRO</span></button>
+      <button class="teja-btn entra" style="--i: 1" id="ver-match" type="button" hidden><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M7.5 4.5L22 23.5M24.5 4.5L10 23.5"/><path d="M7.5 4.5l2 2.6M24.5 4.5l-2 2.6" stroke-width="5"/><rect x="19.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><rect x="4.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><circle cx="16" cy="24.5" r="2.5" style="fill:var(--gi-f)"/></g></svg><span>MATCH</span><b class="aviso" id="match-aviso" hidden></b></button>
+      <button class="teja-btn entra" style="--i: 2" id="ver-ranking" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="4.5" y="15.5" width="7.5" height="11.5" rx="1" style="fill:var(--gi-f)"/><rect x="20" y="18.5" width="7.5" height="8.5" rx="1" style="fill:var(--gi-f)"/><rect x="12" y="9.5" width="8" height="17.5" rx="1" style="fill:var(--gi-a)"/><path d="M14.8 14l1.7-1.2v6" stroke-width="2.2"/></g></svg><span>RANKING</span></button>
+      <button class="teja-btn entra" style="--i: 3" id="ver-intro" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="5" y="13" width="22" height="13.5" rx="2" style="fill:var(--gi-f)"/><path d="M14 16.5l6 3.5-6 3.5z" style="fill:var(--gi-s)"/><g transform="rotate(-14 5 13)"><rect x="5" y="7.5" width="22" height="5.5" rx="1.2" style="fill:var(--gi-a)"/><path d="M11 7.5l2.5 5.5M17 7.5l2.5 5.5M23 7.5l2.5 5.5" stroke-width="2"/></g></g></svg><span>INTRO</span></button>
     </div>
   </div>
-  <button class="volver-app" id="volver-app" type="button" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg>Volver a la SDGApp</button>
+  <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
 </section>
 
@@ -1025,18 +1083,18 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
       <p class="mazo-sub" id="mazo-sub">1 de 24 · ↔ pasar · de más fácil a más difícil</p>
     </div>
     <button class="pill" id="ver-todos" type="button">VER TODOS</button>
-    <button class="redondo" id="mazo-cerrar" type="button" aria-label="Volver a la portada">×</button>
+    <button class="redondo" id="mazo-cerrar" type="button" aria-label="Volver a la portada"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button>
   </div>
   <div class="mazo-pila"><div class="mazo-cartas" id="mazo-cartas"></div></div>
   <div class="mazo-pie">
-    <button class="redondo claro" id="mazo-ant" type="button" aria-label="Más fácil">‹</button>
+    <button class="redondo claro" id="mazo-ant" type="button" aria-label="Más fácil"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg></button>
     <div class="puntos" id="mazo-puntos" aria-hidden="true"></div>
-    <button class="redondo claro" id="mazo-sig" type="button" aria-label="Más difícil">›</button>
+    <button class="redondo claro" id="mazo-sig" type="button" aria-label="Más difícil"><svg class="gi espejo" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg></button>
   </div>
 </section>
 
 <section class="pantalla" id="todos" hidden aria-labelledby="todos-tit">
-  <div class="todos-cab"><h2 id="todos-tit">TODOS LOS PLAYERS</h2><button class="redondo" id="todos-cerrar" type="button" aria-label="Volver al mazo">×</button></div>
+  <div class="todos-cab"><h2 id="todos-tit">TODOS LOS PLAYERS</h2><button class="redondo" id="todos-cerrar" type="button" aria-label="Volver al mazo"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button></div>
   <p class="todos-sub">Del más fácil al más difícil (medido jugando 60 vueltas con cada uno). Cada uno con su habilidad.</p>
   <ol class="todos-lista" id="todos-lista"></ol>
 </section>
@@ -1044,7 +1102,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 <div class="hab-modal" id="rk-resumen" hidden style="z-index: 52">
   <div class="hab-fondo" data-cerrar></div>
   <div class="rs-caja" role="dialog" aria-modal="true" aria-labelledby="rs-quien">
-    <button class="hab-x" type="button" data-cerrar aria-label="Cerrar">×</button>
+    <button class="hab-x" type="button" data-cerrar aria-label="Cerrar"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button>
     <div id="rs-cuerpo" style="display: grid; gap: 12px"></div>
     <button class="carta-jugar" type="button" data-cerrar>Cerrar</button>
   </div>
@@ -1052,7 +1110,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 <div class="hab-modal" id="hab-modal" hidden>
   <div class="hab-fondo" data-cerrar></div>
   <div class="hab-caja" role="dialog" aria-modal="true" aria-labelledby="hab-tit">
-    <button class="hab-x" type="button" data-cerrar aria-label="Cerrar">×</button>
+    <button class="hab-x" type="button" data-cerrar aria-label="Cerrar"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button>
     <div id="hab-prev"></div>
     <p class="hab-de" id="hab-de"></p>
     <h3 id="hab-tit"></h3>
@@ -1084,12 +1142,12 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
     <p class="rk-pos-final" id="t-ranking" hidden></p>
     <div class="t-match" id="t-match" hidden></div>
     <div class="acciones" id="t-acciones" hidden>
-      <button class="btn ancho" id="compartir-img" type="button">COMPARTIR MI VUELTA 📸</button>
+      <button class="btn ancho entra" id="compartir-img" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M11.5 13H9.5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V15a2 2 0 0 0-2-2h-2" style="fill:var(--gi-f)"/><path d="M16 19.5V4.5M11 9.5l5-5 5 5" stroke-width="2.8"/></g></svg>COMPARTIR MI VUELTA</button>
       <div class="portada-tejas ancho">
-        <button class="teja-btn" id="otra" type="button"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M26 16a10 10 0 1 1-3-7.1"/><path d="M26 5v6h-6"/><circle cx="16" cy="16" r="2.2" fill="currentColor" stroke="none"/></svg><span>OTRA VUELTA</span></button>
-        <button class="teja-btn" id="fin-ranking" type="button"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5h12v7a6 6 0 0 1-12 0z"/><path d="M10 7H6.5a3.5 3.5 0 0 0 4 4.4"/><path d="M22 7h3.5a3.5 3.5 0 0 1-4 4.4"/><path d="M16 18v4"/><path d="M11 27h10l-1.2-5h-7.6z"/><path d="M14.6 8.6l1.4-1 v5.4" stroke-width="2"/></svg><span>RANKING</span></button>
-        <button class="teja-btn" id="fin-match" type="button" hidden><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 26L22 8"/><path d="M22 8l2.5-2.8 3.3 1.6-1.4 3.6-3.4 .4"/><path d="M26 26L10 8"/><path d="M10 8L7.5 5.2 4.2 6.8l1.4 3.6 3.4 .4"/><circle cx="16" cy="25" r="2.2" fill="currentColor" stroke="none"/></svg><span>MATCH</span></button>
-        <button class="teja-btn" id="fin-inicio" type="button"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 15L16 5l11 10"/><path d="M8 13v13h16V13"/><path d="M13.5 26v-7h5v7"/></svg><span>INICIO</span></button>
+        <button class="teja-btn entra" style="--i: 1" id="otra" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M25 16a9 9 0 1 1-2.64-6.36"/><path d="M22.5 4v5.8h-5.8"/></g></svg><span>OTRA VUELTA</span></button>
+        <button class="teja-btn entra" style="--i: 2" id="fin-ranking" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="4.5" y="15.5" width="7.5" height="11.5" rx="1" style="fill:var(--gi-f)"/><rect x="20" y="18.5" width="7.5" height="8.5" rx="1" style="fill:var(--gi-f)"/><rect x="12" y="9.5" width="8" height="17.5" rx="1" style="fill:var(--gi-a)"/><path d="M14.8 14l1.7-1.2v6" stroke-width="2.2"/></g></svg><span>RANKING</span></button>
+        <button class="teja-btn entra" style="--i: 3" id="fin-match" type="button" hidden><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M7.5 4.5L22 23.5M24.5 4.5L10 23.5"/><path d="M7.5 4.5l2 2.6M24.5 4.5l-2 2.6" stroke-width="5"/><rect x="19.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><rect x="4.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><circle cx="16" cy="24.5" r="2.5" style="fill:var(--gi-f)"/></g></svg><span>MATCH</span></button>
+        <button class="teja-btn entra" style="--i: 4" id="fin-inicio" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M8.5 12.5V26h15V12.5L16 6z" style="fill:var(--gi-f)"/><rect x="13.5" y="19" width="5" height="7" rx="1" style="fill:var(--gi-a)"/><path d="M5 15.5L16 6l11 9.5"/></g></svg><span>INICIO</span></button>
       </div>
       <button class="link-chico ancho" id="cambiar" type="button">Cambiar jugador</button>
     </div>
@@ -1104,7 +1162,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
       <div class="ciento">110 NETO</div>
       <p>La decisión es inapelable. Y no, el Marshall no está comprado.</p>
       <p class="firma-m">— 🇸🇪 El Marshall</p>
-      <button class="btn oscuro" id="acatar" type="button">ACATAR</button>
+      <button class="btn verde" id="acatar" type="button">ACATAR</button>
     </div>
   </div>
 </section>
@@ -1112,9 +1170,9 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 <section class="pantalla" id="resumen" hidden aria-label="Tu vuelta para compartir">
   <img id="resumen-img" alt="Resumen de tu vuelta" width="1080" height="1350">
   <div class="resumen-acciones">
-    <button class="btn" id="resumen-compartir" type="button">COMPARTIR 📤</button>
-    <a class="btn oscuro" id="resumen-bajar" download="trampa-del-mono.png" href="#">GUARDAR</a>
-    <button class="btn ghost" id="resumen-cerrar" type="button">VOLVER</button>
+    <button class="btn entra" id="resumen-compartir" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M11.5 13H9.5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V15a2 2 0 0 0-2-2h-2" style="fill:var(--gi-f)"/><path d="M16 19.5V4.5M11 9.5l5-5 5 5" stroke-width="2.8"/></g></svg>COMPARTIR</button>
+    <a class="btn crema entra" id="resumen-bajar" download="trampa-del-mono.png" href="#" style="--i: 1">GUARDAR</a>
+    <button class="btn ghost entra" id="resumen-cerrar" type="button" style="--i: 2"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>VOLVER</button>
   </div>
   <p class="resumen-nota" id="resumen-nota"></p>
 </section>
@@ -1134,13 +1192,13 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
     <input class="mt-buscar" id="mt-buscar" type="search" placeholder="Buscar rival…" autocomplete="off" spellcheck="false">
     <ol class="rk-lista" id="mt-lista"></ol>
     <p class="extras" id="mt-nota">Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma.</p>
-    <button class="btn oscuro" id="mt-volver" type="button">VOLVER</button>
+    <button class="btn verde" id="mt-volver" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>VOLVER</button>
   </div>
 </section>
 
 <section id="replay" hidden aria-label="Replay del match">
   <div class="rp-arriba">
-    <div class="rp-cab"><span class="rp-titulo">REPLAY<small>del match</small></span><button class="redondo claro" id="rp-cerrar" type="button" aria-label="Cerrar el replay">×</button></div>
+    <div class="rp-cab"><span class="rp-titulo">REPLAY<small>del match</small></span><button class="redondo" id="rp-cerrar" type="button" aria-label="Cerrar el replay"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button></div>
     <div class="rp-jugadores" id="rp-jugadores"></div>
     <p class="rp-nota" id="rp-nota" hidden></p>
     <p class="rp-fin" id="rp-fin" hidden aria-live="polite"></p>
@@ -1178,7 +1236,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
     <ol class="rk-lista" id="rk-lista"></ol>
     <p class="rk-conteo" id="rk-conteo" hidden></p>
     <p class="extras" id="rk-fuente"></p>
-    <button class="btn oscuro" id="rk-volver" type="button">VOLVER</button>
+    <button class="btn verde" id="rk-volver" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>VOLVER</button>
   </div>
 </section>
 
@@ -4012,9 +4070,10 @@ function pintarTextoCartel(bx, cx, cy, emoji, nombre) {
   ctx.globalAlpha = 1
 }
 // ── el replay de un match: las dos pelotas a la vez, con barra, pausa, ±10 s y velocidad ──
-const ICONO_REPLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5.6v12.8c0 .8.9 1.3 1.6.8l9.7-6.4a1 1 0 0 0 0-1.6L9.6 4.8C8.9 4.3 8 4.8 8 5.6Z"/></svg>'
-const ICONO_PAUSA = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect fill="currentColor" x="6" y="5" width="4.2" height="14" rx="1.2"/><rect fill="currentColor" x="13.8" y="5" width="4.2" height="14" rx="1.2"/></svg>'
-const ICONO_DE_NUEVO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4h4"/></svg>'
+// los íconos del set SDGA (design system › GameIcon): trazo tinta, papel crema y acento dorado, coloreados por CSS
+const ICONO_REPLAY = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M11 7.5L25 16 11 24.5z" style="fill:var(--gi-a)"/></g></svg>'
+const ICONO_PAUSA = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="8.5" y="7" width="5.5" height="18" rx="1.5" style="fill:var(--gi-f)"/><rect x="18" y="7" width="5.5" height="18" rx="1.5" style="fill:var(--gi-f)"/></g></svg>'
+const ICONO_DE_NUEVO = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M25 16a9 9 0 1 1-2.64-6.36"/><path d="M22.5 4v5.8h-5.8"/></g></svg>'
 const REPLAY_SALTO = 10000 // ms de los botones de atrás / adelante
 // los dos colores del replay: el que desafió en dorado, el desafiado en celeste (el aro de la pelota, su cartel y su fila)
 const REPLAY_COLORES = ['#e8c34a', '#8fd0ff']
@@ -4326,7 +4385,7 @@ function mensajeDesafio(r, rival, mia) {
   ].join('\n')
 }
 // ── el resultado de un match, para mandarlo por WhatsApp ──
-const ICONO_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>'
+const ICONO_WA = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5.5 8.5a3 3 0 0 1 3-3h15a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H15l-5.5 4.5v-4.5h-1a3 3 0 0 1-3-3z" style="fill:var(--gi-f)"/><g style="fill:var(--gi-s)" stroke="none"><circle cx="11" cy="13.5" r="1.7"/><circle cx="16" cy="13.5" r="1.7"/><circle cx="21" cy="13.5" r="1.7"/></g></g></svg>' // el mensaje del set SDGA, no el logo de WhatsApp
 /** El resumen de un match terminado, visto por mí (yo/el: { alias, golpes, vsPar, ms, lp, apodo, emoji }). */
 function textoResultadoMatch(yo, el) {
   const g = M.ganadorMatch(yo, el)
@@ -5038,9 +5097,19 @@ document.addEventListener('contextmenu', (e) => { if (!e.target.closest('input, 
 // ── sonido: el audio se despierta con el primer toque; cada botón hace "clic" ──
 document.addEventListener('pointerdown', () => S.despertar(), { passive: true })
 document.addEventListener('click', (e) => { if (e.target.closest('button, .btn') && !e.target.closest('#sonido')) S.tap() })
-const pintarSonido = () => { $('#sonido').textContent = S.prendido() ? '🔊' : '🔇'; $('#sonido').setAttribute('aria-pressed', String(S.prendido())) }
+const ICONO_SONIDO = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" style="fill:var(--gi-f)"/><path d="M20 12a5.5 5.5 0 0 1 0 8M23.5 8.5a10 10 0 0 1 0 15"/></g></svg>'
+const ICONO_MUDO = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" style="fill:var(--gi-f)"/><path d="M20.5 12.5l7 7M27.5 12.5l-7 7"/></g></svg>'
+const pintarSonido = () => { $('#sonido').innerHTML = S.prendido() ? ICONO_SONIDO : ICONO_MUDO; $('#sonido').setAttribute('aria-pressed', String(S.prendido())) }
 $('#sonido').addEventListener('click', () => { S.alternar(); pintarSonido() })
 pintarSonido()
+
+// los botones son stickers que se hunden al tocarlos (:active): Safari en iPhone solo lo pinta si la página escucha touchstart.
+// Y al apretar, una vibración cortita de 8 ms (Android; iPhone no deja vibrar desde la web).
+document.addEventListener('touchstart', () => {}, { passive: true })
+document.addEventListener('pointerdown', (e) => {
+  if (!e.target.closest?.('button:not([disabled]), a.btn')) return
+  try { navigator.vibrate?.(8) } catch {}
+}, { passive: true })
 
 window.addEventListener('resize', () => {
   medir()
