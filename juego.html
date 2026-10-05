@@ -235,6 +235,7 @@ body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando 
 h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(54px, 17vw, 104px); line-height: .98; margin: 0; padding-block: 6px; letter-spacing: .01em; text-wrap: balance; }
 .portada .band { font-size: 22px; }
 .bajada { max-width: 34ch; line-height: 1.5; font-size: 15px; margin: 0; text-wrap: pretty; }
+.version { font: 600 10px var(--font-body); letter-spacing: .08em; opacity: .45; }
 #frase { font-style: italic; font-size: 13px; opacity: .85; min-height: 1.4em; }
 h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin: 0; letter-spacing: .02em; }
 /* ── mazo para elegir nivel: las cartas de los Playoffs de la FedE Cup ── */
@@ -280,6 +281,7 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 /* adentro de la carta de arriba, el gesto es SIEMPRE del mazo: también arriba de los botones (Safari en iPhone toma el
    touch-action del botón — manipulation — y le daba el gesto al navegador) */
 .envoltorio.arriba * { touch-action: none; }
+.mazo-pila, .mazo-cartas { touch-action: none; }
 .envoltorio.atras { pointer-events: none; }
 .carta { display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 24px; background: var(--cream); color: var(--green-900); box-shadow: 0 10px 30px rgba(12, 43, 28, .45); }
 .atras .carta { box-shadow: none; }
@@ -1080,6 +1082,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
+  <span class="version" id="version"></span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -4791,10 +4794,10 @@ $('#cambiar').addEventListener('click', mostrarElegir)
 // ── mazo de cartas (como "Participantes" de los Playoffs de la FedE Cup) ──
 // Dedo a la izquierda trae la siguiente (más difícil), a la derecha vuelve a la anterior; atrás asoma la
 // que viene según para dónde arrastres. El mazo da la vuelta.
-const SWIPE_OUT = 90
+const SWIPE_OUT = 70
 const FLY_MS = 260
 const SNAP_MS = 320
-const FLICK_V = 0.45
+const FLICK_V = 0.35
 let mazoI = 0
 let mazoPeek = 'next'
 let mazoAnim = false
@@ -4937,10 +4940,6 @@ function cartaDe(j) {
     carta.addEventListener('pointerup', soltar)
   }
   el.querySelector('button.carta-prev')?.addEventListener('click', () => { if (performance.now() - mazoMovio > 350) verHabilidad(j) })
-  el.addEventListener('pointerdown', mazoDown)
-  el.addEventListener('pointermove', mazoMove)
-  el.addEventListener('pointerup', mazoUp)
-  el.addEventListener('pointercancel', mazoUp)
   cartasDom.set(j.apodo, el)
   return el
 }
@@ -4983,25 +4982,36 @@ function elegirAtras(step) {
   pintarMazo()
   pintarArrastre(dx)
 }
+// La carta que vuela: si llega otro toque (o otro ‹ ›) mientras vuela, se termina al instante y se sigue con el nuevo,
+// así pasar cartas rápido no se come swipes.
+let vuelo = null // { step, t }
+function terminarVuelo() {
+  if (!vuelo) return
+  clearTimeout(vuelo.t)
+  const step = vuelo.step
+  vuelo = null
+  mazoAnim = false
+  mazoI += step === 'next' ? 1 : -1
+  pintarMazo()
+}
 function volarMazo(step) {
-  if (mazoAnim || PLANTEL.length < 2) return
+  if (PLANTEL.length < 2) return
+  if (mazoAnim) terminarVuelo()
   mazoAnim = true
   S.swipe()
+  vuelo = { step, t: null }
   const lanzar = () => {
+    if (!vuelo) return
     const { top, back } = cartasActivas()
     const w = window.innerWidth * 1.2 * (step === 'next' ? -1 : 1)
     if (top) { top.style.transition = `transform ${FLY_MS}ms cubic-bezier(.3,.7,.4,1)`; top.style.transform = `translate3d(${w}px,0,0) rotate(${w / 22}deg)` }
     if (back) { back.style.transition = `transform ${FLY_MS}ms ease-out, opacity ${FLY_MS}ms ease-out`; back.style.transform = 'none'; back.style.opacity = '1' }
-    setTimeout(() => {
-      mazoAnim = false
-      mazoI += step === 'next' ? 1 : -1
-      pintarMazo()
-    }, FLY_MS)
+    vuelo.t = setTimeout(terminarVuelo, FLY_MS)
   }
   if (mazoPeek !== step) {
     mazoPeek = step
     pintarMazo()
-    setTimeout(lanzar, 20)
+    vuelo.t = setTimeout(lanzar, 20)
   } else lanzar()
 }
 // El swipe arranca en cualquier lado de la carta, también sobre el recuadro de la habilidad (está justo donde va el
@@ -5009,7 +5019,8 @@ function volarMazo(step) {
 // Solo "Jugar con…" no arranca el swipe.
 let mazoMovio = 0
 function mazoDown(e) {
-  if (mazoAnim || e.target.closest('button:not(.carta-prev)') || !e.currentTarget.classList.contains('arriba')) return
+  if (e.target.closest('button:not(.carta-prev)') || PLANTEL.length < 2) return
+  if (mazoAnim) terminarVuelo() // la anterior todavía volaba: termina ya y este toque arranca el swipe de la que sigue
   mazoDrag = { x: e.clientX, y: e.clientY, id: e.pointerId, eje: null, dx: 0, lastX: e.clientX, lastT: performance.now(), v: 0 }
 }
 function mazoMove(e) {
@@ -5022,7 +5033,7 @@ function mazoMove(e) {
   if (Math.hypot(mx, my) > 8) mazoMovio = performance.now()
   if (d.eje !== 'x' && Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my) * 0.5) {
     d.eje = 'x'
-    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {} // recién ahora: un toque quieto sigue siendo click
   } else if (d.eje == null && Math.hypot(mx, my) > 8) d.eje = 'y'
   if (d.eje !== 'x') return
   const now = performance.now()
@@ -5038,7 +5049,7 @@ function mazoUp() {
   mazoDrag = null
   if (d?.eje) mazoMovio = performance.now() // el click que viene atrás del soltar no abre la habilidad
   if (!d || d.eje !== 'x') return
-  const flick = Math.abs(d.v) > FLICK_V && Math.abs(d.dx) > 24 && Math.sign(d.v) === Math.sign(d.dx)
+  const flick = Math.abs(d.v) > FLICK_V && Math.abs(d.dx) > 20 && Math.sign(d.v) === Math.sign(d.dx)
   if (Math.abs(d.dx) >= SWIPE_OUT || flick) volarMazo(d.dx < 0 ? 'next' : 'prev')
   else {
     const { top, back } = cartasActivas()
@@ -5046,6 +5057,8 @@ function mazoUp() {
     pintarArrastre(0)
   }
 }
+// el swipe lo escucha el mazo entero (no cada carta): durante el vuelo la carta de abajo no recibe toques
+for (const [ev, fn] of [['pointerdown', mazoDown], ['pointermove', mazoMove], ['pointerup', mazoUp], ['pointercancel', mazoUp]]) $('#mazo-cartas').addEventListener(ev, fn)
 $('#mazo-ant').addEventListener('click', () => volarMazo('prev'))
 $('#mazo-sig').addEventListener('click', () => volarMazo('next'))
 $('#mazo-cerrar').addEventListener('click', () => {
