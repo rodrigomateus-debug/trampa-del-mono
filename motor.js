@@ -430,6 +430,26 @@ export function fantasmaEn(g, ms) {
   const u = (ms - a[0]) / (b[0] - a[0])
   return { idx: a[1], pos: [a[2] + (b[2] - a[2]) * u, a[3] + (b[3] - a[3]) * u], alt: a[4] + (b[4] - a[4]) * u, golpes: a[5], fin: false }
 }
+/**
+ * El marcador del fantasma hasta `ms`: los golpes de cada hoyo (cada muestra lleva los golpes ACUMULADOS de la vuelta,
+ * así que los de un hoyo = el acumulado al terminarlo − el del hoyo anterior). `porHoyo[k]` es null si todavía no llegó
+ * a ese hoyo; el del hoyo que está jugando va contando en vivo. `idx` = el hoyo que juega, `fin` = ya terminó.
+ */
+export function marcadorFantasma(g, ms) {
+  const porHoyo = HOYOS.map(() => null)
+  if (!g?.length || ms < g[0][0]) return { porHoyo, idx: g?.[0]?.[1] ?? 0, total: 0, fin: false }
+  let lo = 0, hi = g.length - 1
+  while (lo < hi) { const m = (lo + hi + 1) >> 1; if (g[m][0] <= ms) lo = m; else hi = m - 1 }
+  const ultimo = new Map() // hoyo → acumulado en su última muestra
+  for (let i = 0; i <= lo; i++) ultimo.set(g[i][1], g[i][5] ?? 0)
+  let antes = 0
+  for (let k = 0; k < porHoyo.length; k++) {
+    if (!ultimo.has(k)) break
+    porHoyo[k] = Math.max(0, ultimo.get(k) - antes)
+    antes = ultimo.get(k)
+  }
+  return { porHoyo, idx: Math.min(g[lo][1], porHoyo.length - 1), total: g[lo][5] ?? 0, fin: lo === g.length - 1 }
+}
 /** Quién gana el match: 1 gana `a`, −1 gana `b`, 0 empate. Menos golpes; a igual golpes, el más rápido; LP (golpes null) pierde. */
 export function ganadorMatch(a, b) {
   const ga = a?.golpes ?? null, gb = b?.golpes ?? null

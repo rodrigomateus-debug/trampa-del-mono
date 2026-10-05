@@ -619,6 +619,17 @@ ok('match: gana el de menos golpes; a igual golpes, el más rápido; LP pierde',
   assert.equal(M.ganadorMatch({ golpes: 12, ms: 5 }, { golpes: 12, ms: 5 }), 0)
 })
 
+ok('el marcador del fantasma: golpes por hoyo en vivo, sacados del acumulado de la grabación', () => {
+  // [ms, hoyo, x, y, alt, golpes acumulados]
+  const g = [[0, 0, 1, 1, 0, 0], [1000, 0, 2, 2, 0, 1], [5000, 0, 3, 3, 0, 4], [6000, 1, 4, 4, 0, 4], [8000, 1, 5, 5, 0, 6], [9000, 2, 6, 6, 0, 6], [12000, 2, 7, 7, 0, 9], [12500, 3, 7, 7, 0, 9]]
+  assert.deepEqual(M.marcadorFantasma(g, -5).porHoyo, [null, null, null])
+  assert.deepEqual(M.marcadorFantasma(g, 1500), { porHoyo: [1, null, null], idx: 0, total: 1, fin: false })
+  assert.deepEqual(M.marcadorFantasma(g, 7000), { porHoyo: [4, 0, null], idx: 1, total: 4, fin: false })
+  assert.deepEqual(M.marcadorFantasma(g, 8500).porHoyo, [4, 2, null])
+  assert.deepEqual(M.marcadorFantasma(g, 99999), { porHoyo: [4, 2, 3], idx: 2, total: 9, fin: true })
+  assert.deepEqual(M.marcadorFantasma([], 100).porHoyo, [null, null, null])
+})
+
 ok('la dispersión sale del handicap: 0 con HCP 0, en línea recta hasta HCP 25, y de ahí todos igual', () => {
   assert.equal(M.dificultad(0).error, 0)
   assert.equal(M.dificultad(-2).error, 0) // un "plus" cuenta como 0
