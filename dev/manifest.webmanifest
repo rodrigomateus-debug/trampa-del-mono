@@ -1,0 +1,17 @@
+{
+  "name": "La Trampa del Mono · SDGA",
+  "short_name": "Trampa",
+  "description": "Los hoyos 15, 16 y 17 de San Diego, con los monos y el plantel del SDGA.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1c5638",
+  "theme_color": "#14402a",
+  "icons": [
+    { "src": "iconos/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
