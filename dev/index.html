@@ -292,6 +292,9 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .mazo-cartas { position: relative; width: 100%; height: 100%; }
 .envoltorio { position: absolute; inset: 0; will-change: transform; -webkit-user-select: none; user-select: none; }
 .envoltorio.arriba { z-index: 1; touch-action: none; }
+/* adentro de la carta de arriba, el gesto es SIEMPRE del mazo: también arriba de los botones (Safari en iPhone toma el
+   touch-action del botón — manipulation — y le daba el gesto al navegador) */
+.envoltorio.arriba * { touch-action: none; }
 .envoltorio.atras { pointer-events: none; }
 .carta { display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 24px; background: var(--cream); color: var(--green-900); box-shadow: 0 10px 30px rgba(12, 43, 28, .45); }
 .atras .carta { box-shadow: none; }
@@ -5030,11 +5033,13 @@ function mazoMove(e) {
   if (!d || d.id !== e.pointerId) return
   const mx = e.clientX - d.x
   const my = e.clientY - d.y
-  if (d.eje == null && Math.hypot(mx, my) > 8) {
-    d.eje = Math.abs(mx) > Math.abs(my) ? 'x' : 'y'
-    mazoMovio = performance.now()
-    if (d.eje === 'x') try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
-  }
+  // El mazo no se mueve en vertical: no hay que "trabar" el gesto en vertical. Apenas el dedo se corre 10 px para el
+  // costado (aunque vaya en diagonal: el pulgar hace un arco), es un swipe. Si arrancó más vertical, se sigue mirando.
+  if (Math.hypot(mx, my) > 8) mazoMovio = performance.now()
+  if (d.eje !== 'x' && Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my) * 0.5) {
+    d.eje = 'x'
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
+  } else if (d.eje == null && Math.hypot(mx, my) > 8) d.eje = 'y'
   if (d.eje !== 'x') return
   const now = performance.now()
   d.v = 0.8 * ((e.clientX - d.lastX) / Math.max(1, now - d.lastT)) + 0.2 * d.v
