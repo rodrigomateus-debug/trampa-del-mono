@@ -357,15 +357,47 @@ export async function leerRankingMatch() {
     ultimo: f.ultimo ?? null, rivales: Array.isArray(f.rivales) ? f.rivales : [],
   })).filter((f) => f.uid && f.jugados > 0)
 }
-/** El desafiado jugó: anota su vuelta y el match queda cerrado. */
-export async function responderDesafio(id, { apodo, emoji, golpes, vsPar, ms, lp }) {
-  const datos = { desafioId: id, apodo, emoji, golpes, vsPar, ms, lp: !!lp }
+/**
+ * El desafiado jugó: anota su vuelta (con su grabación, para el replay) y el match queda cerrado.
+ * Si la base todavía no tiene `rival_fantasma`, anota igual sin la grabación (el replay muestra solo al que desafió).
+ */
+export async function responderDesafio(id, { apodo, emoji, golpes, vsPar, ms, lp, fantasma }) {
+  const datos = { desafioId: id, apodo, emoji, golpes, vsPar, ms, lp: !!lp, ...(Array.isArray(fantasma) ? { fantasma } : {}) }
   if (puente.enApp) { await porApp('responder', datos); return true }
   const uid = puente.identidad?.uid
-  await rest(`trampa_desafios?id=eq.${encodeURIComponent(id)}&rival_id=eq.${uid}&estado=eq.pendiente`, {
-    metodo: 'PATCH', prefer: 'return=minimal',
-    cuerpo: { rival_apodo: apodo, rival_emoji: emoji, rival_golpes: golpes, rival_vs_par: vsPar, rival_ms: ms, rival_lp: !!lp, estado: 'jugado', jugado_at: new Date().toISOString() },
-  })
+  const ruta = `trampa_desafios?id=eq.${encodeURIComponent(id)}&rival_id=eq.${uid}&estado=eq.pendiente`
+  const cuerpo = { rival_apodo: apodo, rival_emoji: emoji, rival_golpes: golpes, rival_vs_par: vsPar, rival_ms: ms, rival_lp: !!lp, estado: 'jugado', jugado_at: new Date().toISOString() }
+  if (!Array.isArray(fantasma)) { await rest(ruta, { metodo: 'PATCH', prefer: 'return=minimal', cuerpo }); return true }
+  try {
+    await rest(ruta, { metodo: 'PATCH', prefer: 'return=minimal', cuerpo: { ...cuerpo, rival_fantasma: fantasma } })
+  } catch (e) {
+    if (!/HTTP 400/.test(String(e?.message))) throw e
+    await rest(ruta, { metodo: 'PATCH', prefer: 'return=minimal', cuerpo })
+  }
   return true
+}
+/**
+ * Las dos grabaciones de un match jugado, para el replay: { retador, rival } (rival en null si el match es de antes
+ * de que se grabara la vuelta del desafiado, o si la app / la base todavía no la guardan).
+ */
+export async function leerReplay(id) {
+  const lista = (g) => (Array.isArray(g) ? g : null)
+  if (puente.enApp) {
+    try {
+      const r = await porApp('replay', { desafioId: id })
+      return { retador: lista(r?.retador), rival: lista(r?.rival) }
+    } catch (e) {
+      // una app que todavía no sabe de replays: con la grabación del que desafió alcanza para verlo
+      if (!/desconocida/.test(String(e?.message))) throw e
+      return { retador: lista(await porApp('fantasma', { desafioId: id })), rival: null }
+    }
+  }
+  const sel = (cols) => rest(`trampa_desafios?select=${cols}&id=eq.${encodeURIComponent(id)}`)
+  let filas
+  try { filas = await sel('fantasma,rival_fantasma') } catch (e) {
+    if (!/HTTP 400/.test(String(e?.message))) throw e
+    filas = await sel('fantasma')
+  }
+  return { retador: lista(filas?.[0]?.fantasma), rival: lista(filas?.[0]?.rival_fantasma) }
 }
 
