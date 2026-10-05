@@ -3281,16 +3281,25 @@ async function imagenMatch({ izq, der, jugador, ganador }) {
   g.textAlign = 'center'
   g.fillStyle = '#e8c34a'; g.font = B(26, 800); g.fillText('SDGA TOUR  ·  LA TRAMPA DEL MONO', W2 / 2, 78)
   g.fillStyle = '#f4eeda'; g.font = D(130); g.fillText(desafio ? 'DESAFÍO' : 'MATCH', W2 / 2, 210)
-  // cada lado: un círculo con la inicial (o ? si todavía no jugó) y el nombre
-  const lado = (p, x, gana, pierde) => {
+  // cada lado: su foto si es del plantel (el nombre del jugador en la app = su apodo acá); si no, la inicial (o ? si
+  // todavía no jugó), y el nombre
+  const fotos = await Promise.all([izq, der].map((p) => cargarImg(fotoDePersona(p.alias))))
+  const lado = (p, x, gana, pierde, foto) => {
     const y = 420, rad = 150
     g.save()
     if (pierde) g.globalAlpha = 0.55
     g.fillStyle = '#f4eeda'; g.beginPath(); g.arc(x, y, rad, 0, 7); g.fill()
-    g.lineWidth = 12; g.strokeStyle = gana ? '#e8c34a' : '#14402a'; g.stroke()
-    g.fillStyle = '#14402a'; g.font = D(170); g.textBaseline = 'middle'
-    g.fillText(p.pendiente ? '?' : (p.alias.trim().charAt(0) || '?').toUpperCase(), x, y + 8)
-    g.textBaseline = 'alphabetic'
+    if (foto) {
+      g.save(); g.beginPath(); g.arc(x, y, rad, 0, 7); g.fillStyle = '#1c5638'; g.fill(); g.clip()
+      const k = Math.max((rad * 2) / foto.width, (rad * 2) / foto.height)
+      g.drawImage(foto, x - (foto.width * k) / 2, y - rad, foto.width * k, foto.height * k)
+      g.restore()
+    } else {
+      g.fillStyle = '#14402a'; g.font = D(170); g.textBaseline = 'middle'
+      g.fillText(p.pendiente ? '?' : (p.alias.trim().charAt(0) || '?').toUpperCase(), x, y + 8)
+      g.textBaseline = 'alphabetic'
+    }
+    g.lineWidth = 12; g.strokeStyle = gana ? '#e8c34a' : '#14402a'; g.beginPath(); g.arc(x, y, rad, 0, 7); g.stroke()
     // el nombre (achicado si es largo)
     let px = 76
     g.font = D(px)
@@ -3300,8 +3309,8 @@ async function imagenMatch({ izq, der, jugador, ganador }) {
     if (gana) { g.font = `110px ${EMOJI}`; g.fillText('👑', x, y - rad + 10) }
   }
   const L = W2 / 4 + 10, Rx = (3 * W2) / 4 - 10
-  lado(izq, L, ganador === 1, ganador === -1)
-  lado(der, Rx, ganador === -1, ganador === 1)
+  lado(izq, L, ganador === 1, ganador === -1, fotos[0])
+  lado(der, Rx, ganador === -1, ganador === 1, fotos[1])
   // VS en el medio
   g.fillStyle = '#e8c34a'; g.beginPath(); g.arc(W2 / 2, 440, 92, 0, 7); g.fill()
   g.lineWidth = 8; g.strokeStyle = '#0c2b1c'; g.stroke()
@@ -3347,6 +3356,9 @@ async function imagenMatch({ izq, der, jugador, ganador }) {
   urlsResumen.push(url)
   return { blob, url }
 }
+/** La foto de una persona: la del player del plantel con su mismo nombre (sin "(Đ)" ni mayúsculas), si tiene. */
+const sinMarca = (x) => String(x ?? '').replace(/\s*\(Đ\)\s*$/, '').trim().toLowerCase()
+const fotoDePersona = (alias) => TODOS.find((j) => j.foto && sinMarca(j.apodo) === sinMarca(alias))?.foto ?? null
 /** Comparte una imagen (el menú de compartir del teléfono, con WhatsApp). Sin eso, la muestra para guardarla. */
 async function compartirImagen(img, texto, nombre) {
   const archivo = new File([img.blob], nombre, { type: 'image/png' })

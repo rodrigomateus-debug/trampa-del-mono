@@ -223,3 +223,4 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - WhatsApp del match = una imagen estilo VS (`imagenMatch`, 1080×1350, diseño SDGA): los dos cara a cara con un VS dorado y la diagonal, el player de los dos al medio y abajo el score de cada uno; al que ganó, corona 👑 y caja dorada, el otro apagado, y "GANÓ X" o "EMPATE". Va por el menú de compartir del teléfono (`compartirImagen`, con el texto de siempre como mensaje); si el teléfono no comparte archivos, se muestra para guardarla.
   - Al mandar el desafío: la misma imagen con "DESAFÍO": tu score 🔒 SECRETO y el del otro ⏳ TE TOCA (que no sepa cómo te fue).
   - Al terminar el match y en cada match del Historial: la imagen con el resultado.
+- En la imagen VS, cada uno con su foto: la del player del plantel que se llama igual que él en la app (`fotoDePersona`, sin "(Đ)" ni mayúsculas). Si no hay, su inicial.
