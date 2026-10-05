@@ -4949,7 +4949,7 @@ function cartaDe(j) {
     carta.addEventListener('pointerleave', soltar)
     carta.addEventListener('pointerup', soltar)
   }
-  el.querySelector('button.carta-prev')?.addEventListener('click', () => verHabilidad(j))
+  el.querySelector('button.carta-prev')?.addEventListener('click', () => { if (performance.now() - mazoMovio > 350) verHabilidad(j) })
   el.addEventListener('pointerdown', mazoDown)
   el.addEventListener('pointermove', mazoMove)
   el.addEventListener('pointerup', mazoUp)
@@ -5017,8 +5017,12 @@ function volarMazo(step) {
     setTimeout(lanzar, 20)
   } else lanzar()
 }
+// El swipe arranca en cualquier lado de la carta, también sobre el recuadro de la habilidad (está justo donde va el
+// dedo). Si el dedo se movió, al soltar NO abre la habilidad (`mazoMovio`); un toque quieto la abre como siempre.
+// Solo "Jugar con…" no arranca el swipe.
+let mazoMovio = 0
 function mazoDown(e) {
-  if (mazoAnim || e.target.closest('button') || !e.currentTarget.classList.contains('arriba')) return
+  if (mazoAnim || e.target.closest('button:not(.carta-prev)') || !e.currentTarget.classList.contains('arriba')) return
   mazoDrag = { x: e.clientX, y: e.clientY, id: e.pointerId, eje: null, dx: 0, lastX: e.clientX, lastT: performance.now(), v: 0 }
 }
 function mazoMove(e) {
@@ -5028,6 +5032,7 @@ function mazoMove(e) {
   const my = e.clientY - d.y
   if (d.eje == null && Math.hypot(mx, my) > 8) {
     d.eje = Math.abs(mx) > Math.abs(my) ? 'x' : 'y'
+    mazoMovio = performance.now()
     if (d.eje === 'x') try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
   }
   if (d.eje !== 'x') return
@@ -5042,6 +5047,7 @@ function mazoMove(e) {
 function mazoUp() {
   const d = mazoDrag
   mazoDrag = null
+  if (d?.eje) mazoMovio = performance.now() // el click que viene atrás del soltar no abre la habilidad
   if (!d || d.eje !== 'x') return
   const flick = Math.abs(d.v) > FLICK_V && Math.abs(d.dx) > 24 && Math.sign(d.v) === Math.sign(d.dx)
   if (Math.abs(d.dx) >= SWIPE_OUT || flick) volarMazo(d.dx < 0 ? 'next' : 'prev')
