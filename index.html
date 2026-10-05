@@ -316,6 +316,9 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 .acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .acciones .ancho { grid-column: 1 / -1; }
 .acciones .btn { font-size: 16px; padding: 0 12px; }
+.acciones .portada-tejas { gap: 8px; }
+.acciones .teja-btn { padding-inline: 3px; }
+.acciones .teja-btn span { font-size: 12px; letter-spacing: .02em; white-space: nowrap; }
 .acciones .link-chico { border: 0; background: transparent; color: var(--green-900); font: 700 14px var(--font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px 0 0; }
 
 /* ── comunicado del Marshall ── */
@@ -946,8 +949,12 @@ input { -webkit-user-select: text; user-select: text; }
     <div class="t-match" id="t-match" hidden></div>
     <div class="acciones" id="t-acciones" hidden>
       <button class="btn ancho" id="compartir-img" type="button">COMPARTIR MI VUELTA 📸</button>
-      <button class="btn oscuro" id="otra" type="button">OTRA VUELTA</button>
-      <button class="btn oscuro" id="fin-ranking" type="button">RANKING 🏆</button>
+      <div class="portada-tejas ancho">
+        <button class="teja-btn" id="otra" type="button"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M26 16a10 10 0 1 1-3-7.1"/><path d="M26 5v6h-6"/><circle cx="16" cy="16" r="2.2" fill="currentColor" stroke="none"/></svg><span>OTRA VUELTA</span></button>
+        <button class="teja-btn" id="fin-ranking" type="button"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5h12v7a6 6 0 0 1-12 0z"/><path d="M10 7H6.5a3.5 3.5 0 0 0 4 4.4"/><path d="M22 7h3.5a3.5 3.5 0 0 1-4 4.4"/><path d="M16 18v4"/><path d="M11 27h10l-1.2-5h-7.6z"/><path d="M14.6 8.6l1.4-1 v5.4" stroke-width="2"/></svg><span>RANKING</span></button>
+        <button class="teja-btn" id="fin-match" type="button" hidden><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 26L22 8"/><path d="M22 8l2.5-2.8 3.3 1.6-1.4 3.6-3.4 .4"/><path d="M26 26L10 8"/><path d="M10 8L7.5 5.2 4.2 6.8l1.4 3.6 3.4 .4"/><circle cx="16" cy="25" r="2.2" fill="currentColor" stroke="none"/></svg><span>MATCH</span></button>
+        <button class="teja-btn" id="fin-inicio" type="button"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 15L16 5l11 10"/><path d="M8 13v13h16V13"/><path d="M13.5 26v-7h5v7"/></svg><span>INICIO</span></button>
+      </div>
       <button class="link-chico ancho" id="cambiar" type="button">Cambiar jugador</button>
     </div>
   </div>
@@ -3158,6 +3165,114 @@ async function imagenVuelta() {
   urlsResumen.push(url)
   return { blob, url }
 }
+/**
+ * La imagen del match, estilo VS (1080×1350, diseño SDGA): los dos que juegan cara a cara, el player que usaron los
+ * dos en el medio, y abajo el score de cada uno y quién ganó. Con `ganador` null es el desafío: sin scores (que el
+ * otro no sepa cómo te fue).
+ */
+async function imagenMatch({ izq, der, jugador, ganador }) {
+  try { await Promise.all(['56px Anton', '600 30px Archivo', '800 30px Archivo'].map((f) => document.fonts.load(f))) } catch {}
+  const W2 = 1080, H2 = 1350
+  const c = document.createElement('canvas')
+  c.width = W2; c.height = H2
+  const g = c.getContext('2d')
+  const D = (px) => `${px}px Anton, "Arial Narrow", sans-serif`
+  const B = (px, w = 600) => `${w} ${px}px Archivo, "Helvetica Neue", sans-serif`
+  const desafio = ganador == null
+  // fondo partido en diagonal: un verde para cada uno
+  g.fillStyle = '#1f5f3e'; g.fillRect(0, 0, W2, H2)
+  g.fillStyle = '#0c2b1c'
+  g.beginPath(); g.moveTo(W2 / 2 + 140, 0); g.lineTo(W2, 0); g.lineTo(W2, H2); g.lineTo(W2 / 2 - 140, H2); g.closePath(); g.fill()
+  g.save(); g.globalAlpha = 0.06; g.fillStyle = '#ffffff'
+  for (let x = -H2; x < W2 + H2; x += 120) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 60, 0); g.lineTo(x + 60 - H2, H2); g.lineTo(x - H2, H2); g.fill() }
+  g.restore()
+  // el rayo dorado de la diagonal
+  g.strokeStyle = '#e8c34a'; g.lineWidth = 10
+  g.beginPath(); g.moveTo(W2 / 2 + 140, 0); g.lineTo(W2 / 2 - 140, H2); g.stroke()
+  // cabecera
+  g.textAlign = 'center'
+  g.fillStyle = '#e8c34a'; g.font = B(26, 800); g.fillText('SDGA TOUR  ·  LA TRAMPA DEL MONO', W2 / 2, 78)
+  g.fillStyle = '#f4eeda'; g.font = D(130); g.fillText(desafio ? 'DESAFÍO' : 'MATCH', W2 / 2, 210)
+  // cada lado: un círculo con la inicial (o ? si todavía no jugó) y el nombre
+  const lado = (p, x, gana, pierde) => {
+    const y = 420, rad = 150
+    g.save()
+    if (pierde) g.globalAlpha = 0.55
+    g.fillStyle = '#f4eeda'; g.beginPath(); g.arc(x, y, rad, 0, 7); g.fill()
+    g.lineWidth = 12; g.strokeStyle = gana ? '#e8c34a' : '#14402a'; g.stroke()
+    g.fillStyle = '#14402a'; g.font = D(170); g.textBaseline = 'middle'
+    g.fillText(p.pendiente ? '?' : (p.alias.trim().charAt(0) || '?').toUpperCase(), x, y + 8)
+    g.textBaseline = 'alphabetic'
+    // el nombre (achicado si es largo)
+    let px = 76
+    g.font = D(px)
+    while (g.measureText(p.alias.toUpperCase()).width > 420 && px > 40) g.font = D((px -= 4))
+    g.fillStyle = '#f4eeda'; g.fillText(p.alias.toUpperCase(), x, y + rad + 100)
+    g.restore()
+    if (gana) { g.font = `110px ${EMOJI}`; g.fillText('👑', x, y - rad + 10) }
+  }
+  const L = W2 / 4 + 10, Rx = (3 * W2) / 4 - 10
+  lado(izq, L, ganador === 1, ganador === -1)
+  lado(der, Rx, ganador === -1, ganador === 1)
+  // VS en el medio
+  g.fillStyle = '#e8c34a'; g.beginPath(); g.arc(W2 / 2, 440, 92, 0, 7); g.fill()
+  g.lineWidth = 8; g.strokeStyle = '#0c2b1c'; g.stroke()
+  g.fillStyle = '#14402a'; g.font = D(100); g.fillText('VS', W2 / 2, 478)
+  // el player de los dos, en una pastilla crema
+  const foto = await cargarImg(jugador.foto)
+  const py = 770, ph = 120
+  g.font = B(34, 800)
+  const txt = `LOS DOS CON ${jugador.apodo.replace(/ \(Đ\)$/, '').toUpperCase()}`
+  const pw = g.measureText(txt).width + 190
+  g.fillStyle = '#f4eeda'; g.beginPath(); g.roundRect(W2 / 2 - pw / 2, py, pw, ph, ph / 2); g.fill()
+  const fx = W2 / 2 - pw / 2 + 64, fy = py + ph / 2
+  g.save(); g.beginPath(); g.arc(fx, fy, 48, 0, 7); g.fillStyle = '#1c5638'; g.fill(); g.clip()
+  if (foto) { const k = Math.max(96 / foto.width, 96 / foto.height); g.drawImage(foto, fx - (foto.width * k) / 2, fy - 48, foto.width * k, foto.height * k) }
+  else { g.font = `60px ${EMOJI}`; g.textBaseline = 'middle'; g.fillText(jugador.emoji, fx, fy + 4); g.textBaseline = 'alphabetic' }
+  g.restore()
+  g.fillStyle = '#14402a'; g.font = B(34, 800); g.textAlign = 'left'; g.fillText(txt, fx + 70, fy + 12); g.textAlign = 'center'
+  // los scores
+  const caja = (p, x, gana) => {
+    const y = 945, w = 400, h = 230
+    g.fillStyle = gana ? '#e8c34a' : '#f4eeda'
+    g.beginPath(); g.roundRect(x - w / 2, y, w, h, 30); g.fill()
+    g.fillStyle = '#14402a'
+    if (p.oculto || p.pendiente) {
+      g.font = `110px ${EMOJI}`; g.fillText(p.pendiente ? '⏳' : '🔒', x, y + 135)
+      g.font = B(28, 800); g.fillText(p.pendiente ? 'TE TOCA' : 'SECRETO', x, y + 200)
+      return
+    }
+    g.font = D(140); g.fillText(p.lp ? 'LP' : M.formatoPar(p.vsPar), x, y + 150)
+    g.font = B(28, 800)
+    g.fillText(p.lp ? 'LEVANTÓ 💅' : `${p.golpes} GOLPES${p.ms != null ? ` · ${M.formatoTiempo(p.ms)}` : ''}`, x, y + 200)
+  }
+  caja(izq, L, ganador === 1)
+  caja(der, Rx, ganador === -1)
+  // el veredicto
+  const quien = ganador === 1 ? izq.alias : ganador === -1 ? der.alias : null
+  g.fillStyle = '#e8c34a'; g.font = D(76)
+  g.fillText(desafio ? '¿TE ANIMÁS?' : quien ? `GANÓ ${quien.toUpperCase()}` : 'EMPATE', W2 / 2, 1268)
+  g.font = B(24, 600); g.fillStyle = 'rgba(244,238,218,.7)'
+  g.fillText(desafio ? 'Mismo player, mismo viento y mismas banderas · su pelota, en vivo como fantasma 👻' : 'Mismo player, mismo viento y mismas banderas', W2 / 2, 1318)
+  const blob = await new Promise((ok) => c.toBlob(ok, 'image/png'))
+  const url = URL.createObjectURL(blob)
+  urlsResumen.push(url)
+  return { blob, url }
+}
+/** Comparte una imagen (el menú de compartir del teléfono, con WhatsApp). Sin eso, la muestra para guardarla. */
+async function compartirImagen(img, texto, nombre) {
+  const archivo = new File([img.blob], nombre, { type: 'image/png' })
+  if (navigator.canShare?.({ files: [archivo] })) {
+    try { await navigator.share({ files: [archivo], text: texto }) } catch {}
+    return
+  }
+  $('#resumen').hidden = false
+  $('#resumen-img').src = img.url
+  $('#resumen-bajar').href = img.url
+  $('#resumen-bajar').download = nombre
+  $('#resumen-compartir').hidden = true
+  $('#resumen-nota').textContent = 'Guardala y mandala por WhatsApp.'
+}
 /** Las imágenes de la vuelta anterior (cada una, un PNG de 1080×1350): se sueltan al llegar a la tarjeta de la próxima. */
 let urlsResumen = []
 function soltarResumenes() {
@@ -3184,8 +3299,30 @@ $('#resumen-compartir').addEventListener('click', async () => {
 })
 
 function acciones() {
+  $('#fin-match').hidden = !R.hayMatch()
   $('#t-acciones').hidden = false
 }
+/** De la tarjeta final a la portada (la pantalla de inicio del juego). */
+function irAlInicio() {
+  clearTimeout(firmaTimer)
+  firmaHasta = 0
+  for (const id of ['fin', 'comunicado', 'ranking', 'resumen', 'match', 'elegir', 'todos']) $('#' + id).hidden = true
+  for (const id of ['hud-top', 'hud-bot', 'pancho', 'h-fantasma', 'deme-btn']) $('#' + id).hidden = true
+  ronda = null
+  tiro = null
+  anim = null
+  drag = null
+  estado = 'portada'
+  S.musica(null)
+  S.viento(0)
+  obj = vistaGeneral()
+  velCam = 1
+  pintarConteo()
+  if (R.hayMatch()) cargarDesafios()
+  $('#portada').hidden = false
+}
+$('#fin-inicio').addEventListener('click', irAlInicio)
+$('#fin-match').addEventListener('click', () => { irAlInicio(); mostrarMatch(tabConAviso()) })
 $('#otra').addEventListener('click', () => empezar(ronda.jugador))
 $('#fin-ranking').addEventListener('click', () => mostrarRanking(ronda?.jugador.apodo ?? 'general'))
 
@@ -3409,8 +3546,7 @@ $('#mt-lista').addEventListener('click', (e) => {
   if (!b) return
   const d = mtDesafios?.find((x) => x.id === b.dataset.wa)
   if (!d) return
-  const { yo, el } = resultadoPara(d)
-  abrirWhatsapp(textoResultadoMatch(yo, el))
+  compartirMatch(d, b)
 })
 $('#mt-lista').addEventListener('click', async (e) => {
   const reto = e.target.closest('[data-desafiar]')
@@ -3551,10 +3687,6 @@ function mensajeDesafio(r, rival, mia) {
     `Entrá a la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch()}`,
   ].join('\n')
 }
-function mandarPorWhatsapp(r, rival, mia) {
-  const url = `https://wa.me/?text=${encodeURIComponent(mensajeDesafio(r, rival, mia))}`
-  if (!window.open(url, '_blank')) location.href = url
-}
 // ── el resultado de un match, para mandarlo por WhatsApp ──
 const ICONO_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>'
 /** El resumen de un match terminado, visto por mí (yo/el: { alias, golpes, vsPar, ms, lp, apodo, emoji }). */
@@ -3577,9 +3709,14 @@ function textoResultadoMatch(yo, el) {
     `Desafiame en la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch()}`,
   ].join('\n')
 }
-function abrirWhatsapp(texto) {
-  const url = `https://wa.me/?text=${encodeURIComponent(texto)}`
-  if (!window.open(url, '_blank')) location.href = url
+/** Un match terminado, como imagen VS, con el texto del resultado (visto por mí). */
+async function compartirMatch(d, boton) {
+  const { yo, el } = resultadoPara(d)
+  const jugador = TODOS.find((x) => x.apodo === d.retador.apodo) ?? { apodo: d.retador.apodo ?? '', emoji: d.retador.emoji ?? '⛳' }
+  if (boton) boton.disabled = true
+  const img = await imagenMatch({ izq: d.retador, der: d.rival, jugador, ganador: M.ganadorMatch(d.retador, d.rival) })
+  if (boton) boton.disabled = false
+  compartirImagen(img, textoResultadoMatch(yo, el), 'match-trampa-del-mono.png')
 }
 /** Terminó la vuelta de un match: si desafiaste, se manda; si respondías, se anota y se ve quién ganó. */
 async function cerrarMatch(r) {
@@ -3602,8 +3739,14 @@ async function cerrarMatch(r) {
       el.innerHTML = `⚔️ Mandando el desafío a <b>${esc(d.rival.nombre)}</b>…`
       try {
         await R.crearDesafio({ rival: d.rival, semilla: d.semilla, ...mia, fantasma: d.grabacion })
-        el.innerHTML = `<span class="gran">⚔️ DESAFÍO ENVIADO</span>Le llegó a <b>${esc(d.rival.nombre)}</b>. Va a jugar con ${esc(r.jugador.emoji)} ${esc(r.jugador.apodo)}, como vos, y va a ver tu pelota en vivo. El resultado te aparece en MATCH.<br><button class="wa" type="button"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>MANDÁSELO POR WHATSAPP</button>`
-        el.querySelector('.wa').addEventListener('click', () => mandarPorWhatsapp(r, d.rival, mia))
+        el.innerHTML = `<span class="gran">⚔️ DESAFÍO ENVIADO</span>Le llegó a <b>${esc(d.rival.nombre)}</b>. Va a jugar con ${esc(r.jugador.emoji)} ${esc(r.jugador.apodo)}, como vos, y va a ver tu pelota en vivo. El resultado te aparece en MATCH.<br><button class="btn-wa" type="button">${ICONO_WA}MANDÁSELO POR WHATSAPP</button>`
+        el.querySelector('.btn-wa').addEventListener('click', async (e) => {
+          const b = e.currentTarget
+          b.disabled = true
+          const img = await imagenMatch({ izq: { alias: datos.usuario || 'Yo', oculto: true }, der: { alias: d.rival.nombre, pendiente: true }, jugador: r.jugador, ganador: null })
+          b.disabled = false
+          compartirImagen(img, mensajeDesafio(r, d.rival, mia), 'desafio-trampa-del-mono.png')
+        })
         mtDesafios = null
       } catch {
         el.innerHTML = 'No se pudo mandar el desafío. <br><button class="mt-btn" type="button">Reintentar</button>'
@@ -3621,7 +3764,7 @@ async function cerrarMatch(r) {
       const g = M.ganadorMatch(mia, des.retador)
       el.className = `t-match ${g > 0 ? 'gana' : g < 0 ? 'pierde' : ''}`
       el.innerHTML = `<span class="gran">${g > 0 ? '🏆 GANASTE EL MATCH' : g < 0 ? '😵 PERDISTE EL MATCH' : '🤝 EMPATE'}</span>Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}<br><button class="btn-wa" type="button">${ICONO_WA}MANDAR EL RESULTADO</button>`
-      el.querySelector('.btn-wa').addEventListener('click', () => abrirWhatsapp(textoResultadoMatch({ ...mia, alias: 'Yo' }, des.retador)))
+      el.querySelector('.btn-wa').addEventListener('click', (e) => compartirMatch({ ...des, rival: { ...des.rival, uid: yoUid(), alias: datos.usuario || des.rival.alias, ...mia } }, e.currentTarget))
       if (g > 0) S.embocada()
       mtDesafios = null
     } catch {
