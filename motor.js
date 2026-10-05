@@ -111,6 +111,7 @@ export const HABILIDADES = {
   Grandpa: { id: 'deme', nombre: 'Invocar a Deme', texto: 'Maxi, una vez por vuelta (no desde el tee): llama a Deme, el mentor. Te enseña a agarrar el palo y el próximo tiro entra de una, le pegues como le pegues.' },
   'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro (y de tee a tee) lo manejás vos hasta la pelota. Los árboles no se atraviesan. El reloj corre.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
+  'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
 export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
 
@@ -667,7 +668,8 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
     const giro = hab?.id === 'comba' ? (difAng(angulo, Math.atan2(pin[1] - b[1], pin[0] - b[0])) >= 0 ? -1 : 1) * PUTT_MAGO.giro : 0
     // los 3 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
     const noLaFalla = hab?.id === 'dadas' && dist(b, pin) * hoyoActual(r).escala <= DADA
-    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: dif.error, recto: hab?.id === 'derecho' || !!r.calma, giro, noLaFalla }
+    const retro = hab?.id === 'retro'
+    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error, recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla }
   }
   const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
@@ -700,6 +702,8 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
   if (hab?.id === 'derecho') {
     plan.disp = { ...plan.disp, ang: 0 } // siempre derecho
   }
+  // Demetrio: pega perfecto (ni error de dirección ni de largo) y llega a lo que se ve, también desde el bunker
+  if (hab?.id === 'retro') { plan.disp = { ...plan.disp, ang: 0, carry: 0 }; plan.real = 1; plan.exacto = true }
   if (hab?.id === 'comba') {
     // nunca derecho: sale por donde apunta y se cierra según el golpe que le tocó
     // (curva = Bézier con el control sobre la línea de salida; lado 1 = cae a la izquierda de la salida)
@@ -817,9 +821,9 @@ export function avanzar(campo, tiro, dt, pin) {
       tiro.desde[1] + tiro.controlVec[1] * b1 + tiro.carryVec[1] * b2 + tiro.deriva[1] * b2,
     ]
     tiro.alt = 4 * tiro.hMax * u * (1 - u)
-    if (u > 0.02 && !tiro.deme && robo(tiro)) return tiro.fase // el tiro de Deme no lo para nadie
+    if (u > 0.02 && !tiro.alHoyo && robo(tiro)) return tiro.fase // el tiro de Deme (o el de par de Demetrio) no lo para nadie
     // los golpes del Mago vuelan por arriba de los pinos (menos la viborita, que va al ras)
-    const pino = !tiro.deme && (!tiro.comba || tiro.rasante) && u > 0.02 && u < 1 && tiro.alt < FISICA.alturaPino ? pinoEn(campo, tiro.pos) : null
+    const pino = !tiro.alHoyo && !tiro.exacto && (!tiro.comba || tiro.rasante) && u > 0.02 && u < 1 && tiro.alt < FISICA.alturaPino ? pinoEn(campo, tiro.pos) : null
     // el pino que tiene la pelota debajo de la copa no la frena al salir
     if (pino && Math.hypot(pino.x - tiro.desde[0], pino.y - tiro.desde[1]) >= pino.r) {
       tiro.eventos.push({ tipo: 'palo' })
@@ -837,8 +841,24 @@ export function avanzar(campo, tiro, dt, pin) {
         tiro.fase = 'quieta'
         return tiro.fase
       }
+      // Demetrio: pica exactamente donde apuntó y ahí se queda (si es la boca de un hoyo, adentro)
+      if (tiro.exacto) {
+        const otro = (tiro.ajenos ?? []).find((a) => dist(tiro.pos, a.pin) < FISICA.bocaHoyo)
+        if (otro) return caerAjeno(tiro, otro)
+        tiro.v = [0, 0]
+        tiro.fase = 'quieta'
+        if (pin && dist(tiro.pos, pin) < FISICA.bocaHoyo) {
+          tiro.pos = [...pin]
+          tiro.embocada = true
+          tiro.eventos.push({ tipo: 'clavada' }, { tipo: 'embocada' })
+        }
+        return tiro.fase
+      }
+      // cayó en la boca de OTRO hoyo (de los que no se juegan)
+      const otro = !tiro.alHoyo && tiro.modo === 'full' ? (tiro.ajenos ?? []).find((a) => suerteDe(tiro) < chanceClavada(dist(tiro.pos, a.pin))) : null
+      if (otro) return caerAjeno(tiro, otro)
       // cayó en la boca del hoyo: puede quedar adentro de aire
-      if (pin && tiro.modo === 'full' && (tiro.deme || suerteDe(tiro) < chanceClavada(dist(tiro.pos, pin)))) {
+      if (pin && tiro.modo === 'full' && (tiro.alHoyo || suerteDe(tiro) < chanceClavada(dist(tiro.pos, pin)))) {
         tiro.pos = [...pin]
         tiro.v = [0, 0]
         tiro.embocada = true
@@ -891,6 +911,8 @@ export function avanzar(campo, tiro, dt, pin) {
   if (vel <= a * dt) {
     tiro.v = [0, 0]
     tiro.fase = 'quieta'
+    const otro = (tiro.ajenos ?? []).find((a) => dist(tiro.pos, a.pin) < FISICA.bocaHoyo)
+    if (otro) return caerAjeno(tiro, otro)
     if (pin && dist(tiro.pos, pin) < FISICA.bocaHoyo) {
       // se frenó adentro del hoyo: cae
       tiro.pos = [...pin]
@@ -904,6 +926,8 @@ export function avanzar(campo, tiro, dt, pin) {
   const prev = tiro.pos
   tiro.pos = [prev[0] + tiro.v[0] * dt, prev[1] + tiro.v[1] * dt]
   if (robo(tiro)) return tiro.fase
+  const otro = pasaPorOtroHoyo(tiro, prev)
+  if (otro) return caerAjeno(tiro, otro)
 
   // recién salida de la corbata, la pelota todavía está en la boca: no la vuelve a agarrar hasta salir
   const saliendo = (tiro.vuelta || tiro.salto) && dist(prev, pin) < FISICA.bocaHoyo + 0.01
@@ -913,7 +937,8 @@ export function avanzar(campo, tiro, dt, pin) {
     const v = Math.hypot(tiro.v[0], tiro.v[1])
     const d = dist(cerca, pin)
     // desde afuera del green, llegando rápido, tiene su chance (si no, sigue: corbata o labio)
-    if (v < limiteEmbocar(d) || (tiro.modo === 'full' && suerteDe(tiro) < chanceRodando(d, v))) {
+    // Demetrio: si la línea pasa por la boca, entra (sin labios ni corbatas)
+    if (tiro.exacto || v < limiteEmbocar(d) || (tiro.modo === 'full' && suerteDe(tiro) < chanceRodando(d, v))) {
       tiro.pos = [...pin]
       tiro.v = [0, 0]
       tiro.embocada = true
@@ -963,6 +988,32 @@ export function avanzar(campo, tiro, dt, pin) {
       if (!tiro.eventos.some((e) => e.tipo === 'palo')) tiro.eventos.push({ tipo: 'palo' })
     }
   }
+  return tiro.fase
+}
+
+/**
+ * La boca de OTRO hoyo (uno que no se juega): la pelota que pasa rodando se decide una vez, en el punto
+ * más cercano al centro, con las mismas reglas que el hoyo propio (sin corbata). Devuelve ese hoyo o null.
+ */
+function pasaPorOtroHoyo(tiro, prev) {
+  for (const a of tiro.ajenos ?? []) {
+    if (tiro.ajenosVistos?.includes(a.n)) continue
+    const cerca = cercanoEnSegmento(a.pin, prev, tiro.pos)
+    const d = dist(cerca, a.pin)
+    if (d >= FISICA.bocaHoyo || dist(cerca, tiro.pos) <= 1e-9) continue
+    ;(tiro.ajenosVistos ??= []).push(a.n)
+    const v = Math.hypot(tiro.v[0], tiro.v[1])
+    if (tiro.exacto || v < limiteEmbocar(d) || (tiro.modo === 'full' && suerteDe(tiro) < chanceRodando(d, v))) return a
+  }
+  return null
+}
+function caerAjeno(tiro, a) {
+  tiro.pos = [...a.pin]
+  tiro.v = [0, 0]
+  tiro.alt = 0
+  tiro.ajena = a.n
+  tiro.eventos.push({ tipo: 'ajena', n: a.n })
+  tiro.fase = 'quieta'
   return tiro.fase
 }
 
@@ -1024,6 +1075,7 @@ export function nuevaRonda(jugador, rng) {
   // Marcos arranca con el carrito estacionado al lado del tee del 15
   if (habilidadDe(jugador)?.id === 'carrito') r.carro = carroAlLado(r.pelota)
   if (habilidadDe(jugador)?.id === 'deme') r.deme = { usado: false, listo: false }
+  if (habilidadDe(jugador)?.id === 'retro') r.monos = [] // 1960: en la cancha de Demetrio no hay monos
   return r
 }
 /** El golpe del Mago para el próximo tiro: al azar, distinto del anterior. */
@@ -1040,7 +1092,7 @@ export const enModoPutt = (campo, r) => r.lie === 'green' && terreno(campo, r.pe
  * sin error ni viento: para marcarlo al apuntar. Null si no pega (o si pasa por arriba).
  */
 export function pinoEnLaSalida(campo, pelota, plan) {
-  if (!plan || plan.putt || (plan.comba && !plan.rasante) || !plan.carry) return null
+  if (!plan || plan.putt || plan.exacto || (plan.comba && !plan.rasante) || !plan.carry) return null // a Demetrio los árboles no lo tocan
   const carryVec = [Math.cos(plan.cuerda) * plan.carry, Math.sin(plan.cuerda) * plan.carry]
   const controlVec = plan.control ? [plan.control[0] - pelota[0], plan.control[1] - pelota[1]] : [carryVec[0] / 2, carryVec[1] / 2]
   const hMax = (8 + plan.carry * 0.12) * (plan.alto ?? 1)
@@ -1067,11 +1119,16 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   r.golpes += 1
   calmarMonos(r.monos)
   // Maxi invocó a Deme: este tiro, pegue como pegue, va derecho al hoyo y entra (sin error, sin viento)
-  if (r.deme?.listo) return tiroDeDeme(campo, r, plan, rng)
-  const tiro = lanzar(campo, { pelota: r.pelota, angulo, potencia, viento: r.viento, putt: plan.putt, lie: r.lie, rng, plan })
-  tiro.monos = r.monos
+  if (r.deme?.listo) { r.deme.listo = false; const t = tiroAlHoyo(campo, r, plan, rng); t.deme = true; return t }
   const hab = habilidadDe(r.jugador)
-  tiro.greenPlano = hab?.id === 'perro'
+  // Demetrio: el tiro para par entra siempre, esté donde esté
+  if (hab?.id === 'retro' && r.golpes >= hoyoActual(r).par) { const t = tiroAlHoyo(campo, r, plan, rng); t.retro = true; return t }
+  const retro = hab?.id === 'retro'
+  const tiro = lanzar(campo, { pelota: r.pelota, angulo, potencia, viento: retro ? { ang: 0, kmh: 0 } : r.viento, putt: plan.putt, lie: r.lie, rng, plan })
+  tiro.monos = r.monos
+  tiro.exacto = retro // Demetrio: queda exactamente donde apuntó (ver avanzar)
+  tiro.ajenos = (r.hoyos ?? HOYOS).filter((h) => h.n !== hoyoActual(r).n).map((h) => ({ n: h.n, pin: h.pin }))
+  tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada
   tiro.calma = !!r.calma
   r.calma = false
   // Joaco: de 3 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola)
@@ -1090,9 +1147,8 @@ export function invocarDeme(r) {
   r.deme.listo = true
   return true
 }
-/** El tiro de Deme: derecho al hoyo desde donde esté; en el green, el putt rueda solo adentro. */
-function tiroDeDeme(campo, r, plan, rng) {
-  r.deme.listo = false
+/** Derecho al hoyo desde donde esté y adentro (el tiro de Deme y el de par de Demetrio); en el green, el putt rueda solo adentro. */
+function tiroAlHoyo(campo, r, plan, rng) {
   const pin = hoyoActual(r).pin
   const ang = Math.atan2(pin[1] - r.pelota[1], pin[0] - r.pelota[0])
   const calma = { ang: 0, kmh: 0 }
@@ -1104,7 +1160,7 @@ function tiroDeDeme(campo, r, plan, rng) {
     const derecho = { putt: false, cuerda: ang, carry: dist(r.pelota, pin), disp: { ang: 0, carry: 0 }, control: null, real: 1, alto: 1.3 }
     tiro = lanzar(campo, { pelota: r.pelota, angulo: ang, potencia: 1, viento: calma, putt: false, lie: r.lie, rng, plan: derecho })
   }
-  tiro.deme = true
+  tiro.alHoyo = true
   tiro.monos = r.monos
   return tiro
 }
@@ -1180,6 +1236,14 @@ const esMalo = (res, tiro) => ['afuera', 'mono-malo', 'mono-ladron'].includes(re
 function resolver(campo, r, tiro, rng) {
   const hoyo = hoyoActual(r)
   if (tiro.embocada) return { tipo: 'embocada' }
+  if (tiro.ajena) {
+    // en el hoyo de OTRO: el golpe cuenta y se sigue jugando el propio. Alivio sin multa, afuera de ese green
+    const otro = (r.hoyos ?? HOYOS).find((h) => h.n === tiro.ajena)
+    r.ajenas = (r.ajenas ?? 0) + 1
+    r.pelota = alivioDeGreen(campo, otro.pin, hoyo.pin) ?? [...r.desde]
+    r.lie = terreno(campo, r.pelota).tipo
+    return { tipo: 'ajena', n: tiro.ajena, jugando: hoyo.n, desde: [...otro.pin] }
+  }
   if (tiro.robada) {
     // se la llevó: +1 y se dropea donde le pegó al mono
     const t = terreno(campo, tiro.pos).tipo
@@ -1203,7 +1267,8 @@ function resolver(campo, r, tiro, rng) {
     r.lie = terreno(campo, r.pelota).tipo
     return { tipo: 'perro', desde: [...tiro.pos] }
   }
-  if (ter.tipo === 'bosque') {
+  // en la cancha de Demetrio (1960) no hay monos: del bosque se juega como está
+  if (ter.tipo === 'bosque' && habilidadDe(r.jugador)?.id !== 'retro') {
     if (rng() < CHANCE_MONO_BUENO) {
       r.pelota = puntoEnCalle(hoyo, tiro.pos)
       r.lie = terreno(campo, r.pelota).tipo
@@ -1220,6 +1285,22 @@ function resolver(campo, r, tiro, rng) {
   r.pelota = [...tiro.pos]
   r.lie = ter.tipo
   return { tipo: 'normal', terreno: ter.tipo, ajeno: ter.hoyo && ter.hoyo !== hoyo.n ? ter.hoyo : null }
+}
+
+/** Alivio del green equivocado: el fairway o rough sin árbol más cerca de `p`, del lado del hoyo que se juega. */
+export function alivioDeGreen(campo, p, pin) {
+  for (let r = 1; r <= 40; r += 0.5) {
+    let mejor = null
+    for (let i = 0; i < 36; i++) {
+      const a = (i / 36) * 2 * Math.PI
+      const q = [p[0] + Math.cos(a) * r, p[1] + Math.sin(a) * r]
+      const t = terreno(campo, q).tipo
+      if ((t !== 'fairway' && t !== 'rough') || pinoEn(campo, q)) continue
+      if (!mejor || dist(q, pin) < dist(mejor, pin)) mejor = q
+    }
+    if (mejor) return mejor
+  }
+  return null
 }
 
 export const necesitaLP = (r) => r.golpes >= MAX_GOLPES
@@ -1262,7 +1343,8 @@ export function levantar(r) {
 export function cerrarHoyo(r, rng) {
   const h = hoyoActual(r)
   calmarMonos(r.monos)
-  const fila = { n: h.n, par: h.par, golpes: r.golpes, lp: false }
+  // Demetrio no hace más que par (ni con una multa)
+  const fila = { n: h.n, par: h.par, golpes: habilidadDe(r.jugador)?.id === 'retro' ? Math.min(r.golpes, h.par) : r.golpes, lp: false }
   r.tarjeta.push(fila)
   r.idx += 1
   if (r.idx >= HOYOS.length) {

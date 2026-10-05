@@ -311,6 +311,21 @@ export const PLANTEL = [
   }
 ]
 
+// 🤫 No está en el mazo: aparece cuando lo desbloqueás (no se dice cómo). Pro en 1960: carta dorada y cancha en sepia.
+export const DEMETRIO = {
+  "apodo": "Demetrio López",
+  "emoji": "🏌️",
+  "hcp": 0,
+  "hcpTexto": "Pro Player",
+  "frase": "En mi época el viento no existía",
+  "foto": "jugadores/demetrio-lopez.webp",
+  "stats": null,
+  "secreto": true,
+  "retro": true
+}
+/** Cómo lo ven los que todavía no lo desbloquearon (en el ranking, en lo que se comparte). */
+export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp": null, "foto": null, "misterio": true }
+
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
 export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa']
 

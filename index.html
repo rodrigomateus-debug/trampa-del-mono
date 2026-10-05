@@ -172,9 +172,21 @@ body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando 
   padding: calc(var(--safe-top) + 28px) 16px calc(var(--safe-bot) + 28px);
   gap: 18px; text-align: center;
 }
+.portada { gap: 14px; }
 .portada > :first-child, #fin > :first-child { margin-top: auto; }
 .portada > :last-child, #fin > :last-child { margin-bottom: auto; }
-.mono-teja { width: 76px; height: 76px; border-radius: 20px; background: var(--cream); display: grid; place-items: center; font-size: 46px; box-shadow: var(--shadow-card); }
+/* el logo de La Trampa del Mono (el de la intro): los ojos del MONO parpadean y miran para los costados */
+.logo-trampa { display: flex; flex-direction: column; align-items: center; margin: 0; padding: 0; font-family: var(--font-display); font-weight: 400; color: var(--cream); line-height: .86; letter-spacing: .012em; text-shadow: 0 8px 30px rgba(5, 18, 11, .45); }
+.logo-trampa .l1 { font-size: clamp(42px, 13.2vw, 78px); }
+.logo-trampa .l2 { display: flex; align-items: flex-end; font-size: clamp(66px, 21.4vw, 126px); margin-top: 7px; }
+.logo-trampa .esp { display: inline-block; width: .2em; }
+.logo-trampa .ojo { display: block; width: .465em; height: .735em; margin: 0 .03em .07em; overflow: visible; filter: drop-shadow(0 6px 18px rgba(5, 18, 11, .4)); }
+.logo-trampa .parpado { transform-box: fill-box; transform-origin: 50% 50%; animation: ojo-parpadea 5.2s infinite; }
+.logo-trampa .pupila { animation: ojo-mira 7s ease-in-out infinite; }
+.logo-trampa .ojo + .ojo .parpado, .logo-trampa svg:last-child .parpado { animation-delay: .04s; }
+@keyframes ojo-parpadea { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.08); } }
+@keyframes ojo-mira { 0%, 18% { transform: translate(0, 0); } 24%, 40% { transform: translate(-12px, 4px); } 46%, 62% { transform: translate(14px, 2px); } 68%, 84% { transform: translate(2px, -10px); } 90%, 100% { transform: translate(0, 0); } }
+@media (prefers-reduced-motion: reduce) { .logo-trampa .parpado, .logo-trampa .pupila { animation: none; } }
 .logo { width: 150px; color: var(--cream); }
 .logo svg { width: 100%; height: auto; display: block; }
 h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(54px, 17vw, 104px); line-height: .98; margin: 0; padding-block: 6px; letter-spacing: .01em; text-wrap: balance; }
@@ -198,6 +210,8 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .todos-cab { width: min(100%, 520px); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .todos-sub { margin: 0; width: min(100%, 520px); text-align: left; font-size: 13px; opacity: .8; }
 .todos-lista { list-style: none; margin: 0; padding: 0; width: min(100%, 520px); display: grid; gap: 10px; text-align: left; }
+.todo.dorado { background: linear-gradient(135deg, #fbe7a1 0%, #e9bf4e 30%, #b47a1b 55%, #f3d273 80%, #c99236 100%); color: #2b1d08; box-shadow: 0 0 0 2px #7a5a1c, 0 0 24px rgba(255, 210, 100, .5); }
+.todo.dorado .carta-jugar { background: #2b1d08; color: #ffe69a; box-shadow: inset 0 0 0 2px #f3d27a; }
 .todo { background: var(--cream); color: var(--green-900); border-radius: 16px; padding: 12px; display: grid; gap: 10px; box-shadow: var(--shadow-card); }
 .todo-cab { display: flex; align-items: center; gap: 12px; }
 .todo-cab .cara { width: 52px; height: 52px; }
@@ -368,6 +382,112 @@ body.manejando #mandos { display: flex; }
 @keyframes rorro-cara { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(3deg); } }
 @keyframes rorro-sello { 0% { opacity: 0; transform: scale(2.6) rotate(-20deg); } 100% { opacity: 1; transform: scale(1) rotate(-8deg); } }
 @keyframes rorro-lluvia { to { transform: translateY(calc(100vh + 120px)) rotate(360deg); } }
+/* 🤫 el personaje secreto: el anuncio que sale del hoyo, dorado y retro */
+#secreto { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; padding: 16px; overflow: hidden; background: radial-gradient(circle at 50% 42%, rgba(255, 214, 110, .32), rgba(12, 9, 4, .88) 66%); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); animation: sec-fondo 700ms ease both; }
+#secreto[hidden] { display: none; }
+#secreto .anuncio { position: relative; z-index: 2; width: min(336px, 100%); margin-top: 70px; padding: 84px 20px 20px; text-align: center; color: #3b2a12; background: linear-gradient(160deg, #fcebb0 0%, #ecc75c 36%, #c9962c 68%, #f5d67f 100%); border-radius: 22px; box-shadow: 0 0 0 3px #7a5a1c, 0 0 0 7px #f3d27a, 0 0 0 9px #7a5a1c, 0 24px 60px rgba(0, 0, 0, .6), 0 0 90px rgba(255, 210, 100, .45); }
+#secreto .anuncio::before { content: ''; position: absolute; inset: 10px; border: 1.5px solid rgba(90, 60, 15, .5); border-radius: 14px; pointer-events: none; }
+#secreto .anuncio::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .5) 48%, transparent 60%); background-size: 280% 100%; animation: sec-brillo 3.2s ease-in-out infinite; }
+#secreto .rayos { position: absolute; left: 50%; top: 0; width: 360px; height: 360px; margin: -180px 0 0 -180px; border-radius: 50%; z-index: 0; pointer-events: none; background: repeating-conic-gradient(from 0deg, rgba(255, 238, 170, .6) 0deg 7deg, transparent 7deg 20deg); -webkit-mask: radial-gradient(circle, #000 20%, transparent 68%); mask: radial-gradient(circle, #000 20%, transparent 68%); animation: sec-gira 16s linear infinite; }
+#secreto .cara { position: absolute; left: 50%; top: -72px; width: 144px; height: 144px; margin-left: -72px; z-index: 1; border-radius: 50%; overflow: hidden; border: 5px solid #f3d27a; box-shadow: 0 0 0 3px #7a5a1c, 0 0 36px rgba(255, 215, 110, .85); background: radial-gradient(circle at 50% 32%, #444a57, #101217 76%); }
+#secreto .cara .silueta { position: absolute; inset: 0; width: 100%; height: 100%; }
+#secreto .cara .pregunta { position: absolute; inset: 0; display: grid; place-items: center; padding-top: 6px; font: 108px/1 var(--font-display); color: #fff3c4; text-shadow: 0 0 18px rgba(255, 220, 120, .95), 0 4px 0 #7a5a1c; animation: sec-late 1.4s ease-in-out infinite; }
+#secreto .cara img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; opacity: 0; transform: scale(1.5); filter: sepia(1) brightness(1.8) blur(8px); }
+#secreto .kicker { color: #7a4f12; letter-spacing: .18em; }
+#secreto h2 { margin: 6px 0 0; font: 29px/1.02 var(--font-display); letter-spacing: .02em; color: #2b1d08; text-shadow: 0 1px 0 rgba(255, 255, 255, .5); text-wrap: balance; }
+#secreto .nombre { margin: 14px 0 0; min-height: 38px; font: 38px/1.05 var(--font-display); letter-spacing: .06em; color: #2b1d08; }
+#secreto .nombre em { display: inline-block; font-style: normal; white-space: nowrap; }
+#secreto .nombre span { display: inline-block; animation: sec-letra 520ms cubic-bezier(.2, 1.7, .4, 1) both; animation-delay: calc(var(--i) * 55ms); }
+#secreto .sub { margin-top: 4px; font: 800 12px/1.3 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: #5a3f12; }
+#secreto .hab { display: none; margin-top: 12px; padding: 10px 12px; text-align: left; background: rgba(255, 248, 225, .78); border: 1.5px solid rgba(90, 60, 15, .45); border-radius: 12px; font: 600 13px/1.35 var(--font-body); color: #3b2a12; }
+#secreto .hab b { display: block; margin-bottom: 3px; font: 18px/1.1 var(--font-display); letter-spacing: .03em; }
+#secreto .nota { display: none; margin-top: 8px; font: 700 11.5px/1.3 var(--font-body); color: #6b4c16; }
+#secreto .btn-sec { position: relative; margin-top: 16px; width: 100%; height: 56px; border: 0; border-radius: 16px; cursor: pointer; font: 24px/1 var(--font-display); letter-spacing: .05em; color: #fff4cf; background: linear-gradient(180deg, #3a2709, #1f1504); box-shadow: 0 4px 0 #0e0902, inset 0 0 0 2px #f3d27a; animation: sec-boton 1.6s ease-in-out infinite; }
+#secreto .btn-sec:active { transform: translateY(3px); box-shadow: 0 1px 0 #0e0902, inset 0 0 0 2px #f3d27a; }
+#secreto .destello { position: fixed; inset: 0; z-index: 4; background: #fffbe8; opacity: 0; pointer-events: none; }
+#secreto .chispas { position: fixed; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+#secreto .chispas i { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: radial-gradient(circle, #fff 0 22%, #ffd76a 50%, transparent 70%); }
+#secreto .chispas b { position: absolute; margin: -12px 0 0 -12px; font-size: 24px; line-height: 1; }
+#secreto.cargando .cara { animation: sec-tiembla 650ms linear both; }
+#secreto.cargando .rayos { animation: sec-gira 2s linear infinite; }
+#secreto.revelado .pregunta { animation: sec-pregunta-sale 650ms cubic-bezier(.5, 0, .8, .4) forwards; }
+#secreto.revelado .silueta { animation: sec-fade 450ms 250ms forwards; }
+#secreto.revelado .cara img { animation: sec-foto 1500ms 380ms cubic-bezier(.2, 1, .3, 1) forwards; }
+#secreto.revelado .cara { animation: sec-cara 900ms cubic-bezier(.3, 1.6, .5, 1); }
+#secreto.revelado .rayos { animation: sec-rayos 1.3s ease-out both, sec-gira 9s linear infinite; }
+#secreto.revelado .hab, #secreto.revelado .nota { display: block; animation: rorro-entra 600ms 1200ms both; }
+@keyframes sec-fondo { from { opacity: 0; } }
+@keyframes sec-gira { to { transform: rotate(360deg); } }
+@keyframes sec-brillo { 0% { background-position: 130% 0; } 100% { background-position: -130% 0; } }
+@keyframes sec-late { 0%, 100% { transform: scale(1) rotate(-4deg); } 50% { transform: scale(1.1) rotate(4deg); } }
+@keyframes sec-boton { 0%, 100% { box-shadow: 0 4px 0 #0e0902, inset 0 0 0 2px #f3d27a, 0 0 0 0 rgba(255, 215, 110, .0); } 50% { box-shadow: 0 4px 0 #0e0902, inset 0 0 0 2px #f3d27a, 0 0 22px 4px rgba(255, 215, 110, .65); } }
+@keyframes sec-tiembla { 0%, 100% { transform: none; } 10% { transform: translate(-3px, 1px) rotate(-3deg); } 20% { transform: translate(3px, -1px) rotate(3deg); } 30% { transform: translate(-4px, 2px) rotate(-4deg) scale(1.03); } 40% { transform: translate(4px, -2px) rotate(4deg) scale(1.04); } 50% { transform: translate(-5px, 1px) rotate(-5deg) scale(1.06); } 60% { transform: translate(5px, -1px) rotate(5deg) scale(1.08); } 70% { transform: translate(-6px, 2px) rotate(-6deg) scale(1.1); } 80% { transform: translate(6px, -2px) rotate(6deg) scale(1.12); } 90% { transform: translate(-3px, 1px) rotate(-3deg) scale(1.14); } }
+@keyframes sec-pregunta-sale { to { opacity: 0; transform: scale(2.6) rotate(25deg); filter: blur(4px); } }
+@keyframes sec-fade { to { opacity: 0; } }
+@keyframes sec-foto { 0% { opacity: 0; transform: scale(1.5); filter: sepia(1) brightness(1.8) blur(8px); } 45% { opacity: 1; filter: sepia(.8) brightness(1.25) blur(1px); } 100% { opacity: 1; transform: scale(1); filter: none; } }
+@keyframes sec-cara { 0% { transform: scale(1.14); } 40% { transform: scale(.92); } 100% { transform: scale(1); } }
+@keyframes sec-rayos { 0% { opacity: .2; scale: .4; } 35% { opacity: 1; scale: 1.6; } 100% { opacity: 1; scale: 1; } }
+@keyframes sec-letra { 0% { opacity: 0; transform: translateY(-26px) scale(2.2) rotate(-12deg); } 100% { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { #secreto *, #secreto { animation-duration: 1ms !important; animation-iteration-count: 1 !important; } }
+/* la carta de Demetrio: dorada y retro */
+/* lámina dorada de metal (con vetas de cepillado) + foil holográfico que se mueve solo y sigue el dedo */
+@property --holo-ang { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
+@property --hx { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+@property --hy { syntax: '<percentage>'; inherits: true; initial-value: 30%; }
+.carta.dorada { position: relative; isolation: isolate; color: #2b1d08; border: 5px solid transparent; border-radius: 24px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .07) 0 1px, transparent 1px 3px) padding-box,
+    linear-gradient(135deg, #fbe7a1 0%, #e9bf4e 14%, #b47a1b 30%, #f3d273 46%, #a86f15 62%, #ecc65f 78%, #946010 92%, #e8c562 100%) padding-box,
+    conic-gradient(from var(--holo-ang), #ffd36e, #ff8fb6, #b68cff, #6fd0ff, #7dffc5, #fff08a, #ffd36e) border-box;
+  box-shadow: 0 0 0 2px #6b4a12, 0 0 30px rgba(255, 210, 100, .75), 0 0 70px rgba(180, 140, 255, .28), 0 12px 32px rgba(12, 43, 28, .5);
+  animation: holo-borde 5s linear infinite, holo-paseo 7s ease-in-out infinite; }
+/* el arcoíris del foil (encima de todo, también de la foto: como las cartas holográficas de verdad) */
+.carta.dorada::before { content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit; mix-blend-mode: color-dodge; opacity: .34;
+  background:
+    repeating-linear-gradient(115deg, #ff6fa8 0%, #ffcf5a 7%, #6dffbf 14%, #5cc6ff 21%, #b884ff 28%, #ff6fa8 35%),
+    repeating-linear-gradient(25deg, rgba(255, 255, 255, .0) 0 10px, rgba(255, 255, 255, .22) 10px 11px);
+  background-size: 260% 260%, 100% 100%; background-position: var(--hx) var(--hy), 0 0;
+  -webkit-mask: radial-gradient(farthest-corner circle at var(--hx) var(--hy), #000 0%, rgba(0, 0, 0, .55) 45%, rgba(0, 0, 0, .25) 100%);
+  mask: radial-gradient(farthest-corner circle at var(--hx) var(--hy), #000 0%, rgba(0, 0, 0, .55) 45%, rgba(0, 0, 0, .25) 100%); }
+/* el brillo: una mancha de luz donde pega la luz y destellitos de purpurina */
+.carta.dorada::after { content: ''; position: absolute; inset: 0; z-index: 6; pointer-events: none; border-radius: inherit; mix-blend-mode: overlay;
+  background:
+    radial-gradient(farthest-corner circle at var(--hx) var(--hy), rgba(255, 255, 255, .6) 0%, rgba(255, 255, 255, .18) 22%, transparent 46%),
+    radial-gradient(circle at 18% 22%, #fff 0 1px, transparent 2px), radial-gradient(circle at 72% 14%, #fff 0 1.2px, transparent 2.4px),
+    radial-gradient(circle at 84% 58%, #fff 0 1px, transparent 2px), radial-gradient(circle at 33% 71%, #fff 0 1.3px, transparent 2.6px),
+    radial-gradient(circle at 57% 88%, #fff 0 1px, transparent 2px), radial-gradient(circle at 9% 54%, #fff 0 1.1px, transparent 2.2px);
+  animation: holo-destellos 2.4s ease-in-out infinite; }
+.carta.dorada.tocando { animation: holo-borde 5s linear infinite; } /* el dedo manda: el foil sigue al dedo */
+@keyframes holo-borde { to { --holo-ang: 360deg; } }
+@keyframes holo-paseo { 0%, 100% { --hx: 18%; --hy: 12%; } 25% { --hx: 82%; --hy: 30%; } 50% { --hx: 70%; --hy: 85%; } 75% { --hx: 22%; --hy: 66%; } }
+@keyframes holo-destellos { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .carta.dorada { animation: none; } .carta.dorada::after { animation: none; } }
+.carta.dorada .carta-foto { margin: 9px 9px 0; border-radius: 16px; overflow: hidden; background: #3b2a12; box-shadow: 0 0 0 2px #7a5a1c, 0 0 0 4px #f6dc8d, 0 0 0 5px #7a5a1c; }
+.carta.dorada .carta-foto img:not(.carta-dicky) { filter: sepia(.55) contrast(1.08) saturate(.9) brightness(.86); }
+.carta.dorada .carta-foto::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(40, 24, 6, .55)); }
+.carta.dorada .carta-degrade { background: linear-gradient(to top, rgba(43, 29, 8, .92), transparent); }
+.carta.dorada .carta-nivel { background: #2b1d08; color: #f3d27a; }
+.carta.dorada .carta-hab, .carta.dorada .carta-dif { background: rgba(43, 29, 8, .88); color: #f3d27a; }
+.carta.dorada .carta-nombre h3 { color: #fff3c4; text-shadow: 0 2px 0 #2b1d08; }
+.carta.dorada .carta-nombre .teja { background: #2b1d08; box-shadow: 0 0 0 2px #f3d27a; }
+.carta.dorada .carta-frase, .carta.dorada dd { color: #2b1d08; }
+.carta.dorada dt, .carta.dorada dd .sub { color: #6b4c16; }
+.carta.dorada .carta-prev { background: #2b1d08; }
+.carta.dorada .carta-prev b { color: #f3d27a; }
+.carta.dorada .carta-jugar { position: relative; z-index: 7; background: linear-gradient(180deg, #3a2709, #1f1504); color: #ffe69a; box-shadow: inset 0 0 0 2px #f3d27a, 0 0 14px rgba(255, 210, 100, .5); }
+.carta.dorada .carta-prev { position: relative; z-index: 7; }
+.carta.dorada .sello-1960 { position: absolute; right: 12px; top: 44px; padding: 5px 9px 4px; font: 15px/1 var(--font-display); letter-spacing: .08em; color: #f3d27a; background: #2b1d08; border: 2px solid #f3d27a; border-radius: 8px; transform: rotate(6deg); }
+/* la cancha de Demetrio: 1960, sepia, viñeta y grano de película */
+body.retro #cancha { filter: sepia(.85) saturate(.8) contrast(1.06) brightness(.98); }
+#retro { position: fixed; inset: 0; pointer-events: none; display: none; }
+body.retro #retro { display: block; background: radial-gradient(ellipse at center, transparent 52%, rgba(46, 28, 8, .55) 100%); }
+body.retro #retro::before { content: ''; position: absolute; inset: -50%; opacity: .16; mix-blend-mode: multiply; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23g)'/></svg>"); animation: retro-grano .5s steps(4) infinite; }
+body.retro #retro::after { content: ''; position: absolute; inset: 0; background: rgba(255, 236, 190, .05); animation: retro-titila 3.7s steps(1) infinite; }
+@keyframes retro-grano { 0% { transform: translate(0, 0); } 25% { transform: translate(-5%, 3%); } 50% { transform: translate(4%, -4%); } 75% { transform: translate(-3%, -2%); } }
+@keyframes retro-titila { 0%, 100% { opacity: 1; } 41% { opacity: .2; } 43% { opacity: 1; } 77% { opacity: .5; } 78% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { body.retro #retro::before, body.retro #retro::after { animation: none; } }
+/* en el ranking, al que no lo desbloqueó: cara de misterio */
+.mini.misterio { background: #12141a; color: #fff3c4; font-family: var(--font-display); text-shadow: 0 0 8px rgba(255, 220, 120, .8); box-shadow: inset 0 0 0 2px #e8c34a; }
 /* pisaste un mono: el sello de la multa y la sacudida */
 #multa { position: fixed; left: 50%; top: 34%; z-index: 40; pointer-events: none; text-align: center; transform: translate(-50%, -50%); }
 #multa[hidden] { display: none; }
@@ -432,7 +552,31 @@ input { -webkit-user-select: text; user-select: text; }
 .quien-juega input:focus { outline: none; border-color: var(--gold); }
 .quien-juega.falta input { border-color: var(--red); }
 .quien-juega.falta .kicker { color: #f0a497; }
-.portada-botones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.portada-botones { display: grid; gap: 10px; width: min(100%, 400px); }
+/* JUGAR: el botón principal, dorado y con relieve, como una ficha del SDGA */
+.btn-jugar { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 8px 14px 8px 9px; border: 0; border-radius: 18px; cursor: pointer; text-align: left; color: var(--green-900); background: linear-gradient(180deg, #f2d26a 0%, var(--gold) 55%, #d9ae35 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 0 0 2px rgba(20, 64, 42, .18), 0 5px 0 #8f6d18, 0 12px 22px rgba(8, 26, 16, .45); overflow: hidden; transition: transform 110ms var(--ease-snap), box-shadow 110ms; -webkit-tap-highlight-color: transparent; }
+.btn-jugar::after { content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; background: linear-gradient(105deg, transparent, rgba(255, 255, 255, .45), transparent); transform: skewX(-18deg); animation: jugar-brillo 4.5s ease-in-out infinite 1.2s; pointer-events: none; }
+.btn-jugar:active { transform: translateY(4px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 0 0 2px rgba(20, 64, 42, .18), 0 1px 0 #8f6d18, 0 4px 10px rgba(8, 26, 16, .4); }
+.btn-jugar:focus-visible { outline: 3px solid var(--cream); outline-offset: 3px; }
+.btn-jugar .ic { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; background: var(--green-900); color: var(--gold); box-shadow: inset 0 0 0 2px rgba(244, 238, 218, .25); }
+.btn-jugar .ic svg { width: 27px; height: 27px; }
+.btn-jugar .txt { display: grid; gap: 3px; }
+.btn-jugar .txt b { font: 29px/0.95 var(--font-display); letter-spacing: .06em; font-weight: 400; }
+.btn-jugar .txt small { font: 800 11px/1 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: rgba(20, 64, 42, .72); }
+.btn-jugar .flecha { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgba(20, 64, 42, .12); }
+.btn-jugar .flecha svg { width: 18px; height: 18px; }
+@keyframes jugar-brillo { 0%, 70% { left: -60%; } 100% { left: 130%; } }
+/* las tejas: verde del SDGA, borde crema de tarjeta de score y relieve */
+.portada-tejas { display: flex; gap: 10px; }
+.teja-btn { position: relative; flex: 1 1 0; min-width: 0; display: grid; justify-items: center; align-content: center; gap: 5px; min-height: 68px; padding: 9px 6px 8px; border: 0; border-radius: 16px; cursor: pointer; color: var(--cream); background: linear-gradient(180deg, #1f5a3b 0%, var(--green-900) 100%); box-shadow: inset 0 0 0 2px rgba(244, 238, 218, .55), inset 0 0 0 5px var(--green-900), inset 0 0 0 6px rgba(232, 195, 74, .35), 0 4px 0 #0a2416, 0 10px 18px rgba(8, 26, 16, .4); transition: transform 110ms var(--ease-snap), box-shadow 110ms; -webkit-tap-highlight-color: transparent; }
+.teja-btn[hidden] { display: none; }
+.teja-btn:active { transform: translateY(3px); box-shadow: inset 0 0 0 2px rgba(244, 238, 218, .55), inset 0 0 0 5px var(--green-900), inset 0 0 0 6px rgba(232, 195, 74, .35), 0 1px 0 #0a2416, 0 4px 8px rgba(8, 26, 16, .4); }
+.teja-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.teja-btn svg { width: 28px; height: 28px; color: var(--gold); }
+.teja-btn span { font: 15px/1 var(--font-display); letter-spacing: .07em; }
+.teja-btn .aviso { position: absolute; top: -6px; right: -4px; margin: 0; box-shadow: 0 0 0 2px var(--green-900); }
+@media (prefers-reduced-motion: reduce) { .btn-jugar::after { animation: none; } }
+.volver-app svg { width: 15px; height: 15px; vertical-align: -2px; margin-right: 4px; }
 
 /* ── resumen de la vuelta para compartir ── */
 #resumen { background: var(--green-950); justify-content: center; gap: 14px; }
@@ -451,6 +595,27 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-ambito button { height: 34px; border: 0; border-radius: 999px; background: transparent; color: var(--green-900); font: 800 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
 .rk-ambito:has(> :nth-child(3)) { grid-template-columns: repeat(3, 1fr); }
 .rk-ambito:has(> :nth-child(3)) button { font-size: 11px; letter-spacing: .02em; padding: 0 4px; }
+.rk-ambito:has(> :nth-child(4)) { grid-template-columns: repeat(2, 1fr); border-radius: 18px; }
+.rk-ambito:has(> :nth-child(4)) button { font-size: 12px; }
+/* el ranking de matches */
+.mtr-fila .rk-pos { font-size: 18px; }
+.mtr-fila .wdl { justify-self: end; }
+.mtr-pct { font-family: var(--font-display); font-size: 18px; text-align: right; min-width: 3.2ch; }
+.mtr-pct small { display: block; font: 600 10px var(--font-body); color: var(--text-muted); letter-spacing: .04em; }
+.rs-rivales { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rs-rivales li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(20, 64, 42, .07); font: 700 14px var(--font-body); }
+.rs-record { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.rs-record div { padding: 10px 6px 8px; border-radius: 14px; text-align: center; background: rgba(20, 64, 42, .07); }
+.rs-record b { display: block; font: 40px/1 var(--font-display); font-weight: 400; }
+.rs-record span { font: 800 10px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
+.rs-record .g { background: rgba(46, 125, 79, .16); color: #2e7d4f; }
+.rs-record .p { background: rgba(188, 75, 60, .13); color: var(--red); }
+/* el botón de WhatsApp (resultado del match) */
+.btn-wa { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border: 0; border-radius: 999px; background: #25d366; color: #fff; font: 800 14px var(--font-body); letter-spacing: .04em; cursor: pointer; box-shadow: 0 3px 0 #128c4b; }
+.btn-wa:active { transform: translateY(2px); box-shadow: 0 1px 0 #128c4b; }
+.btn-wa svg { width: 20px; height: 20px; }
+.wa-mini { width: 36px; height: 36px; border-radius: 50%; border: 0; display: grid; place-items: center; background: #25d366; color: #fff; cursor: pointer; box-shadow: 0 2px 0 #128c4b; flex: none; }
+.wa-mini svg { width: 19px; height: 19px; }
 .rk-ambito button[aria-selected="true"] { background: var(--green-900); color: var(--cream); }
 .conteo { margin: 0; font-size: 13px; color: rgba(244, 238, 218, .75); }
 .conteo b { color: var(--cream); }
@@ -488,6 +653,7 @@ input { -webkit-user-select: text; user-select: text; }
 .mt-buscar { height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border-subtle); background: #fff; color: var(--green-900); font: 600 15px var(--font-body); }
 .mt-buscar[hidden] { display: none; }
 .mt-fila { grid-template-columns: 30px minmax(0, 1fr) auto; text-align: left; }
+.mt-fila:has(.wa-mini) { grid-template-columns: 30px minmax(0, 1fr) auto auto; }
 .mt-fila .mini { width: 30px; height: 30px; font-size: 16px; }
 .mt-fila .rk-nombre small.gana { color: var(--green-500); }
 .mt-fila .rk-nombre small.pierde { color: var(--red); }
@@ -516,6 +682,63 @@ input { -webkit-user-select: text; user-select: text; }
 .wdl .p { background: rgba(188, 75, 60, .18); }
 #h-fantasma { background: rgba(244, 238, 218, .9); color: var(--green-900); justify-self: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 #h-fantasma[hidden] { display: none; }
+.rk-fila.tocable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 120ms; }
+.rk-fila.tocable:active { background: rgba(20, 64, 42, .1); }
+.rk-fila.tocable:focus-visible { outline: 3px solid var(--gold); outline-offset: -2px; border-radius: 10px; }
+/* el sello del SDGA: los socios, en el ranking Mundial */
+.sello-sdga { flex: none; display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 5px; background: var(--green-900); color: var(--gold); box-shadow: inset 0 0 0 1.5px var(--gold); vertical-align: middle; }
+.sello-sdga svg { display: block; height: 7.5px; width: auto; }
+.rk-nombre .linea b { min-width: 0; flex: 0 1 auto; }
+.rk-nombre .linea { display: flex; align-items: center; gap: 6px; min-width: 0; }
+/* el resumen de una vuelta del ranking */
+.rs-caja { position: relative; width: min(100%, 370px); max-height: calc(100dvh - 32px); overflow-y: auto; box-sizing: border-box; background: var(--cream); color: var(--green-900); border-radius: 22px; padding: 16px 16px 14px; box-shadow: 0 18px 48px rgba(0, 0, 0, .5); display: grid; gap: 12px; animation: hab-pop .22s cubic-bezier(.2, .9, .3, 1.2); }
+.rs-caja .hab-x { background: rgba(20, 64, 42, .12); color: var(--green-900); }
+.rs-kicker { margin: 0; padding-right: 40px; font: 800 11px/1.2 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); }
+.rs-quien { display: flex; align-items: center; gap: 8px; margin: -4px 0 0; font: 32px/1 var(--font-display); letter-spacing: .02em; overflow-wrap: anywhere; }
+.rs-quien .sello-sdga { height: 22px; padding: 0 7px; }
+.rs-quien .sello-sdga svg { height: 11px; }
+.rs-player { display: grid; grid-template-columns: 58px 1fr; gap: 12px; align-items: center; padding: 10px; border-radius: 16px; background: var(--green-900); color: var(--cream); }
+.rs-player .cara { position: relative; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: var(--green-700); display: grid; place-items: center; font-size: 30px; box-shadow: 0 0 0 2px var(--gold); }
+.rs-player .cara img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.rs-player .cara.misterio { background: #12141a; color: #fff3c4; font: 34px/1 var(--font-display); }
+.rs-player small { display: block; font: 800 10.5px/1.2 var(--font-body); letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+.rs-player b { display: block; font: 22px/1.05 var(--font-display); letter-spacing: .02em; font-weight: 400; }
+.rs-player span { display: block; margin-top: 2px; font: 700 12px/1.3 var(--font-body); color: var(--gold); }
+.rs-score { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+.rs-score .grande { min-width: 86px; padding: 8px 12px 6px; text-align: center; font: 52px/1 var(--font-display); background: var(--gold); border-radius: 14px; }
+.rs-score .grande.bajo { background: #2e7d4f; color: var(--cream); }
+.rs-score .grande.sobre { background: var(--red); color: var(--cream); }
+.rs-score p { margin: 0; font: 700 14px/1.4 var(--font-body); }
+.rs-score p b { font: 22px/1.1 var(--font-display); font-weight: 400; display: block; }
+.rs-datos { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rs-datos div { padding: 8px 10px; border-radius: 12px; background: rgba(20, 64, 42, .07); }
+.rs-datos dt { font: 800 10px/1.2 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.rs-datos dd { margin: 3px 0 0; font: 18px/1.1 var(--font-display); font-variant-numeric: tabular-nums; }
+.rs-datos dd small { display: block; margin-top: 2px; font: 600 11.5px/1.3 var(--font-body); color: var(--text-muted); }
+.rs-datos .ancho { grid-column: 1 / -1; }
+.rs-hoyos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.rs-hoyos div { padding: 6px 4px; border-radius: 10px; text-align: center; background: rgba(20, 64, 42, .07); font: 700 11px/1.2 var(--font-body); color: var(--text-muted); }
+.rs-hoyos b { display: block; font: 24px/1 var(--font-display); font-weight: 400; color: var(--green-900); margin-top: 2px; }
+.rs-hoyos .bajo b { color: #2e7d4f; }
+.rs-hoyos .sobre b { color: var(--red); }
+.rs-titulo { margin: 2px 0 -4px; font: 800 11px/1 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: var(--text-muted); }
+.rs-caja .carta-jugar { height: 44px; }
+/* 🔒 el player secreto, para el que todavía no lo desbloqueó */
+.rs-caja.bloqueado { background: radial-gradient(120% 70% at 50% 0%, #2a3140 0%, #12141a 70%); color: #fff3c4; box-shadow: 0 0 0 2px #e8c34a, 0 0 40px rgba(232, 195, 74, .35), 0 18px 48px rgba(0, 0, 0, .6); }
+.rs-caja.bloqueado .hab-x { background: rgba(255, 243, 196, .12); color: #fff3c4; }
+.rs-caja.bloqueado > .carta-jugar { background: transparent; color: #fff3c4; box-shadow: inset 0 0 0 2px rgba(255, 243, 196, .35); }
+.rb-cara { position: relative; width: 120px; height: 120px; margin: 4px auto 0; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, #444a57, #101217 76%); box-shadow: 0 0 0 4px #e8c34a, 0 0 34px rgba(232, 195, 74, .6); font: 86px/1 var(--font-display); color: #fff3c4; text-shadow: 0 0 18px rgba(255, 220, 120, .9); animation: sec-late 1.6s ease-in-out infinite; }
+.rb-cara svg { position: absolute; right: -6px; bottom: -4px; width: 44px; height: 44px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.rb-kicker { margin: 6px 0 0; text-align: center; font: 800 11px/1.2 var(--font-body); letter-spacing: .24em; text-transform: uppercase; color: #e8c34a; }
+.rb-titulo { margin: 2px 0 0; text-align: center; font: 34px/1 var(--font-display); letter-spacing: .02em; color: #fff3c4; text-wrap: balance; }
+.rb-texto { margin: 0; text-align: center; font: 600 14.5px/1.45 var(--font-body); color: rgba(255, 243, 196, .88); text-wrap: pretty; }
+.rb-texto b { color: #e8c34a; }
+.rb-fichas { display: grid; gap: 6px; margin: 2px 0 0; padding: 0; list-style: none; }
+.rb-fichas li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 12px; background: rgba(255, 243, 196, .07); box-shadow: inset 0 0 0 1px rgba(232, 195, 74, .25); font: 700 13px/1.2 var(--font-body); color: rgba(255, 243, 196, .75); }
+.rb-fichas li b { font: 16px/1 var(--font-display); letter-spacing: .08em; color: #fff3c4; }
+.rb-pista { margin: 0; padding: 10px 12px; border-radius: 12px; border: 1.5px dashed rgba(232, 195, 74, .55); text-align: center; font: italic 600 13.5px/1.4 var(--font-body); color: #e8c34a; }
+.rb-ir { width: 100%; height: 52px; border: 0; border-radius: 16px; cursor: pointer; font: 22px/1 var(--font-display); letter-spacing: .05em; color: #2b1d08; background: linear-gradient(180deg, #f6dc8d, #e0b23c); box-shadow: 0 4px 0 #8f6d18, 0 0 22px rgba(232, 195, 74, .45); }
+.rb-ir:active { transform: translateY(3px); box-shadow: 0 1px 0 #8f6d18; }
 .rk-vacio { margin: 0; padding: 18px 4px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -528,6 +751,7 @@ input { -webkit-user-select: text; user-select: text; }
 </head>
 <body>
 <canvas id="cancha" aria-label="La cancha: hoyos 15, 16 y 17 de San Diego"></canvas>
+<div id="retro" aria-hidden="true"></div>
 <div id="intro-app" aria-label="Intro: La Trampa del Mono"></div>
 
 <div id="hud-top" hidden>
@@ -591,6 +815,25 @@ input { -webkit-user-select: text; user-select: text; }
   </div>
   <div class="lluvia" aria-hidden="true"></div>
 </div>
+<div id="secreto" hidden role="dialog" aria-modal="true" aria-labelledby="secreto-titulo">
+  <div class="anuncio">
+    <div class="rayos" aria-hidden="true"></div>
+    <div class="cara">
+      <svg class="silueta" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="40" r="19" fill="#05060a"/><path d="M14 104 C14 72 30 62 50 62 C70 62 86 72 86 104 Z" fill="#05060a"/></svg>
+      <span class="pregunta" aria-hidden="true">?</span>
+      <img alt="" width="640" height="640">
+    </div>
+    <span class="kicker" id="secreto-kicker"></span>
+    <h2 id="secreto-titulo"></h2>
+    <div class="nombre" id="secreto-nombre"></div>
+    <div class="sub" id="secreto-sub"></div>
+    <div class="hab" id="secreto-hab"></div>
+    <div class="nota" id="secreto-nota"></div>
+    <button class="btn-sec" id="secreto-boton" type="button"></button>
+  </div>
+  <div class="chispas" aria-hidden="true"></div>
+  <div class="destello" aria-hidden="true"></div>
+</div>
 <button id="deme-btn" type="button" hidden aria-label="Invocar a Deme"><img src="jugadores/deme-cabeza.webp" alt="" width="260" height="207"><span>DEME</span></button>
 <div id="deme" hidden aria-live="polite"><svg viewBox="0 0 360 300" aria-label="Deme"></svg><p class="globo"></p></div>
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
@@ -613,8 +856,7 @@ input { -webkit-user-select: text; user-select: text; }
   <path d="M193.07,29.64c-.86-2.21-1.84-4.27-2.94-6.18-1.1-1.91-2.03-3.33-2.8-4.28-.76-.95-1.45-1.72-2.07-2.31l-1.97-1.79c-7.47-6.11-19.98-9.25-37.51-9.43-1.03,0-2.64.01-4.83.06-2.19.05-3.89.07-5.1.06l-6.18-.06c-.18,0-.8-.02-1.85-.05-1.05-.03-1.98-.05-2.78-.06-.81,0-1.83,0-3.06.02-1.23.02-2.29.09-3.18.19-.88.1-1.77.23-2.65.39-.88.16-1.56.39-2.02.7-.46.31-.7.66-.7,1.07l-.81,77.87c-.02,1.47.41,3.09,1.27,4.87,7.47-.22,15.81-.28,25.04-.18,1.58.02,3.93.08,7.06.18,3.12.11,5.48.17,7.06.18l1.76.02c4.26.04,8.41-.53,12.43-1.72,4.02-1.19,7.76-3.01,11.23-5.45,3.46-2.45,6.49-5.36,9.08-8.76,2.59-3.39,4.65-7.41,6.16-12.07,1.52-4.65,2.31-9.66,2.36-15.03.03-3.46-.24-6.8-.83-10.05-.59-3.24-1.32-5.97-2.18-8.19ZM166.01,79.62c-1.03.8-2.24,1.9-3.46,1.21-1.63-.92-.14-2.28.17-3.38.61-2.24.58-4.47.51-6.75-.06-2.07,1.02-2.09,2.48-1.15,3.41,2.2,3.57,7.35.31,10.08ZM165.75,63.01c-1.15.49-3.3.72-2.51-1.11,1.56-3.63.67-7.23.71-11.09,3.92.77,5.54,3.14,5.6,6.52.05,2.62-1.34,4.63-3.8,5.67ZM168.97,44.1c-.97,1.16-2.44,2.13-3.87,1.45-1.81-.86-.3-2.28.07-3.35.58-1.67.33-3.17-.23-4.76-.44-1.26-1.88-2.85.05-3.82,1.67-.84,3.02.63,4.25,1.42,2.41,3.21,2.13,6.21-.25,9.06ZM170.15,26.39c-1.08.99-2.39,2.32-3.86,1.53-1.8-.97-.45-2.59-.02-3.84.51-1.5.38-2.8-.18-4.26-.46-1.21-2.02-2.83-.14-3.86,1.65-.9,3.05.51,4.4,1.62,1.58,2.94,2.95,5.92-.2,8.81ZM179.28,69.83c-1.09.71-2.31,1.83-3.55,1.13-1.69-.96-.2-2.33.17-3.41.71-2.11.75-4.16.13-6.27-.24-.81-.4-1.86.42-2.18.61-.24,1.61.1,2.27.48,3.38,1.95,3.65,7.56.56,10.25ZM180.18,54.12c-1.05.81-2.31,1.85-3.52,1.16-1.67-.94-.19-2.31.19-3.4.78-2.23.07-4.15-.81-6.13-.38-.86-.72-2.05.48-2.53.65-.26,1.63-.13,2.32.17,4.12,1.8,4.84,7.76,1.34,10.72ZM182.43,37.24c-1.06,1.57-2.66,2.97-4.42,2.18-2.03-.91-.04-2.51.24-3.73.42-1.84.19-3.51-.42-5.22-.32-.9-.64-1.84-.1-2.79.96-.59,1.85-.26,2.75.2,3.01,1.53,4.03,6.29,1.96,9.37Z"></path>
 </svg></div>
   <span class="kicker">SDGA Tour · hoyos 15 · 16 · 17</span>
-  <div class="mono-teja" aria-hidden="true">🐒</div>
-  <h1>LA TRAMPA DEL MONO</h1>
+  <h1 class="logo-trampa" aria-label="La Trampa del Mono"><span class="l1" aria-hidden="true">LA TRAMPA</span><span class="l2" aria-hidden="true">DEL<i class="esp"></i>M<svg class="ojo" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda"/><g fill="#e7dfc2"><circle cx="22" cy="40" r="6"/><circle cx="48" cy="22" r="6"/><circle cx="76" cy="38" r="6"/><circle cx="16" cy="78" r="6"/><circle cx="84" cy="80" r="6"/><circle cx="24" cy="118" r="6"/><circle cx="50" cy="136" r="6"/><circle cx="77" cy="118" r="6"/></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a"/><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c"/><circle cx="58" cy="74" r="6" fill="#fff"/></g></g></svg>N<svg class="ojo" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda"/><g fill="#e7dfc2"><circle cx="22" cy="40" r="6"/><circle cx="48" cy="22" r="6"/><circle cx="76" cy="38" r="6"/><circle cx="16" cy="78" r="6"/><circle cx="84" cy="80" r="6"/><circle cx="24" cy="118" r="6"/><circle cx="50" cy="136" r="6"/><circle cx="77" cy="118" r="6"/></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a"/><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c"/><circle cx="58" cy="74" r="6" fill="#fff"/></g></g></svg></span></h1>
   <span class="band">DONDE TODO SE VA</span>
   <p class="bajada">Mientras Gonza cierra con Nintendo los derechos del Mario Golf, jugá los tres hoyos que más tarjetas rompieron en San Diego.</p>
   <p class="conteo" id="conteo" hidden></p>
@@ -623,12 +865,18 @@ input { -webkit-user-select: text; user-select: text; }
   <p class="nota-google" id="nota-google" hidden>Con la misma cuenta de la SDGApp: si sos del club, entrás con tu jugador.</p>
   <label class="quien-juega" id="quien-juega"><span class="kicker">¿Quién juega?</span><input id="usuario" type="text" maxlength="20" autocomplete="nickname" autocapitalize="words" spellcheck="false" placeholder="Tu nombre para el ranking"></label>
   <div class="portada-botones">
-    <button class="btn" id="jugar" type="button">JUGAR</button>
-    <button class="btn ghost" id="ver-match" type="button" hidden>MATCH ⚔️<b class="aviso" id="match-aviso" hidden></b></button>
-    <button class="btn ghost" id="ver-ranking" type="button">RANKING 🏆</button>
-    <button class="btn ghost" id="ver-intro" type="button">INTRO ▶</button>
+    <button class="btn-jugar" id="jugar" type="button">
+      <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="16" cy="27" rx="9" ry="2.6" stroke-width="2"/><path d="M12 27V4"/><path d="M12 5l13 4.5L12 14z" fill="currentColor"/><circle cx="21" cy="25.6" r="1.9" fill="currentColor" stroke="none"/></svg></span>
+      <span class="txt"><b>JUGAR</b><small>Hoyos 15 · 16 · 17 · Par 11</small></span>
+      <span class="flecha" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l6 6-6 6"/></svg></span>
+    </button>
+    <div class="portada-tejas">
+      <button class="teja-btn" id="ver-match" type="button" hidden><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 26L22 8"/><path d="M22 8l2.5-2.8 3.3 1.6-1.4 3.6-3.4 .4"/><path d="M26 26L10 8"/><path d="M10 8L7.5 5.2 4.2 6.8l1.4 3.6 3.4 .4"/><circle cx="16" cy="25" r="2.2" fill="currentColor" stroke="none"/></svg><span>MATCH</span><b class="aviso" id="match-aviso" hidden></b></button>
+      <button class="teja-btn" id="ver-ranking" type="button"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5h12v7a6 6 0 0 1-12 0z"/><path d="M10 7H6.5a3.5 3.5 0 0 0 4 4.4"/><path d="M22 7h3.5a3.5 3.5 0 0 1-4 4.4"/><path d="M16 18v4"/><path d="M11 27h10l-1.2-5h-7.6z"/><path d="M14.6 8.6l1.4-1 v5.4" stroke-width="2"/></svg><span>RANKING</span></button>
+      <button class="teja-btn" id="ver-intro" type="button"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="24" height="16" rx="2.5"/><path d="M4.6 11L26 5.2l1.2 4.4"/><path d="M10 9.4l3.4 1.6M16.6 7.6l3.4 1.6" stroke-width="2"/><path d="M14 15.5v7l6-3.5z" fill="currentColor"/></svg><span>INTRO</span></button>
+    </div>
   </div>
-  <button class="volver-app" id="volver-app" type="button" hidden>← Volver a la SDGApp</button>
+  <button class="volver-app" id="volver-app" type="button" hidden><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
 </section>
 
@@ -655,6 +903,14 @@ input { -webkit-user-select: text; user-select: text; }
   <ol class="todos-lista" id="todos-lista"></ol>
 </section>
 
+<div class="hab-modal" id="rk-resumen" hidden style="z-index: 52">
+  <div class="hab-fondo" data-cerrar></div>
+  <div class="rs-caja" role="dialog" aria-modal="true" aria-labelledby="rs-quien">
+    <button class="hab-x" type="button" data-cerrar aria-label="Cerrar">×</button>
+    <div id="rs-cuerpo" style="display: grid; gap: 12px"></div>
+    <button class="carta-jugar" type="button" data-cerrar>Cerrar</button>
+  </div>
+</div>
 <div class="hab-modal" id="hab-modal" hidden>
   <div class="hab-fondo" data-cerrar></div>
   <div class="hab-caja" role="dialog" aria-modal="true" aria-labelledby="hab-tit">
@@ -730,6 +986,7 @@ input { -webkit-user-select: text; user-select: text; }
       <button type="button" role="tab" data-mt="desafiar" aria-selected="true">⚔️ Desafiar</button>
       <button type="button" role="tab" data-mt="mios" aria-selected="false">📋 Pendientes<b class="aviso" id="mt-aviso" hidden></b></button>
       <button type="button" role="tab" data-mt="historial" aria-selected="false">📊 Historial</button>
+      <button type="button" role="tab" data-mt="ranking" aria-selected="false">🏆 Ranking</button>
     </div>
     <input class="mt-buscar" id="mt-buscar" type="search" placeholder="Buscar rival…" autocomplete="off" spellcheck="false">
     <ol class="rk-lista" id="mt-lista"></ol>
@@ -757,11 +1014,11 @@ input { -webkit-user-select: text; user-select: text; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=9da7da3330'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js?v=9da7da3330'
+import * as M from './motor.js?v=03abb03f96'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO } from './plantel.js?v=03abb03f96'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=9da7da3330'
-import * as S from './sonido.js?v=9da7da3330'
+import * as R from './ranking.js?v=03abb03f96'
+import * as S from './sonido.js?v=03abb03f96'
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 // el nivel fijado a mano manda (Fito, Trampa total, va al final)
@@ -791,6 +1048,19 @@ function guardar(d) { try { localStorage.setItem(CLAVE, JSON.stringify(d)) } cat
 let datos = leer()
 datos.records ??= {}
 datos.usuario ??= ''
+// 🤫 Demetrio López: solo lo tiene en el mazo (primero) el que lo desbloqueó; en el match no va (el rival lo vería)
+// Para probar: ?olvidar-secreto lo vuelve a bloquear; ?probar-secreto arranca con la pelota en el green del 16, al lado del hoyo.
+const PARAMS = new URLSearchParams(location.search)
+let matchModo = null // lo que sigue al elegir player: { tipo: 'reto', rival, semilla } | { tipo: 'respuesta', desafio, fantasma }
+if (PARAMS.has('olvidar-secreto')) { delete datos.demetrio; guardar(datos) }
+function sincronizarSecreto() {
+  const tiene = PLANTEL.includes(DEMETRIO)
+  const va = !!datos.demetrio && !matchModo
+  if (va && !tiene) PLANTEL.unshift(DEMETRIO) // el que lo desbloqueó lo ve primero, sin buscarlo
+  if (!va && tiene) PLANTEL.splice(PLANTEL.indexOf(DEMETRIO), 1)
+}
+/** Cómo ve a un player alguien que todavía no desbloqueó a Demetrio (ranking, lo que se comparte). */
+const publico = (j) => (j?.apodo === DEMETRIO.apodo && !datos.demetrio ? { ...j, ...MISTERIOSO } : j)
 
 // ── cancha ──
 const campo = M.crearCampo()
@@ -1086,11 +1356,12 @@ function alReposo() {
   const largo = M.dist(ronda.desde, h.pin)
   const desde = [...ronda.desde], lieDesde = ronda.lieDesde // de dónde salió (drive, approach o putt)
   const res = M.resolverReposo(campo, ronda, tiro, rng)
+  if (res.tipo === 'ajena') { hoyoEquivocado(res); return }
   const dicho = M.comentar(rng, res, tiro, h, ronda.jugador, { desde, lieDesde })
   lucasDice(dicho.lucas) // con Rodal: Lucas en persona
   if (res.tipo === 'embocada') {
     const hab = M.habilidadDe(ronda.jugador)
-    const frase = tiro.deme ? '¡LO DIJO DEME! 🧙' : hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
+    const frase = tiro.deme ? '¡LO DIJO DEME! 🧙' : tiro.retro ? M.elegir(rng, ['Par de Demetrio. Como en el 60 🏌️', 'Ni el viento se animó. Par.', 'Así se jugaba antes: par y a casa', 'Par. Más que eso, Demetrio no hace']) : hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
     embocar(frase)
     return
   }
@@ -1269,6 +1540,105 @@ function embocar(frase) {
   cerrar(frase)
 }
 
+// ── 🤫 la metiste en el hoyo de OTRO (uno que no estás jugando) ──
+// Nadie lo sabe hasta que le pasa: el hoyo brilla, sale un anuncio de adentro y se desbloquea Demetrio López.
+// El golpe cuenta y se sigue con alivio sin multa afuera de ese green.
+function hoyoEquivocado(res) {
+  drag = null
+  estado = 'anim'
+  hud()
+  const primera = !datos.demetrio
+  datos.demetrio ??= { fecha: new Date().toISOString(), jugando: res.jugando, en: res.n, con: ronda.jugador.apodo }
+  datos.demetrio.veces = (datos.demetrio.veces ?? 0) + 1
+  guardar(datos) // se guarda ya: si se cierra la app antes de tocar DESBLOQUEAR, no se pierde
+  S.embocada()
+  setTimeout(() => S.secreto(), 350)
+  // la cámara se va al hoyo equivocado y se acerca despacio mientras brilla
+  obj = { ...obj, cx: res.desde[0], cy: res.desde[1], esc: 18 }
+  velCam = 2.2
+  relatar({ lg: `✨ ¿EN EL ${res.n}? ¿QUÉ PASÓ ACÁ?`, verso: 'Algo brilla adentro del hoyo…' })
+  anim = { tipo: 'secreto', desde: res.desde, t: 0, T: 2.3, fin: () => mostrarSecreto(res, primera) }
+}
+function mostrarSecreto(res, primera) {
+  const el = $('#secreto')
+  const pausa = performance.now() // el reloj no corre mientras festejás
+  const hab = M.habilidadDe(DEMETRIO)
+  const anuncio = el.querySelector('.anuncio'), boton = $('#secreto-boton')
+  el.className = ''
+  el.querySelector('.chispas').innerHTML = ''
+  el.querySelector('.cara img').src = DEMETRIO.foto
+  $('#secreto-hab').innerHTML = `<b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}`
+  $('#secreto-nota').textContent = `Ya está en el mazo, primero. El golpe cuenta: alivio sin multa afuera de ese green y seguís en el ${res.jugando}.`
+  const revelar = (conTodo) => {
+    el.classList.remove('cargando')
+    el.classList.add('revelado')
+    $('#secreto-kicker').textContent = conTodo ? 'Nuevo personaje secreto' : `Otra vez en el ${res.n}…`
+    $('#secreto-titulo').textContent = conTodo ? '¡DESBLOQUEADO!' : 'DEMETRIO TE SALUDA'
+    let i = 0 // letra por letra (cada una cae con su sello), sin cortar las palabras
+    $('#secreto-nombre').innerHTML = DEMETRIO.apodo.toUpperCase().split(' ').map((p) => `<em>${[...p].map((c) => `<span style="--i:${i++}">${esc(c)}</span>`).join('')}</em>`).join(' ')
+    $('#secreto-sub').textContent = `${DEMETRIO.emoji} Pro en 1960 · carta dorada`
+    boton.textContent = 'SEGUIR JUGANDO'
+    boton.onclick = seguir
+    if (!conTodo) return
+    // el destello, los rayos que explotan y las chispas doradas que salen de la cara
+    el.querySelector('.destello').animate([{ opacity: 0 }, { opacity: 0.95, offset: 0.18 }, { opacity: 0 }], { duration: 900, easing: 'ease-out' })
+    const r = el.querySelector('.cara').getBoundingClientRect()
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2
+    const chispas = el.querySelector('.chispas')
+    for (let i = 0; i < 46; i++) {
+      const e = document.createElement(i % 5 ? 'i' : 'b')
+      if (i % 5 === 0) e.textContent = ['✨', '⭐', '🏌️', '✨'][(i / 5) % 4]
+      e.style.left = `${cx}px`; e.style.top = `${cy}px`
+      chispas.appendChild(e)
+      const a = Math.random() * Math.PI * 2, d = 120 + Math.random() * 260, cae = 80 + Math.random() * 160
+      e.animate([
+        { transform: 'translate(0,0) scale(.3)', opacity: 1 },
+        { transform: `translate(${Math.cos(a) * d}px, ${Math.sin(a) * d}px) scale(1.2)`, opacity: 1, offset: 0.45 },
+        { transform: `translate(${Math.cos(a) * d * 1.15}px, ${Math.sin(a) * d + cae}px) scale(.5) rotate(${Math.random() * 540}deg)`, opacity: 0 },
+      ], { duration: 1300 + Math.random() * 900, easing: 'cubic-bezier(.15,.8,.3,1)', fill: 'forwards' })
+    }
+    S.revelar()
+  }
+  const seguir = () => {
+    boton.onclick = null
+    anuncio.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(30px) scale(.9)' }], { duration: 260, easing: 'ease-in', fill: 'forwards' }).onfinish = () => {
+      el.hidden = true
+      anuncio.getAnimations().forEach((x) => x.cancel())
+    }
+    if (ronda.t0 != null && ronda.ms == null) ronda.t0 += performance.now() - pausa
+    relatar({ lg: '⛳ Green equivocado: alivio sin multa', verso: `El golpe cuenta. Seguís en el ${res.jugando}` })
+    // la cámara se abre para ver el drop afuera del green
+    obj = { ...obj, cx: (res.desde[0] + ronda.pelota[0]) / 2, cy: (res.desde[1] + ronda.pelota[1]) / 2, esc: Math.min(obj.esc, 9) }
+    velCam = 3
+    anim = { tipo: 'afuera', desde: res.desde, hasta: [...ronda.pelota], t: 0, T: 1.2, fin: siguienteTiro }
+  }
+  if (primera) {
+    // el anuncio: personaje misterioso, con la cara de signo de pregunta
+    $('#secreto-kicker').textContent = `Jugando el ${res.jugando}, la metiste en el ${res.n}`
+    $('#secreto-titulo').textContent = 'DESBLOQUEASTE UN NUEVO PERSONAJE SECRETO'
+    $('#secreto-nombre').textContent = '? ? ?'
+    $('#secreto-sub').textContent = 'Personaje misterioso'
+    boton.textContent = 'DESBLOQUEAR 🔓'
+    boton.onclick = () => {
+      boton.onclick = null
+      el.classList.add('cargando')
+      S.cargarSecreto()
+      setTimeout(() => revelar(true), 650)
+    }
+  } else revelar(false)
+  el.hidden = false
+  // sale de adentro del hoyo: arranca chiquito donde está el hoyo en la pantalla y crece hasta el medio
+  const [hx, hy] = w2s(res.desde)
+  const rc = anuncio.getBoundingClientRect()
+  const dx = hx - (rc.left + rc.width / 2), dy = hy - (rc.top + rc.height / 2)
+  anuncio.animate([
+    { transform: `translate(${dx}px, ${dy}px) scale(.04) rotate(-12deg)`, opacity: 0, filter: 'brightness(3) blur(6px)' },
+    { transform: `translate(${dx * 0.25}px, ${dy * 0.25 - 40}px) scale(.7) rotate(4deg)`, opacity: 1, filter: 'brightness(1.6) blur(1px)', offset: 0.55 },
+    { transform: 'none', opacity: 1, filter: 'none' },
+  ], { duration: 1050, easing: 'cubic-bezier(.16,1,.3,1)' })
+  setTimeout(() => boton.focus({ preventScroll: true }), 60)
+}
+
 /** Los monos llegaron antes del golpe: se la llevan corriendo y volvés al tee del hoyo con un golpe de multa. */
 function llegaronMonos(mono) {
   drag = null
@@ -1308,6 +1678,13 @@ function empezar(jugador) {
   }
   datos.ultimo = jugador.apodo
   guardar(datos)
+  // Demetrio juega en 1960: la cancha en sepia, con viñeta y grano (y sin monos, ver nuevaRonda)
+  document.body.classList.toggle('retro', !!jugador.retro)
+  // para probar el secreto: la pelota en el green del 16, a 4 yd del hoyo
+  if (PARAMS.has('probar-secreto')) {
+    const h16 = ronda.hoyos[1]
+    Object.assign(ronda, { pelota: [h16.pin[0], h16.pin[1] - 4], lie: 'green', golpes: 1 })
+  }
   pararCuenta()
   $('#h-fantasma').hidden = true
   for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking', 'todos', 'resumen', 'match']) $('#' + id).hidden = true
@@ -1335,7 +1712,7 @@ function introHoyo() {
     const hab = M.habilidadDe(ronda.jugador)
     if (hab && ronda.idx === 0) relatar({ lg: `✨ ${hab.nombre}`, verso: hab.texto })
   }
-  banda({ kicker: `La Trampa del Mono · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}`, grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${h.yardas[ronda.tee]} YD`, verso: h.verso }, 2800, () => {
+  banda({ kicker: ronda.jugador.retro ? `San Diego · 1960 · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}` : `La Trampa del Mono · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}`, grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${h.yardas[ronda.tee]} YD`, verso: h.verso }, 2800, () => {
     // la primera vez: 3, 2, 1 y arranca el reloj, que corre hasta el último putt
     if (ronda.t0 == null) {
       // la cuenta regresiva muestra de cerca de dónde salís; en el ¡YA! se abre al hoyo
@@ -1638,7 +2015,7 @@ function hud() {
   $('#j-foto').hidden = !j.foto
   if (j.foto && $('#j-foto').getAttribute('src') !== j.foto) { $('#j-foto').src = j.foto; $('#j-foto').alt = j.apodo }
   $('#j-apodo').textContent = j.apodo.toUpperCase()
-  $('#j-hcp').textContent = `HCP ${hcpTxt(ronda.jugador)}`
+  $('#j-hcp').textContent = hcpEtiqueta(ronda.jugador)
   $('#j-total').textContent = M.formatoPar(M.totales(ronda.tarjeta).vsPar)
   $('#lp').disabled = estado !== 'apuntar'
   if (!lpArmado) $('#lp').textContent = textoLP()
@@ -2287,6 +2664,51 @@ function pelota(p, alt, alfa = 1, pantalla = null) {
 
 function dibujarAnim() {
   const t = anim.t
+  if (anim.tipo === 'secreto') {
+    // 🤫 el hoyo equivocado brilla: un halo dorado que respira, una onda, un haz de luz y chispas que suben en espiral
+    const [hx, hy] = w2s(anim.desde)
+    const u = Math.min(1, t / anim.T)
+    const suave = u * u * (3 - 2 * u)
+    const R = 30 + 110 * suave
+    ctx.save()
+    ctx.globalCompositeOperation = 'lighter'
+    const halo = ctx.createRadialGradient(hx, hy, 0, hx, hy, R)
+    halo.addColorStop(0, `rgba(255,246,200,${0.85 * (0.6 + 0.4 * Math.sin(t * 6))})`)
+    halo.addColorStop(0.35, 'rgba(255,214,110,.45)')
+    halo.addColorStop(1, 'rgba(255,190,60,0)')
+    ctx.fillStyle = halo
+    ctx.beginPath(); ctx.arc(hx, hy, R, 0, 7); ctx.fill()
+    // el haz de luz que sale para arriba
+    const ancho = 8 + 30 * suave, alto = H * 0.55 * suave
+    const haz = ctx.createLinearGradient(0, hy, 0, hy - alto)
+    haz.addColorStop(0, 'rgba(255,240,180,.75)'); haz.addColorStop(1, 'rgba(255,220,120,0)')
+    ctx.fillStyle = haz
+    ctx.beginPath(); ctx.moveTo(hx - ancho * 0.35, hy); ctx.lineTo(hx - ancho, hy - alto); ctx.lineTo(hx + ancho, hy - alto); ctx.lineTo(hx + ancho * 0.35, hy); ctx.closePath(); ctx.fill()
+    // dos ondas que se abren
+    for (const d of [0.1, 0.5]) {
+      const k = Math.max(0, Math.min(1, (t - d) / 1.1))
+      if (k <= 0 || k >= 1) continue
+      ctx.strokeStyle = `rgba(255,226,140,${(1 - k) * 0.9})`
+      ctx.lineWidth = 3 * (1 - k) + 1
+      ctx.beginPath(); ctx.ellipse(hx, hy, 12 + k * 120, (12 + k * 120) * 0.55, 0, 0, 7); ctx.stroke()
+    }
+    // chispas: estrellitas de cuatro puntas que suben girando
+    for (let i = 0; i < 34; i++) {
+      const nace = (i / 34) * 1.4
+      const v = (t - nace) / 1.2
+      if (v <= 0 || v >= 1) continue
+      const a = i * 2.39996 + t * 2.2
+      const rr = 6 + v * (26 + (i % 5) * 9)
+      const x = hx + Math.cos(a) * rr, y = hy - v * (90 + (i % 7) * 18) + Math.sin(a) * rr * 0.4
+      const tam = (2.5 + (i % 3) * 1.6) * Math.sin(Math.PI * v)
+      ctx.fillStyle = i % 4 ? 'rgba(255,230,150,.95)' : 'rgba(255,255,255,.95)'
+      ctx.beginPath()
+      ctx.moveTo(x, y - tam * 2.2); ctx.quadraticCurveTo(x, y, x + tam * 2.2, y); ctx.quadraticCurveTo(x, y, x, y + tam * 2.2); ctx.quadraticCurveTo(x, y, x - tam * 2.2, y); ctx.quadraticCurveTo(x, y, x, y - tam * 2.2)
+      ctx.fill()
+    }
+    ctx.restore()
+    return
+  }
   if (anim.tipo === 'ladron') {
     if (t < 1.3) {
       const [mx, my] = w2s(anim.mono.pos)
@@ -2595,7 +3017,7 @@ function tarjetaFinal() {
   $('#t-emoji').textContent = j.emoji
   $('#t-apodo').textContent = j.apodo.toUpperCase()
   const dif = difDe(j)
-  $('#t-nivel').textContent = `HCP ${hcpTxt(j)} · ${dif.nombre}`
+  $('#t-nivel').textContent = `${hcpEtiqueta(j)} · ${dif.nombre}`
   const filas = ronda.tarjeta.map((f) => {
     const nombre = M.nombreResultado(f.golpes, f.par, f.lp)
     const marca = f.lp || f.golpes > f.par ? 'sobre' : f.golpes < f.par ? 'bajo' : ''
@@ -2662,7 +3084,7 @@ const cargarImg = (src) => new Promise((ok) => { if (!src) return ok(null); cons
 async function imagenVuelta() {
   try { await Promise.all(['56px Anton', '600 30px Archivo', '800 30px Archivo', 'italic 400 30px Archivo'].map((f) => document.fonts.load(f))) } catch {}
   const r = ronda
-  const j = r.jugador
+  const j = r.jugador.secreto ? { ...r.jugador, ...MISTERIOSO } : r.jugador // 🤫 al que le llega, Demetrio es un misterio
   const t = M.totales(r.tarjeta)
   const W2 = 1080, H2 = 1350
   const c = document.createElement('canvas')
@@ -2758,7 +3180,7 @@ $('#resumen-cerrar').addEventListener('click', () => { $('#resumen').hidden = tr
 $('#resumen-compartir').addEventListener('click', async () => {
   if (!resumenListo) return
   const archivo = new File([resumenListo.blob], 'trampa-del-mono.png', { type: 'image/png' })
-  try { await navigator.share({ files: [archivo], text: M.textoCompartir(ronda, firmada) }) } catch {}
+  try { await navigator.share({ files: [archivo], text: M.textoCompartir(ronda.jugador.secreto ? { ...ronda, jugador: { ...ronda.jugador, ...MISTERIOSO } } : ronda, firmada) }) } catch {}
 })
 
 function acciones() {
@@ -2773,6 +3195,9 @@ async function anotarVuelta() {
   const marca = M.marcaDe(ronda, datos.usuario)
   if (!marca || !marca.usuario) return
   if (R.puente.activo) marca.uid = R.puente.identidad.uid
+  // el detalle de la vuelta: hoyo por hoyo, los monos y la apuesta de Rorro (queda en el teléfono y, cuando la
+  // base de la SDGApp tenga la columna `detalle`, también allá: así se ve en el resumen del ranking de todos)
+  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}) }
   const jugador = ronda.jugador
   await R.anotar(marca)
   const { marcas } = await R.leerMarcas()
@@ -2787,7 +3212,7 @@ async function anotarVuelta() {
 }
 
 // ── el match: desafiás a otro, jugás tu vuelta y él la juega después con tu fantasma ──
-let matchModo = null // lo que sigue al elegir player: { tipo: 'reto', rival, semilla } | { tipo: 'respuesta', desafio, fantasma }
+// (matchModo se declara arriba, con el secreto) lo que sigue al elegir player: { tipo: 'reto', rival, semilla } | { tipo: 'respuesta', desafio, fantasma }
 let mtTab = 'desafiar'
 let mtRivales = null, mtDesafios = null, mtError = null
 const VISTOS = 'sdga-trampa-match-vistos-v1'
@@ -2811,6 +3236,8 @@ async function cargarDesafios() {
 }
 async function mostrarMatch(tab = mtTab) {
   mtTab = tab
+  mtRanking = null
+  mtRankingError = null
   $('#match').hidden = false
   pintarMatch()
   const [rv] = await Promise.allSettled([mtRivales ? Promise.resolve(mtRivales) : R.leerRivales(), cargarDesafios()])
@@ -2844,6 +3271,7 @@ function pintarMatch() {
     return
   }
   $('#mt-nota').textContent = 'Gana el que hace menos golpes; si empatan, el más rápido. LP pierde. Los dos juegan con el mismo player.'
+  if (mtTab === 'ranking') { pintarRankingMatch(lista); return }
   if (!mtDesafios) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudieron cargar tus matches.' : 'Cargando…'}</li>`; return }
   if (mtTab === 'historial') { pintarHistorial(lista); return }
   const yo = yoUid()
@@ -2864,6 +3292,64 @@ function pintarMatch() {
   ].join('')
   lista.innerHTML = html || '<li class="rk-vacio">No tenés matches pendientes. Desafiá a alguien.</li>'
 }
+// ── el ranking de matches: todos, por partidos ganados ──
+let mtRanking = null, mtRankingError = null, mtRankingVista = []
+async function cargarRankingMatch() {
+  try { mtRanking = await R.leerRankingMatch(); mtRankingError = null } catch (e) { mtRankingError = e }
+  if (mtTab === 'ranking' && !$('#match').hidden) pintarMatch()
+}
+// orden: más ganados; después menos perdidos; después más jugados
+const ordenMatch = (a, b) => b.ganados - a.ganados || a.perdidos - b.perdidos || b.jugados - a.jugados || a.nombre.localeCompare(b.nombre)
+const pctGanados = (x) => (x.jugados ? Math.round((100 * x.ganados) / x.jugados) : 0)
+function pintarRankingMatch(lista) {
+  $('#mt-nota').textContent = 'Arriba el que más matches ganó; a igual, el que menos perdió. Tocá una fila para ver su récord y contra quiénes jugó.'
+  if (!mtRanking) {
+    if (!mtRankingError) { lista.innerHTML = '<li class="rk-vacio">Cargando…</li>'; cargarRankingMatch(); return }
+    lista.innerHTML = `<li class="rk-vacio">${mtRankingError.pronto ? 'El ranking de matches llega con la próxima actualización de la SDGApp. 🏗️' : 'No se pudo cargar el ranking de matches. Probá de nuevo en un rato.'}</li>`
+    return
+  }
+  const filas = [...mtRanking].sort(ordenMatch)
+  mtRankingVista = filas
+  const yo = yoUid()
+  const wdl = (x) => `<span class="wdl" aria-label="${x.ganados} ganados, ${x.empatados} empatados, ${x.perdidos} perdidos"><i class="g">${x.ganados}G</i><i>${x.empatados}E</i><i class="p">${x.perdidos}P</i></span>`
+  let pos = 0, prev = null
+  lista.innerHTML = filas.length ? filas.map((x, k) => {
+    if (!prev || ordenMatch(prev, x) !== 0 || prev.ganados !== x.ganados || prev.perdidos !== x.perdidos || prev.jugados !== x.jugados) pos = k + 1
+    prev = x
+    return `<li class="rk-fila mtr-fila tocable${x.uid === yo ? ' yo' : ''}" data-mtr="${k}" tabindex="0" role="button" aria-label="Ver el récord de ${esc(x.nombre)}">
+      <span class="rk-pos">${pos}</span>
+      <span class="rk-nombre"><span class="linea"><b>${esc(x.nombre)}</b>${x.sdga ? selloSdga() : ''}</span><small>${x.jugados} ${x.jugados === 1 ? 'match' : 'matches'}</small></span>
+      ${wdl(x)}
+      <span class="mtr-pct">${pctGanados(x)}%<small>ganados</small></span>
+    </li>`
+  }).join('') : '<li class="rk-vacio">Todavía no se terminó ningún match. ¡Desafiá a alguien!</li>'
+}
+function abrirRecordMatch(x) {
+  if (!x) return
+  $('.rs-caja').classList.remove('bloqueado')
+  const filas = [...(mtRanking ?? [])].sort(ordenMatch)
+  const pos = filas.findIndex((f) => f.uid === x.uid) + 1
+  const f = fechaLarga(x.ultimo)
+  const rivales = [...x.rivales].sort((a, b) => (b.g + b.e + b.p) - (a.g + a.e + a.p) || b.g - a.g)
+  const victima = [...x.rivales].filter((r) => r.g > 0).sort((a, b) => b.g - a.g || a.p - b.p)[0]
+  const verdugo = [...x.rivales].filter((r) => r.p > 0).sort((a, b) => b.p - a.p || a.g - b.g)[0]
+  $('#rs-cuerpo').innerHTML = `
+    <p class="rs-kicker">Ranking de matches${pos ? ` · ${pos}° puesto` : ''}</p>
+    <h3 class="rs-quien" id="rs-quien">${esc(x.nombre)}${x.sdga ? selloSdga() : ''}</h3>
+    <div class="rs-record"><div class="g"><b>${x.ganados}</b><span>Ganados</span></div><div><b>${x.empatados}</b><span>Empatados</span></div><div class="p"><b>${x.perdidos}</b><span>Perdidos</span></div></div>
+    <dl class="rs-datos">
+      <div><dt>Jugados</dt><dd>${x.jugados}</dd></div>
+      <div><dt>Ganados</dt><dd>${pctGanados(x)}%<small>de los matches</small></dd></div>
+      ${victima ? `<div><dt>Su víctima</dt><dd>${esc(victima.nombre)}<small>le ganó ${victima.g} ${victima.g === 1 ? 'vez' : 'veces'}</small></dd></div>` : ''}
+      ${verdugo ? `<div><dt>Su verdugo</dt><dd>${esc(verdugo.nombre)}<small>le ganó ${verdugo.p} ${verdugo.p === 1 ? 'vez' : 'veces'}</small></dd></div>` : ''}
+      <div class="ancho"><dt>Último match</dt><dd>${f ? `${esc(f.dia)}<small>a las ${f.hora} h</small>` : '—'}</dd></div>
+    </dl>
+    ${rivales.length ? `<p class="rs-titulo">Contra cada rival</p><ul class="rs-rivales">${rivales.map((r) => `<li><span>${esc(r.nombre)}</span><span class="wdl"><i class="g">${r.g}G</i><i>${r.e}E</i><i class="p">${r.p}P</i></span></li>`).join('')}</ul>` : ''}`
+  $('#rk-resumen').hidden = false
+  $('#rk-resumen .hab-x').focus({ preventScroll: true })
+}
+$('#mt-lista').addEventListener('click', (e) => { const li = e.target.closest('[data-mtr]'); if (li) abrirRecordMatch(mtRankingVista[+li.dataset.mtr]) })
+$('#mt-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const li = e.target.closest('[data-mtr]'); if (li) { e.preventDefault(); abrirRecordMatch(mtRankingVista[+li.dataset.mtr]) } })
 /** El historial: tu récord (G-E-P), contra cada rival y match por match. */
 function pintarHistorial(lista) {
   $('#mt-nota').textContent = 'G = ganados · E = empatados · P = perdidos. Cuentan los matches que jugaron los dos.'
@@ -2896,6 +3382,7 @@ function pintarHistorial(lista) {
       <span class="mini" aria-hidden="true">${esc(r.yo.emoji ?? '⛳')}</span>
       <span class="rk-nombre"><b>vs ${esc(r.el.alias)}</b><small class="${r.clase}">${r.txt} · ${esc(golpesTxt(r.yo))} vs ${esc(golpesTxt(r.el))} · con ${esc(String(r.yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}</small></span>
       <span class="mt-estado">${r.d.retador.uid === yo && !v.has(r.d.id) ? '🆕' : r.g > 0 ? '🏆' : r.g < 0 ? '😵' : '🤝'}</span>
+      <button class="wa-mini" type="button" data-wa="${esc(r.d.id)}" aria-label="Mandar el resultado por WhatsApp">${ICONO_WA}</button>
     </li>`).join('')}`
   // los resultados que ya viste (los de los desafíos que mandaste)
   const ids = jugados.filter((d) => d.retador.uid === yo).map((d) => d.id)
@@ -2916,6 +3403,15 @@ $('#mt-tabs').addEventListener('click', (e) => {
   pintarMatch()
 })
 $('#mt-buscar').addEventListener('input', pintarMatch)
+// el resultado de un match del historial, por WhatsApp
+$('#mt-lista').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-wa]')
+  if (!b) return
+  const d = mtDesafios?.find((x) => x.id === b.dataset.wa)
+  if (!d) return
+  const { yo, el } = resultadoPara(d)
+  abrirWhatsapp(textoResultadoMatch(yo, el))
+})
 $('#mt-lista').addEventListener('click', async (e) => {
   const reto = e.target.closest('[data-desafiar]')
   if (reto) {
@@ -3059,6 +3555,32 @@ function mandarPorWhatsapp(r, rival, mia) {
   const url = `https://wa.me/?text=${encodeURIComponent(mensajeDesafio(r, rival, mia))}`
   if (!window.open(url, '_blank')) location.href = url
 }
+// ── el resultado de un match, para mandarlo por WhatsApp ──
+const ICONO_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>'
+/** El resumen de un match terminado, visto por mí (yo/el: { alias, golpes, vsPar, ms, lp, apodo, emoji }). */
+function textoResultadoMatch(yo, el) {
+  const g = M.ganadorMatch(yo, el)
+  const linea = (x, quien) => `${quien}: ${x.golpes == null || x.lp ? 'LP 💅' : `${x.golpes} golpes (${M.formatoPar(x.vsPar)})`}${x.ms != null && !x.lp ? ` · ${M.formatoTiempo(x.ms)}` : ''}`
+  const apodo = String(yo.apodo ?? el.apodo ?? '').replace(/ \(Đ\)$/, '')
+  const emoji = yo.emoji ?? el.emoji ?? ''
+  const titulo = g > 0 ? `🏆 Le gané el match a ${el.alias}` : g < 0 ? `😵 ${el.alias} me ganó el match` : `🤝 Empatamos el match con ${el.alias}`
+  const cierre = g > 0 ? M.elegir(rng, ['Andá practicando, que te espero. 😎', 'Fácil. Muy fácil. 🥱', 'Los monos lo vieron todo y aplaudieron. 🐒👏']) : g < 0 ? M.elegir(rng, ['Quiero la revancha YA. 😤', 'Fue el viento. Seguro fue el viento. 🌬️', 'Me robaron los monos, conste en actas. 🐒']) : M.elegir(rng, ['Hay que desempatar. ¿Revancha? ⚔️', 'Ni un golpe ni un segundo de diferencia. 🤯'])
+  return [
+    '⚔️ MATCH · La Trampa del Mono 🐒',
+    '',
+    titulo,
+    linea(yo, 'Yo'),
+    linea(el, el.alias),
+    `Los dos con ${emoji} ${apodo}, mismo viento y mismas banderas.`,
+    '',
+    cierre,
+    `Desafiame en la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch()}`,
+  ].join('\n')
+}
+function abrirWhatsapp(texto) {
+  const url = `https://wa.me/?text=${encodeURIComponent(texto)}`
+  if (!window.open(url, '_blank')) location.href = url
+}
 /** Terminó la vuelta de un match: si desafiaste, se manda; si respondías, se anota y se ve quién ganó. */
 async function cerrarMatch(r) {
   const d = r.duelo
@@ -3098,7 +3620,8 @@ async function cerrarMatch(r) {
       await R.responderDesafio(des.id, mia)
       const g = M.ganadorMatch(mia, des.retador)
       el.className = `t-match ${g > 0 ? 'gana' : g < 0 ? 'pierde' : ''}`
-      el.innerHTML = `<span class="gran">${g > 0 ? '🏆 GANASTE EL MATCH' : g < 0 ? '😵 PERDISTE EL MATCH' : '🤝 EMPATE'}</span>Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}`
+      el.innerHTML = `<span class="gran">${g > 0 ? '🏆 GANASTE EL MATCH' : g < 0 ? '😵 PERDISTE EL MATCH' : '🤝 EMPATE'}</span>Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}<br><button class="btn-wa" type="button">${ICONO_WA}MANDAR EL RESULTADO</button>`
+      el.querySelector('.btn-wa').addEventListener('click', () => abrirWhatsapp(textoResultadoMatch({ ...mia, alias: 'Yo' }, des.retador)))
       if (g > 0) S.embocada()
       mtDesafios = null
     } catch {
@@ -3143,8 +3666,99 @@ const esYo = (m) => (R.puente.activo ? m.uid === R.puente.identidad.uid : m.usua
 let rkAmbito = 'mundial'
 let rkTab = 'general'
 let rkMarcas = []
+let rkVista = [] // las filas que se ven (para abrir el resumen de la que tocás)
 let rkCompartido = false
 let rkApp = false // el ranking de la SDGApp (Mundial / SDGA), por la app o directo
+// ── el resumen de una vuelta del ranking ──
+const selloSdga = () => `<span class="sello-sdga" title="Socio del SDGA" aria-label="Socio del SDGA">${$('.portada .logo svg').outerHTML}</span>`
+const fechaLarga = (iso) => {
+  const d = iso ? new Date(iso) : null
+  if (!d || isNaN(d)) return null
+  const dia = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  return { dia: dia.charAt(0).toUpperCase() + dia.slice(1), hora: d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) }
+}
+const deltaTiempo = (ms) => `+${M.formatoTiempo(ms).replace(/^0:/, '')}`
+/** 🔒 Tocaste la vuelta de alguien que jugó con el player secreto y vos todavía no lo tenés. */
+function abrirBloqueado(m) {
+  $('.rs-caja').classList.add('bloqueado')
+  const candado = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="12" rx="3" fill="#e8c34a" stroke="#2b1d08" stroke-width="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#e8c34a" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="15.5" r="1.8" fill="#2b1d08"/><path d="M12 16.5v2.5" stroke="#2b1d08" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  $('#rs-cuerpo').innerHTML = `
+    <div class="rb-cara" aria-hidden="true">?${candado}</div>
+    <p class="rb-kicker">Personaje secreto</p>
+    <h3 class="rb-titulo" id="rs-quien">TODAVÍA NO LO DESBLOQUEASTE</h3>
+    <p class="rb-texto"><b>${esc(m.usuario)}</b> ya lo encontró${m.vsPar != null ? ` y le hizo <b>${M.formatoPar(m.vsPar)}</b> a la Trampa con él` : ''}. Vos, ni idea de quién es. 👀<br>Hay un player escondido en la Trampa del Mono y nadie te va a contar dónde. No se compra, no se pide, no se presta: <b>se descubre jugando</b>.</p>
+    <ul class="rb-fichas">
+      <li>¿Quién es?<b>? ? ?</b></li>
+      <li>¿Cómo juega?<b>? ? ?</b></li>
+      <li>¿Cómo se consigue?<b>ESO ES COSA TUYA</b></li>
+    </ul>
+    <p class="rb-pista">Pista: el que juega derechito nunca lo encuentra. 🐒</p>
+    <button class="rb-ir" type="button">SALIR A BUSCARLO ⛳</button>`
+  $('#rs-cuerpo .rb-ir').addEventListener('click', () => { cerrarResumen(); $('#ranking').hidden = true; mostrarElegir() })
+  $('#rk-resumen').hidden = false
+  $('#rk-resumen .hab-x').focus({ preventScroll: true })
+}
+function abrirResumen(m) {
+  if (!m) return
+  $('.rs-caja').classList.remove('bloqueado')
+  if (publico(m).misterio) return abrirBloqueado(m)
+  const app = rkApp
+  const base = app && rkAmbito === 'sdga' ? rkMarcas.filter((x) => x.sdga) : rkMarcas
+  const general = M.armarRanking(base)
+  const conEl = M.armarRanking(base, m.apodo)
+  const misma = (x) => x.golpes === m.golpes && x.ms === m.ms && x.apodo === m.apodo
+  const posG = general.find((x) => M.duenoDe(x) === M.duenoDe(m) && misma(x))?.pos
+  const posJ = conEl.find((x) => M.duenoDe(x) === M.duenoDe(m) && misma(x))?.pos
+  const lider = general[0]
+  const ambito = app ? (rkAmbito === 'sdga' ? 'SDGA' : 'Mundial') : 'General'
+  // el player (Demetrio, misterioso para el que no lo desbloqueó)
+  const real = [...TODOS, DEMETRIO].find((x) => x.apodo === m.apodo)
+  const j = publico(real ?? { apodo: m.apodo, emoji: m.emoji, foto: null })
+  const hab = j.misterio ? null : M.habilidadDe(j)
+  const nombreJ = (j.apodo ?? '').replace(/ \(Đ\)$/, '')
+  const cara = j.misterio ? '<div class="cara misterio" aria-hidden="true">?</div>' : j.foto ? `<div class="cara"><img src="${j.foto}" alt=""></div>` : `<div class="cara" aria-hidden="true">${j.emoji ?? m.emoji}</div>`
+  // todas sus vueltas firmadas (del mismo usuario)
+  const suyas = rkMarcas.filter((x) => M.duenoDe(x) === M.duenoDe(m) && x.golpes > 0)
+  const prom = suyas.length ? suyas.reduce((a, x) => a + x.golpes, 0) / suyas.length : null
+  const mejor = suyas.length ? suyas.reduce((a, x) => (M.compararMarcas(x, a) < 0 ? x : a)) : null
+  const usados = {}
+  for (const x of suyas) usados[x.apodo] = (usados[x.apodo] ?? 0) + 1
+  const favorito = Object.entries(usados).sort((a, b) => b[1] - a[1])[0]?.[0]
+  const fav = favorito ? publico([...TODOS, DEMETRIO].find((x) => x.apodo === favorito) ?? { apodo: favorito }).apodo.replace(/ \(Đ\)$/, '') : null
+  // el hoyo por hoyo: de la base (columna `detalle`) o, si no, de las vueltas de este teléfono
+  // (vueltas viejas del teléfono: el detalle venía suelto en la marca)
+  const detDe = (x) => x?.detalle ?? (x?.hoyos ? x : null)
+  const det = detDe(m) ?? detDe(R.marcasDelTelefono().find((x) => misma(x) && detDe(x) && (!m.fecha || !x.fecha || Math.abs(new Date(x.fecha) - new Date(m.fecha)) < 6e5)))
+  const f = fechaLarga(m.fecha)
+  const clase = m.vsPar < 0 ? 'bajo' : m.vsPar > 0 ? 'sobre' : ''
+  const alLider = lider && posG !== 1 && posG ? `${lider.golpes === m.golpes ? 'Mismos golpes' : `+${m.golpes - lider.golpes} ${m.golpes - lider.golpes === 1 ? 'golpe' : 'golpes'}`}<small>${lider.golpes === m.golpes ? `${deltaTiempo(m.ms - lider.ms)} más lento` : `el líder: ${esc(lider.usuario)}`}</small>` : 'Es el líder<small>nadie la hizo mejor</small>'
+  $('#rs-cuerpo').innerHTML = `
+    <p class="rs-kicker">Ranking ${ambito}${posG ? ` · ${posG}° puesto` : ''}</p>
+    <h3 class="rs-quien" id="rs-quien">${esc(m.usuario)}${m.sdga ? selloSdga() : ''}</h3>
+    <div class="rs-player">${cara}<div><small>Jugó con</small><b>${esc(nombreJ)}</b>${hab ? `<span>✦ ${esc(hab.nombre)}</span>` : j.misterio ? '<span>Un player secreto</span>' : ''}</div></div>
+    <div class="rs-score"><div class="grande ${clase}">${M.formatoPar(m.vsPar)}</div><p><b>${m.golpes} golpes</b>par ${M.PAR_TOTAL} · hoyos 15, 16 y 17</p></div>
+    <dl class="rs-datos">
+      <div><dt>Tiempo</dt><dd>${M.formatoTiempo(m.ms)}</dd></div>
+      <div><dt>Puesto</dt><dd>${posG ? `${posG}°` : '—'}<small>${posJ ? `${posJ}° con ${esc(nombreJ)}` : ''}</small></dd></div>
+      <div class="ancho"><dt>Fecha</dt><dd>${f ? `${esc(f.dia)}<small>a las ${f.hora} h</small>` : '—'}</dd></div>
+      <div class="ancho"><dt>Contra el líder</dt><dd>${alLider}</dd></div>
+    </dl>
+    ${det?.hoyos ? `<p class="rs-titulo">Hoyo por hoyo</p><div class="rs-hoyos">${M.HOYOS.map((h, i) => { const g = det.hoyos[i]; const c = g < h.par ? 'bajo' : g > h.par ? 'sobre' : ''; return `<div class="${c}">HOYO ${h.n} · PAR ${h.par}<b>${g ?? '—'}</b></div>` }).join('')}</div>${det.monos ? `<p class="rs-titulo" style="margin-top:4px">Los monos: ${det.monos.robos} robos · ${det.monos.malos} malos · ${det.monos.buenos} buenos${det.rorro ? ` · Rorro anotó ${det.rorro > 0 ? '+1' : '−1'}` : ''}</p>` : ''}` : ''}
+    <p class="rs-titulo">Sus vueltas</p>
+    <dl class="rs-datos">
+      <div><dt>Firmadas</dt><dd>${suyas.length}</dd></div>
+      <div><dt>Promedio</dt><dd>${prom != null ? `${prom.toFixed(1).replace('.', ',')}<small>golpes por vuelta</small>` : '—'}</dd></div>
+      <div><dt>Su mejor</dt><dd>${mejor ? `${M.formatoPar(mejor.vsPar)}<small>${M.formatoTiempo(mejor.ms)}</small>` : '—'}</dd></div>
+      <div><dt>Su player</dt><dd>${fav ? esc(fav) : '—'}<small>el que más usa</small></dd></div>
+    </dl>`
+  $('#rk-resumen').hidden = false
+  $('#rk-resumen .hab-x').focus({ preventScroll: true })
+}
+const cerrarResumen = () => { $('#rk-resumen').hidden = true }
+$('#rk-resumen').addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) cerrarResumen() })
+$('#rk-lista').addEventListener('click', (e) => { const li = e.target.closest('.rk-fila[data-k]'); if (li) abrirResumen(rkVista[+li.dataset.k]) })
+$('#rk-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const li = e.target.closest('.rk-fila[data-k]'); if (li) { e.preventDefault(); abrirResumen(rkVista[+li.dataset.k]) } })
+
 async function mostrarRanking(tab = 'general') {
   rkTab = tab
   rkMarcas = null
@@ -3159,6 +3773,7 @@ async function mostrarRanking(tab = 'general') {
   $('#rk-volver').focus()
 }
 function pintarRanking(error = false) {
+  sincronizarSecreto()
   const tabs = [{ id: 'general', txt: 'General' }, ...PLANTEL.map((j) => ({ id: j.apodo, txt: j.apodo.replace(/ \(Đ\)$/, ''), e: j.emoji }))]
   $('#rk-tabs').innerHTML = tabs.map((t) => `<button class="rk-tab" type="button" role="tab" data-tab="${esc(t.id)}" aria-selected="${t.id === rkTab}">${t.e ? `<span class="e" aria-hidden="true">${t.e}</span>` : ''}${esc(t.txt)}</button>`).join('')
   const j = PLANTEL.find((x) => x.apodo === rkTab)
@@ -3175,9 +3790,12 @@ function pintarRanking(error = false) {
   for (const b of $('#rk-ambito').children) b.setAttribute('aria-selected', String(b.dataset.ambito === rkAmbito))
   const base = app && rkAmbito === 'sdga' ? rkMarcas.filter((m) => m.sdga) : rkMarcas
   const lista = M.armarRanking(base, j ? j.apodo : null)
-  const fila = (m, salto) => `<li class="rk-fila${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}">
+  rkVista = lista
+  // el sello del SDGA: en el Mundial, al lado del nombre de los socios
+  const sello = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '')
+  const fila = (m, salto) => `<li class="rk-fila tocable${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}" data-k="${lista.indexOf(m)}" tabindex="0" role="button" aria-label="Ver la vuelta de ${esc(m.usuario)}">
       <span class="rk-pos">${m.pos}</span>
-      <span class="rk-quien">${j ? `<b>${esc(m.usuario)}</b>` : `<span class="mini" aria-hidden="true">${m.emoji}</span><span class="rk-nombre"><b>${esc(m.usuario)}</b><small>con ${esc(m.apodo.replace(/ \(Đ\)$/, ''))}</small></span>`}</span>
+      <span class="rk-quien">${j ? `<span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span></span>` : `<span class="mini${publico(m).misterio ? ' misterio' : ''}" aria-hidden="true">${publico(m).emoji}</span><span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span><small>con ${esc(publico(m).apodo.replace(/ \(Đ\)$/, ''))}</small></span>`}</span>
       <span class="rk-score">${M.formatoPar(m.vsPar)}<small>${m.golpes} golpes</small></span>
       <span class="rk-tiempo">${M.formatoTiempo(m.ms)}</span>
     </li>`
@@ -3222,7 +3840,11 @@ let mazoDrag = null
 const cartasDom = new Map()
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 // handicap aproximado (lo pasó Rorro, no está en la base): con ≈
-const hcpTxt = (j) => (j.hcp == null ? '—' : `${j.aprox ? '≈' : ''}${j.hcp}`)
+// el nivel es el lugar entre los de siempre (de más fácil a más difícil); Demetrio, que va primero, es ★
+const nivelDe = (j) => (j.secreto ? '★' : PLANTEL.filter((x) => !x.secreto).indexOf(j) + 1)
+const hcpTxt = (j) => j.hcpTexto ?? (j.hcp == null ? '—' : `${j.aprox ? '≈' : ''}${j.hcp}`)
+// "HCP 12", o lo que diga en su lugar (Demetrio: "Pro Player")
+const hcpEtiqueta = (j) => j.hcpTexto ?? `HCP ${hcpTxt(j)}`
 const fmtNeto = (v) => (v == null ? '—' : v === 0 ? 'E' : v > 0 ? `+${v}` : `−${-v}`)
 const enMazo = (k) => PLANTEL[((k % PLANTEL.length) + PLANTEL.length) % PLANTEL.length]
 
@@ -3256,6 +3878,8 @@ function previewHab(id) {
       + emo('🐕', 'M58 30 L51 14 L57 28', { kt: '0;0.4;0.95;1', kp: '0;0.5;1;1' }),
     panchitos: bola('M8 26 L60 26') + emo('🐒', 'M84 42 L66 30 L66 30 L96 46', { kt: '0;0.4;0.6;1', kp: '0;0.4;0.4;1' }) + `<text x="70" y="38" font-size="9" opacity="0">🌭${aparece(0.42)}</text>`,
     approach: bola('M8 26 L62 26 L62 26 Q76 40 86 10', { kt: '0;0.3;0.45;1', kp: '0;0.55;0.55;1' }) + txt('APPROACH…', 74, 48, 0.75, '#f0a497'),
+    retro: `<rect width="112" height="52" fill="#8a6a3a" opacity=".45"/>` + linea('M8 26 L50 26') + bola('M8 26 L50 26 L50 26 L96 27', { kt: '0;0.3;0.5;0.85', kp: '0;0.5;0.5;1' })
+      + txt('PAR', 96, 13, 0.85, '#f3d27a') + `<text x="20" y="46" font-size="8" font-family="Anton, sans-serif" fill="#f3d27a">1960</text>`,
     calma: arboles(40, 6) + bola('M8 26 Q20 8 38 9 L38 9 L96 26', { kt: '0;0.3;0.45;1', kp: '0;0.35;0.35;1' }) + txt('NO SE ENOJA', 66, 47, 0.45),
   }
   return `<svg viewBox="0 0 112 52" aria-hidden="true">${fondo}${id === 'dadas' ? '' : bandera}${escenas[id] ?? ''}</svg>`
@@ -3267,19 +3891,20 @@ function cartaDe(j) {
   const hab = M.habilidadDe(j)
   const rec = datos.records[j.apodo]
   const s = j.stats
-  const nivel = PLANTEL.indexOf(j) + 1
+  const nivel = nivelDe(j)
   const el = document.createElement('div')
   el.className = 'envoltorio'
-  el.innerHTML = `<article class="carta">
+  el.innerHTML = `<article class="carta${j.retro ? ' dorada' : ''}">
     <div class="carta-foto">
       ${j.foto ? `<img src="${j.foto}" alt="${esc(j.apodo)}" draggable="false">` : `<div class="carta-emoji" aria-hidden="true">${j.emoji}</div>`}
       <div class="carta-degrade"></div>
       <div class="carta-marcas">
-        <span class="carta-nivel">Nivel ${nivel} · HCP ${hcpTxt(j)}</span>
+        <span class="carta-nivel">Nivel ${nivel} · ${hcpEtiqueta(j)}</span>
         ${hab ? `<span class="carta-hab">✨ ${esc(hab.nombre)}</span>` : ''}
       </div>
       <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
       ${j.dicky ? '<img class="carta-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
+      ${j.retro ? '<span class="sello-1960">PRO · 1960</span>' : ''}
       <div class="carta-nombre"><h3>${esc(j.apodo)}</h3><span class="teja" aria-hidden="true">${j.emoji}</span></div>
     </div>
     <div class="carta-cuerpo">
@@ -3297,6 +3922,21 @@ function cartaDe(j) {
     </div>
   </article>`
   el.querySelector('.carta-jugar').addEventListener('click', () => empezar(j))
+  if (j.retro) {
+    // la carta holográfica: la luz y el arcoíris siguen al dedo (o al mouse); al soltar, vuelven a pasear solos
+    const carta = el.querySelector('.carta')
+    const mover = (e) => {
+      const r = carta.getBoundingClientRect()
+      carta.classList.add('tocando')
+      carta.style.setProperty('--hx', `${Math.round(((e.clientX - r.left) / r.width) * 100)}%`)
+      carta.style.setProperty('--hy', `${Math.round(((e.clientY - r.top) / r.height) * 100)}%`)
+    }
+    const soltar = () => { carta.classList.remove('tocando'); carta.style.removeProperty('--hx'); carta.style.removeProperty('--hy') }
+    carta.addEventListener('pointermove', mover)
+    carta.addEventListener('pointerdown', mover)
+    carta.addEventListener('pointerleave', soltar)
+    carta.addEventListener('pointerup', soltar)
+  }
   el.querySelector('button.carta-prev')?.addEventListener('click', () => verHabilidad(j))
   el.addEventListener('pointerdown', mazoDown)
   el.addEventListener('pointermove', mazoMove)
@@ -3409,6 +4049,7 @@ $('#mazo-cerrar').addEventListener('click', () => {
 })
 window.addEventListener('keydown', (e) => {
   if (!$('#hab-modal').hidden) { if (e.key === 'Escape') cerrarHabilidad(); return }
+  if (!$('#rk-resumen').hidden) { if (e.key === 'Escape') cerrarResumen(); return }
   if (!$('#ranking').hidden && e.key === 'Escape') { $('#ranking').hidden = true; return }
   if (!$('#match').hidden) { if (e.key === 'Escape') $('#mt-volver').click(); return }
   if (!$('#todos').hidden) { if (e.key === 'Escape') $('#todos').hidden = true; return }
@@ -3420,6 +4061,7 @@ window.addEventListener('keydown', (e) => {
 
 function mostrarElegir() {
   estado = 'elegir'
+  document.body.classList.remove('retro')
   S.musica(null)
   S.viento(0)
   for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'resumen', 'match']) $('#' + id).hidden = true
@@ -3430,9 +4072,12 @@ function mostrarElegir() {
   ronda = null
   obj = vistaGeneral()
   cartasDom.clear() // los récords pueden haber cambiado
+  sincronizarSecreto()
   $('#mazo-cartas').innerHTML = ''
   const ultimo = PLANTEL.findIndex((j) => j.apodo === datos.ultimo)
   mazoI = ultimo < 0 ? 0 : ultimo
+  // recién desbloqueado: el mazo abre en Demetrio (una vez; después, como siempre, en el último que jugaste)
+  if (datos.demetrio && !datos.demetrio.visto && PLANTEL[0] === DEMETRIO) { mazoI = 0; datos.demetrio.visto = true; guardar(datos) }
   mazoPeek = 'next'
   $('#elegir').hidden = false
   pintarMazo()
@@ -3512,10 +4157,10 @@ function mostrarTodos() {
     const hab = M.habilidadDe(j)
     const dif = difDe(j)
     const cara = j.foto ? `<img class="foto" src="${j.foto}" alt="" draggable="false">` : `<span class="foto sin-foto">${j.emoji}</span>`
-    return `<li class="todo">
+    return `<li class="todo${j.retro ? ' dorado' : ''}">
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${j.emoji}</span></div>
-        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${i + 1} · HCP ${hcpTxt(j)} · ${dif.nombre.toUpperCase()}</span></div>
+        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${nivelDe(j)} · ${hcpEtiqueta(j).toUpperCase()} · ${dif.nombre.toUpperCase()}</span></div>
         ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
         <button class="carta-jugar" type="button" data-jugar="${i}">Jugar</button>
       </div>

@@ -16,6 +16,8 @@ const CLAVE = 'sdga-trampa-marcas-v1'
 function locales() {
   try { return JSON.parse(localStorage.getItem(CLAVE)) || [] } catch { return [] }
 }
+/** Las vueltas firmadas en este teléfono (con el hoyo por hoyo, que la base de la SDGApp no guarda). */
+export const marcasDelTelefono = () => locales()
 function guardarLocal(m) {
   try { localStorage.setItem(CLAVE, JSON.stringify([...locales(), m].slice(-500))) } catch {}
 }
@@ -186,7 +188,10 @@ async function arrancarSuelto() {
 export const listo = arrancarSuelto().catch(() => {})
 
 // ── leer y anotar ────────────────────────────────────────────────────────────
-const deVista = (f) => ({ uid: f.user_id, usuario: f.player_name ?? f.alias, apodo: f.apodo, emoji: f.emoji, golpes: f.golpes, vsPar: f.vs_par, ms: f.ms, fecha: f.created_at, sdga: f.sdga === true })
+const deVista = (f) => ({ uid: f.user_id, usuario: f.player_name ?? f.alias, apodo: f.apodo, emoji: f.emoji, golpes: f.golpes, vsPar: f.vs_par, ms: f.ms, fecha: f.created_at, sdga: f.sdga === true, detalle: f.detalle ?? null })
+// `detalle` (hoyo por hoyo y los monos) es una columna nueva de trampa_marcas: mientras la base no la tenga,
+// se lee y se anota sin ella (PostgREST da 400 por una columna que no existe). Ver PENDIENTES-TRAMPA.md en la SDGApp.
+const COLS_MARCAS = 'user_id,alias,apodo,emoji,golpes,vs_par,ms,created_at,player_name,sdga'
 
 /** Todas las marcas: las de la SDGApp (por la app o directo); si no se puede, las de este teléfono. */
 export async function leerMarcas() {
@@ -197,8 +202,10 @@ export async function leerMarcas() {
   }
   if (!compartido()) return { marcas: locales(), compartido: false }
   try {
-    const q = 'select=user_id,alias,apodo,emoji,golpes,vs_par,ms,created_at,player_name,sdga&order=created_at.desc&limit=5000'
-    const res = await fetch(`${SUPABASE.url}/rest/v1/trampa_ranking?${q}`, { headers: cabeceras(await token()) })
+    const h = { headers: cabeceras(await token()) }
+    const url = (cols) => `${SUPABASE.url}/rest/v1/trampa_ranking?select=${cols}&order=created_at.desc&limit=5000`
+    let res = await fetch(url(COLS_MARCAS + ',detalle'), h)
+    if (res.status === 400) res = await fetch(url(COLS_MARCAS), h) // la base todavía no tiene `detalle`
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return { marcas: (await res.json()).map(deVista), compartido: true, app: true }
   } catch {
@@ -211,17 +218,17 @@ export async function anotar(marca) {
   const m = { ...marca, fecha: new Date().toISOString() }
   guardarLocal(m)
   if (puente.enApp) {
-    const r = await pedirApp('trampa:anotar', { marca: { apodo: m.apodo, emoji: m.emoji, golpes: m.golpes, vsPar: m.vsPar, ms: m.ms } })
+    // `detalle` lo guarda la app cuando su base tenga la columna (antes, lo ignora)
+    const r = await pedirApp('trampa:anotar', { marca: { apodo: m.apodo, emoji: m.emoji, golpes: m.golpes, vsPar: m.vsPar, ms: m.ms, ...(m.detalle ? { detalle: m.detalle } : {}) } })
     return { ok: !!r?.ok, compartido: true }
   }
   const tk = compartido() ? await token() : null
   if (!tk || !puente.identidad) return { ok: true, compartido: false }
   try {
-    const res = await fetch(`${SUPABASE.url}/rest/v1/trampa_marcas`, {
-      method: 'POST',
-      headers: { ...cabeceras(tk), Prefer: 'return=minimal' },
-      body: JSON.stringify({ user_id: puente.identidad.uid, alias: puente.identidad.alias, apodo: m.apodo, emoji: m.emoji, golpes: m.golpes, vs_par: m.vsPar, ms: m.ms }),
-    })
+    const fila = { user_id: puente.identidad.uid, alias: puente.identidad.alias, apodo: m.apodo, emoji: m.emoji, golpes: m.golpes, vs_par: m.vsPar, ms: m.ms }
+    const post = (cuerpo) => fetch(`${SUPABASE.url}/rest/v1/trampa_marcas`, { method: 'POST', headers: { ...cabeceras(tk), Prefer: 'return=minimal' }, body: JSON.stringify(cuerpo) })
+    let res = await post(m.detalle ? { ...fila, detalle: m.detalle } : fila)
+    if (res.status === 400 && m.detalle) res = await post(fila) // la base todavía no tiene `detalle`: la vuelta entra igual
     return { ok: res.ok, compartido: true }
   } catch {
     return { ok: false, compartido: true }
@@ -329,6 +336,26 @@ export async function leerFantasma(id) {
   if (puente.enApp) return (await porApp('fantasma', { desafioId: id })) ?? null
   const filas = await rest(`trampa_desafios?select=fantasma&id=eq.${encodeURIComponent(id)}`)
   return filas?.[0]?.fantasma ?? null
+}
+/**
+ * El ranking de matches de todos (vista `trampa_match_ranking`: totales por jugador, sin los desafíos de nadie):
+ * [{ uid, nombre, sdga, jugados, ganados, empatados, perdidos, ultimo, rivales: [{ nombre, g, e, p }] }].
+ * Si la app o la base todavía no lo tienen, tira un error con `pronto = true`.
+ */
+export async function leerRankingMatch() {
+  let filas
+  try {
+    filas = puente.enApp ? await porApp('ranking') : await rest('trampa_match_ranking?select=user_id,nombre,sdga,jugados,ganados,empatados,perdidos,ultimo,rivales')
+  } catch (e) {
+    const msg = String(e?.message ?? '')
+    if (/desconocida|HTTP 404|HTTP 400/.test(msg)) e.pronto = true
+    throw e
+  }
+  return (filas ?? []).map((f) => ({
+    uid: f.user_id ?? f.uid, nombre: f.nombre ?? '—', sdga: !!f.sdga,
+    jugados: +f.jugados || 0, ganados: +f.ganados || 0, empatados: +f.empatados || 0, perdidos: +f.perdidos || 0,
+    ultimo: f.ultimo ?? null, rivales: Array.isArray(f.rivales) ? f.rivales : [],
+  })).filter((f) => f.uid && f.jugados > 0)
 }
 /** El desafiado jugó: anota su vuelta y el match queda cerrado. */
 export async function responderDesafio(id, { apodo, emoji, golpes, vsPar, ms, lp }) {
