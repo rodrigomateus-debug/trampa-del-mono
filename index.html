@@ -1152,6 +1152,23 @@ function sincronizarSecreto() {
   if (va && !tiene) PLANTEL.unshift(DEMETRIO) // el que lo desbloqueó lo ve primero, sin buscarlo
   if (!va && tiene) PLANTEL.splice(PLANTEL.indexOf(DEMETRIO), 1)
 }
+/**
+ * El desbloqueo vive en el teléfono (`datos.demetrio`), así que al borrar la app se perdía. Se recupera de la base:
+ * si tu usuario ya jugó con Demetrio (una vuelta contada o firmada) o firmó alguna vuelta después de desbloquearlo
+ * (`detalle.secreto`), es tuyo. Se llama al entrar y cada vez que llegan las vueltas de todos.
+ */
+function recuperarSecreto(marcas, conteo) {
+  if (datos.demetrio) return
+  const uid = R.puente.identidad?.uid
+  if (!uid) return
+  const mia = (m) => m?.uid === uid || m?.user_id === uid
+  const ya = (marcas ?? []).some((m) => mia(m) && (m.apodo === DEMETRIO.apodo || m.detalle?.secreto)) ||
+    (conteo ?? []).some((f) => mia(f) && f.apodo === DEMETRIO.apodo && f.jugadas > 0)
+  if (!ya) return
+  datos.demetrio = { fecha: new Date().toISOString(), restaurado: true, visto: true }
+  guardar(datos)
+  sincronizarSecreto()
+}
 /** Cómo ve a un player alguien que todavía no desbloqueó a Demetrio (ranking, lo que se comparte). */
 const publico = (j) => (j?.apodo === DEMETRIO.apodo && !datos.demetrio ? { ...j, ...MISTERIOSO } : j)
 
@@ -3434,7 +3451,7 @@ async function anotarVuelta() {
   if (R.puente.activo) marca.uid = R.puente.identidad.uid
   // el detalle de la vuelta: hoyo por hoyo, los monos y la apuesta de Rorro (queda en el teléfono y, cuando la
   // base de la SDGApp tenga la columna `detalle`, también allá: así se ve en el resumen del ranking de todos)
-  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}) }
+  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}), ...(datos.demetrio ? { secreto: true } : {}) }
   const jugador = ronda.jugador
   await R.anotar(marca)
   const { marcas } = await R.leerMarcas()
@@ -4316,6 +4333,7 @@ async function mostrarRanking(tab = 'general') {
   $('#ranking').hidden = false
   pintarRanking()
   const [{ marcas, compartido, error, app }, conteo] = await Promise.all([R.leerMarcas(), R.leerConteo()])
+  recuperarSecreto(marcas, conteo)
   rkConteo = conteo
   rkApp = !!app
   rkMarcas = marcas
@@ -4637,6 +4655,8 @@ function mostrarElegir() {
 $('#usuario').value = datos.usuario
 // adentro de la SDGApp juega con su usuario de la app: no hay nombre para escribir
 R.alEntrar((yo) => {
+  // ¿ya habías desbloqueado a Demetrio? (si borraste la app, se recupera de la base)
+  if (!datos.demetrio) Promise.all([R.leerMarcas(), R.leerConteo()]).then(([r, c]) => recuperarSecreto(r?.marcas, c)).catch(() => {})
   datos.usuario = yo.alias
   $('#usuario').value = yo.alias
   $('#quien-juega').hidden = true

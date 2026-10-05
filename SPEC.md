@@ -224,3 +224,7 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
   - Al mandar el desafío: la misma imagen con "DESAFÍO": tu score 🔒 SECRETO y el del otro ⏳ TE TOCA (que no sepa cómo te fue).
   - Al terminar el match y en cada match del Historial: la imagen con el resultado.
 - En la imagen VS, cada uno con su foto: la del player del plantel que se llama igual que él en la app (`fotoDePersona`, sin "(Đ)" ni mayúsculas). Si no hay, su inicial.
+
+## Demetrio no se pierde al reinstalar (2026-10-05)
+- El desbloqueo vive en el teléfono (`datos.demetrio`); borrar la app lo borraba. Ahora se recupera de la base (`recuperarSecreto`, al entrar y cada vez que se leen las vueltas de todos): si tu usuario tiene una vuelta con Demetrio (firmada en `trampa_marcas` o contada en `trampa_conteo`), o firmó alguna vuelta después de desbloquearlo (la marca lleva `detalle.secreto`), vuelve a ser tuyo, sin el anuncio de nuevo.
+- Hueco que queda: el que lo desbloqueó, nunca jugó con él y no firmó ninguna vuelta desde entonces. Para cubrirlo haría falta guardar el desbloqueo en la base (una tabla de logros).
