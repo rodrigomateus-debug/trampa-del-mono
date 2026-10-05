@@ -1241,16 +1241,36 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=27289ed731'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO } from './plantel.js?v=27289ed731'
+import * as M from './motor.js?v=525f7a4f48'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO } from './plantel.js?v=525f7a4f48'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=27289ed731'
-import * as S from './sonido.js?v=27289ed731'
+import * as R from './ranking.js?v=525f7a4f48'
+import * as S from './sonido.js?v=525f7a4f48'
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 // el nivel fijado a mano manda (Fito, Trampa total, va al final)
 const promReal = (j) => (DIFICULTAD_REAL[j.apodo]?.nivel ? 9 : 0) + (DIFICULTAD_REAL[j.apodo]?.prom ?? 10 + (j.hcp ?? M.HCP_SIN_CARGAR) / 10)
 const PLANTEL = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo)).sort((a, b) => promReal(a) - promReal(b))
+// Los handicaps reales: adentro de la SDGApp, la app manda el HCP index de cada uno en la FedE Cup (sdga:plantel)
+// y pisa el de plantel.js (también en la Ruleta: es el mismo objeto). Nunca en medio de una vuelta: si llega
+// jugando, se aplica al empezar la próxima. El orden del mazo no cambia (es el de la dificultad medida).
+let hcpsPendientes = null
+function aplicarHandicaps() {
+  const hcps = hcpsPendientes
+  hcpsPendientes = null
+  if (!hcps) return
+  let cambio = false
+  for (const j of TODOS) {
+    const h = hcps.get(R.claveNombre(j.apodo))
+    if (h == null || (j.hcp === h && !j.aprox)) continue
+    j.hcp = h
+    j.aprox = false
+    cambio = true
+  }
+  if (!cambio) return
+  if (!$('#elegir').hidden) pintarMazo()
+  if (!$('#todos').hidden) mostrarTodos()
+}
 /** Nivel y nombre de dificultad para mostrar: el medido si lo hay; si no, el del handicap. */
 function difDe(j) {
   const base = M.dificultad(j.hcp)
@@ -1987,6 +2007,7 @@ function levantarVuelta() {
 
 // ── hoyos ──
 function empezar(jugador) {
+  aplicarHandicaps() // si la app mandó handicaps mientras se jugaba la vuelta anterior
   ronda = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // la bandera, en otro lugar del green cada ronda
   // el match: las banderas y el viento salen de la semilla (los dos juegan lo mismo); se usa una vez
   const duelo = matchModo
@@ -4967,6 +4988,11 @@ function mostrarElegir() {
 }
 $('#usuario').value = datos.usuario
 // adentro de la SDGApp juega con su usuario de la app: no hay nombre para escribir
+// los handicaps de la FedE Cup (ver aplicarHandicaps)
+R.alPlantel((hcps) => {
+  hcpsPendientes = hcps
+  if (['portada', 'elegir', 'fin'].includes(estado)) aplicarHandicaps()
+})
 R.alEntrar((yo) => {
   // ¿ya habías desbloqueado a Demetrio? (si borraste la app, se recupera de la base)
   if (!datos.demetrio) Promise.all([R.leerMarcas(), R.leerConteo()]).then(([r, c]) => recuperarSecreto(r?.marcas, c)).catch(() => {})
