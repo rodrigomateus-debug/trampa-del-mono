@@ -37,5 +37,10 @@ ${cuerpo}
 import crypto from 'node:crypto'
 const version = crypto.createHash('sha1').update(['motor.js', 'plantel.js', 'ranking.js', 'sonido.js', 'cancha-grid.js'].map((f) => fs.readFileSync(f, 'utf8')).join('')).digest('hex').slice(0, 10)
 const html = html0.replace(/from '\.\/(motor|plantel|ranking|sonido)\.js'/g, (_, f) => `from './${f}.js?v=${version}'`)
-fs.writeFileSync('index.html', html)
+// la versión, chiquita al pie de la portada: para ver de un vistazo si al teléfono ya le llegó lo último
+const huella = crypto.createHash('sha1').update(juego + version).digest('hex').slice(0, 7)
+const fecha = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+const conVersion = html.replace('<span class="version" id="version"></span>', `<span class="version" id="version">v ${huella} · ${fecha}</span>`)
+if (conVersion === html) throw new Error('no encontré el lugar de la versión en la portada')
+fs.writeFileSync('index.html', conVersion)
 console.log('index.html listo (' + html.length + ' bytes)')
