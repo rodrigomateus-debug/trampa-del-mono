@@ -1,6 +1,7 @@
 // node test-motor.mjs — chequeos del motor de La Trampa del Mono.
 import assert from 'node:assert/strict'
 import * as M from './motor.js'
+import { RULETA } from './plantel.js'
 
 const campo = M.crearCampo()
 // para probar la física sola: sin monos cruzando y con greens planos
@@ -1174,6 +1175,85 @@ ok('🤫 Demetrio López: sin monos; cada tiro queda exactamente donde apuntó; 
   assert.equal(res.tipo, 'normal')
   assert.equal(bo.lie, 'bosque')
   assert.equal(bo.golpes, 1)
+})
+
+ok('🎰 La Ruleta: cada tiro otro player del mazo, nunca el mismo dos seguidos; gira solo si pegaste', () => {
+  assert.equal(M.esRuleta(RULETA), true)
+  assert.ok(RULETA.pool.length >= 10 && !RULETA.pool.includes(RULETA) && RULETA.pool.every((j) => !j.secreto))
+  const rng = M.rngDesde(42)
+  const r = M.nuevaRonda(RULETA, rng)
+  assert.equal(r.tee, 'blanca')
+  assert.equal(M.cartaDe(r), RULETA)
+  // antes de girar pega la carta (sin habilidad que haga nada); el primer giro ya da un player del mazo
+  const j1 = M.turnoRuleta(r, rng)
+  assert.ok(RULETA.pool.includes(j1) && r.jugador === j1)
+  // sin pegar no vuelve a girar (los monos que te la roban antes, el LP del Ninja)
+  assert.equal(M.turnoRuleta(r, rng), null)
+  assert.equal(r.jugador, j1)
+  // 300 tiros: nunca repite de un tiro al otro, y salen todos
+  const vistos = new Set([j1.apodo])
+  let antes = j1
+  for (let i = 0; i < 300; i++) {
+    M.golpear(quieto, r, -Math.PI / 2, 0.3, rng)
+    assert.equal(r.ruletaToca, true)
+    const j = M.turnoRuleta(r, rng)
+    assert.notEqual(j.apodo, antes.apodo)
+    vistos.add(j.apodo)
+    antes = j
+    r.pelota = [...M.teeDe(r)]; r.lie = 'tee'; r.golpes = 0
+  }
+  assert.equal(vistos.size, RULETA.pool.length)
+  // la carta de la vuelta sigue siendo la Ruleta (ranking, récord, lo que se comparte)
+  r.tarjeta = [{ n: 15, par: 4, golpes: 4 }, { n: 16, par: 4, golpes: 4 }, { n: 17, par: 3, golpes: 3 }]
+  r.terminada = true; r.ms = 1000
+  assert.equal(M.marcaDe(r, 'yo').apodo, 'La Ruleta')
+  assert.match(M.textoCompartir(r, true), /La Ruleta/)
+  assert.ok(M.tirosRuleta(r)[0].tiros.length > 1)
+  // levantó con uno que salió y no llegó a pegar: ese no figura
+  const total = r.ruleta.tiros.length
+  r.terminada = false; r.idx = 2
+  r.ruletaToca = true
+  M.turnoRuleta(r, rng)
+  M.levantar(r)
+  assert.equal(r.ruleta.tiros.length, total + 1)
+  assert.equal(M.tirosRuleta(r).reduce((s, h) => s + h.tiros.length, 0), total)
+})
+
+ok('🎰 La Ruleta deja la ronda lista para el que pega (Mago, Mugre, Marcos, Maxi) y la limpia para el siguiente', () => {
+  const r = M.nuevaRonda(RULETA, M.rngDesde(1))
+  const por = (apodo) => RULETA.pool.find((j) => j.apodo === apodo)
+  const forzar = (apodo) => { r.ruleta.pool = [por(apodo)]; r.jugador = RULETA; r.ruletaToca = true; return M.turnoRuleta(r, M.rngDesde(3)) }
+  forzar('El Mago Rodal')
+  assert.ok(M.golpeMagoDe(r))
+  forzar('Mugre')
+  assert.equal(r.golpeMago, null)
+  assert.equal(r.panchos, M.MUGRE.panchos)
+  assert.equal(M.alertaDe(r), M.MUGRE.alerta)
+  // Marcos: el carrito queda donde pegó el anterior y maneja hasta la pelota
+  r.desde = [...M.teeDe(r)]
+  r.pelota = [r.desde[0], r.desde[1] - 60]
+  forzar('El Flaco Ordoñez')
+  assert.equal(r.panchos, 0)
+  assert.ok(M.usaCarrito(r) && !M.carroLlego(campo, r.carro, r.pelota))
+  forzar('Grandpa')
+  assert.equal(r.carro, null)
+  assert.deepEqual(r.deme, { usado: false, listo: false })
+  r.deme.usado = true
+  forzar('LG')
+  forzar('Grandpa')
+  assert.equal(r.deme.usado, true) // Deme, una vez por vuelta (aunque Maxi salga dos veces)
+})
+
+ok('🎰 La Ruleta en un match: los dos juegan con la misma tanda de players', () => {
+  const cond = M.condicionesMatch(777)
+  const tanda = (seed) => {
+    const r = M.aplicarMatch(M.nuevaRonda(RULETA, M.rngDesde(seed)), cond)
+    const rng = M.rngDesde(seed + 1)
+    const lista = []
+    for (let i = 0; i < 12; i++) { lista.push(M.turnoRuleta(r, rng).apodo); r.ruletaToca = true }
+    return lista
+  }
+  assert.deepEqual(tanda(1), tanda(99))
 })
 
 console.log('\nTodo verde.')

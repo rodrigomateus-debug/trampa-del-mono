@@ -73,6 +73,7 @@ export function jugarVuelta(jugador, seed) {
   const r = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // como en el juego: la bandera, en otro lugar cada vuelta
   while (!r.terminada) {
     if (M.necesitaLP(r)) { M.levantar(r); break }
+    M.turnoRuleta(r, rng) // la Ruleta: antes de cada tiro, otro player
     // Maxi: llama a Deme en el primer tiro que puede y que no sea un putt corto (a más de 30 yd)
     if (M.puedeInvocarDeme(r) && M.dist(r.pelota, M.hoyoActual(r).pin) > 30) M.invocarDeme(r)
     // con el tiro de Deme listo no hace falta apuntar (entra igual); y probar tiros lo gastaría

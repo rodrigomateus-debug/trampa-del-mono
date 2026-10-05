@@ -217,6 +217,9 @@ const campana = (f, at = 0, vol = 0.18) => { tono(f, 0.9, { vol, at, ataque: 0.0
 
 // ── interfaz ──
 export const tap = () => { tono(1100, 0.05, { vol: 0.12, tipo: 'triangle' }); ruido(0.03, { f: 3000, vol: 0.05 }) }
+// la Ruleta: el tic de cada cara que pasa y el "¡ese!" cuando cae
+export const ruletaTic = () => { tono(1500, 0.03, { vol: 0.09, tipo: 'triangle' }); ruido(0.02, { f: 4200, vol: 0.04 }) }
+export function ruletaCae() { tono(392, 0.12, { vol: 0.16, tipo: 'triangle' }); campana(783.99, 0.08, 0.14); campana(1174.66, 0.16, 0.12) }
 export const swipe = () => ruido(0.22, { f: 600, f2: 2400, q: 0.8, vol: 0.12, ataque: 0.06 })
 /** Cuenta regresiva: 3, 2, 1 graves y el ¡YA! agudo, con acorde. */
 export function cuenta(n) {
