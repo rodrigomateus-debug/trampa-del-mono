@@ -785,8 +785,27 @@ input { -webkit-user-select: text; user-select: text; }
 .wdl i { font-style: normal; min-width: 30px; height: 24px; border-radius: 6px; display: grid; place-items: center; background: rgba(20, 64, 42, .08); }
 .wdl .g { background: rgba(46, 125, 79, .22); }
 .wdl .p { background: rgba(188, 75, 60, .18); }
-#h-fantasma { background: rgba(244, 238, 218, .9); color: var(--green-900); justify-self: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-#h-fantasma[hidden] { display: none; }
+/* el marcador del match en vivo (adentro del marcador de arriba): los 3 hoyos y el total, vos y el fantasma */
+.marcador { margin: 8px 0 0; }
+.marcador[hidden] { display: none; }
+.marcador table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-variant-numeric: tabular-nums; }
+.marcador th, .marcador td { padding: 0; border: 0; text-align: center; vertical-align: middle; }
+.marcador thead th { height: 18px; font: 800 10px/1 var(--font-body); letter-spacing: .1em; color: var(--text-muted); }
+.marcador thead th.ahora { color: var(--green-900); }
+.marcador thead th:first-child { width: 38%; text-align: left; }
+.marcador thead th.tot { width: 17%; }
+.marcador tbody th { height: 26px; text-align: left; font: 15px/1 var(--font-display); letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.marcador tbody th .e { font-size: 14px; margin-right: 5px; letter-spacing: 0; }
+.marcador tbody tr.el th { color: #3d5a8c; }
+.marcador td { font: 19px/1 var(--font-display); color: var(--green-900); }
+.marcador td.vacio { color: rgba(20, 64, 42, .25); }
+.marcador td.ahora { background: rgba(232, 195, 74, .35); }
+.marcador tbody tr:first-child td.ahora { border-radius: 8px 8px 0 0; }
+.marcador tbody tr:last-child td.ahora { border-radius: 0 0 8px 8px; }
+.marcador td.tot { font-size: 22px; border-left: 2px solid var(--border-subtle); }
+.marcador thead th.gano { color: var(--green-500); }
+.marcador thead th.pierdo { color: var(--red); }
+.marcador td.lp { font-size: 14px; color: var(--red); }
 .rk-fila.tocable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 120ms; }
 .rk-fila.tocable:active { background: rgba(20, 64, 42, .1); }
 .rk-fila.tocable:focus-visible { outline: 3px solid var(--gold); outline-offset: -2px; border-radius: 10px; }
@@ -940,6 +959,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
         <div class="hud-jugador"><span id="j-apodo">RORRO</span><span class="hcp" id="j-hcp"></span><span class="band" id="j-total">E</span></div>
       </div>
     </div>
+    <div class="marcador" id="marcador" hidden aria-label="El match en vivo"></div>
     <div id="voz" class="vacia" aria-live="polite"><span class="quien">📺 LG</span><span class="dice" id="r-dice"></span><span class="extra" id="r-extra"></span></div>
   </div>
   <div id="hud-chips">
@@ -954,7 +974,6 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
       <button class="btn crema chico" id="lp" type="button">LP 💅</button>
     </div>
   </div>
-  <span class="chip" id="h-fantasma" hidden></span>
 </div>
 
 <button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
@@ -2011,7 +2030,8 @@ function empezar(jugador) {
     Object.assign(ronda, { pelota: [h16.pin[0], h16.pin[1] - 4], lie: 'green', golpes: 1 })
   }
   pararCuenta()
-  $('#h-fantasma').hidden = true
+  $('#marcador').hidden = true
+  marcadorPintado = ''
   for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking', 'todos', 'resumen', 'match']) $('#' + id).hidden = true
   $('#hud-top').hidden = false
   introHoyo()
@@ -3704,7 +3724,7 @@ function irAlInicio() {
   clearTimeout(firmaTimer)
   firmaHasta = 0
   for (const id of ['fin', 'comunicado', 'ranking', 'resumen', 'match', 'elegir', 'todos']) $('#' + id).hidden = true
-  for (const id of ['hud-top', 'hud-bot', 'pancho', 'h-fantasma', 'deme-btn']) $('#' + id).hidden = true
+  for (const id of ['hud-top', 'hud-bot', 'pancho', 'marcador', 'deme-btn']) $('#' + id).hidden = true
   ronda = null
   tiro = null
   anim = null
@@ -3972,8 +3992,7 @@ $('#mt-lista').addEventListener('click', async (e) => {
   }
 })
 
-/** Cada cuadro de un match: grabo mi vuelta (los dos: es lo que después se ve en el replay) y escribo dónde va el fantasma (si respondo). */
-let fantasmaPintado = ''
+/** Cada cuadro de un match: grabo mi vuelta (los dos: es lo que después se ve en el replay) y, si respondo, el marcador en vivo. */
 function cuadroDuelo() {
   const d = ronda.duelo
   if (ronda.t0 == null) return
@@ -3981,17 +4000,47 @@ function cuadroDuelo() {
   if (ronda.ms == null && !ronda.terminada) {
     M.grabar(d.grabacion, ms, ronda.idx, tiro ? tiro.pos : ronda.pelota, tiro ? tiro.alt : 0, golpesVan(ronda))
   }
-  if (!d.fantasma) return
-  const f = M.fantasmaEn(d.fantasma, ms)
-  const r = d.desafio.retador
-  const txt = !f ? '' : f.fin
-    ? `👻 ${r.emoji} ${r.alias} terminó · ${r.lp || r.golpes == null ? 'LP 💅' : `${r.golpes} golpes`}`
-    : `👻 ${r.emoji} ${r.alias} · hoyo ${M.HOYOS[f.idx]?.n ?? ''} · ${f.golpes} ${f.golpes === 1 ? 'golpe' : 'golpes'}`
-  if (txt !== fantasmaPintado) {
-    fantasmaPintado = txt
-    $('#h-fantasma').textContent = txt
-    $('#h-fantasma').hidden = !txt
-  }
+  if (d.fantasma) pintarMarcador(ms)
+}
+/**
+ * El marcador del match en vivo: los 3 hoyos y el total, vos arriba y el fantasma abajo. Los golpes del hoyo que se
+ * está jugando cuentan en vivo (resaltado en dorado); el total del que va ganando, en una pastilla dorada.
+ * Solo se reescribe cuando cambia algo.
+ */
+let marcadorPintado = ''
+function pintarMarcador(ms) {
+  const d = ronda.duelo
+  const ret = d.desafio.retador
+  const el = M.marcadorFantasma(d.fantasma, ms)
+  const elLp = el.fin && (ret.lp || ret.golpes == null)
+  const elTotal = el.fin && ret.golpes != null && !ret.lp ? ret.golpes : el.total // al terminar, el total oficial (con la apuesta de Rorro)
+  // mis golpes: los hoyos cerrados de la tarjeta y el que estoy jugando
+  const mios = M.HOYOS.map((h, k) => {
+    const f = ronda.tarjeta[k]
+    if (f) return f.lp ? 'LP' : f.golpes
+    return k === ronda.idx && !ronda.terminada ? ronda.golpes : null
+  })
+  const yoLp = mios.includes('LP')
+  const yoTotal = golpesVan(ronda)
+  // quién va ganando: solo con los hoyos que terminaron LOS DOS (con uno a medio jugar, los totales engañan)
+  const cerradosYo = ronda.tarjeta.length
+  const cerradosEl = el.fin ? M.HOYOS.length : el.idx
+  const n = Math.min(cerradosYo, cerradosEl)
+  const suma = (arr) => arr.slice(0, n).reduce((t, v) => t + (typeof v === 'number' ? v : 0), 0)
+  const gana = yoLp || elLp ? (yoLp && elLp ? 0 : yoLp ? -1 : 1) : n === 0 ? 0 : Math.sign(suma(el.porHoyo) - suma(mios)) // 1: voy ganando yo
+  const fila = (clase, nombre, emoji, golpes, ahora, total, lp) => `<tr class="${clase}"><th><span class="e">${esc(emoji)}</span>${esc(nombre)}</th>${
+    golpes.map((v, k) => `<td class="${[k === ahora ? 'ahora' : '', v == null ? 'vacio' : '', v === 'LP' ? 'lp' : ''].join(' ').trim()}">${v == null ? '·' : v}</td>`).join('')
+  }<td class="tot${lp ? ' lp' : ''}">${lp ? 'LP' : total}</td></tr>`
+  const yoAhora = ronda.terminada ? -1 : ronda.idx
+  const elAhora = el.fin ? -1 : el.idx
+  const html = `<table><thead><tr><th class="${n && gana ? (gana > 0 ? 'gano' : 'pierdo') : ''}">${n && gana ? `${gana > 0 ? 'Vas ganando' : 'Vas perdiendo'} · ${Math.abs(suma(el.porHoyo) - suma(mios))}` : n ? 'Van iguales' : 'Match en vivo'}</th>${M.HOYOS.map((h, k) => `<th class="${k === yoAhora ? 'ahora' : ''}">${h.n}</th>`).join('')}<th class="tot">TOT</th></tr></thead><tbody>${
+    fila('yo', 'VOS', ronda.carta?.emoji ?? ronda.jugador.emoji, mios, yoAhora, yoTotal, yoLp)
+  }${fila('el', ret.alias, `👻${ret.emoji ?? ''}`, elLp ? el.porHoyo.map((v, k) => (k >= el.idx ? 'LP' : v)) : el.porHoyo, elAhora, elTotal, elLp)}</tbody></table>`
+  if (html === marcadorPintado) return
+  marcadorPintado = html
+  $('#marcador').innerHTML = html
+  $('#marcador').title = n ? `${gana > 0 ? 'Vas ganando' : gana < 0 ? 'Vas perdiendo' : 'Van iguales'} en ${n === 1 ? 'el hoyo' : `los ${n} hoyos`} que terminaron los dos` : ''
+  $('#marcador').hidden = false
 }
 /** La pelota del que te desafió, semitransparente, con su emoji y su nombre (solo si va en tu mismo hoyo).
  *  Si está fuera de la pantalla, el cartelito queda en el borde con una flechita que apunta para donde va. */
@@ -3999,13 +4048,15 @@ function dibujarFantasma() {
   if (ronda.t0 == null || ronda.terminada) return
   const d = ronda.duelo
   const f = M.fantasmaEn(d.fantasma, ronda.ms ?? performance.now() - ronda.t0)
-  if (!f || f.fin || f.idx !== ronda.idx) return
+  if (!f || f.fin) return
   const [x, y0] = w2s(f.pos)
   const r = Math.max(4.5, radioPelota()) * (1 + f.alt / 50)
   const y = y0 - f.alt * levante()
-  const arriba = Math.min(H * 0.4, (document.querySelector('#hud-top')?.getBoundingClientRect().bottom ?? 0) + 30)
-  const fuera = x < 0 || x > W || y < arriba || y > H
-  if (!fuera) {
+  const v = visible()
+  const fuera = x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1
+  // fuera de la pantalla (en este hoyo o en otro): una marca en el borde, como los monos, que apunta adonde está
+  if (fuera) return indicadorFantasma(f, x, y, v)
+  {
     ctx.globalAlpha = 0.22
     ctx.fillStyle = '#000'
     ctx.beginPath()
@@ -4028,7 +4079,65 @@ function dibujarFantasma() {
   }
   // el cartelito: emoji + nombre
   const ret = d.desafio.retador
-  cartelPelota(x, y, r, ret.emoji, ret.alias, fuera, arriba)
+  cartelPelota(x, y, r, ret.emoji, ret.alias, false, v.y0)
+}
+/**
+ * El fantasma fuera de la pantalla: en el borde, sobre la línea de tu pelota a la suya, un círculo celeste (el color del
+ * fantasma) con su emoji y una flecha para donde está. Abajo, a cuántas yardas (si va en tu hoyo) o en qué hoyo va.
+ */
+function indicadorFantasma(f, gx, gy, v) {
+  let [bx, by] = w2s(ronda.pelota)
+  if (bx < v.x0 || bx > v.x1 || by < v.y0 || by > v.y1) [bx, by] = [(v.x0 + v.x1) / 2, (v.y0 + v.y1) / 2]
+  const dx = gx - bx, dy = gy - by
+  const m = 30
+  let k = Infinity
+  if (dx > 0) k = Math.min(k, (v.x1 - m - bx) / dx)
+  if (dx < 0) k = Math.min(k, (v.x0 + m - bx) / dx)
+  if (dy > 0) k = Math.min(k, (v.y1 - m - by) / dy)
+  if (dy < 0) k = Math.min(k, (v.y0 + m - by) / dy)
+  if (!isFinite(k) || k <= 0) return
+  const x = bx + dx * k, y = by + dy * k
+  const ang = Math.atan2(dy, dx)
+  const ret = ronda.duelo.desafio.retador
+  const etiqueta = f.idx === ronda.idx ? `${Math.round(M.dist(f.pos, ronda.pelota) * M.hoyoActual(ronda).escala)} YD` : `HOYO ${M.HOYOS[f.idx]?.n ?? ''}`
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.globalAlpha = 0.85 + 0.15 * Math.sin(performance.now() / 300) // respira, como el halo del fantasma
+  // la flecha y el círculo, con contorno tinta
+  ctx.beginPath()
+  ctx.moveTo(Math.cos(ang) * 31, Math.sin(ang) * 31)
+  ctx.lineTo(Math.cos(ang + 0.5) * 19, Math.sin(ang + 0.5) * 19)
+  ctx.lineTo(Math.cos(ang - 0.5) * 19, Math.sin(ang - 0.5) * 19)
+  ctx.closePath()
+  ctx.fillStyle = '#0c2b1c'
+  ctx.fill()
+  ctx.beginPath()
+  ctx.arc(0, 0, 20, 0, 7)
+  ctx.fillStyle = '#dfe9ff'
+  ctx.fill()
+  ctx.lineWidth = 2.5
+  ctx.strokeStyle = '#0c2b1c'
+  ctx.stroke()
+  ctx.globalAlpha = 1
+  ctx.font = `19px ${EMOJI}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(ret.emoji || '👻', 0, 1)
+  ctx.font = `11px ${EMOJI}`
+  ctx.fillText('👻', 14, -14)
+  // la etiqueta, del lado de adentro de la pantalla
+  ctx.font = '13px Anton, "Arial Narrow", sans-serif'
+  const w = ctx.measureText(etiqueta).width + 12
+  const lx = -Math.cos(ang) * 38, ly = -Math.sin(ang) * 34
+  ctx.fillStyle = '#dfe9ff'
+  ctx.beginPath()
+  ctx.roundRect(lx - w / 2, ly - 9, w, 18, 9)
+  ctx.fill()
+  ctx.lineWidth = 1.5
+  ctx.stroke()
+  ctx.fillStyle = '#0c2b1c'
+  ctx.fillText(etiqueta, lx, ly + 1)
+  ctx.restore()
 }
 /**
  * El cartelito de una pelota ajena (el fantasma, las del replay): emoji + nombre, arriba de la pelota. Si está fuera de
