@@ -17,6 +17,8 @@ Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ra
 - Pantalla "Elegí tu nivel de dificultad": el mazo de cartas de los Playoffs de la FedE Cup (ParticipantsDeck), tipo Tinder: foto gigante, banda dorada "Nivel N · HCP", frase célebre, 6 datos y "Jugar con …". Dedo a la izquierda = siguiente (más difícil).
 - Ordenado por handicap de menor a mayor (base de la FedE Cup, foto del 2026-10-03 en `plantel.js`); sin handicap cargado van al final y juegan como HCP 18.
 - Más handicap, más difícil (`dificultad()` en motor.js): más error en tiro y putt, un poco menos de distancia. Bot que apunta perfecto: HCP 1.5 ≈ +1,5 · HCP 7 ≈ +2,2 · HCP 14.6 ≈ +3,2 · HCP 22 ≈ +4,1.
+- **Dispersión = handicap (2026-10-05):** el error de cada tiro y cada putt (encima de las habilidades) sale solo del handicap: HCP 0 = sin dispersión (va exacto adonde apuntás), crece en línea recta hasta HCP 25 (`DISPERSION_HCP`: ×2,5 en el tope, HCP 10 ≈ el juego de antes) y de 25 para arriba es igual para todos. Los "plus" cuentan como 0.
+- **Handicap real (2026-10-05):** adentro de la SDGApp, la app manda el HCP index de cada jugador de la FedE Cup (`players.handicap`, el de su perfil) por el puente (`sdga:plantel`) y el juego lo pisa en el plantel (por nombre). Si llega en medio de una vuelta, se aplica en la próxima. Suelto (GitHub Pages) queda el de `plantel.js`.
 
 ## Reglas del juego
 - Tiro: arrastrar para atrás desde cualquier lado y soltar (gomera). Se ve un óvalo con la zona de pique (sin viento): crece con la potencia, el rough, el bunker y tirando a fondo.

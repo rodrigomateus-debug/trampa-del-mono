@@ -346,21 +346,23 @@ export const RULETA = {
 PLANTEL.push(RULETA)
 
 // La dificultad real de cada uno con su habilidad: promedio vs. par y % de LP de un bot que juega 60 vueltas
-// (`node calibrar.mjs 60`, 2026-10-04, con el hoyo nuevo, la caída por zonas, el tope del par 3, el viento que pesa con el cuadrado del largo, el bunker a la mitad, sin árboles fantasma junto a los greens, sin monos en la salida, la bandera en otro lugar cada vuelta y los umbrales de las habilidades en yardas reales; el bot putea con la fuerza del medio de las que entran). El mazo se ordena por esto, no por el handicap.
+// (`node calibrar.mjs 60`, 2026-10-05, con la dispersión que sale solo del handicap: 0 con HCP 0, en línea recta hasta HCP 25).
+// El mazo se ordena por esto, no por el handicap. Se midió con el handicap de este archivo: adentro de la app cada uno juega
+// con el suyo real (sdga:plantel), así que el nivel de la carta es una referencia.
 export const DIFICULTAD_REAL = {
-  'El Sueco': { prom: -0.27, lp: 0 },
-  LG: { prom: 0.56, lp: 2 },
-  'El Perro': { prom: 0.88, lp: 0 },
-  'Mike Queboni (Đ)': { prom: 1, lp: 0 },
-  'El Mago Rodal': { prom: 1.12, lp: 2 },
-  Liberty: { prom: 1.59, lp: 7 },
-  'El Ninja (Đ)': { prom: 1.84, lp: 3 },
-  Lechu: { prom: 2.1, lp: 3 },
-  Grandpa: { prom: -0.15, lp: 0 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
-  'El Flaco Ordoñez': { prom: 1.97, lp: 3 }, // el bot no maneja: el carrito le cuesta tiempo, no golpes
-  Mugre: { prom: 2.86, lp: 2 },
+  'El Sueco': { prom: -1.35, lp: 0 },
+  Grandpa: { prom: -1.22, lp: 2 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
+  'El Perro': { prom: -0.83, lp: 0 },
+  'Mike Queboni (Đ)': { prom: -0.28, lp: 3 },
+  'El Ninja (Đ)': { prom: 0.41, lp: 3 },
+  LG: { prom: 0.49, lp: 2 },
+  'El Mago Rodal': { prom: 1.03, lp: 2 },
+  'El Flaco Ordoñez': { prom: 1.4, lp: 0 }, // el bot no maneja: el carrito le cuesta tiempo, no golpes
+  Lechu: { prom: 1.63, lp: 0 },
+  Liberty: { prom: 2.45, lp: 8 },
+  Mugre: { prom: 2.52, lp: 3 },
   // Trampa total a mano (dicen los que juegan que es el más difícil: el embudo de la línea que se sacude)
-  'Fito (Đ)': { prom: 1.59, lp: 2, nivel: 5 },
+  'Fito (Đ)': { prom: 2.19, lp: 5, nivel: 5 },
   // el bot no sufre el cambio (apunta perfecto con cualquiera); la gente sí: cada tiro es otra habilidad y otro handicap
-  'La Ruleta': { prom: 1.02, lp: 0, nivel: 4 },
+  'La Ruleta': { prom: 0.63, lp: 0, nivel: 4 },
 }

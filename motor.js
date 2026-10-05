@@ -117,13 +117,18 @@ export const HABILIDADES = {
 export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
 
 // ── nivel de dificultad = handicap del jugador elegido ──
-// Más handicap: más error (tiro y putt) y un poco menos de distancia. HCP 7 ≈ el juego base.
+// Más handicap: más error (tiro y putt) y un poco menos de distancia.
 export const HCP_SIN_CARGAR = 18
+// La dispersión (el error de cada tiro y cada putt, sin contar las habilidades) sale SOLO del handicap:
+// con 0 la pelota va exacta adonde apuntás, y crece en línea recta hasta HCP `tope`; de ahí para arriba, todos igual.
+// `error` es el multiplicador en el tope (HCP 10 ≈ el juego base de antes). Los handicaps "plus" (negativos) cuentan como 0.
+export const DISPERSION_HCP = { tope: 25, error: 2.5 }
+export const errorDe = (hcp) => (Math.min(DISPERSION_HCP.tope, Math.max(0, hcp)) / DISPERSION_HCP.tope) * DISPERSION_HCP.error
 export const NIVELES = ['Paseo', 'Normal', 'Difícil', 'Muy difícil', 'Trampa total'] // hasta HCP 5, 10, 15, 20, más
 export function dificultad(hcp) {
   const h = hcp ?? HCP_SIN_CARGAR
   const nivel = h < 5 ? 1 : h < 10 ? 2 : h < 15 ? 3 : h < 20 ? 4 : 5
-  return { hcp: h, cargado: hcp != null, error: 0.75 + h * 0.035, distancia: (DRIVE.max - DRIVE.porHcp * h) / DRIVE.max, nivel, nombre: NIVELES[nivel - 1] }
+  return { hcp: h, cargado: hcp != null, error: errorDe(h), distancia: (DRIVE.max - DRIVE.porHcp * h) / DRIVE.max, nivel, nombre: NIVELES[nivel - 1] }
 }
 /**
  * La dificultad medida (promedio vs. par del bot de calibrar.mjs) en los mismos 5 niveles. `nivel` la fija a mano
