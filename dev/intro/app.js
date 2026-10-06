@@ -75,6 +75,8 @@ async function iniciar() {
   const $ = (s) => raiz.querySelector(s)
   if (enApp) raiz.classList.add('en-app') // la puerta queda solo como pantalla de carga (sin botones)
   const escenario = $('.ia-escenario')
+  // en la app, arriba del título: de quién es (el video no lo tiene)
+  escenario.querySelector('#logo-caja')?.insertAdjacentHTML('afterbegin', '<span id="logo-de" aria-label="SDGA’s">SDGA’S</span>')
   const lienzo = $('.ia-lienzo')
   // grano, viñeta y fundidos a pantalla completa (no solo dentro del escenario escalado)
   for (const id of ['grano', 'vineta', 'flash', 'negro', 'fundido']) {
@@ -99,6 +101,7 @@ async function iniciar() {
   const escena = crearEscena(THREE, { canvas: lienzo, vertical: true, ancho: 1080, alto: 1920, cues: Q, infinito: true, pixelRatio: pr })
   await escena.listo
   const tl = window.armarTextos()
+  tl.fromTo('#intro-app #logo-de', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, Q.logo + 0.3)
   tl.pause()
   const idle = armarIdle(Q)
   const clips = Array.from(escenario.querySelectorAll('[data-start]')).map((el) => ({
@@ -264,7 +267,7 @@ async function iniciar() {
       escena.encuadrarTitulo({ cy, alto, fov: 36 })
       jugadorCaja = { x: W / 2 - alto * H * 0.4, y: (cy - alto * 0.62) * H, w: alto * H * 0.8, h: alto * H * 1.24 }
     }
-    ojos.lugares([escenario.querySelector('#logo-caja'), inicio, btnSonido], jugadorCaja, W, H)
+    ojos.lugares([escenario.querySelector('#logo-caja'), escenario.querySelector('#logo-de'), inicio, btnSonido].filter(Boolean), jugadorCaja, W, H)
   }
   window.addEventListener('resize', () => {
     if (estado === 'inicio') encuadrar()
@@ -423,6 +426,9 @@ const CSS_APP = `
 @font-face { font-family: "Archivo"; src: url("assets/fonts/archivo-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 @font-face { font-family: "Archivo"; src: url("assets/fonts/archivo-800.woff2") format("woff2"); font-weight: 800; font-display: swap; }
 #intro-app #logo-sdga { display: none; } /* en la app ese lugar es del botón EMPEZAR */
+#intro-app #logo-de { position: absolute; left: -200px; right: -200px; bottom: 100%; margin-bottom: 16px; text-align: center; white-space: nowrap;
+  font: 400 50px/1 var(--display); letter-spacing: .16em; padding-left: .16em; color: var(--gold); text-shadow: 0 4px 18px rgba(5, 18, 11, .55); }
+#intro-app.vertical #logo-de { font-size: 46px; margin-bottom: 14px; }
 #intro-app { position: fixed; inset: 0; z-index: 60; overflow: hidden; background: #0c2b1c; color: #f4eeda;
   --green-950: #0c2b1c; --green-900: #14402a; --green-700: #1c5638; --green-300: #6fae87; --cream: #f4eeda;
   --cream-dark: #e7dfc2; --gold: #e8c34a; --gold-dark: #c9a22e;

@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy: el juego publicado + Stats con selector de orden (vueltas, promedio o LP) y sello SDGA centrado, para probar.
+Hoy: el juego publicado + Stats con selector de orden, sello SDGA centrado y SDGA'S arriba del título de la intro, para probar.
