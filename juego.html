@@ -78,7 +78,7 @@ body {
    Cada botón define su sombra (--sh) y cuánto se corre (--dx/--dy); --rot es la inclinación de afiche del CTA principal.
    Colores: oro = la acción principal (una por pantalla) · crema = secundaria sobre verde · verde = sobre superficies crema
    · rojo = salir/borrar · ghost = terciaria sobre verde (borde crema, sin sombra). */
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #sonido, .volver-app) {
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #sonido, .volver-app) {
   --sh: var(--game-shadow-md); --dx: 4px; --dy: 5px; --rot: rotate(0deg);
   box-sizing: border-box;
   border: var(--game-stroke) solid var(--game-ink);
@@ -89,14 +89,14 @@ body {
   translate: 0 0;
   transition: translate var(--game-release-dur) var(--game-ease-bounce), box-shadow var(--game-release-dur) var(--game-ease-bounce), background-color var(--game-press-dur), opacity 150ms;
 }
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #sonido, .volver-app):active:not([disabled]) {
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #sonido, .volver-app):active:not([disabled]) {
   translate: var(--dx) var(--dy); /* translate, no transform: así se suma a la inclinación y a las animaciones */
   box-shadow: 0 0 0 var(--game-ink);
   transition-duration: var(--game-press-dur);
   transition-timing-function: ease-out;
 }
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #sonido, .volver-app)[disabled] { opacity: .45; cursor: not-allowed; }
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #sonido, .volver-app):focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #sonido, .volver-app)[disabled] { opacity: .45; cursor: not-allowed; }
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #sonido, .volver-app):focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 /* los íconos del set SDGA (GameIcon): trazo tinta 2,5px, papel crema y acento dorado; cada botón cambia los tres */
 .gi { display: block; flex: none; width: 24px; height: 24px; overflow: visible; --gi-s: var(--game-ink); --gi-f: var(--cream); --gi-a: var(--gold); }
 .gi g { fill: none; stroke: var(--gi-s); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -189,7 +189,7 @@ body {
 body.apuntando #hud-top .card { opacity: .18; }
 body.apuntando #crono, body.apuntando #viento, body.apuntando #efecto { opacity: .45; }
 #hud-chips > * { transition: opacity 150ms; }
-body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando #deme-btn { opacity: .25; pointer-events: none; }
+body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando #deme-btn, body.apuntando #dicky-btn { opacity: .25; pointer-events: none; }
 
 /* ── banda central (intro de hoyo y resultado) ── */
 #banda {
@@ -566,20 +566,20 @@ body.retro #retro::after { content: ''; position: absolute; inset: 0; background
 #deme .globo::after { content: ''; position: absolute; left: 6px; bottom: -14px; width: 22px; height: 18px; background: var(--cream); border-left: 2.5px solid var(--green-900); border-bottom: 2.5px solid var(--green-900); border-bottom-left-radius: 18px 14px; transform: skewX(-28deg); }
 #deme .globo.ve { animation: globo-sale 520ms cubic-bezier(.2, 1.5, .4, 1) forwards, globo-respira 2.2s 520ms ease-in-out infinite; }
 /* Lucas (LG) en persona: con Rodal aparece abajo a la izquierda y lo adula con un globo de diálogo */
-#lucas { position: fixed; left: 0; bottom: 0; z-index: 30; width: min(46vw, 230px); pointer-events: none; opacity: 0; transform: translateY(70%) rotate(-7deg); transform-origin: 30% 100%; }
-#lucas.entra { animation: lucas-entra 620ms cubic-bezier(.2, 1.25, .4, 1) forwards; }
-#lucas.sale { animation: lucas-sale 520ms cubic-bezier(.5, 0, .8, .4) forwards; }
-#lucas .cuerpo { animation: lucas-flota 2.6s ease-in-out infinite; transform-origin: 40% 100%; }
-#lucas img { display: block; width: 100%; height: auto; filter: drop-shadow(0 8px 18px rgba(8, 26, 16, .55)); }
-#lucas .globo { position: absolute; left: 62%; bottom: 74%; width: max-content; max-width: min(58vw, 250px); padding: 10px 14px; background: var(--cream); color: var(--green-900); font: 800 16px/1.2 var(--font-body); border: 2.5px solid var(--green-900); border-radius: 22px 26px 24px 18px; box-shadow: 0 6px 16px rgba(8, 26, 16, .4); transform-origin: 0% 100%; opacity: 0; }
-#lucas .globo::after { content: ''; position: absolute; left: 4px; bottom: -14px; width: 22px; height: 18px; background: var(--cream); border-left: 2.5px solid var(--green-900); border-bottom: 2.5px solid var(--green-900); border-bottom-left-radius: 18px 14px; transform: skewX(-28deg); }
-#lucas.entra .globo { animation: globo-sale 520ms 260ms cubic-bezier(.2, 1.5, .4, 1) forwards, globo-respira 2.2s 780ms ease-in-out infinite; }
+#lucas, #dicky { position: fixed; left: 0; bottom: 0; z-index: 30; width: min(46vw, 230px); pointer-events: none; opacity: 0; transform: translateY(70%) rotate(-7deg); transform-origin: 30% 100%; }
+#lucas.entra, #dicky.entra { animation: lucas-entra 620ms cubic-bezier(.2, 1.25, .4, 1) forwards; }
+#lucas.sale, #dicky.sale { animation: lucas-sale 520ms cubic-bezier(.5, 0, .8, .4) forwards; }
+#lucas .cuerpo, #dicky .cuerpo { animation: lucas-flota 2.6s ease-in-out infinite; transform-origin: 40% 100%; }
+#lucas img, #dicky img { display: block; width: 100%; height: auto; filter: drop-shadow(0 8px 18px rgba(8, 26, 16, .55)); }
+#lucas .globo, #dicky .globo { position: absolute; left: 62%; bottom: 74%; width: max-content; max-width: min(58vw, 250px); padding: 10px 14px; background: var(--cream); color: var(--green-900); font: 800 16px/1.2 var(--font-body); border: 2.5px solid var(--green-900); border-radius: 22px 26px 24px 18px; box-shadow: 0 6px 16px rgba(8, 26, 16, .4); transform-origin: 0% 100%; opacity: 0; }
+#lucas .globo::after, #dicky .globo::after { content: ''; position: absolute; left: 4px; bottom: -14px; width: 22px; height: 18px; background: var(--cream); border-left: 2.5px solid var(--green-900); border-bottom: 2.5px solid var(--green-900); border-bottom-left-radius: 18px 14px; transform: skewX(-28deg); }
+#lucas.entra .globo, #dicky.entra .globo { animation: globo-sale 520ms 260ms cubic-bezier(.2, 1.5, .4, 1) forwards, globo-respira 2.2s 780ms ease-in-out infinite; }
 @keyframes lucas-entra { 0% { opacity: 0; transform: translateY(70%) rotate(-7deg); } 60% { opacity: 1; } 100% { opacity: 1; transform: translateY(0) rotate(0); } }
 @keyframes lucas-sale { from { opacity: 1; transform: translateY(0) rotate(0); } to { opacity: 0; transform: translateY(45%) rotate(-4deg); } }
 @keyframes lucas-flota { 0%, 100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-5px) rotate(1.4deg); } 65% { transform: translateY(-2px) rotate(-1.2deg); } }
 @keyframes globo-sale { 0% { opacity: 0; transform: scale(.25) rotate(-10deg); } 65% { opacity: 1; transform: scale(1.08) rotate(2deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
 @keyframes globo-respira { 0%, 100% { opacity: 1; transform: scale(1) rotate(0); border-radius: 22px 26px 24px 18px; } 35% { opacity: 1; transform: scale(1.035) rotate(-1.2deg); border-radius: 26px 20px 28px 20px; } 70% { opacity: 1; transform: scale(.99) rotate(.9deg); border-radius: 20px 28px 20px 24px; } }
-@media (prefers-reduced-motion: reduce) { #lucas.entra, #lucas.entra .globo, #lucas .cuerpo { animation-duration: 1ms; animation-iteration-count: 1; } }
+@media (prefers-reduced-motion: reduce) { #lucas.entra, #lucas.entra .globo, #lucas .cuerpo, #dicky.entra, #dicky.entra .globo, #dicky .cuerpo { animation-duration: 1ms; animation-iteration-count: 1; } }
 #pancho { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 84px; height: 84px; border-radius: 50%; background: var(--gold); color: var(--green-900); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; font-family: var(--font-display); }
 #pancho .pancho-emo { font-size: 34px; line-height: 1; }
 #pancho .pancho-txt { font-size: 12px; letter-spacing: .06em; line-height: 1.1; }
@@ -1024,6 +1024,22 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 .t-ruleta .tiro-rl img, .t-ruleta .tiro-rl > span { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; object-position: top; display: grid; place-items: center; background: var(--green-700); font-size: 17px; box-shadow: 0 0 0 2px var(--green-900); }
 .t-ruleta .tiro-rl i { position: absolute; right: -4px; bottom: -3px; font-style: normal; font-size: 11px; line-height: 1; }
 .t-ruleta .flecha-rl { color: var(--text-muted); font-size: 12px; }
+
+/* ── la Dickyllamada: el botón (afiche: el logo de los Dicky Toons con su cinta dorada y el teléfono que suena) ── */
+#dicky-btn { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; --rot: rotate(-5deg); position: fixed; right: 32px; bottom: calc(var(--safe-bot) + 34px); width: 92px; height: 92px; border-radius: 50%; padding: 0; background: #1d1a5c; animation: g-wiggle 3.6s ease-in-out 1.2s infinite; }
+#dicky-btn img { display: block; width: 100%; height: 100%; border-radius: 50%; pointer-events: none; }
+#dicky-btn .cinta { position: absolute; left: 50%; bottom: -12px; width: max-content; transform: translateX(-50%) rotate(-7deg); background: var(--gold); color: var(--game-ink); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); font: 13px/1 var(--font-display); letter-spacing: .05em; padding: 5px 6px 4px; text-align: center; white-space: nowrap; }
+#dicky-btn .cinta::before, #dicky-btn .cinta::after { content: '♥'; color: var(--red); font-size: 11px; vertical-align: 1px; margin: 0 3px; }
+#dicky-btn b { position: absolute; top: -9px; right: -9px; width: 34px; height: 34px; box-sizing: border-box; border-radius: 50%; background: var(--cream); border: 2.5px solid var(--game-ink); display: grid; place-items: center; font-size: 17px; line-height: 1; animation: dicky-ring 2.4s ease-in-out infinite; }
+#dicky-btn[disabled] { animation: none; }
+#dicky-btn[disabled] b { animation: none; }
+@keyframes dicky-ring { 0%, 55%, 100% { transform: rotate(0); } 60% { transform: rotate(-20deg); } 65% { transform: rotate(18deg); } 70% { transform: rotate(-16deg); } 75% { transform: rotate(14deg); } 80% { transform: rotate(-6deg); } }
+/* el Dicky que atiende: abajo a la izquierda, como Lucas, con su nombre en el globo y corazones que suben */
+#dicky .globo b { display: block; font: 17px/1.1 var(--font-display); letter-spacing: .03em; color: var(--red); margin-bottom: 3px; }
+#dicky .corazones { position: absolute; inset: 0 0 25% 0; pointer-events: none; }
+#dicky .corazones span { position: absolute; bottom: 30%; font-size: 22px; opacity: 0; animation: corazon-sube 2.6s ease-out forwards; }
+@keyframes corazon-sube { 0% { opacity: 0; transform: translateY(0) scale(.5); } 15% { opacity: 1; transform: translateY(-20px) scale(1.1); } 100% { opacity: 0; transform: translateY(-190px) translateX(var(--dx, 0)) scale(.8) rotate(var(--giro, 0deg)); } }
+@media (prefers-reduced-motion: reduce) { #dicky-btn, #dicky-btn b { animation: none; } #dicky .corazones { display: none; } }
 </style>
 
 <canvas id="cancha" aria-label="La cancha: hoyos 15, 16 y 17 de San Diego"></canvas>
@@ -1124,6 +1140,8 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 <button id="deme-btn" type="button" hidden aria-label="Invocar a Deme"><img src="jugadores/deme-cabeza.webp" alt="" width="260" height="207"><span>DEME</span></button>
 <div id="deme" hidden aria-live="polite"><svg viewBox="0 0 360 300" aria-label="Deme"></svg><p class="globo"></p></div>
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
+<button id="dicky-btn" type="button" hidden aria-label="Dickyllamada: llamá a otro Dicky"><img src="dicky-toons.svg" alt="" draggable="false"><span class="cinta">DICKYLLAMADA</span><b aria-hidden="true">📞</b></button>
+<div id="dicky" hidden aria-live="polite"><div class="corazones" aria-hidden="true"></div><div class="cuerpo"><img alt="" width="480" height="480" draggable="false"><p class="globo"><b class="quien"></b><span class="dice"></span></p></div></div>
 <div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
 <div id="banda" aria-live="polite">
@@ -2403,6 +2421,48 @@ function lucasDice(texto) {
     lucasTimer = setTimeout(() => { el.hidden = true; el.classList.remove('sale') }, 540)
   }, 2400 + 45 * texto.length)
 }
+// ── la Dickyllamada: el Dicky que juega llama a otro Dicky (nunca a sí mismo), que aparece y le dice algo tierno ──
+const DICKYS = TODOS.filter((j) => j.dicky && j.torso)
+const puedeDickyllamar = (j) => !!j?.dicky && DICKYS.some((d) => d.apodo !== j.apodo)
+let dickyTimer = 0, dickyUltimo = null
+function dickyllamada() {
+  if (estado !== 'apuntar' || !ronda || !$('#dicky').hidden) return
+  const yo = ronda.jugador
+  const otros = DICKYS.filter((d) => d.apodo !== yo.apodo)
+  if (!otros.length) return
+  // que no atienda dos veces seguidas el mismo (si hay otro)
+  const d = M.elegir(rng, otros.length > 1 ? otros.filter((x) => x.apodo !== dickyUltimo) : otros)
+  dickyUltimo = d.apodo
+  const texto = M.fraseDicky(rng, d.apodo, yo)
+  const el = $('#dicky')
+  el.querySelector('img').src = d.torso
+  el.querySelector('img').alt = d.apodo
+  el.querySelector('.quien').textContent = `${d.emoji} ${d.apodo.replace(/ \(Đ\)$/, '').toUpperCase()}`
+  el.querySelector('.dice').textContent = texto
+  // corazones que suben
+  const cor = el.querySelector('.corazones')
+  cor.innerHTML = ''
+  for (let i = 0; i < 9; i++) {
+    const c = document.createElement('span')
+    c.textContent = ['💛', '💚', '❤️', '🩷'][i % 4]
+    c.style.left = `${10 + Math.random() * 70}%`
+    c.style.animationDelay = `${0.3 + i * 0.22}s`
+    c.style.setProperty('--dx', `${Math.round((Math.random() - 0.5) * 60)}px`)
+    c.style.setProperty('--giro', `${Math.round((Math.random() - 0.5) * 50)}deg`)
+    cor.append(c)
+  }
+  S.dickyllamada()
+  clearTimeout(dickyTimer)
+  el.hidden = false
+  el.classList.remove('entra', 'sale')
+  void el.offsetWidth
+  el.classList.add('entra')
+  hud()
+  dickyTimer = setTimeout(() => {
+    el.classList.replace('entra', 'sale')
+    dickyTimer = setTimeout(() => { el.hidden = true; el.classList.remove('sale'); hud() }, 540)
+  }, 2800 + 45 * texto.length)
+}
 function relatar({ lg, excusa, verso }) {
   if (!lg) return
   const extra = excusa ? `${ronda.jugador.emoji} «${excusa}»` : verso ? `“${verso}”` : ''
@@ -2474,6 +2534,10 @@ function hud() {
     $('#pancho').disabled = !ronda.panchos || estado !== 'apuntar'
   }
   // Maxi: el botón de Deme (una vez por vuelta; en el tee, apagado)
+  // los Dicky: la Dickyllamada (llama a otro Dicky; mientras uno está en pantalla, apagado)
+  const dicky = !oculto && puedeDickyllamar(j)
+  $('#dicky-btn').hidden = !dicky || $('#hud-top').hidden
+  if (dicky) $('#dicky-btn').disabled = estado !== 'apuntar' || !$('#dicky').hidden
   const maxi = M.habilidadDe(j)?.id === 'deme'
   $('#deme-btn').hidden = !maxi || $('#hud-top').hidden || !ronda.deme || ronda.deme.usado
   if (maxi && ronda.deme) $('#deme-btn').disabled = !M.puedeInvocarDeme(ronda) || estado !== 'apuntar'
@@ -2501,6 +2565,7 @@ function golpeMago() {
 }
 let lpArmado = 0
 $('#pancho').addEventListener('click', tirarPancho)
+$('#dicky-btn').addEventListener('click', dickyllamada)
 $('#deme-btn').addEventListener('click', llamarADeme)
 $('#lp').addEventListener('click', () => {
   if (estado !== 'apuntar') return
@@ -3495,6 +3560,7 @@ function tarjetaFinal() {
   estado = 'fin'
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
+  $('#dicky-btn').hidden = true
   $('#hud-bot').hidden = true
   voz = null
   obj = vistaGeneral()
@@ -3839,7 +3905,7 @@ function irAlInicio() {
   clearTimeout(firmaTimer)
   firmaHasta = 0
   for (const id of ['fin', 'comunicado', 'ranking', 'resumen', 'match', 'elegir', 'todos']) $('#' + id).hidden = true
-  for (const id of ['hud-top', 'hud-bot', 'pancho', 'marcador', 'deme-btn']) $('#' + id).hidden = true
+  for (const id of ['hud-top', 'hud-bot', 'pancho', 'marcador', 'deme-btn', 'dicky-btn']) $('#' + id).hidden = true
   ronda = null
   tiro = null
   anim = null
@@ -5337,6 +5403,7 @@ function mostrarElegir() {
   $('.mazo-tit').innerHTML = matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}` : 'Elegí tu nivel de dificultad'
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
+  $('#dicky-btn').hidden = true
   $('#hud-bot').hidden = true
   ronda = null
   obj = vistaGeneral()

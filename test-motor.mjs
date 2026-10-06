@@ -1318,4 +1318,14 @@ ok('🐸 Taiu (la Rana): bombas desde el tee como Miguelón, approach perfectos 
   assert.equal(M.invertirArrastre(0, 50, 1.4).u, 0.03)
 })
 
+ok('📞 Dickyllamada: cada Dicky tiene su foto recortada y le dice algo tierno al que juega (con su nombre)', () => {
+  const dickys = RULETA.pool.filter((j) => j.dicky)
+  assert.ok(dickys.length >= 4 && dickys.every((j) => j.torso))
+  const rng = M.rngDesde(7)
+  for (let i = 0; i < 40; i++) {
+    const f = M.fraseDicky(rng, 'Taiu (Đ)', { apodo: 'Fito (Đ)' })
+    assert.ok(typeof f === 'string' && f.length > 10 && !f.includes('(Đ)') && !f.includes('undefined'))
+  }
+})
+
 console.log('\nTodo verde.')
