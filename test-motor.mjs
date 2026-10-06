@@ -101,97 +101,119 @@ ok('desde un fairway se pasa por arriba de la franja de pinos al otro', () => {
   assert.ok(['fairway', 'rough'].includes(M.terreno(campo, tiro.pos).tipo))
 })
 
-ok('Rodal: nunca pega derecho; apuntando afuera, la comba la trae a la línea', () => {
+ok('Rodal: el Baby Draw y Una cortada al medio, apuntando afuera, vuelven a la línea', () => {
   const r = M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛' }, fijo(0.5))
   r.monos = []
   r.viento = calma
-  r.golpeMago = 'comba'
+  assert.equal(r.golpeMago, M.GOLPE_MAGO_INICIAL)
   const linea = angulo(h15.tee, h15.pin)
-  const beta = (M.COMBA.angulo * Math.PI) / 180
-  // apuntando derecho a la bandera, la comba la saca de la línea
-  const derecho = M.planTiro(quieto, r, linea, 0.85)
-  assert.ok(derecho.comba && derecho.control)
-  assert.ok(Math.abs(derecho.cuerda - linea) > beta * 0.9)
-  // apuntando afuera (a los pinos), vuelve y cae sobre la línea, sin chocar pinos en el vuelo
-  const afuera = linea + beta
-  const tiro = M.simular(quieto, M.golpear(quieto, r, afuera, 0.85, sinRuido()), h15.pin)
-  assert.ok(!tiro.eventos.some((e) => e.tipo === 'palo'))
-  const enLinea = h15.tee[0] + ((h15.pin[0] - h15.tee[0]) * (h15.tee[1] - tiro.pos[1])) / (h15.tee[1] - h15.pin[1])
-  assert.ok(Math.abs(tiro.pos[0] - enLinea) < 3, `quedó a ${(tiro.pos[0] - enLinea).toFixed(1)} yd de la línea`)
-  // también fuera del tee (desde el fairway), y para el otro lado
-  r.pelota = [...h15.calle[2]]
-  r.lie = 'fairway'
-  r.golpeMago = 'comba'
-  const izq = M.planTiro(quieto, r, angulo(r.pelota, h15.pin) - 0.3, 0.5)
-  assert.ok(izq.comba && izq.cuerda > angulo(r.pelota, h15.pin) - 0.3)
-  // un jugador sin habilidad tira recto
+  const beta = (45 * Math.PI) / 180
+  const enLinea = (pos) => h15.tee[0] + ((h15.pin[0] - h15.tee[0]) * (h15.tee[1] - pos[1])) / (h15.tee[1] - h15.pin[1])
+  for (const [id, aim] of [['draw', linea + beta], ['cortada', linea - beta]]) {
+    const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }
+    assert.ok(M.elegirGolpeMago(quieto, rr, id))
+    // apuntando derecho a la bandera, la curva la saca de la línea
+    const derecho = M.planTiro(quieto, rr, linea, 0.85)
+    assert.ok(derecho.comba && derecho.control && Math.abs(derecho.cuerda - linea) > beta * 0.9)
+    // apuntando afuera (a los pinos), vuelve y cae sobre la línea, sin chocar pinos en el vuelo
+    const tiro = M.simular(quieto, M.golpear(quieto, rr, aim, 0.85, sinRuido()), h15.pin)
+    assert.ok(!tiro.eventos.some((e) => e.tipo === 'palo'), id)
+    assert.ok(Math.abs(tiro.pos[0] - enLinea(tiro.pos)) < 3, `${id}: quedó a ${(tiro.pos[0] - enLinea(tiro.pos)).toFixed(1)} yd de la línea`)
+  }
+  // un jugador sin habilidad tira recto (y no puede elegir golpes de mago)
   const otro = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5))
-  assert.equal(M.planTiro(quieto, otro, afuera, 0.85).control, null)
+  assert.equal(M.planTiro(quieto, otro, linea + beta, 0.85).control, null)
+  assert.equal(M.elegirGolpeMago(quieto, otro, 'flop'), false)
 })
 
-ok('Rodal: cada golpe le toca uno de 5 efectos, ninguno derecho', () => {
+ok('Rodal: elige entre 4 golpes (Flop, Baby Draw, Una cortada al medio, Dibuje maestro) y el elegido queda', () => {
   const r = { ...M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛' }, fijo(0.5)), monos: [], viento: calma }
-  assert.equal(M.GOLPES_MAGO.length, 5)
-  assert.ok(M.golpeMagoDe(r))
+  assert.deepEqual(M.GOLPES_MAGO.map((g) => g.nombre), ['Flop', 'Baby Draw', 'Una cortada al medio', 'Dibuje maestro'])
   const desde = [...h16.calle[1]]
   const linea = angulo(desde, h16.pin)
   const plan = (id) => {
     r.pelota = [...desde]
     r.lie = 'fairway'
-    r.golpeMago = id
+    assert.ok(M.elegirGolpeMago(quieto, r, id))
     return M.planTiro(quieto, r, linea, 0.5)
   }
-  const normal = M.planTiro(quieto, { ...r, jugador: { apodo: 'Rorro' }, pelota: [...desde], lie: 'fairway' }, linea, 0.5)
-  for (const g of M.GOLPES_MAGO) {
-    const p = plan(g.id)
-    assert.ok(p.comba && p.control && p.golpe === g.id)
-    assert.ok(Math.abs(p.cuerda - linea) >= (15 * Math.PI) / 180 - 1e-9, `${g.id} sale derecho`)
-  }
-  // apuntando a la bandera: el gancho cae a la izquierda (ángulo menor) y el slice a la derecha
-  assert.ok(plan('gancho').cuerda < linea && plan('slice').cuerda > linea)
-  // el globo vuela alto y casi no rueda; la viborita va al ras y rueda una banda
+  // apuntando a la bandera: el Baby Draw cae a la izquierda (ángulo menor) y la cortada a la derecha
+  assert.ok(plan('draw').cuerda < linea && plan('cortada').cuerda > linea)
+  // el Flop vuela alto, más corto y casi no rueda
   const tiroDe = (id) => {
     plan(id)
     return M.simular(quieto, M.golpear(quieto, r, linea, 0.5, sinRuido()), h16.pin)
   }
-  const globo = tiroDe('globo')
-  const vibora = tiroDe('vibora')
-  const comba = tiroDe('comba')
-  assert.ok(globo.hMax > comba.hMax * 2 && vibora.hMax < M.FISICA.alturaPino)
-  assert.ok(globo.carry < comba.carry && vibora.carry < globo.carry)
+  const flop = tiroDe('flop')
+  const draw = tiroDe('draw')
+  assert.ok(flop.hMax > draw.hMax * 2 && flop.carry < draw.carry)
   const rodada = (t) => M.dist(t.pos, [t.desde[0] + t.carryVec[0] + t.deriva[0], t.desde[1] + t.carryVec[1] + t.deriva[1]])
-  assert.ok(rodada(globo) < 1 && rodada(vibora) > rodada(comba) * 3)
-  assert.ok(normal.control === null)
-  // después de cada golpe le toca otro efecto (nunca el mismo dos veces seguidas); el putt no cuenta
-  const vistos = new Set()
-  for (let i = 0; i < 40; i++) {
-    const antes = r.golpeMago
-    r.pelota = [...desde]
-    r.lie = 'fairway'
-    M.golpear(quieto, r, linea, 0.5, Math.random)
-    assert.notEqual(r.golpeMago, antes)
-    vistos.add(r.golpeMago)
-  }
-  assert.equal(vistos.size, 5)
+  assert.ok(rodada(flop) < 1 && rodada(draw) > rodada(flop) * 3, `${rodada(flop)} ${rodada(draw)}`)
+  // el elegido queda para el próximo golpe (ya no se sortea)
+  plan('cortada')
+  M.golpear(quieto, r, linea, 0.5, Math.random)
+  assert.equal(r.golpeMago, 'cortada')
+  // en el green se elige el putt (draw o fade), y el golpe de afuera no se toca
   r.pelota = [h15.pin[0], h15.pin[1] + 4]
   r.lie = 'green'
-  const antes = r.golpeMago
-  M.golpear(quieto, r, angulo(r.pelota, h15.pin), 0.2, Math.random)
-  assert.equal(r.golpeMago, antes)
+  assert.equal(M.elegirGolpeMago(quieto, r, 'flop'), false)
+  assert.ok(M.elegirGolpeMago(quieto, r, 'fade'))
+  assert.equal(r.puttMago, 'fade')
+  assert.equal(r.golpeMago, 'cortada')
 })
 
-ok('Rodal: el putt siempre lleva comba; derecho al hoyo no entra, apuntando afuera sí', () => {
+ok('Rodal: el Dibuje maestro vuela por la línea dibujada (suavizada, por arriba de los pinos, hasta donde le da)', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛' }, fijo(0.5)), monos: [], viento: calma }
+  r.pelota = [...h15.tee]
+  r.lie = 'tee'
+  assert.ok(M.elegirGolpeMago(quieto, r, 'dibuje'))
+  const b = h15.tee
+  const linea = angulo(b, h15.pin)
+  const en = (d, lado) => [b[0] + Math.cos(linea) * d + Math.cos(linea + Math.PI / 2) * lado, b[1] + Math.sin(linea) * d + Math.sin(linea + Math.PI / 2) * lado]
+  // una curva: sale para un costado (por arriba de los pinos) y vuelve al medio de la calle
+  const dibujo = [en(30, 25), en(60, 35), en(90, 25), en(120, 0)]
+  const plan = M.planTiro(quieto, r, 0, 0, 0, 0, dibujo)
+  assert.ok(plan.dibujo && plan.ruta && plan.comba)
+  assert.ok(M.dist(plan.destino, en(120, 0)) < 0.5, 'cae donde termina la línea')
+  const tiro = M.golpear(quieto, r, 0, 0, sinRuido(), 0, 0, dibujo)
+  assert.ok(tiro.ruta)
+  // en el medio del vuelo pasa por el costado (no en línea recta)
+  let lejos = 0
+  while (tiro.fase === 'vuelo') {
+    M.avanzar(quieto, tiro, 1 / 60, h15.pin)
+    const d = M.dist(tiro.pos, b)
+    const lado = Math.abs((tiro.pos[0] - b[0]) * Math.sin(linea) - (tiro.pos[1] - b[1]) * Math.cos(linea))
+    if (d > 40 && d < 100) lejos = Math.max(lejos, lado)
+  }
+  assert.ok(lejos > 20, `en el medio se fue ${lejos.toFixed(1)} yd al costado`)
+  assert.ok(!tiro.eventos.some((e) => e.tipo === 'palo'))
+  assert.ok(M.dist(tiro.pos, en(120, 0)) < 1.5, 'pica donde termina la línea')
+  // un zigzag sale más suave: la línea pierde los picos
+  const zig = [1, 2, 3, 4, 5, 6, 7, 8].map((k) => en(k * 10, k % 2 ? 8 : -8))
+  const suave = M.suavizarRuta(b, zig)
+  const pico = Math.max(...suave.slice(0, -6).map((p) => Math.abs((p[0] - b[0]) * Math.sin(linea) - (p[1] - b[1]) * Math.cos(linea)))) // (la punta queda donde soltaste)
+  assert.ok(pico < 6, `el zigzag quedó con picos de ${pico.toFixed(1)} yd`)
+  // más largo que lo que le da el carry: se corta ahí
+  const lejisimo = M.planTiro(quieto, r, 0, 0, 0, 0, [en(900, 0)])
+  const max = M.carryMaxDe(r.jugador.hcp, h15.par) / h15.escala
+  assert.ok(Math.abs(lejisimo.carry - max) < 0.5 && M.dist(b, lejisimo.destino) <= max + 0.5)
+  // una línea mínima (un toque) no es tiro
+  assert.equal(M.planTiro(quieto, r, 0, 0, 0, 0, [en(0.5, 0)]).ruta, null)
+})
+
+ok('Rodal: el putt con draw dobla a la izquierda y con fade a la derecha', () => {
   const r = { ...M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛' }, fijo(0.5)), monos: [] }
   const desde = [h15.pin[0], h15.pin[1] + 6]
-  const entra = (grados) => {
+  const entra = (putt, grados) => {
     for (let p = 0.01; p <= 0.6; p += 0.002) {
-      const rr = { ...r, pelota: [...desde], lie: 'green' }
+      const rr = { ...r, pelota: [...desde], lie: 'green', puttMago: putt }
       if (M.simular(plano, M.golpear(plano, rr, angulo(desde, h15.pin) + (grados * Math.PI) / 180, p, sinRuido()), h15.pin).embocada) return true
     }
     return false
   }
-  assert.ok(!entra(0))
-  assert.ok(entra(12) && entra(-12)) // dobla hacia el hoyo, de los dos lados
+  // con draw, apuntando a la derecha del hoyo (ángulo mayor) entra; a la izquierda, no
+  assert.ok(entra('draw', 12) && !entra('draw', -12) && !entra('draw', 0))
+  assert.ok(entra('fade', -12) && !entra('fade', 12))
   // a los demás el putt les sale derecho
   const otro = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [], pelota: [...desde], lie: 'green' }
   assert.equal(M.planTiro(plano, otro, 0, 0.2).giro, 0)
@@ -1261,6 +1283,11 @@ ok('🎰 La Ruleta deja la ronda lista para el que pega (Mago, Mugre, Marcos, Ma
   const forzar = (apodo) => { r.ruleta.pool = [por(apodo)]; r.jugador = RULETA; r.ruletaToca = true; return M.turnoRuleta(r, M.rngDesde(3)) }
   forzar('El Mago Rodal')
   assert.ok(M.golpeMagoDe(r))
+  // si elegiste otro golpe, la próxima vez que sale el Mago viene con ese
+  M.elegirGolpeMago(quieto, r, 'flop')
+  forzar('Mugre')
+  forzar('El Mago Rodal')
+  assert.equal(r.golpeMago, 'flop')
   forzar('Mugre')
   assert.equal(r.golpeMago, null)
   assert.equal(r.panchos, M.MUGRE.panchos)

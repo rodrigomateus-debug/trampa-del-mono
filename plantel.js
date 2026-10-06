@@ -364,7 +364,7 @@ export const DIFICULTAD_REAL = {
   'Mike Queboni (Đ)': { prom: -0.2, lp: 8 }, // con la bomba de 405 (llega a los dos par 4), 2026-10-06
   'El Ninja (Đ)': { prom: 0.41, lp: 3 },
   LG: { prom: 0.49, lp: 2 },
-  'El Mago Rodal': { prom: 1.03, lp: 2 },
+  'El Mago Rodal': { prom: -0.5, lp: 0, nivel: 2 }, // 2026-10-06: elige el golpe (antes, al azar). Normal a mano: el bot dibuja el vuelo perfecto, la gente no
   'El Flaco Ordoñez': { prom: 1.4, lp: 0 }, // el bot no maneja: el carrito le cuesta tiempo, no golpes
   Lechu: { prom: 1.63, lp: 0 },
   Liberty: { prom: 2.45, lp: 8 },

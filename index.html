@@ -1067,6 +1067,25 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 /* con dos botones (el Ninja es Dicky): la Dickyllamada va arriba del RESET */
 body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 #dicky-btn, #ninja-btn { z-index: 31; } /* arriba del Dicky que aparece (que no se toca: pointer-events none) */
+
+/* 🪄 los golpes del Mago (Rodal): antes de cada tiro elegís cuál (en el green, el putt) */
+#mago-golpes { --mago: #3b2a74; position: fixed; left: 12px; right: 12px; bottom: calc(var(--safe-bot) + 14px); z-index: 30; display: flex; justify-content: center; align-items: flex-end; gap: 8px; pointer-events: none; transition: opacity .15s; }
+#mago-golpes[hidden] { display: none; }
+#mago-golpes button { position: relative; pointer-events: auto; flex: 1 1 0; max-width: 96px; min-width: 0; height: 92px; padding: 9px 4px 8px; box-sizing: border-box; border-radius: 18px; border: 2.5px solid var(--game-ink); background: var(--cream); color: var(--game-ink); box-shadow: 3px 4px 0 var(--game-ink); display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 4px; font: 12.5px/1.05 var(--font-display); letter-spacing: .04em; text-transform: uppercase; text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .14s ease, background .14s, box-shadow .14s; }
+#mago-golpes button .gi { width: 42px; height: 42px; --gi-s: var(--game-ink); --gi-f: #fff8e6; --gi-a: var(--mago); }
+#mago-golpes button span { display: block; min-height: 2.1em; display: grid; place-items: center; }
+#mago-golpes button[aria-pressed="true"] { background: var(--mago); color: var(--gold); transform: translateY(-7px) rotate(-2deg); box-shadow: 3px 8px 0 var(--game-ink); }
+#mago-golpes button[aria-pressed="true"] .gi { --gi-s: var(--gold); --gi-f: var(--mago); --gi-a: var(--cream); }
+#mago-golpes button[aria-pressed="true"]::after { content: '✦'; position: absolute; top: -11px; right: -7px; width: 24px; height: 24px; border-radius: 50%; background: var(--gold); border: 2px solid var(--game-ink); color: var(--mago); font: 14px/20px system-ui, sans-serif; text-align: center; }
+#mago-golpes button:active { transform: translateY(1px); box-shadow: 1px 2px 0 var(--game-ink); }
+#mago-golpes.putt button { max-width: 132px; }
+@media (max-width: 359px) { #mago-golpes { gap: 6px; } #mago-golpes button { font-size: 11px; height: 86px; } #mago-golpes button .gi { width: 36px; height: 36px; } }
+body.apuntando #mago-golpes { opacity: .2; }
+#mago-golpes button.largo span { font-size: 11px; letter-spacing: .02em; }
+#mago-golpes button:disabled:not([aria-pressed="true"]) { opacity: .55; }
+/* con los botones del Mago, Lucas se asoma por arriba de ellos (no queda tapado) */
+body.con-mago #lucas { bottom: calc(var(--safe-bot) + 96px); }
+body.apuntando #mago-golpes button { pointer-events: none; }
 /* el selector de la Dickyllamada: a quién llamás (te pega el próximo tiro) */
 .dk-caja { position: relative; width: min(360px, 100%); max-height: calc(100dvh - 32px); overflow: auto; box-sizing: border-box; padding: 18px 16px 16px; background: var(--cream); color: var(--green-900); border: var(--game-stroke) solid var(--game-ink); border-radius: 22px; box-shadow: var(--game-shadow-lg); text-align: center; }
 .dk-caja .dk-logo { width: 74px; height: 74px; border-radius: 50%; border: 3px solid var(--game-ink); margin: -2px auto 6px; display: block; background: #1d1a5c; }
@@ -1340,6 +1359,7 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 <button id="deme-btn" type="button" hidden aria-label="Invocar a Deme"><img src="jugadores/deme-cabeza.webp" alt="" width="260" height="207"><span>DEME</span></button>
 <div id="deme" hidden aria-live="polite"><svg viewBox="0 0 360 300" aria-label="Deme"></svg><p class="globo"></p></div>
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
+<div id="mago-golpes" role="group" aria-label="Golpes del Mago: elegí con cuál pegás" hidden></div>
 <button id="ninja-btn" type="button" hidden aria-label="Reset ninja: el hoyo de nuevo desde el tee, sin multa"><span class="emo" aria-hidden="true">🥷</span><span class="txt">RESET</span><b aria-hidden="true">1</b></button>
 <button id="dicky-btn" type="button" hidden aria-label="Dickyllamada: llamá a otro Dicky"><img src="dicky-toons.svg" alt="" draggable="false"><span class="cinta">DICKYLLAMADA</span><b aria-hidden="true">📞</b></button>
 <button id="logro" type="button" hidden aria-live="assertive" aria-label="Logro desbloqueado: Taiu. Tocá para verlo">
@@ -1415,7 +1435,7 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v cba3556 · 6/10, 06:50 p. m.</span>
+  <span class="version" id="version">v 6e4a67b · 6/10, 07:06 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1605,11 +1625,11 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=f0102ac857'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=f0102ac857'
+import * as M from './motor.js?v=53ad03d2eb'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=53ad03d2eb'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=f0102ac857'
-import * as S from './sonido.js?v=f0102ac857'
+import * as R from './ranking.js?v=53ad03d2eb'
+import * as S from './sonido.js?v=53ad03d2eb'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -1825,6 +1845,7 @@ function encuadre(a, b) {
  * Abajo queda lugar para tirar para atrás. Se ve ~75 yd para adelante (o hasta el hoyo si está más cerca).
  */
 function vistaApuntar(b, pin) {
+  if (ronda && esDibuje()) return vistaDibujo(b, pin)
   const techo = (medirHud().card ?? 20) + 46
   const sy = techo + (H - techo) * 0.5
   const d = Math.max(M.dist(b, pin), 1)
@@ -1833,6 +1854,19 @@ function vistaApuntar(b, pin) {
   // putts cortos, más zoom para ver bien la distancia: hasta 4× desde 1,5 yd (de 8 yd para arriba, como siempre)
   const tope = putt ? 10 + 30 * Math.min(1, Math.max(0, (8 - d) / 6.5)) : 10
   const esc = Math.min(tope, Math.max(1.1, (sy - techo - 10) / adelante))
+  return { cx: b[0], cy: b[1], esc, rot: -Math.PI / 2 - Math.atan2(pin[1] - b[1], pin[0] - b[0]), sy, techo }
+}
+/**
+ * El Dibuje maestro: la pelota abajo (arriba de los botones del Mago) y para adelante todo lo que le da el carry,
+ * así se puede dibujar el vuelo entero.
+ */
+function vistaDibujo(b, pin) {
+  const techo = (medirHud().card ?? 20) + 46
+  const piso = H - 112 - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-bot')) || 0)
+  const sy = Math.max(techo + 140, piso - 46)
+  const max = M.planTiro(campo, { ...ronda, pelota: [...b] }, 0, 1).carry
+  const adelante = Math.min(max, M.dist(b, pin) + 15) + 10
+  const esc = Math.min(10, Math.max(0.5, (sy - techo - 24) / adelante))
   return { cx: b[0], cy: b[1], esc, rot: -Math.PI / 2 - Math.atan2(pin[1] - b[1], pin[0] - b[0]), sy, techo }
 }
 function w2s(p, k = cam) {
@@ -1844,6 +1878,10 @@ function s2wVec(vx, vy, k = cam) {
   return [(vx * c + vy * s) / k.esc, (-vx * s + vy * c) / k.esc]
 }
 const difAng = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b))
+function s2w(x, y, k = cam) {
+  const [vx, vy] = s2wVec(x - W / 2, y - k.sy, k)
+  return [k.cx + vx, k.cy + vy]
+}
 
 /** Durante el tiro: corre el encuadre para que la pelota no se vaya de pantalla. */
 function seguir(pos) {
@@ -1890,7 +1928,17 @@ function apunte() {
 }
 
 lienzo.addEventListener('pointerdown', (e) => {
-  if (estado !== 'apuntar' || drag) return // un segundo dedo no pisa el tiro que estás armando
+  if (estado !== 'apuntar' || drag || trazo) return // un segundo dedo no pisa el tiro que estás armando
+  // el Dibuje maestro: con el dedo dibujás el vuelo (de la pelota a donde cae)
+  if (esDibuje()) {
+    trazo = { id: e.pointerId, pts: [s2w(e.clientX, e.clientY)], ult: [e.clientX, e.clientY], plan: null }
+    trazoFade = null
+    trazo.desde = [...ronda.pelota]
+    lienzo.setPointerCapture(e.pointerId)
+    document.body.classList.add('apuntando')
+    if (!datos.vistoTip) { datos.vistoTip = true; guardar(datos) }
+    return
+  }
   // a fondo = arrastrar `largo` px; si abajo del dedo no hay tanto lugar, alcanza con menos
   // (Taiu empuja para adelante: el lugar que cuenta es el de arriba del dedo)
   const largo = Math.max(90, Math.min(largoMax(), M.alReves(ronda.jugador) ? e.clientY - 14 : H - e.clientY - 14))
@@ -1902,8 +1950,20 @@ lienzo.addEventListener('pointerdown', (e) => {
   document.body.classList.add('apuntando') // los botones de abajo se apagan mientras apuntás
   if (!datos.vistoTip) { datos.vistoTip = true; guardar(datos) }
 })
-lienzo.addEventListener('pointermove', (e) => { if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY } })
+lienzo.addEventListener('pointermove', (e) => {
+  if (trazo && e.pointerId === trazo.id) {
+    for (const ev of e.getCoalescedEvents?.() ?? [e]) {
+      if (Math.hypot(ev.clientX - trazo.ult[0], ev.clientY - trazo.ult[1]) < 3) continue
+      trazo.ult = [ev.clientX, ev.clientY]
+      trazo.pts.push(s2w(ev.clientX, ev.clientY))
+    }
+    trazo.plan = M.planTiro(campo, ronda, 0, 0, 0, 0, trazo.pts)
+    return
+  }
+  if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY }
+})
 lienzo.addEventListener('pointerup', (e) => {
+  if (trazo && e.pointerId === trazo.id) { soltarTrazo(); return }
   if (!drag || e.pointerId !== drag.id) return
   // sale el tiro que se vio en pantalla (el último dibujado), no uno recalculado al soltar: el embudo del Águila y el
   // latido de la bomba se mueven hasta ~4° por cuadro, y soltando en "¡DERECHA!" o "¡PERFECTA!" a veces no salía así
@@ -1918,6 +1978,7 @@ lienzo.addEventListener('pointerup', (e) => {
   else if (base) obj = base // no pegó: vuelve el zoom de antes
 })
 lienzo.addEventListener('pointercancel', (e) => {
+  if (trazo && e.pointerId === trazo.id) { trazoFade = { pts: trazo.pts, desde: trazo.desde, t0: performance.now() }; trazo = null; document.body.classList.remove('apuntando'); return }
   if (drag && e.pointerId !== drag.id) return // se canceló otro dedo: el tiro que estás armando sigue
   S.cargaFin()
   if (drag?.base) obj = drag.base
@@ -1951,10 +2012,166 @@ function pegar(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
-  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo)
+  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null)
   estela = []
   estado = 'tiro'
   hud()
+}
+
+// ── 🪄 los golpes del Mago (Rodal): los botones para elegir y el Dibuje maestro ──
+let trazo = null // mientras dibujás: { id, pts (en la cancha), ult (último punto en pantalla), plan }
+let trazoFade = null // la línea de marcador que se borra al soltar: { pts, t0 }
+const TRAZO_FADE = 750
+const esMago = () => !!ronda && M.habilidadDe(ronda.jugador)?.id === 'comba'
+const esDibuje = () => esMago() && ronda.golpeMago === 'dibuje' && !M.enModoPutt(campo, ronda)
+// los íconos (viewBox 40×40, con los colores de .gi: trazo, relleno y acento)
+const PELOTA_IC = (x, y) => `<circle cx="${x}" cy="${y}" r="3.4" style="fill:var(--gi-f)"/>`
+const CURVA_IZQ = `<path d="M25 28.5V7.5" stroke-width="2" stroke-dasharray="0.1 4.2" style="stroke:var(--gi-a)"/><path d="M25 28.5C27.5 18 23 10 11 7.5" stroke-width="3.2"/><path d="M15.5 3.6L10.2 7.4 14.6 12" stroke-width="3.2"/>${PELOTA_IC(25, 32.5)}`
+const ICONOS_MAGO = {
+  flop: `<path d="M3 35.5h34" stroke-width="2.4"/><path d="M8.5 30C10 2 25 2 27.5 30" stroke-width="3" stroke-dasharray="0.1 4.4"/><path d="M31.5 35.5V15.5" stroke-width="2.4"/><path d="M31.5 15.5l6.5 3-6.5 3z" style="fill:var(--gi-a)"/>${PELOTA_IC(8.5, 32)}`,
+  draw: CURVA_IZQ,
+  cortada: CURVA_IZQ,
+  dibuje: `<path d="M3.5 34c3.5-7 6.5 1 10.5-5.5s7 1.5 9-5" stroke-width="3.6" style="stroke:var(--gi-a)"/><path d="M24.6 21.2L32.6 7.6l5 2.9-8 13.6z" style="fill:var(--gi-f)"/><path d="M24.6 21.2l5 2.9-6.4 4.7z" style="fill:var(--gi-a)"/><path d="M30.3 11.5l5 2.9" stroke-width="2"/>`,
+  'putt-draw': `<ellipse cx="12" cy="11" rx="6.5" ry="3" style="fill:var(--gi-s)"/><path d="M12 11V2.5" stroke-width="2.2"/><path d="M12 2.5l6 2.4-6 2.4" style="fill:var(--gi-a)" stroke-width="2"/><path d="M27.5 29C30 20 25 13 18 11.5" stroke-width="3" stroke-dasharray="0.1 4.4"/>${PELOTA_IC(27.5, 33)}`,
+}
+ICONOS_MAGO['putt-fade'] = ICONOS_MAGO['putt-draw']
+const ESPEJO_MAGO = new Set(['cortada', 'putt-fade']) // dobla para el otro lado: el mismo dibujo, en espejo
+const iconoMago = (k) => `<svg class="gi${ESPEJO_MAGO.has(k) ? ' espejo' : ''}" viewBox="0 0 40 40" aria-hidden="true"><g>${ICONOS_MAGO[k]}</g></svg>`
+/** Los botones del Mago: 4 golpes (o, en el green, los 2 putts); el elegido, levantado. */
+function pintarGolpesMago(oculto) {
+  const caja = $('#mago-golpes')
+  const ver = esMago() && !oculto && (estado === 'apuntar' || estado === 'tiro') && !$('#hud-top').hidden && !ronda.terminada
+  caja.hidden = !ver
+  document.body.classList.toggle('con-mago', ver)
+  if (!ver) return
+  const putt = estado === 'tiro' ? tiro?.modo === 'putt' : M.enModoPutt(campo, ronda)
+  const lista = putt ? M.PUTTS_MAGO : M.GOLPES_MAGO
+  const clave = (putt ? 'putt:' : '') + lista.map((g) => g.id).join()
+  if (caja.dataset.clave !== clave) {
+    caja.dataset.clave = clave
+    caja.classList.toggle('putt', putt)
+    caja.innerHTML = lista.map((g) => `<button type="button" data-golpe="${g.id}" aria-pressed="false"${g.nombre.length > 14 ? ' class="largo"' : ''}>${iconoMago(putt ? `putt-${g.id}` : g.id)}<span>${esc(g.nombre).replace(/ (al medio)$/i, '<br>$1')}</span></button>`).join('')
+  }
+  const elegido = putt ? ronda.puttMago : ronda.golpeMago
+  for (const b of caja.children) {
+    b.setAttribute('aria-pressed', String(b.dataset.golpe === elegido))
+    b.disabled = estado !== 'apuntar'
+  }
+}
+$('#mago-golpes').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-golpe]')
+  if (!b || estado !== 'apuntar' || drag || trazo) return
+  const antes = esDibuje()
+  if (!M.elegirGolpeMago(campo, ronda, b.dataset.golpe)) return
+  S.ruletaTic?.()
+  // con el Dibuje maestro la cámara se aleja (para dibujar el vuelo entero); al dejarlo, vuelve
+  if (esDibuje() !== antes) { obj = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin); velCam = 4 }
+  apuntarDesde = performance.now()
+  trazoFade = null
+  hud()
+})
+/** Soltaste el dibujo: la línea se borra de a poco y, si alcanza, la pelota sale por ahí. */
+function soltarTrazo() {
+  const t = trazo
+  trazo = null
+  document.body.classList.remove('apuntando')
+  trazoFade = { pts: t.pts, desde: t.desde, t0: performance.now() }
+  if (estado !== 'apuntar') return
+  const plan = M.planTiro(campo, ronda, 0, 0, 0, 0, t.pts)
+  if (!plan.ruta) {
+    voz = { lg: '✍️ Dibujá más largo', extra: 'Con el dedo: de la pelota hasta donde querés que caiga', hasta: performance.now() + 3200 }
+    return
+  }
+  const max = M.planTiro(campo, ronda, 0, 1).carry
+  pegar({ ang: plan.cuerda, p: Math.min(1, 0.45 + 0.55 * (plan.carry / (max || 1))), q: 0, tiempo: 0, putt: false, ruta: t.pts }, { esc: vistaApuntarNormal().esc })
+}
+/** La vista de apuntar de siempre (sin la del Dibuje maestro): el zoom del vuelo sale de acá. */
+function vistaApuntarNormal() {
+  const g = ronda.golpeMago
+  ronda.golpeMago = null
+  const v = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin)
+  ronda.golpeMago = g
+  return v
+}
+/** La línea de marcador (en la cancha: se queda en su lugar aunque se mueva la cámara). */
+function dibujarTrazo(pts, alfa, plan, desde) {
+  if (!pts.length || !ronda) return
+  const b = w2s(desde)
+  const s = pts.map((p) => w2s(p))
+  const camino = () => {
+    ctx.beginPath()
+    ctx.moveTo(b[0], b[1])
+    for (const p of s) ctx.lineTo(p[0], p[1])
+  }
+  ctx.save()
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.globalAlpha = alfa
+  camino()
+  ctx.strokeStyle = 'rgba(12,43,28,.5)'
+  ctx.lineWidth = 13
+  ctx.stroke()
+  camino()
+  ctx.strokeStyle = '#ffd34d'
+  ctx.lineWidth = 8.5
+  ctx.stroke()
+  camino()
+  ctx.strokeStyle = 'rgba(255,250,225,.55)'
+  ctx.lineWidth = 2.5
+  ctx.stroke()
+  ctx.restore()
+  if (!plan?.ruta) return
+  // dónde cae (si la línea es más larga que lo que le da, hasta ahí)
+  const [dx, dy] = w2s(plan.destino)
+  const crudo = pts.reduce((sum, p, i) => sum + M.dist(i ? pts[i - 1] : desde, p), 0)
+  const corta = crudo > plan.carry + 1
+  ctx.save()
+  ctx.strokeStyle = corta ? C.red : C.cream
+  ctx.fillStyle = corta ? 'rgba(188,75,60,.25)' : 'rgba(244,238,218,.22)'
+  ctx.lineWidth = 2.5
+  ctx.setLineDash([5, 4])
+  ctx.beginPath()
+  ctx.arc(dx, dy, 13, 0, 7)
+  ctx.fill()
+  ctx.stroke()
+  ctx.setLineDash([])
+  const txt = `≈ ${Math.round(M.aYardas(ronda, plan.carry))} YD${corta ? ' · HASTA ACÁ LLEGA' : ''}`
+  ctx.font = '16px Anton, "Arial Narrow", sans-serif'
+  ctx.textAlign = 'center'
+  const w = ctx.measureText(txt).width + 16
+  // arriba del anillo; si ahí lo tapan los carteles de arriba, abajo
+  const techo = Math.max(...['#efecto', '#lp'].map((q) => ($(q).hidden ? 0 : $(q).getBoundingClientRect().bottom))) + 26
+  const ly = dy - 30 < techo ? dy + 38 : dy - 30
+  const lx = Math.max(w / 2 + 8, Math.min(W - w / 2 - 8, dx))
+  ctx.fillStyle = 'rgba(12,43,28,.85)'
+  ctx.beginPath()
+  ctx.roundRect(lx - w / 2, ly - 16, w, 24, 12)
+  ctx.fill()
+  ctx.fillStyle = corta ? C.red : C.cream
+  ctx.fillText(txt, lx, ly + 2)
+  ctx.restore()
+}
+/** La guía del Dibuje maestro: un dedo que dibuja una curva desde la pelota para adelante. */
+function guiaDibujo(x, y, t) {
+  const w = (t % 2.6) / 2.6
+  const u = Math.min(1, Math.max(0, (w - 0.1) / 0.6))
+  const alfa = w < 0.1 ? w / 0.1 : w > 0.85 ? (1 - w) / 0.15 : 1
+  const punto = (k) => [x + Math.sin(k * Math.PI * 1.5) * 34, y - k * 150]
+  ctx.save()
+  ctx.globalAlpha = alfa * 0.85
+  ctx.lineCap = 'round'
+  ctx.strokeStyle = '#ffd34d'
+  ctx.lineWidth = 6
+  ctx.beginPath()
+  ctx.moveTo(x, y)
+  for (let k = 0; k <= u; k += 0.02) ctx.lineTo(...punto(k))
+  ctx.stroke()
+  const [fx, fy] = punto(u)
+  ctx.font = `30px ${EMOJI}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'top'
+  ctx.fillText('👆', fx + 4, fy - 4)
+  ctx.restore()
 }
 
 // ── ciclo ──
@@ -2881,7 +3098,7 @@ function pintarVoz() {
     clase = ''; dice = '📺 LG no se enoja'; extra = 'El que se enoja pierde: este golpe sale sin error'
   } else if (estado === 'apuntar' && golpeMago()) {
     const g = golpeMago()
-    clase = ''; dice = `${g.emoji} Te toca: ${g.nombre}`; extra = g.texto
+    clase = ''; dice = `🪄 ${g.nombre}`; extra = g.texto
   }
   const clave = clase + dice + extra
   if (clave === vozPintada) return
@@ -2949,7 +3166,8 @@ function hud() {
   $('#deme-btn').hidden = !maxi || $('#hud-top').hidden || !ronda.deme || ronda.deme.usado
   if (maxi && ronda.deme) $('#deme-btn').disabled = !M.puedeInvocarDeme(ronda) || estado !== 'apuntar'
   // el golpe del Mago: el que le toca (o, mientras vuela, el que pegó)
-  const g = !ronda.golpeMago || oculto ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? PUTT_MAGO : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
+  const g = !ronda.golpeMago || oculto ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? M.PUTTS_MAGO.find((x) => x.lado === Math.sign(tiro.giro)) : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
+  pintarGolpesMago(oculto)
   const reves = !oculto && M.alReves(j)
   const prestado = !oculto && ronda.prestado
   $('#efecto').hidden = !g && !reves && !prestado
@@ -2957,8 +3175,7 @@ function hud() {
   else if (prestado) $('#efecto').textContent = `📞 TE PEGA ${j.apodo.replace(/ \(Đ\)$/, '').toUpperCase()}${reves ? ' · AL REVÉS' : ''}`
   else if (reves) $('#efecto').textContent = '🐸 CONTROLES AL REVÉS'
 }
-const PUTT_MAGO = { emoji: '🪄', nombre: 'Putt con comba', texto: 'Siempre dobla hacia el hoyo: apuntá afuera' }
-/** Lo que le toca al Mago en el próximo golpe (null si no es Rodal). En el green, el putt con comba. */
+/** El golpe del Mago elegido para el próximo tiro (null si no es Rodal). En el green, el putt (draw o fade). */
 const textoLP = () => 'LP 💅'
 /** El Ninja: RESET del hoyo (dos toques: el primero arma, el segundo resetea). Al tee con cero golpes, sin multa. */
 let ninjaArmado = 0
@@ -2983,7 +3200,7 @@ function resetDelNinja() {
 }
 function golpeMago() {
   if (!ronda?.golpeMago) return null
-  return M.enModoPutt(campo, ronda) ? PUTT_MAGO : M.golpeMagoDe(ronda)
+  return M.enModoPutt(campo, ronda) ? M.puttMagoDe(ronda) : M.golpeMagoDe(ronda)
 }
 let lpArmado = 0
 $('#pancho').addEventListener('click', tirarPancho)
@@ -3130,7 +3347,13 @@ function dibujar() {
   const a = estado === 'apuntar' ? apunte() : null
   if (drag) drag.visto = a // lo que se ve es lo que sale al soltar
   if (a) dibujarApunte(a)
+  else if (trazo) dibujarTrazo(trazo.pts, 1, trazo.plan, trazo.desde)
   else dibujarGuia()
+  if (trazoFade && !trazo) {
+    const k = 1 - (performance.now() - trazoFade.t0) / TRAZO_FADE
+    if (k <= 0) trazoFade = null
+    else dibujarTrazo(trazoFade.pts, k * k, null, trazoFade.desde)
+  }
   if ((ronda?.ruleta || ronda?.prestado) && estado === 'apuntar' && !drag && !anim) etiquetaRuleta()
 
   if (ronda && !ronda.terminada) {
@@ -3178,7 +3401,7 @@ function dibujarRafagas() {
 // muestra el gesto: apoyá en la pelota y tirá para atrás ──
 let apuntarDesde = 0
 function dibujarGuia() {
-  if (estado !== 'apuntar' || drag || anim || !ronda) return
+  if (estado !== 'apuntar' || drag || trazo || anim || !ronda) return
   const [x, y] = w2s(ronda.pelota)
   const t = (performance.now() - apuntarDesde) / 1000
   if (t < 0.4) return
@@ -3193,6 +3416,7 @@ function dibujarGuia() {
   }
   const putt = M.enModoPutt(campo, ronda)
   const mostrarDedo = (datos.tiros ?? 0) < 6 || t > 5
+  if (esDibuje()) { if (t > 0.6) guiaDibujo(x, y, t - 0.6); return } // el Dibuje maestro: siempre se muestra el gesto
   if (!mostrarDedo) return
   // el gesto: el dedo baja desde la pelota (tirar para atrás) con la línea punteada, y suelta
   const w = (t % 2.2) / 2.2
@@ -3984,6 +4208,8 @@ function tarjetaFinal() {
   $('#pancho').hidden = true
   $('#dicky-btn').hidden = true
   $('#ninja-btn').hidden = true
+  $('#mago-golpes').hidden = true
+  document.body.classList.remove('con-mago')
   $('#hud-bot').hidden = true
   voz = null
   obj = vistaGeneral()
@@ -6053,6 +6279,8 @@ function mostrarElegir() {
   $('#pancho').hidden = true
   $('#dicky-btn').hidden = true
   $('#ninja-btn').hidden = true
+  $('#mago-golpes').hidden = true
+  document.body.classList.remove('con-mago')
   $('#hud-bot').hidden = true
   ronda = null
   obj = vistaGeneral()
@@ -6134,8 +6362,8 @@ function verHabilidad(j) {
   $('#hab-de').textContent = `La habilidad de ${j.apodo} ${j.emoji}`
   $('#hab-tit').textContent = `✨ ${hab.nombre}`
   $('#hab-texto').textContent = hab.texto
-  // el Mago: los 5 golpes que le pueden tocar
-  const extra = hab.id === 'comba' ? M.GOLPES_MAGO.map((g) => `<li>${g.emoji} <b>${esc(g.nombre)}</b> · ${esc(g.texto)}</li>`).join('')
+  // el Mago: los 4 golpes para elegir y los 2 putts
+  const extra = hab.id === 'comba' ? [...M.GOLPES_MAGO, ...M.PUTTS_MAGO].map((g) => `<li>${g.emoji} <b>${esc(g.nombre)}</b> · ${esc(g.texto)}</li>`).join('')
     : hab.id === 'ruleta' ? j.pool.filter((x) => !bloqueado(x)).map((x) => `<li>${x.emoji} <b>${esc(x.apodo)}</b> · ${esc(hcpEtiqueta(x))}${M.habilidadDe(x) ? ` · ${esc(M.habilidadDe(x).nombre)}` : ''}</li>`).join('') : ''
   $('#hab-extra').innerHTML = extra
   $('#hab-extra').hidden = !extra
