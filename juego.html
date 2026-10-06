@@ -1545,11 +1545,14 @@ function seguir(pos) {
 const largoMax = () => Math.max(140, Math.min(260, Math.min(W, H) * 0.42))
 function apunte() {
   if (!drag) return null
-  const px = drag.x0 - drag.x, py = drag.y0 - drag.y
+  let px = drag.x0 - drag.x, py = drag.y0 - drag.y
   const len = Math.hypot(px, py)
   if (len < 8) return null
   const putt = M.enModoPutt(campo, ronda)
-  const p = Math.min(1, Math.pow(len / drag.largo, putt ? 1.6 : 1.35))
+  let u = len / drag.largo
+  // Taiu (la Rana): los controles al revés: el lado espejado y la fuerza dada vuelta (menos tirás, más fuerte)
+  if (M.alReves(ronda.jugador)) ({ px, py, u } = M.invertirArrastre(px, py, u))
+  const p = Math.min(1, Math.pow(u, putt ? 1.6 : 1.35))
   const [wx, wy] = s2wVec(px, py)
   const ang = Math.atan2(wy, wx)
   let q = 0
@@ -2476,8 +2479,10 @@ function hud() {
   if (maxi && ronda.deme) $('#deme-btn').disabled = !M.puedeInvocarDeme(ronda) || estado !== 'apuntar'
   // el golpe del Mago: el que le toca (o, mientras vuela, el que pegó)
   const g = !ronda.golpeMago || oculto ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? PUTT_MAGO : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
-  $('#efecto').hidden = !g
+  const reves = !oculto && M.alReves(j)
+  $('#efecto').hidden = !g && !reves
   if (g) $('#efecto').textContent = `${g.emoji} ${g.nombre.toUpperCase()}`
+  else if (reves) $('#efecto').textContent = '🐸 CONTROLES AL REVÉS'
 }
 const PUTT_MAGO = { emoji: '🪄', nombre: 'Putt con comba', texto: 'Siempre dobla hacia el hoyo: apuntá afuera' }
 /** Lo que le toca al Mago en el próximo golpe (null si no es Rodal). En el green, el putt con comba. */
@@ -5085,6 +5090,9 @@ function previewHab(id) {
     approach: bola('M8 26 L62 26 L62 26 Q76 40 86 10', { kt: '0;0.3;0.45;1', kp: '0;0.55;0.55;1' }) + txt('APPROACH…', 74, 48, 0.75, '#f0a497'),
     retro: `<rect width="112" height="52" fill="#8a6a3a" opacity=".45"/>` + linea('M8 26 L50 26') + bola('M8 26 L50 26 L50 26 L96 27', { kt: '0;0.3;0.5;0.85', kp: '0;0.5;0.5;1' })
       + txt('PAR', 96, 13, 0.85, '#f3d27a') + `<text x="20" y="46" font-size="8" font-family="Anton, sans-serif" fill="#f3d27a">1960</text>`,
+    // Taiu: el dedo tira para atrás a la DERECHA (en rojo) y la pelota sale para la derecha: al revés
+    reves: `<line x1="22" y1="30" x2="38" y2="46" stroke="#f0a497" stroke-width="1.6" stroke-dasharray="2 2"/><circle cx="38" cy="46" r="2" fill="#f0a497"/>`
+      + linea('M22 30 Q60 2 96 27') + bola('M22 30 Q60 2 96 27', { kt: '0;0.3;0.8;1', kp: '0;0;1;1' }) + `<text x="10" y="18" font-size="11">🐸</text>` + txt('AL REVÉS', 66, 48, 0.3, '#f0a497'),
     // la Ruleta: tres tiros, y arriba de la pelota, en cada uno, otro player
     ruleta: linea('M8 26 L40 30 L72 22 L96 27') + bola('M8 26 L40 30 L72 22 L96 27', { kt: '0;0.18;0.33;0.51;0.66;0.84;1', kp: '0;0.36;0.36;0.73;0.73;1;1' })
       + [['🇸🇪', 8, 0, 0.18], ['🥛', 40, 0.18, 0.51], ['🦉', 72, 0.51, 0.84]].map(([e, x, a, b]) => `<text x="${x}" y="${x === 72 ? 13 : 17}" font-size="10" text-anchor="middle" opacity="0">${e}<animate attributeName="opacity" dur="${D}s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;${a};${a + 0.02};${b};${Math.min(1, b + 0.03)};1"/></text>`).join('')

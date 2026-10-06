@@ -252,3 +252,10 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - La carta: un tragamonedas dorado con las caras del mazo rodando una por una (la palanca baja en cada giro), atrás un mosaico con todas las caras subiendo; "CADA TIRO, OTRO", Nivel · HCP c/u, y abajo Players 12 · Repite: Nunca · Tees: Blancas. El preview: tres tiros con un player distinto arriba de la pelota en cada uno. En el modal, la lista de los que pueden salir con su HCP y su habilidad. En pantallas chicas el tragamonedas se achica con la foto (sin cartel ni chip si no entran).
 - Tarjeta final: "🎰 Quién pegó cada tiro", hoyo por hoyo con las caras en orden. La imagen para compartir lleva un mosaico con las caras de los que pegaron ("jugó con La Ruleta: N tiros, M players") y el texto, la cadena de emojis por hoyo. El ranking tiene su pestaña (La Ruleta) y el detalle de la vuelta guarda los emojis de cada hoyo.
 - Dificultad: el bot hace +1,02 (no sufre el cambio), pero va fija en **Muy difícil**: cada tiro es otro handicap y otra habilidad. Va al final del mazo, antes de Fito.
+
+## 🐸 Taiu (Đ), la Rana (2026-10-06, en `dev/` para probar)
+- "Taiu (Đ)" (la Rana 🐸, dicky: lleva el logo de los Dicky Toons en la carta) entra al mazo con **Al revés** (`reves`): juega bárbaro, pero con los controles al revés.
+  - Bombas desde el tee como Miguelón (mismo carry de 365 yd y el mismo latido del óvalo; en el par 3, sin bomba).
+  - Approach perfectos: de 30 a 100 yd reales del hoyo, sin error de dirección ni de largo (el viento sí).
+  - Los controles al revés (`invertirArrastre`, lo aplica la página al leer el arrastre): el lado espejado (tirás para atrás a la derecha y sale a la derecha) y la fuerza dada vuelta (apenas arrastrás es a fondo; arrastrar todo es casi nada). El putt también. La línea, el óvalo y el cartel muestran lo que va a salir de verdad. En el marcador: "🐸 CONTROLES AL REVÉS".
+- Dificultad: el bot hace −0,62 (no sufre la inversión); fijada en Difícil. También puede salir en la Ruleta.

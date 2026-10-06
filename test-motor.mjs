@@ -1294,4 +1294,28 @@ ok('🎰 La Ruleta en un match: los dos juegan con la misma tanda de players', (
   assert.deepEqual(tanda(1), tanda(99))
 })
 
+ok('🐸 Taiu (la Rana): bombas desde el tee como Miguelón, approach perfectos y los controles al revés', () => {
+  const taiu = RULETA.pool.find((j) => j.apodo === 'Taiu (Đ)')
+  assert.ok(taiu?.dicky)
+  assert.equal(M.alReves(taiu), true)
+  const r = M.nuevaRonda(taiu, fijo(0.5))
+  // desde el tee del 15, a fondo: la bomba (pasa la zona del latido)
+  const tee = M.planTiro(campo, r, -Math.PI / 2, 1, 1)
+  assert.equal(tee.bomba, true)
+  assert.ok(tee.carry * h15.escala > M.BOMBA.zona)
+  // a 60 yd del hoyo: sin error
+  const d = 60 / h15.escala
+  const ap = { ...r, pelota: [h15.pin[0], h15.pin[1] + d], lie: 'fairway' }
+  const plan = M.planTiro(campo, ap, -Math.PI / 2, 0.3)
+  assert.equal(plan.approachPerfecto, true)
+  assert.equal(plan.disp.ang, 0)
+  assert.equal(plan.disp.carry, 0)
+  // al revés: el lado espejado, la fuerza dada vuelta (poco arrastre = a fondo; todo = casi nada)
+  const inv = M.invertirArrastre(10, 50, 0.1)
+  assert.equal(inv.px, -10)
+  assert.equal(inv.py, 50)
+  assert.ok(Math.abs(inv.u - 0.9) < 1e-9)
+  assert.equal(M.invertirArrastre(0, 50, 1.4).u, 0.03)
+})
+
 console.log('\nTodo verde.')

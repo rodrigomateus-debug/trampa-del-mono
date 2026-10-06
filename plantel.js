@@ -76,7 +76,7 @@ export const PLANTEL = [
     }
   },
   {
-    "apodo": "La Rana (Đ)",
+    "apodo": "Taiu (Đ)",
     "dicky": true,
     "emoji": "🐸",
     "hcp": 4,
@@ -327,7 +327,7 @@ export const DEMETRIO = {
 export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp": null, "foto": null, "misterio": true }
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'La Ruleta']
+export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
 
 // 🎰 La Ruleta (2026-10-05): no es un player, es una carta del mazo. Cada tiro lo pega uno del mazo al azar, con su
 // handicap y su habilidad, y nunca el mismo dos veces seguidas (`turnoRuleta` en motor.js). `pool`: los que pueden salir
@@ -365,4 +365,6 @@ export const DIFICULTAD_REAL = {
   'Fito (Đ)': { prom: 2.19, lp: 5, nivel: 5 },
   // el bot no sufre el cambio (apunta perfecto con cualquiera); la gente sí: cada tiro es otra habilidad y otro handicap
   'La Ruleta': { prom: 0.63, lp: 0, nivel: 4 },
+  // Taiu: el bot no sufre los controles al revés (juega bárbaro: bombas y approach perfectos); la gente sí
+  'Taiu (Đ)': { prom: -0.62, lp: 3, nivel: 3 },
 }
