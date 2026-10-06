@@ -163,9 +163,9 @@ export const GOLPES_MAGO = [
 ]
 // el putt del Mago siempre dobla hacia el hoyo: giro = radianes por segundo que gira mientras rueda
 export const PUTT_MAGO = { giro: 0.3 }
-// la bomba de Miguelón: desde el tee su driver llega a `carry` yardas reales (con el rodaje, el green del 15 desde las
-// azules); pasando `zona` yardas el óvalo late (periodo, en segundos) y es perfecta si suelta con precisión >= perfecta
-export const BOMBA = { carry: 365, zona: 285, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
+// la bomba de Miguelón (y de Taiu): desde el tee su driver vuela hasta `carry` yardas reales: llega a los dos par 4 desde
+// las azules (el 16, 415 yd, a fondo; el 15, 392, con un poco menos; 2026-10-06, antes 365 y al 16 no llegaba); pasando `zona` yardas el óvalo late (periodo, en segundos) y es perfecta si suelta con precisión >= perfecta
+export const BOMBA = { carry: 405, zona: 285, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
 // el Águila (Fito): la línea de tiro se sacude ±amplitud grados cada `periodo` s; si suelta con el desvío dentro de
 // ±ventana (el embudo) sale derecha. A `chip` yardas reales o menos del hoyo, si cae en el green el imán la mete.
 // (`alLado`: dónde la dejaría un imán que no la mete; hoy siempre la mete.)

@@ -361,7 +361,7 @@ export const DIFICULTAD_REAL = {
   'El Sueco': { prom: -1.35, lp: 0 },
   Grandpa: { prom: -1.22, lp: 2 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
   'El Perro': { prom: -0.83, lp: 0 },
-  'Mike Queboni (Đ)': { prom: -0.28, lp: 3 },
+  'Mike Queboni (Đ)': { prom: -0.2, lp: 8 }, // con la bomba de 405 (llega a los dos par 4), 2026-10-06
   'El Ninja (Đ)': { prom: 0.41, lp: 3 },
   LG: { prom: 0.49, lp: 2 },
   'El Mago Rodal': { prom: 1.03, lp: 2 },
@@ -374,5 +374,5 @@ export const DIFICULTAD_REAL = {
   // el bot no sufre el cambio (apunta perfecto con cualquiera); la gente sí: cada tiro es otra habilidad y otro handicap
   'La Ruleta': { prom: 0.63, lp: 0, nivel: 4 },
   // Taiu: el bot no sufre los controles al revés (juega bárbaro: bombas y approach perfectos); la gente sí
-  'Taiu (Đ)': { prom: -0.62, lp: 3, nivel: 3 },
+  'Taiu (Đ)': { prom: -0.64, lp: 7, nivel: 3 },
 }
