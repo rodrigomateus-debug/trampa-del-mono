@@ -774,7 +774,7 @@ input { -webkit-user-select: text; user-select: text; }
 .rp-marcador td.t.decide { color: var(--gold); font-weight: 800; }
 .rp-marcador tr.gano th, .rp-marcador tr.gano td.tot { color: var(--gold); }
 .rp-marcador tr.gano th::after { content: ' 🏆'; font-size: 12px; }
-@media (max-width: 359px) { .rp-mc-estado span:not(:only-child) { display: none; } .rp-marcador td.t { font-size: 11px; } .rp-marcador thead th:first-child { width: 31%; } .rp-marcador thead th.t { width: 21%; } }
+@media (max-width: 359px) { .rp-fin { font-size: 18px; text-align: center; } .rp-mc-estado span:not(:only-child) { display: none; } .rp-marcador td.t { font-size: 11px; } .rp-marcador thead th:first-child { width: 31%; } .rp-marcador thead th.t { width: 21%; } }
 .rp-mandos { margin: 0 10px calc(var(--safe-bot) + 10px); padding: 10px 12px 12px; border-radius: 18px; background: rgba(8, 26, 16, .9); box-shadow: var(--shadow-pop); display: grid; gap: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .rp-linea { display: flex; align-items: center; gap: 10px; }
 .rp-t { flex: none; min-width: 34px; font: 700 12px var(--font-body); font-variant-numeric: tabular-nums; color: rgba(244, 238, 218, .85); text-align: center; }
@@ -854,7 +854,9 @@ input { -webkit-user-select: text; user-select: text; }
 .marcador td.lp { font-size: 14px; color: var(--red); }
 /* el resultado del match, hoyo a hoyo (adentro del recuadro del resultado de la tarjeta final) */
 .marcador.final { margin: 10px 0 2px; padding: 6px 8px 8px; border-radius: 12px; background: rgba(244, 238, 218, .7); }
-.marcador.final thead th:first-child { width: 34%; }
+.marcador.final thead th:first-child { width: 30%; }
+.marcador.final thead th.tot { width: 14%; }
+.marcador.final thead th.t { width: 22%; }
 .marcador.final tbody th { height: 30px; font-size: 16px; }
 .marcador.final td { font-size: 21px; }
 .marcador.final td.bajo { color: var(--green-500); }
@@ -863,6 +865,16 @@ input { -webkit-user-select: text; user-select: text; }
 .marcador.final td.tot small { display: block; font: 700 11px var(--font-body); color: var(--text-muted); }
 .marcador.final tr.gano th, .marcador.final tr.gano td.tot { color: var(--green-500); }
 .marcador.final tr.gano th::after { content: ' 🏆'; font-size: 13px; }
+/* el tiempo, al lado del total: parte del score. Apagado si no definió nada; resaltado si definió (mismos golpes) */
+.marcador.final td.t { font-size: 16px; line-height: 1.05; color: var(--text-muted); }
+.marcador.final td.t.vacio { color: rgba(20, 64, 42, .3); }
+.marcador.final td.t small { display: block; font: 700 11px var(--font-body); color: var(--red); }
+.marcador.final thead th.t.decide { color: var(--green-900); }
+.marcador.final td.t.decide { color: var(--green-900); background: rgba(232, 195, 74, .4); }
+.marcador.final tbody tr:first-child td.t.decide { border-radius: 8px 8px 0 0; }
+.marcador.final tbody tr:last-child td.t.decide { border-radius: 0 0 8px 8px; }
+.marcador.final tr.gano td.t.decide { color: var(--green-500); }
+@media (max-width: 359px) { .marcador.final tbody th .e { display: none; } .marcador.final thead th { letter-spacing: .04em; } .marcador.final thead th small { font-size: 8px; letter-spacing: .02em; } .marcador.final thead th:first-child { width: 27%; } .marcador.final thead th.t { width: 25%; } .marcador.final td.t { font-size: 14px; } }
 /* con quién pegó el otro (la Ruleta del rival): en el resultado y en el detalle del match */
 .t-ruleta.rival { margin-top: 8px; }
 .rs-caja .t-ruleta .kicker, .t-match .t-ruleta .kicker { color: var(--text-muted); }
@@ -871,19 +883,6 @@ input { -webkit-user-select: text; user-select: text; }
 .t-match-txt.pierde { color: var(--red); }
 .t-match-txt .gi.linea { display: inline-block; width: 20px; height: 20px; margin: 0 5px -4px 0; }
 .rs-caja .marcador.final { background: rgba(20, 64, 42, .06); }
-/* el tiempo de cada uno en el detalle del match: a igual golpes, es lo que define (y entonces se resalta) */
-.mt-tiempos { margin: 0; padding: 6px 8px 8px; border-radius: 12px; background: rgba(20, 64, 42, .06); display: grid; gap: 2px; }
-.mt-tiempos.decide { background: rgba(232, 195, 74, .28); }
-.mt-tiempos .kicker { font-size: 11px; color: var(--text-muted); }
-.mt-tiempos.decide .kicker { color: var(--green-900); }
-.fila-t { display: flex; align-items: baseline; gap: 8px; min-height: 30px; }
-.fila-t .quien-t { flex: 1; min-width: 0; font: 16px/1.6 var(--font-display); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fila-t .quien-t .e { font-size: 14px; margin-right: 5px; letter-spacing: 0; }
-.fila-t.el .quien-t { color: #3d5a8c; }
-.fila-t b { font: 21px/1 var(--font-display); font-weight: 400; font-variant-numeric: tabular-nums; }
-.fila-t small { font: 700 12px var(--font-body); color: var(--red); font-variant-numeric: tabular-nums; }
-.fila-t.gano .quien-t, .fila-t.gano b { color: var(--green-500); }
-.fila-t.gano .quien-t::after { content: ' 🏆'; font-size: 13px; }
 .rk-fila.tocable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 120ms; }
 .rk-fila.tocable:active { background: rgba(20, 64, 42, .1); }
 .rk-fila.tocable:focus-visible { outline: 3px solid var(--gold); outline-offset: -2px; border-radius: 10px; }
@@ -3887,13 +3886,22 @@ function golpesPorHoyo(g, x) {
   const m = M.marcadorFantasma(g, Infinity)
   return x.lp || x.golpes == null ? M.HOYOS.map((_, k) => (k < m.idx ? m.porHoyo[k] : 'LP')) : m.porHoyo
 }
-/** La tabla hoyo a hoyo de un match: [{ emoji, nombre, golpes: [15, 16, 17], vuelta: { golpes, vsPar, lp }, gano, el }]. */
+/**
+ * La tabla hoyo a hoyo de un match: [{ emoji, nombre, golpes: [15, 16, 17], vuelta: { golpes, vsPar, lp, ms }, gano, el }].
+ * El tiempo va al lado del total porque es parte del score: con los mismos golpes gana el más rápido, y entonces la
+ * columna se resalta y al más lento se le marca cuánto más tardó.
+ */
 function tablaMatch(filas) {
   const pars = M.HOYOS.map((h) => h.par)
   const celda = (v, k) => `<td class="${v == null ? 'vacio' : v === 'LP' ? 'lp' : v < pars[k] ? 'bajo' : v > pars[k] ? 'sobre' : ''}">${v ?? '·'}</td>`
   const total = (x) => (x.lp || x.golpes == null ? '<td class="tot lp">LP</td>' : `<td class="tot">${x.golpes}<small>${M.formatoPar(x.vsPar)}</small></td>`)
-  return `<div class="marcador final"><table><thead><tr><th>Hoyo a hoyo</th>${M.HOYOS.map((h) => `<th>${h.n}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th></tr></thead><tbody>${filas
-    .map((f) => `<tr class="${[f.gano ? 'gano' : '', f.el ? 'el' : ''].join(' ').trim()}"><th><span class="e">${esc(f.emoji ?? '⛳')}</span>${esc(f.nombre)}</th>${f.golpes.map(celda).join('')}${total(f.vuelta)}</tr>`)
+  const conTiempo = (x) => !x.lp && x.golpes != null && x.ms != null
+  const decide = filas.length === 2 && M.porTiempo(filas[0].vuelta, filas[1].vuelta)
+  const rapido = Math.min(...filas.map((f) => (conTiempo(f.vuelta) ? f.vuelta.ms : Infinity)))
+  const tiempo = (x) => (!conTiempo(x) ? '<td class="t vacio">—</td>'
+    : `<td class="t${decide ? ' decide' : ''}">${M.formatoTiempo(x.ms)}${decide && x.ms > rapido ? `<small>${deltaTiempo(x.ms - rapido)}</small>` : ''}</td>`)
+  return `<div class="marcador final"><table><thead><tr><th>Hoyo a hoyo</th>${M.HOYOS.map((h) => `<th>${h.n}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th><th class="t${decide ? ' decide' : ''}">Tiempo</th></tr></thead><tbody>${filas
+    .map((f) => `<tr class="${[f.gano ? 'gano' : '', f.el ? 'el' : ''].join(' ').trim()}"><th><span class="e">${esc(f.emoji ?? '⛳')}</span>${esc(f.nombre)}</th>${f.golpes.map(celda).join('')}${total(f.vuelta)}${tiempo(f.vuelta)}</tr>`)
     .join('')}</tbody></table></div>`
 }
 
@@ -3938,23 +3946,6 @@ function resultadoPara(d) {
   const g = M.ganadorMatch(yo, el)
   const tiempo = M.porTiempo(yo, el) // mismos golpes: lo definió el más rápido
   return { yo, el, g, tiempo, txt: `${g > 0 ? 'Ganaste' : g < 0 ? 'Perdiste' : 'Empate'}${tiempo ? ' por tiempo' : ''}`, clase: g > 0 ? 'gana' : g < 0 ? 'pierde' : '' }
-}
-/**
- * El tiempo de cada uno en el detalle de un match (`filas`: [{ emoji, nombre, x, gano, el }], x = { golpes, ms, lp }).
- * Con los mismos golpes es lo que define: se resalta, va la copa del más rápido y cuánto más tardó el otro.
- */
-function htmlTiempos(filas, decide) {
-  const conTiempo = (x) => x.golpes != null && !x.lp && x.ms != null
-  if (!filas.some((f) => conTiempo(f.x))) return ''
-  const rapido = Math.min(...filas.filter((f) => conTiempo(f.x)).map((f) => f.x.ms))
-  const tiempo = (x) => (x.golpes == null || x.lp ? 'LP · sin tiempo' : x.ms != null ? M.formatoTiempo(x.ms) : '—')
-  return `<div class="mt-tiempos${decide ? ' decide' : ''}">
-    <span class="kicker">⏱ ${decide ? 'Mismos golpes: gana el más rápido' : 'Tiempo'}</span>
-    ${filas.map((f) => `<div class="${['fila-t', decide && f.gano ? 'gano' : '', f.el ? 'el' : ''].join(' ').trim()}">
-      <span class="quien-t"><span class="e">${esc(f.emoji ?? '⛳')}</span>${esc(f.nombre)}</span>
-      ${decide && conTiempo(f.x) && f.x.ms > rapido ? `<small>${deltaTiempo(f.x.ms - rapido)}</small>` : ''}<b>${tiempo(f.x)}</b>
-    </div>`).join('')}
-  </div>`
 }
 const golpesTxt = (x) => (x.golpes == null || x.lp ? 'LP 💅' : `${x.golpes} (${M.formatoPar(x.vsPar)})`)
 function pintarMatch() {
@@ -4064,7 +4055,7 @@ $('#mt-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.k
 async function abrirDetalleMatch(id) {
   const d = mtDesafios?.find((x) => x.id === id)
   if (!d) return
-  const { yo, el, g, tiempo, txt, clase } = resultadoPara(d)
+  const { yo, el, g, txt, clase } = resultadoPara(d)
   const soyRetador = d.retador.uid === yoUid()
   $('.rs-caja').classList.remove('bloqueado')
   const pintar = (grabs) => {
@@ -4079,10 +4070,6 @@ async function abrirDetalleMatch(id) {
         { emoji: yo.emoji, nombre: 'VOS', golpes: golpesPorHoyo(mia, yo), vuelta: yo, gano: g > 0 },
         { emoji: el.emoji, nombre: el.alias, golpes: golpesPorHoyo(suya, el), vuelta: el, gano: g < 0, el: true },
       ]) : `<p class="rk-vacio">${grabs === null ? 'Cargando el hoyo a hoyo…' : 'No se pudo cargar el hoyo a hoyo.'}</p>`}
-      ${htmlTiempos([
-        { emoji: yo.emoji, nombre: 'VOS', x: yo, gano: g > 0 },
-        { emoji: el.emoji, nombre: el.alias, x: el, gano: g < 0, el: true },
-      ], tiempo)}
       ${yo.ruleta ? `<div class="t-ruleta">${htmlRuleta(yo.ruleta, 'Con quién pegaste')}</div>` : ''}
       ${el.ruleta ? `<div class="t-ruleta rival">${htmlRuleta(el.ruleta, `Con quién pegó ${el.alias}`)}</div>` : ''}
       <p class="extras">Jugaron con ${esc(yo.emoji ?? '')} ${esc(String(yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}, mismo viento y banderas.</p>`
@@ -4575,7 +4562,7 @@ function htmlMarcadorReplay(r) {
   const enJuego = new Set(filas.map((f) => f.ahora))
   return `<p class="rp-mc-estado"><span>Hoyo a hoyo</span>${estado ? `<b>${esc(estado)}</b>` : ''}</p><table><thead><tr><th></th>${
     M.HOYOS.map((h, k) => `<th class="${enJuego.has(k) ? 'ahora' : ''}">${h.n}<br><small>PAR ${h.par}</small></th>`).join('')
-  }<th class="tot">TOT</th><th class="t">⏱</th></tr></thead><tbody>${filas.map((f, i) => `<tr class="${terminaron && i === gana ? 'gano' : ''}" style="--c: ${f.p.color}">
+  }<th class="tot">TOT</th><th class="t">Tiempo</th></tr></thead><tbody>${filas.map((f, i) => `<tr class="${terminaron && i === gana ? 'gano' : ''}" style="--c: ${f.p.color}">
     <th><span class="rp-punto" aria-hidden="true"></span>${esc(f.p.x.alias ?? '—')}</th>${f.golpes.map((v, k) => celda(f, v, k)).join('')}<td class="tot${f.lp ? ' lp' : ''}">${f.total}</td><td class="t${tiempo && i === gana ? ' decide' : ''}">${f.tiempo}</td>
   </tr>`).join('')}</tbody></table>`
 }
