@@ -1133,6 +1133,16 @@ export function nuevaRonda(jugador, rng) {
   return r
 }
 
+// ── desbloqueos: un player que se gana con vueltas firmadas (Taiu: −1 o mejor con cada uno de los otros Dicky) ──
+/** `req` = { con: [apodos], vsPar }; `records` = { [apodo]: mejor vsPar firmado }. Cómo vas con cada uno. */
+export function progresoDesbloqueo(req, records) {
+  const items = req.con.map((apodo) => {
+    const mejor = records?.[apodo] ?? null
+    return { apodo, mejor, ok: mejor != null && mejor <= req.vsPar }
+  })
+  return { items, hechos: items.filter((i) => i.ok).length, listo: items.every((i) => i.ok) }
+}
+
 // ── La Ruleta: cada tiro lo pega un player distinto ──
 export const esRuleta = (j) => habilidadDe(j)?.id === 'ruleta'
 /** La carta de la vuelta (la del mazo). En la Ruleta, `r.jugador` es el que pega ahora; la carta es la Ruleta. */

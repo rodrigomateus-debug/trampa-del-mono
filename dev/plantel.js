@@ -333,6 +333,10 @@ export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp"
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
 export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
 
+// 🔒 Taiu se desbloquea (2026-10-06): con una tarjeta firmada de −1 o mejor con cada uno de estos Dicky
+// (vale el récord del teléfono y, con tu usuario, tus vueltas del ranking). Hasta entonces, su carta va con candado.
+export const DESBLOQUEO_TAIU = { apodo: 'Taiu (Đ)', con: ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'], vsPar: -1 }
+
 // 🎰 La Ruleta (2026-10-05): no es un player, es una carta del mazo. Cada tiro lo pega uno del mazo al azar, con su
 // handicap y su habilidad, y nunca el mismo dos veces seguidas (`turnoRuleta` en motor.js). `pool`: los que pueden salir
 // (los del mazo; Demetrio, que es secreto, no).
