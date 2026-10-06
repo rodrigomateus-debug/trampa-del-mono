@@ -826,6 +826,17 @@ input { -webkit-user-select: text; user-select: text; }
 .marcador thead th.gano { color: var(--green-500); }
 .marcador thead th.pierdo { color: var(--red); }
 .marcador td.lp { font-size: 14px; color: var(--red); }
+/* el resultado del match, hoyo a hoyo (adentro del recuadro del resultado de la tarjeta final) */
+.marcador.final { margin: 10px 0 2px; padding: 6px 8px 8px; border-radius: 12px; background: rgba(244, 238, 218, .7); }
+.marcador.final thead th:first-child { width: 34%; }
+.marcador.final tbody th { height: 30px; font-size: 16px; }
+.marcador.final td { font-size: 21px; }
+.marcador.final td.bajo { color: var(--green-500); }
+.marcador.final td.sobre { color: var(--red); }
+.marcador.final td.tot { font-size: 22px; line-height: 1.05; }
+.marcador.final td.tot small { display: block; font: 700 11px var(--font-body); color: var(--text-muted); }
+.marcador.final tr.gano th, .marcador.final tr.gano td.tot { color: var(--green-500); }
+.marcador.final tr.gano th::after { content: ' 🏆'; font-size: 13px; }
 .rk-fila.tocable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 120ms; }
 .rk-fila.tocable:active { background: rgba(20, 64, 42, .1); }
 .rk-fila.tocable:focus-visible { outline: 3px solid var(--gold); outline-offset: -2px; border-radius: 10px; }
@@ -1098,7 +1109,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 7e07046 · 5/10, 05:45 p. m.</span>
+  <span class="version" id="version">v 13cca30 · 5/10, 11:06 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -3527,6 +3538,7 @@ async function imagenVuelta() {
   const tirosRl = M.tirosRuleta(r).flatMap((h) => h.tiros)
   const pegaron = [...new Map(tirosRl.map((t) => [t.apodo, r.ruleta.pool.find((p) => p.apodo === t.apodo) ?? t])).values()]
   const fotos = await Promise.all(pegaron.map((x) => cargarImg(x.foto)))
+  const fotoDe = new Map(pegaron.map((x, i) => [x.apodo, fotos[i]]))
   g.save(); g.beginPath(); g.arc(cx, cy, rad, 0, 7); g.closePath(); g.fillStyle = '#1c5638'; g.fill(); g.clip()
   if (pegaron.length) {
     // la grilla llena el círculo entero: si sobran lugares, se repiten desde el primero
@@ -3555,7 +3567,10 @@ async function imagenVuelta() {
   g.fillStyle = '#f4eeda'; g.font = D(84); g.fillText(yo, W2 / 2, 560)
   g.font = B(34, 600); g.fillStyle = 'rgba(244,238,218,.85)'; g.fillText(r.ruleta ? `jugó con La Ruleta: ${tirosRl.length} tiros, ${pegaron.length} players` : `jugó con ${j.apodo}`, W2 / 2, 608)
   // la tarjeta crema con el score
-  const x0 = 70, y0 = 640, w0 = W2 - 140, h0 = 510
+  // con la Ruleta, cada hoyo lleva abajo las caras de los que pegaron sus tiros: los cuadros son más altos
+  const porHoyoRl = M.tirosRuleta(r)
+  const altoHoyo = porHoyoRl.length ? 156 : 120
+  const x0 = 70, y0 = 640, w0 = W2 - 140, h0 = 510 + (altoHoyo - 120)
   g.fillStyle = '#f4eeda'; g.beginPath(); g.roundRect(x0, y0, w0, h0, 36); g.fill()
   const score = r.lp ? 'LP 💅' : !firmada ? '110' : M.formatoPar(t.vsPar)
   const debajo = r.lp ? `levantó en el ${r.lp}` : !firmada ? 'neto · no firmó la tarjeta' : `${t.golpes} golpes · par ${t.par}`
@@ -3573,20 +3588,36 @@ async function imagenVuelta() {
     const x = bx + i * (bw + gap)
     const sobre = f.lp || f.golpes > f.par, bajo = !f.lp && f.golpes < f.par
     g.fillStyle = bajo ? '#2e7d4f' : sobre ? '#bc4b3c' : '#e8c34a'
-    g.beginPath(); g.roundRect(x, by, bw, 120, 20); g.fill()
+    g.beginPath(); g.roundRect(x, by, bw, altoHoyo, 20); g.fill()
     g.fillStyle = bajo || sobre ? '#f4eeda' : '#14402a'
     g.font = B(24, 800); g.fillText(`HOYO ${f.n} · PAR ${f.par}`, x + bw / 2, by + 36)
-    g.font = D(60); g.fillText(f.lp ? 'LP' : String(f.golpes), x + bw / 2, by + 102)
+    g.font = D(60); g.fillText(f.lp ? 'LP' : String(f.golpes), x + bw / 2, by + 98)
+    // la Ruleta: quién pegó cada tiro de este hoyo, en orden (las caras se pisan un poco si son muchos)
+    const tiros = porHoyoRl.find((h) => h.n === f.n)?.tiros ?? []
+    if (tiros.length) {
+      const d0 = 38, paso = Math.min(d0 + 4, (bw - 24 - d0) / Math.max(1, tiros.length - 1))
+      const ancho = d0 + paso * (tiros.length - 1)
+      tiros.forEach((tr, k) => {
+        const px = x + bw / 2 - ancho / 2 + d0 / 2 + k * paso, py = by + 128
+        const im = fotoDe.get(tr.apodo)
+        g.save(); g.beginPath(); g.arc(px, py, d0 / 2, 0, 7); g.closePath(); g.fillStyle = '#1c5638'; g.fill(); g.clip()
+        if (im) { const kk = Math.max(d0 / im.width, d0 / im.height); g.drawImage(im, px - (im.width * kk) / 2, py - d0 / 2, im.width * kk, im.height * kk) }
+        else { g.font = `${Math.round(d0 * 0.6)}px ${EMOJI}`; g.textBaseline = 'middle'; g.fillStyle = '#14402a'; g.fillText(tr.emoji, px, py + 1); g.textBaseline = 'alphabetic' }
+        g.restore()
+        g.lineWidth = 3; g.strokeStyle = '#f4eeda'; g.beginPath(); g.arc(px, py, d0 / 2, 0, 7); g.stroke()
+      })
+      g.fillStyle = bajo || sobre ? '#f4eeda' : '#14402a'
+    }
   })
   // ranking y voz de LG
-  let y = y0 + h0 + 66
+  let y = y0 + h0 + (porHoyoRl.length ? 56 : 66)
   g.fillStyle = '#e8c34a'; g.font = B(34, 800)
-  if (posRanking && firmada) { g.fillText(`🏆 ${posRanking.general}° EN EL ${R.compartido() || R.puente.enApp ? 'MUNDIAL' : 'GENERAL'} · ${posRanking.conEl}° CON ${j.emoji}`, W2 / 2, y); y += 58 }
+  if (posRanking && firmada) { g.fillText(`🏆 ${posRanking.general}° EN EL ${R.compartido() || R.puente.enApp ? 'MUNDIAL' : 'GENERAL'} · ${posRanking.conEl}° CON ${j.emoji}`, W2 / 2, y); y += porHoyoRl.length ? 52 : 58 }
   const adulado = M.habilidadDe(j)?.adulado
   const lg = r.lp ? 'Entraste en la lista LP 💅' : adulado ? 'El Mago siempre gana' : !firmada ? 'El Marshall no perdona' : t.vsPar < 0 ? 'QUE HOMBRE' : t.vsPar === 0 ? 'Hermoso. Par y a casa' : t.vsPar <= 3 ? 'Tremendo. Nada que no arregle un approach' : 'La Trampa del Mono siempre tendrá la razón'
   g.fillStyle = '#f4eeda'; g.font = B(34, 400, 'italic'); g.fillText(`📺 LG: “${lg}”`, W2 / 2, y)
   g.font = B(24, 600); g.fillStyle = 'rgba(244,238,218,.7)'
-  g.fillText(`🐒 ${r.monosMalos} malos · ${r.monosBuenos} buenos · ${r.robos} robos   ·   fedecup.vercel.app`, W2 / 2, H2 - 36)
+  g.fillText(`🐒 ${r.monosMalos} malos · ${r.monosBuenos} buenos · ${r.robos} robos   ·   fedecup.vercel.app`, W2 / 2, H2 - (porHoyoRl.length ? 22 : 36))
   const blob = await new Promise((ok) => c.toBlob(ok, 'image/png'))
   const url = URL.createObjectURL(blob)
   urlsResumen.push(url)
@@ -4592,13 +4623,29 @@ async function cerrarMatch(r) {
     return
   }
   const des = d.desafio
+  // el resultado hoyo a hoyo: los míos de la tarjeta; los del rival, de su grabación (cada muestra lleva el acumulado)
+  const tablaResultado = (g) => {
+    const ret = des.retador
+    const pars = M.HOYOS.map((h) => h.par)
+    const mios = r.tarjeta.map((f) => (f.lp ? 'LP' : f.golpes))
+    const suyo = M.marcadorFantasma(d.fantasma, Infinity)
+    const suyos = ret.lp || ret.golpes == null
+      ? M.HOYOS.map((_, k) => (k < suyo.idx ? suyo.porHoyo[k] : 'LP'))
+      : d.fantasma?.length ? suyo.porHoyo : M.HOYOS.map(() => null) // un desafío viejo, sin grabación: sin el hoyo a hoyo
+    const celda = (v, k) => `<td class="${v == null ? 'vacio' : v === 'LP' ? 'lp' : v < pars[k] ? 'bajo' : v > pars[k] ? 'sobre' : ''}">${v ?? '·'}</td>`
+    const total = (x) => (x.lp || x.golpes == null ? '<td class="tot lp">LP</td>' : `<td class="tot">${x.golpes}<small>${M.formatoPar(x.vsPar)}</small></td>`)
+    const fila = (clase, emoji, nombre, golpes, x) => `<tr class="${clase}"><th><span class="e">${esc(emoji)}</span>${esc(nombre)}</th>${golpes.map(celda).join('')}${total(x)}</tr>`
+    return `<div class="marcador final"><table><thead><tr><th>Hoyo a hoyo</th>${M.HOYOS.map((h) => `<th>${h.n}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th></tr></thead><tbody>${
+      fila(g > 0 ? 'gano' : '', r.carta?.emoji ?? r.jugador.emoji, 'VOS', mios, mia)
+    }${fila(g < 0 ? 'gano el' : 'el', `👻${ret.emoji ?? ''}`, ret.alias, suyos, ret)}</tbody></table></div>`
+  }
   const anotar = async () => {
     el.innerHTML = `⚔️ Anotando el match con <b>${esc(des.retador.alias)}</b>…`
     try {
       await R.responderDesafio(des.id, { ...mia, fantasma: d.grabacion })
       const g = M.ganadorMatch(mia, des.retador)
       el.className = `t-match ${g > 0 ? 'gana' : g < 0 ? 'pierde' : ''}`
-      el.innerHTML = `<span class="gran">${g > 0 ? '🏆 GANASTE EL MATCH' : g < 0 ? '😵 PERDISTE EL MATCH' : '🤝 EMPATE'}</span>Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}<br><span class="t-match-botones"><button class="btn-wa" type="button">${ICONO_WA}MANDAR EL RESULTADO</button><button class="btn-replay" type="button">${ICONO_REPLAY}VER EL REPLAY</button></span>`
+      el.innerHTML = `<span class="gran">${g > 0 ? '🏆 GANASTE EL MATCH' : g < 0 ? '😵 PERDISTE EL MATCH' : '🤝 EMPATE'}</span>${tablaResultado(g)}Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}<br><span class="t-match-botones"><button class="btn-wa" type="button">${ICONO_WA}MANDAR EL RESULTADO</button><button class="btn-replay" type="button">${ICONO_REPLAY}VER EL REPLAY</button></span>`
       el.querySelector('.btn-wa').addEventListener('click', (e) => compartirMatch({ ...des, rival: { ...des.rival, uid: yoUid(), alias: datos.usuario || des.rival.alias, ...mia } }, e.currentTarget))
       // el replay de este match, con las dos grabaciones que ya están acá (no hace falta pedirlas)
       el.querySelector('.btn-replay').addEventListener('click', () => abrirReplay({ ...des, estado: 'jugado', rival: { ...des.rival, ...mia } }, { retador: d.fantasma, rival: d.grabacion }))
