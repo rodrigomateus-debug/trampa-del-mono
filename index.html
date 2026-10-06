@@ -898,15 +898,17 @@ input { -webkit-user-select: text; user-select: text; }
 .mt-player { margin: -6px 0 0; font: 500 14px/1.3 var(--font-body); color: var(--text-muted); }
 .mt-player b { font-weight: 700; color: var(--green-900); }
 .mt-tabla .extras { margin-top: 6px; }
-/* el veredicto, grande, arriba de Cerrar: dorado si ganaste (el de campeón, como el resultado de la tarjeta final),
-   rojo si perdiste, neutro si empataron. Una banda del afiche, apenas torcida (sin contorno ni sombra dura: no es un botón) */
-.mt-veredicto { margin: 4px 0 2px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: var(--gold); color: var(--green-900); font: 42px/1 var(--font-display); letter-spacing: .04em; text-transform: uppercase; transform: rotate(-1.5deg); animation: rp-gana 450ms var(--ease-snap) both; }
-.mt-veredicto.pierde { background: var(--red); color: var(--cream); }
-.mt-veredicto.empate { background: rgba(20, 64, 42, .12); }
+/* el veredicto, grande, arriba de Cerrar: verde si ganaste, rojo si perdiste, neutro si empataron. Una banda del afiche,
+   apenas torcida (sin contorno ni sombra dura: no es un botón) */
+.mt-veredicto { margin: 4px 0 2px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: var(--green-500); color: var(--cream); font: 42px/1 var(--font-display); letter-spacing: .04em; text-transform: uppercase; transform: rotate(-1.5deg); animation: rp-gana 450ms var(--ease-snap) both; }
+.mt-veredicto.pierde { background: var(--red); }
+.mt-veredicto.empate { background: rgba(20, 64, 42, .12); color: var(--green-900); }
 .mt-veredicto span { display: grid; justify-items: center; }
 .mt-veredicto small { margin-top: 3px; font: 800 12px/1.2 var(--font-body); letter-spacing: .16em; }
-.mt-veredicto .gi { width: 38px; height: 38px; --gi-s: var(--green-900); --gi-f: var(--cream); --gi-a: var(--cream); }
-.mt-veredicto.pierde .gi { --gi-s: var(--cream); --gi-f: transparent; }
+.mt-veredicto .gi { width: 38px; height: 38px; --gi-s: var(--cream); --gi-f: transparent; --gi-a: var(--gold); }
+.mt-veredicto.empate .gi { --gi-s: var(--green-900); --gi-a: var(--cream); }
+/* con el veredicto arriba, Cerrar pasa a crema (secundario, estilo Afiche): que no compita con el verde ni el rojo */
+.rs-caja:has(.mt-veredicto) > .carta-jugar { background: var(--cream); color: var(--green-900); }
 .rk-fila.tocable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 120ms; }
 .rk-fila.tocable:active { background: rgba(20, 64, 42, .1); }
 .rk-fila.tocable:focus-visible { outline: 3px solid var(--gold); outline-offset: -2px; border-radius: 10px; }
@@ -1179,7 +1181,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v b8f76cc · 6/10, 12:38 a. m.</span>
+  <span class="version" id="version">v 07f5f0f · 6/10, 12:39 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
