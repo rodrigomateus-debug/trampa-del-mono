@@ -37,6 +37,8 @@ ${cuerpo}
 import crypto from 'node:crypto'
 const version = crypto.createHash('sha1').update(['motor.js', 'plantel.js', 'ranking.js', 'sonido.js', 'cancha-grid.js'].map((f) => fs.readFileSync(f, 'utf8')).join('')).digest('hex').slice(0, 10)
 const html = html0.replace(/from '\.\/(motor|plantel|ranking|sonido)\.js'/g, (_, f) => `from './${f}.js?v=${version}'`)
+// la intro también (su app.js y lo que arma armar-app.mjs)
+  .replace('src="intro/app.js"', `src="intro/app.js?v=${crypto.createHash('sha1').update(['intro/app.js', 'intro/app-overlay.js'].map((f) => fs.readFileSync(f, 'utf8')).join('')).digest('hex').slice(0, 10)}"`)
 // la versión, chiquita al pie de la portada: para ver de un vistazo si al teléfono ya le llegó lo último
 const huella = crypto.createHash('sha1').update(juego + version).digest('hex').slice(0, 7)
 const fecha = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
