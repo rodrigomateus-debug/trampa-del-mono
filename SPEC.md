@@ -309,3 +309,9 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - Mientras Rodal está, Lucas se asoma por arriba de los botones (no queda tapado).
 - El bot (`calibrar.mjs`) prueba los 4 golpes (en el green, los 2 putts) y se queda con el mejor; el Dibuje maestro lo dibuja recto. Con eso Rodal da −0,5 en 20 vueltas (antes +1,0), pero el nivel queda en Normal a mano: dibujar el vuelo con el dedo no es tan fácil como para el bot.
 
+
+## 🔢 Los golpes del hoyo, grandes (2026-10-06)
+
+- Abajo del botón de sonido, en vez del chip dorado con el golpe o la habilidad (se sacó: no hacía falta), va el contador de golpes del hoyo: una tarjeta crema con borde y sombra como los botones, "GOLPES", el número grande y el par. En el tee marca 0; con cada tiro sube y late.
+- Cada multa se ve clara: el contador se pone rojo y tiembla, y al lado sale un "+1" rojo con el motivo en una cinta dorada: 🚫 AFUERA, 🐒 AL BOSQUE: EL MONO, 🐒 SE LA ROBÓ UN MONO, 🐒 LLEGARON LOS MONOS, 🛺 MONO PISADO (`motivoGolpe`, `contarGolpes`). El reset del Ninja muestra "RESET · DE NUEVO A 0". Al cambiar de hoyo vuelve a 0 sin animación.
+- En la tarjeta de arriba ya no va "Golpe N" (quedaba chiquito y escondido).

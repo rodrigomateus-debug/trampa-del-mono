@@ -202,7 +202,7 @@ body {
 /* mientras apretás para pegar, el marcador de arriba se vuelve transparente: se ve la cancha */
 #hud-top .card { transition: opacity 180ms; }
 body.apuntando #hud-top .card { opacity: .18; }
-body.apuntando #crono, body.apuntando #viento, body.apuntando #efecto { opacity: .45; }
+body.apuntando #crono, body.apuntando #viento, body.apuntando #efecto, body.apuntando #golpes { opacity: .45; }
 #hud-chips > * { transition: opacity 150ms; }
 body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando #deme-btn, body.apuntando #dicky-btn, body.apuntando #ninja-btn { opacity: .25; pointer-events: none; }
 
@@ -404,6 +404,24 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 /* el sonido: botón de ícono crema chico (44px, el mínimo para el dedo) */
 #sonido { --sh: var(--game-shadow-sm); --dx: 3px; --dy: 3px; pointer-events: auto; width: 44px; height: 44px; padding: 0; border-radius: 50%; background: var(--cream); display: grid; place-items: center; }
 #sonido .gi { width: 26px; height: 26px; }
+/* los golpes del hoyo: grande, con el estilo de los botones (crema, borde y sombra); en cada multa, el +1 bien claro */
+#golpes { position: relative; margin-top: 4px; width: 74px; padding: 6px 0 5px; box-sizing: border-box; border: var(--game-stroke) solid var(--game-ink); border-radius: 16px; background: var(--cream); color: var(--green-900); box-shadow: var(--game-shadow-md); transform: rotate(-2deg); display: grid; justify-items: center; line-height: 1; font-family: var(--font-display); pointer-events: none; }
+#golpes small { font-size: 11px; letter-spacing: .12em; color: var(--green-700); }
+#golpes b { font: 44px/1 var(--font-display); margin: 1px 0 2px; font-variant-numeric: tabular-nums; }
+#golpes span { font-size: 11px; letter-spacing: .08em; padding: 2px 7px 1px; border-radius: 999px; background: var(--green-900); color: var(--gold); }
+#golpes.suma b { animation: g-suma .42s cubic-bezier(.2, 1.6, .4, 1); }
+#golpes.multa { animation: g-multa .9s ease-out; }
+#golpes.multa b { animation: g-suma .5s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes g-suma { 0% { transform: scale(1); } 35% { transform: scale(1.45); } 100% { transform: scale(1); } }
+@keyframes g-multa { 0%, 55% { background: var(--red); color: var(--cream); } 10% { transform: rotate(-2deg) translateX(-5px); } 20% { transform: rotate(-2deg) translateX(5px); } 30% { transform: rotate(-2deg) translateX(-3px); } 40% { transform: rotate(-2deg) translateX(0); } 100% { background: var(--cream); } }
+#golpes.multa small { color: inherit; }
+#g-mas { position: absolute; left: calc(100% + 10px); top: 50%; display: grid; justify-items: start; gap: 4px; opacity: 0; transform: translateY(-50%); pointer-events: none; }
+#g-mas b { font: 34px/1 var(--font-display); color: var(--cream); background: var(--red); border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; padding: 6px 12px 4px; box-shadow: var(--game-shadow-md); transform: rotate(-4deg); margin: 0; }
+#g-mas i { font: normal 14px/1 var(--font-display); letter-spacing: .06em; color: var(--game-ink); background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); padding: 5px 8px 4px; transform: rotate(3deg); white-space: nowrap; }
+#g-mas.reset b { background: var(--game-ink); color: var(--gold); font-size: 24px; }
+#g-mas.ve { animation: g-mas 2.6s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+@keyframes g-mas { 0% { opacity: 0; transform: translate(-30px, -50%) scale(.4); } 12% { opacity: 1; transform: translate(0, -50%) scale(1.1); } 20% { transform: translate(0, -50%) scale(1); } 82% { opacity: 1; transform: translate(0, -50%); } 100% { opacity: 0; transform: translate(0, -110%); } }
+#h-golpe { visibility: hidden; } /* el golpe ahora se ve grande en #golpes */
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
 /* el carrito de Marcos: los mandos (solo mientras manejás), con la pinta del SDGA: crema, verde, dorado y Anton */
@@ -1289,7 +1307,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <div class="izq">
       <span class="chip" id="lie">TEE</span>
       <button id="sonido" type="button" aria-label="Sonido"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" style="fill:var(--gi-f)"/><path d="M20 12a5.5 5.5 0 0 1 0 8M23.5 8.5a10 10 0 0 1 0 15"/></g></svg></button>
-      <span class="chip" id="efecto" hidden></span>
+      <div id="golpes" aria-live="polite"><small>GOLPES</small><b id="g-num">0</b><span id="g-par">PAR 4</span><div id="g-mas" aria-hidden="true"></div></div>
     </div>
     <div class="der">
       <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
@@ -1435,7 +1453,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 6e4a67b · 6/10, 07:10 p. m.</span>
+  <span class="version" id="version">v 0b86f37 · 6/10, 07:11 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2140,7 +2158,7 @@ function dibujarTrazo(pts, alfa, plan, desde) {
   ctx.textAlign = 'center'
   const w = ctx.measureText(txt).width + 16
   // arriba del anillo; si ahí lo tapan los carteles de arriba, abajo
-  const techo = Math.max(...['#efecto', '#lp'].map((q) => ($(q).hidden ? 0 : $(q).getBoundingClientRect().bottom))) + 26
+  const techo = Math.max(...['#golpes', '#lp'].map((q) => ($(q).hidden ? 0 : $(q).getBoundingClientRect().bottom))) + 26
   const ly = dy - 30 < techo ? dy + 38 : dy - 30
   const lx = Math.max(w / 2 + 8, Math.min(W - w / 2 - 8, dx))
   ctx.fillStyle = 'rgba(12,43,28,.85)'
@@ -2261,6 +2279,10 @@ function alReposo() {
   const desde = [...ronda.desde], lieDesde = ronda.lieDesde // de dónde salió (drive, approach o putt)
   const res = M.resolverReposo(campo, ronda, tiro, rng)
   if (res.tipo === 'ajena') { hoyoEquivocado(res); return }
+  // las multas: el contador muestra el +1 con el motivo
+  if (res.tipo === 'afuera') motivoGolpe = '🚫 AFUERA'
+  else if (res.tipo === 'mono-malo') motivoGolpe = '🐒 AL BOSQUE: EL MONO'
+  else if (res.tipo === 'mono-ladron') motivoGolpe = '🐒 SE LA ROBÓ UN MONO'
   const dicho = M.comentar(rng, res, tiro, h, ronda.jugador, { desde, lieDesde })
   lucasDice(dicho.lucas) // con Rodal: Lucas en persona
   dickyDespues(res, tiro) // con un Dicky: otro Dicky con palabras tiernas
@@ -2456,6 +2478,8 @@ function manejarCuadro(dt) {
     // la sacudida y el sello de la multa
     lienzo.classList.remove('sacudida'); void lienzo.offsetWidth; lienzo.classList.add('sacudida')
     multaSello()
+    motivoGolpe = '🛺 MONO PISADO'
+    hud()
     relatar({ lg: '🐒 +1 golpe de multa por tortura animal', verso: ronda.aplastados > 1 ? `Ya van ${ronda.aplastados} monos aplastados` : 'Queda ahí, de recuerdo' })
     hud()
   }
@@ -2628,6 +2652,7 @@ function llegaronMonos(mono) {
   anim = {
     tipo: 'ladron', mono, lp: true, t: 0, T: 1.6,
     fin: () => {
+      motivoGolpe = '🐒 LLEGARON LOS MONOS'
       M.monosLlegaron(ronda)
       if (M.habilidadDe(ronda.jugador)?.adulado) lucasDice(M.elegir(rng, M.ADULACION.mono))
       else relatar({ lg: M.elegir(rng, M.RELATO.monosLlegan) })
@@ -3168,12 +3193,41 @@ function hud() {
   // el golpe del Mago: el que le toca (o, mientras vuela, el que pegó)
   const g = !ronda.golpeMago || oculto ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? M.PUTTS_MAGO.find((x) => x.lado === Math.sign(tiro.giro)) : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
   pintarGolpesMago(oculto)
-  const reves = !oculto && M.alReves(j)
-  const prestado = !oculto && ronda.prestado
-  $('#efecto').hidden = !g && !reves && !prestado
-  if (g) $('#efecto').textContent = `${g.emoji} ${g.nombre.toUpperCase()}`
-  else if (prestado) $('#efecto').textContent = `📞 TE PEGA ${j.apodo.replace(/ \(Đ\)$/, '').toUpperCase()}${reves ? ' · AL REVÉS' : ''}`
-  else if (reves) $('#efecto').textContent = '🐸 CONTROLES AL REVÉS'
+  contarGolpes()
+}
+// ── los golpes del hoyo, grandes: suben con cada tiro; las multas (+1) se muestran con el motivo ──
+let golpesVistos = null // { r, idx, n }: lo que muestra el contador (de qué ronda y qué hoyo)
+let motivoGolpe = null // por qué es el próximo +1 que no es un tiro (lo pone quien suma la multa)
+function contarGolpes() {
+  const n = ronda.golpes, idx = ronda.idx
+  $('#g-par').textContent = `PAR ${M.hoyoActual(ronda).par}`
+  if (!golpesVistos || golpesVistos.r !== ronda || golpesVistos.idx !== idx) {
+    golpesVistos = { r: ronda, idx, n }
+    $('#g-num').textContent = n
+    motivoGolpe = null
+    return
+  }
+  if (n === golpesVistos.n) return
+  const antes = golpesVistos.n
+  golpesVistos.n = n
+  $('#g-num').textContent = n
+  const caja = $('#golpes')
+  const motivo = motivoGolpe
+  motivoGolpe = null
+  caja.classList.remove('suma', 'multa')
+  void caja.offsetWidth
+  if (n < antes) { mostrarMas('RESET', '🥷 DE NUEVO A 0', true); caja.classList.add('multa'); return } // el reset del Ninja
+  if (!motivo) { caja.classList.add('suma'); return } // un tiro
+  caja.classList.add('multa')
+  mostrarMas('+1', motivo)
+}
+function mostrarMas(grande, chico, reset = false) {
+  const el = $('#g-mas')
+  el.innerHTML = `<b>${esc(grande)}</b><i>${esc(chico)}</i>`
+  el.classList.toggle('reset', reset)
+  el.classList.remove('ve')
+  void el.offsetWidth
+  el.classList.add('ve')
 }
 /** El golpe del Mago elegido para el próximo tiro (null si no es Rodal). En el green, el putt (draw o fade). */
 const textoLP = () => 'LP 💅'
