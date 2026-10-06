@@ -1483,6 +1483,21 @@ export function apostarRorro(r, rng) {
 
 // ── stats: vueltas, LP y promedio, en total y por player ──
 /**
+ * Los órdenes de las stats (players o usuarios): 'vueltas' (más jugados primero, el de siempre), 'promedio' (de menos
+ * golpes a más; los que no firmaron ninguna, al final) o 'lp' (más LP primero). `de` saca las stats de cada fila.
+ */
+const ORDEN_STATS = {
+  vueltas: (a, b) => b.jugadas - a.jugadas || (a.promGolpes ?? Infinity) - (b.promGolpes ?? Infinity),
+  promedio: (a, b) => (a.promGolpes ?? Infinity) - (b.promGolpes ?? Infinity) || b.jugadas - a.jugadas,
+  lp: (a, b) => b.lps - a.lps || b.pctLP - a.pctLP || b.jugadas - a.jugadas,
+}
+export function ordenarStats(lista, orden = 'vueltas', de = (x) => x) {
+  const cmp = ORDEN_STATS[orden] ?? ORDEN_STATS.vueltas
+  // Infinity - Infinity da NaN: cuenta como empate y sigue con el próximo criterio
+  return [...lista].sort((a, b) => cmp(de(a), de(b)) || 0)
+}
+
+/**
  * `conteo` = [{ apodo, jugadas, lps }] (cada vuelta que llegó a la tarjeta final, firmada o no, LP incluido);
  * `marcas` = [{ apodo, golpes, vsPar }] (las vueltas firmadas). El promedio sale de las firmadas (las LP no tienen
  * score). Si una vuelta firmada es de antes del conteo, igual cuenta como jugada.
@@ -1505,7 +1520,7 @@ export function estadisticas(conteo, marcas) {
     const jugadas = Math.max(f.jugadas, f.firmadas + f.lps)
     return { apodo: f.apodo, jugadas, lps: f.lps, firmadas: f.firmadas, pctLP: jugadas ? f.lps / jugadas : 0, prom: f.firmadas ? f.sumaPar / f.firmadas : null, promGolpes: f.firmadas ? f.sumaGolpes / f.firmadas : null }
   }
-  const lista = [...por.values()].map(cerrar).filter((f) => f.jugadas > 0).sort((a, b) => b.jugadas - a.jugadas || (a.prom ?? 99) - (b.prom ?? 99))
+  const lista = ordenarStats([...por.values()].map(cerrar).filter((f) => f.jugadas > 0))
   const suma = [...por.values()].reduce((t, f) => ({ apodo: null, jugadas: t.jugadas + f.jugadas, lps: t.lps + f.lps, firmadas: t.firmadas + f.firmadas, sumaPar: t.sumaPar + f.sumaPar, sumaGolpes: t.sumaGolpes + f.sumaGolpes }), { apodo: null, jugadas: 0, lps: 0, firmadas: 0, sumaPar: 0, sumaGolpes: 0 })
   // el total: cada player ya ajustado (jugadas >= firmadas + LP)
   const total = cerrar(suma)

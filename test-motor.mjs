@@ -1362,8 +1362,13 @@ ok('📊 stats: vueltas, LP y promedio (de las firmadas), en total y por player'
   const conteo = [{ apodo: 'Fito (Đ)', jugadas: 5, lps: 2 }, { apodo: 'LG', jugadas: 2, lps: 0 }, { apodo: 'Fito (Đ)', jugadas: 1, lps: 0 }]
   const marcas = [{ apodo: 'Fito (Đ)', golpes: 12, vsPar: 1 }, { apodo: 'Fito (Đ)', golpes: 14, vsPar: 3 }, { apodo: 'LG', golpes: 10, vsPar: -1 }, { apodo: 'Mugre', golpes: 11, vsPar: 0 }]
   const { total, por } = M.estadisticas(conteo, marcas)
-  assert.equal(por[0].apodo, 'Fito (Đ)')
-  assert.deepEqual([por[0].jugadas, por[0].lps, por[0].firmadas, por[0].prom, por[0].promGolpes], [6, 2, 2, 2, 13])
+  // de entrada, por vueltas (más jugados primero); a pedido, por promedio de golpes o por LP
+  assert.deepEqual(por.map((f) => f.apodo), ['Fito (Đ)', 'LG', 'Mugre'])
+  assert.deepEqual(M.ordenarStats(por, 'promedio').map((f) => f.apodo), ['LG', 'Mugre', 'Fito (Đ)'])
+  assert.deepEqual(M.ordenarStats(por, 'lp').map((f) => f.apodo), ['Fito (Đ)', 'LG', 'Mugre'])
+  assert.deepEqual(M.ordenarStats([{ n: 'a', st: { jugadas: 1, lps: 0, pctLP: 0, promGolpes: 9 } }, { n: 'b', st: { jugadas: 3, lps: 2, pctLP: 0.6, promGolpes: null } }], 'promedio', (u) => u.st).map((u) => u.n), ['a', 'b'])
+  const fito = por.find((f) => f.apodo === 'Fito (Đ)')
+  assert.deepEqual([fito.jugadas, fito.lps, fito.firmadas, fito.prom, fito.promGolpes], [6, 2, 2, 2, 13])
   // Mugre: una firmada de antes del conteo, igual es una jugada
   assert.equal(por.find((f) => f.apodo === 'Mugre').jugadas, 1)
   assert.equal(total.jugadas, 6 + 2 + 1)
@@ -1373,6 +1378,8 @@ ok('📊 stats: vueltas, LP y promedio (de las firmadas), en total y por player'
   assert.equal(M.formatoProm(-0.5), '−0,5')
   assert.equal(M.formatoProm(0.01), 'E')
   assert.deepEqual(M.estadisticas([], []).por, [])
+  // por promedio, los que no firmaron ninguna van al final (aunque tengan más vueltas)
+  assert.equal(M.ordenarStats(M.estadisticas([{ apodo: 'Mugre', jugadas: 9, lps: 9 }, { apodo: 'LG', jugadas: 1, lps: 0 }], [{ apodo: 'LG', golpes: 15, vsPar: 4 }]).por, 'promedio').at(-1).apodo, 'Mugre')
 })
 
 console.log('\nTodo verde.')

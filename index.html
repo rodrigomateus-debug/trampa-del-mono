@@ -1201,7 +1201,17 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 .st-usuario.yo { box-shadow: inset 0 0 0 2px var(--gold); }
 .st-usuario em { font-style: normal; font-weight: 600; color: var(--text-muted); font-size: 12px; }
 .st-cara.inicial { color: var(--cream); font: 20px/1 var(--font-display); }
-.st-nombre .sello-sdga, #st-tit .sello-sdga { display: inline-block; vertical-align: middle; margin-left: 6px; }
+.st-nombre .sello-sdga, #st-tit .sello-sdga { display: inline-flex; vertical-align: middle; margin-left: 6px; position: relative; top: -1px; }
+#st-tit .sello-sdga { height: 22px; padding: 0 7px; top: -3px; }
+#st-tit .sello-sdga svg { height: 11px; }
+
+/* el orden de las listas de Stats: vueltas (de entrada), promedio o LP */
+.st-sub-fila { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin: 10px 0 2px; }
+.st-sub-fila .st-sub { margin: 0 0 5px; }
+.st-orden { display: inline-flex; flex: none; padding: 2px; border: 2px solid var(--game-ink); border-radius: 999px; background: #fff8e6; }
+.st-orden button { border: 0; background: none; padding: 4px 9px; border-radius: 999px; font: 800 11.5px var(--font-body); letter-spacing: .02em; color: var(--green-700); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.st-orden button[aria-pressed="true"] { background: var(--green-900); color: var(--gold); }
+.st-orden button:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
 
 /* las tres pestañas de Stats se reparten el ancho (sin agrandar la tarjeta) */
 #st-ambito { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1405,7 +1415,7 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 96f6867 · 6/10, 03:14 p. m.</span>
+  <span class="version" id="version">v 7b5d9e6 · 6/10, 04:20 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1570,7 +1580,7 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
     <button class="st-volver-lista" id="st-volver-lista" type="button" hidden>← Todos los usuarios</button>
     <div class="st-resumen" id="st-resumen"></div>
     <div class="st-graficos" id="st-graficos"></div>
-    <p class="st-sub" id="st-sub">Por player</p>
+    <div class="st-sub-fila"><p class="st-sub" id="st-sub">Por player</p><div class="st-orden" id="st-orden" role="group" aria-label="Ordenar por"><button type="button" data-orden="vueltas" aria-pressed="true">Vueltas</button><button type="button" data-orden="promedio" aria-pressed="false">Promedio</button><button type="button" data-orden="lp" aria-pressed="false">LP</button></div></div>
     <ol class="st-lista" id="st-lista"></ol>
     <p class="extras" id="st-fuente"></p>
     <button class="btn verde" id="st-volver" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>VOLVER</button>
@@ -1595,11 +1605,11 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=8d95289a14'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=8d95289a14'
+import * as M from './motor.js?v=fdfe4ae1e1'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=fdfe4ae1e1'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=8d95289a14'
-import * as S from './sonido.js?v=8d95289a14'
+import * as R from './ranking.js?v=fdfe4ae1e1'
+import * as S from './sonido.js?v=fdfe4ae1e1'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -5494,6 +5504,7 @@ $('#rk-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.k
 
 // ── 📊 stats: vueltas, LP y promedio (de las firmadas), en total y por player; las tuyas y las de todos ──
 let stAmbito = 'yo', stDatos = null
+let stOrden = (() => { try { const o = localStorage.getItem('sdga-trampa-stats-orden'); return ['vueltas', 'promedio', 'lp'].includes(o) ? o : 'vueltas' } catch { return 'vueltas' } })()
 async function mostrarStats() {
   $('#stats').hidden = false
   stDatos = null
@@ -5517,7 +5528,7 @@ function calcularStats() {
   const personas = new Set([...conteo.map((f) => f.user_id), ...marcas.map((x) => M.duenoDe(x))].filter(Boolean)).size
   return { ...M.estadisticas(conteo, marcas), personas, fuente: 'Todas las vueltas del ranking de la SDGApp.' }
 }
-/** Cada usuario con sus stats: por uid (la base) o por nombre (el teléfono). Ordenados por vueltas. */
+/** Cada usuario con sus stats: por uid (la base) o por nombre (el teléfono). Por nombre: el orden lo pone stOrden. */
 let stUsuario = null, stBusca = ''
 function usuariosStats() {
   const { marcas, conteo, nombres } = stDatos
@@ -5537,13 +5548,14 @@ function usuariosStats() {
     const n = nombres?.get(u.clave)
     const nombre = u.nombre ?? n?.nombre ?? (uid && u.clave === `uid:${uid}` ? R.puente.identidad.alias : 'Sin nombre')
     return { ...u, nombre, sdga: u.sdga || !!n?.sdga, st: M.estadisticas(u.conteo, u.marcas) }
-  }).filter((u) => u.st.total.jugadas > 0).sort((a, b) => b.st.total.jugadas - a.st.total.jugadas || a.nombre.localeCompare(b.nombre))
+  }).filter((u) => u.st.total.jugadas > 0).sort((a, b) => a.nombre.localeCompare(b.nombre))
 }
 const sinTildes = (x) => String(x ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 const pct1 = (x) => `${Math.round(x * 100)}%`
 const dec1 = (x) => (x == null ? '—' : x.toFixed(1).replace('.', ','))
 function pintarStats() {
   for (const b of $('#st-ambito').children) b.setAttribute('aria-selected', String(b.dataset.st === stAmbito))
+  for (const b of $('#st-orden').children) b.setAttribute('aria-pressed', String(b.dataset.orden === stOrden))
   const enLista = stAmbito === 'usuarios' && !stUsuario
   $('#st-busca-caja').hidden = !enLista
   $('#st-volver-lista').hidden = !(stAmbito === 'usuarios' && stUsuario)
@@ -5573,7 +5585,7 @@ function pintarStats() {
     <div><dt>LP 💅</dt><dd>${t.lps}</dd><small>${pct1(t.pctLP)} de las vueltas</small></div>
     <div class="prom"><dt>Promedio</dt><dd class="${t.prom == null ? '' : t.prom < 0 ? 'bajo' : t.prom > 0 ? 'sobre' : ''}">${M.formatoProm(t.prom)}</dd><small>${t.promGolpes == null ? 'sin vueltas firmadas' : `${dec1(t.promGolpes)} golpes`}</small></div>`
   $('#st-graficos').innerHTML = graficosStats(st.por)
-  $('#st-lista').innerHTML = st.por.length ? st.por.map((f) => {
+  $('#st-lista').innerHTML = st.por.length ? M.ordenarStats(st.por, stOrden).map((f) => {
     const real = [...TODOS, DEMETRIO].find((x) => x.apodo === f.apodo)
     const j = publico(real ?? { apodo: f.apodo, emoji: '⛳', foto: null })
     const cara = j.misterio ? '<span class="st-cara misterio">?</span>' : j.foto ? `<img class="st-cara" src="${j.foto}" alt="" draggable="false">` : `<span class="st-cara">${j.emoji ?? '⛳'}</span>`
@@ -5629,15 +5641,23 @@ function pintarUsuarios() {
   const q = sinTildes(stBusca)
   const lista = q ? todos.filter((u) => sinTildes(u.nombre).includes(q)) : todos
   const yo = M.duenoDe(R.puente.identidad?.uid ? { uid: R.puente.identidad.uid } : { usuario: datos.usuario })
-  $('#st-lista').innerHTML = lista.length ? lista.map((u) => {
+  $('#st-lista').innerHTML = lista.length ? M.ordenarStats(lista, stOrden, (u) => u.st.total).map((u) => {
     const t = u.st.total
-    const fav = u.st.por[0] ? publico([...TODOS, DEMETRIO].find((x) => x.apodo === u.st.por[0].apodo) ?? { apodo: u.st.por[0].apodo, emoji: '⛳' }) : null
+    const masJugado = M.ordenarStats(u.st.por)[0] // su favorito: el que más jugó (sea cual sea el orden de la lista)
+    const fav = masJugado ? publico([...TODOS, DEMETRIO].find((x) => x.apodo === masJugado.apodo) ?? { apodo: masJugado.apodo, emoji: '⛳' }) : null
     const foto = fotoDePersona(u.nombre)
     const cara = foto ? `<img class="st-cara" src="${foto}" alt="" draggable="false">` : `<span class="st-cara inicial">${esc((u.nombre.trim()[0] ?? '?').toUpperCase())}</span>`
     return `<li class="st-usuario${u.clave === yo ? ' yo' : ''}" role="button" tabindex="0" data-u="${esc(u.clave)}">${cara}<div class="st-nombre"><b>${esc(u.nombre)}${u.sdga ? selloSdga() : ''}${u.clave === yo ? ' <em>(vos)</em>' : ''}</b><small>${t.jugadas} ${t.jugadas === 1 ? 'vuelta' : 'vueltas'} · ${t.lps} LP (${pct1(t.pctLP)})${fav ? ` · ${fav.misterio ? '❓' : fav.emoji} su favorito` : ''}</small></div><div class="st-prom ${t.prom == null ? '' : t.prom < 0 ? 'bajo' : t.prom > 0 ? 'sobre' : ''}"><b>${M.formatoProm(t.prom)}</b><small>${t.promGolpes == null ? 'sin firmar' : `${dec1(t.promGolpes)} golpes`}</small></div></li>`
   }).join('') : `<li class="st-vacio">${q ? `Nadie se llama "${esc(stBusca)}".` : 'Todavía no hay vueltas.'}</li>`
   $('#st-fuente').textContent = stDatos.base ? `${todos.length} ${todos.length === 1 ? 'usuario' : 'usuarios'} en el ranking de la SDGApp. Tocá uno para ver sus stats por player.` : 'Sin el ranking compartido: solo los que jugaron en este teléfono.'
 }
+$('#st-orden').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-orden]')
+  if (!b || b.dataset.orden === stOrden) return
+  stOrden = b.dataset.orden
+  try { localStorage.setItem('sdga-trampa-stats-orden', stOrden) } catch {}
+  pintarStats()
+})
 $('#st-busca').addEventListener('input', (e) => { stBusca = e.target.value; pintarUsuarios() })
 $('#st-lista').addEventListener('click', (e) => {
   const li = e.target.closest('[data-u]')
@@ -6223,7 +6243,7 @@ obj = vistaGeneral()
 Object.assign(cam, obj)
 requestAnimationFrame(cuadro)
 </script>
-<script type="module" src="intro/app.js"></script>
+<script type="module" src="intro/app.js?v=f8bf6559f1"></script>
 
 </body>
 </html>
