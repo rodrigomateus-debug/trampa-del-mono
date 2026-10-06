@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Sale de la rama claude/beautiful-hypatia-zpvfwq: el juego publicado + Taiu (Đ) 🐸 (bloqueado: −1 con los otros Dicky), los Dicky y la Dickyllamada 📞, y el reset del Ninja 🥷 para probar. No se edita a mano: se vuelve a copiar.
+Hoy es igual al juego publicado (la raíz). En dev/, ?taiu=1 desbloquea a Taiu en ese teléfono (?taiu=0 lo bloquea). No se edita a mano: se vuelve a copiar.
