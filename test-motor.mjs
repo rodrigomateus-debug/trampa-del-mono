@@ -1358,4 +1358,21 @@ ok('🔒 Taiu: se desbloquea con −1 o mejor (firmado) con Fito, Miguelón y el
   assert.equal(M.progresoDesbloqueo(req, { 'Fito (Đ)': -1, 'Mike Queboni (Đ)': -2, 'El Ninja (Đ)': -1 }).listo, true)
 })
 
+ok('📊 stats: vueltas, LP y promedio (de las firmadas), en total y por player', () => {
+  const conteo = [{ apodo: 'Fito (Đ)', jugadas: 5, lps: 2 }, { apodo: 'LG', jugadas: 2, lps: 0 }, { apodo: 'Fito (Đ)', jugadas: 1, lps: 0 }]
+  const marcas = [{ apodo: 'Fito (Đ)', golpes: 12, vsPar: 1 }, { apodo: 'Fito (Đ)', golpes: 14, vsPar: 3 }, { apodo: 'LG', golpes: 10, vsPar: -1 }, { apodo: 'Mugre', golpes: 11, vsPar: 0 }]
+  const { total, por } = M.estadisticas(conteo, marcas)
+  assert.equal(por[0].apodo, 'Fito (Đ)')
+  assert.deepEqual([por[0].jugadas, por[0].lps, por[0].firmadas, por[0].prom, por[0].promGolpes], [6, 2, 2, 2, 13])
+  // Mugre: una firmada de antes del conteo, igual es una jugada
+  assert.equal(por.find((f) => f.apodo === 'Mugre').jugadas, 1)
+  assert.equal(total.jugadas, 6 + 2 + 1)
+  assert.equal(total.lps, 2)
+  assert.equal(total.prom, (1 + 3 - 1 + 0) / 4)
+  assert.equal(M.formatoProm(2.25), '+2,3')
+  assert.equal(M.formatoProm(-0.5), '−0,5')
+  assert.equal(M.formatoProm(0.01), 'E')
+  assert.deepEqual(M.estadisticas([], []).por, [])
+})
+
 console.log('\nTodo verde.')

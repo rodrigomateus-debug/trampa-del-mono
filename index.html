@@ -1167,6 +1167,27 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 #dicky .globo { box-sizing: border-box; left: 6px; bottom: 100%; margin-bottom: 10px; max-width: min(calc(50vw - 22px), 240px); font-size: 14px; padding: 8px 12px; transform-origin: 20% 100%; }
 #dicky .globo b { font-size: 15px; }
 #dicky .globo::after { left: 26px; bottom: -14px; }
+
+/* 📊 stats */
+.st-resumen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 2px; }
+.st-resumen > div { display: grid; gap: 2px; justify-items: center; text-align: center; background: #fff8e6; border: 2.5px solid var(--game-ink); border-radius: 14px; box-shadow: 3px 4px 0 var(--game-ink); padding: 8px 4px 7px; }
+.st-resumen dt { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.st-resumen dd { margin: 0; font: 30px/1 var(--font-display); color: var(--green-900); font-variant-numeric: tabular-nums; }
+.st-resumen small { font-size: 10.5px; line-height: 1.2; color: var(--text-muted); }
+.st-resumen .prom { background: var(--gold); }
+.st-resumen dd.bajo, .st-prom.bajo b { color: var(--green-500); }
+.st-resumen dd.sobre, .st-prom.sobre b { color: var(--red); }
+.st-cargando { grid-column: 1 / -1; margin: 10px 0; text-align: center; color: var(--text-muted); }
+.st-sub { margin: 10px 0 2px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+.st-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.st-lista li { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; padding: 6px 10px 6px 6px; border-radius: 12px; background: rgba(20, 64, 42, .06); }
+.st-cara { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: top; display: grid; place-items: center; font-size: 22px; background: var(--green-700); border: 2px solid var(--green-900); box-sizing: border-box; }
+.st-cara.misterio { color: var(--cream); font: 22px/1 var(--font-display); }
+.st-nombre b { display: block; font-size: 14px; }
+.st-nombre small, .st-prom small { display: block; font-size: 11px; color: var(--text-muted); }
+.st-prom { text-align: right; }
+.st-prom b { font: 22px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.st-lista .st-vacio { display: block; text-align: center; color: var(--text-muted); background: none; }
 </style>
 </head>
 <body>
@@ -1337,12 +1358,13 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
     <div class="portada-tejas">
       <button class="teja-btn entra" style="--i: 1" id="ver-match" type="button" hidden><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M7.5 4.5L22 23.5M24.5 4.5L10 23.5"/><path d="M7.5 4.5l2 2.6M24.5 4.5l-2 2.6" stroke-width="5"/><rect x="19.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><rect x="4.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><circle cx="16" cy="24.5" r="2.5" style="fill:var(--gi-f)"/></g></svg><span>MATCH</span><b class="aviso" id="match-aviso" hidden></b></button>
       <button class="teja-btn entra" style="--i: 2" id="ver-ranking" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="4.5" y="15.5" width="7.5" height="11.5" rx="1" style="fill:var(--gi-f)"/><rect x="20" y="18.5" width="7.5" height="8.5" rx="1" style="fill:var(--gi-f)"/><rect x="12" y="9.5" width="8" height="17.5" rx="1" style="fill:var(--gi-a)"/><path d="M14.8 14l1.7-1.2v6" stroke-width="2.2"/></g></svg><span>RANKING</span></button>
-      <button class="teja-btn entra" style="--i: 3" id="ver-intro" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="5" y="13" width="22" height="13.5" rx="2" style="fill:var(--gi-f)"/><path d="M14 16.5l6 3.5-6 3.5z" style="fill:var(--gi-s)"/><g transform="rotate(-14 5 13)"><rect x="5" y="7.5" width="22" height="5.5" rx="1.2" style="fill:var(--gi-a)"/><path d="M11 7.5l2.5 5.5M17 7.5l2.5 5.5M23 7.5l2.5 5.5" stroke-width="2"/></g></g></svg><span>INTRO</span></button>
+      <button class="teja-btn entra" style="--i: 3" id="ver-stats" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5.5 5v21.5H27"/><rect x="9" y="17" width="4.5" height="9.5" rx="1" style="fill:var(--gi-f)"/><rect x="15.5" y="11" width="4.5" height="15.5" rx="1" style="fill:var(--gi-a)"/><rect x="22" y="14.5" width="4.5" height="12" rx="1" style="fill:var(--gi-f)"/><path d="M9.5 12.5l6-5 4 3 6.5-5.5" stroke-width="2"/></g></svg><span>STATS</span></button>
+      <button class="teja-btn entra" style="--i: 4" id="ver-intro" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="5" y="13" width="22" height="13.5" rx="2" style="fill:var(--gi-f)"/><path d="M14 16.5l6 3.5-6 3.5z" style="fill:var(--gi-s)"/><g transform="rotate(-14 5 13)"><rect x="5" y="7.5" width="22" height="5.5" rx="1.2" style="fill:var(--gi-a)"/><path d="M11 7.5l2.5 5.5M17 7.5l2.5 5.5M23 7.5l2.5 5.5" stroke-width="2"/></g></g></svg><span>INTRO</span></button>
     </div>
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 5d57d3a · 6/10, 10:05 a. m.</span>
+  <span class="version" id="version">v 08a0ec9 · 6/10, 01:36 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1492,6 +1514,23 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
   </div>
 </section>
 
+<section class="pantalla" id="stats" hidden aria-labelledby="st-tit">
+  <div class="card tarjeta ranking stats">
+    <header>
+      <span class="teja"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5.5 5v21.5H27"/><rect x="9" y="17" width="4.5" height="9.5" rx="1" style="fill:var(--gi-f)"/><rect x="15.5" y="11" width="4.5" height="15.5" rx="1" style="fill:var(--gi-a)"/><rect x="22" y="14.5" width="4.5" height="12" rx="1" style="fill:var(--gi-f)"/><path d="M9.5 12.5l6-5 4 3 6.5-5.5" stroke-width="2"/></g></svg></span>
+      <div><span class="kicker" style="color: var(--text-muted)">Stats · vueltas, LP y promedio</span><div class="quien" id="st-tit">LAS TUYAS</div></div>
+    </header>
+    <div class="rk-ambito" id="st-ambito" role="tablist" aria-label="De quién">
+      <button type="button" role="tab" data-st="yo" aria-selected="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="16" cy="11" r="5.5" style="fill:var(--gi-a)"/><path d="M6.5 27a9.5 9.5 0 0 1 19 0z" style="fill:var(--gi-f)"/></g></svg>Las tuyas</button>
+      <button type="button" role="tab" data-st="todos" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="21" cy="10.5" r="4.5" style="fill:var(--gi-a)"/><path d="M14 25a7.5 7.5 0 0 1 15 0z" style="fill:var(--gi-a)"/><circle cx="12" cy="12.5" r="5" style="fill:var(--gi-f)"/><path d="M3.5 27a8.5 8.5 0 0 1 17 0z" style="fill:var(--gi-f)"/></g></svg>De todos</button>
+    </div>
+    <div class="st-resumen" id="st-resumen"></div>
+    <p class="st-sub">Por player</p>
+    <ol class="st-lista" id="st-lista"></ol>
+    <p class="extras" id="st-fuente"></p>
+    <button class="btn verde" id="st-volver" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>VOLVER</button>
+  </div>
+</section>
 <section class="pantalla" id="ranking" hidden aria-labelledby="rk-tit">
   <div class="card tarjeta ranking">
     <header>
@@ -1511,11 +1550,11 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=d85ddc0346'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=d85ddc0346'
+import * as M from './motor.js?v=8d95289a14'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=8d95289a14'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=d85ddc0346'
-import * as S from './sonido.js?v=d85ddc0346'
+import * as R from './ranking.js?v=8d95289a14'
+import * as S from './sonido.js?v=8d95289a14'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2337,8 +2376,12 @@ function levantarVuelta() {
 // ── hoyos ──
 function empezar(jugador) {
   if (bloqueado(jugador) && !matchModo) return // 🔒 Taiu, hasta desbloquearlo (si te desafían con él, sí)
-  // la Ruleta: el bloqueado no sale
-  if (jugador.ruleta && jugador.pool.some(bloqueado)) jugador = { ...jugador, pool: jugador.pool.filter((x) => !bloqueado(x)) }
+  // la Ruleta: el bloqueado no sale. En un match, los dos con el MISMO mazo (sin los que se desbloquean, así nadie tiene
+  // uno que el otro no): con la semilla del match, tiro por tiro les salen los mismos players a los dos
+  if (jugador.ruleta) {
+    const pool = matchModo ? jugador.pool.filter((x) => x.apodo !== DESBLOQUEO_TAIU.apodo) : jugador.pool.filter((x) => !bloqueado(x))
+    if (pool.length !== jugador.pool.length) jugador = { ...jugador, pool }
+  }
   aplicarHandicaps() // si la app mandó handicaps mientras se jugaba la vuelta anterior
   ronda = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // la bandera, en otro lugar del green cada ronda
   // el match: las banderas y el viento salen de la semilla (los dos juegan lo mismo); se usa una vez
@@ -2361,7 +2404,7 @@ function empezar(jugador) {
   pararCuenta()
   $('#marcador').hidden = true
   marcadorPintado = ''
-  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking', 'todos', 'resumen', 'match']) $('#' + id).hidden = true
+  for (const id of ['portada', 'elegir', 'fin', 'comunicado', 'ranking', 'stats', 'todos', 'resumen', 'match']) $('#' + id).hidden = true
   $('#hud-top').hidden = false
   introHoyo()
 }
@@ -4274,7 +4317,7 @@ function acciones() {
 function irAlInicio() {
   clearTimeout(firmaTimer)
   firmaHasta = 0
-  for (const id of ['fin', 'comunicado', 'ranking', 'resumen', 'match', 'elegir', 'todos']) $('#' + id).hidden = true
+  for (const id of ['fin', 'comunicado', 'ranking', 'stats', 'resumen', 'match', 'elegir', 'todos']) $('#' + id).hidden = true
   for (const id of ['hud-top', 'hud-bot', 'pancho', 'marcador', 'deme-btn', 'dicky-btn', 'ninja-btn']) $('#' + id).hidden = true
   ronda = null
   tiro = null
@@ -5167,7 +5210,7 @@ function mensajeDesafio(r, rival, mia) {
     `Ya jugué mi vuelta con ${j.emoji} ${j.apodo}.`,
     pique,
     '',
-    `Te toca: mismo player (${j.emoji} ${j.apodo}), mismo viento y mismas banderas. Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
+    `Te toca: mismo player (${j.emoji} ${j.apodo}), mismo viento y mismas banderas.${j.ruleta ? ' Y la misma Ruleta: tiro por tiro te salen los mismos players que a mí 🎰.' : ''} Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
     'Menos golpes gana; si empatamos, el más rápido. LP pierde.',
     '',
     `Entrá a la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch()}`,
@@ -5189,7 +5232,7 @@ function textoResultadoMatch(yo, el) {
     titulo,
     linea(yo, 'Yo'),
     linea(el, el.alias),
-    `Los dos con ${emoji} ${apodo}, mismo viento y mismas banderas.`,
+    `Los dos con ${emoji} ${apodo}, mismo viento y mismas banderas${apodo === 'La Ruleta' ? ' (y tiro por tiro, los mismos players)' : ''}.`,
     '',
     cierre,
     `Desafiame en la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch()}`,
@@ -5404,6 +5447,64 @@ $('#rk-resumen').addEventListener('click', (e) => { if (e.target.closest('[data-
 $('#rk-lista').addEventListener('click', (e) => { const li = e.target.closest('.rk-fila[data-k]'); if (li) abrirResumen(rkVista[+li.dataset.k]) })
 $('#rk-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const li = e.target.closest('.rk-fila[data-k]'); if (li) { e.preventDefault(); abrirResumen(rkVista[+li.dataset.k]) } })
 
+// ── 📊 stats: vueltas, LP y promedio (de las firmadas), en total y por player; las tuyas y las de todos ──
+let stAmbito = 'yo', stDatos = null
+async function mostrarStats() {
+  $('#stats').hidden = false
+  stDatos = null
+  pintarStats()
+  const [{ marcas, compartido, app }, conteo] = await Promise.all([R.leerMarcas(), R.leerConteo()])
+  stDatos = { marcas: marcas ?? [], conteo, base: !!(app || compartido) }
+  pintarStats()
+  $('#st-volver').focus({ preventScroll: true })
+}
+function calcularStats() {
+  const { marcas, conteo, base } = stDatos
+  const uid = R.puente.identidad?.uid
+  const local = Object.entries(R.conteoLocal().por ?? {}).map(([apodo, c]) => ({ apodo, ...c }))
+  if (stAmbito === 'yo') {
+    // tus vueltas: las de tu usuario en la base (si hay), si no las de este teléfono
+    const c = conteo && uid ? conteo.filter((f) => f.user_id === uid) : local
+    const m = marcas.filter((x) => { try { return esYo(x) } catch { return false } })
+    return { ...M.estadisticas(c, m), fuente: base && uid ? 'Tus vueltas en el ranking de la SDGApp (las de cualquier teléfono).' : 'Las vueltas de este teléfono (para juntar las de todos tus teléfonos, entrá con tu usuario).' }
+  }
+  if (!base || !conteo) return { ...M.estadisticas(local, marcas), fuente: 'Sin el ranking compartido: lo que se ve es lo de este teléfono.', solo: true }
+  const personas = new Set([...conteo.map((f) => f.user_id), ...marcas.map((x) => M.duenoDe(x))].filter(Boolean)).size
+  return { ...M.estadisticas(conteo, marcas), personas, fuente: 'Todas las vueltas del ranking de la SDGApp.' }
+}
+const pct1 = (x) => `${Math.round(x * 100)}%`
+const dec1 = (x) => (x == null ? '—' : x.toFixed(1).replace('.', ','))
+function pintarStats() {
+  for (const b of $('#st-ambito').children) b.setAttribute('aria-selected', String(b.dataset.st === stAmbito))
+  $('#st-tit').textContent = stAmbito === 'yo' ? 'LAS TUYAS' : 'DE TODOS'
+  if (!stDatos) {
+    $('#st-resumen').innerHTML = '<p class="st-cargando">Juntando las vueltas…</p>'
+    $('#st-lista').innerHTML = ''
+    $('#st-fuente').textContent = ''
+    return
+  }
+  const st = calcularStats()
+  const t = st.total
+  $('#st-resumen').innerHTML = `
+    <div><dt>Vueltas</dt><dd>${t.jugadas}</dd><small>${t.firmadas} firmadas${st.personas ? ` · ${st.personas} ${st.personas === 1 ? 'jugador' : 'jugadores'}` : ''}</small></div>
+    <div><dt>LP 💅</dt><dd>${t.lps}</dd><small>${pct1(t.pctLP)} de las vueltas</small></div>
+    <div class="prom"><dt>Promedio</dt><dd class="${t.prom == null ? '' : t.prom < 0 ? 'bajo' : t.prom > 0 ? 'sobre' : ''}">${M.formatoProm(t.prom)}</dd><small>${t.promGolpes == null ? 'sin vueltas firmadas' : `${dec1(t.promGolpes)} golpes`}</small></div>`
+  $('#st-lista').innerHTML = st.por.length ? st.por.map((f) => {
+    const real = [...TODOS, DEMETRIO].find((x) => x.apodo === f.apodo)
+    const j = publico(real ?? { apodo: f.apodo, emoji: '⛳', foto: null })
+    const cara = j.misterio ? '<span class="st-cara misterio">?</span>' : j.foto ? `<img class="st-cara" src="${j.foto}" alt="" draggable="false">` : `<span class="st-cara">${j.emoji ?? '⛳'}</span>`
+    return `<li>${cara}<div class="st-nombre"><b>${esc(String(j.apodo ?? '').replace(/ \(Đ\)$/, ''))}</b><small>${f.jugadas} ${f.jugadas === 1 ? 'vuelta' : 'vueltas'} · ${f.lps} LP (${pct1(f.pctLP)})</small></div><div class="st-prom ${f.prom == null ? '' : f.prom < 0 ? 'bajo' : f.prom > 0 ? 'sobre' : ''}"><b>${M.formatoProm(f.prom)}</b><small>${f.promGolpes == null ? 'sin firmar' : `${dec1(f.promGolpes)} golpes`}</small></div></li>`
+  }).join('') : `<li class="st-vacio">${stAmbito === 'yo' ? 'Todavía no terminaste ninguna vuelta.' : 'Todavía no hay vueltas.'}</li>`
+  $('#st-fuente').textContent = `${st.fuente} El promedio es contra el par (11), de las vueltas firmadas: las LP no tienen score.`
+}
+$('#ver-stats').addEventListener('click', mostrarStats)
+$('#st-volver').addEventListener('click', () => { $('#stats').hidden = true })
+$('#st-ambito').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-st]')
+  if (!b) return
+  stAmbito = b.dataset.st
+  pintarStats()
+})
 async function mostrarRanking(tab = 'general') {
   rkTab = tab
   rkMarcas = null
@@ -5760,6 +5861,7 @@ window.addEventListener('keydown', (e) => {
   if (!$('#dicky-sel').hidden) { if (e.key === 'Escape') cerrarDickyllamada(); return }
   if (!$('#rk-resumen').hidden) { if (e.key === 'Escape') cerrarResumen(); return }
   if (!$('#ranking').hidden && e.key === 'Escape') { $('#ranking').hidden = true; return }
+  if (!$('#stats').hidden && e.key === 'Escape') { $('#stats').hidden = true; return }
   if (!$('#match').hidden) { if (e.key === 'Escape') $('#mt-volver').click(); return }
   if (!$('#todos').hidden) { if (e.key === 'Escape') $('#todos').hidden = true; return }
   if ($('#elegir').hidden) return
@@ -5773,7 +5875,7 @@ function mostrarElegir() {
   document.body.classList.remove('retro', 'modo-ruleta')
   S.musica(null)
   S.viento(0)
-  for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'resumen', 'match']) $('#' + id).hidden = true
+  for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'stats', 'resumen', 'match']) $('#' + id).hidden = true
   $('.mazo-tit').innerHTML = matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}` : 'Elegí tu nivel de dificultad'
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
