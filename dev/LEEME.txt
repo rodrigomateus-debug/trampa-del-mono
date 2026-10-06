@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy es igual al juego publicado (la raíz).
+Hoy: el juego publicado + los golpes de Rodal a elección (Flop, Baby Draw, Una cortada al medio, Dibuje maestro; putt con draw o fade), para probar.
