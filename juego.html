@@ -1173,6 +1173,47 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 .st-prom { text-align: right; }
 .st-prom b { font: 22px/1 var(--font-display); font-variant-numeric: tabular-nums; }
 .st-lista .st-vacio { display: block; text-align: center; color: var(--text-muted); background: none; }
+
+/* 📊 stats por usuario: el buscador y la lista */
+.st-busca { display: flex; align-items: center; gap: 8px; margin: 2px 0 0; padding: 0 12px; height: 46px; background: #fff8e6; border: 2.5px solid var(--game-ink); border-radius: 999px; box-shadow: 3px 4px 0 var(--game-ink); }
+.st-busca[hidden] { display: none; }
+.st-busca .gi { width: 22px; height: 22px; flex: none; }
+.st-busca input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: 700 16px var(--font-body); color: var(--green-900); }
+.st-volver-lista { justify-self: start; border: 0; background: none; padding: 4px 0; font: 800 13px var(--font-body); color: var(--green-700); cursor: pointer; text-decoration: underline; }
+.st-volver-lista[hidden] { display: none; }
+.st-usuario { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .12s; }
+.st-usuario:active, .st-usuario:focus-visible { background: rgba(232, 195, 74, .35); outline: none; }
+.st-usuario.yo { box-shadow: inset 0 0 0 2px var(--gold); }
+.st-usuario em { font-style: normal; font-weight: 600; color: var(--text-muted); font-size: 12px; }
+.st-cara.inicial { color: var(--cream); font: 20px/1 var(--font-display); }
+.st-nombre .sello-sdga, #st-tit .sello-sdga { display: inline-block; vertical-align: middle; margin-left: 6px; }
+
+/* las tres pestañas de Stats se reparten el ancho (sin agrandar la tarjeta) */
+#st-ambito { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#st-ambito button { min-width: 0; padding-left: 4px; padding-right: 4px; gap: 4px; font-size: 14px; white-space: nowrap; justify-content: center; }
+#st-ambito button .gi { width: 18px; height: 18px; flex: none; }
+.stats { min-width: 0; }
+
+/* 📊 los rankings de players: barras horizontales (una serie por gráfico, valor al final, cara y nombre) */
+.st-graficos[hidden] { display: none; }
+.gb-grilla { display: grid; gap: 10px; }
+.gb { margin: 0; padding: 10px 12px 8px; background: #fff8e6; border: 2.5px solid var(--game-ink); border-radius: 14px; box-shadow: 3px 4px 0 var(--game-ink); }
+.gb figcaption { font: 16px/1.1 var(--font-display); letter-spacing: .03em; color: var(--green-900); margin-bottom: 6px; }
+.gb figcaption small { font: 600 11px var(--font-body); color: var(--text-muted); letter-spacing: 0; }
+.gb ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.gb li { display: grid; grid-template-columns: 22px minmax(0, 92px) 1fr auto; gap: 6px; align-items: center; min-height: 24px; border-radius: 6px; outline: none; }
+.gb li:hover, .gb li:focus-visible { background: rgba(232, 195, 74, .28); }
+.gb-cara { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; object-position: top; display: grid; place-items: center; font-size: 13px; background: var(--green-700); color: var(--cream); }
+.gb-nombre { font-size: 12px; font-weight: 700; color: var(--green-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gb-pista { position: relative; height: 12px; }
+.gb-pista i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--green-700); border-radius: 0 4px 4px 0; }
+.gb li b { font: 15px/1 var(--font-display); color: var(--green-900); font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+.gb li b small { font: 600 10px var(--font-body); color: var(--text-muted); }
+/* el promedio: la línea del par al medio; bajo par hacia la izquierda (verde), sobre par hacia la derecha (rojo) */
+.gb-par .gb-par0 { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1.5px; background: rgba(12, 43, 28, .35); }
+.gb-par .gb-pista i { left: auto; }
+.gb-par .gb-pista i.bajo { background: var(--green-500); border-radius: 4px 0 0 4px; }
+.gb-par .gb-pista i.sobre { background: var(--red); border-radius: 0 4px 4px 0; }
 </style>
 
 <canvas id="cancha" aria-label="La cancha: hoyos 15, 16 y 17 de San Diego"></canvas>
@@ -1505,11 +1546,15 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
       <div><span class="kicker" style="color: var(--text-muted)">Stats · vueltas, LP y promedio</span><div class="quien" id="st-tit">LAS TUYAS</div></div>
     </header>
     <div class="rk-ambito" id="st-ambito" role="tablist" aria-label="De quién">
-      <button type="button" role="tab" data-st="yo" aria-selected="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="16" cy="11" r="5.5" style="fill:var(--gi-a)"/><path d="M6.5 27a9.5 9.5 0 0 1 19 0z" style="fill:var(--gi-f)"/></g></svg>Las tuyas</button>
-      <button type="button" role="tab" data-st="todos" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="21" cy="10.5" r="4.5" style="fill:var(--gi-a)"/><path d="M14 25a7.5 7.5 0 0 1 15 0z" style="fill:var(--gi-a)"/><circle cx="12" cy="12.5" r="5" style="fill:var(--gi-f)"/><path d="M3.5 27a8.5 8.5 0 0 1 17 0z" style="fill:var(--gi-f)"/></g></svg>De todos</button>
+      <button type="button" role="tab" data-st="yo" aria-selected="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="16" cy="11" r="5.5" style="fill:var(--gi-a)"/><path d="M6.5 27a9.5 9.5 0 0 1 19 0z" style="fill:var(--gi-f)"/></g></svg>Tuyas</button>
+      <button type="button" role="tab" data-st="usuarios" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="14" cy="14" r="7.5" style="fill:var(--gi-f)"/><path d="M19.5 19.5l7 7" stroke-width="3"/></g></svg>Usuarios</button>
+      <button type="button" role="tab" data-st="todos" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="21" cy="10.5" r="4.5" style="fill:var(--gi-a)"/><path d="M14 25a7.5 7.5 0 0 1 15 0z" style="fill:var(--gi-a)"/><circle cx="12" cy="12.5" r="5" style="fill:var(--gi-f)"/><path d="M3.5 27a8.5 8.5 0 0 1 17 0z" style="fill:var(--gi-f)"/></g></svg>Todos</button>
     </div>
+    <label class="st-busca" id="st-busca-caja" hidden><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="14" cy="14" r="7.5" style="fill:var(--gi-f)"/><path d="M19.5 19.5l7 7" stroke-width="3"/></g></svg><input type="search" id="st-busca" placeholder="Buscá por nombre…" autocomplete="off" enterkeyhint="search" aria-label="Buscar usuario por nombre"></label>
+    <button class="st-volver-lista" id="st-volver-lista" type="button" hidden>← Todos los usuarios</button>
     <div class="st-resumen" id="st-resumen"></div>
-    <p class="st-sub">Por player</p>
+    <div class="st-graficos" id="st-graficos"></div>
+    <p class="st-sub" id="st-sub">Por player</p>
     <ol class="st-lista" id="st-lista"></ol>
     <p class="extras" id="st-fuente"></p>
     <button class="btn verde" id="st-volver" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>VOLVER</button>
@@ -5437,8 +5482,8 @@ async function mostrarStats() {
   $('#stats').hidden = false
   stDatos = null
   pintarStats()
-  const [{ marcas, compartido, app }, conteo] = await Promise.all([R.leerMarcas(), R.leerConteo()])
-  stDatos = { marcas: marcas ?? [], conteo, base: !!(app || compartido) }
+  const [{ marcas, compartido, app }, conteo, rivales] = await Promise.all([R.leerMarcas(), R.leerConteo(), R.hayMatch() ? R.leerRivales().catch(() => []) : Promise.resolve([])])
+  stDatos = { marcas: marcas ?? [], conteo, base: !!(app || compartido), nombres: new Map((rivales ?? []).map((r) => [`uid:${r.uid}`, { nombre: r.nombre, sdga: r.sdga }])) }
   pintarStats()
   $('#st-volver').focus({ preventScroll: true })
 }
@@ -5456,23 +5501,62 @@ function calcularStats() {
   const personas = new Set([...conteo.map((f) => f.user_id), ...marcas.map((x) => M.duenoDe(x))].filter(Boolean)).size
   return { ...M.estadisticas(conteo, marcas), personas, fuente: 'Todas las vueltas del ranking de la SDGApp.' }
 }
+/** Cada usuario con sus stats: por uid (la base) o por nombre (el teléfono). Ordenados por vueltas. */
+let stUsuario = null, stBusca = ''
+function usuariosStats() {
+  const { marcas, conteo, nombres } = stDatos
+  const map = new Map()
+  const get = (k) => { if (!map.has(k)) map.set(k, { clave: k, nombre: null, sdga: false, conteo: [], marcas: [] }); return map.get(k) }
+  for (const m of marcas) { const u = get(M.duenoDe(m)); u.marcas.push(m); u.nombre ??= m.usuario; if (m.sdga) u.sdga = true }
+  if (conteo) for (const f of conteo) get(`uid:${f.user_id}`).conteo.push(f)
+  else {
+    // sin la base, el conteo del teléfono es del que juega en este teléfono
+    const local = Object.entries(R.conteoLocal().por ?? {}).map(([apodo, c]) => ({ apodo, ...c }))
+    const yo = get(M.duenoDe({ usuario: datos.usuario || 'Yo' }))
+    yo.nombre ??= datos.usuario || 'Yo'
+    yo.conteo.push(...local)
+  }
+  const uid = R.puente.identidad?.uid
+  return [...map.values()].map((u) => {
+    const n = nombres?.get(u.clave)
+    const nombre = u.nombre ?? n?.nombre ?? (uid && u.clave === `uid:${uid}` ? R.puente.identidad.alias : 'Sin nombre')
+    return { ...u, nombre, sdga: u.sdga || !!n?.sdga, st: M.estadisticas(u.conteo, u.marcas) }
+  }).filter((u) => u.st.total.jugadas > 0).sort((a, b) => b.st.total.jugadas - a.st.total.jugadas || a.nombre.localeCompare(b.nombre))
+}
+const sinTildes = (x) => String(x ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 const pct1 = (x) => `${Math.round(x * 100)}%`
 const dec1 = (x) => (x == null ? '—' : x.toFixed(1).replace('.', ','))
 function pintarStats() {
   for (const b of $('#st-ambito').children) b.setAttribute('aria-selected', String(b.dataset.st === stAmbito))
-  $('#st-tit').textContent = stAmbito === 'yo' ? 'LAS TUYAS' : 'DE TODOS'
+  const enLista = stAmbito === 'usuarios' && !stUsuario
+  $('#st-busca-caja').hidden = !enLista
+  $('#st-volver-lista').hidden = !(stAmbito === 'usuarios' && stUsuario)
+  $('#st-resumen').hidden = enLista
+  $('#st-graficos').hidden = enLista
+  $('#st-sub').textContent = enLista ? 'Usuarios' : 'Por player'
+  $('#st-tit').textContent = stAmbito === 'yo' ? 'LAS TUYAS' : stAmbito === 'todos' ? 'DE TODOS' : 'POR USUARIO'
   if (!stDatos) {
+    $('#st-resumen').hidden = false
     $('#st-resumen').innerHTML = '<p class="st-cargando">Juntando las vueltas…</p>'
     $('#st-lista').innerHTML = ''
+    $('#st-graficos').innerHTML = ''
     $('#st-fuente').textContent = ''
     return
   }
-  const st = calcularStats()
+  if (enLista) return pintarUsuarios()
+  let st
+  if (stAmbito === 'usuarios') {
+    const u = usuariosStats().find((x) => x.clave === stUsuario)
+    if (!u) { stUsuario = null; return pintarStats() }
+    $('#st-tit').innerHTML = `${esc(u.nombre.toUpperCase())}${u.sdga ? selloSdga() : ''}`
+    st = { ...u.st, fuente: stDatos.base ? 'Sus vueltas en el ranking de la SDGApp.' : 'Sus vueltas en este teléfono.' }
+  } else st = calcularStats()
   const t = st.total
   $('#st-resumen').innerHTML = `
     <div><dt>Vueltas</dt><dd>${t.jugadas}</dd><small>${t.firmadas} firmadas${st.personas ? ` · ${st.personas} ${st.personas === 1 ? 'jugador' : 'jugadores'}` : ''}</small></div>
     <div><dt>LP 💅</dt><dd>${t.lps}</dd><small>${pct1(t.pctLP)} de las vueltas</small></div>
     <div class="prom"><dt>Promedio</dt><dd class="${t.prom == null ? '' : t.prom < 0 ? 'bajo' : t.prom > 0 ? 'sobre' : ''}">${M.formatoProm(t.prom)}</dd><small>${t.promGolpes == null ? 'sin vueltas firmadas' : `${dec1(t.promGolpes)} golpes`}</small></div>`
+  $('#st-graficos').innerHTML = graficosStats(st.por)
   $('#st-lista').innerHTML = st.por.length ? st.por.map((f) => {
     const real = [...TODOS, DEMETRIO].find((x) => x.apodo === f.apodo)
     const j = publico(real ?? { apodo: f.apodo, emoji: '⛳', foto: null })
@@ -5481,12 +5565,80 @@ function pintarStats() {
   }).join('') : `<li class="st-vacio">${stAmbito === 'yo' ? 'Todavía no terminaste ninguna vuelta.' : 'Todavía no hay vueltas.'}</li>`
   $('#st-fuente').textContent = `${st.fuente} El promedio es contra el par (11), de las vueltas firmadas: las LP no tienen score.`
 }
+/**
+ * Los rankings de players en barras (top 5 de cada uno): más vueltas, más LP, mejor y peor promedio. Una serie por
+ * gráfico (sin leyenda): cada barra con la cara, el nombre y el valor. El promedio, a cada lado del par (verde bajo
+ * par, rojo sobre par). Tocando una barra (o pasando el mouse) se ve el detalle.
+ */
+function graficosStats(por) {
+  const quien = (apodo) => publico([...TODOS, DEMETRIO].find((x) => x.apodo === apodo) ?? { apodo, emoji: '⛳', foto: null })
+  const cara = (j) => (j.misterio ? '<span class="gb-cara">?</span>' : j.foto ? `<img class="gb-cara" src="${j.foto}" alt="" draggable="false">` : `<span class="gb-cara">${j.emoji ?? '⛳'}</span>`)
+  const nombre = (j) => esc(String(j.apodo ?? '').replace(/ \(Đ\)$/, ''))
+  // barras de magnitud: desde 0, la más larga = el máximo
+  const barras = (titulo, filas, valor, texto, detalle) => {
+    if (!filas.length) return ''
+    const max = Math.max(...filas.map(valor), 1)
+    return `<figure class="gb"><figcaption>${titulo}</figcaption><ol>${filas.map((f) => {
+      const j = quien(f.apodo)
+      return `<li tabindex="0" title="${esc(detalle(f, j))}">${cara(j)}<span class="gb-nombre">${nombre(j)}</span><span class="gb-pista"><i style="width:${Math.max(3, (valor(f) / max) * 100)}%"></i></span><b>${texto(f)}</b></li>`
+    }).join('')}</ol></figure>`
+  }
+  // el promedio: barras a cada lado del par (0), en la misma escala
+  const promedios = (titulo, filas) => {
+    if (!filas.length) return ''
+    const max = Math.max(...filas.map((f) => Math.abs(f.prom)), 0.5)
+    return `<figure class="gb gb-par"><figcaption>${titulo}</figcaption><ol>${filas.map((f) => {
+      const j = quien(f.apodo)
+      const w = (Math.abs(f.prom) / max) * 50
+      const lado = f.prom < 0 ? `right:50%;width:${w}%` : `left:50%;width:${w}%`
+      return `<li tabindex="0" title="${esc(`${j.apodo}: ${M.formatoProm(f.prom)} (${dec1(f.promGolpes)} golpes) en ${f.firmadas} ${f.firmadas === 1 ? 'vuelta firmada' : 'vueltas firmadas'}`)}">${cara(j)}<span class="gb-nombre">${nombre(j)}</span><span class="gb-pista"><span class="gb-par0"></span><i class="${f.prom < 0 ? 'bajo' : f.prom > 0 ? 'sobre' : ''}" style="${lado}"></i></span><b>${M.formatoProm(f.prom)}</b></li>`
+    }).join('')}</ol></figure>`
+  }
+  const top = (lista, orden) => [...lista].sort(orden).slice(0, 5)
+  const conProm = por.filter((f) => f.prom != null)
+  const minFirm = conProm.filter((f) => f.firmadas >= 3).length >= 3 ? 3 : 1 // con pocos datos, desde 1 firmada
+  const promedio = conProm.filter((f) => f.firmadas >= minFirm)
+  const conLP = por.filter((f) => f.lps > 0)
+  const html = [
+    barras('Los más jugados', top(por, (a, b) => b.jugadas - a.jugadas), (f) => f.jugadas, (f) => f.jugadas, (f, j) => `${j.apodo}: ${f.jugadas} ${f.jugadas === 1 ? 'vuelta' : 'vueltas'}`),
+    barras('Los que más LP 💅', top(conLP, (a, b) => b.lps - a.lps || b.pctLP - a.pctLP), (f) => f.lps, (f) => `${f.lps} <small>${pct1(f.pctLP)}</small>`, (f, j) => `${j.apodo}: ${f.lps} LP en ${f.jugadas} ${f.jugadas === 1 ? 'vuelta' : 'vueltas'} (${pct1(f.pctLP)})`),
+    promedios(`Mejor promedio${minFirm > 1 ? ` <small>(${minFirm}+ firmadas)</small>` : ''}`, top(promedio, (a, b) => a.prom - b.prom)),
+    promedio.length >= 4 ? promedios(`Peor promedio${minFirm > 1 ? ` <small>(${minFirm}+ firmadas)</small>` : ''}`, top(promedio, (a, b) => b.prom - a.prom)) : '',
+  ].join('')
+  return html ? `<p class="st-sub">Rankings de players</p><div class="gb-grilla">${html}</div>` : ''
+}
+/** La lista de usuarios (con el buscador): nombre, vueltas, LP y promedio; tocando uno, sus stats. */
+function pintarUsuarios() {
+  const todos = usuariosStats()
+  const q = sinTildes(stBusca)
+  const lista = q ? todos.filter((u) => sinTildes(u.nombre).includes(q)) : todos
+  const yo = M.duenoDe(R.puente.identidad?.uid ? { uid: R.puente.identidad.uid } : { usuario: datos.usuario })
+  $('#st-lista').innerHTML = lista.length ? lista.map((u) => {
+    const t = u.st.total
+    const fav = u.st.por[0] ? publico([...TODOS, DEMETRIO].find((x) => x.apodo === u.st.por[0].apodo) ?? { apodo: u.st.por[0].apodo, emoji: '⛳' }) : null
+    const foto = fotoDePersona(u.nombre)
+    const cara = foto ? `<img class="st-cara" src="${foto}" alt="" draggable="false">` : `<span class="st-cara inicial">${esc((u.nombre.trim()[0] ?? '?').toUpperCase())}</span>`
+    return `<li class="st-usuario${u.clave === yo ? ' yo' : ''}" role="button" tabindex="0" data-u="${esc(u.clave)}">${cara}<div class="st-nombre"><b>${esc(u.nombre)}${u.sdga ? selloSdga() : ''}${u.clave === yo ? ' <em>(vos)</em>' : ''}</b><small>${t.jugadas} ${t.jugadas === 1 ? 'vuelta' : 'vueltas'} · ${t.lps} LP (${pct1(t.pctLP)})${fav ? ` · ${fav.misterio ? '❓' : fav.emoji} su favorito` : ''}</small></div><div class="st-prom ${t.prom == null ? '' : t.prom < 0 ? 'bajo' : t.prom > 0 ? 'sobre' : ''}"><b>${M.formatoProm(t.prom)}</b><small>${t.promGolpes == null ? 'sin firmar' : `${dec1(t.promGolpes)} golpes`}</small></div></li>`
+  }).join('') : `<li class="st-vacio">${q ? `Nadie se llama "${esc(stBusca)}".` : 'Todavía no hay vueltas.'}</li>`
+  $('#st-fuente').textContent = stDatos.base ? `${todos.length} ${todos.length === 1 ? 'usuario' : 'usuarios'} en el ranking de la SDGApp. Tocá uno para ver sus stats por player.` : 'Sin el ranking compartido: solo los que jugaron en este teléfono.'
+}
+$('#st-busca').addEventListener('input', (e) => { stBusca = e.target.value; pintarUsuarios() })
+$('#st-lista').addEventListener('click', (e) => {
+  const li = e.target.closest('[data-u]')
+  if (!li) return
+  stUsuario = li.dataset.u
+  pintarStats()
+  $('#stats').scrollTop = 0
+})
+$('#st-lista').addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-u]')) { e.preventDefault(); e.target.closest('[data-u]').click() } })
+$('#st-volver-lista').addEventListener('click', () => { stUsuario = null; pintarStats(); $('#st-busca').focus({ preventScroll: true }) })
 $('#ver-stats').addEventListener('click', mostrarStats)
 $('#st-volver').addEventListener('click', () => { $('#stats').hidden = true })
 $('#st-ambito').addEventListener('click', (e) => {
   const b = e.target.closest('[data-st]')
   if (!b) return
   stAmbito = b.dataset.st
+  stUsuario = null
   pintarStats()
 })
 async function mostrarRanking(tab = 'general') {
