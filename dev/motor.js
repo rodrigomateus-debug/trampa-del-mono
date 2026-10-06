@@ -1641,6 +1641,35 @@ export function adular(rng, res, tiro, hoyo, { desde, lieDesde } = {}) {
   return elegir(rng, ADULACION[tipo][malo ? 'malo' : 'bueno'])
 }
 
+// ── la Dickyllamada: el Dicky que juega llama a otro Dicky, que aparece y le dice algo tierno (no lo adula: lo quiere) ──
+export const DICKY_AMOR = {
+  todos: [
+    (n) => `${n}, respirá. Acá estamos todos con vos 💛`,
+    (n) => `Pase lo que pase en este tiro, ${n}, sos un Dicky. Y eso no te lo saca nadie`,
+    (n) => `Te quiero, ${n}. Pegale tranquilo`,
+    () => 'Si sale mal, te abrazo. Si sale bien, te abrazo más fuerte 🤗',
+    () => 'No estás solo en la Trampa: estamos todos los Dicky',
+    (n) => `Ni el Mono te saca lo que valés, ${n}`,
+    () => 'Un abrazo desde el 19. Te guardo una birra fría 🍺',
+    () => 'Sos mi Dicky favorito. No se lo digas a los otros 🤫',
+    () => 'Cerrá los ojos un segundo… listo. Ahora pegale con el corazón 💚',
+    (n) => `Hagas lo que hagas, ${n}, te banco`,
+    () => 'Lo lindo es jugarla juntos. El score es lo de menos',
+    (n) => `Qué lindo verte jugar, ${n}`,
+  ],
+  'Fito (Đ)': [(n) => `${n}, si no es green es chip in. Y si no, te quiero igual 🦅`, () => 'Volá tranquilo, que el Águila te cuida 🦅'],
+  'Mike Queboni (Đ)': [(n) => `Pero qué bonito que sos, ${n}, ehh 🍯`, () => 'Te mando un abrazo con miel. Dulce como tu swing 🍯'],
+  'El Ninja (Đ)': [() => 'Shh… el Ninja te cuida desde las sombras 🥷', (n) => `Nadie me ve, ${n}, pero siempre estoy con vos 🥷`],
+  'Taiu (Đ)': [() => 'Croac. En rana quiere decir te quiero 🐸', (n) => `${n}, salto al hoyo con vos si hace falta 🐸`],
+}
+/** Lo que le dice `quien` (el Dicky que llamaste) a `para` (el que juega). La mitad de las veces, algo suyo. */
+export function fraseDicky(rng, quien, para) {
+  const n = String(para?.apodo ?? '').replace(/ \(Đ\)$/, '')
+  const propias = DICKY_AMOR[quien] ?? []
+  const lista = propias.length && rng() < 0.5 ? propias : DICKY_AMOR.todos
+  return elegir(rng, lista)(n)
+}
+
 export const FRASES_CARGA = [
   'Buscando tu pelota en el rough…',
   'Calculando handicaps… y excusas',

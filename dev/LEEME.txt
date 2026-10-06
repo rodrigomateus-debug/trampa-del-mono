@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Sale de la rama claude/beautiful-hypatia-zpvfwq: el juego publicado + Taiu (Đ) 🐸 para probar. No se edita a mano: se vuelve a copiar.
+Sale de la rama claude/beautiful-hypatia-zpvfwq: el juego publicado + Taiu (Đ) 🐸 y la Dickyllamada 📞 para probar. No se edita a mano: se vuelve a copiar.
