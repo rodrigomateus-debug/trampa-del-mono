@@ -1,4 +1,4 @@
-// El plantel del SDGA para elegir nivel (dicky: es de los Dicky Toons, lleva el logo en la carta): de la base de la FedE Cup (handicap, frase, emoji) y del
+// El plantel del SDGA para elegir nivel (dicky: es de los Dicky Toons, lleva el logo en la carta; torso: su foto recortada, para la Dickyllamada): de la base de la FedE Cup (handicap, frase, emoji) y del
 // design system (fotos, stats 2024–2026). Foto del 2026-10-03.
 // Ordenado por handicap, de menor a mayor. aprox: handicap aproximado que pasó Rorro (no está en la base).
 // En la app esto sale de la tabla players (usePlayers) y de photoForPlayer, no de este archivo.
@@ -63,6 +63,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "El Ninja (Đ)",
+    "torso": "jugadores/el-ninja-torso.webp",
     "dicky": true,
     "emoji": "🥷",
     "hcp": 4,
@@ -76,7 +77,8 @@ export const PLANTEL = [
     }
   },
   {
-    "apodo": "La Rana (Đ)",
+    "apodo": "Taiu (Đ)",
+    "torso": "jugadores/la-rana-torso.webp",
     "dicky": true,
     "emoji": "🐸",
     "hcp": 4,
@@ -92,6 +94,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "Mike Queboni (Đ)",
+    "torso": "jugadores/mike-queboni-torso.webp",
     "dicky": true,
     "emoji": "🍯",
     "hcp": 5,
@@ -283,6 +286,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "Fito (Đ)",
+    "torso": "jugadores/fito-guarino-torso.webp",
     "dicky": true,
     "emoji": "🦅",
     "hcp": 22,
@@ -327,7 +331,11 @@ export const DEMETRIO = {
 export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp": null, "foto": null, "misterio": true }
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'La Ruleta']
+export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
+
+// 🔒 Taiu se desbloquea (2026-10-06): con una tarjeta firmada de −1 o mejor con cada uno de estos Dicky
+// (vale el récord del teléfono y, con tu usuario, tus vueltas del ranking). Hasta entonces, su carta va con candado.
+export const DESBLOQUEO_TAIU = { apodo: 'Taiu (Đ)', con: ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'], vsPar: -1 }
 
 // 🎰 La Ruleta (2026-10-05): no es un player, es una carta del mazo. Cada tiro lo pega uno del mazo al azar, con su
 // handicap y su habilidad, y nunca el mismo dos veces seguidas (`turnoRuleta` en motor.js). `pool`: los que pueden salir
@@ -353,7 +361,7 @@ export const DIFICULTAD_REAL = {
   'El Sueco': { prom: -1.35, lp: 0 },
   Grandpa: { prom: -1.22, lp: 2 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
   'El Perro': { prom: -0.83, lp: 0 },
-  'Mike Queboni (Đ)': { prom: -0.28, lp: 3 },
+  'Mike Queboni (Đ)': { prom: -0.2, lp: 8 }, // con la bomba de 405 (llega a los dos par 4), 2026-10-06
   'El Ninja (Đ)': { prom: 0.41, lp: 3 },
   LG: { prom: 0.49, lp: 2 },
   'El Mago Rodal': { prom: 1.03, lp: 2 },
@@ -365,4 +373,6 @@ export const DIFICULTAD_REAL = {
   'Fito (Đ)': { prom: 2.19, lp: 5, nivel: 5 },
   // el bot no sufre el cambio (apunta perfecto con cualquiera); la gente sí: cada tiro es otra habilidad y otro handicap
   'La Ruleta': { prom: 0.63, lp: 0, nivel: 4 },
+  // Taiu: el bot no sufre los controles al revés (juega bárbaro: bombas y approach perfectos); la gente sí
+  'Taiu (Đ)': { prom: -0.64, lp: 7, nivel: 3 },
 }

@@ -220,6 +220,17 @@ export const tap = () => { tono(1100, 0.05, { vol: 0.12, tipo: 'triangle' }); ru
 // la Ruleta: el tic de cada cara que pasa y el "¡ese!" cuando cae
 export const ruletaTic = () => { tono(1500, 0.03, { vol: 0.09, tipo: 'triangle' }); ruido(0.02, { f: 4200, vol: 0.04 }) }
 export function ruletaCae() { tono(392, 0.12, { vol: 0.16, tipo: 'triangle' }); campana(783.99, 0.08, 0.14); campana(1174.66, 0.16, 0.12) }
+// la Dickyllamada: suena el teléfono (dos ring) y atiende con un acorde tierno
+export function dickyllamada() {
+  for (const at of [0, 0.42]) for (let i = 0; i < 6; i++) tono(i % 2 ? 1660 : 1320, 0.05, { vol: 0.07, tipo: 'triangle', at: at + i * 0.05 })
+  ;[523.25, 659.25, 783.99].forEach((f, i) => campana(f, 0.9 + i * 0.09, 0.1))
+}
+// logro desbloqueado: un arpegio que sube y una campana brillante
+export function logro() {
+  ;[523.25, 659.25, 783.99, 1046.5].forEach((f, i) => campana(f, i * 0.09, 0.13))
+  campana(1567.98, 0.42, 0.1)
+  ruido(0.5, { f: 6000, q: 0.6, vol: 0.03, at: 0.36 })
+}
 export const swipe = () => ruido(0.22, { f: 600, f2: 2400, q: 0.8, vol: 0.12, ataque: 0.06 })
 /** Cuenta regresiva: 3, 2, 1 graves y el ¡YA! agudo, con acorde. */
 export function cuenta(n) {

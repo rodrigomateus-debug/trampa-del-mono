@@ -1,7 +1,7 @@
 // node test-motor.mjs — chequeos del motor de La Trampa del Mono.
 import assert from 'node:assert/strict'
 import * as M from './motor.js'
-import { RULETA } from './plantel.js'
+import { RULETA, DESBLOQUEO_TAIU } from './plantel.js'
 
 const campo = M.crearCampo()
 // para probar la física sola: sin monos cruzando y con greens planos
@@ -974,24 +974,22 @@ ok('Lechu: de 3 metros o menos no la falla, le pegue como le pegue', () => {
   assert.notEqual(M.simular(plano, M.golpear(plano, o, Math.PI / 2, 0.3, fijo(0.9)), h15.pin).embocada, true)
 })
 
-ok('El Ninja: el primer LP no pierde la vuelta (+1 y al fairway, no más cerca)', () => {
+ok('El Ninja: reset del hoyo (uno por vuelta): al tee con cero golpes, sin multa', () => {
   const r = { ...M.nuevaRonda({ apodo: 'El Ninja (Đ)', emoji: '🥷' }, fijo(0.5)), monos: [] }
+  // desde el tee, sin haber pegado, no hay nada que resetear
+  assert.ok(!M.puedeResetNinja(r))
   r.pelota = [...enArbol]
   r.lie = 'bosque'
-  r.golpes = 2
-  const antes = M.dist(r.pelota, M.hoyoActual(r).pin)
-  assert.ok(M.tieneLPNinja(r))
-  M.lpNinja(campo, r)
-  assert.equal(r.golpes, 3)
+  r.golpes = 5
+  assert.ok(M.puedeResetNinja(r))
+  assert.equal(M.resetNinja(r), 15)
+  assert.equal(r.golpes, 0)
+  assert.equal(r.lie, 'tee')
+  assert.deepEqual(r.pelota, M.teeDe(r))
   assert.ok(!r.terminada)
-  assert.ok(['fairway', 'rough', 'tee'].includes(r.lie))
-  assert.ok(M.dist(r.pelota, M.hoyoActual(r).pin) >= antes - 1)
-  assert.ok(!M.tieneLPNinja(r)) // el segundo, sí pierde la vuelta
-  // desde el tee no adelanta nada
-  const t = { ...M.nuevaRonda({ apodo: 'El Ninja (Đ)', emoji: '🥷' }, fijo(0.5)), monos: [] }
-  M.lpNinja(campo, t)
-  assert.deepEqual(t.pelota, M.teeDe(t))
-  assert.ok(!M.tieneLPNinja(M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5))))
+  r.golpes = 3
+  assert.ok(!M.puedeResetNinja(r)) // uno solo por vuelta
+  assert.ok(!M.puedeResetNinja({ ...M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5)), golpes: 2 }))
 })
 
 ok('El Perro: greens sin caída y el perro la trae del bosque sin multa', () => {
@@ -1292,6 +1290,72 @@ ok('🎰 La Ruleta en un match: los dos juegan con la misma tanda de players', (
     return lista
   }
   assert.deepEqual(tanda(1), tanda(99))
+})
+
+ok('🐸 Taiu (la Rana): bombas desde el tee como Miguelón, approach perfectos y los controles al revés', () => {
+  const taiu = RULETA.pool.find((j) => j.apodo === 'Taiu (Đ)')
+  assert.ok(taiu?.dicky)
+  assert.equal(M.alReves(taiu), true)
+  const r = M.nuevaRonda(taiu, fijo(0.5))
+  // desde el tee del 15, a fondo: la bomba (pasa la zona del latido)
+  const tee = M.planTiro(campo, r, -Math.PI / 2, 1, 1)
+  assert.equal(tee.bomba, true)
+  assert.ok(tee.carry * h15.escala > M.BOMBA.zona)
+  // a 60 yd del hoyo: sin error
+  const d = 60 / h15.escala
+  const ap = { ...r, pelota: [h15.pin[0], h15.pin[1] + d], lie: 'fairway' }
+  const plan = M.planTiro(campo, ap, -Math.PI / 2, 0.3)
+  assert.equal(plan.approachPerfecto, true)
+  assert.equal(plan.disp.ang, 0)
+  assert.equal(plan.disp.carry, 0)
+  // al revés: empuja (para adelante es dedo para adelante) con izquierda y derecha cruzadas; la fuerza igual
+  // (px = x0 − x: con la gomera, dedo a la derecha → px < 0 → sale a la izquierda; Taiu lo mismo de costado)
+  assert.deepEqual(M.invertirArrastre(10, 50, 0.4), { px: 10, py: -50, u: 0.4 })
+})
+
+ok('📞 Dickyllamada: cada Dicky tiene su foto recortada y le dice algo tierno al que juega (con su nombre)', () => {
+  const dickys = RULETA.pool.filter((j) => j.dicky)
+  assert.ok(dickys.length >= 4 && dickys.every((j) => j.torso))
+  const rng = M.rngDesde(7)
+  for (let i = 0; i < 40; i++) {
+    const f = M.fraseDicky(rng, 'Taiu (Đ)', { apodo: 'Fito (Đ)' })
+    assert.ok(typeof f === 'string' && f.length > 10 && !f.includes('(Đ)') && !f.includes('undefined'))
+  }
+})
+
+ok('📞 Dickyllamada: un Dicky te pega el próximo tiro (con su habilidad) y te devuelve el palo; una por vuelta', () => {
+  const por = (a) => RULETA.pool.find((j) => j.apodo === a)
+  const fito = por('Fito (Đ)'), migue = por('Mike Queboni (Đ)')
+  const r = { ...M.nuevaRonda(fito, fijo(0.5)), monos: [] }
+  assert.ok(M.puedeDickyllamar(r))
+  assert.equal(M.dickyllamar(r, fito), false) // a sí mismo no
+  assert.equal(M.dickyllamar(r, por('LG')), false) // solo Dicky
+  assert.equal(M.dickyllamar(r, migue), true)
+  assert.equal(r.jugador, migue)
+  assert.ok(!M.puedeDickyllamar(r))
+  // desde el tee, a fondo: la bomba de Miguelón
+  const tiro = M.golpear(quieto, r, -Math.PI / 2, 1, sinRuido(), 1)
+  assert.equal(tiro.prestado, 'Mike Queboni (Đ)')
+  assert.equal(tiro.bomba, true)
+  M.simular(quieto, tiro, h15.pin)
+  M.resolverReposo(quieto, r, tiro, fijo(0.5))
+  assert.equal(r.jugador, fito) // te devolvió el palo
+  assert.ok(!M.puedeDickyllamar(r)) // una por vuelta
+  assert.ok(!M.puedeDickyllamar(M.nuevaRonda(por('LG'), fijo(0.5)))) // no es Dicky
+  assert.equal(M.momentoDicky({ tipo: 'afuera' }), 'mal')
+  assert.equal(M.momentoDicky({ tipo: 'normal', terreno: 'fairway' }), 'bien')
+})
+
+ok('🔒 Taiu: se desbloquea con −1 o mejor (firmado) con Fito, Miguelón y el Ninja', () => {
+  const req = DESBLOQUEO_TAIU
+  assert.deepEqual(req.con, ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'])
+  let p = M.progresoDesbloqueo(req, {})
+  assert.equal(p.listo, false)
+  assert.equal(p.hechos, 0)
+  p = M.progresoDesbloqueo(req, { 'Fito (Đ)': -1, 'Mike Queboni (Đ)': 0, 'El Ninja (Đ)': -3 })
+  assert.equal(p.hechos, 2) // el par (E) no alcanza
+  assert.equal(p.items[1].ok, false)
+  assert.equal(M.progresoDesbloqueo(req, { 'Fito (Đ)': -1, 'Mike Queboni (Đ)': -2, 'El Ninja (Đ)': -1 }).listo, true)
 })
 
 console.log('\nTodo verde.')

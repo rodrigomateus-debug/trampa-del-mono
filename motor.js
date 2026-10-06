@@ -99,22 +99,33 @@ export const MONO = { vel: 18, pausa: 3, radio: 3.2, altura: 8, velCaza: 12, ale
 // ── habilidades por jugador (por apodo, como en la app) ──
 export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: cada golpe le toca uno de 5 efectos (mirá cuál antes de pegar). El putt siempre lleva comba.' },
-  'Mike Queboni (Đ)': { id: 'bomba', nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green.' },
+  'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green.' },
   'El Sueco': { id: 'derecho', nombre: 'Siempre derecho', texto: 'Mati no la tuerce nunca: todo sale derecho, hasta el putt.' },
-  'Fito (Đ)': { id: 'aguila', nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
+  'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
   // del chat del SDGA:
   Lechu: { id: 'dadas', nombre: 'Contando todas las dadas', texto: 'Joaco no falla los putts de 3 metros o menos: le pegues como le pegues, entra.' },
-  'El Ninja (Đ)': { id: 'tradicion', nombre: 'La tradición', texto: 'Un LP por vuelta no te hace perder: levantás, +1 y dropeás en el fairway. El segundo, sí.' },
+  'El Ninja (Đ)': { id: 'tradicion', corto: 'Su reset del hoyo, si todavía no lo usaste.',  nombre: 'Reset ninja', texto: 'Una vez por vuelta, su LP no levanta: resetea el hoyo. Volvés al tee con cero golpes, sin multa, como si no hubiera pasado nada. Es el botón 🥷 RESET.' },
   'El Perro': { id: 'perro', nombre: 'Va a buscarla', texto: 'Los greens están habilitados (sin caída) y si va al bosque el perro te la trae al fairway sin multa. Tarda: el reloj corre.' },
   Mugre: { id: 'panchitos', nombre: 'Tirar panchos', texto: 'A la Mugre los monos la huelen de lejos y vienen más. Pero tiene 3 panchos por hoyo: se los tirás, van, comen un segundo y vuelven.' },
   Liberty: { id: 'approach', nombre: 'Si no era por el approach', texto: 'El drive sale derecho siempre. Los approach (de 30 a 100 yd del hoyo) tienen el triple de error.' },
   Grandpa: { id: 'deme', nombre: 'Invocar a Deme', texto: 'Maxi, una vez por vuelta (no desde el tee): llama a Deme, el mentor. Te enseña a agarrar el palo y el próximo tiro entra de una, le pegues como le pegues.' },
   'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro (y de tee a tee) lo manejás vos hasta la pelota. Los árboles no se atraviesan. El reloj corre.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
+  'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (soltá en el latido) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
 export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
+/** Taiu (la Rana): los controles al revés (lo resuelve la página al leer el arrastre; el motor recibe el tiro que sale). */
+export const alReves = (jugador) => habilidadDe(jugador)?.id === 'reves'
+/**
+ * Del arrastre en pantalla al tiro, con los controles al revés (pedido de Rorro, 2026-10-06): no es gomera, es empuje
+ * (dedo para arriba, tiro para arriba), pero izquierda y derecha cruzadas (dedo a la derecha, tiro a la izquierda).
+ * La fuerza no cambia. `px, py` = el vector del tiro normal (del dedo a donde empezó); `u` = largo / largo a fondo.
+ */
+export function invertirArrastre(px, py, u) {
+  return { px, py: -py, u }
+}
 
 // ── nivel de dificultad = handicap del jugador elegido ──
 // Más handicap: más error (tiro y putt) y un poco menos de distancia.
@@ -152,9 +163,9 @@ export const GOLPES_MAGO = [
 ]
 // el putt del Mago siempre dobla hacia el hoyo: giro = radianes por segundo que gira mientras rueda
 export const PUTT_MAGO = { giro: 0.3 }
-// la bomba de Miguelón: desde el tee su driver llega a `carry` yardas reales (con el rodaje, el green del 15 desde las
-// azules); pasando `zona` yardas el óvalo late (periodo, en segundos) y es perfecta si suelta con precisión >= perfecta
-export const BOMBA = { carry: 365, zona: 285, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
+// la bomba de Miguelón (y de Taiu): desde el tee su driver vuela hasta `carry` yardas reales: llega a los dos par 4 desde
+// las azules (el 16, 415 yd, a fondo; el 15, 392, con un poco menos; 2026-10-06, antes 365 y al 16 no llegaba); pasando `zona` yardas el óvalo late (periodo, en segundos) y es perfecta si suelta con precisión >= perfecta
+export const BOMBA = { carry: 405, zona: 285, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
 // el Águila (Fito): la línea de tiro se sacude ±amplitud grados cada `periodo` s; si suelta con el desvío dentro de
 // ±ventana (el embudo) sale derecha. A `chip` yardas reales o menos del hoyo, si cae en el green el imán la mete.
 // (`alLado`: dónde la dejaría un imán que no la mete; hoy siempre la mete.)
@@ -712,8 +723,10 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
   plan.carry = (potencia * carryMaxDe(r.jugador?.hcp, par) * (FISICA.factorLie[r.lie] ?? 1)) / escala
   plan.real = FISICA.factorReal[r.lie] ?? 1 // el bunker: la mitad de lo que se ve
   plan.disp = { ...plan.disp, ang: plan.disp.ang * dif.error, carry: plan.disp.carry * dif.error }
-  if (hab?.id === 'bomba' && tee) plan.carry = (potencia * (par === 3 ? carryPar3De(r.jugador?.hcp) : BOMBA.carry)) / escala // en el par 3, sin bomba
-  if (hab?.id === 'bomba' && tee && plan.carry * escala > BOMBA.zona) {
+  // la bomba: Miguelón y Taiu (la Rana)
+  const bombero = hab?.id === 'bomba' || hab?.id === 'reves'
+  if (bombero && tee) plan.carry = (potencia * (par === 3 ? carryPar3De(r.jugador?.hcp) : BOMBA.carry)) / escala // en el par 3, sin bomba
+  if (bombero && tee && plan.carry * escala > BOMBA.zona) {
     const q = Math.max(0, Math.min(1, precision))
     plan.bomba = true
     plan.perfecta = q >= BOMBA.perfecta
@@ -725,6 +738,11 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
     const d = dist(b, hoyoActual(r).pin) * escala // yardas reales
     if (tee) plan.disp = { ...plan.disp, ang: 0, carry: plan.disp.carry * 0.5 }
     else if (d >= APPROACH.desde && d <= APPROACH.hasta) { plan.disp = { ...plan.disp, ang: plan.disp.ang * APPROACH.error, carry: plan.disp.carry * APPROACH.error }; plan.approach = true }
+  }
+  if (hab?.id === 'reves' && !tee) {
+    // Taiu: el approach, perfecto (de 30 a 100 yd reales del hoyo, sin error; el viento sí)
+    const d = dist(b, hoyoActual(r).pin) * escala
+    if (d >= APPROACH.desde && d <= APPROACH.hasta) { plan.disp = { ...plan.disp, ang: 0, carry: 0 }; plan.approachPerfecto = true }
   }
   if (r.calma) {
     // LG no se enoja: después de un mal tiro, este sale sin error
@@ -1115,6 +1133,16 @@ export function nuevaRonda(jugador, rng) {
   return r
 }
 
+// ── desbloqueos: un player que se gana con vueltas firmadas (Taiu: −1 o mejor con cada uno de los otros Dicky) ──
+/** `req` = { con: [apodos], vsPar }; `records` = { [apodo]: mejor vsPar firmado }. Cómo vas con cada uno. */
+export function progresoDesbloqueo(req, records) {
+  const items = req.con.map((apodo) => {
+    const mejor = records?.[apodo] ?? null
+    return { apodo, mejor, ok: mejor != null && mejor <= req.vsPar }
+  })
+  return { items, hechos: items.filter((i) => i.ok).length, listo: items.every((i) => i.ok) }
+}
+
 // ── La Ruleta: cada tiro lo pega un player distinto ──
 export const esRuleta = (j) => habilidadDe(j)?.id === 'ruleta'
 /** La carta de la vuelta (la del mazo). En la Ruleta, `r.jugador` es el que pega ahora; la carta es la Ruleta. */
@@ -1210,6 +1238,7 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada
   tiro.calma = !!r.calma
   r.calma = false
+  if (r.prestado) tiro.prestado = r.jugador.apodo // la Dickyllamada: este lo pegó el Dicky que atendió
   // Joaco: de 3 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola)
   if (plan.noLaFalla) tiro.iman = { meter: true, lechu: true }
   if (r.golpeMago && !plan.putt) r.golpeMago = sortearGolpeMago(rng, r.golpeMago) // el próximo, otro efecto
@@ -1308,6 +1337,7 @@ export function resolverReposo(campo, r, tiro, rng) {
   const res = resolver(campo, r, tiro, rng)
   // LG: si fue un mal tiro, el próximo sale sin error
   if (habilidadDe(r.jugador)?.id === 'calma') r.calma = esMalo(res, tiro)
+  devolverDicky(r) // la Dickyllamada: el Dicky que te pegó el tiro te devuelve el palo
   return res
 }
 const esMalo = (res, tiro) => ['afuera', 'mono-malo', 'mono-ladron'].includes(res.tipo) || ['rough', 'bunker'].includes(res.terreno) || tiro.eventos.some((e) => e.tipo === 'palo')
@@ -1384,27 +1414,20 @@ export function alivioDeGreen(campo, p, pin) {
 
 export const necesitaLP = (r) => r.golpes >= MAX_GOLPES
 
-/** El Ninja: el primer LP de la vuelta no la pierde (+1 y drop en el fairway). */
-export const tieneLPNinja = (r) => habilidadDe(r.jugador)?.id === 'tradicion' && !r.lpNinja
-export function lpNinja(campo, r) {
+/**
+ * El Ninja: su LP no levanta, resetea el hoyo (uno por vuelta). Vuelve al tee del hoyo que se juega con cero golpes,
+ * sin multa (y los monos que venían, a su recorrido). Solo si ya pegó algo en este hoyo: desde el tee no tiene sentido.
+ */
+export const puedeResetNinja = (r) => habilidadDe(r.jugador)?.id === 'tradicion' && !r.resetNinja && r.golpes > 0 && !r.terminada
+export function resetNinja(r) {
   const h = hoyoActual(r)
   calmarMonos(r.monos)
-  r.lpNinja = h.n
-  r.golpes += 1
-  // al fairway del hoyo: el punto de la calle más cerca de la pelota que no quede más cerca de la bandera
-  const dp = dist(r.pelota, h.pin)
-  let mejor = null
-  for (let i = 0; i < h.calle.length - 1; i++) {
-    for (let k = 0; k <= 20; k++) {
-      const [a, b] = [h.calle[i], h.calle[i + 1]]
-      const q = [a[0] + ((b[0] - a[0]) * k) / 20, a[1] + ((b[1] - a[1]) * k) / 20]
-      if (dist(q, h.pin) < dp - 1) continue
-      if (!mejor || dist(q, r.pelota) < dist(mejor, r.pelota)) mejor = q
-    }
-  }
-  // si toda la calle queda más cerca (por ejemplo, desde el tee), se dropea ahí mismo
-  if (mejor) r.pelota = mejor
-  r.lie = terreno(campo, r.pelota).tipo
+  r.resetNinja = h.n
+  r.golpes = 0
+  r.pelota = [...teeDe(r, h)]
+  r.desde = [...r.pelota]
+  r.lie = 'tee'
+  r.lieDesde = 'tee'
   return h.n
 }
 
@@ -1524,7 +1547,7 @@ export const RELATO = {
   lp: ['Entraste en la lista LP 💅'],
   putt: ['Uff, le faltó', 'Casi', 'Se pasó. Uff'],
   dada: ['Esas Joaco no las falla', 'De tres metros, la Lechuza no perdona', 'Adentro, como corresponde al campeón', 'Contando todas las dadas'],
-  ninjaLP: ['Manteniendo viva la tradición de un LP por finde', 'El Ninja levantó. Tradición Dicky', 'LP de Ninja: +1 y a seguir'],
+  ninjaReset: ['Acá no pasó nada 🥷', 'Reset ninja: de nuevo en el tee, cero golpes', 'El Ninja borró el hoyo. Nadie vio nada', 'LP ninja: el hoyo empieza de nuevo'],
   perro: ['¡El perro la trajo! Al fairway, sin multa', 'Buen perro. La vida no es mucho más que esto', 'Perrolo fue a buscarla'],
   approach: ['Si no era por el approach ganaba', 'Los wedges ya van a funcionar', 'El approach, otra vez'],
   liberty: ['Drive de Liberty: al medio, como siempre', 'Ese drive no lo pega nadie'],
@@ -1621,6 +1644,83 @@ export function adular(rng, res, tiro, hoyo, { desde, lieDesde } = {}) {
   }
   const malo = ['rough', 'bunker', 'bosque'].includes(res.terreno) || tiro.eventos.some((e) => e.tipo === 'palo')
   return elegir(rng, ADULACION[tipo][malo ? 'malo' : 'bueno'])
+}
+
+// ── la Dickyllamada: el Dicky que juega llama a otro Dicky, que aparece y le dice algo tierno (no lo adula: lo quiere) ──
+export const DICKY_AMOR = {
+  todos: [
+    (n) => `${n}, respirá. Acá estamos todos con vos 💛`,
+    (n) => `Pase lo que pase en este tiro, ${n}, sos un Dicky. Y eso no te lo saca nadie`,
+    (n) => `Te quiero, ${n}. Pegale tranquilo`,
+    () => 'Si sale mal, te abrazo. Si sale bien, te abrazo más fuerte 🤗',
+    () => 'No estás solo en la Trampa: estamos todos los Dicky',
+    (n) => `Ni el Mono te saca lo que valés, ${n}`,
+    () => 'Un abrazo desde el 19. Te guardo una birra fría 🍺',
+    () => 'Sos mi Dicky favorito. No se lo digas a los otros 🤫',
+    () => 'Cerrá los ojos un segundo… listo. Ahora pegale con el corazón 💚',
+    (n) => `Hagas lo que hagas, ${n}, te banco`,
+    () => 'Lo lindo es jugarla juntos. El score es lo de menos',
+    (n) => `Qué lindo verte jugar, ${n}`,
+  ],
+  // después de un buen tiro
+  bien: [
+    (n) => `¡Eso, ${n}! Qué orgullo verte jugar así 💛`,
+    () => 'Te salió hermoso. Te mando un abrazo enorme 🤗',
+    (n) => `${n}, sos lo más. Y no lo digo por el tiro`,
+    () => 'Qué lindo tiro. Me emocioné un poquito 🥹',
+  ],
+  // después de un mal tiro (afuera, Mono, rough, bunker): consuelo, nunca reto
+  mal: [
+    (n) => `No pasa nada, ${n}. Te quiero igual 💚`,
+    () => 'Un tiro no te define. Vení que te abrazo 🤗',
+    (n) => `Tranqui, ${n}. Respirá, que el próximo sale`,
+    () => 'Hasta los mejores van al rough. Y vos sos de los mejores 💛',
+    () => 'Ese no cuenta para el corazón',
+  ],
+  // el que atiende la Dickyllamada (antes de pegarte el tiro) y después de pegarlo
+  atiende: [() => 'Dejá, este te lo pego yo 💛', (n) => `Ya voy, ${n}. Pasame el palo`, () => 'Atendí al primer ring. ¿Qué necesitás? 📞'],
+  ayuda: [() => 'Para eso están los amigos 💛', (n) => `Te la dejé ahí, ${n}. Ahora seguí vos`, () => 'Hoy por vos, mañana por mí 🤝', () => 'Los Dicky no se dejan solos nunca'],
+  'Fito (Đ)': [(n) => `${n}, si no es green es chip in. Y si no, te quiero igual 🦅`, () => 'Volá tranquilo, que el Águila te cuida 🦅'],
+  'Mike Queboni (Đ)': [(n) => `Pero qué bonito que sos, ${n}, ehh 🍯`, () => 'Te mando un abrazo con miel. Dulce como tu swing 🍯'],
+  'El Ninja (Đ)': [() => 'Shh… el Ninja te cuida desde las sombras 🥷', (n) => `Nadie me ve, ${n}, pero siempre estoy con vos 🥷`],
+  'Taiu (Đ)': [() => 'Croac. En rana quiere decir te quiero 🐸', (n) => `${n}, salto al hoyo con vos si hace falta 🐸`],
+}
+/**
+ * Lo que le dice `quien` (otro Dicky) a `para` (el que juega). `momento`: 'bien' / 'mal' (después de un tiro),
+ * 'atiende' / 'ayuda' (la Dickyllamada) o 'todos'. Después de un tiro, una de cada tres veces dice algo suyo.
+ */
+export function fraseDicky(rng, quien, para, momento = 'todos') {
+  const n = String(para?.apodo ?? '').replace(/ \(Đ\)$/, '')
+  const propias = DICKY_AMOR[quien] ?? []
+  const base = DICKY_AMOR[momento] ?? DICKY_AMOR.todos
+  const lista = !['atiende', 'ayuda'].includes(momento) && propias.length && rng() < 0.34 ? propias : base
+  return elegir(rng, lista)(n)
+}
+/** Cómo salió el tiro para el Dicky que mira: 'bien', 'mal' o 'todos' (ni fu ni fa). */
+export function momentoDicky(res) {
+  if (['embocada', 'mono-bueno'].includes(res.tipo) || ['fairway', 'green'].includes(res.terreno)) return 'bien'
+  if (['afuera', 'mono-malo', 'mono-ladron'].includes(res.tipo) || ['rough', 'bunker', 'bosque'].includes(res.terreno)) return 'mal'
+  return 'todos'
+}
+
+// ── la Dickyllamada: una vez por vuelta, el Dicky que juega llama a otro Dicky que le pega el próximo tiro ──
+// (con el handicap y la habilidad del que atiende: la bomba de Miguelón, el embudo de Fito, el revés de Taiu…)
+export const puedeDickyllamar = (r) => !!r.jugador?.dicky && !r.dickyllamada && !r.prestado && !r.terminada
+/** Llama a `dicky`: el próximo golpe lo pega él. Devuelve false si no se puede (ya la usó, no es Dicky, es él mismo). */
+export function dickyllamar(r, dicky) {
+  if (!puedeDickyllamar(r) || !dicky?.dicky || dicky.apodo === r.jugador.apodo) return false
+  r.dickyllamada = { apodo: dicky.apodo, n: hoyoActual(r).n }
+  r.prestado = { antes: r.jugador, golpeMago: r.golpeMago }
+  r.jugador = dicky
+  r.golpeMago = null
+  return true
+}
+/** Después del golpe prestado (cuando la pelota se frena), vuelve el que jugaba. */
+function devolverDicky(r) {
+  if (!r.prestado) return
+  r.jugador = r.prestado.antes
+  r.golpeMago = r.prestado.golpeMago
+  r.prestado = null
 }
 
 export const FRASES_CARGA = [
