@@ -284,3 +284,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - El candado ya no es el emoji: es un ícono del set del juego (`candado()` en juego.html, SVG con trazo tinta, cuerpo dorado y cerradura; abierto o cerrado). Está en la carta bloqueada, en "Cómo desbloquear", en cada Dicky que falta, en el botón "Bloqueado", en "Ver todos", en el logro y en el anuncio.
 - La **Dickyllamada arranca con candado** hasta tener a los cuatro Dicky (Taiu desbloqueado): el botón se ve en gris con el candado en la esquina; tocándolo se sacude y LG dice "📞 La Dickyllamada todavía está cerrada · Se abre con los cuatro Dicky: desbloqueá a Taiu… Vas N de 3". Los Dicky que aparecen después de cada tiro siguen igual.
 - El logro y el anuncio del desbloqueo lo dicen: "+ 📞 la Dickyllamada para todos los Dicky" y, en el anuncio, "DICKYLLAMADA DESBLOQUEADA: Fito, Miguelón, el Ninja y Taiu ya pueden llamar a otro Dicky para que les pegue un tiro (una por vuelta)".
+
+## Que los Dicky no tapen la pelota (2026-10-06)
+- El Dicky que aparece después del tiro es más chico (34% del ancho, hasta 170 px) y su globo va arriba de su cabeza, en la mitad izquierda: al apuntar la pelota queda centrada, y abajo a la derecha está la Dickyllamada.
+- Si igual la foto o el globo tapan la pelota (`noTapenLaPelota`, se mira cada 150 ms, apuntando y con la cámara ya quieta), se pone casi transparente. Lucas (con Rodal) primero se pasa al otro lado y, si igual tapa, también se pone transparente.
+- Apenas apoyás el dedo para tirar, los dos se esfuman. Nunca bloquean el toque (pointer-events: none).

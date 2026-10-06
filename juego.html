@@ -1138,6 +1138,20 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 #dicky-btn.bloqueado b .gi { width: 22px; height: 22px; }
 #dicky-btn.no { animation: dicky-no 420ms ease; }
 @keyframes dicky-no { 20% { translate: -6px 0; } 40% { translate: 6px 0; } 60% { translate: -4px 0; } 80% { translate: 3px 0; } }
+
+/* Lucas y los Dicky, del otro lado si tapan la pelota (la foto a la derecha, el globo hacia la izquierda) */
+#lucas.derecha, #dicky.derecha { left: auto; right: 0; transform-origin: 70% 100%; }
+#lucas.derecha .globo, #dicky.derecha .globo { left: auto; right: 62%; transform-origin: 100% 100%; }
+#lucas.derecha .globo::after, #dicky.derecha .globo::after { left: auto; right: 4px; border-left: 0; border-right: 2.5px solid var(--green-900); border-bottom-left-radius: 0; border-bottom-right-radius: 18px 14px; transform: skewX(28deg); }
+/* tenue: casi transparentes (si igual tapan la pelota, o apenas tocás para tirar) */
+#lucas.tenue, #dicky.tenue { opacity: .12 !important; transition: opacity 220ms ease; }
+
+/* el Dicky que aparece: más chico, con el globo arriba de su cabeza y en la mitad izquierda (lejos de la pelota, que al
+   apuntar queda centrada, y de la Dickyllamada, abajo a la derecha) */
+#dicky { width: min(34vw, 170px); }
+#dicky .globo { box-sizing: border-box; left: 6px; bottom: 100%; margin-bottom: 10px; max-width: min(calc(50vw - 22px), 240px); font-size: 14px; padding: 8px 12px; transform-origin: 20% 100%; }
+#dicky .globo b { font-size: 15px; }
+#dicky .globo::after { left: 26px; bottom: -14px; }
 </style>
 
 <canvas id="cancha" aria-label="La cancha: hoyos 15, 16 y 17 de San Diego"></canvas>
@@ -1848,6 +1862,7 @@ function cuadro(t) {
   hudCuadro = medirHud() // antes de escribir el DOM en este cuadro
   actualizar(dt)
   if (!tapada()) dibujar()
+  noTapenLaPelota(t)
   hudCuadro = null
   requestAnimationFrame(cuadro)
 }
@@ -2589,6 +2604,30 @@ function auraDeme(pos, alt = 0) {
   }
 }
 
+/**
+ * Lucas y los Dicky no tapan la pelota: si la foto o el globo quedan encima de ella, se pasan al otro lado de la
+ * pantalla; si igual la tapan, quedan casi transparentes. (Se mira cada 150 ms, no en cada cuadro.)
+ */
+let tapaChequeo = 0
+function noTapenLaPelota(t) {
+  // solo apuntando y con la cámara ya acomodada (mientras se mueve, la pelota pasa por todos lados)
+  if (!ronda || estado !== 'apuntar' || t - tapaChequeo < 150 || performance.now() - apuntarDesde < 900) return
+  tapaChequeo = t
+  const [x, y] = w2s(ronda.pelota)
+  for (const el of [$('#dicky'), $('#lucas')]) {
+    if (el.hidden || el.classList.contains('tenue')) continue
+    const tapa = [el.querySelector('img'), el.querySelector('.globo')].some((n) => {
+      const r = n.getBoundingClientRect()
+      return r.width && x > r.left - 6 && x < r.right + 6 && y > r.top - 6 && y < r.bottom + 6
+    })
+    if (!tapa) continue
+    // Lucas se pasa al otro lado; el Dicky no (a la derecha está la Dickyllamada): se pone transparente
+    if (el.id === 'lucas' && !el.classList.contains('derecha')) el.classList.add('derecha')
+    else el.classList.add('tenue')
+  }
+}
+// apenas apoyás el dedo para tirar, se esfuman (no tapan nada mientras apuntás)
+lienzo.addEventListener('pointerdown', () => { for (const el of [$('#dicky'), $('#lucas')]) if (!el.hidden) el.classList.add('tenue') })
 /** Lucas en persona (con Rodal): entra con movimiento, dice la frase en un globo y se va. */
 let lucasTimer = 0
 function lucasDice(texto) {
@@ -2597,7 +2636,7 @@ function lucasDice(texto) {
   clearTimeout(lucasTimer)
   el.querySelector('.globo').textContent = texto
   el.hidden = false
-  el.classList.remove('entra', 'sale')
+  el.classList.remove('entra', 'sale', 'derecha', 'tenue')
   void el.offsetWidth // reinicia la animación aunque ya estuviera en pantalla
   el.classList.add('entra')
   lucasTimer = setTimeout(() => {
@@ -2632,7 +2671,7 @@ function dickyVisita(d, texto) {
   }
   clearTimeout(dickyTimer)
   el.hidden = false
-  el.classList.remove('entra', 'sale')
+  el.classList.remove('entra', 'sale', 'derecha', 'tenue')
   void el.offsetWidth
   el.classList.add('entra')
   dickyTimer = setTimeout(() => {
