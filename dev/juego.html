@@ -1186,7 +1186,9 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 .st-usuario.yo { box-shadow: inset 0 0 0 2px var(--gold); }
 .st-usuario em { font-style: normal; font-weight: 600; color: var(--text-muted); font-size: 12px; }
 .st-cara.inicial { color: var(--cream); font: 20px/1 var(--font-display); }
-.st-nombre .sello-sdga, #st-tit .sello-sdga { display: inline-block; vertical-align: middle; margin-left: 6px; }
+.st-nombre .sello-sdga, #st-tit .sello-sdga { display: inline-flex; vertical-align: middle; margin-left: 6px; position: relative; top: -1px; }
+#st-tit .sello-sdga { height: 22px; padding: 0 7px; top: -3px; }
+#st-tit .sello-sdga svg { height: 11px; }
 
 /* las tres pestañas de Stats se reparten el ancho (sin agrandar la tarjeta) */
 #st-ambito { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -5521,7 +5523,7 @@ function usuariosStats() {
     const n = nombres?.get(u.clave)
     const nombre = u.nombre ?? n?.nombre ?? (uid && u.clave === `uid:${uid}` ? R.puente.identidad.alias : 'Sin nombre')
     return { ...u, nombre, sdga: u.sdga || !!n?.sdga, st: M.estadisticas(u.conteo, u.marcas) }
-  }).filter((u) => u.st.total.jugadas > 0).sort((a, b) => b.st.total.jugadas - a.st.total.jugadas || a.nombre.localeCompare(b.nombre))
+  }).filter((u) => u.st.total.jugadas > 0).sort((a, b) => M.porPromedio(a.st.total, b.st.total) || a.nombre.localeCompare(b.nombre))
 }
 const sinTildes = (x) => String(x ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 const pct1 = (x) => `${Math.round(x * 100)}%`
