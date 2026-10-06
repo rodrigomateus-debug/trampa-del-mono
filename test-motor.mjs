@@ -619,6 +619,15 @@ ok('match: gana el de menos golpes; a igual golpes, el más rápido; LP pierde',
   assert.equal(M.ganadorMatch({ golpes: 12, ms: 5 }, { golpes: 12, ms: 5 }), 0)
 })
 
+ok('match: se define por tiempo solo con los mismos golpes y distinto tiempo', () => {
+  assert.equal(M.porTiempo({ golpes: 10, ms: 60000 }, { golpes: 10, ms: 70000 }), true)
+  assert.equal(M.porTiempo({ golpes: 10, ms: 70000 }, { golpes: 10, ms: 60000 }), true)
+  assert.equal(M.porTiempo({ golpes: 10, ms: 60000 }, { golpes: 11, ms: 50000 }), false)
+  assert.equal(M.porTiempo({ golpes: 10, ms: 60000 }, { golpes: 10, ms: 60000 }), false)
+  assert.equal(M.porTiempo({ golpes: null }, { golpes: null }), false)
+  assert.equal(M.porTiempo({ golpes: null }, { golpes: 10, ms: 1 }), false)
+})
+
 ok('el marcador del fantasma: golpes por hoyo en vivo, sacados del acumulado de la grabación', () => {
   // [ms, hoyo, x, y, alt, golpes acumulados]
   const g = [[0, 0, 1, 1, 0, 0], [1000, 0, 2, 2, 0, 1], [5000, 0, 3, 3, 0, 4], [6000, 1, 4, 4, 0, 4], [8000, 1, 5, 5, 0, 6], [9000, 2, 6, 6, 0, 6], [12000, 2, 7, 7, 0, 9], [12500, 3, 7, 7, 0, 9]]

@@ -763,6 +763,33 @@ input { -webkit-user-select: text; user-select: text; }
 .rp-nota[hidden] { display: none; }
 .rp-fin { justify-self: center; margin: 4px 0 0; padding: 10px 20px; border-radius: 999px; background: var(--gold); color: var(--green-900); font: 22px/1.1 var(--font-display); letter-spacing: .03em; box-shadow: var(--shadow-pop); animation: rp-gana 500ms var(--ease-snap) both; pointer-events: none; }
 .rp-fin[hidden] { display: none; }
+/* el hoyo a hoyo del replay, en vivo: los golpes de los dos hasta el momento que se ve, el total y el tiempo de cada uno */
+.rp-marcador { padding: 7px 10px 8px; border-radius: 12px; border: 1px solid rgba(244, 238, 218, .16); background: rgba(12, 43, 28, .78); }
+.rp-mc-estado { margin: 0 0 3px; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font: 800 10px/1.2 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: rgba(244, 238, 218, .62); }
+.rp-mc-estado span { flex: none; white-space: nowrap; }
+.rp-mc-estado b { min-width: 0; font: 800 12px/1.2 var(--font-body); letter-spacing: .02em; text-transform: none; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rp-marcador table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-variant-numeric: tabular-nums; }
+.rp-marcador th, .rp-marcador td { padding: 0; border: 0; text-align: center; vertical-align: middle; }
+.rp-marcador thead th { height: 22px; font: 800 10px/1.05 var(--font-body); letter-spacing: .06em; color: rgba(244, 238, 218, .62); }
+.rp-marcador thead th small { font: 700 9px var(--font-body); letter-spacing: .04em; }
+.rp-marcador thead th:first-child { width: 34%; }
+.rp-marcador thead th.tot { width: 13%; }
+.rp-marcador thead th.t { width: 19%; }
+.rp-marcador thead th.ahora { color: var(--gold); }
+.rp-marcador tbody th { height: 26px; text-align: left; font: 15px/1 var(--font-display); letter-spacing: .03em; color: var(--cream); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rp-marcador .rp-punto { display: inline-block; width: 8px; height: 8px; margin: 0 6px 0 2px; vertical-align: 1px; }
+.rp-marcador td { font: 18px/1 var(--font-display); color: var(--cream); }
+.rp-marcador td.vacio { color: rgba(244, 238, 218, .3); }
+.rp-marcador td.bajo { color: var(--green-300); }
+.rp-marcador td.sobre { color: #f2917f; }
+.rp-marcador td.lp { font-size: 12px; color: #f2917f; }
+.rp-marcador td.ahora { background: rgba(232, 195, 74, .28); border-radius: 6px; }
+.rp-marcador td.tot { font-size: 20px; border-left: 1.5px solid rgba(244, 238, 218, .2); }
+.rp-marcador td.t { font: 700 12px/1 var(--font-body); color: rgba(244, 238, 218, .85); }
+.rp-marcador td.t.decide { color: var(--gold); font-weight: 800; }
+.rp-marcador tr.gano th, .rp-marcador tr.gano td.tot { color: var(--gold); }
+.rp-marcador tr.gano th::after { content: ' 🏆'; font-size: 12px; }
+@media (max-width: 359px) { .rp-fin { font-size: 18px; text-align: center; } .rp-mc-estado span:not(:only-child) { display: none; } .rp-marcador td.t { font-size: 11px; } .rp-marcador thead th:first-child { width: 31%; } .rp-marcador thead th.t { width: 21%; } }
 .rp-mandos { margin: 0 10px calc(var(--safe-bot) + 10px); padding: 10px 12px 12px; border-radius: 18px; background: rgba(8, 26, 16, .9); box-shadow: var(--shadow-pop); display: grid; gap: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .rp-linea { display: flex; align-items: center; gap: 10px; }
 .rp-t { flex: none; min-width: 34px; font: 700 12px var(--font-body); font-variant-numeric: tabular-nums; color: rgba(244, 238, 218, .85); text-align: center; }
@@ -842,7 +869,9 @@ input { -webkit-user-select: text; user-select: text; }
 .marcador td.lp { font-size: 14px; color: var(--red); }
 /* el resultado del match, hoyo a hoyo (adentro del recuadro del resultado de la tarjeta final) */
 .marcador.final { margin: 10px 0 2px; padding: 6px 8px 8px; border-radius: 12px; background: rgba(244, 238, 218, .7); }
-.marcador.final thead th:first-child { width: 34%; }
+.marcador.final thead th:first-child { width: 30%; }
+.marcador.final thead th.tot { width: 14%; }
+.marcador.final thead th.t { width: 22%; }
 .marcador.final tbody th { height: 30px; font-size: 16px; }
 .marcador.final td { font-size: 21px; }
 .marcador.final td.bajo { color: var(--green-500); }
@@ -851,14 +880,35 @@ input { -webkit-user-select: text; user-select: text; }
 .marcador.final td.tot small { display: block; font: 700 11px var(--font-body); color: var(--text-muted); }
 .marcador.final tr.gano th, .marcador.final tr.gano td.tot { color: var(--green-500); }
 .marcador.final tr.gano th::after { content: ' 🏆'; font-size: 13px; }
+/* el tiempo, al lado del total: parte del score. Apagado si no definió nada; resaltado si definió (mismos golpes) */
+.marcador.final td.t { font-size: 16px; line-height: 1.05; color: var(--text-muted); }
+.marcador.final td.t.vacio { color: rgba(20, 64, 42, .3); }
+.marcador.final td.t small { display: block; font: 700 11px var(--font-body); color: var(--red); }
+.marcador.final thead th.t.decide { color: var(--green-900); }
+.marcador.final td.t.decide { color: var(--green-900); background: rgba(232, 195, 74, .4); }
+.marcador.final tbody tr:first-child td.t.decide { border-radius: 8px 8px 0 0; }
+.marcador.final tbody tr:last-child td.t.decide { border-radius: 0 0 8px 8px; }
+.marcador.final tr.gano td.t.decide { color: var(--green-500); }
+@media (max-width: 359px) { .marcador.final tbody th .e { display: none; } .marcador.final thead th { letter-spacing: .04em; } .marcador.final thead th small { font-size: 8px; letter-spacing: .02em; } .marcador.final thead th:first-child { width: 27%; } .marcador.final thead th.t { width: 25%; } .marcador.final td.t { font-size: 14px; } }
 /* con quién pegó el otro (la Ruleta del rival): en el resultado y en el detalle del match */
 .t-ruleta.rival { margin-top: 8px; }
 .rs-caja .t-ruleta .kicker, .t-match .t-ruleta .kicker { color: var(--text-muted); }
-.t-match-txt { margin: -4px 0 0; font: 700 14px/1.35 var(--font-body); }
-.t-match-txt.gana { color: var(--green-500); }
-.t-match-txt.pierde { color: var(--red); }
-.t-match-txt .gi.linea { display: inline-block; width: 20px; height: 20px; margin: 0 5px -4px 0; }
 .rs-caja .marcador.final { background: rgba(20, 64, 42, .06); }
+/* el detalle de un match: el player con el que jugaron, debajo del rival */
+.mt-player { margin: -6px 0 0; font: 500 14px/1.3 var(--font-body); color: var(--text-muted); }
+.mt-player b { font-weight: 700; color: var(--green-900); }
+.mt-tabla .extras { margin-top: 6px; }
+/* el veredicto, grande, arriba de Cerrar: verde si ganaste, rojo si perdiste, neutro si empataron. Una banda del afiche,
+   apenas torcida (sin contorno ni sombra dura: no es un botón) */
+.mt-veredicto { margin: 4px 0 2px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: var(--green-500); color: var(--cream); font: 42px/1 var(--font-display); letter-spacing: .04em; text-transform: uppercase; transform: rotate(-1.5deg); animation: rp-gana 450ms var(--ease-snap) both; }
+.mt-veredicto.pierde { background: var(--red); }
+.mt-veredicto.empate { background: rgba(20, 64, 42, .12); color: var(--green-900); }
+.mt-veredicto span { display: grid; justify-items: center; }
+.mt-veredicto small { margin-top: 3px; font: 800 12px/1.2 var(--font-body); letter-spacing: .16em; }
+.mt-veredicto .gi { width: 38px; height: 38px; --gi-s: var(--cream); --gi-f: transparent; --gi-a: var(--gold); }
+.mt-veredicto.empate .gi { --gi-s: var(--green-900); --gi-a: var(--cream); }
+/* con el veredicto arriba, Cerrar pasa a crema (secundario, estilo Afiche): que no compita con el verde ni el rojo */
+.rs-caja:has(.mt-veredicto) > .carta-jugar { background: var(--cream); color: var(--green-900); }
 .rk-fila.tocable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 120ms; }
 .rk-fila.tocable:active { background: rgba(20, 64, 42, .1); }
 .rk-fila.tocable:focus-visible { outline: 3px solid var(--gold); outline-offset: -2px; border-radius: 10px; }
@@ -1131,7 +1181,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v e2d32aa · 5/10, 11:23 p. m.</span>
+  <span class="version" id="version">v 07f5f0f · 6/10, 12:39 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1258,6 +1308,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
   <div class="rp-arriba">
     <div class="rp-cab"><span class="rp-titulo">REPLAY<small>del match</small></span><button class="redondo" id="rp-cerrar" type="button" aria-label="Cerrar el replay"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button></div>
     <div class="rp-jugadores" id="rp-jugadores"></div>
+    <div class="rp-marcador" id="rp-marcador" aria-label="Hoyo a hoyo"></div>
     <p class="rp-nota" id="rp-nota" hidden></p>
     <p class="rp-fin" id="rp-fin" hidden aria-live="polite"></p>
   </div>
@@ -1299,11 +1350,11 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=9c6fa1b131'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO } from './plantel.js?v=9c6fa1b131'
+import * as M from './motor.js?v=599f4f0f13'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO } from './plantel.js?v=599f4f0f13'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=9c6fa1b131'
-import * as S from './sonido.js?v=9c6fa1b131'
+import * as R from './ranking.js?v=599f4f0f13'
+import * as S from './sonido.js?v=599f4f0f13'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -3862,13 +3913,22 @@ function golpesPorHoyo(g, x) {
   const m = M.marcadorFantasma(g, Infinity)
   return x.lp || x.golpes == null ? M.HOYOS.map((_, k) => (k < m.idx ? m.porHoyo[k] : 'LP')) : m.porHoyo
 }
-/** La tabla hoyo a hoyo de un match: [{ emoji, nombre, golpes: [15, 16, 17], vuelta: { golpes, vsPar, lp }, gano, el }]. */
+/**
+ * La tabla hoyo a hoyo de un match: [{ emoji, nombre, golpes: [15, 16, 17], vuelta: { golpes, vsPar, lp, ms }, gano, el }].
+ * El tiempo va al lado del total porque es parte del score: con los mismos golpes gana el más rápido, y entonces la
+ * columna se resalta y al más lento se le marca cuánto más tardó.
+ */
 function tablaMatch(filas) {
   const pars = M.HOYOS.map((h) => h.par)
   const celda = (v, k) => `<td class="${v == null ? 'vacio' : v === 'LP' ? 'lp' : v < pars[k] ? 'bajo' : v > pars[k] ? 'sobre' : ''}">${v ?? '·'}</td>`
   const total = (x) => (x.lp || x.golpes == null ? '<td class="tot lp">LP</td>' : `<td class="tot">${x.golpes}<small>${M.formatoPar(x.vsPar)}</small></td>`)
-  return `<div class="marcador final"><table><thead><tr><th>Hoyo a hoyo</th>${M.HOYOS.map((h) => `<th>${h.n}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th></tr></thead><tbody>${filas
-    .map((f) => `<tr class="${[f.gano ? 'gano' : '', f.el ? 'el' : ''].join(' ').trim()}"><th><span class="e">${esc(f.emoji ?? '⛳')}</span>${esc(f.nombre)}</th>${f.golpes.map(celda).join('')}${total(f.vuelta)}</tr>`)
+  const conTiempo = (x) => !x.lp && x.golpes != null && x.ms != null
+  const decide = filas.length === 2 && M.porTiempo(filas[0].vuelta, filas[1].vuelta)
+  const rapido = Math.min(...filas.map((f) => (conTiempo(f.vuelta) ? f.vuelta.ms : Infinity)))
+  const tiempo = (x) => (!conTiempo(x) ? '<td class="t vacio">—</td>'
+    : `<td class="t${decide ? ' decide' : ''}">${M.formatoTiempo(x.ms)}${decide && x.ms > rapido ? `<small>${deltaTiempo(x.ms - rapido)}</small>` : ''}</td>`)
+  return `<div class="marcador final"><table><thead><tr><th>Hoyo a hoyo</th>${M.HOYOS.map((h) => `<th>${h.n}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th><th class="t${decide ? ' decide' : ''}">Tiempo</th></tr></thead><tbody>${filas
+    .map((f) => `<tr class="${[f.gano ? 'gano' : '', f.el ? 'el' : ''].join(' ').trim()}"><th><span class="e">${esc(f.emoji ?? '⛳')}</span>${esc(f.nombre)}</th>${f.golpes.map(celda).join('')}${total(f.vuelta)}${tiempo(f.vuelta)}</tr>`)
     .join('')}</tbody></table></div>`
 }
 
@@ -3911,7 +3971,8 @@ function resultadoPara(d) {
   const soyRetador = d.retador.uid === yoUid()
   const yo = soyRetador ? d.retador : d.rival, el = soyRetador ? d.rival : d.retador
   const g = M.ganadorMatch(yo, el)
-  return { yo, el, g, txt: g > 0 ? 'Ganaste' : g < 0 ? 'Perdiste' : 'Empate', clase: g > 0 ? 'gana' : g < 0 ? 'pierde' : '' }
+  const tiempo = M.porTiempo(yo, el) // mismos golpes: lo definió el más rápido
+  return { yo, el, g, tiempo, txt: `${g > 0 ? 'Ganaste' : g < 0 ? 'Perdiste' : 'Empate'}${tiempo ? ' por tiempo' : ''}`, clase: g > 0 ? 'gana' : g < 0 ? 'pierde' : '' }
 }
 const golpesTxt = (x) => (x.golpes == null || x.lp ? 'LP 💅' : `${x.golpes} (${M.formatoPar(x.vsPar)})`)
 function pintarMatch() {
@@ -4021,29 +4082,30 @@ $('#mt-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.k
 async function abrirDetalleMatch(id) {
   const d = mtDesafios?.find((x) => x.id === id)
   if (!d) return
-  const { yo, el, g, txt, clase } = resultadoPara(d)
+  const { yo, el, g, tiempo, clase } = resultadoPara(d)
   const soyRetador = d.retador.uid === yoUid()
   $('.rs-caja').classList.remove('bloqueado')
-  const pintar = (grabs) => {
-    const mia = grabs ? (soyRetador ? grabs.retador : grabs.rival) : null
-    const suya = grabs ? (soyRetador ? grabs.rival : grabs.retador) : null
-    const f = fechaLarga(d.jugadoFecha ?? d.fecha)
-    $('#rs-cuerpo').innerHTML = `
-      <p class="rs-kicker">Match${f ? ` · ${esc(f.dia)}` : ''}</p>
-      <h3 class="rs-quien" id="rs-quien">vs ${esc(el.alias)}</h3>
-      <p class="t-match-txt ${clase}">${g > 0 ? gi('trophy', 'linea') : g < 0 ? gi('close', 'pierde linea') : gi('friends', 'linea')}${txt} · ${esc(golpesTxt(yo))} vs ${esc(golpesTxt(el))}</p>
-      ${grabs ? tablaMatch([
-        { emoji: yo.emoji, nombre: 'VOS', golpes: golpesPorHoyo(mia, yo), vuelta: yo, gano: g > 0 },
-        { emoji: el.emoji, nombre: el.alias, golpes: golpesPorHoyo(suya, el), vuelta: el, gano: g < 0, el: true },
-      ]) : `<p class="rk-vacio">${grabs === null ? 'Cargando el hoyo a hoyo…' : 'No se pudo cargar el hoyo a hoyo.'}</p>`}
-      ${yo.ruleta ? `<div class="t-ruleta">${htmlRuleta(yo.ruleta, 'Con quién pegaste')}</div>` : ''}
-      ${el.ruleta ? `<div class="t-ruleta rival">${htmlRuleta(el.ruleta, `Con quién pegó ${el.alias}`)}</div>` : ''}
-      <p class="extras">Jugaron con ${esc(yo.emoji ?? '')} ${esc(String(yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}, mismo viento y banderas.</p>`
-  }
-  pintar(null)
+  const f = fechaLarga(d.jugadoFecha ?? d.fecha)
+  // el hoyo a hoyo sale de las dos grabaciones (las del replay); mientras llegan (o si no están), los totales y el tiempo igual
+  const tabla = (grabs) => tablaMatch([
+    { emoji: yo.emoji, nombre: 'VOS', golpes: golpesPorHoyo(grabs?.[soyRetador ? 'retador' : 'rival'], yo), vuelta: yo, gano: g > 0 },
+    { emoji: el.emoji, nombre: el.alias, golpes: golpesPorHoyo(grabs?.[soyRetador ? 'rival' : 'retador'], el), vuelta: el, gano: g < 0, el: true },
+  ])
+  $('#rs-cuerpo').innerHTML = `
+    <p class="rs-kicker">Match${f ? ` · ${esc(f.dia)}` : ''}</p>
+    <h3 class="rs-quien" id="rs-quien">vs ${esc(el.alias)}</h3>
+    <p class="mt-player">Jugaron con <b>${esc(yo.emoji ?? '')} ${esc(String(yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}</b></p>
+    <div class="mt-tabla" data-match="${esc(d.id)}">${tabla(null)}</div>
+    ${yo.ruleta ? `<div class="t-ruleta">${htmlRuleta(yo.ruleta, 'Con quién pegaste')}</div>` : ''}
+    ${el.ruleta ? `<div class="t-ruleta rival">${htmlRuleta(el.ruleta, `Con quién pegó ${el.alias}`)}</div>` : ''}
+    <p class="mt-veredicto ${clase || 'empate'}">${gi(g > 0 ? 'trophy' : g < 0 ? 'close' : 'friends')}<span>${g > 0 ? 'Ganaste' : g < 0 ? 'Perdiste' : 'Empate'}${tiempo ? '<small>por tiempo</small>' : ''}</span></p>`
   $('#rk-resumen').hidden = false
   $('#rk-resumen .hab-x').focus({ preventScroll: true })
-  try { pintar(await R.leerReplay(id)) } catch { pintar(undefined) }
+  let grabs
+  try { grabs = await R.leerReplay(id) } catch { grabs = undefined }
+  const caja = $('#rs-cuerpo .mt-tabla')
+  if (caja?.dataset.match !== d.id) return // ya se cerró, o se abrió otro
+  caja.innerHTML = tabla(grabs) + (grabs ? '' : '<p class="extras">No se pudo cargar el hoyo a hoyo.</p>')
 }
 $('#mt-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const li = e.target.closest('[data-mtr]'); if (li) { e.preventDefault(); abrirRecordMatch(mtRankingVista[+li.dataset.mtr]) } })
 /** El historial: tu récord (G-E-P), contra cada rival y match por match. */
@@ -4487,6 +4549,51 @@ function cuadroReplay(dt) {
   velCam = 3
   pintarReplay()
 }
+/**
+ * El hoyo a hoyo del replay en el momento que se está viendo: los golpes de cada hoyo de los dos (el hoyo que juega cada
+ * uno, resaltado y contando en vivo), el total y el tiempo de cada uno. Arriba, quién va ganando con los hoyos que
+ * terminaron los dos (con uno a medio jugar, los totales engañan); cuando terminaron los dos, quién ganó y cómo.
+ */
+function htmlMarcadorReplay(r) {
+  const pars = M.HOYOS.map((h) => h.par)
+  const filas = r.pistas.map((p) => {
+    const m = M.marcadorFantasma(p.g, r.t)
+    const lp = m.fin && (p.x.lp || p.x.golpes == null)
+    return {
+      p, fin: m.fin, lp,
+      golpes: lp ? m.porHoyo.map((v, k) => (k < m.idx ? v : 'LP')) : m.porHoyo,
+      total: lp ? 'LP' : m.fin && p.x.golpes != null ? p.x.golpes : m.total, // al terminar, el total oficial (con la apuesta de Rorro)
+      cerrados: m.fin ? M.HOYOS.length : m.idx,
+      ahora: m.fin ? -1 : m.idx,
+      tiempo: !m.fin ? tiempoReplay(Math.min(r.t, p.fin)) : lp ? '—' : M.formatoTiempo(p.x.ms ?? p.fin),
+    }
+  })
+  const terminaron = filas.length > 1 && filas.every((f) => f.fin)
+  const ganador = terminaron ? M.ganadorMatch(r.d.retador, r.d.rival) : 0
+  const tiempo = terminaron && M.porTiempo(r.d.retador, r.d.rival)
+  const gana = ganador > 0 ? 0 : ganador < 0 ? 1 : -1 // la fila del que ganó
+  let estado = ''
+  if (terminaron) {
+    const x = filas[gana]?.p.x, otro = filas[1 - gana]?.p.x
+    const dif = x && otro?.golpes != null ? Math.abs(otro.golpes - x.golpes) : 0
+    estado = gana < 0 ? 'Empate' : `Ganó ${x.alias}${tiempo ? ' por tiempo' : dif ? ` por ${dif} ${dif === 1 ? 'golpe' : 'golpes'}` : ''}`
+  } else if (filas.length > 1) {
+    const n = Math.min(...filas.map((f) => f.cerrados))
+    const suma = (f) => f.golpes.slice(0, n).reduce((t, v) => t + (typeof v === 'number' ? v : 0), 0)
+    const dif = suma(filas[1]) - suma(filas[0]) // > 0: va ganando el primero
+    estado = !n ? 'En vivo' : !dif ? 'Van iguales' : `Va ganando ${filas[dif > 0 ? 0 : 1].p.x.alias} por ${Math.abs(dif)}`
+  }
+  const celda = (f, v, k) => `<td class="${[
+    k === f.ahora ? 'ahora' : '', v == null ? 'vacio' : '', v === 'LP' ? 'lp' : '',
+    typeof v === 'number' && k < f.cerrados ? (v < pars[k] ? 'bajo' : v > pars[k] ? 'sobre' : '') : '',
+  ].join(' ').trim()}">${v ?? '·'}</td>`
+  const enJuego = new Set(filas.map((f) => f.ahora))
+  return `<p class="rp-mc-estado"><span>Hoyo a hoyo</span>${estado ? `<b>${esc(estado)}</b>` : ''}</p><table><thead><tr><th></th>${
+    M.HOYOS.map((h, k) => `<th class="${enJuego.has(k) ? 'ahora' : ''}">${h.n}<br><small>PAR ${h.par}</small></th>`).join('')
+  }<th class="tot">TOT</th><th class="t">Tiempo</th></tr></thead><tbody>${filas.map((f, i) => `<tr class="${terminaron && i === gana ? 'gano' : ''}" style="--c: ${f.p.color}">
+    <th><span class="rp-punto" aria-hidden="true"></span>${esc(f.p.x.alias ?? '—')}</th>${f.golpes.map((v, k) => celda(f, v, k)).join('')}<td class="tot${f.lp ? ' lp' : ''}">${f.total}</td><td class="t${tiempo && i === gana ? ' decide' : ''}">${f.tiempo}</td>
+  </tr>`).join('')}</tbody></table>`
+}
 /** Escribe en la pantalla lo que cambió (cada texto, solo si es distinto del que ya está). */
 function pintarReplay(todo = false) {
   const r = replay, pp = r.pintado
@@ -4507,6 +4614,7 @@ function pintarReplay(todo = false) {
       : `Hoyo ${M.HOYOS[f.idx]?.n ?? ''} · ${f.golpes} ${f.golpes === 1 ? 'golpe' : 'golpes'}`
     poner(`e${k}`, $(`#rp-estado-${k}`), txt, (el, v) => { el.textContent = v })
   })
+  poner('marcador', $('#rp-marcador'), htmlMarcadorReplay(r), (el, v) => { el.innerHTML = v })
   const gana = fin && r.pistas.length > 1 ? (ganador > 0 ? 0 : ganador < 0 ? 1 : -1) : -2
   poner('gana', null, gana, () => {
     for (const k of [0, 1]) $(`#rp-gana-${k}`).hidden = gana !== k
@@ -4514,7 +4622,7 @@ function pintarReplay(todo = false) {
     el.hidden = gana === -2
     if (gana === -2) return
     const x = gana === 1 ? r.d.rival : r.d.retador
-    el.textContent = gana === -1 ? '🤝 EMPATE' : `🏆 GANÓ ${String(x.alias).toUpperCase()}`
+    el.textContent = gana === -1 ? '🤝 EMPATE' : `🏆 GANÓ ${String(x.alias).toUpperCase()}${M.porTiempo(r.d.retador, r.d.rival) ? ' POR TIEMPO' : ''}`
   })
   poner('sigue', null, r.sigue, () => { for (const b of $('#rp-jugadores').children) b.setAttribute('aria-pressed', String(+b.dataset.sigue === r.sigue)) })
 }

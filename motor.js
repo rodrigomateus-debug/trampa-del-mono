@@ -460,6 +460,11 @@ export function ganadorMatch(a, b) {
   if ((a.ms ?? Infinity) !== (b.ms ?? Infinity)) return (a.ms ?? Infinity) < (b.ms ?? Infinity) ? 1 : -1
   return 0
 }
+/** Si el match lo definió el tiempo: los dos con los mismos golpes (ninguno LP) y distinto tiempo. */
+export function porTiempo(a, b) {
+  const ga = a?.golpes ?? null
+  return ga != null && ga === (b?.golpes ?? null) && (a.ms ?? Infinity) !== (b.ms ?? Infinity)
+}
 
 // ── banderas ──
 // La bandera cambia de lugar en cada ronda: en cualquier parte del green a `margen` yardas o más del borde. Esa zona
