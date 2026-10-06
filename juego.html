@@ -1107,7 +1107,7 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 #logro.sale { animation: logro-sube 420ms cubic-bezier(.5, 0, .8, .4) forwards; }
 #logro .lg-ico { position: relative; width: 58px; height: 58px; border-radius: 50%; background: radial-gradient(circle at 50% 70%, #3b37a8, #1d1a5c); box-shadow: 0 0 0 3px var(--gold), 0 0 18px rgba(232, 195, 74, .8); overflow: hidden; display: flex; align-items: flex-end; justify-content: center; }
 #logro .lg-ico img { width: 72px; height: auto; margin-bottom: -6px; }
-#logro .lg-ico i { position: absolute; right: -2px; bottom: -2px; font-style: normal; font-size: 18px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
+#logro .lg-ico i { position: absolute; right: 3px; bottom: 3px; font-style: normal; font-size: 18px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
 #logro .lg-txt small { display: block; font-size: 10.5px; font-weight: 800; letter-spacing: .12em; color: var(--gold); }
 #logro .lg-txt b { display: block; font: 19px/1.1 var(--font-display); letter-spacing: .02em; margin-top: 2px; }
 #logro .lg-txt em { display: block; font-style: normal; font-size: 12px; opacity: .8; margin-top: 2px; }
@@ -1116,6 +1116,28 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 @keyframes logro-sube { from { transform: translate(-50%, 0); opacity: 1; } to { transform: translate(-50%, -160%); opacity: 0; } }
 @keyframes logro-brillo { to { transform: translateX(120%); } }
 @media (prefers-reduced-motion: reduce) { #logro.entra { animation-duration: 1ms; } #logro .lg-brillo { display: none; } }
+
+/* el candado del juego (SVG del set SDGA) en cada lugar */
+.candado .cand-ico .gi { width: 56px; height: 56px; }
+.req-tit .gi { display: inline-block; width: 20px; height: 20px; margin: 0 4px -3px 0; --gi-s: var(--game-ink); --gi-f: var(--cream); }
+.req li i .gi { width: 20px; height: 20px; margin: 0 auto; }
+.carta-jugar .gi.en-boton { display: inline-block; width: 22px; height: 22px; margin: 0 4px -4px 0; }
+.todo-cab .cara .emo .gi { width: 18px; height: 18px; }
+#logro .lg-ico i .gi { width: 22px; height: 22px; }
+.dk-kicker .cand-abierto .gi, .tu-extra b .cand-abierto .gi { display: inline-block; width: 16px; height: 16px; margin: 0 2px -3px 0; }
+/* el anuncio: la Dickyllamada desbloqueada */
+.tu-extra { display: grid; grid-template-columns: 48px 1fr; gap: 10px; align-items: center; margin: 8px 0 4px; padding: 8px 10px; text-align: left; background: #fff8e6; border: 2.5px solid var(--game-ink); border-radius: 14px; box-shadow: 3px 4px 0 var(--game-ink); transform: rotate(-1.5deg); }
+.tu-extra img { width: 48px; height: 48px; border-radius: 50%; background: #1d1a5c; border: 2px solid var(--game-ink); }
+.tu-extra b { display: block; font: 15px/1.1 var(--font-display); letter-spacing: .04em; color: var(--red); margin-bottom: 2px; }
+.tu-extra span { font-size: 12px; line-height: 1.3; color: var(--green-900); }
+/* la Dickyllamada con candado: en gris, el candado en la esquina; tocándolo, un "no" y te dice cómo se abre */
+#dicky-btn.bloqueado { animation: none; }
+#dicky-btn.bloqueado img { filter: grayscale(1) brightness(.75); }
+#dicky-btn.bloqueado .cinta { background: #cfc8b0; }
+#dicky-btn.bloqueado b { animation: none; }
+#dicky-btn.bloqueado b .gi { width: 22px; height: 22px; }
+#dicky-btn.no { animation: dicky-no 420ms ease; }
+@keyframes dicky-no { 20% { translate: -6px 0; } 40% { translate: 6px 0; } 60% { translate: -4px 0; } 80% { translate: 3px 0; } }
 </style>
 
 <canvas id="cancha" aria-label="La cancha: hoyos 15, 16 y 17 de San Diego"></canvas>
@@ -1219,8 +1241,8 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 <button id="ninja-btn" type="button" hidden aria-label="Reset ninja: el hoyo de nuevo desde el tee, sin multa"><span class="emo" aria-hidden="true">🥷</span><span class="txt">RESET</span><b aria-hidden="true">1</b></button>
 <button id="dicky-btn" type="button" hidden aria-label="Dickyllamada: llamá a otro Dicky"><img src="dicky-toons.svg" alt="" draggable="false"><span class="cinta">DICKYLLAMADA</span><b aria-hidden="true">📞</b></button>
 <button id="logro" type="button" hidden aria-live="assertive" aria-label="Logro desbloqueado: Taiu. Tocá para verlo">
-  <span class="lg-ico"><img src="jugadores/la-rana-torso.webp" alt="" draggable="false"><i aria-hidden="true">🔓</i></span>
-  <span class="lg-txt"><small>🏆 LOGRO DESBLOQUEADO</small><b>Taiu (Đ) se suma al mazo 🐸</b><em>−1 con Fito, Miguelón y el Ninja</em></span>
+  <span class="lg-ico"><img src="jugadores/la-rana-torso.webp" alt="" draggable="false"><i aria-hidden="true"></i></span>
+  <span class="lg-txt"><small>🏆 LOGRO DESBLOQUEADO</small><b>Taiu (Đ) se suma al mazo 🐸</b><em>+ 📞 la Dickyllamada para todos los Dicky</em></span>
   <span class="lg-brillo" aria-hidden="true"></span>
 </button>
 <div class="hab-modal" id="taiu-ok" hidden style="z-index: 62">
@@ -1228,10 +1250,11 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
   <div class="tu-ranas" aria-hidden="true"></div>
   <div class="dk-caja tu-caja" role="dialog" aria-modal="true" aria-labelledby="tu-tit">
     <img class="dk-logo" src="dicky-toons.svg" alt="" draggable="false">
-    <p class="dk-kicker">🔓 ¡DESBLOQUEADO!</p>
+    <p class="dk-kicker"><span class="cand-abierto"></span> ¡DESBLOQUEADO!</p>
     <img class="tu-foto" src="jugadores/la-rana-torso.webp" alt="Taiu" draggable="false">
     <h3 id="tu-tit">🐸 Taiu se suma al mazo</h3>
     <p class="dk-sub">Hiciste −1 con Fito, Miguelón y el Ninja. Bombas desde el tee, approach perfectos… y los controles al revés.</p>
+    <div class="tu-extra"><img src="dicky-toons.svg" alt="" draggable="false"><span><b><span class="cand-abierto"></span> DICKYLLAMADA DESBLOQUEADA</b>Con los cuatro Dicky juntos, Fito, Miguelón, el Ninja y Taiu ya pueden llamar a otro Dicky para que les pegue un tiro (una por vuelta).</span></div>
     <button class="carta-jugar" id="tu-jugar" type="button">Jugar con Taiu</button>
     <button class="tu-despues" type="button" data-cerrar>Después</button>
   </div>
@@ -1543,6 +1566,10 @@ function recuperarSecreto(marcas, conteo) {
   guardar(datos)
   sincronizarSecreto()
 }
+// ── el candado del juego (set SDGA, como los demás íconos: trazo tinta, cuerpo dorado, la cerradura en tinta) ──
+const candado = (abierto = false, clase = '') => `<svg class="gi candado-gi ${clase}" viewBox="0 0 32 32" aria-hidden="true"><g>${abierto
+  ? '<path d="M10.5 14.5V9.5a5.5 5.5 0 0 1 10.7-1.8"/>'
+  : '<path d="M10.5 14.5V10a5.5 5.5 0 0 1 11 0v4.5"/>'}<rect x="6" y="14.5" width="20" height="13.5" rx="3.2" style="fill:var(--gi-a)"/><path d="M9.5 18v6" style="stroke:var(--gi-f);stroke-width:1.6;opacity:.7"/><circle cx="16" cy="20" r="1.9" style="fill:var(--gi-s);stroke:none"/><path d="M16 21v3.2" style="stroke-width:2.2"/></g></svg>`
 // ── 🔒 Taiu: se desbloquea con una tarjeta firmada de −1 o mejor con cada uno de los otros Dicky ──
 const progresoTaiu = () => M.progresoDesbloqueo(DESBLOQUEO_TAIU, datos.records)
 /** ¿Ya lo tenés? Apenas los récords alcanzan, queda guardado en el teléfono (`datos.taiu`). */
@@ -1573,10 +1600,10 @@ function requisitosTaiu() {
   const filas = p.items.map((it) => {
     const d = TODOS.find((x) => x.apodo === it.apodo)
     const falta = it.mejor == null ? 'Todavía no firmaste una vuelta con él' : it.ok ? `¡Hecho! Tu mejor: ${M.formatoPar(it.mejor)}` : `Tu mejor: ${M.formatoPar(it.mejor)} · te ${it.mejor - meta === 1 ? 'falta 1 golpe' : `faltan ${it.mejor - meta} golpes`}`
-    return `<li class="${it.ok ? 'ok' : ''}"><img src="${d?.foto ?? ''}" alt="" draggable="false"><span><b>${d?.emoji ?? ''} ${esc(it.apodo.replace(/ \(Đ\)$/, ''))}</b><small>${falta}</small></span><i aria-hidden="true">${it.ok ? '✅' : '🔒'}</i></li>`
+    return `<li class="${it.ok ? 'ok' : ''}"><img src="${d?.foto ?? ''}" alt="" draggable="false"><span><b>${d?.emoji ?? ''} ${esc(it.apodo.replace(/ \(Đ\)$/, ''))}</b><small>${falta}</small></span><i aria-hidden="true">${it.ok ? '✅' : candado()}</i></li>`
   }).join('')
   return `<div class="req">
-    <p class="req-tit">🔒 Cómo desbloquear a Taiu</p>
+    <p class="req-tit">${candado()} Cómo desbloquear a Taiu</p>
     <p class="req-txt">Firmá una tarjeta de <b>${M.formatoPar(meta)} o mejor</b> (un golpe bajo par) jugando con cada uno de estos Dicky:</p>
     <ul>${filas}</ul>
     <p class="req-cuenta"><b>${p.hechos} de ${p.items.length}</b> · vale cualquier vuelta firmada con ellos, no hace falta que sea seguida</p>
@@ -2623,6 +2650,17 @@ function dickyDespues(res, tiro) {
 /** La Dickyllamada: el selector con los otros Dicky (el reloj corre; los monos no te alcanzan mientras elegís). */
 function abrirDickyllamada() {
   if (estado !== 'apuntar' || !M.puedeDickyllamar(ronda)) return
+  if (!tieneTaiu()) {
+    // con candado: se abre con los cuatro Dicky (desbloqueando a Taiu)
+    const p = progresoTaiu()
+    voz = { lg: '📞 La Dickyllamada todavía está cerrada', extra: `Se abre con los cuatro Dicky: desbloqueá a Taiu haciendo −1 (firmado) con Fito, Miguelón y el Ninja. Vas ${p.hechos} de 3`, hasta: performance.now() + 6000 }
+    const b = $('#dicky-btn')
+    b.classList.remove('no')
+    void b.offsetWidth
+    b.classList.add('no')
+    S.tap()
+    return
+  }
   const yo = ronda.jugador
   const otros = dickysLibres().filter((d) => d.apodo !== yo.apodo)
   $('#dk-lista').innerHTML = otros.map((d) => {
@@ -2737,6 +2775,10 @@ function hud() {
   const dicky = !oculto && hayOtroDicky(j) && M.puedeDickyllamar(ronda)
   $('#dicky-btn').hidden = !dicky || $('#hud-top').hidden
   if (dicky) $('#dicky-btn').disabled = estado !== 'apuntar'
+  // con candado hasta tener a los cuatro Dicky (Taiu desbloqueado): se ve, pero tocándolo te dice cómo se abre
+  const dkLock = !tieneTaiu()
+  $('#dicky-btn').classList.toggle('bloqueado', dkLock)
+  $('#dicky-btn b').innerHTML = dkLock ? candado() : '📞'
   // el Ninja: RESET del hoyo (uno por vuelta; hasta que pegue algo en el hoyo, apagado)
   const ninja = !oculto && M.habilidadDe(j)?.id === 'tradicion' && !ronda.resetNinja
   $('#ninja-btn').hidden = !ninja || $('#hud-top').hidden
@@ -3875,6 +3917,7 @@ function mostrarTaiuDesbloqueado() {
   S.monoBueno()
   $('#tu-jugar').focus({ preventScroll: true })
 }
+for (const el of document.querySelectorAll('.cand-abierto, #logro .lg-ico i')) el.innerHTML = candado(true)
 $('#taiu-ok').addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) $('#taiu-ok').hidden = true })
 $('#tu-jugar').addEventListener('click', () => {
   $('#taiu-ok').hidden = true
@@ -5486,7 +5529,7 @@ function cartaDe(j) {
       <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
       ${j.dicky ? '<img class="carta-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
       ${j.retro ? '<span class="sello-1960">PRO · 1960</span>' : ''}
-      ${lock ? '<div class="candado" aria-hidden="true"><span class="cand-ico">🔒</span><span class="cand-sello">BLOQUEADO</span></div>' : ''}
+      ${lock ? `<div class="candado" aria-hidden="true"><span class="cand-ico">${candado()}</span><span class="cand-sello">BLOQUEADO</span></div>` : ''}
       <div class="carta-nombre"><h3>${esc(j.apodo)}</h3><span class="teja" aria-hidden="true">${j.emoji}</span></div>
     </div>
     <div class="carta-cuerpo">
@@ -5502,7 +5545,7 @@ function cartaDe(j) {
         <div><dt>Prom. neto</dt><dd>${fmtNeto(s?.netoPromedio)}</dd></div>
         <div><dt>Mejor neto</dt><dd>${fmtNeto(s?.mejorNeto)}</dd></div>`}
       </dl>`}
-      <button class="carta-jugar" type="button"${lock ? ' disabled' : ''}>${lock ? '🔒 Bloqueado' : `Jugar con ${esc(j.apodo)}`}</button>
+      <button class="carta-jugar" type="button"${lock ? ' disabled' : ''}>${lock ? `${candado(false, 'en-boton')} Bloqueado` : `Jugar con ${esc(j.apodo)}`}</button>
     </div>
   </article>`
   el.querySelector('.carta-jugar').addEventListener('click', () => empezar(j))
@@ -5777,10 +5820,10 @@ function mostrarTodos() {
       const p = progresoTaiu()
       return `<li class="todo bloqueado">
       <div class="todo-cab">
-        <div class="cara" aria-hidden="true">${cara}<span class="emo">🔒</span></div>
+        <div class="cara" aria-hidden="true">${cara}<span class="emo">${candado()}</span></div>
         <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>BLOQUEADO · ${p.hechos} DE ${p.items.length}</span></div>
         ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
-        <button class="carta-jugar" type="button" disabled>🔒</button>
+        <button class="carta-jugar" type="button" disabled aria-label="Bloqueado">${candado(false, 'en-boton')}</button>
       </div>
       ${requisitosTaiu()}
     </li>`

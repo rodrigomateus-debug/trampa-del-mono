@@ -257,7 +257,7 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - "Taiu (Đ)" (la Rana 🐸, dicky: lleva el logo de los Dicky Toons en la carta) entra al mazo con **Al revés** (`reves`): juega bárbaro, pero con los controles al revés.
   - Bombas desde el tee como Miguelón (mismo carry de 365 yd y el mismo latido del óvalo; en el par 3, sin bomba).
   - Approach perfectos: de 30 a 100 yd reales del hoyo, sin error de dirección ni de largo (el viento sí).
-  - Los controles al revés (`invertirArrastre`, lo aplica la página al leer el arrastre; cambiado el 2026-10-06 a pedido de Rorro): no es gomera, es empuje. La pelota sale para donde movés el dedo (dedo para arriba, tiro para arriba); la fuerza, como siempre (más largo, más fuerte; el largo a fondo se mide hacia arriba del dedo). El putt también. La guía del dedo sube. La línea, el óvalo y el cartel muestran lo que va a salir de verdad. En el marcador: "🐸 CONTROLES AL REVÉS".
+  - Los controles al revés (`invertirArrastre`, lo aplica la página al leer el arrastre; ajustado dos veces el 2026-10-06 a pedido de Rorro): no es gomera, es empuje (dedo para arriba, tiro para arriba), pero **izquierda y derecha cruzadas** (dedo a la derecha, sale a la izquierda). La fuerza, como siempre (más largo, más fuerte; el largo a fondo se mide hacia arriba del dedo). El putt también. La guía del dedo sube. La línea, el óvalo y el cartel muestran lo que va a salir de verdad. En el marcador: "🐸 CONTROLES AL REVÉS".
 - Dificultad: el bot hace −0,62 (no sufre la inversión); fijada en Difícil. También puede salir en la Ruleta.
 
 ## 📞 Los Dicky y la Dickyllamada (2026-10-06, en `dev/` para probar)
@@ -278,3 +278,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 ## 💣 La bomba llega a los dos par 4 (2026-10-06)
 - Revisado a pedido de Rorro: con 365 yd la bomba de Miguelón (y la de Taiu) llegaba al green del 15 (392 yd desde las azules) pero no al del 16 (415): a fondo y perfecta quedaba a 35 yd, en el rough. Ahora `BOMBA.carry` = 405: sin viento y con el latido perfecto, al 16 llega a fondo (queda a ~8 yd) y al 15 con ~92% de fuerza (a ~3 yd). Los dos salen de las azules.
 - Remedido (60 vueltas): Miguelón −0,20 (antes −0,28), Taiu −0,64.
+
+## 🔒 El candado propio y la Dickyllamada con candado (2026-10-06, en `dev/`)
+- El candado ya no es el emoji: es un ícono del set del juego (`candado()` en juego.html, SVG con trazo tinta, cuerpo dorado y cerradura; abierto o cerrado). Está en la carta bloqueada, en "Cómo desbloquear", en cada Dicky que falta, en el botón "Bloqueado", en "Ver todos", en el logro y en el anuncio.
+- La **Dickyllamada arranca con candado** hasta tener a los cuatro Dicky (Taiu desbloqueado): el botón se ve en gris con el candado en la esquina; tocándolo se sacude y LG dice "📞 La Dickyllamada todavía está cerrada · Se abre con los cuatro Dicky: desbloqueá a Taiu… Vas N de 3". Los Dicky que aparecen después de cada tiro siguen igual.
+- El logro y el anuncio del desbloqueo lo dicen: "+ 📞 la Dickyllamada para todos los Dicky" y, en el anuncio, "DICKYLLAMADA DESBLOQUEADA: Fito, Miguelón, el Ninja y Taiu ya pueden llamar a otro Dicky para que les pegue un tiro (una por vuelta)".

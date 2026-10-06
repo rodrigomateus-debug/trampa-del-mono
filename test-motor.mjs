@@ -1308,8 +1308,9 @@ ok('🐸 Taiu (la Rana): bombas desde el tee como Miguelón, approach perfectos 
   assert.equal(plan.approachPerfecto, true)
   assert.equal(plan.disp.ang, 0)
   assert.equal(plan.disp.carry, 0)
-  // al revés: la dirección dada vuelta (sale para donde va el dedo), la fuerza igual
-  assert.deepEqual(M.invertirArrastre(10, 50, 0.4), { px: -10, py: -50, u: 0.4 })
+  // al revés: empuja (para adelante es dedo para adelante) con izquierda y derecha cruzadas; la fuerza igual
+  // (px = x0 − x: con la gomera, dedo a la derecha → px < 0 → sale a la izquierda; Taiu lo mismo de costado)
+  assert.deepEqual(M.invertirArrastre(10, 50, 0.4), { px: 10, py: -50, u: 0.4 })
 })
 
 ok('📞 Dickyllamada: cada Dicky tiene su foto recortada y le dice algo tierno al que juega (con su nombre)', () => {
