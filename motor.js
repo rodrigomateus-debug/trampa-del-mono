@@ -1484,12 +1484,12 @@ export function apostarRorro(r, rng) {
 // ── stats: vueltas, LP y promedio, en total y por player ──
 /**
  * Los órdenes de las stats (players o usuarios): 'vueltas' (más jugados primero, el de siempre), 'promedio' (de menos
- * golpes a más; los que no firmaron ninguna, al final) o 'lp' (más LP primero). `de` saca las stats de cada fila.
+ * golpes a más; los que no firmaron ninguna, al final) o 'lp' (el mayor % de LP primero). `de` saca las stats de cada fila.
  */
 const ORDEN_STATS = {
   vueltas: (a, b) => b.jugadas - a.jugadas || (a.promGolpes ?? Infinity) - (b.promGolpes ?? Infinity),
   promedio: (a, b) => (a.promGolpes ?? Infinity) - (b.promGolpes ?? Infinity) || b.jugadas - a.jugadas,
-  lp: (a, b) => b.lps - a.lps || b.pctLP - a.pctLP || b.jugadas - a.jugadas,
+  lp: (a, b) => b.pctLP - a.pctLP || b.lps - a.lps || b.jugadas - a.jugadas,
 }
 export function ordenarStats(lista, orden = 'vueltas', de = (x) => x) {
   const cmp = ORDEN_STATS[orden] ?? ORDEN_STATS.vueltas

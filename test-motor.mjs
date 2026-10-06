@@ -1366,6 +1366,8 @@ ok('📊 stats: vueltas, LP y promedio (de las firmadas), en total y por player'
   assert.deepEqual(por.map((f) => f.apodo), ['Fito (Đ)', 'LG', 'Mugre'])
   assert.deepEqual(M.ordenarStats(por, 'promedio').map((f) => f.apodo), ['LG', 'Mugre', 'Fito (Đ)'])
   assert.deepEqual(M.ordenarStats(por, 'lp').map((f) => f.apodo), ['Fito (Đ)', 'LG', 'Mugre'])
+  // por LP manda el porcentaje, no la cantidad: 1 LP en 2 vueltas (50%) va antes que 3 en 10 (30%)
+  assert.deepEqual(M.ordenarStats([{ apodo: 'a', jugadas: 10, lps: 3, pctLP: 0.3 }, { apodo: 'b', jugadas: 2, lps: 1, pctLP: 0.5 }], 'lp').map((f) => f.apodo), ['b', 'a'])
   assert.deepEqual(M.ordenarStats([{ n: 'a', st: { jugadas: 1, lps: 0, pctLP: 0, promGolpes: 9 } }, { n: 'b', st: { jugadas: 3, lps: 2, pctLP: 0.6, promGolpes: null } }], 'promedio', (u) => u.st).map((u) => u.n), ['a', 'b'])
   const fito = por.find((f) => f.apodo === 'Fito (Đ)')
   assert.deepEqual([fito.jugadas, fito.lps, fito.firmadas, fito.prom, fito.promGolpes], [6, 2, 2, 2, 13])
