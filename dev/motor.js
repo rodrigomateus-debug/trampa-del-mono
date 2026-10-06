@@ -111,10 +111,21 @@ export const HABILIDADES = {
   Grandpa: { id: 'deme', nombre: 'Invocar a Deme', texto: 'Maxi, una vez por vuelta (no desde el tee): llama a Deme, el mentor. Te enseña a agarrar el palo y el próximo tiro entra de una, le pegues como le pegues.' },
   'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro (y de tee a tee) lo manejás vos hasta la pelota. Los árboles no se atraviesan. El reloj corre.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
+  'Taiu (Đ)': { id: 'reves', nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (soltá en el latido) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. Tirás a la derecha y sale a la derecha, y cuanto menos tirás, más fuerte le pega. El putt también.' },
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
 export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
+/** Taiu (la Rana): los controles al revés (lo resuelve la página al leer el arrastre; el motor recibe el tiro que sale). */
+export const alReves = (jugador) => habilidadDe(jugador)?.id === 'reves'
+/**
+ * Del arrastre en pantalla al tiro, con los controles al revés: el lado se espeja (tirás a la derecha, sale a la
+ * derecha; para adelante sigue siendo tirar para atrás) y la fuerza se da vuelta (cuanto menos tirás, más fuerte).
+ * `px, py` = el vector del tiro normal (del dedo a donde empezó); `u` = largo del arrastre / largo a fondo (0..1).
+ */
+export function invertirArrastre(px, py, u) {
+  return { px: -px, py, u: Math.max(0.03, 1 - Math.min(1, u)) }
+}
 
 // ── nivel de dificultad = handicap del jugador elegido ──
 // Más handicap: más error (tiro y putt) y un poco menos de distancia.
@@ -712,8 +723,10 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
   plan.carry = (potencia * carryMaxDe(r.jugador?.hcp, par) * (FISICA.factorLie[r.lie] ?? 1)) / escala
   plan.real = FISICA.factorReal[r.lie] ?? 1 // el bunker: la mitad de lo que se ve
   plan.disp = { ...plan.disp, ang: plan.disp.ang * dif.error, carry: plan.disp.carry * dif.error }
-  if (hab?.id === 'bomba' && tee) plan.carry = (potencia * (par === 3 ? carryPar3De(r.jugador?.hcp) : BOMBA.carry)) / escala // en el par 3, sin bomba
-  if (hab?.id === 'bomba' && tee && plan.carry * escala > BOMBA.zona) {
+  // la bomba: Miguelón y Taiu (la Rana)
+  const bombero = hab?.id === 'bomba' || hab?.id === 'reves'
+  if (bombero && tee) plan.carry = (potencia * (par === 3 ? carryPar3De(r.jugador?.hcp) : BOMBA.carry)) / escala // en el par 3, sin bomba
+  if (bombero && tee && plan.carry * escala > BOMBA.zona) {
     const q = Math.max(0, Math.min(1, precision))
     plan.bomba = true
     plan.perfecta = q >= BOMBA.perfecta
@@ -725,6 +738,11 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
     const d = dist(b, hoyoActual(r).pin) * escala // yardas reales
     if (tee) plan.disp = { ...plan.disp, ang: 0, carry: plan.disp.carry * 0.5 }
     else if (d >= APPROACH.desde && d <= APPROACH.hasta) { plan.disp = { ...plan.disp, ang: plan.disp.ang * APPROACH.error, carry: plan.disp.carry * APPROACH.error }; plan.approach = true }
+  }
+  if (hab?.id === 'reves' && !tee) {
+    // Taiu: el approach, perfecto (de 30 a 100 yd reales del hoyo, sin error; el viento sí)
+    const d = dist(b, hoyoActual(r).pin) * escala
+    if (d >= APPROACH.desde && d <= APPROACH.hasta) { plan.disp = { ...plan.disp, ang: 0, carry: 0 }; plan.approachPerfecto = true }
   }
   if (r.calma) {
     // LG no se enoja: después de un mal tiro, este sale sin error

@@ -1181,7 +1181,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 07f5f0f · 6/10, 12:39 a. m.</span>
+  <span class="version" id="version">v 9d87ca0 · 6/10, 12:58 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1350,11 +1350,11 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=599f4f0f13'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO } from './plantel.js?v=599f4f0f13'
+import * as M from './motor.js?v=f844d29e55'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO } from './plantel.js?v=f844d29e55'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=599f4f0f13'
-import * as S from './sonido.js?v=599f4f0f13'
+import * as R from './ranking.js?v=f844d29e55'
+import * as S from './sonido.js?v=f844d29e55'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -1561,11 +1561,14 @@ function seguir(pos) {
 const largoMax = () => Math.max(140, Math.min(260, Math.min(W, H) * 0.42))
 function apunte() {
   if (!drag) return null
-  const px = drag.x0 - drag.x, py = drag.y0 - drag.y
+  let px = drag.x0 - drag.x, py = drag.y0 - drag.y
   const len = Math.hypot(px, py)
   if (len < 8) return null
   const putt = M.enModoPutt(campo, ronda)
-  const p = Math.min(1, Math.pow(len / drag.largo, putt ? 1.6 : 1.35))
+  let u = len / drag.largo
+  // Taiu (la Rana): los controles al revés: el lado espejado y la fuerza dada vuelta (menos tirás, más fuerte)
+  if (M.alReves(ronda.jugador)) ({ px, py, u } = M.invertirArrastre(px, py, u))
+  const p = Math.min(1, Math.pow(u, putt ? 1.6 : 1.35))
   const [wx, wy] = s2wVec(px, py)
   const ang = Math.atan2(wy, wx)
   let q = 0
@@ -2492,8 +2495,10 @@ function hud() {
   if (maxi && ronda.deme) $('#deme-btn').disabled = !M.puedeInvocarDeme(ronda) || estado !== 'apuntar'
   // el golpe del Mago: el que le toca (o, mientras vuela, el que pegó)
   const g = !ronda.golpeMago || oculto ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? PUTT_MAGO : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
-  $('#efecto').hidden = !g
+  const reves = !oculto && M.alReves(j)
+  $('#efecto').hidden = !g && !reves
   if (g) $('#efecto').textContent = `${g.emoji} ${g.nombre.toUpperCase()}`
+  else if (reves) $('#efecto').textContent = '🐸 CONTROLES AL REVÉS'
 }
 const PUTT_MAGO = { emoji: '🪄', nombre: 'Putt con comba', texto: 'Siempre dobla hacia el hoyo: apuntá afuera' }
 /** Lo que le toca al Mago en el próximo golpe (null si no es Rodal). En el green, el putt con comba. */
@@ -5101,6 +5106,9 @@ function previewHab(id) {
     approach: bola('M8 26 L62 26 L62 26 Q76 40 86 10', { kt: '0;0.3;0.45;1', kp: '0;0.55;0.55;1' }) + txt('APPROACH…', 74, 48, 0.75, '#f0a497'),
     retro: `<rect width="112" height="52" fill="#8a6a3a" opacity=".45"/>` + linea('M8 26 L50 26') + bola('M8 26 L50 26 L50 26 L96 27', { kt: '0;0.3;0.5;0.85', kp: '0;0.5;0.5;1' })
       + txt('PAR', 96, 13, 0.85, '#f3d27a') + `<text x="20" y="46" font-size="8" font-family="Anton, sans-serif" fill="#f3d27a">1960</text>`,
+    // Taiu: el dedo tira para atrás a la DERECHA (en rojo) y la pelota sale para la derecha: al revés
+    reves: `<line x1="22" y1="30" x2="38" y2="46" stroke="#f0a497" stroke-width="1.6" stroke-dasharray="2 2"/><circle cx="38" cy="46" r="2" fill="#f0a497"/>`
+      + linea('M22 30 Q60 2 96 27') + bola('M22 30 Q60 2 96 27', { kt: '0;0.3;0.8;1', kp: '0;0;1;1' }) + `<text x="10" y="18" font-size="11">🐸</text>` + txt('AL REVÉS', 66, 48, 0.3, '#f0a497'),
     // la Ruleta: tres tiros, y arriba de la pelota, en cada uno, otro player
     ruleta: linea('M8 26 L40 30 L72 22 L96 27') + bola('M8 26 L40 30 L72 22 L96 27', { kt: '0;0.18;0.33;0.51;0.66;0.84;1', kp: '0;0.36;0.36;0.73;0.73;1;1' })
       + [['🇸🇪', 8, 0, 0.18], ['🥛', 40, 0.18, 0.51], ['🦉', 72, 0.51, 0.84]].map(([e, x, a, b]) => `<text x="${x}" y="${x === 72 ? 13 : 17}" font-size="10" text-anchor="middle" opacity="0">${e}<animate attributeName="opacity" dur="${D}s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;${a};${a + 0.02};${b};${Math.min(1, b + 0.03)};1"/></text>`).join('')
