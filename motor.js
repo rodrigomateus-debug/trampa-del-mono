@@ -1482,6 +1482,9 @@ export function apostarRorro(r, rng) {
 }
 
 // ── stats: vueltas, LP y promedio, en total y por player ──
+/** Orden prolijo de las stats: por promedio de golpes, de menor a mayor; los que no firmaron ninguna, al final. */
+export const porPromedio = (a, b) => (a.promGolpes ?? Infinity) - (b.promGolpes ?? Infinity) || b.jugadas - a.jugadas || String(a.apodo ?? '').localeCompare(String(b.apodo ?? ''))
+
 /**
  * `conteo` = [{ apodo, jugadas, lps }] (cada vuelta que llegó a la tarjeta final, firmada o no, LP incluido);
  * `marcas` = [{ apodo, golpes, vsPar }] (las vueltas firmadas). El promedio sale de las firmadas (las LP no tienen
@@ -1505,7 +1508,7 @@ export function estadisticas(conteo, marcas) {
     const jugadas = Math.max(f.jugadas, f.firmadas + f.lps)
     return { apodo: f.apodo, jugadas, lps: f.lps, firmadas: f.firmadas, pctLP: jugadas ? f.lps / jugadas : 0, prom: f.firmadas ? f.sumaPar / f.firmadas : null, promGolpes: f.firmadas ? f.sumaGolpes / f.firmadas : null }
   }
-  const lista = [...por.values()].map(cerrar).filter((f) => f.jugadas > 0).sort((a, b) => b.jugadas - a.jugadas || (a.prom ?? 99) - (b.prom ?? 99))
+  const lista = [...por.values()].map(cerrar).filter((f) => f.jugadas > 0).sort(porPromedio)
   const suma = [...por.values()].reduce((t, f) => ({ apodo: null, jugadas: t.jugadas + f.jugadas, lps: t.lps + f.lps, firmadas: t.firmadas + f.firmadas, sumaPar: t.sumaPar + f.sumaPar, sumaGolpes: t.sumaGolpes + f.sumaGolpes }), { apodo: null, jugadas: 0, lps: 0, firmadas: 0, sumaPar: 0, sumaGolpes: 0 })
   // el total: cada player ya ajustado (jugadas >= firmadas + LP)
   const total = cerrar(suma)

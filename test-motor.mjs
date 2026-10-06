@@ -1362,8 +1362,10 @@ ok('📊 stats: vueltas, LP y promedio (de las firmadas), en total y por player'
   const conteo = [{ apodo: 'Fito (Đ)', jugadas: 5, lps: 2 }, { apodo: 'LG', jugadas: 2, lps: 0 }, { apodo: 'Fito (Đ)', jugadas: 1, lps: 0 }]
   const marcas = [{ apodo: 'Fito (Đ)', golpes: 12, vsPar: 1 }, { apodo: 'Fito (Đ)', golpes: 14, vsPar: 3 }, { apodo: 'LG', golpes: 10, vsPar: -1 }, { apodo: 'Mugre', golpes: 11, vsPar: 0 }]
   const { total, por } = M.estadisticas(conteo, marcas)
-  assert.equal(por[0].apodo, 'Fito (Đ)')
-  assert.deepEqual([por[0].jugadas, por[0].lps, por[0].firmadas, por[0].prom, por[0].promGolpes], [6, 2, 2, 2, 13])
+  // ordenados por promedio de golpes, de menor a mayor
+  assert.deepEqual(por.map((f) => f.apodo), ['LG', 'Mugre', 'Fito (Đ)'])
+  const fito = por.find((f) => f.apodo === 'Fito (Đ)')
+  assert.deepEqual([fito.jugadas, fito.lps, fito.firmadas, fito.prom, fito.promGolpes], [6, 2, 2, 2, 13])
   // Mugre: una firmada de antes del conteo, igual es una jugada
   assert.equal(por.find((f) => f.apodo === 'Mugre').jugadas, 1)
   assert.equal(total.jugadas, 6 + 2 + 1)
@@ -1373,6 +1375,8 @@ ok('📊 stats: vueltas, LP y promedio (de las firmadas), en total y por player'
   assert.equal(M.formatoProm(-0.5), '−0,5')
   assert.equal(M.formatoProm(0.01), 'E')
   assert.deepEqual(M.estadisticas([], []).por, [])
+  // sin firmadas, al final (aunque tenga más vueltas)
+  assert.equal(M.estadisticas([{ apodo: 'Mugre', jugadas: 9, lps: 9 }, { apodo: 'LG', jugadas: 1, lps: 0 }], [{ apodo: 'LG', golpes: 15, vsPar: 4 }]).por.at(-1).apodo, 'Mugre')
 })
 
 console.log('\nTodo verde.')
