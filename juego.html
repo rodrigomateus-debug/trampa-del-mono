@@ -5524,11 +5524,11 @@ function previewHab(id) {
 }
 
 // ── 🎰 la carta de la Ruleta: un tragamonedas con las caras del mazo, y todas las caras subiendo atrás ──
-let keyframesRuleta = false
+const keyframesRuleta = new Set() // una animación por cantidad de caras (cambia al desbloquear a Taiu)
 function fotoRuleta(j) {
-  const pool = j.pool
+  const pool = j.pool.filter((x) => !bloqueado(x)) // el bloqueado (Taiu) no gira hasta desbloquearlo
   const n = pool.length
-  if (!keyframesRuleta) {
+  if (!keyframesRuleta.has(n)) {
     // la tira para cada cara: quieta un rato, la palanca baja y rueda a la siguiente (con rebote); al final vuelve a la primera
     const k = [`0% { transform: translateY(0); }`]
     for (let i = 0; i < n; i++) {
@@ -5536,21 +5536,21 @@ function fotoRuleta(j) {
       k.push(`${((i + 1) / n * 100).toFixed(3)}% { transform: translateY(calc(var(--rl-v) * ${-(i + 1)})); }`)
     }
     const st = document.createElement('style')
-    st.textContent = `@keyframes rl-carta { ${k.join(' ')} }
+    st.textContent = `@keyframes rl-carta-${n} { ${k.join(' ')} }
       .carta.ruleta .rl-vent { width: var(--rl-v); height: var(--rl-v); }
       .carta.ruleta .rl-vent img, .carta.ruleta .rl-vent .rl-emo-sola { width: var(--rl-v); height: var(--rl-v); }
-      .carta.ruleta .rl-tira { animation: rl-carta ${n * 1.1}s linear infinite; }
+      .carta.ruleta .rl-tira[data-n="${n}"] { animation: rl-carta-${n} ${n * 1.1}s linear infinite; }
       .carta.ruleta .rl-palanca { animation: rl-palanca-carta 1.1s ease-in-out infinite; }
       @keyframes rl-palanca-carta { 0%, 52%, 92%, 100% { transform: scaleY(1); } 66% { transform: scaleY(-.2); } }`
     document.head.append(st)
-    keyframesRuleta = true
+    keyframesRuleta.add(n)
   }
   const cara = (x) => (x.foto ? `<img src="${x.foto}" alt="" draggable="false">` : `<span>${x.emoji}</span>`)
   const columnas = [0, 1, 2, 3].map((c) => { const l = pool.filter((_, i) => i % 4 === c); return `<div class="rl-col">${[...l, ...l, ...l, ...l].map(cara).join('')}</div>` }).join('')
   return `<div class="rl-mosaico" aria-hidden="true">${columnas}</div>
     <div class="rl-maquina" aria-hidden="true">
       <span class="rl-cartel">CADA TIRO, OTRO</span>
-      <div class="rl-cuerpo"><div class="rl-vent"><div class="rl-tira">${[...pool, pool[0]].map(caraRuleta).join('')}</div></div><span class="rl-palanca"></span></div>
+      <div class="rl-cuerpo"><div class="rl-vent"><div class="rl-tira" data-n="${n}">${[...pool, pool[0]].map(caraRuleta).join('')}</div></div><span class="rl-palanca"></span></div>
     </div>`
 }
 
@@ -5846,7 +5846,7 @@ function verHabilidad(j) {
   $('#hab-texto').textContent = hab.texto
   // el Mago: los 5 golpes que le pueden tocar
   const extra = hab.id === 'comba' ? M.GOLPES_MAGO.map((g) => `<li>${g.emoji} <b>${esc(g.nombre)}</b> · ${esc(g.texto)}</li>`).join('')
-    : hab.id === 'ruleta' ? j.pool.map((x) => `<li>${x.emoji} <b>${esc(x.apodo)}</b> · ${esc(hcpEtiqueta(x))}${M.habilidadDe(x) ? ` · ${esc(M.habilidadDe(x).nombre)}` : ''}</li>`).join('') : ''
+    : hab.id === 'ruleta' ? j.pool.filter((x) => !bloqueado(x)).map((x) => `<li>${x.emoji} <b>${esc(x.apodo)}</b> · ${esc(hcpEtiqueta(x))}${M.habilidadDe(x) ? ` · ${esc(M.habilidadDe(x).nombre)}` : ''}</li>`).join('') : ''
   $('#hab-extra').innerHTML = extra
   $('#hab-extra').hidden = !extra
   $('#hab-modal').hidden = false
