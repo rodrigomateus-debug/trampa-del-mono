@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy: el juego publicado + el orden por LP de Stats va por porcentaje, para probar.
+Hoy es igual al juego publicado (la raíz).
