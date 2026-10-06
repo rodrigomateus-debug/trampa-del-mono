@@ -311,9 +311,13 @@ const COLS_DESAFIO = 'id,retador_id,retador_alias,retador_apodo,retador_emoji,re
 /** Una fila de la base → el desafío del juego. */
 export const deFilaDesafio = (f) => ({
   id: f.id, semilla: Number(f.semilla), estado: f.estado, fecha: f.created_at, jugadoFecha: f.jugado_at ?? null,
-  retador: { uid: f.retador_id, alias: f.retador_alias, apodo: f.retador_apodo, emoji: f.retador_emoji, golpes: f.retador_golpes, vsPar: f.retador_vs_par, ms: f.retador_ms, lp: !!f.retador_lp },
-  rival: { uid: f.rival_id, alias: f.rival_alias, apodo: f.rival_apodo ?? null, emoji: f.rival_emoji ?? null, golpes: f.rival_golpes ?? null, vsPar: f.rival_vs_par ?? null, ms: f.rival_ms ?? null, lp: !!f.rival_lp },
+  retador: { uid: f.retador_id, alias: f.retador_alias, apodo: f.retador_apodo, emoji: f.retador_emoji, golpes: f.retador_golpes, vsPar: f.retador_vs_par, ms: f.retador_ms, lp: !!f.retador_lp, ruleta: ruletaOk(f.retador_ruleta) },
+  rival: { uid: f.rival_id, alias: f.rival_alias, apodo: f.rival_apodo ?? null, emoji: f.rival_emoji ?? null, golpes: f.rival_golpes ?? null, vsPar: f.rival_vs_par ?? null, ms: f.rival_ms ?? null, lp: !!f.rival_lp, ruleta: ruletaOk(f.rival_ruleta) },
 })
+/** La Ruleta de una vuelta del match (quién pegó cada tiro, por hoyo: [["El Sueco","LG"],["Lechu"],["Mugre"]]), o null. */
+function ruletaOk(x) {
+  return Array.isArray(x) && x.length && x.every((h) => Array.isArray(h) && h.every((a) => typeof a === 'string')) ? x : null
+}
 /** ¿Se puede jugar el match? Adentro de la app, solo si la app lo anuncia (`match: true` en la identidad: hoy, la de dev);
  *  suelto, con la base y la sesión. */
 export const hayMatch = () => (puente.enApp ? !!puente.identidad?.match : compartido() && !!puente.identidad)
@@ -342,22 +346,36 @@ export async function leerRivales() {
   return (filas ?? []).map((f) => ({ uid: f.user_id ?? f.uid, nombre: f.nombre, sdga: !!f.sdga })).filter((f) => f.uid && f.uid !== yo)
 }
 /** Manda un desafío ya jugado (con la grabación del fantasma). Devuelve el id. */
-export async function crearDesafio({ rival, semilla, apodo, emoji, golpes, vsPar, ms, lp, fantasma }) {
+export async function crearDesafio({ rival, semilla, apodo, emoji, golpes, vsPar, ms, lp, fantasma, ruleta = null }) {
   const yo = puente.identidad
-  const datos = { rivalId: rival.uid, rivalAlias: rival.nombre, semilla, apodo, emoji, golpes, vsPar, ms, lp: !!lp, fantasma }
+  const datos = { rivalId: rival.uid, rivalAlias: rival.nombre, semilla, apodo, emoji, golpes, vsPar, ms, lp: !!lp, fantasma, ...(ruleta ? { ruleta } : {}) }
   if (puente.enApp) return (await porApp('desafiar', datos))?.id ?? null
   const fila = {
     retador_id: yo.uid, retador_alias: yo.alias, retador_apodo: apodo, retador_emoji: emoji, retador_golpes: golpes, retador_vs_par: vsPar, retador_ms: ms, retador_lp: !!lp,
     rival_id: rival.uid, rival_alias: rival.nombre, semilla, fantasma,
   }
-  const r = await rest('trampa_desafios?select=id', { metodo: 'POST', cuerpo: fila, prefer: 'return=representation' })
+  const crear = (cuerpo) => rest('trampa_desafios?select=id', { metodo: 'POST', cuerpo, prefer: 'return=representation' })
+  let r
+  try {
+    r = await crear(ruleta ? { ...fila, retador_ruleta: ruleta } : fila)
+  } catch (e) {
+    if (!ruleta || !/HTTP 400/.test(String(e?.message))) throw e
+    r = await crear(fila) // una base sin la columna de la Ruleta: el desafío va igual
+  }
   return r?.[0]?.id ?? null
 }
 /** Mis desafíos (los que hice y los que me hicieron), sin la grabación. */
 export async function leerDesafios() {
   if (puente.enApp) return ((await porApp('desafios')) ?? []).map(deFilaDesafio)
   const uid = puente.identidad?.uid
-  const filas = await rest(`trampa_desafios?select=${COLS_DESAFIO}&or=(retador_id.eq.${uid},rival_id.eq.${uid})&order=created_at.desc&limit=100`)
+  const leer = (cols) => rest(`trampa_desafios?select=${cols}&or=(retador_id.eq.${uid},rival_id.eq.${uid})&order=created_at.desc&limit=100`)
+  let filas
+  try {
+    filas = await leer(`${COLS_DESAFIO},retador_ruleta,rival_ruleta`)
+  } catch (e) {
+    if (!/HTTP 400/.test(String(e?.message))) throw e
+    filas = await leer(COLS_DESAFIO) // una base sin las columnas de la Ruleta
+  }
   return (filas ?? []).map(deFilaDesafio)
 }
 /** La grabación del que desafió, para jugar con su fantasma. */
@@ -390,18 +408,25 @@ export async function leerRankingMatch() {
  * El desafiado jugó: anota su vuelta (con su grabación, para el replay) y el match queda cerrado.
  * Si la base todavía no tiene `rival_fantasma`, anota igual sin la grabación (el replay muestra solo al que desafió).
  */
-export async function responderDesafio(id, { apodo, emoji, golpes, vsPar, ms, lp, fantasma }) {
-  const datos = { desafioId: id, apodo, emoji, golpes, vsPar, ms, lp: !!lp, ...(Array.isArray(fantasma) ? { fantasma } : {}) }
+export async function responderDesafio(id, { apodo, emoji, golpes, vsPar, ms, lp, fantasma, ruleta = null }) {
+  const datos = { desafioId: id, apodo, emoji, golpes, vsPar, ms, lp: !!lp, ...(Array.isArray(fantasma) ? { fantasma } : {}), ...(ruleta ? { ruleta } : {}) }
   if (puente.enApp) { await porApp('responder', datos); return true }
   const uid = puente.identidad?.uid
   const ruta = `trampa_desafios?id=eq.${encodeURIComponent(id)}&rival_id=eq.${uid}&estado=eq.pendiente`
   const cuerpo = { rival_apodo: apodo, rival_emoji: emoji, rival_golpes: golpes, rival_vs_par: vsPar, rival_ms: ms, rival_lp: !!lp, estado: 'jugado', jugado_at: new Date().toISOString() }
-  if (!Array.isArray(fantasma)) { await rest(ruta, { metodo: 'PATCH', prefer: 'return=minimal', cuerpo }); return true }
-  try {
-    await rest(ruta, { metodo: 'PATCH', prefer: 'return=minimal', cuerpo: { ...cuerpo, rival_fantasma: fantasma } })
-  } catch (e) {
-    if (!/HTTP 400/.test(String(e?.message))) throw e
-    await rest(ruta, { metodo: 'PATCH', prefer: 'return=minimal', cuerpo })
+  // con la grabación (el replay) y la Ruleta; si la base todavía no tiene alguna de esas columnas, se anota sin ella
+  const intentos = [
+    { ...cuerpo, ...(Array.isArray(fantasma) ? { rival_fantasma: fantasma } : {}), ...(ruleta ? { rival_ruleta: ruleta } : {}) },
+    ...(ruleta && Array.isArray(fantasma) ? [{ ...cuerpo, rival_fantasma: fantasma }] : []),
+    ...(ruleta || Array.isArray(fantasma) ? [cuerpo] : []),
+  ]
+  for (let i = 0; i < intentos.length; i++) {
+    try {
+      await rest(ruta, { metodo: 'PATCH', prefer: 'return=minimal', cuerpo: intentos[i] })
+      return true
+    } catch (e) {
+      if (i === intentos.length - 1 || !/HTTP 400/.test(String(e?.message))) throw e
+    }
   }
   return true
 }

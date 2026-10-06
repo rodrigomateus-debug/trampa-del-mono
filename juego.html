@@ -836,6 +836,14 @@ input { -webkit-user-select: text; user-select: text; }
 .marcador.final td.tot small { display: block; font: 700 11px var(--font-body); color: var(--text-muted); }
 .marcador.final tr.gano th, .marcador.final tr.gano td.tot { color: var(--green-500); }
 .marcador.final tr.gano th::after { content: ' 🏆'; font-size: 13px; }
+/* con quién pegó el otro (la Ruleta del rival): en el resultado y en el detalle del match */
+.t-ruleta.rival { margin-top: 8px; }
+.rs-caja .t-ruleta .kicker, .t-match .t-ruleta .kicker { color: var(--text-muted); }
+.t-match-txt { margin: -4px 0 0; font: 700 14px/1.35 var(--font-body); }
+.t-match-txt.gana { color: var(--green-500); }
+.t-match-txt.pierde { color: var(--red); }
+.t-match-txt .gi.linea { display: inline-block; width: 20px; height: 20px; margin: 0 5px -4px 0; }
+.rs-caja .marcador.final { background: rgba(20, 64, 42, .06); }
 .rk-fila.tocable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 120ms; }
 .rk-fila.tocable:active { background: rgba(20, 64, 42, .1); }
 .rk-fila.tocable:focus-visible { outline: 3px solid var(--gold); outline-offset: -2px; border-radius: 10px; }
@@ -3453,10 +3461,7 @@ function tarjetaFinal() {
   // la Ruleta: cada hoyo con las caras de los que pegaron, en orden
   const porHoyo = M.tirosRuleta(ronda)
   $('#t-ruleta').hidden = !porHoyo.length
-  $('#t-ruleta').innerHTML = porHoyo.length ? `<span class="kicker">🎰 Quién pegó cada tiro</span>${porHoyo.map((h) => `<div class="fila-rl"><b>${h.n}</b>${h.tiros.map((t) => {
-    const x = ronda.ruleta.pool.find((p) => p.apodo === t.apodo)
-    return `<span class="tiro-rl" title="${esc(t.apodo)}">${x?.foto ? `<img src="${x.foto}" alt="${esc(t.apodo)}">` : `<span>${t.emoji}</span>`}<i aria-hidden="true">${t.emoji}</i></span>`
-  }).join('<span class="flecha-rl" aria-hidden="true">›</span>')}</div>`).join('')}` : ''
+  $('#t-ruleta').innerHTML = htmlRuleta(porHoyo.map((h) => h.tiros.map((t) => t.apodo)), 'Quién pegó cada tiro', porHoyo.map((h) => h.n))
   $('#t-ranking').hidden = true
   $('#t-match').hidden = true
   if (ronda.duelo) cerrarMatch(ronda)
@@ -3819,6 +3824,38 @@ async function anotarVuelta() {
   $('#t-ranking').hidden = false
 }
 
+// ── la Ruleta y el hoyo a hoyo de un match (el resultado de la tarjeta final y el detalle del Historial) ──
+/** La Ruleta de una vuelta para guardar en el match: los apodos de los que pegaron cada tiro, por hoyo (15, 16, 17). */
+const ruletaParaMatch = (r) => (r.ruleta ? M.HOYOS.map((h) => (M.tirosRuleta(r).find((x) => x.n === h.n)?.tiros ?? []).map((t) => t.apodo)) : null)
+/**
+ * "Quién pegó cada tiro": una fila por hoyo con las caras en orden. `apodos` = [["El Sueco","LG"],["Lechu"],…] (de la
+ * vuelta propia o de la que guardó el match); la cara y el emoji salen del plantel por apodo.
+ */
+function htmlRuleta(apodos, titulo, hoyos = M.HOYOS.map((h) => h.n)) {
+  const filas = apodos.map((tiros, k) => ({ n: hoyos[k], tiros })).filter((h) => h.tiros.length)
+  if (!filas.length) return ''
+  const cara = (apodo) => {
+    const x = TODOS.find((p) => p.apodo === apodo) ?? { apodo, emoji: '⛳' }
+    return `<span class="tiro-rl" title="${esc(apodo)}">${x.foto ? `<img src="${x.foto}" alt="${esc(apodo)}">` : `<span>${x.emoji}</span>`}<i aria-hidden="true">${x.emoji}</i></span>`
+  }
+  return `<span class="kicker">🎰 ${esc(titulo)}</span>${filas.map((h) => `<div class="fila-rl"><b>${h.n}</b>${h.tiros.map(cara).join('<span class="flecha-rl" aria-hidden="true">›</span>')}</div>`).join('')}`
+}
+/** Los golpes de cada hoyo de una vuelta del match, sacados de su grabación (null si no hay grabación). */
+function golpesPorHoyo(g, x) {
+  if (!g?.length) return M.HOYOS.map(() => null)
+  const m = M.marcadorFantasma(g, Infinity)
+  return x.lp || x.golpes == null ? M.HOYOS.map((_, k) => (k < m.idx ? m.porHoyo[k] : 'LP')) : m.porHoyo
+}
+/** La tabla hoyo a hoyo de un match: [{ emoji, nombre, golpes: [15, 16, 17], vuelta: { golpes, vsPar, lp }, gano, el }]. */
+function tablaMatch(filas) {
+  const pars = M.HOYOS.map((h) => h.par)
+  const celda = (v, k) => `<td class="${v == null ? 'vacio' : v === 'LP' ? 'lp' : v < pars[k] ? 'bajo' : v > pars[k] ? 'sobre' : ''}">${v ?? '·'}</td>`
+  const total = (x) => (x.lp || x.golpes == null ? '<td class="tot lp">LP</td>' : `<td class="tot">${x.golpes}<small>${M.formatoPar(x.vsPar)}</small></td>`)
+  return `<div class="marcador final"><table><thead><tr><th>Hoyo a hoyo</th>${M.HOYOS.map((h) => `<th>${h.n}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th></tr></thead><tbody>${filas
+    .map((f) => `<tr class="${[f.gano ? 'gano' : '', f.el ? 'el' : ''].join(' ').trim()}"><th><span class="e">${esc(f.emoji ?? '⛳')}</span>${esc(f.nombre)}</th>${f.golpes.map(celda).join('')}${total(f.vuelta)}</tr>`)
+    .join('')}</tbody></table></div>`
+}
+
 // ── el match: desafiás a otro, jugás tu vuelta y él la juega después con tu fantasma ──
 // (matchModo se declara arriba, con el secreto) lo que sigue al elegir player: { tipo: 'reto', rival, semilla } | { tipo: 'respuesta', desafio, fantasma }
 let mtTab = 'desafiar'
@@ -3957,6 +3994,41 @@ function abrirRecordMatch(x) {
   $('#rk-resumen .hab-x').focus({ preventScroll: true })
 }
 $('#mt-lista').addEventListener('click', (e) => { const li = e.target.closest('[data-mtr]'); if (li) abrirRecordMatch(mtRankingVista[+li.dataset.mtr]) })
+// el detalle de un match del Historial (tocando la fila, no sus botones)
+$('#mt-lista').addEventListener('click', (e) => { if (e.target.closest('button')) return; const li = e.target.closest('[data-detalle]'); if (li) abrirDetalleMatch(li.dataset.detalle) })
+$('#mt-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const li = e.target.closest('[data-detalle]'); if (li && e.target === li) { e.preventDefault(); abrirDetalleMatch(li.dataset.detalle) } })
+/**
+ * El detalle de un match jugado: el hoyo a hoyo de los dos (de las dos grabaciones, las del replay) y, con la Ruleta,
+ * con quién pegó cada uno cada tiro. Los matches de antes pueden no tener la grabación del desafiado o la Ruleta:
+ * se muestra lo que haya.
+ */
+async function abrirDetalleMatch(id) {
+  const d = mtDesafios?.find((x) => x.id === id)
+  if (!d) return
+  const { yo, el, g, txt, clase } = resultadoPara(d)
+  const soyRetador = d.retador.uid === yoUid()
+  $('.rs-caja').classList.remove('bloqueado')
+  const pintar = (grabs) => {
+    const mia = grabs ? (soyRetador ? grabs.retador : grabs.rival) : null
+    const suya = grabs ? (soyRetador ? grabs.rival : grabs.retador) : null
+    const f = fechaLarga(d.jugadoFecha ?? d.fecha)
+    $('#rs-cuerpo').innerHTML = `
+      <p class="rs-kicker">Match${f ? ` · ${esc(f.dia)}` : ''}</p>
+      <h3 class="rs-quien" id="rs-quien">vs ${esc(el.alias)}</h3>
+      <p class="t-match-txt ${clase}">${g > 0 ? gi('trophy', 'linea') : g < 0 ? gi('close', 'pierde linea') : gi('friends', 'linea')}${txt} · ${esc(golpesTxt(yo))} vs ${esc(golpesTxt(el))}</p>
+      ${grabs ? tablaMatch([
+        { emoji: yo.emoji, nombre: 'VOS', golpes: golpesPorHoyo(mia, yo), vuelta: yo, gano: g > 0 },
+        { emoji: el.emoji, nombre: el.alias, golpes: golpesPorHoyo(suya, el), vuelta: el, gano: g < 0, el: true },
+      ]) : `<p class="rk-vacio">${grabs === null ? 'Cargando el hoyo a hoyo…' : 'No se pudo cargar el hoyo a hoyo.'}</p>`}
+      ${yo.ruleta ? `<div class="t-ruleta">${htmlRuleta(yo.ruleta, 'Con quién pegaste')}</div>` : ''}
+      ${el.ruleta ? `<div class="t-ruleta rival">${htmlRuleta(el.ruleta, `Con quién pegó ${el.alias}`)}</div>` : ''}
+      <p class="extras">Jugaron con ${esc(yo.emoji ?? '')} ${esc(String(yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}, mismo viento y banderas.</p>`
+  }
+  pintar(null)
+  $('#rk-resumen').hidden = false
+  $('#rk-resumen .hab-x').focus({ preventScroll: true })
+  try { pintar(await R.leerReplay(id)) } catch { pintar(undefined) }
+}
 $('#mt-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const li = e.target.closest('[data-mtr]'); if (li) { e.preventDefault(); abrirRecordMatch(mtRankingVista[+li.dataset.mtr]) } })
 /** El historial: tu récord (G-E-P), contra cada rival y match por match. */
 function pintarHistorial(lista) {
@@ -3986,7 +4058,7 @@ function pintarHistorial(lista) {
       ${wdl(x)}
     </li>`).join('')}
     <li class="mt-sec">Match por match</li>
-    ${res.map((r) => `<li class="rk-fila mt-fila">
+    ${res.map((r) => `<li class="rk-fila mt-fila tocable" data-detalle="${esc(r.d.id)}" tabindex="0" aria-label="Ver el match contra ${esc(r.el.alias)} hoyo a hoyo">
       <span class="mini" aria-hidden="true">${esc(r.yo.emoji ?? '⛳')}</span>
       <span class="rk-nombre"><b>vs ${esc(r.el.alias)}</b><small class="${r.clase}">${r.txt} · ${esc(golpesTxt(r.yo))} vs ${esc(golpesTxt(r.el))} · con ${esc(String(r.yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}</small></span>
       <span class="mt-estado">${r.d.retador.uid === yo && !v.has(r.d.id) ? gi('bell', 'nuevo') : r.g > 0 ? gi('trophy') : r.g < 0 ? gi('close', 'pierde') : gi('friends')}</span>
@@ -4605,7 +4677,7 @@ async function cerrarMatch(r) {
     const mandar = async () => {
       el.innerHTML = `${gi('match', 'linea')}Mandando el desafío a <b>${esc(d.rival.nombre)}</b>…`
       try {
-        await R.crearDesafio({ rival: d.rival, semilla: d.semilla, ...mia, fantasma: d.grabacion })
+        await R.crearDesafio({ rival: d.rival, semilla: d.semilla, ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
         el.innerHTML = `<span class="gran">${gi('match')}DESAFÍO ENVIADO</span>Le llegó a <b>${esc(d.rival.nombre)}</b>. Va a jugar con ${esc(r.carta.emoji)} ${esc(r.carta.apodo)}, como vos, y va a ver tu pelota en vivo. El resultado te aparece en MATCH.<br><button class="btn-wa" type="button">${ICONO_WA}MANDÁSELO POR WHATSAPP</button>`
         el.querySelector('.btn-wa').addEventListener('click', async (e) => {
           const b = e.currentTarget
@@ -4624,26 +4696,22 @@ async function cerrarMatch(r) {
     return
   }
   const des = d.desafio
-  // el resultado hoyo a hoyo: los míos de la tarjeta; los del rival, de su grabación (cada muestra lleva el acumulado)
+  // el resultado hoyo a hoyo: los míos de la tarjeta; los del rival, de su grabación (cada muestra lleva el acumulado).
+  // Con la Ruleta, abajo, con quién pegó el otro cada tiro (si el match lo guardó: los de antes no lo tienen).
   const tablaResultado = (g) => {
     const ret = des.retador
-    const pars = M.HOYOS.map((h) => h.par)
     const mios = r.tarjeta.map((f) => (f.lp ? 'LP' : f.golpes))
-    const suyo = M.marcadorFantasma(d.fantasma, Infinity)
-    const suyos = ret.lp || ret.golpes == null
-      ? M.HOYOS.map((_, k) => (k < suyo.idx ? suyo.porHoyo[k] : 'LP'))
-      : d.fantasma?.length ? suyo.porHoyo : M.HOYOS.map(() => null) // un desafío viejo, sin grabación: sin el hoyo a hoyo
-    const celda = (v, k) => `<td class="${v == null ? 'vacio' : v === 'LP' ? 'lp' : v < pars[k] ? 'bajo' : v > pars[k] ? 'sobre' : ''}">${v ?? '·'}</td>`
-    const total = (x) => (x.lp || x.golpes == null ? '<td class="tot lp">LP</td>' : `<td class="tot">${x.golpes}<small>${M.formatoPar(x.vsPar)}</small></td>`)
-    const fila = (clase, emoji, nombre, golpes, x) => `<tr class="${clase}"><th><span class="e">${esc(emoji)}</span>${esc(nombre)}</th>${golpes.map(celda).join('')}${total(x)}</tr>`
-    return `<div class="marcador final"><table><thead><tr><th>Hoyo a hoyo</th>${M.HOYOS.map((h) => `<th>${h.n}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th></tr></thead><tbody>${
-      fila(g > 0 ? 'gano' : '', r.carta?.emoji ?? r.jugador.emoji, 'VOS', mios, mia)
-    }${fila(g < 0 ? 'gano el' : 'el', `👻${ret.emoji ?? ''}`, ret.alias, suyos, ret)}</tbody></table></div>`
+    const tabla = tablaMatch([
+      { emoji: r.carta?.emoji ?? r.jugador.emoji, nombre: 'VOS', golpes: mios, vuelta: mia, gano: g > 0 },
+      { emoji: `👻${ret.emoji ?? ''}`, nombre: ret.alias, golpes: golpesPorHoyo(d.fantasma, ret), vuelta: ret, gano: g < 0, el: true },
+    ])
+    const suRuleta = ret.ruleta ? htmlRuleta(ret.ruleta, `Con quién pegó ${ret.alias}`) : ''
+    return tabla + (suRuleta ? `<div class="t-ruleta rival">${suRuleta}</div>` : '')
   }
   const anotar = async () => {
     el.innerHTML = `${gi('match', 'linea')}Anotando el match con <b>${esc(des.retador.alias)}</b>…`
     try {
-      await R.responderDesafio(des.id, { ...mia, fantasma: d.grabacion })
+      await R.responderDesafio(des.id, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
       const g = M.ganadorMatch(mia, des.retador)
       el.className = `t-match ${g > 0 ? 'gana' : g < 0 ? 'pierde' : ''}`
       el.innerHTML = `<span class="gran">${g > 0 ? `${gi('trophy')}GANASTE EL MATCH` : g < 0 ? `${gi('close', 'pierde')}PERDISTE EL MATCH` : `${gi('friends')}EMPATE`}</span>${tablaResultado(g)}Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}<br><span class="t-match-botones"><button class="btn-wa" type="button">${ICONO_WA}MANDAR EL RESULTADO</button><button class="btn-replay" type="button">${ICONO_REPLAY}VER EL REPLAY</button></span>`
