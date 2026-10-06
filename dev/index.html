@@ -283,6 +283,7 @@ h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; margin
 .todo .carta-prev p { -webkit-line-clamp: unset; display: block; }
 .mazo-tit { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.05; letter-spacing: .04em; text-transform: uppercase; }
 .mazo-sub { margin: 4px 0 0; font-size: 12px; opacity: .75; }
+.mazo-tit .gi { display: inline-block; width: 22px; height: 22px; margin: 0 6px -3px 0; --gi-s: var(--cream); --gi-f: transparent; --gi-a: var(--gold); }
 /* botón de ícono (cerrar, anterior, siguiente): círculo crema, sm 44px · .claro md 56px */
 .redondo { --sh: 3px 3px 0 var(--game-ink); --dx: 3px; --dy: 3px; flex: none; width: var(--game-h-sm); height: var(--game-h-sm); padding: 0; border-radius: 50%; background: var(--cream); display: grid; place-items: center; }
 .redondo .gi { width: 24px; height: 24px; }
@@ -656,6 +657,19 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-ambito button[aria-selected="true"] { background: var(--gold); color: var(--green-900); border-color: var(--game-ink); }
 .rk-ambito button:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
 .rk-ambito .aviso { margin-left: 6px; }
+/* los íconos del set en las pestañas: sobre el riel verde, trazo crema; en la elegida (dorada), tinta y papel crema */
+.rk-ambito button { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.rk-ambito button .gi { width: 20px; height: 20px; --gi-s: var(--cream); --gi-f: transparent; --gi-a: var(--gold); }
+.rk-ambito button[aria-selected="true"] .gi { --gi-s: var(--game-ink); --gi-f: var(--cream); --gi-a: var(--cream); }
+.rk-ambito:has(> :nth-child(3)) button .gi { width: 19px; height: 19px; }
+/* el cuadrado del encabezado (match, ranking): ícono crema sobre verde */
+.tarjeta header .teja .gi { width: 30px; height: 30px; --gi-s: var(--cream); --gi-f: transparent; --gi-a: var(--gold); }
+/* los estados de cada match en la lista, el título del resultado y el ranking de la tarjeta final */
+.mt-estado .gi { width: 24px; height: 24px; margin-left: auto; }
+.gi.pierde { --gi-s: var(--red); }
+.gi.nuevo { --gi-a: var(--gold); --gi-f: var(--gold); }
+.t-match .gran .gi { display: inline-block; width: 26px; height: 26px; margin: 0 7px -3px 0; }
+.t-match .gi.linea, .rk-pos-final .gi { display: inline-block; width: 20px; height: 20px; margin: 0 5px -4px 0; }
 .rk-ambito:has(> :nth-child(3)) { grid-template-columns: repeat(3, 1fr); }
 .rk-ambito:has(> :nth-child(3)) button { font-size: 14px; letter-spacing: .02em; padding: 0 4px; }
 .rk-ambito:has(> :nth-child(4)) { grid-template-columns: repeat(2, 1fr); border-radius: 24px; }
@@ -1109,7 +1123,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 13cca30 · 5/10, 11:06 p. m.</span>
+  <span class="version" id="version">v e01d909 · 5/10, 11:12 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1216,14 +1230,14 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 <section class="pantalla" id="match" hidden aria-labelledby="mt-tit">
   <div class="card tarjeta ranking">
     <header>
-      <span class="teja">⚔️</span>
+      <span class="teja" aria-hidden="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M7.5 4.5L22 23.5M24.5 4.5L10 23.5"/><path d="M7.5 4.5l2 2.6M24.5 4.5l-2 2.6" stroke-width="5"/><rect x="19.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><rect x="4.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><circle cx="16" cy="24.5" r="2.5" style="fill:var(--gi-f)"/></g></svg></span>
       <div><span class="kicker" style="color: var(--text-muted)">Uno contra uno · mismo viento y banderas</span><div class="quien" id="mt-tit">MATCH</div></div>
     </header>
     <div class="rk-ambito" id="mt-tabs" role="tablist" aria-label="Match">
-      <button type="button" role="tab" data-mt="desafiar" aria-selected="true">⚔️ Desafiar</button>
-      <button type="button" role="tab" data-mt="mios" aria-selected="false">📋 Pendientes<b class="aviso" id="mt-aviso" hidden></b></button>
-      <button type="button" role="tab" data-mt="historial" aria-selected="false">📊 Historial</button>
-      <button type="button" role="tab" data-mt="ranking" aria-selected="false">🏆 Ranking</button>
+      <button type="button" role="tab" data-mt="desafiar" aria-selected="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="14" cy="18" r="10" style="fill:var(--gi-f)"/><circle cx="14" cy="18" r="5.5" style="fill:var(--gi-a)"/><circle cx="14" cy="18" r="1.8" style="fill:var(--gi-s)" stroke="none"/><path d="M14 18L25 7"/><path d="M25 3.5V7h3.5"/></g></svg>Desafiar</button>
+      <button type="button" role="tab" data-mt="mios" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M16 5.5v2"/><path d="M13.5 25a2.7 2.7 0 0 0 5 0"/><path d="M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z" style="fill:var(--gi-a)"/></g></svg>Pendientes<b class="aviso" id="mt-aviso" hidden></b></button>
+      <button type="button" role="tab" data-mt="historial" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="5" y="7" width="22" height="20" rx="3" style="fill:var(--gi-f)"/><path d="M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z" style="fill:var(--gi-a)"/><path d="M11 4.5v5M21 4.5v5"/><rect x="9.5" y="17" width="4.5" height="4" rx="1" style="fill:var(--gi-s)" stroke="none"/></g></svg>Historial</button>
+      <button type="button" role="tab" data-mt="ranking" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="4.5" y="15.5" width="7.5" height="11.5" rx="1" style="fill:var(--gi-f)"/><rect x="20" y="18.5" width="7.5" height="8.5" rx="1" style="fill:var(--gi-f)"/><rect x="12" y="9.5" width="8" height="17.5" rx="1" style="fill:var(--gi-a)"/><path d="M14.8 14l1.7-1.2v6" stroke-width="2.2"/></g></svg>Ranking</button>
     </div>
     <input class="mt-buscar" id="mt-buscar" type="search" placeholder="Buscar rival…" autocomplete="off" spellcheck="false">
     <ol class="rk-lista" id="mt-lista"></ol>
@@ -1261,12 +1275,12 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 <section class="pantalla" id="ranking" hidden aria-labelledby="rk-tit">
   <div class="card tarjeta ranking">
     <header>
-      <span class="teja" id="rk-teja">🏆</span>
+      <span class="teja" id="rk-teja"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4"/><path d="M16 17.5v4"/><path d="M11 26.5h10l-1-5h-8z" style="fill:var(--gi-f)"/><path d="M10 5.5h12v6a6 6 0 0 1-12 0z" style="fill:var(--gi-a)"/></g></svg></span>
       <div><span class="kicker" style="color: var(--text-muted)">Ranking · golpes, después tiempo</span><div class="quien" id="rk-tit">GENERAL</div></div>
     </header>
     <div class="rk-ambito" id="rk-ambito" role="tablist" aria-label="Qué ranking" hidden>
-      <button type="button" role="tab" data-ambito="mundial" aria-selected="true">🌎 Mundial</button>
-      <button type="button" role="tab" data-ambito="sdga" aria-selected="false">⛳ SDGA</button>
+      <button type="button" role="tab" data-ambito="mundial" aria-selected="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="21" cy="10.5" r="4.5" style="fill:var(--gi-a)"/><path d="M14 25a7.5 7.5 0 0 1 15 0z" style="fill:var(--gi-a)"/><circle cx="12" cy="12.5" r="5" style="fill:var(--gi-f)"/><path d="M3.5 27a8.5 8.5 0 0 1 17 0z" style="fill:var(--gi-f)"/></g></svg>Mundial</button>
+      <button type="button" role="tab" data-ambito="sdga" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><ellipse cx="16" cy="25.5" rx="10" ry="3" style="fill:var(--gi-f)"/><ellipse cx="12" cy="25.5" rx="2.4" ry="1" style="fill:var(--gi-s)" stroke="none"/><path d="M12 25.5V4.5"/><path d="M12 5l12 4.5L12 14z" style="fill:var(--gi-a)"/></g></svg>SDGA</button>
     </div>
     <div class="rk-tabs" id="rk-tabs" role="tablist" aria-label="Ranking"></div>
     <ol class="rk-lista" id="rk-lista"></ol>
@@ -1282,6 +1296,9 @@ import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO } fr
 import { CANCHA } from './cancha-grid.js'
 import * as R from './ranking.js?v=2deb0fb2dd'
 import * as S from './sonido.js?v=2deb0fb2dd'
+// los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
+const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
+const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 // el nivel fijado a mano manda (Fito, Trampa total, va al final)
@@ -3814,7 +3831,7 @@ async function anotarVuelta() {
   const nueva = conEl.golpes === marca.golpes && conEl.ms === marca.ms
   posRanking = { general: general.pos, conEl: conEl.pos, nueva }
   resumenListo = null // se rehace con el puesto
-  $('#t-ranking').textContent = `🏆 ${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el ${R.compartido() || R.puente.enApp ? 'mundial' : 'general'} · ${conEl.pos}° con ${jugador.emoji}`
+  $('#t-ranking').innerHTML = `${gi('trophy')}${esc(`${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el ${R.compartido() || R.puente.enApp ? 'mundial' : 'general'} · ${conEl.pos}° con ${jugador.emoji}`)}`
   $('#t-ranking').hidden = false
 }
 
@@ -3894,7 +3911,7 @@ function pintarMatch() {
     sec('Esperando que jueguen', espero.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
         <span class="rk-nombre"><b>${esc(d.rival.alias)}</b><small>Hiciste ${esc(golpesTxt(d.retador))}</small></span>
-        <span class="mt-estado">⏳</span>
+        <span class="mt-estado" title="Esperando que juegue">${gi('calendar')}</span>
       </li>`)),
   ].join('')
   lista.innerHTML = html || '<li class="rk-vacio">No tenés matches pendientes. Desafiá a alguien.</li>'
@@ -3988,7 +4005,7 @@ function pintarHistorial(lista) {
     ${res.map((r) => `<li class="rk-fila mt-fila">
       <span class="mini" aria-hidden="true">${esc(r.yo.emoji ?? '⛳')}</span>
       <span class="rk-nombre"><b>vs ${esc(r.el.alias)}</b><small class="${r.clase}">${r.txt} · ${esc(golpesTxt(r.yo))} vs ${esc(golpesTxt(r.el))} · con ${esc(String(r.yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}</small></span>
-      <span class="mt-estado">${r.d.retador.uid === yo && !v.has(r.d.id) ? '🆕' : r.g > 0 ? '🏆' : r.g < 0 ? '😵' : '🤝'}</span>
+      <span class="mt-estado">${r.d.retador.uid === yo && !v.has(r.d.id) ? gi('bell', 'nuevo') : r.g > 0 ? gi('trophy') : r.g < 0 ? gi('close', 'pierde') : gi('friends')}</span>
       <button class="rp-mini" type="button" data-replay="${esc(r.d.id)}" aria-label="Ver el replay del match">${ICONO_REPLAY}</button>
       <button class="wa-mini" type="button" data-wa="${esc(r.d.id)}" aria-label="Mandar el resultado por WhatsApp">${ICONO_WA}</button>
     </li>`).join('')}`
@@ -4602,10 +4619,10 @@ async function cerrarMatch(r) {
   if (!u || u[0] < fin) d.grabacion.push([fin, ...donde, 0, lp ? golpesVan(r) : t.golpes])
   if (d.tipo === 'reto') {
     const mandar = async () => {
-      el.innerHTML = `⚔️ Mandando el desafío a <b>${esc(d.rival.nombre)}</b>…`
+      el.innerHTML = `${gi('match', 'linea')}Mandando el desafío a <b>${esc(d.rival.nombre)}</b>…`
       try {
         await R.crearDesafio({ rival: d.rival, semilla: d.semilla, ...mia, fantasma: d.grabacion })
-        el.innerHTML = `<span class="gran">⚔️ DESAFÍO ENVIADO</span>Le llegó a <b>${esc(d.rival.nombre)}</b>. Va a jugar con ${esc(r.carta.emoji)} ${esc(r.carta.apodo)}, como vos, y va a ver tu pelota en vivo. El resultado te aparece en MATCH.<br><button class="btn-wa" type="button">${ICONO_WA}MANDÁSELO POR WHATSAPP</button>`
+        el.innerHTML = `<span class="gran">${gi('match')}DESAFÍO ENVIADO</span>Le llegó a <b>${esc(d.rival.nombre)}</b>. Va a jugar con ${esc(r.carta.emoji)} ${esc(r.carta.apodo)}, como vos, y va a ver tu pelota en vivo. El resultado te aparece en MATCH.<br><button class="btn-wa" type="button">${ICONO_WA}MANDÁSELO POR WHATSAPP</button>`
         el.querySelector('.btn-wa').addEventListener('click', async (e) => {
           const b = e.currentTarget
           b.disabled = true
@@ -4640,12 +4657,12 @@ async function cerrarMatch(r) {
     }${fila(g < 0 ? 'gano el' : 'el', `👻${ret.emoji ?? ''}`, ret.alias, suyos, ret)}</tbody></table></div>`
   }
   const anotar = async () => {
-    el.innerHTML = `⚔️ Anotando el match con <b>${esc(des.retador.alias)}</b>…`
+    el.innerHTML = `${gi('match', 'linea')}Anotando el match con <b>${esc(des.retador.alias)}</b>…`
     try {
       await R.responderDesafio(des.id, { ...mia, fantasma: d.grabacion })
       const g = M.ganadorMatch(mia, des.retador)
       el.className = `t-match ${g > 0 ? 'gana' : g < 0 ? 'pierde' : ''}`
-      el.innerHTML = `<span class="gran">${g > 0 ? '🏆 GANASTE EL MATCH' : g < 0 ? '😵 PERDISTE EL MATCH' : '🤝 EMPATE'}</span>${tablaResultado(g)}Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}<br><span class="t-match-botones"><button class="btn-wa" type="button">${ICONO_WA}MANDAR EL RESULTADO</button><button class="btn-replay" type="button">${ICONO_REPLAY}VER EL REPLAY</button></span>`
+      el.innerHTML = `<span class="gran">${g > 0 ? `${gi('trophy')}GANASTE EL MATCH` : g < 0 ? `${gi('close', 'pierde')}PERDISTE EL MATCH` : `${gi('friends')}EMPATE`}</span>${tablaResultado(g)}Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}<br><span class="t-match-botones"><button class="btn-wa" type="button">${ICONO_WA}MANDAR EL RESULTADO</button><button class="btn-replay" type="button">${ICONO_REPLAY}VER EL REPLAY</button></span>`
       el.querySelector('.btn-wa').addEventListener('click', (e) => compartirMatch({ ...des, rival: { ...des.rival, uid: yoUid(), alias: datos.usuario || des.rival.alias, ...mia } }, e.currentTarget))
       // el replay de este match, con las dos grabaciones que ya están acá (no hace falta pedirlas)
       el.querySelector('.btn-replay').addEventListener('click', () => abrirReplay({ ...des, estado: 'jugado', rival: { ...des.rival, ...mia } }, { retador: d.fantasma, rival: d.grabacion }))
@@ -4807,7 +4824,7 @@ function pintarRanking(error = false) {
   const j = PLANTEL.find((x) => x.apodo === rkTab)
   pintarRkConteo(j)
   $('#rk-tit').textContent = j ? j.apodo.toUpperCase() : 'GENERAL'
-  $('#rk-teja').textContent = j ? j.emoji : '🏆'
+  $('#rk-teja').innerHTML = j ? esc(j.emoji) : gi('trophy') // un player: su emoji (identidad); el general: el trofeo del set
   if (!rkMarcas) {
     $('#rk-lista').innerHTML = '<li class="rk-vacio">Cargando…</li>'
     $('#rk-fuente').textContent = ''
@@ -5149,7 +5166,7 @@ function mostrarElegir() {
   S.musica(null)
   S.viento(0)
   for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'resumen', 'match']) $('#' + id).hidden = true
-  $('.mazo-tit').textContent = matchModo ? `⚔️ Match vs ${matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias}` : 'Elegí tu nivel de dificultad'
+  $('.mazo-tit').innerHTML = matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}` : 'Elegí tu nivel de dificultad'
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
   $('#hud-bot').hidden = true
