@@ -98,7 +98,7 @@ export const MONO = { vel: 18, pausa: 3, radio: 3.2, altura: 8, velCaza: 12, ale
 
 // ── habilidades por jugador (por apodo, como en la app) ──
 export const HABILIDADES = {
-  'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: cada golpe le toca uno de 5 efectos (mirá cuál antes de pegar). El putt siempre lleva comba.' },
+  'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: antes de cada golpe elegís cuál (Flop, Baby Draw, Una cortada al medio o el Dibuje maestro, que dibujás con el dedo). En el green, putt con draw o con fade.' },
   'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green.' },
   'El Sueco': { id: 'derecho', nombre: 'Siempre derecho', texto: 'Mati no la tuerce nunca: todo sale derecho, hasta el putt.' },
   'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
@@ -151,18 +151,27 @@ export function dificultadReal(prom, nivel = null) {
 }
 // la comba de Rodal: cuánto se cierra la curva (grados entre la salida y dónde cae) y qué parte del error lateral le queda
 export const COMBA = { angulo: 30, error: 0.5 }
-// Los golpes del Mago: nunca derecho. A cada golpe (menos el putt) le toca uno al azar, y se ve antes de pegar.
+// Los golpes del Mago: antes de cada golpe (fuera del green) elegís uno de 4, y queda elegido hasta que lo cambies.
 // curva = grados entre la salida y dónde cae; lado = para dónde se cierra ('bandera', 'izq' o 'der');
-// carry, alto y rueda = veces lo normal; rasante = vuela bajo, así que choca pinos y monos.
+// carry, alto y rueda = veces lo normal. El Dibuje maestro (dibujo) no tiene curva: la pelota vuela por la línea
+// que dibujás con el dedo (suavizada, y hasta donde te da el carry). Todos vuelan por arriba de los pinos.
+// (2026-10-06, pedido de Rorro: antes eran 5 al azar; el globo pasó a Flop, el gancho a Baby Draw, el slice a
+// Una cortada al medio y la viborita, al Dibuje maestro.)
 export const GOLPES_MAGO = [
-  { id: 'comba', emoji: '🪄', nombre: 'Comba de mago', texto: 'Se cierra 30° hacia la bandera: apuntá afuera', curva: COMBA.angulo, lado: 'bandera', carry: 1, alto: 1, rueda: 1 },
-  { id: 'gancho', emoji: '↩️', nombre: 'Gancho', texto: 'Dobla 45° a la izquierda: apuntá a la derecha', curva: 45, lado: 'izq', carry: 1, alto: 1, rueda: 1 },
-  { id: 'slice', emoji: '↪️', nombre: 'Slice', texto: 'Dobla 45° a la derecha: apuntá a la izquierda', curva: 45, lado: 'der', carry: 1, alto: 1, rueda: 1 },
-  { id: 'globo', emoji: '🎈', nombre: 'Globo', texto: 'Altísimo, vuela menos y se clava donde cae', curva: 15, lado: 'bandera', carry: 0.8, alto: 2.5, rueda: 0.1 },
-  { id: 'vibora', emoji: '🐍', nombre: 'Viborita', texto: 'Rasante: vuela poco, rueda una banda y no pasa los pinos', curva: 20, lado: 'bandera', carry: 0.6, alto: 0.3, rueda: 2.5, rasante: true },
+  { id: 'flop', emoji: '🎈', nombre: 'Flop', texto: 'Altísimo: vuela menos y se clava donde cae', curva: 15, lado: 'bandera', carry: 0.8, alto: 2.5, rueda: 0.1 },
+  { id: 'draw', emoji: '↩️', nombre: 'Baby Draw', texto: 'Dobla 45° a la izquierda: apuntá a la derecha', curva: 45, lado: 'izq', carry: 1, alto: 1, rueda: 1 },
+  { id: 'cortada', emoji: '↪️', nombre: 'Una cortada al medio', texto: 'Dobla 45° a la derecha: apuntá a la izquierda', curva: 45, lado: 'der', carry: 1, alto: 1, rueda: 1 },
+  { id: 'dibuje', emoji: '✍️', nombre: 'Dibuje maestro', texto: 'Dibujá con el dedo el vuelo, de la pelota a donde cae', dibujo: true, carry: 1, alto: 1, rueda: 1 },
 ]
-// el putt del Mago siempre dobla hacia el hoyo: giro = radianes por segundo que gira mientras rueda
+// el putt del Mago: con draw dobla a la izquierda, con fade a la derecha (giro = radianes por segundo mientras rueda)
 export const PUTT_MAGO = { giro: 0.3 }
+export const PUTTS_MAGO = [
+  { id: 'draw', emoji: '↩️', nombre: 'Putt con draw', texto: 'Dobla a la izquierda mientras rueda: apuntá a la derecha del hoyo', lado: -1 },
+  { id: 'fade', emoji: '↪️', nombre: 'Putt con fade', texto: 'Dobla a la derecha mientras rueda: apuntá a la izquierda del hoyo', lado: 1 },
+]
+// el Dibuje maestro: la línea se remuestrea cada `paso` yardas del dibujo, se suaviza `pasadas` veces y queda en
+// `puntos` puntos; con menos de `minimo` yardas no hay tiro
+export const DIBUJO = { paso: 1.5, pasadas: 14, puntos: 48, minimo: 4 }
 // la bomba de Miguelón (y de Taiu): desde el tee su driver vuela hasta `carry` yardas reales: llega a los dos par 4 desde
 // las azules (el 16, 415 yd, a fondo; el 15, 392, con un poco menos; 2026-10-06, antes 365 y al 16 no llegaba); pasando `zona` yardas el óvalo late (periodo, en segundos) y es perfecta si suelta con precisión >= perfecta
 export const BOMBA = { carry: 405, zona: 285, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
@@ -699,16 +708,16 @@ function planBase(angulo, potencia, lie) {
  * Lo que ve el jugador al apuntar (sin error ni viento): dónde pica, la curva si la hay y la zona de pique.
  * Acá entran las habilidades: la comba de Rodal y la bomba de Miguelón (`precision` 0..1, del latido del óvalo).
  */
-export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) {
+export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, ruta = null) {
   potencia = Math.max(0, Math.min(1, potencia))
   const b = r.pelota
   const dif = dificultad(r.jugador?.hcp)
   const hab = habilidadDe(r.jugador)
   if (enModoPutt(campo, r)) {
     const carry = potencia * FISICA.distPuttMax
-    // el putt del Mago dobla hacia el hoyo: apuntando a la derecha del hoyo gira a la izquierda, y al revés
+    // el putt del Mago: con draw dobla a la izquierda (ángulo menor), con fade a la derecha
     const pin = hoyoActual(r).pin
-    const giro = hab?.id === 'comba' ? (difAng(angulo, Math.atan2(pin[1] - b[1], pin[0] - b[0])) >= 0 ? -1 : 1) * PUTT_MAGO.giro : 0
+    const giro = hab?.id === 'comba' ? puttMagoDe(r).lado * PUTT_MAGO.giro : 0
     // los 3 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
     const noLaFalla = hab?.id === 'dadas' && dist(b, pin) * hoyoActual(r).escala <= DADA
     const retro = hab?.id === 'retro'
@@ -758,6 +767,7 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
     // nunca derecho: sale por donde apunta y se cierra según el golpe que le tocó
     // (curva = Bézier con el control sobre la línea de salida; lado 1 = cae a la izquierda de la salida)
     const g = golpeMagoDe(r) ?? GOLPES_MAGO[0]
+    if (g.dibujo) return planDibujo(r, g, angulo, potencia, plan, ruta, escala, par)
     const pin = hoyoActual(r).pin
     const lado = g.lado === 'izq' ? 1 : g.lado === 'der' ? -1 : difAng(angulo, Math.atan2(pin[1] - b[1], pin[0] - b[0])) >= 0 ? 1 : -1
     const beta = (g.curva * Math.PI) / 180
@@ -788,6 +798,98 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0) 
   return plan
 }
 
+/**
+ * El Dibuje maestro: la pelota vuela por la línea dibujada (de la pelota en adelante), suavizada y cortada donde se le
+ * acaba el carry (el de pegarle a fondo). Sin línea (el bot, o mientras no dibujó), una recta con `angulo` y `potencia`.
+ * Vuela por arriba de los pinos y le queda la mitad del error, como a los otros golpes del Mago.
+ */
+function planDibujo(r, g, angulo, potencia, plan, ruta, escala, par) {
+  const b = r.pelota
+  const max = (carryMaxDe(r.jugador?.hcp, par) * (FISICA.factorLie[r.lie] ?? 1) * g.carry) / escala
+  const crudo = ruta?.length ? ruta : [b, [b[0] + Math.cos(angulo) * plan.carry, b[1] + Math.sin(angulo) * plan.carry]]
+  const pts = suavizarRuta(b, crudo, max)
+  const largo = largoRuta(pts)
+  const fin = pts[pts.length - 1]
+  plan.comba = true
+  plan.dibujo = true
+  plan.golpe = g.id
+  plan.alto = g.alto
+  plan.rueda = g.rueda
+  plan.rasante = false
+  plan.ruta = largo >= DIBUJO.minimo / escala ? pts : null
+  plan.carry = largo
+  plan.cuerda = Math.atan2(fin[1] - b[1], fin[0] - b[0])
+  plan.control = null
+  plan.disp = { ...plan.disp, ang: plan.disp.ang * COMBA.error }
+  plan.destino = [...fin]
+  return plan
+}
+const largoRuta = (pts) => pts.reduce((s, p, i) => (i ? s + dist(pts[i - 1], p) : 0), 0)
+/**
+ * La línea del Dibuje maestro, prolija: arranca en la pelota, se remuestrea parejo, se suaviza (un zigzag queda en
+ * eses suaves, el principio y el final no se mueven) y se corta a `max` yardas de recorrido.
+ */
+export function suavizarRuta(desde, crudo, max = Infinity) {
+  let pts = [[...desde], ...crudo.filter((p) => dist(p, desde) > 0.01)]
+  if (pts.length < 2) return [[...desde], [...desde]]
+  // remuestreo cada DIBUJO.paso (o más fino si la línea es corta)
+  const total = largoRuta(pts)
+  const paso = Math.max(0.05, Math.min(DIBUJO.paso, total / 12))
+  const parejo = [pts[0]]
+  let resto = paso
+  for (let i = 1; i < pts.length; i++) {
+    let [ax, ay] = pts[i - 1]
+    const [bx, by] = pts[i]
+    let d = Math.hypot(bx - ax, by - ay)
+    while (d >= resto) {
+      const k = resto / d
+      ax += (bx - ax) * k
+      ay += (by - ay) * k
+      parejo.push([ax, ay])
+      d -= resto
+      resto = paso
+    }
+    resto -= d
+  }
+  if (dist(parejo[parejo.length - 1], pts[pts.length - 1]) > 1e-6) parejo.push([...pts[pts.length - 1]])
+  pts = parejo
+  // suavizado: promedio con los vecinos (las puntas quedan fijas)
+  for (let k = 0; k < DIBUJO.pasadas; k++) {
+    pts = pts.map((p, i) => (i === 0 || i === pts.length - 1 ? p : [(pts[i - 1][0] + 2 * p[0] + pts[i + 1][0]) / 4, (pts[i - 1][1] + 2 * p[1] + pts[i + 1][1]) / 4]))
+  }
+  // corta donde se acaba el carry
+  const out = [pts[0]]
+  let van = 0
+  for (let i = 1; i < pts.length; i++) {
+    const d = dist(pts[i - 1], pts[i])
+    if (van + d >= max) {
+      const k = (max - van) / (d || 1)
+      out.push([pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k])
+      break
+    }
+    van += d
+    out.push(pts[i])
+  }
+  // y queda en DIBUJO.puntos puntos parejos (para el vuelo)
+  const L = largoRuta(out)
+  if (L <= 0) return [[...desde], [...desde]]
+  const res = []
+  for (let j = 0; j < DIBUJO.puntos; j++) res.push(puntoEnRuta(out, (L * j) / (DIBUJO.puntos - 1)))
+  return res
+}
+/** El punto a `s` yardas de recorrido de la línea. */
+function puntoEnRuta(pts, s) {
+  for (let i = 1; i < pts.length; i++) {
+    const d = dist(pts[i - 1], pts[i])
+    if (s <= d || i === pts.length - 1) {
+      const k = d ? Math.min(1, s / d) : 0
+      return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k]
+    }
+    s -= d
+  }
+  return [...pts[pts.length - 1]]
+}
+
 /** Arma el tiro. El aim que ve el jugador es `angulo` y `potencia` (o el `plan` de planTiro); acá se suma el error humano y el viento. */
 export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng, plan }) {
   potencia = Math.max(0, Math.min(1, potencia))
@@ -813,6 +915,20 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     controlVec = [(cx * Math.cos(err) - cy * Math.sin(err)) * k, (cx * Math.sin(err) + cy * Math.cos(err)) * k]
   }
   const kv = viento.kmh * FISICA.vientoYd * Math.pow(carry / FISICA.carryMax, FISICA.vientoExp)
+  // el Dibuje maestro: la línea, desde la pelota, girada por el error y estirada o acortada como el carry
+  let ruta = null
+  if (p.ruta) {
+    const k = p.carry ? carry / p.carry : 0
+    const c = Math.cos(err), s = Math.sin(err)
+    ruta = p.ruta.map(([x, y]) => {
+      const dx = x - pelota[0], dy = y - pelota[1]
+      return [(dx * c - dy * s) * k, (dx * s + dy * c) * k]
+    })
+    const fin = ruta[ruta.length - 1]
+    carryVec[0] = fin[0]
+    carryVec[1] = fin[1]
+    controlVec = [fin[0] / 2, fin[1] / 2]
+  }
   return {
     modo: 'full',
     fase: 'vuelo',
@@ -825,6 +941,7 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     perfecta: !!p.perfecta,
     comba: !!p.comba,
     golpe: p.golpe ?? null,
+    ruta, // el Dibuje maestro: el vuelo, punto a punto (relativo a `desde`), a velocidad pareja
     approach: !!p.approach,
     salida: p.salida ?? lie === 'tee', // el tiro de salida (desde el tee del hoyo que se juega, no el de otro)
     liberty: (p.salida ?? lie === 'tee') && !p.putt,
@@ -833,7 +950,7 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     derecha: !!p.aguila?.enVentana,
     iman: p.iman ?? null,
     // el globo del Mago tarda más en bajar; la viborita va rápida y al ras
-    T: (0.8 + carry / 140) * ((p.alto ?? 1) > 1 ? 1.5 : (p.alto ?? 1) < 1 ? 0.75 : 1),
+    T: (0.8 + (ruta ? largoRuta(ruta) : carry) / 140) * ((p.alto ?? 1) > 1 ? 1.5 : (p.alto ?? 1) < 1 ? 0.75 : 1),
     hMax: (8 + carry * 0.12) * (p.alto ?? 1),
     t: 0,
     pos: [...pelota],
@@ -866,6 +983,11 @@ export function avanzar(campo, tiro, dt, pin) {
     // Bézier cuadrática (recta si el control está en el medio) + la deriva del viento
     const b1 = 2 * u * (1 - u)
     const b2 = u * u
+    if (tiro.ruta) {
+      // el Dibuje maestro: por la línea dibujada (a velocidad pareja) + la deriva del viento
+      const q = puntoEnRuta(tiro.ruta, u * (tiro.rutaLargo ??= largoRuta(tiro.ruta)))
+      tiro.pos = [tiro.desde[0] + q[0] + tiro.deriva[0] * b2, tiro.desde[1] + q[1] + tiro.deriva[1] * b2]
+    } else
     tiro.pos = [
       tiro.desde[0] + tiro.controlVec[0] * b1 + tiro.carryVec[0] * b2 + tiro.deriva[0] * b2,
       tiro.desde[1] + tiro.controlVec[1] * b1 + tiro.carryVec[1] * b2 + tiro.deriva[1] * b2,
@@ -917,9 +1039,11 @@ export function avanzar(campo, tiro, dt, pin) {
         return tiro.fase
       }
       // rueda en la dirección con la que llega; la comba del Mago, en cambio, pica y sigue derecho a la bandera
+      // (el Dibuje maestro: para donde iba el final de la línea)
       const k = tiro.comba ? 0 : 1
-      const dx = tiro.carryVec[0] - k * tiro.controlVec[0] + tiro.deriva[0]
-      const dy = tiro.carryVec[1] - k * tiro.controlVec[1] + tiro.deriva[1]
+      const n = tiro.ruta?.length ?? 0
+      const dx = n > 1 ? tiro.ruta[n - 1][0] - tiro.ruta[n - 2][0] : tiro.carryVec[0] - k * tiro.controlVec[0] + tiro.deriva[0]
+      const dy = n > 1 ? tiro.ruta[n - 1][1] - tiro.ruta[n - 2][1] : tiro.carryVec[1] - k * tiro.controlVec[1] + tiro.deriva[1]
       const d = Math.hypot(dx, dy) || 1
       const vel = Math.sqrt(1.8 * tiro.carry) * FISICA.pique[t] * (tiro.rueda ?? 1)
       tiro.v = [(dx / d) * vel, (dy / d) * vel]
@@ -1117,13 +1241,14 @@ export function nuevaRonda(jugador, rng) {
     monosBuenos: 0,
     robos: 0,
     monos: crearMonos(),
-    golpeMago: null, // el golpe que le toca al Mago en el próximo tiro
+    golpeMago: null, // el golpe del Mago elegido para el próximo tiro (fuera del green)
+    puttMago: 'draw', // y el putt (draw o fade)
     panchos: habilidadDe(jugador)?.id === 'panchitos' ? MUGRE.panchos : 0,
     t0: null, // performance.now() de la largada (lo pone la página)
     ms: null, // el tiempo de la vuelta: de la largada al último putt
     terminada: false,
   }
-  if (habilidadDe(jugador)?.id === 'comba') r.golpeMago = sortearGolpeMago(rng, null)
+  if (habilidadDe(jugador)?.id === 'comba') r.golpeMago = GOLPE_MAGO_INICIAL
   // Marcos arranca con el carrito estacionado al lado del tee del 15
   if (habilidadDe(jugador)?.id === 'carrito') r.carro = carroAlLado(r.pelota)
   if (habilidadDe(jugador)?.id === 'deme') r.deme = { usado: false, listo: false }
@@ -1164,7 +1289,7 @@ export function turnoRuleta(r, rng) {
   const j = elegir(r.ruleta.rng ?? rng, pool)
   r.jugador = j
   const id = habilidadDe(j)?.id
-  r.golpeMago = id === 'comba' ? sortearGolpeMago(rng, null) : null
+  r.golpeMago = id === 'comba' ? r.golpeMagoRuleta ?? GOLPE_MAGO_INICIAL : null
   r.panchos = id === 'panchitos' ? MUGRE.panchos : 0
   r.carro = id === 'carrito' ? carroAlLado(r.desde) : null
   if (id === 'deme') r.deme ??= { usado: false, listo: false }
@@ -1184,11 +1309,23 @@ export function tirosRuleta(r) {
   }
   return por
 }
-/** El golpe del Mago para el próximo tiro: al azar, distinto del anterior. */
-export function sortearGolpeMago(rng, antes) {
-  return elegir(rng, GOLPES_MAGO.filter((g) => g.id !== antes)).id
-}
+/** El golpe del Mago de entrada (después queda el último que elegiste). */
+export const GOLPE_MAGO_INICIAL = 'draw'
 export const golpeMagoDe = (r) => GOLPES_MAGO.find((g) => g.id === r.golpeMago) ?? null
+export const puttMagoDe = (r) => PUTTS_MAGO.find((g) => g.id === r.puttMago) ?? PUTTS_MAGO[0]
+/** Elegir el golpe del Mago: uno de GOLPES_MAGO (fuera del green) o de PUTTS_MAGO (en el green). */
+export function elegirGolpeMago(campo, r, id) {
+  if (habilidadDe(r.jugador)?.id !== 'comba') return false
+  if (enModoPutt(campo, r)) {
+    if (!PUTTS_MAGO.some((g) => g.id === id)) return false
+    r.puttMago = id
+  } else {
+    if (!GOLPES_MAGO.some((g) => g.id === id)) return false
+    r.golpeMago = id
+    if (r.ruleta) r.golpeMagoRuleta = id // la Ruleta: si vuelve a salir el Mago, con el que elegiste
+  }
+  return true
+}
 // La ronda puede traer sus propias banderas (`sortearBanderas`): entonces el hoyo es su copia, con su `pin`.
 export const hoyoActual = (r) => (r.hoyos ?? HOYOS)[r.idx]
 export const enModoPutt = (campo, r) => r.lie === 'green' && terreno(campo, r.pelota).hoyo === hoyoActual(r).n
@@ -1218,8 +1355,8 @@ export function pinoEnLaSalida(campo, pelota, plan) {
 }
 
 /** Pegarle: cuenta el golpe y devuelve el tiro para animarlo con `avanzar` (que también mueve los monos). */
-export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0) {
-  const plan = planTiro(campo, r, angulo, potencia, precision, tiempo)
+export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null) {
+  const plan = planTiro(campo, r, angulo, potencia, precision, tiempo, ruta)
   r.desde = [...r.pelota]
   r.lieDesde = r.lie
   r.golpes += 1
@@ -1241,7 +1378,6 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   if (r.prestado) tiro.prestado = r.jugador.apodo // la Dickyllamada: este lo pegó el Dicky que atendió
   // Joaco: de 3 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola)
   if (plan.noLaFalla) tiro.iman = { meter: true, lechu: true }
-  if (r.golpeMago && !plan.putt) r.golpeMago = sortearGolpeMago(rng, r.golpeMago) // el próximo, otro efecto
   return tiro
 }
 

@@ -28,7 +28,20 @@ function probar(r, ang, p, q, tiempo) {
   return M.simular(vacio, tiro, M.hoyoActual(r).pin)
 }
 
+/** El Mago elige su golpe: prueba cada uno (en el green, putt con draw y con fade) y se queda con el mejor. */
 function elegirTiro(r) {
+  if (M.habilidadDe(r.jugador)?.id !== 'comba') return elegirTiroCon(r)
+  const putt = M.enModoPutt(campo, r)
+  let mejor = null
+  for (const g of putt ? M.PUTTS_MAGO : M.GOLPES_MAGO) {
+    const rr = putt ? { ...r, puttMago: g.id } : { ...r, golpeMago: g.id }
+    const t = elegirTiroCon(rr)
+    if (t && (!mejor || t.c < mejor.c)) mejor = { ...t, id: g.id }
+  }
+  if (mejor) M.elegirGolpeMago(campo, r, mejor.id)
+  return mejor
+}
+function elegirTiroCon(r) {
   const h = M.hoyoActual(r)
   const base = Math.atan2(h.pin[1] - r.pelota[1], h.pin[0] - r.pelota[0])
   const hab = M.habilidadDe(r.jugador)
