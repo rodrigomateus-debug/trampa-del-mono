@@ -1328,7 +1328,7 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v f1a840a · 6/10, 08:29 a. m.</span>
+  <span class="version" id="version">v 0c6bc9b · 6/10, 08:33 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1588,6 +1588,13 @@ const candado = (abierto = false, clase = '') => `<svg class="gi candado-gi ${cl
   : '<path d="M10.5 14.5V10a5.5 5.5 0 0 1 11 0v4.5"/>'}<rect x="6" y="14.5" width="20" height="13.5" rx="3.2" style="fill:var(--gi-a)"/><path d="M9.5 18v6" style="stroke:var(--gi-f);stroke-width:1.6;opacity:.7"/><circle cx="16" cy="20" r="1.9" style="fill:var(--gi-s);stroke:none"/><path d="M16 21v3.2" style="stroke-width:2.2"/></g></svg>`
 // ── 🔒 Taiu: se desbloquea con una tarjeta firmada de −1 o mejor con cada uno de los otros Dicky ──
 const progresoTaiu = () => M.progresoDesbloqueo(DESBLOQUEO_TAIU, datos.records)
+// para probar (solo en la copia dev/): ?taiu=1 lo desbloquea en este teléfono; ?taiu=0 lo vuelve a bloquear
+// (si tus récords ya alcanzan, se desbloquea igual, como siempre)
+if (/\/dev\//.test(location.pathname) && PARAMS.has('taiu')) {
+  if (PARAMS.get('taiu') === '0') delete datos.taiu
+  else datos.taiu = { fecha: new Date().toISOString(), prueba: true }
+  guardar(datos)
+}
 /** ¿Ya lo tenés? Apenas los récords alcanzan, queda guardado en el teléfono (`datos.taiu`). */
 function tieneTaiu() {
   if (datos.taiu) return true
