@@ -1,7 +1,7 @@
 // node test-motor.mjs — chequeos del motor de La Trampa del Mono.
 import assert from 'node:assert/strict'
 import * as M from './motor.js'
-import { RULETA } from './plantel.js'
+import { RULETA, DESBLOQUEO_TAIU } from './plantel.js'
 
 const campo = M.crearCampo()
 // para probar la física sola: sin monos cruzando y con greens planos
@@ -1343,6 +1343,18 @@ ok('📞 Dickyllamada: un Dicky te pega el próximo tiro (con su habilidad) y te
   assert.ok(!M.puedeDickyllamar(M.nuevaRonda(por('LG'), fijo(0.5)))) // no es Dicky
   assert.equal(M.momentoDicky({ tipo: 'afuera' }), 'mal')
   assert.equal(M.momentoDicky({ tipo: 'normal', terreno: 'fairway' }), 'bien')
+})
+
+ok('🔒 Taiu: se desbloquea con −1 o mejor (firmado) con Fito, Miguelón y el Ninja', () => {
+  const req = DESBLOQUEO_TAIU
+  assert.deepEqual(req.con, ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'])
+  let p = M.progresoDesbloqueo(req, {})
+  assert.equal(p.listo, false)
+  assert.equal(p.hechos, 0)
+  p = M.progresoDesbloqueo(req, { 'Fito (Đ)': -1, 'Mike Queboni (Đ)': 0, 'El Ninja (Đ)': -3 })
+  assert.equal(p.hechos, 2) // el par (E) no alcanza
+  assert.equal(p.items[1].ok, false)
+  assert.equal(M.progresoDesbloqueo(req, { 'Fito (Đ)': -1, 'Mike Queboni (Đ)': -2, 'El Ninja (Đ)': -1 }).listo, true)
 })
 
 console.log('\nTodo verde.')

@@ -1066,6 +1066,40 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 .dk-op b { display: block; font: 20px/1.05 var(--font-display); }
 .dk-op small { display: block; font-size: 12px; font-weight: 700; color: var(--red); margin-top: 2px; }
 .dk-op span { display: block; font-size: 11.5px; line-height: 1.25; color: var(--text-muted); margin-top: 2px; }
+
+/* 🔒 la carta bloqueada (Taiu): la foto apagada, el candado y lo que te falta para desbloquearlo */
+.carta.bloqueada .carta-foto img:not(.carta-dicky) { filter: grayscale(1) blur(4px) brightness(.5); transform: scale(1.06); }
+.carta.bloqueada .carta-hab, .carta.bloqueada .carta-dif { opacity: .55; }
+.candado { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 8px; pointer-events: none; }
+.candado .cand-ico { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; font-size: 50px; background: rgba(244, 238, 218, .95); border: var(--game-stroke) solid var(--game-ink); box-shadow: var(--game-shadow-lg); animation: cand-late 2.4s ease-in-out infinite; }
+.candado .cand-sello { font: 22px/1 var(--font-display); letter-spacing: .1em; color: var(--cream); background: var(--red); border: 2.5px solid var(--game-ink); padding: 5px 12px 4px; transform: rotate(-6deg); box-shadow: 3px 3px 0 var(--game-ink); }
+@keyframes cand-late { 0%, 70%, 100% { transform: rotate(0); } 76% { transform: rotate(-9deg); } 82% { transform: rotate(8deg); } 88% { transform: rotate(-4deg); } }
+.req { display: grid; gap: 6px; background: var(--green-900); color: var(--cream); border-radius: 14px; padding: 10px 12px; }
+.req-tit { margin: 0; font: 17px/1.1 var(--font-display); letter-spacing: .04em; color: var(--gold); }
+.req-txt { margin: 0; font-size: 12.5px; line-height: 1.3; }
+.req-txt b { color: var(--gold); }
+.req ul { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 5px; }
+.req li { display: grid; grid-template-columns: 34px 1fr 22px; gap: 8px; align-items: center; background: rgba(244, 238, 218, .08); border-radius: 10px; padding: 4px 8px 4px 4px; }
+.req li img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; object-position: top; border: 2px solid var(--cream); box-sizing: border-box; }
+.req li b { display: block; font-size: 13px; }
+.req li small { display: block; font-size: 11px; opacity: .8; }
+.req li.ok { background: rgba(46, 125, 79, .55); }
+.req li.ok img { border-color: var(--gold); }
+.req li i { font-style: normal; font-size: 15px; text-align: center; }
+.req-cuenta { margin: 0; font-size: 11px; opacity: .85; }
+.req-cuenta b { color: var(--gold); font-size: 12px; }
+.todo.bloqueado .cara .foto { filter: grayscale(1) brightness(.6); }
+.todo.bloqueado .req { margin-top: 8px; }
+/* 🔓 el anuncio del desbloqueo */
+.tu-caja { z-index: 2; }
+.tu-caja .tu-foto { -webkit-mask: linear-gradient(#000 78%, transparent); mask: linear-gradient(#000 78%, transparent); display: block; width: 190px; height: auto; margin: 4px auto -6px; filter: drop-shadow(0 8px 14px rgba(8, 26, 16, .45)); animation: tu-entra 700ms cubic-bezier(.2, 1.4, .4, 1) both; }
+.tu-caja .carta-jugar { background: var(--gold); color: var(--green-900); margin-top: 4px; }
+.tu-despues { margin-top: 8px; border: 0; background: none; color: var(--text-muted); font: 700 13px var(--font-body); text-decoration: underline; cursor: pointer; }
+.tu-ranas { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+.tu-ranas span { position: absolute; top: -40px; font-size: 26px; animation: tu-cae linear forwards; }
+@keyframes tu-cae { to { transform: translateY(110vh) rotate(260deg); } }
+@keyframes tu-entra { from { transform: translateY(30px) scale(.7); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .candado .cand-ico, .tu-ranas span, .tu-caja .tu-foto { animation: none; } }
 </style>
 
 <canvas id="cancha" aria-label="La cancha: hoyos 15, 16 y 17 de San Diego"></canvas>
@@ -1168,6 +1202,19 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
 <button id="ninja-btn" type="button" hidden aria-label="Reset ninja: el hoyo de nuevo desde el tee, sin multa"><span class="emo" aria-hidden="true">🥷</span><span class="txt">RESET</span><b aria-hidden="true">1</b></button>
 <button id="dicky-btn" type="button" hidden aria-label="Dickyllamada: llamá a otro Dicky"><img src="dicky-toons.svg" alt="" draggable="false"><span class="cinta">DICKYLLAMADA</span><b aria-hidden="true">📞</b></button>
+<div class="hab-modal" id="taiu-ok" hidden style="z-index: 62">
+  <div class="hab-fondo" data-cerrar></div>
+  <div class="tu-ranas" aria-hidden="true"></div>
+  <div class="dk-caja tu-caja" role="dialog" aria-modal="true" aria-labelledby="tu-tit">
+    <img class="dk-logo" src="dicky-toons.svg" alt="" draggable="false">
+    <p class="dk-kicker">🔓 ¡DESBLOQUEADO!</p>
+    <img class="tu-foto" src="jugadores/la-rana-torso.webp" alt="Taiu" draggable="false">
+    <h3 id="tu-tit">🐸 Taiu se suma al mazo</h3>
+    <p class="dk-sub">Hiciste −1 con Fito, Miguelón y el Ninja. Bombas desde el tee, approach perfectos… y los controles al revés.</p>
+    <button class="carta-jugar" id="tu-jugar" type="button">Jugar con Taiu</button>
+    <button class="tu-despues" type="button" data-cerrar>Después</button>
+  </div>
+</div>
 <div class="hab-modal" id="dicky-sel" hidden>
   <div class="hab-fondo" data-cerrar></div>
   <div class="dk-caja" role="dialog" aria-modal="true" aria-labelledby="dk-tit">
@@ -1391,7 +1438,7 @@ body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 
 <script type="module">
 import * as M from './motor.js'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO } from './plantel.js'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js'
 import { CANCHA } from './cancha-grid.js'
 import * as R from './ranking.js'
 import * as S from './sonido.js'
@@ -1474,6 +1521,45 @@ function recuperarSecreto(marcas, conteo) {
   datos.demetrio = { fecha: new Date().toISOString(), restaurado: true, visto: true }
   guardar(datos)
   sincronizarSecreto()
+}
+// ── 🔒 Taiu: se desbloquea con una tarjeta firmada de −1 o mejor con cada uno de los otros Dicky ──
+const progresoTaiu = () => M.progresoDesbloqueo(DESBLOQUEO_TAIU, datos.records)
+/** ¿Ya lo tenés? Apenas los récords alcanzan, queda guardado en el teléfono (`datos.taiu`). */
+function tieneTaiu() {
+  if (datos.taiu) return true
+  if (!progresoTaiu().listo) return false
+  datos.taiu = { fecha: new Date().toISOString() }
+  guardar(datos)
+  return true
+}
+const bloqueado = (j) => j?.apodo === DESBLOQUEO_TAIU.apodo && !tieneTaiu()
+/** Tus vueltas firmadas del ranking (con tu usuario) también son récord: así el desbloqueo no se pierde al reinstalar. */
+function recuperarRecords(marcas) {
+  const uid = R.puente.identidad?.uid
+  if (!uid) return
+  let cambio = false
+  for (const m of marcas ?? []) {
+    if ((m.uid !== uid && m.user_id !== uid) || m.vsPar == null || !(m.golpes > 0)) continue
+    const a = datos.records[m.apodo]
+    if (a === undefined || m.vsPar < a) { datos.records[m.apodo] = m.vsPar; cambio = true }
+  }
+  if (cambio) guardar(datos)
+}
+/** Lo que te falta para Taiu, con cada Dicky: lo que dice la carta con candado. */
+function requisitosTaiu() {
+  const p = progresoTaiu()
+  const meta = DESBLOQUEO_TAIU.vsPar
+  const filas = p.items.map((it) => {
+    const d = TODOS.find((x) => x.apodo === it.apodo)
+    const falta = it.mejor == null ? 'Todavía no firmaste una vuelta con él' : it.ok ? `¡Hecho! Tu mejor: ${M.formatoPar(it.mejor)}` : `Tu mejor: ${M.formatoPar(it.mejor)} · te ${it.mejor - meta === 1 ? 'falta 1 golpe' : `faltan ${it.mejor - meta} golpes`}`
+    return `<li class="${it.ok ? 'ok' : ''}"><img src="${d?.foto ?? ''}" alt="" draggable="false"><span><b>${d?.emoji ?? ''} ${esc(it.apodo.replace(/ \(Đ\)$/, ''))}</b><small>${falta}</small></span><i aria-hidden="true">${it.ok ? '✅' : '🔒'}</i></li>`
+  }).join('')
+  return `<div class="req">
+    <p class="req-tit">🔒 Cómo desbloquear a Taiu</p>
+    <p class="req-txt">Firmá una tarjeta de <b>${M.formatoPar(meta)} o mejor</b> (un golpe bajo par) jugando con cada uno de estos Dicky:</p>
+    <ul>${filas}</ul>
+    <p class="req-cuenta"><b>${p.hechos} de ${p.items.length}</b> · vale cualquier vuelta firmada con ellos, no hace falta que sea seguida</p>
+  </div>`
 }
 /** Cómo ve a un player alguien que todavía no desbloqueó a Demetrio (ranking, lo que se comparte). */
 const publico = (j) => (j?.apodo === DEMETRIO.apodo && !datos.demetrio ? { ...j, ...MISTERIOSO } : j)
@@ -2164,6 +2250,9 @@ function levantarVuelta() {
 
 // ── hoyos ──
 function empezar(jugador) {
+  if (bloqueado(jugador) && !matchModo) return // 🔒 Taiu, hasta desbloquearlo (si te desafían con él, sí)
+  // la Ruleta: el bloqueado no sale
+  if (jugador.ruleta && jugador.pool.some(bloqueado)) jugador = { ...jugador, pool: jugador.pool.filter((x) => !bloqueado(x)) }
   aplicarHandicaps() // si la app mandó handicaps mientras se jugaba la vuelta anterior
   ronda = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // la bandera, en otro lugar del green cada ronda
   // el match: las banderas y el viento salen de la semilla (los dos juegan lo mismo); se usa una vez
@@ -2464,7 +2553,8 @@ function lucasDice(texto) {
 // ── los Dicky: después de cada tiro aparece otro Dicky con palabras tiernas (como Lucas con Rodal); y la
 // Dickyllamada (una por vuelta): elegís un Dicky y te pega el próximo tiro ──
 const DICKYS = TODOS.filter((j) => j.dicky && j.torso)
-const hayOtroDicky = (j) => !!j?.dicky && DICKYS.some((d) => d.apodo !== j.apodo)
+const dickysLibres = () => DICKYS.filter((d) => !bloqueado(d)) // Taiu, bloqueado, ni aparece ni atiende
+const hayOtroDicky = (j) => !!j?.dicky && dickysLibres().some((d) => d.apodo !== j.apodo)
 const sinD = (apodo) => apodo.replace(/ \(Đ\)$/, '')
 let dickyTimer = 0, dickyUltimo = null
 /** Entra el Dicky `d` abajo a la izquierda, con su foto recortada, su nombre, lo que dice y corazones. */
@@ -2504,7 +2594,7 @@ function dickyDespues(res, tiro) {
     return
   }
   if (!hayOtroDicky(yo)) return
-  const otros = DICKYS.filter((d) => d.apodo !== yo.apodo)
+  const otros = dickysLibres().filter((d) => d.apodo !== yo.apodo)
   const d = M.elegir(rng, otros.length > 1 ? otros.filter((x) => x.apodo !== dickyUltimo) : otros)
   dickyUltimo = d.apodo
   dickyVisita(d, M.fraseDicky(rng, d.apodo, yo, M.momentoDicky(res)))
@@ -2513,7 +2603,7 @@ function dickyDespues(res, tiro) {
 function abrirDickyllamada() {
   if (estado !== 'apuntar' || !M.puedeDickyllamar(ronda)) return
   const yo = ronda.jugador
-  const otros = DICKYS.filter((d) => d.apodo !== yo.apodo)
+  const otros = dickysLibres().filter((d) => d.apodo !== yo.apodo)
   $('#dk-lista').innerHTML = otros.map((d) => {
     const hab = M.habilidadDe(d)
     return `<button class="dk-op" type="button" data-apodo="${esc(d.apodo)}"><span class="cara"><img src="${d.torso}" alt="" draggable="false"></span><span><b>${d.emoji} ${esc(sinD(d.apodo))}</b><small>${esc(hcpEtiqueta(d))}${hab ? ` · ✨ ${esc(hab.nombre)}` : ''}</small><span>${hab ? esc(hab.corto ?? hab.texto.split('. ')[0] + '.') : ''}</span></span></button>`
@@ -3718,13 +3808,38 @@ $('#firmar').addEventListener('click', () => {
   const { vsPar } = M.totales(ronda.tarjeta)
   const apodo = ronda.carta.apodo
   const antes = datos.records[apodo]
+  const sinTaiu = !tieneTaiu()
   const record = vsPar != null && (antes === undefined || vsPar < antes)
   if (record) { datos.records[apodo] = vsPar; guardar(datos) }
+  if (sinTaiu && tieneTaiu()) setTimeout(mostrarTaiuDesbloqueado, 900) // con esta vuelta completaste los tres
   $('#t-firma').hidden = true
   $('#t-firmada').hidden = false
   anotarVuelta()
   $('#t-firmada').textContent = vsPar == null ? 'Firmada ✍️ · Vuelta LP: no cuenta para el récord' : record ? `Firmada ✍️ · ¡Récord personal! (${antes === undefined ? 'primera vuelta' : `antes ${M.formatoPar(antes)}`})` : `Firmada ✍️ · Tu récord: ${M.formatoPar(antes)}`
   acciones()
+})
+/** 🔓 Desbloqueaste a Taiu: el anuncio, con su foto y para jugarlo ya. */
+function mostrarTaiuDesbloqueado() {
+  const el = $('#taiu-ok')
+  const cor = el.querySelector('.tu-ranas')
+  cor.innerHTML = ''
+  for (let i = 0; i < 18; i++) {
+    const c = document.createElement('span')
+    c.textContent = i % 3 ? '🐸' : '💚'
+    c.style.left = `${Math.random() * 100}%`
+    c.style.animationDuration = `${1.8 + Math.random() * 1.6}s`
+    c.style.animationDelay = `${Math.random() * 0.8}s`
+    cor.append(c)
+  }
+  el.hidden = false
+  S.monoBueno()
+  $('#tu-jugar').focus({ preventScroll: true })
+}
+$('#taiu-ok').addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) $('#taiu-ok').hidden = true })
+$('#tu-jugar').addEventListener('click', () => {
+  $('#taiu-ok').hidden = true
+  const t = TODOS.find((x) => x.apodo === DESBLOQUEO_TAIU.apodo)
+  if (t) empezar(t)
 })
 function sinFirma() {
   S.marshall()
@@ -5151,6 +5266,7 @@ async function mostrarRanking(tab = 'general') {
   pintarRanking()
   const [{ marcas, compartido, error, app }, conteo] = await Promise.all([R.leerMarcas(), R.leerConteo()])
   recuperarSecreto(marcas, conteo)
+  recuperarRecords(marcas)
   rkConteo = conteo
   rkApp = !!app
   rkMarcas = marcas
@@ -5316,9 +5432,10 @@ function cartaDe(j) {
   const rec = datos.records[j.apodo]
   const s = j.stats
   const nivel = nivelDe(j)
+  const lock = bloqueado(j) // 🔒 Taiu, hasta que hagas −1 con los otros Dicky
   const el = document.createElement('div')
   el.className = 'envoltorio'
-  el.innerHTML = `<article class="carta${j.retro ? ' dorada' : ''}${j.ruleta ? ' ruleta' : ''}">
+  el.innerHTML = `<article class="carta${j.retro ? ' dorada' : ''}${j.ruleta ? ' ruleta' : ''}${lock ? ' bloqueada' : ''}">
     <div class="carta-foto">
       ${j.ruleta ? fotoRuleta(j) : j.foto ? `<img src="${j.foto}" alt="${esc(j.apodo)}" draggable="false">` : `<div class="carta-emoji" aria-hidden="true">${j.emoji}</div>`}
       <div class="carta-degrade"></div>
@@ -5329,22 +5446,23 @@ function cartaDe(j) {
       <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
       ${j.dicky ? '<img class="carta-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
       ${j.retro ? '<span class="sello-1960">PRO · 1960</span>' : ''}
+      ${lock ? '<div class="candado" aria-hidden="true"><span class="cand-ico">🔒</span><span class="cand-sello">BLOQUEADO</span></div>' : ''}
       <div class="carta-nombre"><h3>${esc(j.apodo)}</h3><span class="teja" aria-hidden="true">${j.emoji}</span></div>
     </div>
     <div class="carta-cuerpo">
-      ${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
+      ${lock ? requisitosTaiu() : `${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
       ${hab ? `<button class="carta-prev" type="button" aria-label="Ver la habilidad ${esc(hab.nombre)} entera">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p><span class="mas" aria-hidden="true">›</span></button>` : ''}
       <dl>
         <div><dt>HCP</dt><dd>${j.ruleta ? 'C/U<span class="sub">el suyo</span>' : dif.cargado ? hcpTxt(j) : `—<span class="sub">juega ${dif.hcp}</span>`}</dd></div>
         <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span>${dif.prom != null ? `<span class="sub">${M.formatoPar(Math.round(dif.prom))} prom.</span>` : ''}</dd></div>
         <div><dt>Récord</dt><dd>${rec === undefined ? '—' : M.formatoPar(rec)}</dd></div>
-        ${j.ruleta ? `<div><dt>Players</dt><dd>${j.pool.length}</dd></div>
+        ${j.ruleta ? `<div><dt>Players</dt><dd>${j.pool.filter((x) => !bloqueado(x)).length}</dd></div>
         <div><dt>Repite</dt><dd>Nunca</dd></div>
         <div><dt>Tees</dt><dd>Blancas</dd></div>` : `<div><dt>Rondas</dt><dd>${s ? s.tarjetas : '—'}</dd></div>
         <div><dt>Prom. neto</dt><dd>${fmtNeto(s?.netoPromedio)}</dd></div>
         <div><dt>Mejor neto</dt><dd>${fmtNeto(s?.mejorNeto)}</dd></div>`}
-      </dl>
-      <button class="carta-jugar" type="button">Jugar con ${esc(j.apodo)}</button>
+      </dl>`}
+      <button class="carta-jugar" type="button"${lock ? ' disabled' : ''}>${lock ? '🔒 Bloqueado' : `Jugar con ${esc(j.apodo)}`}</button>
     </div>
   </article>`
   el.querySelector('.carta-jugar').addEventListener('click', () => empezar(j))
@@ -5539,7 +5657,8 @@ R.alPlantel((hcps) => {
 })
 R.alEntrar((yo) => {
   // ¿ya habías desbloqueado a Demetrio? (si borraste la app, se recupera de la base)
-  if (!datos.demetrio) Promise.all([R.leerMarcas(), R.leerConteo()]).then(([r, c]) => recuperarSecreto(r?.marcas, c)).catch(() => {})
+  // y tus récords firmados (el desbloqueo de Taiu sale de ahí)
+  Promise.all([R.leerMarcas(), R.leerConteo()]).then(([r, c]) => { recuperarSecreto(r?.marcas, c); recuperarRecords(r?.marcas) }).catch(() => {})
   datos.usuario = yo.alias
   $('#usuario').value = yo.alias
   $('#quien-juega').hidden = true
@@ -5613,6 +5732,19 @@ function mostrarTodos() {
     const hab = M.habilidadDe(j)
     const dif = difDe(j)
     const cara = j.foto ? `<img class="foto" src="${j.foto}" alt="" draggable="false">` : `<span class="foto sin-foto">${j.emoji}</span>`
+    const lock = bloqueado(j)
+    if (lock) {
+      const p = progresoTaiu()
+      return `<li class="todo bloqueado">
+      <div class="todo-cab">
+        <div class="cara" aria-hidden="true">${cara}<span class="emo">🔒</span></div>
+        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>BLOQUEADO · ${p.hechos} DE ${p.items.length}</span></div>
+        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
+        <button class="carta-jugar" type="button" disabled>🔒</button>
+      </div>
+      ${requisitosTaiu()}
+    </li>`
+    }
     return `<li class="todo${j.retro ? ' dorado' : ''}">
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${j.emoji}</span></div>
@@ -5631,7 +5763,7 @@ $('#ver-todos').addEventListener('click', mostrarTodos)
 $('#todos-cerrar').addEventListener('click', () => { $('#todos').hidden = true })
 $('#todos-lista').addEventListener('click', (e) => {
   const b = e.target.closest('[data-jugar]')
-  if (!b) return
+  if (!b || bloqueado(PLANTEL[+b.dataset.jugar])) return
   $('#todos').hidden = true
   empezar(PLANTEL[+b.dataset.jugar])
 })
