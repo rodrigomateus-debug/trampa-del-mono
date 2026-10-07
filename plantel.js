@@ -1,4 +1,4 @@
-// El plantel del SDGA para elegir nivel (dicky: es de los Dicky Toons, lleva el logo en la carta; torso: su foto recortada, para la Dickyllamada): de la base de la FedE Cup (handicap, frase, emoji) y del
+// El plantel del SDGA para elegir nivel (dicky: es de los Dicky Toons, lleva el logo en la carta; equipo: su equipo, con su logo (el 5: equipo-5.svg); torso: su foto recortada, para la Dickyllamada): de la base de la FedE Cup (handicap, frase, emoji) y del
 // design system (fotos, stats 2024–2026). Foto del 2026-10-03.
 // Ordenado por handicap, de menor a mayor. aprox: handicap aproximado que pasó Rorro (no está en la base).
 // En la app esto sale de la tabla players (usePlayers) y de photoForPlayer, no de este archivo.
@@ -131,6 +131,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "Lechu",
+    "equipo": 5,
     "emoji": "🦉",
     "hcp": 7,
     "aprox": true,
@@ -185,6 +186,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "LG",
+    "equipo": 5,
     "emoji": "📺",
     "hcp": 11.1,
     "frase": "El que se enoja pierde",
@@ -331,7 +333,7 @@ export const DEMETRIO = {
 export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp": null, "foto": null, "misterio": true }
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
+export const EN_PRUEBA = ['Tito', 'Mapache', 'El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
 
 // 🔒 Taiu se desbloquea (2026-10-06): con una tarjeta firmada de −1 o mejor con cada uno de estos Dicky
 // (vale el récord del teléfono y, con tu usuario, tus vueltas del ranking). Hasta entonces, su carta va con candado.
@@ -358,10 +360,12 @@ PLANTEL.push(RULETA)
 // El mazo se ordena por esto, no por el handicap. Se midió con el handicap de este archivo: adentro de la app cada uno juega
 // con el suyo real (sdga:plantel), así que el nivel de la carta es una referencia.
 export const DIFICULTAD_REAL = {
-  'El Sueco': { prom: -1.35, lp: 0 },
+  'El Sueco': { prom: -0.45, lp: 0 }, // 2026-10-07: el drive con el pulso de Fito, después la flecha
   Grandpa: { prom: -1.22, lp: 2 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
   'El Perro': { prom: -0.83, lp: 0 },
-  'Mike Queboni (Đ)': { prom: -0.2, lp: 8 }, // con la bomba de 405 (llega a los dos par 4), 2026-10-06
+  'Mike Queboni (Đ)': { prom: 0.94, lp: 10 }, // 2026-10-07: con la furia (antes −0,2); la bomba de 405 llega a los dos par 4
+  Tito: { prom: 3.94, lp: 10 }, // 2026-10-07: el bot apaga el viento antes de cada tiro (HCP 16)
+  Mapache: { prom: 0.05, lp: 0 }, // 2026-10-07: Juanpa, la mitad del error y una de dos, una sorpresa; anunciada y nunca dos seguidas (antes +1,4)
   'El Ninja (Đ)': { prom: 0.41, lp: 3 },
   LG: { prom: 0.49, lp: 2 },
   'El Mago Rodal': { prom: -0.5, lp: 0, nivel: 2 }, // 2026-10-06: elige el golpe (antes, al azar). Normal a mano: el bot dibuja el vuelo perfecto, la gente no

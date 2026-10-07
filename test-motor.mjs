@@ -219,6 +219,56 @@ ok('Rodal: el putt con draw dobla a la izquierda y con fade a la derecha', () =>
   assert.equal(M.planTiro(plano, otro, 0, 0.2).giro, 0)
 })
 
+ok('Miguelón: la furia se carga de a media (calle, green, bogey) y llena revolea el palo: el próximo, sacado', () => {
+  const nueva = () => ({ ...M.nuevaRonda({ apodo: 'Mike Queboni (Đ)', emoji: '🦍', hcp: 8 }, fijo(0.5)), monos: [], viento: calma })
+  const tirar = (r, destino) => {
+    // un tiro que termina justo en `destino` (sin error ni viento, a mano: lo dejamos ahí)
+    const t = M.golpear(quieto, r, angulo(r.pelota, destino), 0.3, sinRuido())
+    M.simular(quieto, t, M.hoyoActual(r).pin)
+    t.pos = [...destino]
+    t.alt = 0
+    return M.resolverReposo(quieto, r, t, fijo(0.99))
+  }
+  const calle = h15.calle[2], green = [h15.pin[0] + 2, h15.pin[1] + 3], rough = [h15.calle[2][0] + 16, h15.calle[2][1]], bosque = enArbol
+  // calle y green: no se carga
+  let r = nueva()
+  tirar(r, calle)
+  tirar(r, green)
+  assert.equal(r.furia?.nivel ?? 0, 0)
+  // primero al rough: media; el segundo no llega al green: la otra media → se enoja
+  r = nueva()
+  tirar(r, rough)
+  assert.deepEqual([r.furia.nivel, r.furia.enojado, r.furia.evento.motivo], [1, false, 'primero'])
+  tirar(r, calle)
+  assert.deepEqual([r.furia.nivel, r.furia.enojado, r.furia.evento.motivo, r.furia.evento.estalla], [2, true, 'segundo', true])
+  // sacado: el próximo tiro tiene la dispersión más grande (más que el peor handicap) y la bomba, la peor
+  const linea = angulo(r.pelota, h15.pin)
+  const sacado = M.planTiro(quieto, r, linea, 0.6)
+  const normal = M.planTiro(quieto, { ...r, furia: null }, linea, 0.6)
+  assert.ok(sacado.furia && sacado.disp.ang > normal.disp.ang * 2)
+  const peor = M.planTiro(quieto, { ...r, furia: null, jugador: { apodo: 'X', hcp: 36 } }, linea, 0.6)
+  assert.ok(sacado.disp.ang > peor.disp.ang)
+  // después de ese tiro, la barra vuelve a cero
+  M.golpear(quieto, r, linea, 0.6, sinRuido())
+  assert.deepEqual([r.furia.nivel, r.furia.enojado], [0, false])
+  // el tercer tiro del hoyo ya no carga
+  r = nueva()
+  tirar(r, calle)
+  tirar(r, green)
+  tirar(r, bosque)
+  assert.equal(r.furia?.nivel ?? 0, 0)
+  // bogey o peor: media barra al cerrar el hoyo
+  r = nueva()
+  r.golpes = h15.par + 1
+  M.cerrarHoyo(r, fijo(0.5))
+  assert.deepEqual([r.furia.nivel, r.furia.evento.motivo], [1, 'bogey'])
+  assert.equal(r.tirosHoyo, 0)
+  // a los demás, nada
+  const otro = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [], viento: calma }
+  tirar(otro, rough)
+  assert.equal(otro.furia, undefined)
+})
+
 ok('Miguelón: la bomba perfecta llega al green; mal pegada se abre y queda corta', () => {
   const r = M.nuevaRonda({ apodo: 'Mike Queboni (Đ)', emoji: '🍯', hcp: 5 }, fijo(0.5))
   r.monos = []
@@ -274,22 +324,159 @@ ok('Rodal: Lucas solo lo adula, pegue como pegue, y con frases del tiro que peg�
   assert.ok(otro.lg && !otro.lucas)
 })
 
-ok('Mati (El Sueco): siempre derecho y drive de casi 300', () => {
+ok('Mati (El Sueco): el drive con el pulso de Fito; después, la flecha que atraviesa los árboles', () => {
   const r = { ...M.nuevaRonda({ apodo: 'El Sueco', emoji: '🇸🇪', hcp: 1.5 }, fijo(0.5)), monos: [], viento: calma }
   const linea = angulo(r.pelota, h15.pin)
-  const plan = M.planTiro(quieto, r, linea, 1)
-  assert.equal(plan.disp.ang, 0)
+  // el drive: la línea se sacude como la de Fito; en el embudo sale derecha (y sin imán)
+  const pico = M.planTiro(quieto, r, linea, 1, 0, M.AGUILA.periodo / 4)
+  assert.ok(pico.aguila && !pico.aguila.enVentana && !pico.flecha)
+  assert.ok(Math.abs(pico.cuerda - linea - (M.AGUILA.amplitud * Math.PI) / 180) < 1e-6)
+  const plan = M.planTiro(quieto, r, linea, 1, 0, 0)
+  assert.ok(plan.aguila.enVentana && plan.disp.ang === 0 && !plan.iman)
   assert.ok(Math.abs(plan.carry * h15.escala - M.carryDe(1.5)) < 1e-6)
   assert.equal(M.dificultad(1.5).nombre, 'Paseo')
-  // con azar de verdad, cae sobre la línea
+  // drive total (vuelo + rodaje) a fondo y en el embudo, en yardas reales: casi 300
   const t0 = [...r.pelota]
-  const tiro = M.simular(quieto, M.golpear(quieto, r, linea, 0.8, Math.random), h15.pin)
-  const enLinea = t0[0] + ((h15.pin[0] - t0[0]) * (t0[1] - tiro.pos[1])) / (t0[1] - h15.pin[1])
-  assert.ok(tiro.eventos.some((e) => e.tipo === 'palo') || Math.abs(tiro.pos[0] - enLinea) < 0.5)
-  // drive total (vuelo + rodaje) a fondo, en yardas reales: casi 300
-  const largo = M.simular(quieto, M.golpear(quieto, { ...r, pelota: [...t0], lie: 'tee' }, linea, 1, sinRuido()), h15.pin)
+  const largo = M.simular(quieto, M.golpear(quieto, { ...r, pelota: [...t0], lie: 'tee' }, linea, 1, sinRuido(), 0, 0), h15.pin)
   const yd = M.dist(t0, largo.pos) * h15.escala
   assert.ok(yd > 280 && yd < 310, `anduvo ${yd.toFixed(0)} yd`)
+  // del segundo tiro en adelante: la flecha. Derecho, sin sacudón, y atraviesa los pinos
+  const desde = [h15.tee[0] - 18, h15.tee[1] - 60] // en el bosque de la izquierda, con pinos adelante
+  const rr = { ...r, pelota: [...desde], lie: 'rough' }
+  const fl = M.planTiro(quieto, rr, angulo(desde, h15.pin), 0.6, 0, M.AGUILA.periodo / 4)
+  assert.ok(fl.flecha && !fl.aguila && fl.disp.ang === 0 && fl.cuerda === angulo(desde, h15.pin))
+  assert.equal(M.pinoEnLaSalida(quieto, desde, fl), null)
+  // contra la fila de pinos de al lado: un tiro normal choca, la flecha pasa
+  const cruza = angulo(desde, [desde[0] + 40, desde[1]])
+  const normal = M.simular(quieto, M.golpear(quieto, { ...rr, jugador: { apodo: 'Rorro', hcp: 1.5 }, pelota: [...desde] }, cruza, 0.4, sinRuido()), h15.pin)
+  const flecha = M.golpear(quieto, { ...rr, pelota: [...desde] }, cruza, 0.4, sinRuido())
+  assert.ok(flecha.flecha && flecha.hMax < normal.hMax)
+  M.simular(quieto, flecha, h15.pin)
+  assert.ok(normal.eventos.some((e) => e.tipo === 'palo'), 'el tiro normal tenía que chocar un pino')
+  assert.ok(!flecha.eventos.some((e) => e.tipo === 'palo'), 'la flecha chocó un pino')
+  // el putt, derecho como siempre
+  const putt = M.planTiro(plano, { ...r, pelota: [h15.pin[0], h15.pin[1] + 4], lie: 'green' }, 0, 0.2)
+  assert.ok(putt.putt && putt.recto)
+})
+
+ok('Juanpa (el Mapache): le pega increíble, pero una de dos aparece un árbol, una ráfaga o un carrito', () => {
+  const nueva = () => ({ ...M.nuevaRonda({ apodo: 'Mapache', emoji: '🦝', hcp: 3 }, fijo(0.5)), monos: [], viento: calma, pelota: [...h15.calle[1]], lie: 'fairway' })
+  const linea = angulo(h15.calle[1], h15.pin)
+  // la mitad del error de su handicap
+  const r0 = nueva()
+  const suyo = M.planTiro(quieto, r0, linea, 0.5)
+  const otro = M.planTiro(quieto, { ...r0, jugador: { apodo: 'X', hcp: 3 } }, linea, 0.5)
+  assert.ok(Math.abs(suyo.disp.ang - otro.disp.ang * M.SORPRESA.error) < 1e-12)
+  // una de dos veces (fuera del green) aparece algo; en el green, nunca
+  let veces = 0
+  for (let i = 0; i < 400; i++) if (M.golpear(quieto, nueva(), linea, 0.5, M.rngDesde(i)).sorpresa) veces++
+  assert.ok(veces > 150 && veces < 250, `${veces} de 400`)
+  // se anuncia antes de pegar, y sale lo anunciado, para el lado anunciado
+  for (let i = 0; i < 60; i++) {
+    const r = nueva()
+    const prox = M.prepararSorpresa(quieto, r, M.rngDesde(500 + i))
+    const t = M.golpear(quieto, r, linea, 0.5, M.rngDesde(900 + i))
+    assert.equal(t.sorpresa?.tipo ?? null, prox?.tipo ?? null)
+    if (prox) {
+      const lado = t.sorpresa.vec[0] * Math.sin(linea) - t.sorpresa.vec[1] * Math.cos(linea) // + izquierda, − derecha
+      assert.ok(prox.lado === 1 ? lado < 0 : lado > 0, `lado ${prox.lado}`)
+      assert.ok(Math.abs(Math.hypot(...t.sorpresa.vec) * h15.escala - prox.m) < 1e-6)
+    }
+    assert.equal(r.proxSorpresa, undefined)
+  }
+  // después de una sorpresa, el próximo tiro sale limpio (y el siguiente vuelve a poder)
+  for (let i = 0; i < 40; i++) {
+    const r = nueva()
+    M.prepararSorpresa(quieto, r, M.rngDesde(i), 'rafaga')
+    assert.ok(M.golpear(quieto, r, linea, 0.5, M.rngDesde(i)).sorpresa)
+    r.pelota = [...h15.calle[1]]
+    assert.equal(M.prepararSorpresa(quieto, r, M.rngDesde(i)), null)
+    assert.equal(M.golpear(quieto, r, linea, 0.5, M.rngDesde(i)).sorpresa, undefined)
+    assert.equal(r.sorpresaAnterior, false)
+  }
+  const enGreen = { ...nueva(), pelota: [h15.pin[0], h15.pin[1] + 5], lie: 'green' }
+  for (let i = 0; i < 40; i++) assert.equal(M.golpear(quieto, { ...enGreen, pelota: [...enGreen.pelota] }, 0, 0.2, M.rngDesde(i)).sorpresa, undefined)
+  // cada sorpresa, forzada
+  const con = (tipo) => {
+    const r = nueva()
+    const t = M.golpear(quieto, r, linea, 0.6, sinRuido())
+    const limpio = M.simular(quieto, { ...t, pos: [...t.pos], eventos: [], sorpresa: null }, h15.pin)
+    t.sorpresa = M.sortearSorpresa(quieto, r, t, M.rngDesde(7), tipo)
+    return { t: M.simular(quieto, t, h15.pin), limpio }
+  }
+  // el árbol: la frena en el aire (mucho antes de donde caía) y queda ahí
+  const arbol = con('arbol')
+  assert.ok(arbol.t.eventos.some((e) => e.tipo === 'arbol') && M.dist(arbol.t.pos, arbol.t.sorpresa.pos) < 1e-9)
+  assert.ok(M.dist(arbol.t.desde, arbol.t.pos) < M.dist(arbol.limpio.desde, arbol.limpio.pos) * 0.85)
+  // la ráfaga: la corre de costado lo que dice
+  const rafaga = con('rafaga')
+  assert.ok(rafaga.t.eventos.some((e) => e.tipo === 'rafaga'))
+  const largo = Math.hypot(...rafaga.t.sorpresa.vec)
+  assert.ok(largo * h15.escala >= M.SORPRESA.rafaga[0] - 1e-9 && largo * h15.escala <= M.SORPRESA.rafaga[1] + 1e-9)
+  // el carrito: donde pica se la lleva de costado y la deja (sin rodar), y nunca afuera
+  const carrito = con('carrito')
+  assert.ok(carrito.t.eventos.some((e) => e.tipo === 'carrito'))
+  const de = carrito.t.sorpresa.de
+  assert.ok(M.dist(carrito.t.pos, [de[0] + carrito.t.sorpresa.vec[0], de[1] + carrito.t.sorpresa.vec[1]]) < 1e-6)
+  assert.notEqual(M.terreno(quieto, carrito.t.pos).tipo, 'afuera')
+})
+
+ok('Tito Esperanza: maneja el viento en vivo (dirección y fuerza, de 0 a 30) y la pelota en el aire le hace caso; los demás no', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'Tito', emoji: '🌬️', hcp: 16 }, fijo(0.5)), monos: [] }
+  assert.ok(M.controlarViento(r, -Math.PI / 2, 22.4))
+  assert.deepEqual([r.viento.kmh, +r.viento.ang.toFixed(6)], [22, +(1.5 * Math.PI).toFixed(6)])
+  M.controlarViento(r, 0, 99)
+  assert.equal(r.viento.kmh, M.FISICA.vientoMax)
+  M.controlarViento(r, 1, -5)
+  assert.equal(r.viento.kmh, 0)
+  // el viento que eligió es el que pega: a favor, más lejos que en contra
+  const linea = angulo(h15.tee, h15.pin)
+  const con = (ang) => { const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }; M.controlarViento(rr, ang, 30); return M.simular(quieto, M.golpear(quieto, rr, linea, 0.8, sinRuido()), h15.pin) }
+  assert.ok(M.dist(h15.tee, con(linea).pos) > M.dist(h15.tee, con(linea + Math.PI).pos) + 5)
+  // en vivo: con la pelota en el aire, el viento que pone la mueve para ese lado (izquierda o derecha de la línea)
+  const vuelo = (ang) => {
+    const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }
+    M.controlarViento(rr, 0, 0)
+    const t = M.golpear(quieto, rr, linea, 0.8, sinRuido())
+    assert.ok(t.vivo && t.deriva[0] === 0)
+    // tres swipes para ese lado, cada medio segundo
+    for (let k = 0; k < 3; k++) {
+      for (let i = 0; i < 30; i++) M.avanzar(quieto, t, 1 / 60, h15.pin)
+      assert.ok(M.rafagaTito(rr, t, ang, 20))
+      assert.ok(M.vientoVivo(t).kmh <= M.FISICA.vientoMax + 1e-9)
+    }
+    return M.simular(quieto, t, h15.pin)
+  }
+  // la ráfaga se calma sola
+  {
+    const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }
+    M.controlarViento(rr, 0, 0)
+    const t = M.golpear(quieto, rr, linea, 0.8, sinRuido())
+    M.rafagaTito(rr, t, 0, 30)
+    for (let i = 0; i < 120; i++) M.avanzar(quieto, t, 1 / 60, h15.pin)
+    assert.ok(M.vientoVivo(t).kmh < 30 * 0.2)
+  }
+  const recto = (() => { const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }; M.controlarViento(rr, 0, 0); return M.simular(quieto, M.golpear(quieto, rr, linea, 0.8, sinRuido()), h15.pin) })()
+  const lado = (p) => (p[0] - h15.tee[0]) * Math.sin(linea) - (p[1] - h15.tee[1]) * Math.cos(linea)
+  const izq = vuelo(linea - Math.PI / 2), der = vuelo(linea + Math.PI / 2)
+  assert.ok(lado(izq.pos) > lado(recto.pos) + 8 && lado(der.pos) < lado(recto.pos) - 8, `${lado(izq.pos).toFixed(1)} ${lado(recto.pos).toFixed(1)} ${lado(der.pos).toFixed(1)}`)
+  const otro = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [] }
+  const antes = { ...otro.viento }
+  assert.equal(M.controlarViento(otro, 0, 0), false)
+  assert.equal(M.soplarEnVivo(otro, null, 0, 10), false)
+  assert.equal(M.rafagaTito(otro, { vivo: { wx: 0, wy: 0 } }, 0, 10), false)
+  assert.deepEqual(otro.viento, antes)
+})
+
+ok('Tito en el green: el putt es ultra sensible al dedo (el desvío de la línea al hoyo ×7, la fuerza ×4)', () => {
+  const ref = 1
+  assert.deepEqual(M.puttDeTito(ref, 0.1, ref), { ang: ref, u: 0.1 * M.TITO_PUTT.fuerza })
+  const d = 0.02 // un pelito al costado
+  assert.ok(Math.abs(M.puttDeTito(ref + d, 0.2, ref).ang - (ref + d * M.TITO_PUTT.angulo)) < 1e-9)
+  assert.ok(Math.abs(M.puttDeTito(ref - d, 0.2, ref).ang - (ref - d * M.TITO_PUTT.angulo)) < 1e-9)
+  // del otro lado del círculo no se desarma: a lo sumo da media vuelta
+  const lejos = M.puttDeTito(ref + 3, 0.2, ref).ang - ref
+  assert.ok(Math.abs(lejos) <= Math.PI + 1e-9)
 })
 
 ok('Fito: la línea se sacude; en el embudo sale derecha', () => {

@@ -315,3 +315,47 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - Abajo del botón de sonido, en vez del chip dorado con el golpe o la habilidad (se sacó: no hacía falta), va el contador de golpes del hoyo: una tarjeta crema con borde y sombra como los botones, "GOLPES", el número grande y el par. En el tee marca 0; con cada tiro sube y late.
 - Cada multa se ve clara: el contador se pone rojo y tiembla, y al lado sale un "+1" rojo con el motivo en una cinta dorada: 🚫 AFUERA, 🐒 AL BOSQUE: EL MONO, 🐒 SE LA ROBÓ UN MONO, 🐒 LLEGARON LOS MONOS, 🛺 MONO PISADO (`motivoGolpe`, `contarGolpes`). El reset del Ninja muestra "RESET · DE NUEVO A 0". Al cambiar de hoyo vuelve a 0 sin animación.
 - En la tarjeta de arriba ya no va "Golpe N" (quedaba chiquito y escondido).
+
+## 🏹 El Sueco: el drive con pulso y la flecha (2026-10-07)
+
+- El drive (el tiro de salida, desde el tee) se mueve como los de Fito: la línea se sacude y si soltás en el embudo sale derecha (el cartel dice PULSO o ¡DERECHA!). Sin el imán de Fito.
+- Desde el segundo tiro (fuera del green), una flecha: sale derecho (sin error de dirección), vuela más bajo y más rápido (`FLECHA`) y atraviesa todo: los pinos y los monos que se cruzan en el vuelo (`tiro.flecha`). Si cae en el bosque, igual es bosque. Mientras vuela se dibuja una flecha (asta dorada, plumas rojas) detrás de la pelota. La línea de apuntar no se corta en los árboles.
+- El putt, derecho como siempre. La habilidad se llama "La flecha".
+- Dificultad remedida (20 vueltas): −0,45 (antes −1,35). Sigue en Paseo.
+
+## 😤 La furia de Miguelón (2026-10-07)
+
+- Debajo del contador de golpes, una barrita de FURIA con dos mitades (solo cuando juega Miguelón, también en la Ruleta). En la esquina, asomada como antes el emoji, su cara recortada sin fondo (`jugadores/mike-queboni-cara.webp`, del recorte de su foto, con el cuello que se desvanece) que se pone roja con la furia: colorada con media barra y muy roja, brillando y temblando, llena (¡SACADO!). Se carga media (`sumarFuria`, `FURIA`):
+  - si el primer tiro del hoyo no queda en la calle ni en el green (las multas cuentan como errados);
+  - si el segundo tiro no queda en el green del hoyo (o no entra);
+  - si el hoyo termina en bogey o peor.
+  Calle o green con el primero y green con el segundo: no se carga. Del tercer tiro en adelante, solo cuenta el bogey.
+- Llena: Miguelón aparece sacado abajo (foto en rojo, 💢), revolea el palo (vuela girando) y sale el cartel "¡REVOLEÓ EL PALO!". El próximo tiro (o putt) sale con la dispersión del peor handicap ×1,6 y, si es bomba, la peor bomba; el cartel de la distancia dice SACADO 😡. Después de ese tiro la barra vuelve a cero.
+- Cada media barra la avisa LG ("😤 Miguelón se calienta" y por qué). Dificultad remedida (20 vueltas): +0,94 (antes −0,2): Normal.
+
+## 🦝 Juanpa Pielach, el Mapache (2026-10-07)
+
+- Entra al mazo (`EN_PRUEBA`) el Mapache (HCP ≈3, su foto de la base). Habilidad "Tiros increíbles (y la mala suerte)" (`caos`): le pega increíble (la mitad del error de su handicap, también en el putt), pero en cada tiro fuera del green, una de dos veces (`SORPRESA.chance`) aparece algo, uno de tres (`sortearSorpresa`):
+  - 🌳 **un árbol**: aparece de la nada (crece en el lugar mientras la pelota se acerca), la frena en el aire y cae ahí; después se esfuma en una nubecita dibujada.
+  - 💨 **una ráfaga**: entre el 35% y el 80% del vuelo la corre de costado 12 a 26 yardas, de golpe pero suave. Se dibuja (sin emoji): tres líneas de viento que ondulan, crema con borde tinta, con un rulo en la punta, como en las historietas, a la altura de la pelota.
+  - 🛺 **un carrito** (rojo): llega de costado justo a donde pica, la levanta y se la lleva 12 a 24 yardas, y la deja (sin rodar); después sigue de largo. Va para el lado que la deja en juego (ni bosque ni afuera, si se puede).
+- LG cuenta lo que pasó ("¡Apareció un árbol de la nada!", etc.).
+- **Se ve venir** (2026-10-07, para que no sea pura suerte): la sorpresa se sortea al empezar a apuntar (`prepararSorpresa`, `r.proxSorpresa`) y debajo del contador de golpes aparece la tarjeta "SE VIENE" con su ícono dibujado y para qué lado: UN ÁRBOL (la frena en el aire), RÁFAGA (te corre a la izq/der) o UN CARRITO (la lleva a la izq/der), o TIRO LIMPIO en verde. Sale exactamente lo anunciado, para ese lado (`armarSorpresa`); así se puede compensar apuntando.
+- **Nunca dos seguidas**: después de una sorpresa, el próximo tiro sale limpio seguro (`r.sorpresaAnterior`).
+- Dificultad medida (20 vueltas): +0,05 (Paseo); antes de anunciarlas y sin el "nunca dos seguidas", +1,4.
+
+## 🌬️ Tito Esperanza maneja el viento (2026-10-07)
+
+- Entra al mazo Tito (HCP 16, 🌬️, su foto de la base). Habilidad "Tranqui, yo lo suspendo" (`viento`): maneja el viento **en vivo, a swipes**. Mientras la pelota vuela, cada swipe en cualquier parte de la pantalla es una ráfaga para ese lado (`rafagaTito`): más largo el swipe, más fuerte (hasta 30 km/h). Las ráfagas se suman (con tope de 30) y se calman solas (`TITO.calma` = 0,9 s), así que se maneja la pelota con varios swipes. La pelota en el aire le hace caso al momento: la deriva se va sumando con el viento de cada instante (`tiro.vivo`) y lo mueve `TITO.fuerza` (2) yardas por km/h en un tiro largo, parejo con el largo (también en los approach). Su vuelo dura un 45% más, para que dé tiempo. Abajo aparece el cartel "SWIPEÁ PARA SOPLAR" y cada ráfaga se dibuja en la pelota (las mismas líneas de viento que la de Juanpa); el viento de arriba muestra el de cada momento. En el green, en cambio, el putt de Tito es **ultra sensible al dedo** (`puttDeTito`, `TITO_PUTT`): lo que el dedo se corre de la línea al hoyo se multiplica ×7 (3 px de dedo son unos 30°) y la fuerza ×4, contada desde que el dedo arranca (3 px de más son ~3 yardas). Es solo del control con el dedo: los bots de `calibrar.mjs` no lo sienten.
+- 2026-10-07: primero fue un dial antes de pegar, después un joystick en vuelo; Rorro lo prefirió a swipes, directo en la pantalla.
+- El bot apaga el viento antes de cada tiro. Dificultad medida (20 vueltas): +3,9 (Trampa total, por el HCP 16).
+
+## 🔵 El logo del Equipo 5 (2026-10-07)
+
+- `equipo-5.svg`: una medalla verde y dorada, estilo SDGA: canto de oro con el estriado de moneda, fondo verde, "EQUIPO" arriba y "SDGA" abajo en oro, dos estrellas y un 5 grande de oro con relieve (borde y sombra, como los botones del juego), con una pelota de golf en la panza que late. Brilla: cada tanto la cruza un reflejo y titilan dos destellos (2026-10-07: antes era azul).
+- Va en la carta (donde los Dicky llevan el suyo) y en "Ver todos" de los del Equipo 5 (`equipo: 5` en plantel.js): Lechu (Joaquín) y LG (Lucas).
+
+## Arreglos de la línea de apuntar (2026-10-07)
+
+- Miguelón sacado tirando muy para atrás: con un error tan grande, el ángulo del óvalo pasaba los 90° y la tangente se iba al infinito (o daba negativa), y el óvalo quedaba como una línea roja punteada de punta a punta. Ahora el ángulo y el tamaño del óvalo en pantalla tienen tope, y el tiro sacado se muestra como un abanico rojo desde la pelota, tan abierto como el error (puede ir para cualquier lado ahí), con el cartel "SACADO 😡" a la vista.
+- La línea punteada del putt tiene más contraste en el green claro: los puntos van con un borde tinta abajo (como los botones), más gruesos; la del Mago (dorada, que dobla) termina en una punta de flecha para el lado que dobla.

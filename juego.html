@@ -407,6 +407,59 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 #g-mas.ve { animation: g-mas 2.6s cubic-bezier(.2, 1.4, .4, 1) forwards; }
 @keyframes g-mas { 0% { opacity: 0; transform: translate(-30px, -50%) scale(.4); } 12% { opacity: 1; transform: translate(0, -50%) scale(1.1); } 20% { transform: translate(0, -50%) scale(1); } 82% { opacity: 1; transform: translate(0, -50%); } 100% { opacity: 0; transform: translate(0, -110%); } }
 #h-golpe { visibility: hidden; } /* el golpe ahora se ve grande en #golpes */
+/* 🦝 el pronóstico de Juanpa: lo que se le va a cruzar en este tiro (y para qué lado), antes de pegar */
+#pronostico { position: relative; width: 104px; margin-top: 4px; padding: 6px 6px 7px; box-sizing: border-box; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--cream); color: var(--green-900); box-shadow: var(--game-shadow-sm); transform: rotate(-1.5deg); display: grid; justify-items: center; gap: 2px; font-family: var(--font-display); text-align: center; pointer-events: none; }
+#pronostico[hidden] { display: none; }
+#pronostico small { font-size: 10px; letter-spacing: .14em; color: var(--green-700); }
+#pronostico .pr-ico .gi { width: 40px; height: 40px; --gi-s: var(--game-ink); --gi-f: #fff8e6; --gi-a: var(--gold); }
+#pronostico b { font-size: 16px; font-weight: 400; letter-spacing: .04em; line-height: 1; }
+#pronostico i { font: normal 10.5px/1.1 var(--font-display); letter-spacing: .05em; color: var(--game-ink); background: var(--gold); border: 2px solid var(--game-ink); padding: 3px 5px 2px; margin-top: 3px; }
+#pronostico.limpio { background: #e3f1d6; }
+#pronostico.limpio i { background: #9fd27a; }
+#pronostico.alerta { animation: pr-pop .5s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes pr-pop { 0% { transform: rotate(-1.5deg) scale(.6); } 60% { transform: rotate(2deg) scale(1.08); } 100% { transform: rotate(-1.5deg) scale(1); } }
+body.apuntando #pronostico { opacity: .55; }
+/* 🌬️ Tito: con la pelota en el aire, cada swipe es una ráfaga; abajo, el cartelito que lo recuerda */
+#tito-swipe { position: fixed; left: 50%; bottom: calc(var(--safe-bot) + 26px); z-index: 32; translate: -50% 0; pointer-events: none; display: grid; justify-items: center; gap: 6px; animation: ts-entra .3s cubic-bezier(.2, 1.4, .4, 1); }
+#tito-swipe[hidden] { display: none; }
+#tito-swipe span { white-space: nowrap; font: 17px/1 var(--font-display); letter-spacing: .08em; color: var(--game-ink); background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); padding: 7px 12px 5px; transform: rotate(-3deg); }
+#tito-swipe i { width: 120px; height: 24px; background: no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 24'%3E%3Cpath d='M8 12h104M20 4l-12 8 12 8M100 4l12 8-12 8' fill='none' stroke='%23f4eeda' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); animation: ts-va 1.2s ease-in-out infinite alternate; }
+@keyframes ts-entra { from { opacity: 0; scale: .6; } }
+@keyframes ts-va { from { transform: translateX(-10px); } to { transform: translateX(10px); } }
+/* 😤 la furia de Miguelón: dos mitades; llena, roja y latiendo */
+#furia { position: relative; width: 74px; margin-top: 14px; padding: 5px 7px 6px; box-sizing: border-box; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--cream); color: var(--green-900); box-shadow: var(--game-shadow-sm); transform: rotate(1.5deg); display: grid; justify-items: start; gap: 4px; font-family: var(--font-display); pointer-events: none; }
+#furia[hidden] { display: none; }
+#furia small { font-size: 11px; letter-spacing: .12em; color: var(--red); }
+#furia .fu-barra { width: 100%; height: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+#furia .fu-barra i { border: 2px solid var(--game-ink); border-radius: 4px; background: #e7dfc2; overflow: hidden; position: relative; }
+#furia .fu-barra i::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #f0a03a, var(--red)); transform: scaleX(0); transform-origin: 0 50%; transition: transform .5s cubic-bezier(.2, 1.4, .4, 1); }
+#furia .fu-barra i.on::after { transform: scaleX(1); }
+/* la cara de Miguelón (recortada, sin fondo) en la esquina: se pone más roja con cada media barra; llena, roja y temblando */
+#furia .fu-cara { position: absolute; top: -30px; right: -20px; width: 34px; height: auto; filter: drop-shadow(0 2px 2px rgba(8, 26, 16, .6)); transition: filter .5s; transform: rotate(6deg); }
+#furia[data-nivel="1"] .fu-cara { filter: sepia(.3) saturate(1.7) hue-rotate(-15deg) drop-shadow(0 2px 2px rgba(8, 26, 16, .6)); }
+#furia.sacado .fu-cara { filter: sepia(.4) saturate(2.2) hue-rotate(-18deg) drop-shadow(0 0 5px rgba(224, 48, 30, .9)); animation: fu-tiembla .16s linear infinite; }
+@keyframes fu-tiembla { 0% { translate: 0 0; } 25% { translate: -1.5px 1px; } 50% { translate: 1.5px -1px; } 75% { translate: -1px -1.5px; } 100% { translate: 1px 1px; } }
+#furia.sube { animation: fu-sube .7s ease-out; }
+@keyframes fu-sube { 0% { transform: rotate(1.5deg) scale(1); } 30% { transform: rotate(-3deg) scale(1.18); } 60% { transform: rotate(3deg) scale(1.05); } 100% { transform: rotate(1.5deg) scale(1); } }
+#furia.sacado { background: var(--red); color: var(--cream); animation: fu-late .55s ease-in-out infinite alternate; }
+#furia.sacado small { color: var(--cream); font-size: 10px; letter-spacing: .04em; }
+@keyframes fu-late { from { transform: rotate(1.5deg) scale(1); } to { transform: rotate(-1.5deg) scale(1.07); } }
+body.apuntando #furia { opacity: .45; }
+/* llena: Miguelón aparece sacado y revolea el palo */
+#revoleo { position: fixed; inset: 0; z-index: 70; pointer-events: none; overflow: hidden; }
+#revoleo[hidden] { display: none; }
+#revoleo img { position: absolute; left: -10px; bottom: 0; width: min(62vw, 310px); filter: drop-shadow(0 10px 20px rgba(8, 26, 16, .6)) saturate(1.2) sepia(.2) hue-rotate(-12deg) contrast(1.05); animation: rv-entra 2.6s cubic-bezier(.2, 1.2, .4, 1) forwards; transform-origin: 30% 100%; }
+@keyframes rv-entra { 0% { transform: translateY(80%) rotate(-8deg); } 14% { transform: translateY(0) rotate(3deg); } 20%, 30% { transform: translateY(0) rotate(-4deg); } 25%, 35% { transform: translateY(0) rotate(4deg); } 80% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(90%) rotate(-6deg); opacity: 0; } }
+#revoleo .rv-rojo { position: absolute; inset: 0; background: radial-gradient(70% 55% at 20% 100%, rgba(188, 75, 60, .75), rgba(188, 75, 60, 0) 70%); animation: rv-rojo 2.6s ease-out forwards; }
+@keyframes rv-rojo { 0% { opacity: 0; } 15%, 70% { opacity: 1; } 100% { opacity: 0; } }
+#revoleo .rv-ira { position: absolute; left: min(40vw, 200px); bottom: min(56vw, 280px); font-size: 46px; opacity: 0; animation: rv-ira .5s .3s ease-in-out 4 alternate; }
+#revoleo .rv-ira.dos { left: min(6vw, 30px); bottom: min(50vw, 250px); font-size: 34px; animation-delay: .45s; }
+@keyframes rv-ira { from { opacity: 1; transform: scale(.7) rotate(-10deg); } to { opacity: 1; transform: scale(1.15) rotate(10deg); } }
+#revoleo .rv-palo { position: absolute; left: min(36vw, 180px); bottom: 34vh; width: 46px; height: 122px; opacity: 0; animation: rv-palo 1.7s .45s cubic-bezier(.25, .6, .4, 1) forwards; }
+@keyframes rv-palo { 0% { opacity: 1; transform: translate(0, 0) rotate(-30deg); } 100% { opacity: 1; transform: translate(70vw, -70vh) rotate(1260deg); } }
+#revoleo b { position: absolute; left: 50%; top: 36%; translate: -50% 0; width: max-content; white-space: nowrap; font: min(9vw, 40px)/1 var(--font-display); color: var(--cream); background: var(--red); border: 3px solid var(--game-ink); box-shadow: var(--game-shadow-lg); padding: 10px 16px 8px; transform: rotate(-4deg); opacity: 0; animation: rv-cartel 2.6s .35s ease-out forwards; text-align: center; }
+#revoleo i { position: absolute; left: 50%; top: calc(36% + 74px); translate: -50% 0; width: max-content; max-width: 90vw; font: normal 17px/1 var(--font-display); letter-spacing: .04em; color: var(--game-ink); background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); padding: 6px 10px 5px; transform: rotate(2deg); opacity: 0; animation: rv-cartel 2.6s .55s ease-out forwards; }
+@keyframes rv-cartel { 0% { opacity: 0; scale: 1.8; } 12% { opacity: 1; scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
 /* el carrito de Marcos: los mandos (solo mientras manejás), con la pinta del SDGA: crema, verde, dorado y Anton */
@@ -1292,6 +1345,8 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <span class="chip" id="lie">TEE</span>
       <button id="sonido" type="button" aria-label="Sonido"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" style="fill:var(--gi-f)"/><path d="M20 12a5.5 5.5 0 0 1 0 8M23.5 8.5a10 10 0 0 1 0 15"/></g></svg></button>
       <div id="golpes" aria-live="polite"><small>GOLPES</small><b id="g-num">0</b><span id="g-par">PAR 4</span><div id="g-mas" aria-hidden="true"></div></div>
+      <div id="pronostico" hidden aria-live="polite"><small>SE VIENE</small><span class="pr-ico"></span><b></b><i></i></div>
+      <div id="furia" hidden aria-live="polite"><small>FURIA</small><div class="fu-barra"><i></i><i></i></div><img class="fu-cara" src="jugadores/mike-queboni-cara.webp" alt="" aria-hidden="true" draggable="false"></div>
     </div>
     <div class="der">
       <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
@@ -1304,6 +1359,10 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
 
 <div id="cuenta" hidden aria-live="assertive"></div>
+
+<div id="tito-swipe" hidden aria-live="polite"><span>SWIPEÁ PARA SOPLAR</span><i></i></div>
+
+<div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-sacado-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span><svg class="rv-palo" viewBox="0 0 60 160"><path d="M30 6v118" stroke="#0c2b1c" stroke-width="9" stroke-linecap="round"/><path d="M30 6v118" stroke="#c9ccd1" stroke-width="5" stroke-linecap="round"/><rect x="24" y="4" width="12" height="34" rx="5" fill="#1b1b1b" stroke="#0c2b1c" stroke-width="2.5"/><path d="M27 120h22c6 0 8 10 2 14l-20 8c-6 2-9-3-7-8z" fill="#9aa3ad" stroke="#0c2b1c" stroke-width="3"/></svg><b>¡REVOLEÓ EL PALO!</b><i>😡 el próximo, para cualquier lado</i></div>
 
 <div id="ruleta" hidden aria-live="assertive">
   <div class="rl-caja">
@@ -1913,9 +1972,17 @@ function apunte() {
   let u = len / drag.largo
   // Taiu (la Rana): los controles al revés: empuja (la pelota sale para donde va el dedo); la fuerza, igual
   if (M.alReves(ronda.jugador)) ({ px, py, u } = M.invertirArrastre(px, py, u))
-  const p = Math.min(1, Math.pow(u, putt ? 1.6 : 1.35))
   const [wx, wy] = s2wVec(px, py)
-  const ang = Math.atan2(wy, wx)
+  let ang = Math.atan2(wy, wx)
+  let p = Math.min(1, Math.pow(u, putt ? 1.6 : 1.35))
+  // Tito en el green: el putt es ultra sensible al dedo (cualquier milímetro cambia la línea y la fuerza)
+  if (putt && M.habilidadDe(ronda.jugador)?.id === 'viento') {
+    const pin = M.hoyoActual(ronda).pin, b = ronda.pelota
+    // la fuerza cuenta desde que el dedo arranca (si no, los 8 px de arranque ya eran un putt de 2 yardas)
+    const t = M.puttDeTito(ang, (len - 8) / drag.largo, Math.atan2(pin[1] - b[1], pin[0] - b[0]))
+    ang = t.ang
+    p = Math.min(1, Math.pow(t.u, 1.6))
+  }
   let q = 0
   const tiempo = (performance.now() - drag.t0) / 1000 // el Águila: la línea se sacude con el tiempo
   let plan = M.planTiro(campo, ronda, ang, p, 0, tiempo)
@@ -1930,6 +1997,8 @@ function apunte() {
 }
 
 lienzo.addEventListener('pointerdown', (e) => {
+  // Tito: con la pelota en el aire, el swipe es una ráfaga
+  if (titoVolando() && !swipeTito) { swipeTito = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; lienzo.setPointerCapture(e.pointerId); return }
   if (estado !== 'apuntar' || drag || trazo) return // un segundo dedo no pisa el tiro que estás armando
   // el Dibuje maestro: con el dedo dibujás el vuelo (de la pelota a donde cae)
   if (esDibuje()) {
@@ -1953,6 +2022,7 @@ lienzo.addEventListener('pointerdown', (e) => {
   if (!datos.vistoTip) { datos.vistoTip = true; guardar(datos) }
 })
 lienzo.addEventListener('pointermove', (e) => {
+  if (swipeTito && e.pointerId === swipeTito.id) { swipeTito.x = e.clientX; swipeTito.y = e.clientY; return }
   if (trazo && e.pointerId === trazo.id) {
     for (const ev of e.getCoalescedEvents?.() ?? [e]) {
       if (Math.hypot(ev.clientX - trazo.ult[0], ev.clientY - trazo.ult[1]) < 3) continue
@@ -1965,6 +2035,7 @@ lienzo.addEventListener('pointermove', (e) => {
   if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY }
 })
 lienzo.addEventListener('pointerup', (e) => {
+  if (swipeTito && e.pointerId === swipeTito.id) { soltarSwipeTito(); return }
   if (trazo && e.pointerId === trazo.id) { soltarTrazo(); return }
   if (!drag || e.pointerId !== drag.id) return
   // sale el tiro que se vio en pantalla (el último dibujado), no uno recalculado al soltar: el embudo del Águila y el
@@ -1980,6 +2051,7 @@ lienzo.addEventListener('pointerup', (e) => {
   else if (base) obj = base // no pegó: vuelve el zoom de antes
 })
 lienzo.addEventListener('pointercancel', (e) => {
+  if (swipeTito && e.pointerId === swipeTito.id) { swipeTito = null; return }
   if (trazo && e.pointerId === trazo.id) { trazoFade = { pts: trazo.pts, desde: trazo.desde, t0: performance.now() }; trazo = null; document.body.classList.remove('apuntando'); return }
   if (drag && e.pointerId !== drag.id) return // se canceló otro dedo: el tiro que estás armando sigue
   S.cargaFin()
@@ -2176,6 +2248,47 @@ function guiaDibujo(x, y, t) {
   ctx.restore()
 }
 
+
+// ── 🌬️ Tito: con la pelota en el aire, cada swipe en la pantalla es una ráfaga para ese lado ──
+let swipeTito = null // { id, x0, y0, x, y }
+let rafagasTito = [] // las ráfagas dibujadas (donde estaba la pelota, para el lado del swipe), que se apagan
+const titoVolando = () => estado === 'tiro' && !!tiro?.vivo && tiro.fase === 'vuelo' && !replay
+/** Cada cuadro: el cartelito, y el viento de arriba con el de ahora (las ráfagas se van calmando). */
+function vientoTito() {
+  const vuela = titoVolando()
+  if ($('#tito-swipe').hidden === vuela) $('#tito-swipe').hidden = !vuela
+  if (!vuela) { swipeTito = null; return }
+  const w = M.vientoVivo(tiro)
+  M.controlarViento(ronda, w.ang, w.kmh)
+  $('#v-kmh').textContent = ronda.viento.kmh
+  $('#viento').classList.toggle('calmo', !ronda.viento.kmh)
+}
+function soltarSwipeTito() {
+  const sw = swipeTito
+  swipeTito = null
+  if (!sw || !titoVolando()) return
+  const dx = sw.x - sw.x0, dy = sw.y - sw.y0
+  const largo = Math.hypot(dx, dy)
+  if (largo < 22) return
+  const kmh = Math.min(M.FISICA.vientoMax, (largo / (Math.min(W, H) * 0.45)) * M.FISICA.vientoMax)
+  M.rafagaTito(ronda, tiro, Math.atan2(dy, dx) - cam.rot, kmh)
+  rafagasTito.push({ ux: dx / largo, uy: dy / largo, k: kmh / M.FISICA.vientoMax, t0: performance.now() })
+  S.swipe()
+}
+/** Las ráfagas de los swipes, dibujadas en la pelota (las mismas líneas de viento que la de Juanpa). */
+function dibujarRafagasTito() {
+  if (!rafagasTito.length) return
+  const ahora = performance.now()
+  rafagasTito = rafagasTito.filter((r) => ahora - r.t0 < 750)
+  if (!tiro) return
+  const [x, y0] = w2s(tiro.pos)
+  const y = y0 - tiro.alt * levante()
+  for (const r of rafagasTito) {
+    const q = (ahora - r.t0) / 750
+    rafagaDibujada(x, y, r.ux, r.uy, ahora / 1000, Math.min(1, q * 5) * (1 - q) * (0.6 + 0.4 * r.k))
+  }
+}
+
 // ── ciclo ──
 let ultimo = performance.now(), acc = 0
 // Las pantallas opacas que tapan la cancha entera: con una de estas arriba, dibujarla es trabajo tirado (y en la intro
@@ -2192,6 +2305,7 @@ function cuadro(t) {
   actualizar(dt)
   if (!tapada()) dibujar()
   noTapenLaPelota(t)
+  vientoTito()
   hudCuadro = null
   requestAnimationFrame(cuadro)
 }
@@ -2257,6 +2371,7 @@ function sonarEventos(t) {
   }
 }
 function alReposo() {
+  sorpresaQueQueda(tiro) // Juanpa: el árbol o el carrito quedan un ratito en pantalla
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
   const largo = M.dist(ronda.desde, h.pin)
@@ -2276,7 +2391,8 @@ function alReposo() {
     embocar(frase)
     return
   }
-  relatar(dicho)
+  // Juanpa: si se le cruzó algo, LG cuenta eso
+  if (tiro.sorpresa?.hecho) { const [lg, verso] = SORPRESA_TXT[tiro.sorpresa.tipo]; relatar({ lg, verso }) } else relatar(dicho)
   // el sonido va antes de las animaciones (que cortan acá con return: si no, el Mono bueno y el malo no sonaban nunca)
   if (res.tipo === 'mono-bueno') S.monoBueno()
   else if (res.tipo === 'mono-malo') S.robo()
@@ -2993,6 +3109,10 @@ const sinD = (apodo) => apodo.replace(/ \(Đ\)$/, '')
 let dickyTimer = 0, dickyUltimo = null
 /** Entra el Dicky `d` abajo a la izquierda, con su foto recortada, su nombre, lo que dice y corazones. */
 function dickyVisita(d, texto) {
+  // si Miguelón está revoleando el palo (abajo a la izquierda), el Dicky espera a que termine
+  const falta = (revolearPalo.hasta ?? 0) - performance.now()
+  if (falta > 0) { clearTimeout(dickyTimer); dickyTimer = setTimeout(() => dickyVisita(d, texto), falta + 50); return }
+  dickyVisita.ultima = [d, texto]
   const el = $('#dicky')
   el.querySelector('img').src = d.torso
   el.querySelector('img').alt = d.apodo
@@ -3178,6 +3298,96 @@ function hud() {
   const g = !ronda.golpeMago || oculto ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? M.PUTTS_MAGO.find((x) => x.lado === Math.sign(tiro.giro)) : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
   pintarGolpesMago(oculto)
   contarGolpes()
+  pintarFuria(j, oculto)
+  pintarPronostico(j, oculto)
+}
+// ── 🦝 el pronóstico de Juanpa ──
+const IC_PRONO = {
+  arbol: '<path d="M20 37V24" stroke-width="3.4"/><circle cx="13" cy="20" r="6.5" style="fill:#4f9b4a"/><circle cx="27" cy="20" r="6.5" style="fill:#4f9b4a"/><circle cx="20" cy="13" r="9.5" style="fill:#6bb85a"/><path d="M31 6l1.4 3 3 1.4-3 1.4-1.4 3-1.4-3-3-1.4 3-1.4z" style="fill:var(--gi-a)" stroke-width="1.4"/>',
+  rafaga: '<path d="M3 12h21a4.5 4.5 0 1 0-4.5-4.5"/><path d="M3 20.5h29"/><path d="M3 29h17a4.5 4.5 0 1 1-4.5 4.5"/><path d="M31 15.5l6 5-6 5" stroke-width="3"/>',
+  carrito: '<path d="M8 15V8h15v7" style="fill:var(--gi-f)"/><rect x="4" y="15" width="26" height="11" rx="3.5" style="fill:#c9472f"/><circle cx="10.5" cy="28" r="3.6" style="fill:var(--gi-s)"/><circle cx="24" cy="28" r="3.6" style="fill:var(--gi-s)"/><path d="M33 20.5h4.5M35 17.5l3 3-3 3" stroke-width="2.6"/>',
+  limpio: '<circle cx="20" cy="20" r="15" style="fill:#9fd27a"/><path d="M12.5 20.5l5 5 10-11" stroke-width="3.6"/>',
+}
+const TXT_PRONO = {
+  arbol: ['UN ÁRBOL', 'LA FRENA EN EL AIRE'],
+  rafaga: ['RÁFAGA', (l) => (l > 0 ? 'TE CORRE A LA DER →' : '← TE CORRE A LA IZQ')],
+  carrito: ['UN CARRITO', (l) => (l > 0 ? 'LA LLEVA A LA DER →' : '← LA LLEVA A LA IZQ')],
+  limpio: ['TIRO LIMPIO', 'NO SE CRUZA NADA'],
+}
+let pronoVisto = null
+function pintarPronostico(j, oculto) {
+  const caja = $('#pronostico')
+  const putt = M.enModoPutt(campo, ronda)
+  // lo que se le va a cruzar se sortea al empezar a apuntar (en cualquier camino que llegue a apuntar), para verlo antes de pegar
+  if (!oculto && estado === 'apuntar' && M.habilidadDe(j)?.id === 'caos' && ronda.proxSorpresa === undefined) M.prepararSorpresa(campo, ronda, rng)
+  const ver = !oculto && M.habilidadDe(j)?.id === 'caos' && estado === 'apuntar' && !putt && ronda.proxSorpresa !== undefined && !$('#hud-top').hidden
+  caja.hidden = !ver
+  if (!ver) { pronoVisto = null; return }
+  const sp = ronda.proxSorpresa
+  const tipo = sp?.tipo ?? 'limpio'
+  const clave = `${ronda.golpes}:${tipo}:${sp?.lado ?? 0}`
+  if (clave === pronoVisto) return
+  pronoVisto = clave
+  const [tit, sub] = TXT_PRONO[tipo]
+  const izq = sp && sp.lado < 0 && tipo !== 'arbol'
+  caja.querySelector('.pr-ico').innerHTML = `<svg class="gi${izq ? ' espejo' : ''}" viewBox="0 0 40 40" aria-hidden="true"><g>${IC_PRONO[tipo]}</g></svg>`
+  caja.querySelector('b').textContent = tit
+  caja.querySelector('i').textContent = typeof sub === 'function' ? sub(sp.lado) : sub
+  caja.classList.toggle('limpio', !sp)
+  caja.classList.remove('alerta')
+  void caja.offsetWidth
+  if (sp) caja.classList.add('alerta')
+}
+// ── 😤 la furia de Miguelón ──
+const FURIA_TXT = {
+  primero: ['😤 Miguelón se calienta', 'No pegó la calle con el primero: media barra de furia'],
+  segundo: ['😤 Miguelón se calienta', 'No llegó al green con el segundo: media barra de furia'],
+  bogey: ['😤 Bogey: Miguelón se calienta', 'Bogey o peor: media barra de furia'],
+}
+/** La cara de Miguelón según la furia: tranqui, una barrita, sacado. */
+const CARAS_FURIA = ['jugadores/mike-queboni-cara.webp', 'jugadores/mike-queboni-furia1.webp', 'jugadores/mike-queboni-sacado.webp']
+function pintarFuria(j, oculto) {
+  const caja = $('#furia')
+  const ver = !oculto && M.habilidadDe(j)?.id === 'bomba' && !$('#hud-top').hidden
+  caja.hidden = !ver
+  const f = ronda.furia
+  const ev = f?.evento
+  if (ev) f.evento = null
+  if (!ver) return
+  const n = f?.nivel ?? 0
+  ;[...caja.querySelectorAll('.fu-barra i')].forEach((el, i) => el.classList.toggle('on', n > i))
+  caja.classList.toggle('sacado', !!f?.enojado)
+  caja.querySelector('small').textContent = f?.enojado ? '¡SACADO!' : 'FURIA'
+  caja.dataset.nivel = f?.enojado ? 2 : n // la cara se pone roja con la furia
+  const cara = caja.querySelector('.fu-cara'), foto = CARAS_FURIA[caja.dataset.nivel]
+  if (!cara.src.endsWith(foto)) cara.src = foto
+  if (!ev) return
+  caja.classList.remove('sube')
+  void caja.offsetWidth
+  caja.classList.add('sube')
+  if (ev.estalla) revolearPalo()
+  else { const [lg, extra] = FURIA_TXT[ev.motivo] ?? FURIA_TXT.primero; voz = { lg, extra, hasta: performance.now() + 4200 } }
+}
+/** La barra se llenó: Miguelón aparece sacado y revolea el palo. El próximo tiro sale con la dispersión máxima. */
+function revolearPalo() {
+  const el = $('#revoleo')
+  el.hidden = true
+  void el.offsetWidth
+  el.hidden = false
+  S.robo()
+  setTimeout(() => S.palo(), 450)
+  voz = { lg: '😡 ¡Miguelón revoleó el palo!', extra: 'Está sacado: el próximo tiro sale para cualquier lado. Después se le pasa', hasta: performance.now() + 6000 }
+  clearTimeout(revolearPalo.t)
+  revolearPalo.t = setTimeout(() => { el.hidden = true }, 3000)
+  // abajo a la izquierda está Miguelón: si había un Dicky con buenas vibras, se va y vuelve cuando se le pasa
+  revolearPalo.hasta = performance.now() + 2800
+  const dk = $('#dicky')
+  if (!dk.hidden && dickyVisita.ultima) {
+    clearTimeout(dickyTimer)
+    dk.hidden = true
+    dk.classList.remove('entra', 'sale', 'derecha', 'tenue')
+    dickyTimer = setTimeout(() => dickyVisita(...dickyVisita.ultima), 2850)
+  }
 }
 // ── los golpes del hoyo, grandes: suben con cada tiro; las multas (+1) se muestran con el motivo ──
 let golpesVistos = null // { r, idx, n }: lo que muestra el contador (de qué ronda y qué hoyo)
@@ -3379,7 +3589,7 @@ function dibujar() {
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
-    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); pelota(tiro.pos, tiro.alt) }
+    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro); pelota(tiro.pos, tiro.alt) }
     else { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
   }
   const a = estado === 'apuntar' ? apunte() : null
@@ -3393,6 +3603,8 @@ function dibujar() {
     else dibujarTrazo(trazoFade.pts, k * k, null, trazoFade.desde)
   }
   if ((ronda?.ruleta || ronda?.prestado) && estado === 'apuntar' && !drag && !anim) etiquetaRuleta()
+  dibujarFxJuanpa()
+  dibujarRafagasTito()
 
   if (ronda && !ronda.terminada) {
     const ang = ronda.viento.ang + cam.rot
@@ -3821,20 +4033,25 @@ function dibujarCarro(c) {
       ctx.restore()
     }
   }
+  cuerpoCarrito(x, y, c.ang + cam.rot, L)
+}
+/** El carrito (el de Marcos y el que se le cruza a Juanpa): la trompa mira a `ang` (en pantalla). */
+function cuerpoCarrito(x, y, ang, L, carroceria = ['#1f7a45', '#2f9b5d']) {
+  const A = L * 0.58
   ctx.save()
   ctx.translate(x, y)
-  ctx.rotate(c.ang + cam.rot) // la trompa mira a +x
+  ctx.rotate(ang) // la trompa mira a +x
   ctx.fillStyle = 'rgba(8,26,16,.3)' // sombra
   ctx.beginPath(); ctx.roundRect(-L / 2 + 3, -A / 2 + 4, L, A, A * 0.3); ctx.fill()
   ctx.fillStyle = '#121212' // ruedas
   for (const wx of [-L * 0.3, L * 0.28]) for (const s of [-1, 1]) {
     ctx.beginPath(); ctx.roundRect(wx - L * 0.1, s * A * 0.5 - A * 0.09, L * 0.2, A * 0.18, 2); ctx.fill()
   }
-  ctx.fillStyle = '#1f7a45' // la carrocería verde
+  ctx.fillStyle = carroceria[0] // la carrocería
   ctx.strokeStyle = '#0c2b1c'
   ctx.lineWidth = 1.5
   ctx.beginPath(); ctx.roundRect(-L / 2, -A / 2, L, A, A * 0.28); ctx.fill(); ctx.stroke()
-  ctx.fillStyle = '#2f9b5d' // el capot
+  ctx.fillStyle = carroceria[1] // el capot
   ctx.beginPath(); ctx.roundRect(L * 0.18, -A * 0.4, L * 0.3, A * 0.8, A * 0.22); ctx.fill()
   ctx.fillStyle = '#fff3b0' // los faros
   for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(L * 0.46, s * A * 0.3, Math.max(1.5, L * 0.035), 0, 7); ctx.fill() }
@@ -3878,6 +4095,197 @@ function pelotaQuieta() {
 }
 /** La pelota en pantalla: siempre en proporción al hoyo (0,42 vs. 0,66 yd), también en el zoom de la corbata. */
 const radioPelota = () => Math.max(3.2, cam.esc * 0.42)
+// ── 🦝 la mala suerte de Juanpa: el árbol que aparece, la ráfaga y el carrito ──
+let fxJuanpa = [] // lo que sigue en pantalla después del tiro: el árbol que se va, el carrito que se aleja
+const CARRITO_JUANPA = ['#c9472f', '#e0634a']
+const SORPRESA_TXT = {
+  arbol: ['🌳 ¡Apareció un árbol de la nada!', 'La frenó en el aire y se esfumó. Cosas de Juanpa'],
+  rafaga: ['💨 ¡Una ráfaga de la nada!', 'Le corrió la pelota en el aire. Cosas de Juanpa'],
+  carrito: ['🛺 ¡Un carrito de costado!', 'Pasó justo, se la llevó un poco y la dejó. Cosas de Juanpa'],
+}
+const tamCarrito = () => Math.max(44, M.CARRITO.largo * cam.esc * 1.5)
+function arbolito(x, y, k, alfa = 1) {
+  if (k <= 0 || alfa <= 0) return
+  const tam = Math.max(64, 14 * cam.esc) * k
+  ctx.save()
+  ctx.globalAlpha = alfa
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'bottom'
+  ctx.font = `${tam}px ${EMOJI}`
+  ctx.fillText('🌳', x, y + tam * 0.12)
+  ctx.font = `${tam * 0.4}px ${EMOJI}`
+  ctx.fillText('✨', x + tam * 0.45, y - tam * 0.6)
+  ctx.restore()
+}
+/**
+ * La ráfaga de Juanpa, dibujada: tres líneas de viento que ondulan para donde empuja (u), cada una con su rulo en la
+ * punta, crema con borde tinta, como las líneas de las historietas. `t` en segundos (ondulan), `k` de 0 a 1 (aparece).
+ */
+function rafagaDibujada(x, y, ux, uy, t, k = 1) {
+  const nx = -uy, ny = ux
+  const lineas = [{ off: -15, largo: 64, desf: 0, r: 6 }, { off: 0, largo: 92, desf: 1.4, r: 8 }, { off: 15, largo: 58, desf: 2.6, r: 5.5 }]
+  ctx.save()
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.globalAlpha = k
+  for (const L of lineas) {
+    const pts = []
+    const atras = 26 + L.largo // arranca atrás de la pelota y termina un poco antes
+    for (let i = 0; i <= 24; i++) {
+      const q = i / 24
+      const a = -atras + q * L.largo * k
+      const w = Math.sin(q * Math.PI * 2.2 - t * 9 + L.desf) * 3.5 * (1 - q * 0.6)
+      pts.push([x + ux * a + nx * (L.off + w), y + uy * a + ny * (L.off + w)])
+    }
+    // el rulo de la punta: una espiral que se cierra hacia afuera de la ráfaga
+    const [ex, ey] = pts[pts.length - 1]
+    const lado = L.off > 0 ? 1 : -1
+    const cx = ex + nx * L.r * lado, cy = ey + ny * L.r * lado
+    const a0 = Math.atan2(ey - cy, ex - cx)
+    const giro = Math.atan2(ux * ny - uy * nx, ux * nx + uy * ny) > 0 ? -lado : lado
+    for (let i = 1; i <= 16; i++) {
+      const a = a0 + giro * i * 0.38
+      const rr = L.r * (1 - i / 22)
+      pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr])
+    }
+    const trazo = () => { ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (const p of pts) ctx.lineTo(p[0], p[1]) }
+    trazo(); ctx.strokeStyle = 'rgba(12,43,28,.55)'; ctx.lineWidth = 6.5; ctx.stroke()
+    trazo(); ctx.strokeStyle = C.cream; ctx.lineWidth = 3.5; ctx.stroke()
+  }
+  // dos rayitas cortas de velocidad, atrás de todo
+  ctx.strokeStyle = 'rgba(244,238,218,.6)'
+  ctx.lineWidth = 2.5
+  for (const o of [-24, 24]) {
+    const b = -(110 + ((t * 120) % 30))
+    ctx.beginPath(); ctx.moveTo(x + ux * b + nx * o, y + uy * b + ny * o); ctx.lineTo(x + ux * (b + 16) + nx * o, y + uy * (b + 16) + ny * o); ctx.stroke()
+  }
+  ctx.restore()
+}
+/** La nubecita (dibujada) del árbol que se esfuma: unos círculos crema que se abren y se apagan. */
+function nubecita(x, y, k) {
+  ctx.save()
+  ctx.globalAlpha = Math.max(0, 1 - k)
+  ctx.fillStyle = C.cream
+  ctx.strokeStyle = 'rgba(12,43,28,.45)'
+  ctx.lineWidth = 2
+  for (const [dx, dy, r] of [[-16, 4, 9], [0, -6, 12], [16, 3, 9], [-6, 10, 8], [8, 11, 8]]) {
+    ctx.beginPath()
+    ctx.arc(x + dx * (1 + k), y + dy * (1 + k), r * (0.7 + k * 0.6), 0, 7)
+    ctx.fill(); ctx.stroke()
+  }
+  ctx.restore()
+}
+/** Mientras vuela: el árbol que va creciendo donde la va a frenar, el viento que la corre, el carrito que llega. */
+function sorpresaJuanpa(t) {
+  const sp = t.sorpresa
+  if (!sp) return
+  const u = t.fase === 'vuelo' ? t.t / t.T : 1
+  if (sp.tipo === 'arbol' && !sp.hecho) {
+    const k = (u - (sp.u - 0.3)) / 0.3
+    if (k > 0) { const [x, y] = w2s(M.posVuelo(t, sp.u)); arbolito(x, y, Math.min(1, k * 1.15)) }
+  }
+  if (sp.tipo === 'rafaga' && t.fase === 'vuelo' && u > sp.u - 0.04) {
+    const [x, y0] = w2s(t.pos)
+    const [vx, vy] = w2s([t.pos[0] + sp.vec[0], t.pos[1] + sp.vec[1]])
+    const d = Math.hypot(vx - x, vy - y0) || 1
+    const entra = Math.min(1, (u - (sp.u - 0.04)) / 0.08) // aparece de golpe
+    rafagaDibujada(x, y0 - t.alt * levante(), (vx - x) / d, (vy - y0) / d, performance.now() / 1000, entra) // a la altura de la pelota (no de la sombra)
+  }
+  if (sp.tipo === 'carrito') {
+    const ang = Math.atan2(sp.vec[1], sp.vec[0])
+    const L = tamCarrito()
+    if (t.fase === 'vuelo' && u > 0.5) {
+      // llega de costado, justo a donde va a picar
+      const cae = M.posVuelo(t, 1)
+      const largo = Math.hypot(...sp.vec) * 2.2
+      const k = (u - 0.5) / 0.5
+      const p = [cae[0] - Math.cos(ang) * largo * (1 - k), cae[1] - Math.sin(ang) * largo * (1 - k)]
+      const [x, y] = w2s(p)
+      cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
+    } else if (t.fase === 'carrito') {
+      const [x, y] = w2s(t.pos)
+      cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
+    }
+  }
+  if (sp.tipo === 'rafaga' && sp.hecho && !sp.sono) { sp.sono = true; S.swipe() }
+  if (sp.tipo === 'carrito' && t.fase === 'carrito' && !sp.sono) { sp.sono = true; S.robo() }
+}
+/** Al quedar quieta: lo que sigue en pantalla (el árbol que se esfuma, el carrito que se va). */
+function sorpresaQueQueda(t) {
+  const sp = t.sorpresa
+  if (!sp?.hecho || sp.tipo === 'rafaga') return
+  fxJuanpa.push({ tipo: sp.tipo, pos: [...(sp.pos ?? t.pos)], ang: Math.atan2(sp.vec[1], sp.vec[0]), t0: performance.now() })
+  if (sp.tipo === 'arbol') S.palo()
+}
+/** Después: el árbol se queda un ratito y se esfuma; el carrito sigue de largo. */
+function dibujarFxJuanpa() {
+  if (!fxJuanpa.length) return
+  const ahora = performance.now()
+  fxJuanpa = fxJuanpa.filter((f) => ahora - f.t0 < 1600)
+  for (const f of fxJuanpa) {
+    const sg = (ahora - f.t0) / 1000
+    if (f.tipo === 'arbol') {
+      const [x, y] = w2s(f.pos)
+      const fuera = Math.max(0, (sg - 0.8) / 0.6)
+      arbolito(x, y, 1 + fuera * 0.3, 1 - fuera)
+      if (fuera > 0) nubecita(x, y - 18, fuera)
+    } else {
+      const d = sg * 26
+      const [x, y] = w2s([f.pos[0] + Math.cos(f.ang) * d, f.pos[1] + Math.sin(f.ang) * d])
+      ctx.save()
+      ctx.globalAlpha = Math.max(0, 1 - sg / 1.6)
+      cuerpoCarrito(x, y, f.ang + cam.rot, tamCarrito(), CARRITO_JUANPA)
+      ctx.restore()
+    }
+  }
+}
+
+/** La flecha de El Sueco: mientras vuela, detrás de la pelota va una flecha (asta dorada, plumas rojas) para donde va. */
+function flechaSueco(t) {
+  const atras = estela[Math.max(0, estela.length - 5)]
+  if (!atras) return
+  const [x, y] = w2s(t.pos)
+  const [ax, ay] = w2s(atras)
+  const d = Math.hypot(x - ax, y - ay)
+  if (d < 0.5) return
+  const ux = (x - ax) / d, uy = (y - ay) / d, nx = -uy, ny = ux
+  const L = 34, cola = [x - ux * L, y - uy * L]
+  ctx.save()
+  ctx.lineCap = 'round'
+  // estela de velocidad
+  ctx.strokeStyle = 'rgba(244,238,218,.35)'
+  ctx.lineWidth = 2
+  for (const k of [-5, 5]) { ctx.beginPath(); ctx.moveTo(cola[0] + nx * k - ux * 10, cola[1] + ny * k - uy * 10); ctx.lineTo(cola[0] + nx * k - ux * 30, cola[1] + ny * k - uy * 30); ctx.stroke() }
+  // asta
+  ctx.strokeStyle = C.g950
+  ctx.lineWidth = 6
+  ctx.beginPath(); ctx.moveTo(cola[0], cola[1]); ctx.lineTo(x, y); ctx.stroke()
+  ctx.strokeStyle = C.gold
+  ctx.lineWidth = 3
+  ctx.beginPath(); ctx.moveTo(cola[0], cola[1]); ctx.lineTo(x, y); ctx.stroke()
+  // plumas
+  ctx.fillStyle = C.red
+  ctx.strokeStyle = C.g950
+  ctx.lineWidth = 1.5
+  for (const k of [1, -1]) {
+    ctx.beginPath()
+    ctx.moveTo(cola[0] + ux * 12, cola[1] + uy * 12)
+    ctx.lineTo(cola[0] + nx * 7 * k + ux * 2, cola[1] + ny * 7 * k + uy * 2)
+    ctx.lineTo(cola[0] + nx * 7 * k - ux * 6, cola[1] + ny * 7 * k - uy * 6)
+    ctx.lineTo(cola[0] + ux * 2, cola[1] + uy * 2)
+    ctx.closePath()
+    ctx.fill(); ctx.stroke()
+  }
+  // punta
+  ctx.fillStyle = C.cream
+  ctx.beginPath()
+  ctx.moveTo(x + ux * 10, y + uy * 10)
+  ctx.lineTo(x + nx * 6, y + ny * 6)
+  ctx.lineTo(x - nx * 6, y - ny * 6)
+  ctx.closePath()
+  ctx.fill(); ctx.stroke()
+  ctx.restore()
+}
 function pelota(p, alt, alfa = 1, pantalla = null) {
   const [x, y] = pantalla ?? w2s(p)
   const r = radioPelota() * (1 + alt / 50)
@@ -4081,19 +4489,27 @@ function dibujarApunte(a) {
   if (a.putt) {
     // putt: solo la dirección y la fuerza; la distancia la medís vos
     const dir = a.ang + cam.rot
-    ctx.strokeStyle = a.plan.giro ? C.gold : C.cream
-    ctx.lineWidth = 3
-    ctx.setLineDash([1, 8])
-    ctx.beginPath()
     const r0 = Math.max(14, radioPelota() + 4)
-    ctx.moveTo(bx + Math.cos(dir) * r0, by + Math.sin(dir) * r0)
-    if (a.plan.giro) {
+    const fin = dir + Math.sign(a.plan.giro || 0) * 0.45
+    const camino = () => {
+      ctx.beginPath()
+      ctx.moveTo(bx + Math.cos(dir) * r0, by + Math.sin(dir) * r0)
       // el putt del Mago: la línea muestra para dónde dobla
-      const fin = dir + Math.sign(a.plan.giro) * 0.45
-      ctx.quadraticCurveTo(bx + Math.cos(dir) * 60, by + Math.sin(dir) * 60, bx + Math.cos(fin) * 92, by + Math.sin(fin) * 92)
-    } else ctx.lineTo(bx + Math.cos(dir) * 80, by + Math.sin(dir) * 80)
-    ctx.stroke()
+      if (a.plan.giro) ctx.quadraticCurveTo(bx + Math.cos(dir) * 60, by + Math.sin(dir) * 60, bx + Math.cos(fin) * 92, by + Math.sin(fin) * 92)
+      else ctx.lineTo(bx + Math.cos(dir) * 80, by + Math.sin(dir) * 80)
+    }
+    // contraste en el green claro: los puntos con borde tinta abajo (como los botones)
+    ctx.setLineDash([1, 10])
+    camino(); ctx.strokeStyle = 'rgba(12,43,28,.8)'; ctx.lineWidth = 8; ctx.stroke()
+    camino(); ctx.strokeStyle = a.plan.giro ? C.gold : C.cream; ctx.lineWidth = 4.5; ctx.stroke()
     ctx.setLineDash([])
+    if (a.plan.giro) {
+      // la punta de la flecha, para el lado que dobla
+      const ex = bx + Math.cos(fin) * 92, ey = by + Math.sin(fin) * 92
+      const t = Math.atan2(ey - (by + Math.sin(dir) * 60), ex - (bx + Math.cos(dir) * 60))
+      const punta = () => { ctx.beginPath(); ctx.moveTo(ex + Math.cos(t) * 11, ey + Math.sin(t) * 11); ctx.lineTo(ex + Math.cos(t + 2.4) * 10, ey + Math.sin(t + 2.4) * 10); ctx.lineTo(ex + Math.cos(t - 2.4) * 10, ey + Math.sin(t - 2.4) * 10); ctx.closePath() }
+      punta(); ctx.fillStyle = C.gold; ctx.fill(); ctx.strokeStyle = 'rgba(12,43,28,.85)'; ctx.lineWidth = 2.5; ctx.stroke()
+    }
     // el aro de la fuerza, alrededor de la pelota (crece con el zoom, como la pelota)
     const ra = Math.max(20, radioPelota() + 10)
     ctx.strokeStyle = 'rgba(12,43,28,.55)'
@@ -4158,8 +4574,28 @@ function dibujarApunte(a) {
   ctx.stroke()
   ctx.setLineDash([])
   // zona de pique: ±1,5 desvíos en largo y en ancho
-  const largo = Math.max(1.5 * a.disp.carry * a.alcance, 1.5) * cam.esc
-  const ancho = Math.max(a.alcance * Math.tan(1.5 * a.disp.ang), 1.5) * cam.esc
+  // (con dispersiones enormes, como Miguelón sacado, el ángulo pasaba los 90° y la tangente se iba al infinito o daba
+  // negativa: el óvalo quedaba como una línea roja de punta a punta. Se topa el ángulo y el tamaño en pantalla)
+  const topeOvalo = Math.max(W, H) * 0.45
+  const largo = Math.min(topeOvalo, Math.max(1.5 * a.disp.carry * a.alcance, 1.5) * cam.esc)
+  const ancho = Math.min(topeOvalo, Math.max(a.alcance * Math.tan(Math.min(1.5 * a.disp.ang, 1.1)), 1.5) * cam.esc)
+  if (a.plan.furia) {
+    // Miguelón sacado: un abanico rojo desde la pelota, tan abierto como el error (puede ir para cualquier lado ahí)
+    const ab = Math.min(1.5 * a.disp.ang, 1.1)
+    const r = Math.hypot(dx - bx, dy - by) * (1 + Math.min(0.6, 1.5 * a.disp.carry))
+    const base = Math.atan2(dy - by, dx - bx)
+    ctx.beginPath()
+    ctx.moveTo(bx, by)
+    ctx.arc(bx, by, r, base - ab, base + ab)
+    ctx.closePath()
+    ctx.fillStyle = 'rgba(188,75,60,.22)'
+    ctx.fill()
+    ctx.strokeStyle = C.red
+    ctx.lineWidth = 2.5
+    ctx.setLineDash([6, 6])
+    ctx.stroke()
+    ctx.setLineDash([])
+  } else {
   ctx.beginPath()
   ctx.ellipse(dx, dy, largo, ancho, a.plan.cuerda + cam.rot, 0, 7)
   ctx.fillStyle = a.fondo || (bomba && !a.plan.perfecta) ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.4)' : 'rgba(244,238,218,.18)'
@@ -4168,6 +4604,7 @@ function dibujarApunte(a) {
   ctx.setLineDash([5, 5])
   ctx.stroke()
   ctx.setLineDash([])
+  }
   if (a.plan.aguila) {
     // el embudo del Águila: si la línea pasa por acá cuando soltás, sale derecha
     const base = a.ang + cam.rot
@@ -4180,12 +4617,12 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
+  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(M.aYardas(ronda, a.alcance))} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
   const w = ctx.measureText(txt).width + 16
-  const ly = Math.max(dy - Math.max(largo, ancho) - 18, 40) // con el marcador transparente, puede subir
+  const ly = a.plan.furia ? Math.max(dy - 22, (medirHud().card ?? 20) + 40) : Math.max(dy - Math.max(largo, ancho) - 18, 40) // con el marcador transparente, puede subir
   ctx.fillStyle = 'rgba(12,43,28,.85)'
   ctx.beginPath()
   const lx = Math.max(w / 2 + 8, Math.min(W - w / 2 - 8, dx)) // siempre adentro de la pantalla
@@ -6049,7 +6486,14 @@ function previewHab(id) {
   const linea = (d, color = '#f4eeda') => `<path d="${d}" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="1.5 2.5" opacity=".8"/>`
   const txt = (t, x, y, desde, color = '#e8c34a') => `<text x="${x}" y="${y}" font-size="8" font-family="Anton, sans-serif" fill="${color}" text-anchor="middle" opacity="0">${t}${aparece(desde)}</text>`
   const escenas = {
-    derecho: linea('M8 26 L96 26') + bola('M8 26 L96 26'),
+    // Tito: la flecha del viento gira y la pelota va para donde él quiere
+    viento: `<g transform="translate(24 12)"><circle r="8" fill="#e8c34a" stroke="#0c2b1c" stroke-width="1"/><path d="M-4 0h7M1 -3l3 3-3 3" fill="none" stroke="#0c2b1c" stroke-width="1.6" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="90;-20;0;0" keyTimes="0;0.25;0.35;1" dur="${D}s" repeatCount="indefinite"/></path></g>`
+      + emo('🌬️', 'M10 40 L10 40', { tam: 11 }) + linea('M8 26 Q50 34 96 27') + bola('M8 26 Q50 34 96 27', { kt: '0;0.35;0.85;1', kp: '0;0;1;1' }) + txt('YO LO SUSPENDO', 58, 47, 0.35),
+    // Juanpa: le pega increíble… y aparece un árbol de la nada que la frena
+    caos: linea('M8 26 L96 26') + `<text x="58" y="30" font-size="16" text-anchor="middle" opacity="0">🌳${aparece(0.3)}</text>` + bola('M8 26 L52 26 L52 26 L54 30', { kt: '0;0.45;0.5;1', kp: '0;0.9;0.9;1' }) + txt('¿Y ESE ÁRBOL?', 70, 47, 0.5),
+    // El Sueco: el drive con la línea que se sacude; después, la flecha que pasa los árboles
+    derecho: `<line x1="8" y1="26" x2="34" y2="26" stroke="#f4eeda" stroke-width="1" stroke-dasharray="1.5 2.5"><animateTransform attributeName="transform" type="rotate" values="-18 8 26;18 8 26;-18 8 26" dur=".7s" repeatCount="indefinite"/></line>`
+      + arboles(60, 24) + linea('M8 26 L98 26', '#e8c34a') + emo('🏹', 'M8 26 L98 26', { tam: 12 }) + txt('FLECHA', 60, 46, 0.45),
     bomba: txt('BOMBA', 22, 13, 0.05) + linea('M8 26 L96 26', '#e8c34a') + bola('M8 26 L96 26', { kt: '0;0.45;1' }),
     comba: linea('M8 26 L52 4') + linea('M8 26 Q46 -2 92 24', '#e8c34a') + bola('M8 26 Q46 -2 92 24'),
     aguila: `<line x1="8" y1="26" x2="40" y2="26" stroke="#f4eeda" stroke-width="1" stroke-dasharray="1.5 2.5"><animateTransform attributeName="transform" type="rotate" values="-22 8 26;22 8 26;-22 8 26" dur=".7s" repeatCount="indefinite"/></line>`
@@ -6127,6 +6571,7 @@ function cartaDe(j) {
       </div>
       <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
       ${j.dicky ? '<img class="carta-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
+      ${j.equipo === 5 ? '<img class="carta-dicky carta-equipo" src="equipo-5.svg" alt="Equipo 5" title="Equipo 5" draggable="false">' : ''}
       ${j.retro ? '<span class="sello-1960">PRO · 1960</span>' : ''}
       ${lock ? `<div class="candado" aria-hidden="true"><span class="cand-ico">${candado()}</span><span class="cand-sello">BLOQUEADO</span></div>` : ''}
       <div class="carta-nombre"><h3>${esc(j.apodo)}</h3><span class="teja" aria-hidden="true">${j.emoji}</span></div>
@@ -6424,7 +6869,7 @@ function mostrarTodos() {
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${candado()}</span></div>
         <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>BLOQUEADO · ${p.hechos} DE ${p.items.length}</span></div>
-        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
+        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}${j.equipo === 5 ? '<img class="todo-dicky" src="equipo-5.svg" alt="Equipo 5" title="Equipo 5" draggable="false">' : ''}
         <button class="carta-jugar" type="button" disabled aria-label="Bloqueado">${candado(false, 'en-boton')}</button>
       </div>
       ${requisitosTaiu()}
@@ -6434,7 +6879,7 @@ function mostrarTodos() {
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${j.emoji}</span></div>
         <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${nivelDe(j)} · ${hcpEtiqueta(j).toUpperCase()} · ${dif.nombre.toUpperCase()}</span></div>
-        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
+        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}${j.equipo === 5 ? '<img class="todo-dicky" src="equipo-5.svg" alt="Equipo 5" title="Equipo 5" draggable="false">' : ''}
         <button class="carta-jugar" type="button" data-jugar="${i}">Jugar</button>
       </div>
       ${hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
