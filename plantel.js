@@ -1,4 +1,4 @@
-// El plantel del SDGA para elegir nivel (dicky: es de los Dicky Toons, lleva el logo en la carta; torso: su foto recortada, para la Dickyllamada): de la base de la FedE Cup (handicap, frase, emoji) y del
+// El plantel del SDGA para elegir nivel (dicky: es de los Dicky Toons, lleva el logo en la carta; equipo: su equipo, con su logo (el 5: equipo-5.svg); torso: su foto recortada, para la Dickyllamada): de la base de la FedE Cup (handicap, frase, emoji) y del
 // design system (fotos, stats 2024–2026). Foto del 2026-10-03.
 // Ordenado por handicap, de menor a mayor. aprox: handicap aproximado que pasó Rorro (no está en la base).
 // En la app esto sale de la tabla players (usePlayers) y de photoForPlayer, no de este archivo.
@@ -131,6 +131,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "Lechu",
+    "equipo": 5,
     "emoji": "🦉",
     "hcp": 7,
     "aprox": true,
@@ -185,6 +186,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "LG",
+    "equipo": 5,
     "emoji": "📺",
     "hcp": 11.1,
     "frase": "El que se enoja pierde",

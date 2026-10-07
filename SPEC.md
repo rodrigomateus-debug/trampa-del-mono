@@ -345,3 +345,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 
 - Entra al mazo Tito (HCP 16, 🌬️, su foto de la base). Habilidad "Tranqui, yo lo suspendo" (`viento`): antes de cada tiro, el viento es un botón (con la cinta TOCÁ). Tocándolo se abre un dial: arrastrás desde el centro para elegir para dónde sopla (arriba es para el hoyo, como se ve la cancha) y qué tan fuerte (de 0 a 30 km/h, `controlarViento`); "SIN VIENTO" lo apaga y LISTO cierra. El tiro sale con ese viento y LG lo cuenta ("Tito lo dejó en 30 km/h").
 - El bot apaga el viento antes de cada tiro. Dificultad medida (20 vueltas): +3,9 (Trampa total, por el HCP 16).
+
+## 🔵 El logo del Equipo 5 (2026-10-07)
+
+- `equipo-5.svg`: escudo redondo azul con aro dorado, "EQUIPO" arriba y "SDGA" abajo, dos estrellas y un 5 grande crema con borde y sombra (como los botones del juego), con una pelota de golf en la panza que late cada tanto.
+- Va en la carta (donde los Dicky llevan el suyo) y en "Ver todos" de los del Equipo 5 (`equipo: 5` en plantel.js): Lechu (Joaquín) y LG (Lucas).

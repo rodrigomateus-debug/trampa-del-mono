@@ -6455,6 +6455,7 @@ function cartaDe(j) {
       </div>
       <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
       ${j.dicky ? '<img class="carta-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
+      ${j.equipo === 5 ? '<img class="carta-dicky carta-equipo" src="equipo-5.svg" alt="Equipo 5" title="Equipo 5" draggable="false">' : ''}
       ${j.retro ? '<span class="sello-1960">PRO · 1960</span>' : ''}
       ${lock ? `<div class="candado" aria-hidden="true"><span class="cand-ico">${candado()}</span><span class="cand-sello">BLOQUEADO</span></div>` : ''}
       <div class="carta-nombre"><h3>${esc(j.apodo)}</h3><span class="teja" aria-hidden="true">${j.emoji}</span></div>
@@ -6752,7 +6753,7 @@ function mostrarTodos() {
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${candado()}</span></div>
         <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>BLOQUEADO · ${p.hechos} DE ${p.items.length}</span></div>
-        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
+        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}${j.equipo === 5 ? '<img class="todo-dicky" src="equipo-5.svg" alt="Equipo 5" title="Equipo 5" draggable="false">' : ''}
         <button class="carta-jugar" type="button" disabled aria-label="Bloqueado">${candado(false, 'en-boton')}</button>
       </div>
       ${requisitosTaiu()}
@@ -6762,7 +6763,7 @@ function mostrarTodos() {
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${j.emoji}</span></div>
         <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${nivelDe(j)} · ${hcpEtiqueta(j).toUpperCase()} · ${dif.nombre.toUpperCase()}</span></div>
-        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
+        ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}${j.equipo === 5 ? '<img class="todo-dicky" src="equipo-5.svg" alt="Equipo 5" title="Equipo 5" draggable="false">' : ''}
         <button class="carta-jugar" type="button" data-jugar="${i}">Jugar</button>
       </div>
       ${hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
