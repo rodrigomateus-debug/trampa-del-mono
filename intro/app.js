@@ -75,8 +75,8 @@ async function iniciar() {
   const $ = (s) => raiz.querySelector(s)
   if (enApp) raiz.classList.add('en-app') // la puerta queda solo como pantalla de carga (sin botones)
   const escenario = $('.ia-escenario')
-  // en la app, arriba del título: de quién es (el video no lo tiene)
-  escenario.querySelector('#logo-caja')?.insertAdjacentHTML('afterbegin', '<span id="logo-de" aria-label="SDGA’s">SDGA’S</span>')
+  // en la app, arriba del título: de quién es (el video no lo tiene). El logo oficial del SDGA con su ’s (la S del logo, chica)
+  escenario.querySelector('#logo-caja')?.insertAdjacentHTML('afterbegin', `<img id="logo-de" src="${BASE}assets/sdga-s-logo.svg" alt="SDGA’s" width="253" height="48">`)
   const lienzo = $('.ia-lienzo')
   // grano, viñeta y fundidos a pantalla completa (no solo dentro del escenario escalado)
   for (const id of ['grano', 'vineta', 'flash', 'negro', 'fundido']) {
@@ -426,9 +426,9 @@ const CSS_APP = `
 @font-face { font-family: "Archivo"; src: url("assets/fonts/archivo-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 @font-face { font-family: "Archivo"; src: url("assets/fonts/archivo-800.woff2") format("woff2"); font-weight: 800; font-display: swap; }
 #intro-app #logo-sdga { display: none; } /* en la app ese lugar es del botón EMPEZAR */
-#intro-app #logo-de { position: absolute; left: -200px; right: -200px; bottom: 100%; margin-bottom: 16px; text-align: center; white-space: nowrap;
-  font: 400 50px/1 var(--display); letter-spacing: .16em; padding-left: .16em; color: var(--gold); text-shadow: 0 4px 18px rgba(5, 18, 11, .55); }
-#intro-app.vertical #logo-de { font-size: 46px; margin-bottom: 14px; }
+#intro-app #logo-de { position: absolute; left: 50%; bottom: 100%; translate: -50% 0; margin-bottom: 18px; width: 230px; height: auto; display: block;
+  filter: drop-shadow(0 4px 14px rgba(5, 18, 11, .55)); }
+#intro-app.vertical #logo-de { width: 210px; margin-bottom: 16px; }
 #intro-app { position: fixed; inset: 0; z-index: 60; overflow: hidden; background: #0c2b1c; color: #f4eeda;
   --green-950: #0c2b1c; --green-900: #14402a; --green-700: #1c5638; --green-300: #6fae87; --cream: #f4eeda;
   --cream-dark: #e7dfc2; --gold: #e8c34a; --gold-dark: #c9a22e;
