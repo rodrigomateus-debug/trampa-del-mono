@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy: el juego publicado + el clima del día (para probar uno: ?clima=lluvia, soleado, nuboso, seco, mojado, tormenta o nieve), el MODO PRO (en el match y en la vuelta normal) con su ranking aparte y los íconos nuevos, para probar.
+Hoy: el juego publicado + el clima del día (para probar uno: ?clima=lluvia, soleado, nuboso, seco, mojado, tormenta o nieve) con la cancha dibujada de cada clima, el MODO PRO (en el match y en la vuelta normal) con su ranking aparte, los íconos nuevos, y la goma con nudos (clic y vibración) con el golfista de cada player (Miguelón revolea el palo), para probar.

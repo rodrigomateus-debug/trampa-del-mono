@@ -1379,8 +1379,10 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 .gb-par .gb-pista i { left: auto; }
 .gb-par .gb-pista i.bajo { background: var(--green-500); border-radius: 4px 0 0 4px; }
 .gb-par .gb-pista i.sobre { background: var(--red); border-radius: 0 4px 4px 0; }
+.tic { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; pointer-events: none; }
 </style>
 
+<label class="tic" id="tic-l" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>
 <canvas id="cancha" aria-label="La cancha: hoyos 15, 16 y 17 de San Diego"></canvas>
 <div id="retro" aria-hidden="true"></div>
 <div id="intro-app" aria-label="Intro: La Trampa del Mono"></div>
@@ -2174,6 +2176,18 @@ function zoomApunte() {
 // el zoom mientras vuela un tiro completo: el de apuntar (antes de alejarte tirando para atrás), un poco más cerca
 let escVuelo = null
 function pegar(a, base = null) {
+  // el jugador hace el swing: la pelota sale cuando el palo llega a la pelota (mientras, nada se toca)
+  golfista.desde = [...ronda.pelota]
+  golfista.ang = a.ang
+  const impacto = swingGolfista(a)
+  if (impacto > 16) {
+    estado = 'swing'
+    setTimeout(() => { if (estado === 'swing' && ronda && !ronda.terminada) pegarYa(a, base) }, impacto)
+    return
+  }
+  pegarYa(a, base)
+}
+function pegarYa(a, base = null) {
   // pegar desarma el LP: si no, un toque al LP después de un putt corto confirmaba sin volver a preguntar
   if (lpArmado) { lpArmado = 0; $('#lp').textContent = textoLP() }
   velCam = 3.5
@@ -3503,6 +3517,7 @@ function revolearPalo() {
   el.hidden = true
   void el.offsetWidth
   el.hidden = false
+  golfistaTiraPalo()
   S.bronca()
   setTimeout(() => S.helicoptero(3.3), 500)
   voz = { lg: '😡 ¡Miguelón revoleó el palo!', extra: 'Está sacado: el próximo tiro sale para cualquier lado. Después se le pasa', hasta: performance.now() + 6000 }
@@ -3716,6 +3731,8 @@ function dibujar() {
   dibujarRafagas()
   dibujarPancho()
   if (ronda?.carro && !ronda.terminada) dibujarCarro(ronda.carro)
+  const aJ = estado === 'apuntar' && drag ? apunte() : null
+  dibujarGolfista(aJ)
   dibujarMonos()
   if (ronda?.duelo?.fantasma) dibujarFantasma()
   if (replay) dibujarReplay()
@@ -4736,6 +4753,204 @@ function flechaSueco(t) {
   ctx.fill(); ctx.stroke()
   ctx.restore()
 }
+// ── 🏌️ el jugador en la cancha (visto desde arriba): parado al costado de la pelota, de costado a la línea del tiro,
+// hace el swing a la par de la goma (backswing mientras estirás, al soltar baja, pega y termina). Cada player con su
+// pinta: la gorra y la remera de su foto, su emoji en la gorra y alguna cosa propia (el sombrero de Mugre, el gorro del
+// Ninja, la boina de Demetrio, las orejas del Flaco, la cabeza de árbol de Groot, la camisa floreada de Liberty y Fito).
+// Miguelón sacado revolea el palo de verdad. El swing: un parámetro s (0 = address e impacto, 1 = arriba, −1 = final)
+// que recorre poses clave; ver el artefacto de potencia (2026-10-07) ──
+const PINTA = {
+  'El Sueco': { gorra: '#1a1a1a', camisa: '#6b1c24' },
+  Mapache: { gorra: '#c4202b', camisa: '#f0f0f0', rayas: '#c4202b' },
+  'El Perro': { gorra: '#1f6b3a', camisa: '#2a6b3c' },
+  'El Ninja (Đ)': { gorra: '#141414', camisa: '#1c1c1c', tipo: 'gorro' },
+  'Taiu (Đ)': { gorra: '#f4f4f4', camisa: '#6b1c2c' },
+  'Mike Queboni (Đ)': { gorra: '#1d2f55', camisa: '#8db4e8' },
+  Grandpa: { gorra: '#76787c', camisa: '#f2f2f2', alReves: true },
+  Lechu: { gorra: '#1a1a1a', camisa: '#6f8a72' },
+  'El Flaco Ordoñez': { gorra: '#1a1a1a', camisa: '#f0f0f0', orejas: '#b7854c' },
+  Mugre: { gorra: '#f4f4f4', camisa: '#1c2541', tipo: 'sombrero' },
+  'El Mago Rodal': { gorra: '#1f5fd1', camisa: '#86b6ea', flores: '#cfe3fb' },
+  LG: { gorra: '#f4f4f4', camisa: '#1f5fd0' },
+  'El Leon': { gorra: '#f4f4f4', camisa: '#1b2442' },
+  Rorro: { gorra: '#1a1a1a', camisa: '#6a1d2a' },
+  Liberty: { gorra: '#f4f4f4', camisa: '#5ab2e8', flores: '#f7f3ff' },
+  Tito: { gorra: '#f4f4f4', camisa: '#161616' },
+  Groot: { gorra: '#6b4a2b', camisa: '#5a3d24', tipo: 'groot' },
+  'Baby groot': { gorra: '#d6d6d6', camisa: '#161616' },
+  'Fito (Đ)': { gorra: '#1e2a5a', camisa: '#7fcfc4', flores: '#f2b36b' },
+  Cochino: { gorra: '#e8dfc5', camisa: '#14544a' },
+  'Demetrio López': { gorra: '#3d6fa3', camisa: '#e8337a', tipo: 'boina' },
+  'El Ruso': { gorra: '#1c7a45', camisa: '#f2f2f2' },
+  Tinder: { gorra: '#e5482e', camisa: '#1a1a1a' },
+  Laucha: { gorra: '#1d3c7a', camisa: '#4d7cc4' },
+  Julito: { gorra: '#f2c230', camisa: '#2b2b2b' },
+}
+const pintaDe = (j) => PINTA[j?.apodo] ?? { gorra: '#1d2f55', camisa: '#4f7fc4' }
+const POSES = [
+  // s     hombros  manos   alcance  palo    largo
+  [-1.00, -105,    -125,     9,     -255,   0.85], // el final: frente a la bandera, el palo envuelto detrás del cuello
+  [-0.62,  -80,     -82,    14,     -175,   0.45], // brazos plegándose, el palo parado
+  [-0.32,  -45,     -40,    17,      -90,   1.00], // brazos estirados hacia la bandera, el palo paralelo
+  [ 0.00,    0,       0,    14,        0,   1.00], // address / impacto
+  [ 0.33,   32,      48,    15,       88,   1.00], // las manos a la cadera derecha, el palo paralelo al piso
+  [ 0.68,   68,      85,    12,      178,   0.45], // el brazo paralelo, el palo parado (cortito desde arriba)
+  [ 1.00,   92,     112,    10,      262,   0.92], // arriba: hombros girados, el palo apuntando a la bandera
+  [ 1.10,   98,     118,     9,      285,   0.95], // pasado de fondo (overswing)
+]
+const GOLFISTA = { D: 230, finalMs: 600, vuelta: 420 }
+const radG = (g) => (g * Math.PI) / 180
+function poseSwing(sv) {
+  const sw = Math.max(-1, Math.min(1.1, sv))
+  let i = 0
+  while (i < POSES.length - 2 && sw > POSES[i + 1][0]) i++
+  const a = POSES[i], b = POSES[i + 1]
+  const t0 = (sw - a[0]) / (b[0] - a[0] || 1), t = t0 * t0 * (3 - 2 * t0)
+  const m = (k) => a[k] + (b[k] - a[k]) * t
+  return { hombros: radG(m(1)), manos: radG(m(2)), alcance: m(3), palo: radG(m(4)), largo: m(5) }
+}
+let golfista = { ang: null, swing: null, tira: null } // ang: para dónde mira (en la cancha); swing: { t0, desde, hasta, D }
+/** s del swing ahora: mientras estirás, la potencia (el putt, un péndulo cortito); al soltar, baja hasta el final. */
+function sGolfista(now, a) {
+  const g = golfista
+  if (drag && estado === 'apuntar' && a) return a.putt ? Math.min(0.42, a.p * 0.42) : Math.min(1.1, a.p)
+  if (!g.swing) return 0
+  const t = now - g.swing.t0
+  const ec = (u) => u * u * (0.55 + 0.45 * u) // el downswing acelera
+  if (t <= g.swing.D) return g.swing.desde + (g.swing.hasta - g.swing.desde) * ec(t / g.swing.D)
+  if (t <= g.swing.D + GOLFISTA.finalMs) return g.swing.hasta
+  const u = Math.min(1, (t - g.swing.D - GOLFISTA.finalMs) / GOLFISTA.vuelta)
+  if (u >= 1) { g.swing = null; return 0 }
+  return g.swing.hasta * (1 - u * u * (3 - 2 * u))
+}
+/** El swing al soltar: devuelve cuántos ms faltan para el impacto (cuando s pasa por 0). */
+function swingGolfista(a) {
+  const desde = a.putt ? Math.min(0.42, a.p * 0.42) : Math.min(1.1, a.p)
+  const hasta = a.putt ? -0.2 - a.p * 0.15 : -1
+  const D = (a.putt ? 150 : GOLFISTA.D) * (0.75 + 0.25 * Math.min(1, a.p))
+  golfista.swing = { t0: performance.now(), desde, hasta, D }
+  let u = 0
+  for (; u < 1; u += 0.01) if (desde + (hasta - desde) * (u * u * (0.55 + 0.45 * u)) <= 0) break
+  return u * D
+}
+function brazoG(h, m, afuera, k, camisa) {
+  const seg = 9.6 * k, d = Math.hypot(m[0] - h[0], m[1] - h[1]) || 1
+  const mx = (h[0] + m[0]) / 2, my = (h[1] + m[1]) / 2
+  const sale = d >= seg * 2 ? 0 : Math.sqrt(seg * seg - (d / 2) * (d / 2))
+  const nx = -(m[1] - h[1]) / d, ny = (m[0] - h[0]) / d
+  const sg = nx * afuera[0] + ny * afuera[1] >= 0 ? 1 : -1
+  const codo = [mx + nx * sale * sg, my + ny * sale * sg]
+  const linea = (w, col) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(h[0], h[1]); ctx.lineTo(codo[0], codo[1]); ctx.lineTo(m[0], m[1]); ctx.stroke() }
+  linea(6.5 * k, C.g950); linea(4 * k, camisa)
+}
+/** El jugador, en pantalla: la pelota en (bx, by), mirando la línea `dir` (ángulo en pantalla), con este s. */
+function dibujarJugador(bx, by, dir, sv, j, now, conPalo = true) {
+  const k = escalaGolfista()
+  const pin = pintaDe(j)
+  ctx.save()
+  ctx.translate(bx, by); ctx.rotate(dir + Math.PI / 2) // todo el swing está pensado con la línea hacia arriba
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'
+  const cuerpo = (svv) => {
+    const P = poseSwing(svv)
+    const cx = -33 * k, cy = 0
+    const f = [Math.cos(P.hombros), Math.sin(P.hombros)]
+    const der = [cx - f[1] * 11 * k, cy + f[0] * 11 * k], izq = [cx + f[1] * 11 * k, cy - f[0] * 11 * k]
+    const manos = [cx + Math.cos(P.manos) * P.alcance * k, cy + Math.sin(P.manos) * P.alcance * k]
+    const L = 19 * P.largo * k
+    return { P, cx, cy, f, der, izq, manos, cabeza: [manos[0] + Math.cos(P.palo) * L, manos[1] + Math.sin(P.palo) * L] }
+  }
+  const c = cuerpo(sv)
+  // la estela del downswing
+  if (conPalo && golfista.swing && now - golfista.swing.t0 < golfista.swing.D + 120) {
+    for (let i = 1; i <= 7; i++) {
+      const atras = cuerpo(sGolfista(now - i * 14))
+      ctx.fillStyle = `rgba(244,238,218,${0.3 - i * 0.04})`; ctx.beginPath(); ctx.arc(atras.cabeza[0], atras.cabeza[1], 3.2 * k, 0, 7); ctx.fill()
+    }
+  }
+  ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(c.cx + 3 * k, c.cy + 4 * k, 13 * k, 15 * k, c.P.hombros, 0, 7); ctx.fill()
+  const pasado = drag && sv > 1.03
+  const palo = () => {
+    if (!conPalo) return
+    ctx.strokeStyle = C.g950; ctx.lineWidth = 4.5 * k; ctx.beginPath(); ctx.moveTo(c.manos[0], c.manos[1]); ctx.lineTo(c.cabeza[0], c.cabeza[1]); ctx.stroke()
+    ctx.strokeStyle = pasado ? C.red : '#c9ccd1'; ctx.lineWidth = 2.2 * k; ctx.beginPath(); ctx.moveTo(c.manos[0], c.manos[1]); ctx.lineTo(c.cabeza[0], c.cabeza[1]); ctx.stroke()
+    ctx.save(); ctx.translate(c.cabeza[0], c.cabeza[1]); ctx.rotate(c.P.palo + Math.PI / 2)
+    ctx.fillStyle = pasado ? C.red : '#9aa3ad'; ctx.strokeStyle = C.g950; ctx.lineWidth = 1.8 * k
+    ctx.beginPath(); ctx.roundRect(-4 * k, -2.5 * k, 11 * k, 6 * k, 2.5 * k); ctx.fill(); ctx.stroke()
+    ctx.restore()
+  }
+  const levantado = sv > 0.55 || sv < -0.5
+  if (!levantado) palo()
+  // el torso, con la remera de su foto (rayas o flores, si tiene)
+  ctx.fillStyle = C.g950; ctx.beginPath(); ctx.ellipse(c.cx, c.cy, 8 * k, 15.5 * k, c.P.hombros, 0, 7); ctx.fill()
+  ctx.fillStyle = pin.camisa; ctx.beginPath(); ctx.ellipse(c.cx, c.cy, 6.2 * k, 13.6 * k, c.P.hombros, 0, 7); ctx.fill()
+  if (pin.rayas || pin.flores) {
+    ctx.save(); ctx.beginPath(); ctx.ellipse(c.cx, c.cy, 6.2 * k, 13.6 * k, c.P.hombros, 0, 7); ctx.clip()
+    ctx.fillStyle = pin.rayas ?? pin.flores
+    if (pin.rayas) for (let i = -3; i <= 3; i++) { ctx.save(); ctx.translate(c.cx, c.cy); ctx.rotate(c.P.hombros); ctx.fillRect(-7 * k, i * 4 * k, 14 * k, 1.6 * k); ctx.restore() }
+    else for (const [dx, dy] of [[-2, -8], [2, -3], [-3, 3], [2, 8], [-1, 11], [3, -11]]) { ctx.beginPath(); ctx.arc(c.cx + dx * k, c.cy + dy * k, 1.6 * k, 0, 7); ctx.fill() }
+    ctx.restore()
+  }
+  brazoG(c.izq, c.manos, [f2(c.f)[0] * -1, f2(c.f)[1] * -1], k, pin.camisa)
+  brazoG(c.der, c.manos, f2(c.f), k, pin.camisa)
+  ctx.fillStyle = '#e0b38c'; ctx.strokeStyle = C.g950; ctx.lineWidth = 1.8 * k; ctx.beginPath(); ctx.arc(c.manos[0], c.manos[1], 3.8 * k, 0, 7); ctx.fill(); ctx.stroke()
+  // la cabeza: gorra (o sombrero, gorro, boina, árbol), con su emoji arriba
+  const mira = c.P.hombros * 0.55
+  const hx = c.cx, hy = c.cy
+  if (pin.orejas) { ctx.fillStyle = pin.orejas; for (const sg of [-1, 1]) { ctx.beginPath(); ctx.ellipse(hx - 1 * k, hy + sg * 6.5 * k, 3.4 * k, 2.4 * k, 0, 0, 7); ctx.fill() } }
+  if (pin.tipo === 'sombrero') { ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(hx, hy, 10 * k, 0, 7); ctx.fill(); ctx.fillStyle = pin.gorra; ctx.beginPath(); ctx.arc(hx, hy, 8.8 * k, 0, 7); ctx.fill() }
+  ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(hx, hy, 6.2 * k, 0, 7); ctx.fill()
+  ctx.fillStyle = pin.tipo === 'groot' ? '#7a5634' : pin.gorra; ctx.beginPath(); ctx.arc(hx, hy, 4.9 * k, 0, 7); ctx.fill()
+  if (pin.tipo === 'groot') { ctx.fillStyle = '#5c8a3a'; for (const a of [0.3, 1.9, 3.6, 5]) { ctx.beginPath(); ctx.ellipse(hx + Math.cos(a) * 5 * k, hy + Math.sin(a) * 5 * k, 2.6 * k, 1.5 * k, a, 0, 7); ctx.fill() } }
+  else if (pin.tipo === 'boina') { ctx.fillStyle = pin.gorra; ctx.beginPath(); ctx.ellipse(hx + Math.cos(mira) * 1.5 * k, hy + Math.sin(mira) * 1.5 * k, 6.5 * k, 6 * k, mira, 0, 7); ctx.fill() }
+  else if (!pin.tipo) {
+    const v = pin.alReves ? mira + Math.PI : mira // Grandpa, con la gorra al revés
+    ctx.fillStyle = pin.gorra; ctx.strokeStyle = C.g950; ctx.lineWidth = 1.2 * k
+    ctx.beginPath(); ctx.ellipse(hx + Math.cos(v) * 5 * k, hy + Math.sin(v) * 5 * k, 3.6 * k, 4.6 * k, v, -Math.PI / 2, Math.PI / 2); ctx.fill(); ctx.stroke()
+  }
+  if (j?.emoji && pin.tipo !== 'groot') {
+    ctx.font = `${Math.round(8 * k)}px ${EMOJI}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    ctx.save(); ctx.translate(hx, hy); ctx.rotate(-(dir + Math.PI / 2)); ctx.fillText(j.emoji, 0, 0.5 * k); ctx.restore()
+    ctx.textBaseline = 'alphabetic'
+  }
+  if (levantado) palo()
+  ctx.restore()
+}
+const f2 = (f) => [-f[1], f[0]]
+/** El tamaño del jugador: crece un poco con el zoom (en el green, más cerca, se ve más grande), con un piso para que se vea. */
+const escalaGolfista = () => Math.max(1.05, Math.min(1.6, 0.95 + cam.esc * 0.06))
+/** Dónde y cómo se dibuja el jugador en este cuadro (o nada). */
+function dibujarGolfista(a) {
+  if (!ronda || ronda.terminada || estado === 'manejar' || estado === 'replay' || replay) return
+  const now = performance.now()
+  const enVuelo = estado === 'tiro' || estado === 'anim'
+  const donde = enVuelo || golfista.swing ? (golfista.desde ?? ronda.pelota) : ronda.pelota
+  if (!enVuelo && !golfista.swing) golfista.desde = null
+  const h = M.hoyoActual(ronda)
+  const alPin = Math.atan2(h.pin[1] - donde[1], h.pin[0] - donde[0])
+  const objetivo = a ? a.ang : golfista.swing || enVuelo ? golfista.ang ?? alPin : alPin
+  golfista.ang = golfista.ang == null ? objetivo : golfista.ang + Math.atan2(Math.sin(objetivo - golfista.ang), Math.cos(objetivo - golfista.ang)) * 0.2
+  const [bx, by] = w2s(donde)
+  const t = golfista.tira
+  const sv = t ? -1 : sGolfista(now, a)
+  dibujarJugador(bx, by, golfista.ang + cam.rot, sv, ronda.jugador, now, !t)
+  // Miguelón sacado: el palo sale volando, girando, y se pierde
+  if (t) {
+    const u = (now - t.t0) / 1300
+    if (u >= 1) { golfista.tira = null; return }
+    const k = escalaGolfista()
+    const d = 40 * k + u * 230
+    const x = bx + Math.cos(t.dir) * d, y = by + Math.sin(t.dir) * d - Math.sin(Math.PI * Math.min(1, u * 1.2)) * 70
+    ctx.save(); ctx.translate(x, y); ctx.rotate(u * 22); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, u - 0.7) / 0.3)
+    ctx.lineCap = 'round'
+    ctx.strokeStyle = C.g950; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(14, 0); ctx.stroke()
+    ctx.strokeStyle = '#c9ccd1'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(14, 0); ctx.stroke()
+    ctx.fillStyle = '#9aa3ad'; ctx.strokeStyle = C.g950; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(11, -4, 8, 8, 2); ctx.fill(); ctx.stroke()
+    ctx.restore()
+  }
+}
+/** Miguelón revolea el palo: el jugador termina el swing con bronca y el palo sale volando para cualquier lado. */
+function golfistaTiraPalo() { golfista.tira = { t0: performance.now(), dir: -Math.PI / 2 + (Math.random() - 0.5) * 2.4 } }
+
 function pelota(p, alt, alfa = 1, pantalla = null) {
   const [x, y] = pantalla ?? w2s(p)
   const r = radioPelota() * (1 + alt / 50)
@@ -4922,8 +5137,8 @@ function monoBueno(x, y, tam) {
 }
 
 /**
- * El MODO PRO: ni línea punteada ni zona de pique. Solo una flechita corta para dónde sale y el aro de la fuerza
- * alrededor de la pelota (cuánto le pegás, no dónde cae): la distancia la calculás vos.
+ * El MODO PRO: ni línea punteada ni zona de pique. Solo una flechita corta para dónde sale y la goma con los nudos
+ * (cuánto le pegás, no dónde cae): la distancia la calculás vos.
  */
 function apuntePro(a, bx, by, col) {
   const dir = (a.putt ? a.ang : a.plan.cuerda ?? a.ang) + cam.rot
@@ -4940,29 +5155,69 @@ function apuntePro(a, bx, by, col) {
   ctx.lineJoin = 'round'
   flecha(); ctx.strokeStyle = 'rgba(12,43,28,.8)'; ctx.lineWidth = 7; ctx.stroke()
   flecha(); ctx.strokeStyle = a.putt ? C.cream : col; ctx.lineWidth = 3.5; ctx.stroke()
-  const ra = Math.max(20, radioPelota() + 10)
-  ctx.strokeStyle = 'rgba(12,43,28,.55)'
-  ctx.lineWidth = 5
-  ctx.beginPath(); ctx.arc(bx, by, ra, 0, 7); ctx.stroke()
-  ctx.strokeStyle = a.fondo ? C.red : C.gold
-  ctx.beginPath(); ctx.arc(bx, by, ra, -Math.PI / 2, -Math.PI / 2 + Math.min(1, a.p) * 2 * Math.PI); ctx.stroke()
+}
+/**
+ * La goma con nudos: sale de la pelota para atrás (para el lado contrario del tiro, como una gomera) y se estira con
+ * la fuerza. Tiene tres nudos fijos (½, ¾ y a fondo): los que pasaste quedan dorados sobre la goma y los que faltan,
+ * fantasmas más allá de la punta (ahí tenés que llegar). Al pasar cada nudo, un clic y un tic en el celu: así repetís
+ * un tiro sin mirar números. A fondo se pone roja y tiembla. (Elegida en el artefacto de potencia, 2026-10-07.)
+ */
+const NUDOS = [0.5, 0.75, 0.97] // en potencia; el último es "a fondo" (el mismo umbral del tiro)
+function goma(a, bx, by) {
+  const exp = a.putt ? 1.6 : 1.35 // la potencia es el estirón a la `exp` (ver apunte): los nudos van donde está el dedo
+  const largo = Math.max(84, Math.min(150, Math.min(W, H) * 0.3))
+  const enU = (p) => Math.pow(Math.min(1, p), 1 / exp)
+  const fondo = a.p >= NUDOS[2]
+  const atras = a.ang + cam.rot + Math.PI
+  const ux = Math.cos(atras), uy = Math.sin(atras), nx = -uy, ny = ux
+  const tiembla = fondo ? Math.sin(performance.now() / 22) * 2.2 : 0
+  const L = largo * enU(a.p) * (fondo ? 1.04 : 1)
+  const r0 = Math.max(9, radioPelota() + 2)
+  const ax = bx + ux * r0, ay = by + uy * r0
+  const ex = bx + ux * (r0 + L) + nx * tiembla, ey = by + uy * (r0 + L) + ny * tiembla
+  const color = fondo ? C.red : a.p >= NUDOS[0] ? C.gold : C.cream
+  const grosor = Math.max(3, 11 - a.p * 7)
+  ctx.lineCap = 'round'
+  ctx.strokeStyle = 'rgba(12,43,28,.85)'; ctx.lineWidth = grosor + 4; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
+  const g = ctx.createLinearGradient(ax, ay, ex, ey)
+  g.addColorStop(0, C.cream); g.addColorStop(1, color)
+  ctx.strokeStyle = g; ctx.lineWidth = grosor; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
+  NUDOS.forEach((m, i) => {
+    const d = r0 + largo * enU(m)
+    const x = bx + ux * d + (a.p >= m ? nx * tiembla : 0), y = by + uy * d + (a.p >= m ? ny * tiembla : 0)
+    const r = i === 2 ? 8 : 6.5
+    if (a.p < m) {
+      ctx.strokeStyle = 'rgba(244,238,218,.6)'; ctx.lineWidth = 2; ctx.setLineDash([3, 3])
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); ctx.setLineDash([])
+      return
+    }
+    ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
+    ctx.fillStyle = i === 2 ? C.red : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+    ctx.fillStyle = C.g950; ctx.font = '10px Anton, Impact, sans-serif'; ctx.textAlign = 'center'
+    ctx.fillText(i === 2 ? '•' : i === 0 ? '½' : '¾', x, y + 3.6)
+  })
+  // el agarre en la punta
+  ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(ex, ey, 8, 0, 7); ctx.fill()
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex, ey, 5.2, 0, 7); ctx.fill()
+  // el clic y el tic al pasar un nudo (para atrás no suena: solo cuando lo pasás de nuevo)
+  let k = -1
+  NUDOS.forEach((m, i) => { if (a.p >= m) k = i })
+  if (drag && k > (drag.nudo ?? -1)) { S.nudo(k, k === NUDOS.length - 1); tic() }
+  if (drag) drag.nudo = k
+}
+/** El "tic" del celu: Android vibra; en iPhone (iOS 18+) se toca un interruptor nativo escondido, que hace el tic del sistema. */
+function tic() {
+  try { if (typeof navigator.vibrate === 'function' && navigator.vibrate(12)) return } catch {}
+  try { $('#tic-l').click() } catch {}
 }
 function dibujarApunte(a) {
   const [bx, by] = w2s(ronda.pelota)
   const [dx, dy] = w2s(a.destino)
   const bomba = a.plan.bomba
   const col = a.fondo || (bomba && !a.plan.perfecta) ? C.red : bomba ? C.gold : C.cream
-  ctx.strokeStyle = 'rgba(244,238,218,.3)'
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  ctx.moveTo(drag.x0, drag.y0)
-  ctx.lineTo(drag.x, drag.y)
-  ctx.stroke()
-  ctx.beginPath()
-  ctx.arc(drag.x, drag.y, 10, 0, 7)
-  ctx.stroke()
   ctx.lineCap = 'round'
-  if (ronda.pro) { apuntePro(a, bx, by, col); return } // el MODO PRO: sin líneas punteadas ni dónde cae
+  if (ronda.pro) { apuntePro(a, bx, by, col); goma(a, bx, by); return } // el MODO PRO: sin líneas punteadas ni dónde cae
+  goma(a, bx, by)
   if (a.putt) {
     // putt: solo la dirección y la fuerza; la distancia la medís vos
     const dir = a.ang + cam.rot
@@ -4987,17 +5242,6 @@ function dibujarApunte(a) {
       const punta = () => { ctx.beginPath(); ctx.moveTo(ex + Math.cos(t) * 11, ey + Math.sin(t) * 11); ctx.lineTo(ex + Math.cos(t + 2.4) * 10, ey + Math.sin(t + 2.4) * 10); ctx.lineTo(ex + Math.cos(t - 2.4) * 10, ey + Math.sin(t - 2.4) * 10); ctx.closePath() }
       punta(); ctx.fillStyle = C.gold; ctx.fill(); ctx.strokeStyle = 'rgba(12,43,28,.85)'; ctx.lineWidth = 2.5; ctx.stroke()
     }
-    // el aro de la fuerza, alrededor de la pelota (crece con el zoom, como la pelota)
-    const ra = Math.max(20, radioPelota() + 10)
-    ctx.strokeStyle = 'rgba(12,43,28,.55)'
-    ctx.lineWidth = 5
-    ctx.beginPath()
-    ctx.arc(bx, by, ra, 0, 7)
-    ctx.stroke()
-    ctx.strokeStyle = C.gold
-    ctx.beginPath()
-    ctx.arc(bx, by, ra, -Math.PI / 2, -Math.PI / 2 + a.p * 2 * Math.PI)
-    ctx.stroke()
     return
   }
   if (a.arbol) {
