@@ -3379,7 +3379,7 @@ function dibujar() {
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
-    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); pelota(tiro.pos, tiro.alt) }
+    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); pelota(tiro.pos, tiro.alt) }
     else { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
   }
   const a = estado === 'apuntar' ? apunte() : null
@@ -3878,6 +3878,52 @@ function pelotaQuieta() {
 }
 /** La pelota en pantalla: siempre en proporción al hoyo (0,42 vs. 0,66 yd), también en el zoom de la corbata. */
 const radioPelota = () => Math.max(3.2, cam.esc * 0.42)
+/** La flecha de El Sueco: mientras vuela, detrás de la pelota va una flecha (asta dorada, plumas rojas) para donde va. */
+function flechaSueco(t) {
+  const atras = estela[Math.max(0, estela.length - 5)]
+  if (!atras) return
+  const [x, y] = w2s(t.pos)
+  const [ax, ay] = w2s(atras)
+  const d = Math.hypot(x - ax, y - ay)
+  if (d < 0.5) return
+  const ux = (x - ax) / d, uy = (y - ay) / d, nx = -uy, ny = ux
+  const L = 34, cola = [x - ux * L, y - uy * L]
+  ctx.save()
+  ctx.lineCap = 'round'
+  // estela de velocidad
+  ctx.strokeStyle = 'rgba(244,238,218,.35)'
+  ctx.lineWidth = 2
+  for (const k of [-5, 5]) { ctx.beginPath(); ctx.moveTo(cola[0] + nx * k - ux * 10, cola[1] + ny * k - uy * 10); ctx.lineTo(cola[0] + nx * k - ux * 30, cola[1] + ny * k - uy * 30); ctx.stroke() }
+  // asta
+  ctx.strokeStyle = C.g950
+  ctx.lineWidth = 6
+  ctx.beginPath(); ctx.moveTo(cola[0], cola[1]); ctx.lineTo(x, y); ctx.stroke()
+  ctx.strokeStyle = C.gold
+  ctx.lineWidth = 3
+  ctx.beginPath(); ctx.moveTo(cola[0], cola[1]); ctx.lineTo(x, y); ctx.stroke()
+  // plumas
+  ctx.fillStyle = C.red
+  ctx.strokeStyle = C.g950
+  ctx.lineWidth = 1.5
+  for (const k of [1, -1]) {
+    ctx.beginPath()
+    ctx.moveTo(cola[0] + ux * 12, cola[1] + uy * 12)
+    ctx.lineTo(cola[0] + nx * 7 * k + ux * 2, cola[1] + ny * 7 * k + uy * 2)
+    ctx.lineTo(cola[0] + nx * 7 * k - ux * 6, cola[1] + ny * 7 * k - uy * 6)
+    ctx.lineTo(cola[0] + ux * 2, cola[1] + uy * 2)
+    ctx.closePath()
+    ctx.fill(); ctx.stroke()
+  }
+  // punta
+  ctx.fillStyle = C.cream
+  ctx.beginPath()
+  ctx.moveTo(x + ux * 10, y + uy * 10)
+  ctx.lineTo(x + nx * 6, y + ny * 6)
+  ctx.lineTo(x - nx * 6, y - ny * 6)
+  ctx.closePath()
+  ctx.fill(); ctx.stroke()
+  ctx.restore()
+}
 function pelota(p, alt, alfa = 1, pantalla = null) {
   const [x, y] = pantalla ?? w2s(p)
   const r = radioPelota() * (1 + alt / 50)
@@ -4180,7 +4226,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
+  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(M.aYardas(ronda, a.alcance))} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
@@ -6049,7 +6095,9 @@ function previewHab(id) {
   const linea = (d, color = '#f4eeda') => `<path d="${d}" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="1.5 2.5" opacity=".8"/>`
   const txt = (t, x, y, desde, color = '#e8c34a') => `<text x="${x}" y="${y}" font-size="8" font-family="Anton, sans-serif" fill="${color}" text-anchor="middle" opacity="0">${t}${aparece(desde)}</text>`
   const escenas = {
-    derecho: linea('M8 26 L96 26') + bola('M8 26 L96 26'),
+    // El Sueco: el drive con la línea que se sacude; después, la flecha que pasa los árboles
+    derecho: `<line x1="8" y1="26" x2="34" y2="26" stroke="#f4eeda" stroke-width="1" stroke-dasharray="1.5 2.5"><animateTransform attributeName="transform" type="rotate" values="-18 8 26;18 8 26;-18 8 26" dur=".7s" repeatCount="indefinite"/></line>`
+      + arboles(60, 24) + linea('M8 26 L98 26', '#e8c34a') + emo('🏹', 'M8 26 L98 26', { tam: 12 }) + txt('FLECHA', 60, 46, 0.45),
     bomba: txt('BOMBA', 22, 13, 0.05) + linea('M8 26 L96 26', '#e8c34a') + bola('M8 26 L96 26', { kt: '0;0.45;1' }),
     comba: linea('M8 26 L52 4') + linea('M8 26 Q46 -2 92 24', '#e8c34a') + bola('M8 26 Q46 -2 92 24'),
     aguila: `<line x1="8" y1="26" x2="40" y2="26" stroke="#f4eeda" stroke-width="1" stroke-dasharray="1.5 2.5"><animateTransform attributeName="transform" type="rotate" values="-22 8 26;22 8 26;-22 8 26" dur=".7s" repeatCount="indefinite"/></line>`

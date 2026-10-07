@@ -274,22 +274,39 @@ ok('Rodal: Lucas solo lo adula, pegue como pegue, y con frases del tiro que peg�
   assert.ok(otro.lg && !otro.lucas)
 })
 
-ok('Mati (El Sueco): siempre derecho y drive de casi 300', () => {
+ok('Mati (El Sueco): el drive con el pulso de Fito; después, la flecha que atraviesa los árboles', () => {
   const r = { ...M.nuevaRonda({ apodo: 'El Sueco', emoji: '🇸🇪', hcp: 1.5 }, fijo(0.5)), monos: [], viento: calma }
   const linea = angulo(r.pelota, h15.pin)
-  const plan = M.planTiro(quieto, r, linea, 1)
-  assert.equal(plan.disp.ang, 0)
+  // el drive: la línea se sacude como la de Fito; en el embudo sale derecha (y sin imán)
+  const pico = M.planTiro(quieto, r, linea, 1, 0, M.AGUILA.periodo / 4)
+  assert.ok(pico.aguila && !pico.aguila.enVentana && !pico.flecha)
+  assert.ok(Math.abs(pico.cuerda - linea - (M.AGUILA.amplitud * Math.PI) / 180) < 1e-6)
+  const plan = M.planTiro(quieto, r, linea, 1, 0, 0)
+  assert.ok(plan.aguila.enVentana && plan.disp.ang === 0 && !plan.iman)
   assert.ok(Math.abs(plan.carry * h15.escala - M.carryDe(1.5)) < 1e-6)
   assert.equal(M.dificultad(1.5).nombre, 'Paseo')
-  // con azar de verdad, cae sobre la línea
+  // drive total (vuelo + rodaje) a fondo y en el embudo, en yardas reales: casi 300
   const t0 = [...r.pelota]
-  const tiro = M.simular(quieto, M.golpear(quieto, r, linea, 0.8, Math.random), h15.pin)
-  const enLinea = t0[0] + ((h15.pin[0] - t0[0]) * (t0[1] - tiro.pos[1])) / (t0[1] - h15.pin[1])
-  assert.ok(tiro.eventos.some((e) => e.tipo === 'palo') || Math.abs(tiro.pos[0] - enLinea) < 0.5)
-  // drive total (vuelo + rodaje) a fondo, en yardas reales: casi 300
-  const largo = M.simular(quieto, M.golpear(quieto, { ...r, pelota: [...t0], lie: 'tee' }, linea, 1, sinRuido()), h15.pin)
+  const largo = M.simular(quieto, M.golpear(quieto, { ...r, pelota: [...t0], lie: 'tee' }, linea, 1, sinRuido(), 0, 0), h15.pin)
   const yd = M.dist(t0, largo.pos) * h15.escala
   assert.ok(yd > 280 && yd < 310, `anduvo ${yd.toFixed(0)} yd`)
+  // del segundo tiro en adelante: la flecha. Derecho, sin sacudón, y atraviesa los pinos
+  const desde = [h15.tee[0] - 18, h15.tee[1] - 60] // en el bosque de la izquierda, con pinos adelante
+  const rr = { ...r, pelota: [...desde], lie: 'rough' }
+  const fl = M.planTiro(quieto, rr, angulo(desde, h15.pin), 0.6, 0, M.AGUILA.periodo / 4)
+  assert.ok(fl.flecha && !fl.aguila && fl.disp.ang === 0 && fl.cuerda === angulo(desde, h15.pin))
+  assert.equal(M.pinoEnLaSalida(quieto, desde, fl), null)
+  // contra la fila de pinos de al lado: un tiro normal choca, la flecha pasa
+  const cruza = angulo(desde, [desde[0] + 40, desde[1]])
+  const normal = M.simular(quieto, M.golpear(quieto, { ...rr, jugador: { apodo: 'Rorro', hcp: 1.5 }, pelota: [...desde] }, cruza, 0.4, sinRuido()), h15.pin)
+  const flecha = M.golpear(quieto, { ...rr, pelota: [...desde] }, cruza, 0.4, sinRuido())
+  assert.ok(flecha.flecha && flecha.hMax < normal.hMax)
+  M.simular(quieto, flecha, h15.pin)
+  assert.ok(normal.eventos.some((e) => e.tipo === 'palo'), 'el tiro normal tenía que chocar un pino')
+  assert.ok(!flecha.eventos.some((e) => e.tipo === 'palo'), 'la flecha chocó un pino')
+  // el putt, derecho como siempre
+  const putt = M.planTiro(plano, { ...r, pelota: [h15.pin[0], h15.pin[1] + 4], lie: 'green' }, 0, 0.2)
+  assert.ok(putt.putt && putt.recto)
 })
 
 ok('Fito: la línea se sacude; en el embudo sale derecha', () => {

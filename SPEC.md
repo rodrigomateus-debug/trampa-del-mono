@@ -315,3 +315,10 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - Abajo del botón de sonido, en vez del chip dorado con el golpe o la habilidad (se sacó: no hacía falta), va el contador de golpes del hoyo: una tarjeta crema con borde y sombra como los botones, "GOLPES", el número grande y el par. En el tee marca 0; con cada tiro sube y late.
 - Cada multa se ve clara: el contador se pone rojo y tiembla, y al lado sale un "+1" rojo con el motivo en una cinta dorada: 🚫 AFUERA, 🐒 AL BOSQUE: EL MONO, 🐒 SE LA ROBÓ UN MONO, 🐒 LLEGARON LOS MONOS, 🛺 MONO PISADO (`motivoGolpe`, `contarGolpes`). El reset del Ninja muestra "RESET · DE NUEVO A 0". Al cambiar de hoyo vuelve a 0 sin animación.
 - En la tarjeta de arriba ya no va "Golpe N" (quedaba chiquito y escondido).
+
+## 🏹 El Sueco: el drive con pulso y la flecha (2026-10-07)
+
+- El drive (el tiro de salida, desde el tee) se mueve como los de Fito: la línea se sacude y si soltás en el embudo sale derecha (el cartel dice PULSO o ¡DERECHA!). Sin el imán de Fito.
+- Desde el segundo tiro (fuera del green), una flecha: sale derecho (sin error de dirección), vuela más bajo y más rápido (`FLECHA`) y atraviesa todo: los pinos y los monos que se cruzan en el vuelo (`tiro.flecha`). Si cae en el bosque, igual es bosque. Mientras vuela se dibuja una flecha (asta dorada, plumas rojas) detrás de la pelota. La línea de apuntar no se corta en los árboles.
+- El putt, derecho como siempre. La habilidad se llama "La flecha".
+- Dificultad remedida (20 vueltas): −0,45 (antes −1,35). Sigue en Paseo.
