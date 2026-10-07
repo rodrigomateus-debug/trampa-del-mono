@@ -191,13 +191,13 @@ export const MAPACHE = { chance: 0.35, dada: [1, 1.6] }
 // km/h mínimos; vientoCambia = el viento cambia en cada tiro; siesta = los monos salen más tarde y más lentos (× vel);
 // sinMonos = no hay monos (se escondieron)
 export const CLIMAS = {
-  soleado: { nombre: 'Soleado pleno', emoji: '☀️', prob: 0.22, carry: 1.05, green: 0.85, siesta: 0.6, texto: 'La pelota vuela un poco más, los greens están rápidos y los monos duermen la siesta: salen tarde y lentos.' },
-  nuboso: { nombre: 'Nublado', emoji: '⛅', prob: 0.22, vientoCambia: true, texto: 'El viento cambia en cada tiro, de dirección y de fuerza: mirá la flecha antes de pegar.' },
-  seco: { nombre: 'Día seco', emoji: '🌵', prob: 0.16, pique: 1.7, roce: 0.6, texto: 'La cancha está durísima: la pelota pica alto y rueda una barbaridad. Pegale corto.' },
-  mojado: { nombre: 'Día mojado', emoji: '💧', prob: 0.16, pique: 0.3, green: 1.2, charcos: 2, barro: 0.3, texto: 'Llovió anoche: la pelota se clava y casi no rueda, los greens están lentos y a veces queda con barro: el tiro siguiente sale para cualquier lado.' },
-  lluvia: { nombre: 'Lluvia', emoji: '🌧️', prob: 0.14, carry: 0.95, pique: 0.5, green: 1.15, charcos: 4, texto: 'Llueve: la pelota vuela un poco menos, rueda poco, los greens están lentos y hay charcos en la calle: si cae o rueda en uno, se frena de golpe.' },
-  tormenta: { nombre: 'Lluvia intensa', emoji: '⛈️', prob: 0.09, carry: 0.9, pique: 0.4, green: 1.3, charcos: 7, resbalon: 0.2, vientoMin: 15, sinMonos: true, texto: '¡Diluvia! Viento fuerte, charcos por todos lados, greens lentísimos y el palo mojado resbala: a veces la pegás finita y sale cortita. Los monos se escondieron.' },
-  nieve: { nombre: '¡Nevó en San Diego!', emoji: '❄️', prob: 0.01, carry: 0.95, pique: 0.08, roce: 3, green: 1.25, siesta: 0.5, texto: 'Pasa una vez cada cien vueltas. La pelota (naranja) se clava en la nieve donde cae, en el green rueda lento y los monos, muertos de frío, andan en cámara lenta.' },
+  soleado: { nombre: 'Soleado pleno', prob: 0.22, carry: 1.05, green: 0.85, siesta: 0.6, texto: 'La pelota vuela un poco más, los greens están rápidos y los monos duermen la siesta: salen tarde y lentos.' },
+  nuboso: { nombre: 'Nublado', prob: 0.22, vientoCambia: true, texto: 'El viento cambia en cada tiro, de dirección y de fuerza: mirá la flecha antes de pegar.' },
+  seco: { nombre: 'Día seco', prob: 0.16, pique: 1.7, roce: 0.6, texto: 'La cancha está durísima: la pelota pica alto y rueda una barbaridad. Pegale corto.' },
+  mojado: { nombre: 'Día mojado', prob: 0.16, pique: 0.3, green: 1.2, charcos: 2, barro: 0.3, texto: 'Llovió anoche: la pelota se clava y casi no rueda, los greens están lentos y a veces queda con barro: el tiro siguiente sale para cualquier lado.' },
+  lluvia: { nombre: 'Lluvia', prob: 0.14, carry: 0.95, pique: 0.5, green: 1.15, charcos: 4, texto: 'Llueve: la pelota vuela un poco menos, rueda poco, los greens están lentos y hay charcos en la calle: si cae o rueda en uno, se frena de golpe.' },
+  tormenta: { nombre: 'Lluvia intensa', prob: 0.09, carry: 0.9, pique: 0.4, green: 1.3, charcos: 7, resbalon: 0.2, vientoMin: 15, sinMonos: true, texto: '¡Diluvia! Viento fuerte, charcos por todos lados, greens lentísimos y el palo mojado resbala: a veces la pegás finita y sale cortita. Los monos se escondieron.' },
+  nieve: { nombre: '¡Nevó en San Diego!', prob: 0.01, carry: 0.95, pique: 0.08, roce: 3, green: 1.25, siesta: 0.5, texto: 'Pasa una vez cada cien vueltas. La pelota (naranja) se clava en la nieve donde cae, en el green rueda lento y los monos, muertos de frío, andan en cámara lenta.' },
 }
 export const CLIMA_EFECTO = { barroError: 1.8, resbalonCarry: 0.55, charco: [2.2, 4.2] }
 /** El clima del día, sorteado según `prob` (la nieve, 1 de cada 100). */

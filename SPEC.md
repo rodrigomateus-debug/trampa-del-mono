@@ -378,7 +378,7 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 ## ☔ El clima del día (2026-10-07)
 
 - Cada vuelta tiene su clima, sorteado (`sortearClima`, `CLIMAS` en el motor). En un **match** sale de la semilla (`condicionesMatch` → `clima`, `semillaClima`): los dos juegan el mismo día, con los mismos charcos, el mismo viento que cambia y el palo que resbala en el mismo golpe. Para probar: `?clima=lluvia` (soleado, nuboso, seco, mojado, lluvia, tormenta, nieve).
-- Al empezar, un cartel "HOY EN SAN DIEGO" con el emoji, el nombre y qué hace (se va solo o tocándolo); arriba a la derecha, abajo del viento, queda un chip con el clima (tocándolo vuelve el cartel). La banda de cada hoyo también lo dice.
+- Al empezar, un cartel "HOY EN SAN DIEGO" con su ícono, el nombre y qué hace (se va solo o tocándolo); arriba a la derecha, abajo del viento, queda un chip con el clima (tocándolo vuelve el cartel). La banda de cada hoyo también lo dice.
 - Las mecánicas (perillas en `CLIMAS`):
   - ☀️ **Soleado pleno** (22%): la pelota vuela 5% más (se ve al apuntar), greens rápidos (el putt se pasa de la línea) y los monos duermen la siesta: salen tarde y lentos. Brillo de sol arriba con rayos que giran.
   - ⛅ **Nublado** (22%): el viento cambia en cada tiro, de dirección y fuerza (sale de la semilla y el número de golpe). Sombras de nubes que cruzan la cancha.
@@ -390,6 +390,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - **Charcos**: en la calle de cada hoyo (sorteados con la semilla del clima, sin pisarse). Si la pelota cae o rueda en uno, se frena de golpe ("💦 ¡Al charco!", salpicadura y sonido). Se dibujan con su brillo y, si llueve, con gotas que pican.
 - Deme, Demetrio y el tiro que va solo al hoyo no sienten el clima; el imán de Fito y de Joaco usa el mismo green (lento o rápido), así que entra igual.
 - Calibración (Rorro, HCP 14,6, 80 vueltas por clima, `CLIMA=… node calibrar.mjs`; el bot prueba sus tiros con el clima, sin saber de antemano si le resbala el palo): sin clima +3,49 (LP 5%) · soleado +3,63 (11%) · nublado +3,29 (5%) · seco +3,08 (4%) · mojado +3,96 (6%) · lluvia +3,51 (1%) · **lluvia intensa +5,29 (15%)**, el día más difícil · nieve +3,48 (9%). `DIFICULTAD_REAL` sigue midiéndose sin clima.
+
+- **Íconos, sin emojis** (pedido de Rorro, 2026-10-07): cada clima tiene su ícono propio en el set del juego (`GI`: `clima-soleado`, `clima-nuboso`, `clima-seco`, `clima-mojado`, `clima-lluvia`, `clima-tormenta`, `clima-nieve`, más `barro` y `pro`), con las reglas del design system SDGA: grilla de 32, trazo tinta de 2,5 redondeado, bitono crema + dorado. En el cartel van en una tejita dorada con borde tinta y sombra dura (la nieve, en celeste); en los chips de arriba, dentro de un circulito crema (el trazo tinta sobre el verde no se ve). Los textos de LG del clima tampoco llevan emoji.
 
 ## 🎯 MODO PRO en el match (2026-10-07)
 
