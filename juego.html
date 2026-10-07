@@ -1816,7 +1816,7 @@ const C = {
 const LIES = { tee: 'TEE', fairway: 'FAIRWAY', rough: 'ROUGH · 70%', bunker: 'BUNKER · 50%', green: 'GREEN' }
 const EMOJI = 'system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
 const PASO = 1 / 120
-const rng = Math.random
+const rng = () => Math.random() // (llamando a Math.random cada vez: así las pruebas pueden fijar el azar)
 const $ = (s) => document.querySelector(s)
 
 // ── récords en este teléfono ──
@@ -2087,7 +2087,10 @@ function apunte() {
     plan = M.planTiro(campo, ronda, ang, p, q, tiempo)
   } else drag.tZona = null
   const arbol = putt ? null : M.pinoEnLaSalida(campo, ronda.pelota, plan) // pega en un árbol al salir: la línea en rojo, cortada ahí
-  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97 }
+  // el swing de stock: justo en el nudo de ½ o de ¾, con el dedo quieto (no en el putt, la bomba ni con la línea del Águila)
+  const nudo = !putt && !plan.bomba ? M.enNudoStock(p) : null
+  const stock = nudo != null && performance.now() - (drag.mov ?? drag.t0) >= M.STOCK.quieto
+  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, nudo, stock }
 }
 
 lienzo.addEventListener('pointerdown', (e) => {
@@ -2127,7 +2130,12 @@ lienzo.addEventListener('pointermove', (e) => {
     trazo.plan = M.planTiro(campo, ronda, 0, 0, 0, 0, trazo.pts)
     return
   }
-  if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY }
+  if (drag && e.pointerId === drag.id) {
+    // para el swing de stock: el dedo quieto (contra un ancla: arrastrar despacito por el nudo no cuenta como quieto)
+    drag.ancla ??= [drag.x0, drag.y0]
+    if (Math.hypot(e.clientX - drag.ancla[0], e.clientY - drag.ancla[1]) > 2) { drag.mov = performance.now(); drag.ancla = [e.clientX, e.clientY] }
+    drag.x = e.clientX; drag.y = e.clientY
+  }
 })
 lienzo.addEventListener('pointerup', (e) => {
   if (swipeTito && e.pointerId === swipeTito.id) { soltarSwipeTito(); return }
@@ -2197,9 +2205,11 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
-  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null)
+  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, !!a.stock)
   if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
   else S.golpe(a.p, a.putt)
+  // salió justo al medio: "PERFECTO" chiquito al lado de donde salió
+  if (tiro.perfecto) { marcarTiro('PERFECTO', ronda.desde ?? golfista.desde ?? ronda.pelota); S.perfecto() }
   estela = []
   estado = 'tiro'
   hud()
@@ -2473,6 +2483,31 @@ function actualizar(dt) {
   cam.rot += difAng(obj.rot, cam.rot) * k
 }
 
+/**
+ * Los cartelitos chicos de un tiro, en la cancha, al lado de donde pasó: "PERFECTO" (salió justo al medio) al lado de
+ * donde salió y "BACKSPIN" donde picó y volvió. Suben un poquito y se van solos.
+ */
+let marcasTiro = []
+const MARCA_MS = 1900
+function marcarTiro(txt, pos) { marcasTiro.push({ txt, pos: [...pos], t0: performance.now() }) }
+function dibujarMarcasTiro() {
+  if (!marcasTiro.length) return
+  const now = performance.now()
+  marcasTiro = marcasTiro.filter((m) => now - m.t0 < MARCA_MS)
+  ctx.save()
+  ctx.font = '13px Anton, "Arial Narrow", sans-serif'
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'
+  for (const m of marcasTiro) {
+    const u = (now - m.t0) / MARCA_MS
+    const [x0, y0] = w2s(m.pos)
+    const x = x0 + radioPelota() + 10, y = y0 - 12 - u * 16
+    ctx.globalAlpha = u < 0.08 ? u / 0.08 : 1 - Math.max(0, (u - 0.65) / 0.35)
+    const w = ctx.measureText(m.txt).width + 14
+    ctx.fillStyle = 'rgba(12,43,28,.85)'; ctx.beginPath(); ctx.roundRect(x, y - 10, w, 20, 10); ctx.fill()
+    ctx.fillStyle = C.gold; ctx.fillText(m.txt, x + 7, y + 1)
+  }
+  ctx.restore()
+}
 /** Lo que pasó en el tiro desde el último cuadro (pique, palo, labio, robo al vuelo) suena una vez. */
 function sonarEventos(t) {
   t._oidos ??= 0
@@ -2486,6 +2521,7 @@ function sonarEventos(t) {
     else if (e.tipo === 'mapache') S.mapache()
     else if (e.tipo === 'charco') { S.charco(); fxClima.push({ tipo: 'splash', pos: [...t.pos], t0: performance.now() }) }
     else if (e.tipo === 'resbalon') S.resbalon()
+    else if (e.tipo === 'backspin') { S.backspin(); marcarTiro('BACKSPIN', t.pos) }
     if (e.tipo === 'pique' && ronda?.clima) {
       const id = ronda.clima.id
       if (id === 'seco' && e.terreno !== 'green') fxClima.push({ tipo: 'polvo', pos: [...t.pos], t0: performance.now() })
@@ -3741,6 +3777,7 @@ function dibujar() {
   const aJ = estado === 'apuntar' && drag ? apunte() : null
   dibujarGolfista(aJ)
   dibujarMonos()
+  dibujarMarcasTiro()
   if (ronda?.duelo?.fantasma) dibujarFantasma()
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
@@ -3887,6 +3924,14 @@ function dibujarCharcos() {
 }
 // las partículas, en pantalla
 let gotas = [], copos = [], nubes = [], rayo = { prox: 0, t0: -9 }
+/** Para dónde cae la lluvia en la pantalla: hacia abajo sin viento y, a medida que sopla (del todo desde 12 km/h), para donde va el viento. */
+function dirLluvia() {
+  const kmh = ronda?.viento.kmh ?? 0, ang = (ronda?.viento.ang ?? 0) + cam.rot
+  const w = Math.min(1, kmh / 12)
+  const dx = Math.cos(ang) * w, dy = (1 - w) + Math.sin(ang) * w
+  const n = Math.hypot(dx, dy)
+  return n < 0.05 ? [Math.cos(ang), Math.sin(ang)] : [dx / n, dy / n]
+}
 function moverClima(dt) {
   const id = ronda && !ronda.terminada ? ronda.clima?.id : null
   const area = Math.min(1.8, (W * H) / 330000)
@@ -3894,15 +3939,17 @@ function moverClima(dt) {
   const ang = (ronda?.viento.ang ?? 0) + cam.rot
   const lluvia = id === 'tormenta' ? 200 : id === 'lluvia' ? 95 : 0
   const nieve = id === 'nieve' ? 90 : 0
-  // la lluvia: cae inclinada para donde sopla
+  // la lluvia: cae para donde sopla el viento (con viento fuerte, del todo; sin viento, para abajo) y más rápido cuanto
+  // más sopla. Cuando sale de la pantalla vuelve a entrar por el otro lado
   while (gotas.length < lluvia * area) gotas.push({ x: Math.random() * W, y: Math.random() * H, v: 700 + Math.random() * 400, l: 10 + Math.random() * 14 })
   if (gotas.length > lluvia * area) gotas.length = Math.round(lluvia * area)
-  const vx = Math.cos(ang) * kmh * 9, vy = Math.sin(ang) * kmh * 4
+  const [ux, uy] = dirLluvia(), rapida = 1 + Math.min(1, kmh / 30) * 0.6
   for (const g of gotas) {
-    g.x += vx * dt; g.y += (g.v + vy) * dt
-    if (g.y > H + 20) { g.y = -20; g.x = Math.random() * W }
-    if (g.x < -30) g.x += W + 60
-    if (g.x > W + 30) g.x -= W + 60
+    g.x += ux * g.v * rapida * dt; g.y += uy * g.v * rapida * dt
+    if (g.y > H + 30) { g.y -= H + 60; g.x = Math.random() * W }
+    else if (g.y < -30) { g.y += H + 60; g.x = Math.random() * W }
+    if (g.x > W + 30) { g.x -= W + 60; g.y = Math.random() * H }
+    else if (g.x < -30) { g.x += W + 60; g.y = Math.random() * H }
   }
   // la nieve: copos que bajan despacio y se mecen
   while (copos.length < nieve * area) copos.push({ x: Math.random() * W, y: Math.random() * H, r: 1.4 + Math.random() * 2.6, v: 30 + Math.random() * 40, f: Math.random() * 6 })
@@ -3964,9 +4011,7 @@ function dibujarClima() {
   ctx.save()
   // la lluvia
   if (gotas.length) {
-    const kmh = ronda.viento.kmh, ang = ronda.viento.ang + cam.rot
-    const dx = Math.cos(ang) * kmh * 0.5, dy = 1
-    const n = Math.hypot(dx, dy)
+    const [dx, dy] = dirLluvia(), n = 1 // la gota, una rayita en la dirección en que cae
     ctx.strokeStyle = id === 'tormenta' ? 'rgba(220,234,246,.5)' : 'rgba(220,234,246,.38)'
     ctx.lineWidth = id === 'tormenta' ? 1.4 : 1.1
     ctx.lineCap = 'round'
@@ -5226,12 +5271,14 @@ function apuntePro(a, bx, by, col) {
  * fantasmas más allá de la punta (ahí tenés que llegar). Al pasar cada nudo, un clic y un tic en el celu: así repetís
  * un tiro sin mirar números. A fondo se pone roja y tiembla. (Elegida en el artefacto de potencia, 2026-10-07.)
  */
-const NUDOS = [0.5, 0.75, 0.97] // en potencia; el último es "a fondo" (el mismo umbral del tiro)
+const NUDOS = [0.125, 0.25, 0.5, 0.75, 0.97] // en potencia; los de ⅛ y ¼, para los chips cortos; el último es "a fondo" (el mismo umbral del tiro)
+const NUDO_TXT = ['⅛', '¼', '½', '¾', '•']
+const FONDO = NUDOS.length - 1
 function goma(a, bx, by) {
   const exp = a.putt ? 1.6 : 1.35 // la potencia es el estirón a la `exp` (ver apunte): los nudos van donde está el dedo
   const largo = Math.max(84, Math.min(150, Math.min(W, H) * 0.3))
   const enU = (p) => Math.pow(Math.min(1, p), 1 / exp)
-  const fondo = a.p >= NUDOS[2]
+  const fondo = a.p >= NUDOS[FONDO]
   const atras = a.ang + cam.rot + Math.PI
   const ux = Math.cos(atras), uy = Math.sin(atras), nx = -uy, ny = ux
   const tiembla = fondo ? Math.sin(performance.now() / 22) * 2.2 : 0
@@ -5239,35 +5286,44 @@ function goma(a, bx, by) {
   const r0 = Math.max(9, radioPelota() + 2)
   const ax = bx + ux * r0, ay = by + uy * r0
   const ex = bx + ux * (r0 + L) + nx * tiembla, ey = by + uy * (r0 + L) + ny * tiembla
-  const color = fondo ? C.red : a.p >= NUDOS[0] ? C.gold : C.cream
+  const color = fondo ? C.red : a.p >= 0.5 ? C.gold : C.cream
   const grosor = Math.max(3, 11 - a.p * 7)
   ctx.lineCap = 'round'
   ctx.strokeStyle = 'rgba(12,43,28,.85)'; ctx.lineWidth = grosor + 4; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
   const g = ctx.createLinearGradient(ax, ay, ex, ey)
   g.addColorStop(0, C.cream); g.addColorStop(1, color)
   ctx.strokeStyle = g; ctx.lineWidth = grosor; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
+  // el agarre en la punta (abajo de los nudos: el del stock queda encima)
+  ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(ex, ey, 8, 0, 7); ctx.fill()
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex, ey, 5.2, 0, 7); ctx.fill()
   NUDOS.forEach((m, i) => {
     const d = r0 + largo * enU(m)
     const x = bx + ux * d + (a.p >= m ? nx * tiembla : 0), y = by + uy * d + (a.p >= m ? ny * tiembla : 0)
-    const r = i === 2 ? 8 : 6.5
-    if (a.p < m) {
+    const r = i === FONDO ? 8 : i < 2 ? 5.5 : 6.5
+    if (a.p < m && !(a.stock && a.nudo === m)) {
       ctx.strokeStyle = 'rgba(244,238,218,.6)'; ctx.lineWidth = 2; ctx.setLineDash([3, 3])
       ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); ctx.setLineDash([])
       return
     }
+    // el swing de stock: el nudo donde estás (con el dedo quieto) brilla
+    if (a.stock && a.nudo === m) {
+      const lat = 0.5 + 0.5 * Math.sin(performance.now() / 90)
+      ctx.fillStyle = `rgba(244,238,218,${0.25 + 0.25 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 3, 0, 7); ctx.fill()
+      ctx.strokeStyle = C.cream; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r + 6 + lat * 3, 0, 7); ctx.stroke()
+    }
     ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
-    ctx.fillStyle = i === 2 ? C.red : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
-    ctx.fillStyle = C.g950; ctx.font = '10px Anton, Impact, sans-serif'; ctx.textAlign = 'center'
-    ctx.fillText(i === 2 ? '•' : i === 0 ? '½' : '¾', x, y + 3.6)
+    ctx.fillStyle = i === FONDO ? C.red : a.stock && a.nudo === m ? C.cream : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+    ctx.fillStyle = C.g950; ctx.font = `${i < 2 ? 9 : 10}px Anton, Impact, sans-serif`; ctx.textAlign = 'center'
+    ctx.fillText(NUDO_TXT[i], x, y + 3.4)
   })
-  // el agarre en la punta
-  ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(ex, ey, 8, 0, 7); ctx.fill()
-  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex, ey, 5.2, 0, 7); ctx.fill()
   // el clic y el tic al pasar un nudo (para atrás no suena: solo cuando lo pasás de nuevo)
   let k = -1
   NUDOS.forEach((m, i) => { if (a.p >= m) k = i })
   if (drag && k > (drag.nudo ?? -1)) { S.nudo(k, k === NUDOS.length - 1); tic() }
   if (drag) drag.nudo = k
+  // al quedar quieto justo en el nudo (swing de stock): otro clic, más suave, y otro tic
+  if (drag && a.stock && !drag.stock) { S.stock(); tic() }
+  if (drag) drag.stock = a.stock
 }
 /** El "tic" del celu: Android vibra; en iPhone (iOS 18+) se toca un interruptor nativo escondido, que hace el tic del sistema. */
 function tic() {
