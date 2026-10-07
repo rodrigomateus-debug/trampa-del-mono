@@ -422,21 +422,25 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 #g-mas.ve { animation: g-mas 2.6s cubic-bezier(.2, 1.4, .4, 1) forwards; }
 @keyframes g-mas { 0% { opacity: 0; transform: translate(-30px, -50%) scale(.4); } 12% { opacity: 1; transform: translate(0, -50%) scale(1.1); } 20% { transform: translate(0, -50%) scale(1); } 82% { opacity: 1; transform: translate(0, -50%); } 100% { opacity: 0; transform: translate(0, -110%); } }
 #h-golpe { visibility: hidden; } /* el golpe ahora se ve grande en #golpes */
-/* 🌬️ el joystick de Tito: con la pelota en el aire, el viento en vivo */
-#tito-joy { position: fixed; left: 50%; bottom: calc(var(--safe-bot) + 18px); z-index: 32; translate: -50% 0; display: grid; justify-items: center; gap: 6px; touch-action: none; animation: tj-entra .25s cubic-bezier(.2, 1.4, .4, 1); }
-#tito-joy[hidden] { display: none; }
-@keyframes tj-entra { from { opacity: 0; scale: .6; } }
-#tito-joy .tj-tit { font: 13px/1 var(--font-display); letter-spacing: .08em; color: var(--game-ink); background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); padding: 5px 9px 4px; transform: rotate(-3deg); }
-#tito-joy .tj-base { width: 148px; height: 148px; border-radius: 50%; background: radial-gradient(circle at 45% 38%, #2e7d4f, #14402a 70%); border: 3px solid var(--game-ink); box-shadow: 0 0 0 4px var(--gold), 5px 7px 0 4px var(--game-ink); cursor: grab; touch-action: none; }
-#tito-joy .tj-base svg { width: 100%; height: 100%; display: block; }
-.tj-aro { fill: none; stroke: rgba(244, 238, 218, .4); stroke-width: 1.5; }
-.tj-aro.fino { stroke-width: 1; stroke-dasharray: 2 4; }
-.tj-marcas line { stroke: rgba(244, 238, 218, .65); stroke-width: 1.6; }
-#tj-flecha { stroke: var(--gold); stroke-width: 6; stroke-linecap: round; }
-#tj-punta { fill: var(--gold); stroke: var(--game-ink); stroke-width: 1.6; }
-#tj-perilla { fill: var(--cream); stroke: var(--game-ink); stroke-width: 3; }
-#tito-joy.activo #tj-perilla { fill: var(--gold); }
-#tito-joy b { font: 18px/1 var(--font-display); letter-spacing: .06em; color: var(--cream); background: rgba(12, 43, 28, .85); border-radius: 999px; padding: 5px 12px 4px; }
+/* 🦝 el pronóstico de Juanpa: lo que se le va a cruzar en este tiro (y para qué lado), antes de pegar */
+#pronostico { position: relative; width: 104px; margin-top: 4px; padding: 6px 6px 7px; box-sizing: border-box; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--cream); color: var(--green-900); box-shadow: var(--game-shadow-sm); transform: rotate(-1.5deg); display: grid; justify-items: center; gap: 2px; font-family: var(--font-display); text-align: center; pointer-events: none; }
+#pronostico[hidden] { display: none; }
+#pronostico small { font-size: 10px; letter-spacing: .14em; color: var(--green-700); }
+#pronostico .pr-ico .gi { width: 40px; height: 40px; --gi-s: var(--game-ink); --gi-f: #fff8e6; --gi-a: var(--gold); }
+#pronostico b { font-size: 16px; font-weight: 400; letter-spacing: .04em; line-height: 1; }
+#pronostico i { font: normal 10.5px/1.1 var(--font-display); letter-spacing: .05em; color: var(--game-ink); background: var(--gold); border: 2px solid var(--game-ink); padding: 3px 5px 2px; margin-top: 3px; }
+#pronostico.limpio { background: #e3f1d6; }
+#pronostico.limpio i { background: #9fd27a; }
+#pronostico.alerta { animation: pr-pop .5s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes pr-pop { 0% { transform: rotate(-1.5deg) scale(.6); } 60% { transform: rotate(2deg) scale(1.08); } 100% { transform: rotate(-1.5deg) scale(1); } }
+body.apuntando #pronostico { opacity: .55; }
+/* 🌬️ Tito: con la pelota en el aire, cada swipe es una ráfaga; abajo, el cartelito que lo recuerda */
+#tito-swipe { position: fixed; left: 50%; bottom: calc(var(--safe-bot) + 26px); z-index: 32; translate: -50% 0; pointer-events: none; display: grid; justify-items: center; gap: 6px; animation: ts-entra .3s cubic-bezier(.2, 1.4, .4, 1); }
+#tito-swipe[hidden] { display: none; }
+#tito-swipe span { white-space: nowrap; font: 17px/1 var(--font-display); letter-spacing: .08em; color: var(--game-ink); background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); padding: 7px 12px 5px; transform: rotate(-3deg); }
+#tito-swipe i { width: 120px; height: 24px; background: no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 24'%3E%3Cpath d='M8 12h104M20 4l-12 8 12 8M100 4l12 8-12 8' fill='none' stroke='%23f4eeda' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); animation: ts-va 1.2s ease-in-out infinite alternate; }
+@keyframes ts-entra { from { opacity: 0; scale: .6; } }
+@keyframes ts-va { from { transform: translateX(-10px); } to { transform: translateX(10px); } }
 /* 😤 la furia de Miguelón: dos mitades; llena, roja y latiendo */
 #furia { position: relative; width: 74px; margin-top: 2px; padding: 5px 7px 6px; box-sizing: border-box; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--cream); color: var(--green-900); box-shadow: var(--game-shadow-sm); transform: rotate(1.5deg); display: grid; justify-items: center; gap: 4px; font-family: var(--font-display); pointer-events: none; }
 #furia[hidden] { display: none; }
@@ -1353,6 +1357,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <span class="chip" id="lie">TEE</span>
       <button id="sonido" type="button" aria-label="Sonido"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" style="fill:var(--gi-f)"/><path d="M20 12a5.5 5.5 0 0 1 0 8M23.5 8.5a10 10 0 0 1 0 15"/></g></svg></button>
       <div id="golpes" aria-live="polite"><small>GOLPES</small><b id="g-num">0</b><span id="g-par">PAR 4</span><div id="g-mas" aria-hidden="true"></div></div>
+      <div id="pronostico" hidden aria-live="polite"><small>SE VIENE</small><span class="pr-ico"></span><b></b><i></i></div>
       <div id="furia" hidden aria-live="polite"><small>FURIA</small><div class="fu-barra"><i></i><i></i></div><span class="fu-cara" aria-hidden="true">🙂</span></div>
     </div>
     <div class="der">
@@ -1367,7 +1372,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <div id="cuenta" hidden aria-live="assertive"></div>
 
-<div id="tito-joy" hidden aria-label="Tito maneja el viento: arrastrá"><span class="tj-tit">VIENTO EN VIVO</span><div class="tj-base"><svg viewBox="-60 -60 120 120" aria-hidden="true"><circle r="55" class="tj-aro"/><circle r="36" class="tj-aro fino"/><circle r="18" class="tj-aro fino"/><g class="tj-marcas"></g><line id="tj-flecha" x1="0" y1="0" x2="0" y2="0"/><path id="tj-punta" d="M0 0"/><circle id="tj-perilla" r="13"/></svg></div><b id="tj-kmh">0 KM/H</b></div>
+<div id="tito-swipe" hidden aria-live="polite"><span>SWIPEÁ PARA SOPLAR</span><i></i></div>
 
 <div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span><svg class="rv-palo" viewBox="0 0 60 160"><path d="M30 6v118" stroke="#0c2b1c" stroke-width="9" stroke-linecap="round"/><path d="M30 6v118" stroke="#c9ccd1" stroke-width="5" stroke-linecap="round"/><rect x="24" y="4" width="12" height="34" rx="5" fill="#1b1b1b" stroke="#0c2b1c" stroke-width="2.5"/><path d="M27 120h22c6 0 8 10 2 14l-20 8c-6 2-9-3-7-8z" fill="#9aa3ad" stroke="#0c2b1c" stroke-width="3"/></svg><b>¡REVOLEÓ EL PALO!</b><i>😡 el próximo, para cualquier lado</i></div>
 
@@ -1503,7 +1508,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 510f3e7 · 6/10, 09:47 p. m.</span>
+  <span class="version" id="version">v dc45beb · 6/10, 10:24 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1693,11 +1698,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=1dd719c486'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=1dd719c486'
+import * as M from './motor.js?v=cee83f7954'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=cee83f7954'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=1dd719c486'
-import * as S from './sonido.js?v=1dd719c486'
+import * as R from './ranking.js?v=cee83f7954'
+import * as S from './sonido.js?v=cee83f7954'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -1996,6 +2001,8 @@ function apunte() {
 }
 
 lienzo.addEventListener('pointerdown', (e) => {
+  // Tito: con la pelota en el aire, el swipe es una ráfaga
+  if (titoVolando() && !swipeTito) { swipeTito = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; lienzo.setPointerCapture(e.pointerId); return }
   if (estado !== 'apuntar' || drag || trazo) return // un segundo dedo no pisa el tiro que estás armando
   // el Dibuje maestro: con el dedo dibujás el vuelo (de la pelota a donde cae)
   if (esDibuje()) {
@@ -2019,6 +2026,7 @@ lienzo.addEventListener('pointerdown', (e) => {
   if (!datos.vistoTip) { datos.vistoTip = true; guardar(datos) }
 })
 lienzo.addEventListener('pointermove', (e) => {
+  if (swipeTito && e.pointerId === swipeTito.id) { swipeTito.x = e.clientX; swipeTito.y = e.clientY; return }
   if (trazo && e.pointerId === trazo.id) {
     for (const ev of e.getCoalescedEvents?.() ?? [e]) {
       if (Math.hypot(ev.clientX - trazo.ult[0], ev.clientY - trazo.ult[1]) < 3) continue
@@ -2031,6 +2039,7 @@ lienzo.addEventListener('pointermove', (e) => {
   if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY }
 })
 lienzo.addEventListener('pointerup', (e) => {
+  if (swipeTito && e.pointerId === swipeTito.id) { soltarSwipeTito(); return }
   if (trazo && e.pointerId === trazo.id) { soltarTrazo(); return }
   if (!drag || e.pointerId !== drag.id) return
   // sale el tiro que se vio en pantalla (el último dibujado), no uno recalculado al soltar: el embudo del Águila y el
@@ -2046,6 +2055,7 @@ lienzo.addEventListener('pointerup', (e) => {
   else if (base) obj = base // no pegó: vuelve el zoom de antes
 })
 lienzo.addEventListener('pointercancel', (e) => {
+  if (swipeTito && e.pointerId === swipeTito.id) { swipeTito = null; return }
   if (trazo && e.pointerId === trazo.id) { trazoFade = { pts: trazo.pts, desde: trazo.desde, t0: performance.now() }; trazo = null; document.body.classList.remove('apuntando'); return }
   if (drag && e.pointerId !== drag.id) return // se canceló otro dedo: el tiro que estás armando sigue
   S.cargaFin()
@@ -2243,50 +2253,45 @@ function guiaDibujo(x, y, t) {
 }
 
 
-// ── 🌬️ Tito: con la pelota en el aire, un joystick maneja el viento en vivo ──
-const TJ_R = 47 // hasta dónde va la perilla (en las unidades del SVG): ahí, 30 km/h
-let tjDedo = null
-function joystickTito() {
-  const ver = estado === 'tiro' && !!tiro?.vivo && tiro.fase === 'vuelo' && !replay
-  const el = $('#tito-joy')
-  if (el.hidden === !ver) return
-  el.hidden = !ver
-  if (!ver) { tjDedo = null; el.classList.remove('activo'); return }
-  const marcas = el.querySelector('.tj-marcas')
-  if (!marcas.childElementCount) marcas.innerHTML = Array.from({ length: 12 }, (_, i) => { const a = (i * Math.PI) / 6; return `<line x1="${Math.cos(a) * 49}" y1="${Math.sin(a) * 49}" x2="${Math.cos(a) * 56}" y2="${Math.sin(a) * 56}"/>` }).join('')
-  pintarJoystick()
-}
-/** La perilla muestra el viento como se ve en pantalla (arriba = para el hoyo). */
-function pintarJoystick() {
-  const v = ronda.viento
-  const a = v.ang + cam.rot
-  const largo = (v.kmh / M.FISICA.vientoMax) * TJ_R
-  const x = Math.cos(a) * largo, y = Math.sin(a) * largo
-  $('#tj-flecha').setAttribute('x2', x); $('#tj-flecha').setAttribute('y2', y)
-  const ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux
-  $('#tj-punta').setAttribute('d', largo > 16 ? `M${x + ux * 12} ${y + uy * 12}L${x + nx * 8} ${y + ny * 8}L${x - nx * 8} ${y - ny * 8}Z` : 'M0 0')
-  $('#tj-perilla').setAttribute('cx', x); $('#tj-perilla').setAttribute('cy', y)
-  $('#tj-kmh').textContent = `${v.kmh} KM/H`
-}
-function vientoDelJoystick(e) {
-  const box = $('#tito-joy .tj-base').getBoundingClientRect()
-  const sx = ((e.clientX - box.left) / box.width) * 120 - 60
-  const sy = ((e.clientY - box.top) / box.height) * 120 - 60
-  const kmh = Math.min(1, Math.hypot(sx, sy) / TJ_R) * M.FISICA.vientoMax
-  M.soplarEnVivo(ronda, tiro, Math.atan2(sy, sx) - cam.rot, kmh < 1.5 ? 0 : kmh)
-  pintarJoystick()
+// ── 🌬️ Tito: con la pelota en el aire, cada swipe en la pantalla es una ráfaga para ese lado ──
+let swipeTito = null // { id, x0, y0, x, y }
+let rafagasTito = [] // las ráfagas dibujadas (donde estaba la pelota, para el lado del swipe), que se apagan
+const titoVolando = () => estado === 'tiro' && !!tiro?.vivo && tiro.fase === 'vuelo' && !replay
+/** Cada cuadro: el cartelito, y el viento de arriba con el de ahora (las ráfagas se van calmando). */
+function vientoTito() {
+  const vuela = titoVolando()
+  if ($('#tito-swipe').hidden === vuela) $('#tito-swipe').hidden = !vuela
+  if (!vuela) { swipeTito = null; return }
+  const w = M.vientoVivo(tiro)
+  M.controlarViento(ronda, w.ang, w.kmh)
   $('#v-kmh').textContent = ronda.viento.kmh
   $('#viento').classList.toggle('calmo', !ronda.viento.kmh)
 }
-$('#tito-joy .tj-base').addEventListener('pointerdown', (e) => {
-  if (!tiro?.vivo) return
-  tjDedo = e.pointerId
-  e.currentTarget.setPointerCapture(e.pointerId)
-  $('#tito-joy').classList.add('activo')
-  vientoDelJoystick(e)
-})
-$('#tito-joy .tj-base').addEventListener('pointermove', (e) => { if (tjDedo === e.pointerId && tiro?.vivo) vientoDelJoystick(e) })
-for (const ev of ['pointerup', 'pointercancel']) $('#tito-joy .tj-base').addEventListener(ev, (e) => { if (tjDedo === e.pointerId) { tjDedo = null; $('#tito-joy').classList.remove('activo'); S.viento(ronda.viento.kmh) } })
+function soltarSwipeTito() {
+  const sw = swipeTito
+  swipeTito = null
+  if (!sw || !titoVolando()) return
+  const dx = sw.x - sw.x0, dy = sw.y - sw.y0
+  const largo = Math.hypot(dx, dy)
+  if (largo < 22) return
+  const kmh = Math.min(M.FISICA.vientoMax, (largo / (Math.min(W, H) * 0.45)) * M.FISICA.vientoMax)
+  M.rafagaTito(ronda, tiro, Math.atan2(dy, dx) - cam.rot, kmh)
+  rafagasTito.push({ ux: dx / largo, uy: dy / largo, k: kmh / M.FISICA.vientoMax, t0: performance.now() })
+  S.swipe()
+}
+/** Las ráfagas de los swipes, dibujadas en la pelota (las mismas líneas de viento que la de Juanpa). */
+function dibujarRafagasTito() {
+  if (!rafagasTito.length) return
+  const ahora = performance.now()
+  rafagasTito = rafagasTito.filter((r) => ahora - r.t0 < 750)
+  if (!tiro) return
+  const [x, y0] = w2s(tiro.pos)
+  const y = y0 - tiro.alt * levante()
+  for (const r of rafagasTito) {
+    const q = (ahora - r.t0) / 750
+    rafagaDibujada(x, y, r.ux, r.uy, ahora / 1000, Math.min(1, q * 5) * (1 - q) * (0.6 + 0.4 * r.k))
+  }
+}
 
 // ── ciclo ──
 let ultimo = performance.now(), acc = 0
@@ -2304,7 +2309,7 @@ function cuadro(t) {
   actualizar(dt)
   if (!tapada()) dibujar()
   noTapenLaPelota(t)
-  joystickTito()
+  vientoTito()
   hudCuadro = null
   requestAnimationFrame(cuadro)
 }
@@ -3294,6 +3299,44 @@ function hud() {
   pintarGolpesMago(oculto)
   contarGolpes()
   pintarFuria(j, oculto)
+  pintarPronostico(j, oculto)
+}
+// ── 🦝 el pronóstico de Juanpa ──
+const IC_PRONO = {
+  arbol: '<path d="M20 37V24" stroke-width="3.4"/><circle cx="13" cy="20" r="6.5" style="fill:#4f9b4a"/><circle cx="27" cy="20" r="6.5" style="fill:#4f9b4a"/><circle cx="20" cy="13" r="9.5" style="fill:#6bb85a"/><path d="M31 6l1.4 3 3 1.4-3 1.4-1.4 3-1.4-3-3-1.4 3-1.4z" style="fill:var(--gi-a)" stroke-width="1.4"/>',
+  rafaga: '<path d="M3 12h21a4.5 4.5 0 1 0-4.5-4.5"/><path d="M3 20.5h29"/><path d="M3 29h17a4.5 4.5 0 1 1-4.5 4.5"/><path d="M31 15.5l6 5-6 5" stroke-width="3"/>',
+  carrito: '<path d="M8 15V8h15v7" style="fill:var(--gi-f)"/><rect x="4" y="15" width="26" height="11" rx="3.5" style="fill:#c9472f"/><circle cx="10.5" cy="28" r="3.6" style="fill:var(--gi-s)"/><circle cx="24" cy="28" r="3.6" style="fill:var(--gi-s)"/><path d="M33 20.5h4.5M35 17.5l3 3-3 3" stroke-width="2.6"/>',
+  limpio: '<circle cx="20" cy="20" r="15" style="fill:#9fd27a"/><path d="M12.5 20.5l5 5 10-11" stroke-width="3.6"/>',
+}
+const TXT_PRONO = {
+  arbol: ['UN ÁRBOL', 'LA FRENA EN EL AIRE'],
+  rafaga: ['RÁFAGA', (l) => (l > 0 ? 'TE CORRE A LA DER →' : '← TE CORRE A LA IZQ')],
+  carrito: ['UN CARRITO', (l) => (l > 0 ? 'LA LLEVA A LA DER →' : '← LA LLEVA A LA IZQ')],
+  limpio: ['TIRO LIMPIO', 'NO SE CRUZA NADA'],
+}
+let pronoVisto = null
+function pintarPronostico(j, oculto) {
+  const caja = $('#pronostico')
+  const putt = M.enModoPutt(campo, ronda)
+  // lo que se le va a cruzar se sortea al empezar a apuntar (en cualquier camino que llegue a apuntar), para verlo antes de pegar
+  if (!oculto && estado === 'apuntar' && M.habilidadDe(j)?.id === 'caos' && ronda.proxSorpresa === undefined) M.prepararSorpresa(campo, ronda, rng)
+  const ver = !oculto && M.habilidadDe(j)?.id === 'caos' && estado === 'apuntar' && !putt && ronda.proxSorpresa !== undefined && !$('#hud-top').hidden
+  caja.hidden = !ver
+  if (!ver) { pronoVisto = null; return }
+  const sp = ronda.proxSorpresa
+  const tipo = sp?.tipo ?? 'limpio'
+  const clave = `${ronda.golpes}:${tipo}:${sp?.lado ?? 0}`
+  if (clave === pronoVisto) return
+  pronoVisto = clave
+  const [tit, sub] = TXT_PRONO[tipo]
+  const izq = sp && sp.lado < 0 && tipo !== 'arbol'
+  caja.querySelector('.pr-ico').innerHTML = `<svg class="gi${izq ? ' espejo' : ''}" viewBox="0 0 40 40" aria-hidden="true"><g>${IC_PRONO[tipo]}</g></svg>`
+  caja.querySelector('b').textContent = tit
+  caja.querySelector('i').textContent = typeof sub === 'function' ? sub(sp.lado) : sub
+  caja.classList.toggle('limpio', !sp)
+  caja.classList.remove('alerta')
+  void caja.offsetWidth
+  if (sp) caja.classList.add('alerta')
 }
 // ── 😤 la furia de Miguelón ──
 const FURIA_TXT = {
@@ -3548,6 +3591,7 @@ function dibujar() {
   }
   if ((ronda?.ruleta || ronda?.prestado) && estado === 'apuntar' && !drag && !anim) etiquetaRuleta()
   dibujarFxJuanpa()
+  dibujarRafagasTito()
 
   if (ronda && !ronda.terminada) {
     const ang = ronda.viento.ang + cam.rot
