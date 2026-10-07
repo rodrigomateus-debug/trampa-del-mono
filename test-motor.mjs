@@ -398,7 +398,7 @@ ok('Juanpa (el Mapache): le pega increíble, pero una de dos aparece un árbol, 
   assert.notEqual(M.terreno(quieto, carrito.t.pos).tipo, 'afuera')
 })
 
-ok('Tito Esperanza: maneja el viento (dirección y fuerza, de 0 a 30); los demás no', () => {
+ok('Tito Esperanza: maneja el viento en vivo (dirección y fuerza, de 0 a 30) y la pelota en el aire le hace caso; los demás no', () => {
   const r = { ...M.nuevaRonda({ apodo: 'Tito', emoji: '🌬️', hcp: 16 }, fijo(0.5)), monos: [] }
   assert.ok(M.controlarViento(r, -Math.PI / 2, 22.4))
   assert.deepEqual([r.viento.kmh, +r.viento.ang.toFixed(6)], [22, +(1.5 * Math.PI).toFixed(6)])
@@ -410,9 +410,24 @@ ok('Tito Esperanza: maneja el viento (dirección y fuerza, de 0 a 30); los demá
   const linea = angulo(h15.tee, h15.pin)
   const con = (ang) => { const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }; M.controlarViento(rr, ang, 30); return M.simular(quieto, M.golpear(quieto, rr, linea, 0.8, sinRuido()), h15.pin) }
   assert.ok(M.dist(h15.tee, con(linea).pos) > M.dist(h15.tee, con(linea + Math.PI).pos) + 5)
+  // en vivo: con la pelota en el aire, el viento que pone la mueve para ese lado (izquierda o derecha de la línea)
+  const vuelo = (ang) => {
+    const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }
+    M.controlarViento(rr, 0, 0)
+    const t = M.golpear(quieto, rr, linea, 0.8, sinRuido())
+    assert.ok(t.vivo && t.deriva[0] === 0)
+    for (let i = 0; i < 30; i++) M.avanzar(quieto, t, 1 / 60, h15.pin) // un ratito sin viento
+    M.soplarEnVivo(rr, t, ang, 30)
+    return M.simular(quieto, t, h15.pin)
+  }
+  const recto = (() => { const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }; M.controlarViento(rr, 0, 0); return M.simular(quieto, M.golpear(quieto, rr, linea, 0.8, sinRuido()), h15.pin) })()
+  const lado = (p) => (p[0] - h15.tee[0]) * Math.sin(linea) - (p[1] - h15.tee[1]) * Math.cos(linea)
+  const izq = vuelo(linea - Math.PI / 2), der = vuelo(linea + Math.PI / 2)
+  assert.ok(lado(izq.pos) > lado(recto.pos) + 8 && lado(der.pos) < lado(recto.pos) - 8, `${lado(izq.pos).toFixed(1)} ${lado(recto.pos).toFixed(1)} ${lado(der.pos).toFixed(1)}`)
   const otro = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [] }
   const antes = { ...otro.viento }
   assert.equal(M.controlarViento(otro, 0, 0), false)
+  assert.equal(M.soplarEnVivo(otro, null, 0, 10), false)
   assert.deepEqual(otro.viento, antes)
 })
 

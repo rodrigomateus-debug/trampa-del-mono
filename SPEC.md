@@ -343,7 +343,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 
 ## 🌬️ Tito Esperanza maneja el viento (2026-10-07)
 
-- Entra al mazo Tito (HCP 16, 🌬️, su foto de la base). Habilidad "Tranqui, yo lo suspendo" (`viento`): antes de cada tiro, el viento es un botón (con la cinta TOCÁ). Tocándolo se abre un dial: arrastrás desde el centro para elegir para dónde sopla (arriba es para el hoyo, como se ve la cancha) y qué tan fuerte (de 0 a 30 km/h, `controlarViento`); "SIN VIENTO" lo apaga y LISTO cierra. El tiro sale con ese viento y LG lo cuenta ("Tito lo dejó en 30 km/h").
+- Entra al mazo Tito (HCP 16, 🌬️, su foto de la base). Habilidad "Tranqui, yo lo suspendo" (`viento`): maneja el viento **en vivo**. Mientras la pelota vuela aparece abajo un joystick redondo (verde, aro dorado, "VIENTO EN VIVO"): arrastrando la perilla elegís para dónde sopla (360°, arriba es para el hoyo) y qué tan fuerte (de 0 a 30 km/h, más lejos del centro, más fuerte), como con la potencia. La pelota en el aire le hace caso al momento (`soplarEnVivo`): la deriva se va sumando con el viento de cada instante (`tiro.vivo`) y lo mueve `TITO.fuerza` yardas por km/h en un tiro largo, parejo con el largo (también en los approach). Su vuelo dura un 45% más, para que dé tiempo. Al soltar, el viento queda como lo dejó.
+- 2026-10-07: antes era un dial para elegir el viento antes de pegar; Rorro lo pidió en vivo, como un joystick.
 - El bot apaga el viento antes de cada tiro. Dificultad medida (20 vueltas): +3,9 (Trampa total, por el HCP 16).
 
 ## 🔵 El logo del Equipo 5 (2026-10-07)
