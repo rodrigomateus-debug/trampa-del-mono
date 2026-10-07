@@ -480,7 +480,21 @@ body.apuntando #furia { opacity: .45; }
 .mt-pro[aria-pressed="true"] { background: var(--game-ink); color: var(--cream); }
 .mt-pro[aria-pressed="true"] .mp-sw { background: var(--gold); }
 .mt-pro[aria-pressed="true"] .mp-sw i { transform: translateX(20px); }
-.mt-pro .mp-txt { display: grid; gap: 2px; }
+.mt-pro .mp-txt, .mazo-pro .mp-txt { display: grid; gap: 2px; }
+/* en el mazo: el mismo interruptor, más chico, centrado arriba de las flechas (en un match no va: lo decide el desafío) */
+.mazo-centro { min-width: 0; display: grid; justify-items: center; gap: 8px; }
+.mazo-pro { display: flex; align-items: center; gap: 8px; margin: 0; padding: 5px 12px 5px 7px; border: 2.5px solid var(--game-ink); border-radius: 999px; background: var(--cream); color: var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); text-align: left; cursor: pointer; position: relative; z-index: 2; }
+.mazo-pro[hidden] { display: none; }
+.mazo-pro .mp-sw { flex: none; position: relative; width: 40px; height: 22px; border-radius: 999px; background: #cfc8b0; box-shadow: inset 0 0 0 2px var(--game-ink); transition: background .2s; }
+.mazo-pro .mp-sw i { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--game-ink); transition: transform .2s; }
+.mazo-pro[aria-pressed="true"] { background: var(--game-ink); color: var(--cream); }
+.mazo-pro[aria-pressed="true"] .mp-sw { background: var(--gold); }
+.mazo-pro[aria-pressed="true"] .mp-sw i { transform: translateX(18px); }
+.mazo-pro .mp-ico .gi { width: 24px; height: 24px; }
+.mazo-pro[aria-pressed="true"] .mp-ico .gi { --gi-s: var(--cream); --gi-f: var(--game-ink); }
+.mazo-pro b { font: 16px/1 var(--font-display); letter-spacing: .04em; white-space: nowrap; }
+.mazo-pro small { font: 600 10px/1.2 var(--font-body); opacity: .8; white-space: nowrap; }
+@media (max-height: 700px), (max-width: 350px) { .mazo-pro small { display: none; } .mazo-pro .mp-ico { display: none; } }
 .mt-pro .mp-ico .gi { width: 30px; height: 30px; }
 .mt-pro[aria-pressed="true"] .mp-ico .gi { --gi-s: var(--cream); --gi-f: var(--game-ink); }
 .mt-btn .gi, .pro-tag .gi { display: inline-block; width: 15px; height: 15px; vertical-align: -3px; margin-right: 3px; --gi-s: var(--gold); --gi-f: var(--game-ink); --gi-a: var(--gold); }
@@ -754,6 +768,12 @@ input { -webkit-user-select: text; user-select: text; }
 /* el selector (Mundial/SDGA, las pestañas del match): riel verde con contorno y la pastilla dorada en la elegida */
 .rk-ambito { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border: var(--game-stroke) solid var(--game-ink); border-radius: 999px; background: var(--green-900); box-shadow: var(--game-shadow-md); margin-right: 4px; }
 .rk-ambito[hidden] { display: none; }
+/* normal o PRO: dos rankings separados (arriba de todo, como un interruptor de dos lados) */
+.rk-modo { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; margin: 0 4px 8px 0; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--cream-dark, #e7dfc2); box-shadow: var(--game-shadow-md); }
+.rk-modo button { display: flex; align-items: center; justify-content: center; gap: 6px; height: 34px; border: 2px solid transparent; border-radius: 10px; background: transparent; color: var(--game-ink); font: 16px/1 var(--font-display); letter-spacing: .05em; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.rk-modo button[aria-selected="true"] { background: var(--game-ink); color: var(--gold); border-color: var(--game-ink); }
+.rk-modo .gi { width: 18px; height: 18px; }
+.rk-modo button[aria-selected="true"] .gi { --gi-s: var(--gold); --gi-f: var(--game-ink); --gi-a: var(--gold); }
 .rk-ambito button { height: 38px; border: 2px solid transparent; border-radius: 999px; background: transparent; color: var(--cream); font: 17px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color 120ms, color 120ms; }
 .rk-ambito button[aria-selected="true"] { background: var(--gold); color: var(--green-900); border-color: var(--game-ink); }
 .rk-ambito button:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
@@ -1561,7 +1581,10 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   <div class="mazo-pila"><div class="mazo-cartas" id="mazo-cartas"></div></div>
   <div class="mazo-pie">
     <button class="redondo claro" id="mazo-ant" type="button" aria-label="Más fácil"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg></button>
-    <div class="puntos" id="mazo-puntos" aria-hidden="true"></div>
+    <div class="mazo-centro">
+      <button class="mazo-pro" id="el-pro" type="button" aria-pressed="false"><span class="mp-sw" aria-hidden="true"><i></i></span><span class="mp-ico" aria-hidden="true" data-ico="pro"></span><span class="mp-txt"><b>MODO PRO</b><small>Sin líneas · ranking aparte</small></span></button>
+      <div class="puntos" id="mazo-puntos" aria-hidden="true"></div>
+    </div>
     <button class="redondo claro" id="mazo-sig" type="button" aria-label="Más difícil"><svg class="gi espejo" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg></button>
   </div>
 </section>
@@ -1724,6 +1747,10 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <span class="teja" id="rk-teja"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4"/><path d="M16 17.5v4"/><path d="M11 26.5h10l-1-5h-8z" style="fill:var(--gi-f)"/><path d="M10 5.5h12v6a6 6 0 0 1-12 0z" style="fill:var(--gi-a)"/></g></svg></span>
       <div><span class="kicker" style="color: var(--text-muted)">Ranking · golpes, después tiempo</span><div class="quien" id="rk-tit">GENERAL</div></div>
     </header>
+    <div class="rk-modo" id="rk-modo" role="tablist" aria-label="Normal o PRO">
+      <button type="button" role="tab" data-modo="normal" aria-selected="true">NORMAL</button>
+      <button type="button" role="tab" data-modo="pro" aria-selected="false"><span data-ico="pro" aria-hidden="true"></span>PRO</button>
+    </div>
     <div class="rk-ambito" id="rk-ambito" role="tablist" aria-label="Qué ranking" hidden>
       <button type="button" role="tab" data-ambito="mundial" aria-selected="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="21" cy="10.5" r="4.5" style="fill:var(--gi-a)"/><path d="M14 25a7.5 7.5 0 0 1 15 0z" style="fill:var(--gi-a)"/><circle cx="12" cy="12.5" r="5" style="fill:var(--gi-f)"/><path d="M3.5 27a8.5 8.5 0 0 1 17 0z" style="fill:var(--gi-f)"/></g></svg>Mundial</button>
       <button type="button" role="tab" data-ambito="sdga" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><ellipse cx="16" cy="25.5" rx="10" ry="3" style="fill:var(--gi-f)"/><ellipse cx="12" cy="25.5" rx="2.4" ry="1" style="fill:var(--gi-s)" stroke="none"/><path d="M12 25.5V4.5"/><path d="M12 5l12 4.5L12 14z" style="fill:var(--gi-a)"/></g></svg>SDGA</button>
@@ -2867,6 +2894,7 @@ function empezar(jugador) {
   }
   // el clima del día: en un match, el de la semilla (los dos juegan el mismo día, con los mismos charcos);
   // si no, sorteado (la nieve, 1 de cada 100). Para probar: ?clima=nieve
+  if (!ronda.match) ronda.pro = !!datos.pro // el MODO PRO de la vuelta normal (en un match, el del desafío)
   const climaUrl = PARAMS.get('clima')
   if (ronda.match) M.ponerClima(campo, ronda, ronda.match.clima, ronda.match.semillaClima)
   else M.ponerClima(campo, ronda, M.CLIMAS[climaUrl] ? climaUrl : M.sortearClima(rng), Math.floor(rng() * 4294967296))
@@ -5526,7 +5554,7 @@ function irAlInicio() {
 $('#fin-inicio').addEventListener('click', irAlInicio)
 $('#fin-match').addEventListener('click', () => { irAlInicio(); mostrarMatch(tabConAviso()) })
 $('#otra').addEventListener('click', () => empezar(ronda.carta))
-$('#fin-ranking').addEventListener('click', () => mostrarRanking(ronda?.carta.apodo ?? 'general'))
+$('#fin-ranking').addEventListener('click', () => { rkPro = !!ronda?.pro; mostrarRanking(ronda?.carta.apodo ?? 'general') })
 
 /** Tarjeta firmada: la vuelta entra al ranking (si tiene tiempo y no fue LP) y te dice dónde quedaste. */
 let posRanking = null
@@ -5536,17 +5564,19 @@ async function anotarVuelta() {
   if (R.puente.activo) marca.uid = R.puente.identidad.uid
   // el detalle de la vuelta: hoyo por hoyo, los monos y la apuesta de Rorro (queda en el teléfono y, cuando la
   // base de la SDGApp tenga la columna `detalle`, también allá: así se ve en el resumen del ranking de todos)
-  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}), ...(datos.demetrio ? { secreto: true } : {}), ...(ronda.ruleta ? { ruleta: M.tirosRuleta(ronda).map((h) => h.tiros.map((t) => t.emoji)) } : {}) }
+  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}), ...(datos.demetrio ? { secreto: true } : {}), ...(ronda.ruleta ? { ruleta: M.tirosRuleta(ronda).map((h) => h.tiros.map((t) => t.emoji)) } : {}), ...(ronda.pro ? { pro: true } : {}) }
   const jugador = ronda.carta
+  const pro = !!ronda.pro
   await R.anotar(marca)
-  const { marcas } = await R.leerMarcas()
+  const { marcas: todas } = await R.leerMarcas()
+  const marcas = todas.filter((m) => M.esMarcaPro(m) === pro) // la vuelta PRO compite solo en el ranking PRO
   const general = M.armarRanking(marcas).find(esYo)
   const conEl = M.armarRanking(marcas, jugador.apodo).find(esYo)
   if (!general || !conEl || ronda?.carta !== jugador || estado !== 'fin') return
   const nueva = conEl.golpes === marca.golpes && conEl.ms === marca.ms
   posRanking = { general: general.pos, conEl: conEl.pos, nueva }
   resumenListo = null // se rehace con el puesto
-  $('#t-ranking').innerHTML = `${gi('trophy')}${esc(`${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el ${R.compartido() || R.puente.enApp ? 'mundial' : 'general'} · ${conEl.pos}° con ${jugador.emoji}`)}`
+  $('#t-ranking').innerHTML = `${gi('trophy')}${esc(`${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el ${pro ? 'PRO ' : ''}${R.compartido() || R.puente.enApp ? 'mundial' : 'general'} · ${conEl.pos}° con ${jugador.emoji}`)}`
   $('#t-ranking').hidden = false
 }
 
@@ -6549,6 +6579,9 @@ function pintarRkConteo(j) {
 const esYo = (m) => (R.puente.activo ? m.uid === R.puente.identidad.uid : m.usuario.trim().toLowerCase() === datos.usuario.trim().toLowerCase())
 // en la SDGApp: Mundial (todos los que juegan) o SDGA (solo los socios)
 let rkAmbito = 'mundial'
+let rkPro = false // el ranking PRO (las vueltas en MODO PRO) o el normal
+/** Las marcas del ranking que se está mirando: normal o PRO y, en la app, Mundial o SDGA. */
+const baseRanking = () => (rkApp && rkAmbito === 'sdga' ? rkMarcas.filter((m) => m.sdga) : rkMarcas).filter((m) => M.esMarcaPro(m) === rkPro)
 let rkTab = 'general'
 let rkMarcas = []
 let rkVista = [] // las filas que se ven (para abrir el resumen de la que tocás)
@@ -6588,14 +6621,14 @@ function abrirResumen(m) {
   $('.rs-caja').classList.remove('bloqueado')
   if (publico(m).misterio) return abrirBloqueado(m)
   const app = rkApp
-  const base = app && rkAmbito === 'sdga' ? rkMarcas.filter((x) => x.sdga) : rkMarcas
+  const base = baseRanking()
   const general = M.armarRanking(base)
   const conEl = M.armarRanking(base, m.apodo)
   const misma = (x) => x.golpes === m.golpes && x.ms === m.ms && x.apodo === m.apodo
   const posG = general.find((x) => M.duenoDe(x) === M.duenoDe(m) && misma(x))?.pos
   const posJ = conEl.find((x) => M.duenoDe(x) === M.duenoDe(m) && misma(x))?.pos
   const lider = general[0]
-  const ambito = app ? (rkAmbito === 'sdga' ? 'SDGA' : 'Mundial') : 'General'
+  const ambito = (rkPro ? 'PRO · ' : '') + (app ? (rkAmbito === 'sdga' ? 'SDGA' : 'Mundial') : 'General')
   // el player (Demetrio, misterioso para el que no lo desbloqueó)
   const real = [...TODOS, DEMETRIO].find((x) => x.apodo === m.apodo)
   const j = publico(real ?? { apodo: m.apodo, emoji: m.emoji, foto: null })
@@ -6836,6 +6869,7 @@ async function mostrarRanking(tab = 'general') {
 }
 function pintarRanking(error = false) {
   sincronizarSecreto()
+  for (const b of $('#rk-modo').children) b.setAttribute('aria-selected', String((b.dataset.modo === 'pro') === rkPro))
   const tabs = [{ id: 'general', txt: 'General' }, ...PLANTEL.map((j) => ({ id: j.apodo, txt: j.apodo.replace(/ \(Đ\)$/, ''), e: j.emoji }))]
   $('#rk-tabs').innerHTML = tabs.map((t) => `<button class="rk-tab" type="button" role="tab" data-tab="${esc(t.id)}" aria-selected="${t.id === rkTab}">${t.e ? `<span class="e" aria-hidden="true">${t.e}</span>` : ''}${esc(t.txt)}</button>`).join('')
   const j = PLANTEL.find((x) => x.apodo === rkTab)
@@ -6850,7 +6884,7 @@ function pintarRanking(error = false) {
   const app = rkApp
   $('#rk-ambito').hidden = !app
   for (const b of $('#rk-ambito').children) b.setAttribute('aria-selected', String(b.dataset.ambito === rkAmbito))
-  const base = app && rkAmbito === 'sdga' ? rkMarcas.filter((m) => m.sdga) : rkMarcas
+  const base = baseRanking()
   const lista = M.armarRanking(base, j ? j.apodo : null)
   rkVista = lista
   // el sello del SDGA: en el Mundial, al lado del nombre de los socios
@@ -6865,13 +6899,19 @@ function pintarRanking(error = false) {
   const mio = lista.find(esYo)
   const filas = top.map((m) => fila(m, false))
   if (mio && mio.pos > top.length) filas.push(fila(mio, true))
-  $('#rk-lista').innerHTML = filas.length ? filas.join('') : `<li class="rk-vacio">Todavía nadie firmó una vuelta${j ? ` con ${esc(j.apodo)}` : ''}. Sé el primero.</li>`
-  $('#rk-fuente').textContent = app && rkCompartido
+  $('#rk-lista').innerHTML = filas.length ? filas.join('') : `<li class="rk-vacio">Todavía nadie firmó una vuelta${rkPro ? ' PRO' : ''}${j ? ` con ${esc(j.apodo)}` : ''}. Sé el primero.</li>`
+  $('#rk-fuente').textContent = (rkPro ? 'Ranking PRO: solo las vueltas en MODO PRO (sin líneas punteadas). ' : '') + (app && rkCompartido
     ? `${rkAmbito === 'sdga' ? 'Ranking SDGA: solo los socios del club.' : 'Ranking mundial: todos los que juegan, en la SDGApp o acá.'} Entra cada tarjeta firmada (LP y sin firmar no cuentan).`
     : rkCompartido
     ? 'Ranking del grupo. Entra cada tarjeta firmada (LP y sin firmar no cuentan).'
-    : `${error ? 'No se pudo conectar: ' : ''}Por ahora se guarda en este teléfono. Entra cada tarjeta firmada (LP y sin firmar no cuentan).`
+    : `${error ? 'No se pudo conectar: ' : ''}Por ahora se guarda en este teléfono. Entra cada tarjeta firmada (LP y sin firmar no cuentan).`)
 }
+$('#rk-modo').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-modo]')
+  if (!b) return
+  rkPro = b.dataset.modo === 'pro'
+  pintarRanking()
+})
 $('#rk-ambito').addEventListener('click', (e) => {
   const b = e.target.closest('[data-ambito]')
   if (!b) return
@@ -7192,6 +7232,13 @@ window.addEventListener('keydown', (e) => {
   else if (e.key === 'Escape') $('#mazo-cerrar').click()
 })
 
+// el MODO PRO de la vuelta normal (en un match lo decide el desafío): se acuerda en el teléfono
+function pintarProMazo() {
+  const b = $('#el-pro')
+  b.hidden = !!matchModo
+  b.setAttribute('aria-pressed', String(!!datos.pro))
+}
+$('#el-pro').addEventListener('click', () => { datos.pro = !datos.pro; guardar(datos); pintarProMazo() })
 function mostrarElegir() {
   estado = 'elegir'
   document.body.classList.remove('retro', 'modo-ruleta')
@@ -7200,6 +7247,7 @@ function mostrarElegir() {
   S.lluvia(0)
   for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'stats', 'resumen', 'match']) $('#' + id).hidden = true
   $('.mazo-tit').innerHTML = matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}` : 'Elegí tu nivel de dificultad'
+  pintarProMazo()
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
   $('#dicky-btn').hidden = true

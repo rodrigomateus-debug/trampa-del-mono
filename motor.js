@@ -2034,6 +2034,8 @@ export function marcaDe(r, usuario) {
   return { usuario: String(usuario ?? '').trim(), apodo: j.apodo, emoji: j.emoji, golpes: t.golpes, vsPar: t.vsPar, ms: Math.round(r.ms) }
 }
 
+/** ¿La vuelta se jugó en MODO PRO? (va marcada en el detalle: compite solo en el ranking PRO) */
+export const esMarcaPro = (m) => m?.detalle?.pro === true
 /** De quién es una marca: el usuario de la SDGApp (uid) si viene de ahí; si no, el nombre que puso. */
 export const duenoDe = (m) => (m.uid ? `uid:${m.uid}` : String(m.usuario ?? '').trim().toLowerCase())
 

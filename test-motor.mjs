@@ -1249,6 +1249,20 @@ ok('El MODO PRO del match: va marcado en la semilla y la ronda lo sabe (los dos 
   assert.ok(M.CLIMAS[M.condicionesMatch(M.semillaPro(987654)).clima])
 })
 
+ok('El ranking PRO: la vuelta en MODO PRO va marcada en el detalle y se separa del normal', () => {
+  assert.equal(M.esMarcaPro({ detalle: { hoyos: [4, 4, 3], pro: true } }), true)
+  for (const m of [{}, { detalle: null }, { detalle: { hoyos: [4] } }, { detalle: { pro: 'true' } }, null]) assert.equal(M.esMarcaPro(m), false)
+  const marcas = [
+    { usuario: 'A', apodo: 'Rorro', golpes: 12, ms: 90000, detalle: { pro: true } },
+    { usuario: 'B', apodo: 'Rorro', golpes: 11, ms: 90000 },
+    { usuario: 'A', apodo: 'Rorro', golpes: 10, ms: 90000 },
+  ]
+  const pro = M.armarRanking(marcas.filter(M.esMarcaPro))
+  const normal = M.armarRanking(marcas.filter((m) => !M.esMarcaPro(m)))
+  assert.deepEqual(pro.map((m) => [m.usuario, m.golpes]), [['A', 12]])
+  assert.deepEqual(normal.map((m) => [m.usuario, m.golpes]), [['A', 10], ['B', 11]])
+})
+
 ok('El clima, tiro a tiro: el palo que resbala, la pelota con barro y el viento que cambia (igual en los dos lados de un match)', () => {
   const nueva = (id) => {
     const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 10 }, fijo(0.5)), viento: calma, pelota: [...h15.calle[1]], lie: 'fairway' }
