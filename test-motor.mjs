@@ -1881,4 +1881,77 @@ ok('el perfecto no es cero (hasta un 35% del error de siempre) y el swing de sto
   assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.6, sinRuido(), 0, 0, null, true).stock, false)
 })
 
+ok('el PERFECTO A FONDO: soltar justo en el nudo rojo sale perfecto; pasarse, no', () => {
+  // en el lanzar: siempre perfecto, adentro del margen del perfecto, y no es cero
+  const plan = { putt: false, cuerda: 0, carry: 100, disp: { ang: 0.1, carry: 0.1, fondo: true }, control: null, perfectoFondo: true }
+  const rr = M.rngDesde(7)
+  let max = 0, min = 1
+  for (let i = 0; i < 20000; i++) {
+    const t = M.lanzar(campo, { pelota: [0, 0], angulo: 0, potencia: 1, viento: calma, putt: false, lie: 'tee', rng: rr, plan })
+    assert.ok(t.perfecto && t.fondoJusto)
+    const e = Math.hypot(Math.atan2(t.carryVec[1], t.carryVec[0]) / 0.1, (t.carry / 100 - 1) / 0.1)
+    max = Math.max(max, e); min = Math.min(min, e)
+  }
+  assert.ok(max <= M.PERFECTO.resto + 1e-9, `el perfecto a fondo llega a ${max}`)
+  assert.ok(min > 0)
+  // la ventana: desde el nudo rojo (0,97 de potencia) hasta un pelito pasado; ni antes ni estirando de más
+  assert.equal(M.enFondoJusto(Math.pow(0.97, 1 / M.STOCK.exp)), true)
+  assert.equal(M.enFondoJusto(1), true)
+  assert.equal(M.enFondoJusto(0.95), false)
+  assert.equal(M.enFondoJusto(1.2), false)
+  // golpear: a fondo y justo, perfecto con cualquier rng; sin "justo", a fondo con su error; y nunca en el putt
+  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
+  let perf = 0, perfSin = 0
+  for (let i = 0; i < 200; i++) {
+    const t = M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 1, M.rngDesde(i), 0, 0, null, false, true)
+    if (t.perfecto && t.fondoJusto) perf++
+    if (M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 1, M.rngDesde(i)).perfecto) perfSin++
+  }
+  assert.equal(perf, 200)
+  assert.ok(perfSin < 30, `sin soltar justo, ${perfSin} perfectos`)
+  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.8, M.rngDesde(1), 0, 0, null, false, true).fondoJusto, false) // no es a fondo
+})
+
+ok('la mini bandera de la goma: la potencia que pica en la bandera (null si no llega o en el green)', () => {
+  // desde el tee del 17 (par 3): llega, y con esa potencia el tiro pica en la bandera
+  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
+  r.idx = 2
+  r.pelota = [...M.hoyoActual(r).tees.blanca]
+  r.lie = 'tee'
+  const pin = M.hoyoActual(r).pin
+  const ang = Math.atan2(pin[1] - r.pelota[1], pin[0] - r.pelota[0])
+  const p = M.potenciaAlPin(campo, r, ang)
+  assert.ok(p > 0.3 && p <= 1, `potencia ${p}`)
+  assert.ok(Math.abs(M.planTiro(campo, r, ang, p).carry - M.dist(r.pelota, pin)) < 0.5)
+  // desde el tee del 15 (par 4) no llega
+  const r15 = { ...r, idx: 0, pelota: [...M.HOYOS[0].tees.blanca] }
+  assert.equal(M.potenciaAlPin(campo, r15, -Math.PI / 2), null)
+  // en el green: es putt, no hay bandera en la goma
+  const enGreen = { ...r, pelota: [pin[0] + 2, pin[1] + 2], lie: 'green' }
+  assert.equal(M.potenciaAlPin(campo, enGreen, 0), null)
+})
+
+ok('los nudos de la goma con la bandera al alcance: la bandera es un nudo y los otros se reparten parejo', () => {
+  const uDe = (p) => Math.pow(p, 1 / M.STOCK.exp)
+  const uR = uDe(0.97)
+  assert.deepEqual(M.nudosGoma(null).nudos, M.STOCK.nudos)
+  assert.equal(M.nudosGoma(0.99).enFondo, true)
+  for (const alPin of [0.03, 0.2, 0.45, 0.7, 0.93]) {
+    const g = M.nudosGoma(alPin)
+    assert.equal(g.nudos.length, 4)
+    assert.ok(g.stock.includes(alPin))
+    const antes = g.nudos.filter((p) => p < alPin).map(uDe), despues = g.nudos.filter((p) => p > alPin).map(uDe)
+    // parejos: cada tramo con el mismo paso, de 0 a la bandera y de la bandera al rojo
+    const paso = (lista, desde, hasta) => lista.length && lista.every((u, i) => Math.abs(u - (desde + ((hasta - desde) * (i + 1)) / (lista.length + 1))) < 1e-9)
+    if (antes.length) assert.ok(paso(antes, 0, uDe(alPin)))
+    if (despues.length) assert.ok(paso(despues, uDe(alPin), uR))
+    assert.ok(g.nudos.every((p) => p > 0 && p < 0.97))
+  }
+  // el stock, en los nudos nuevos (y en la bandera)
+  const g = M.nudosGoma(0.45)
+  assert.equal(M.enNudoStock(0.45, g.stock), 0.45)
+  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
+  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.45, sinRuido(), 0, 0, null, g.stock).stock, true)
+  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.45, sinRuido(), 0, 0, null, true).stock, false)
+})
 console.log('\nTodo verde.')

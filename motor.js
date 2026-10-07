@@ -1094,8 +1094,9 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
   let g = gauss(rng) * k
   const zr = Math.hypot(ze, g)
   const radio = p.radioPerfecto ?? PERFECTO.radio
-  const perfecto = !(p.disp.ang > 0 || p.disp.carry > 0) || zr < radio
-  if (perfecto && zr > 0) { ze *= PERFECTO.resto / radio; g *= PERFECTO.resto / radio }
+  const perfecto = !!p.perfectoFondo || !(p.disp.ang > 0 || p.disp.carry > 0) || zr < radio
+  // adentro del perfecto (hasta `resto` desvíos); el perfecto a fondo que salió afuera, también, más cerca cuanto más lejos
+  if (perfecto && zr > 0) { const f = zr < radio ? PERFECTO.resto / radio : (PERFECTO.resto * radio) / (zr * zr); ze *= f; g *= f }
   const err = ze * p.disp.ang
   // una bomba mal pegada nunca va más lejos: se queda corta
   const carry = Math.max(0, p.carry * (p.real ?? FISICA.factorReal[lie] ?? 1) * (p.bomba ? 1 - Math.abs(g) * p.disp.carry : 1 + g * p.disp.carry))
@@ -1134,6 +1135,7 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     bomba: !!p.bomba,
     perfecta: !!p.perfecta,
     perfecto,
+    fondoJusto: !!p.perfectoFondo,
     stock: !!p.stock,
     comba: !!p.comba,
     golpe: p.golpe ?? null,
@@ -1686,11 +1688,29 @@ export function posVuelo(tiro, u) {
   return [tiro.desde[0] + tiro.controlVec[0] * b1 + (tiro.carryVec[0] + tiro.deriva[0]) * b2, tiro.desde[1] + tiro.controlVec[1] * b1 + (tiro.carryVec[1] + tiro.deriva[1]) * b2]
 }
 
+/**
+ * La potencia que hace picar la pelota en la bandera (la mini bandera de la goma), apuntando para `angulo`: sin viento ni
+ * error, con lo que se ve al apuntar (el lie, el clima, la bomba) y lo que pasa de verdad (el bunker: la mitad). null si
+ * no llega ni a fondo, o en el green (el putt).
+ */
+export function potenciaAlPin(campo, r, angulo) {
+  if (enModoPutt(campo, r)) return null
+  const d = dist(r.pelota, hoyoActual(r).pin)
+  const llega = (p) => { const pl = planTiro(campo, r, angulo, p); return pl.carry * (pl.real ?? 1) }
+  if (llega(1) < d) return null
+  let lo = 0, hi = 1
+  for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (llega(m) < d) lo = m; else hi = m }
+  return hi
+}
+
 /** Pegarle: cuenta el golpe y devuelve el tiro para animarlo con `avanzar` (que también mueve los monos). */
-export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null, stock = false) {
+export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null, stock = false, justo = false) {
   const plan = planTiro(campo, r, angulo, potencia, precision, tiempo, ruta)
+  // soltó justo en el nudo rojo (a fondo): sale perfecto. No en el putt, la bomba, la comba ni el Dibuje
+  if (justo && !plan.putt && !plan.bomba && !plan.comba && !ruta && plan.disp?.fondo) plan.perfectoFondo = true
   // el swing de stock (soltó justo en el nudo de ½ o de ¾, con el dedo quieto): no en el putt, la bomba ni el Dibuje
-  if (stock && !plan.putt && !plan.bomba && !ruta && enNudoStock(potencia) != null) plan.stock = true
+  // (`stock`: true con los nudos de siempre, o la lista de los nudos que tenía la goma: con la bandera al alcance, se mueven)
+  if (stock && !plan.putt && !plan.bomba && !ruta && enNudoStock(potencia, Array.isArray(stock) ? stock : STOCK.nudos) != null) plan.stock = true
   // cuanto más cerca del hoyo, más margen para el perfecto
   if (!plan.putt) plan.radioPerfecto = radioPerfecto(aYardas(r, dist(r.pelota, hoyoActual(r).pin)))
   r.desde = [...r.pelota]
@@ -2239,7 +2259,36 @@ export const radioPerfecto = (yd) => PERFECTO.radio + (PERFECTO.cerca - PERFECTO
 // los nudos de stock: ⅛ y ¼ (chips cortos), ½ y ¾. El margen es de largo de dedo (en el estirón, no en la potencia:
 // la potencia es el estirón a la 1,35), así todos los nudos piden la misma puntería
 export const STOCK = { nudos: [0.125, 0.25, 0.5, 0.75], margenU: 0.025, quieto: 120, error: 0.6, exp: 1.35 }
-export const enNudoStock = (p) => STOCK.nudos.find((m) => Math.abs(Math.pow(p, 1 / STOCK.exp) - Math.pow(m, 1 / STOCK.exp)) <= STOCK.margenU) ?? null
+export const enNudoStock = (p, nudos = STOCK.nudos) => nudos.find((m) => Math.abs(Math.pow(p, 1 / STOCK.exp) - Math.pow(m, 1 / STOCK.exp)) <= STOCK.margenU) ?? null
+/**
+ * Los nudos de la goma (en potencia), sin el rojo de "a fondo". Sin la bandera al alcance, los de siempre (⅛, ¼, ½, ¾).
+ * Con la bandera al alcance (`alPin`: la potencia que pica en ella, ver potenciaAlPin), la bandera es un nudo más y los
+ * otros cuatro se reparten parejo, en el largo de la goma, antes de ella y entre ella y el rojo (cuantos más de un
+ * lado, cuanto más largo es ese tramo). Todos valen para el swing de stock (`stock`), la bandera también. Si la bandera
+ * queda a fondo (`enFondo`), va adentro del nudo rojo y los nudos son los de siempre.
+ */
+export function nudosGoma(alPin = null) {
+  const e = STOCK.exp, uR = Math.pow(0.97, 1 / e)
+  if (alPin == null) return { nudos: STOCK.nudos, bandera: null, enFondo: false, stock: STOCK.nudos }
+  if (alPin >= 0.97) return { nudos: STOCK.nudos, bandera: null, enFondo: true, stock: STOCK.nudos }
+  const uF = Math.pow(Math.max(0, alPin), 1 / e)
+  const n = STOCK.nudos.length
+  const antes = Math.max(0, Math.min(n, Math.round((n * uF) / uR)))
+  const despues = n - antes
+  const us = [
+    ...Array.from({ length: antes }, (_, i) => (uF * (i + 1)) / (antes + 1)),
+    ...Array.from({ length: despues }, (_, i) => uF + ((uR - uF) * (i + 1)) / (despues + 1)),
+  ]
+  const nudos = us.map((u) => Math.pow(u, e))
+  return { nudos, bandera: alPin, enFondo: false, stock: [...nudos, alPin].sort((a, b) => a - b) }
+}
+/**
+ * El PERFECTO A FONDO (2026-10-07): soltar justo en el nudo rojo de la goma (el estirón `u`, largo del dedo / largo a
+ * fondo, entre `desde` —donde empieza "a fondo", 0,97 de potencia— y `hasta`) sale perfecto, aunque a fondo el error es
+ * el más grande. Estirar de más (pasarse del nudo) sigue siendo a fondo con todo su error: hay que soltar justo.
+ */
+export const FONDO_JUSTO = { desde: Math.pow(0.97, 1 / STOCK.exp), hasta: 1.05 }
+export const enFondoJusto = (u) => u >= FONDO_JUSTO.desde && u <= FONDO_JUSTO.hasta
 export const BACKSPIN = { approach: 110, base: 1.5, porYarda: 0.025, en: ['green', 'fairway'] }
 export function paloDe(campo, r) {
   if (enModoPutt(campo, r)) return 'putter'
