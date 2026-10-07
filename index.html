@@ -451,7 +451,7 @@ body.apuntando #pronostico { opacity: .55; }
 #furia .fu-barra i.on::after { transform: scaleX(1); }
 /* la cara de Miguelón (recortada, sin fondo) en la esquina: se pone más roja con cada media barra; llena, roja y temblando */
 #furia .fu-cara { position: absolute; top: -30px; right: -20px; width: 34px; height: auto; filter: drop-shadow(0 2px 2px rgba(8, 26, 16, .6)); transition: filter .5s; transform: rotate(6deg); }
-#furia[data-nivel="1"] .fu-cara { filter: sepia(.6) saturate(3.2) hue-rotate(-25deg) drop-shadow(0 2px 2px rgba(8, 26, 16, .6)); }
+#furia[data-nivel="1"] .fu-cara { filter: sepia(.3) saturate(1.7) hue-rotate(-15deg) drop-shadow(0 2px 2px rgba(8, 26, 16, .6)); }
 #furia.sacado .fu-cara { filter: sepia(.8) saturate(5) hue-rotate(-32deg) brightness(.95) drop-shadow(0 0 5px rgba(224, 48, 30, .9)); animation: fu-tiembla .16s linear infinite; }
 @keyframes fu-tiembla { 0% { translate: 0 0; } 25% { translate: -1.5px 1px; } 50% { translate: 1.5px -1px; } 75% { translate: -1px -1.5px; } 100% { translate: 1px 1px; } }
 #furia.sube { animation: fu-sube .7s ease-out; }
@@ -1512,7 +1512,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v c1703aa · 6/10, 11:00 p. m.</span>
+  <span class="version" id="version">v a2d1b9d · 6/10, 11:06 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -3348,6 +3348,8 @@ const FURIA_TXT = {
   segundo: ['😤 Miguelón se calienta', 'No llegó al green con el segundo: media barra de furia'],
   bogey: ['😤 Bogey: Miguelón se calienta', 'Bogey o peor: media barra de furia'],
 }
+/** La cara de Miguelón según la furia: tranqui, una barrita, sacado (por ahora repite la de una barrita). */
+const CARAS_FURIA = ['jugadores/mike-queboni-cara.webp', 'jugadores/mike-queboni-furia1.webp', 'jugadores/mike-queboni-furia1.webp']
 function pintarFuria(j, oculto) {
   const caja = $('#furia')
   const ver = !oculto && M.habilidadDe(j)?.id === 'bomba' && !$('#hud-top').hidden
@@ -3361,6 +3363,8 @@ function pintarFuria(j, oculto) {
   caja.classList.toggle('sacado', !!f?.enojado)
   caja.querySelector('small').textContent = f?.enojado ? '¡SACADO!' : 'FURIA'
   caja.dataset.nivel = f?.enojado ? 2 : n // la cara se pone roja con la furia
+  const cara = caja.querySelector('.fu-cara'), foto = CARAS_FURIA[caja.dataset.nivel]
+  if (!cara.src.endsWith(foto)) cara.src = foto
   if (!ev) return
   caja.classList.remove('sube')
   void caja.offsetWidth
