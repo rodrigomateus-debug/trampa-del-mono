@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy tiene, además de lo publicado, el PERFECTO a fondo (soltar justo en el nudo rojo) y la bandera como nudo de la goma.
+Hoy es igual al juego publicado (la raíz).
