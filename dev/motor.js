@@ -12,7 +12,7 @@ export const SEGUNDOS_FIRMA = 10
 // Las perillas de la dificultad viven acá (calibradas con un bot que apunta perfecto).
 export const FISICA = {
   carryMax: 235, // driver a fondo desde el fairway
-  distPuttMax: 32,
+  distPuttMax: 32, // el putt más largo (a fondo desde lejos); de cerca, el tope baja (`puttMaxDe`)
   alturaPino: 9, // debajo de esta altura la pelota choca los pinos (el arco del tiro pasa por arriba)
   radioHoyo: 0.22, // el centro del hoyo
   bocaHoyo: 0.66, // el hoyo como se dibuja (3× el centro): la pelota que pasa por acá siempre reacciona
@@ -872,14 +872,15 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
   const dif = furioso ? { ...dificultad(r.jugador?.hcp), error: DISPERSION_HCP.error * FURIA.extra } : dificultad(r.jugador?.hcp)
   if (furioso) precision = 0
   if (enModoPutt(campo, r)) {
-    const carry = potencia * FISICA.distPuttMax
+    const puttMax = puttMaxDe(dist(b, hoyoActual(r).pin))
+    const carry = potencia * puttMax
     // el putt del Mago: con draw dobla a la izquierda (ángulo menor), con fade a la derecha
     const pin = hoyoActual(r).pin
     const giro = hab?.id === 'comba' ? puttMagoDe(r).lado * PUTT_MAGO.giro : 0
     // los 3 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
     const noLaFalla = hab?.id === 'dadas' && dist(b, pin) * hoyoActual(r).escala <= DADA
     const retro = hab?.id === 'retro'
-    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso }
+    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso }
   }
   const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
@@ -1055,12 +1056,20 @@ function puntoEnRuta(pts, s) {
   return [...pts[pts.length - 1]]
 }
 
+/**
+ * El tope del putt (yardas a fondo) según lo lejos que está el hoyo: de cerca, la goma entera es un putt corto y lo
+ * dosificás fino (de 3 yd, el tope es 12: a fondo se pasa 4 veces, no 10). Desde 13 yd, el de siempre. La física del
+ * putt no cambia (el error es proporcional a lo que le pegás), así que el bot y la calibración dan lo mismo.
+ */
+export const PUTT_MAX = { min: 12, porYarda: 2, extra: 6 }
+export const puttMaxDe = (d) => Math.max(PUTT_MAX.min, Math.min(FISICA.distPuttMax, d * PUTT_MAX.porYarda + PUTT_MAX.extra))
+
 /** Arma el tiro. El aim que ve el jugador es `angulo` y `potencia` (o el `plan` de planTiro); acá se suma el error humano y el viento. */
 export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng, plan }) {
   potencia = Math.max(0, Math.min(1, potencia))
   if (putt) {
     const e = plan?.error ?? 1
-    const d = potencia * FISICA.distPuttMax * (1 + gauss(rng) * FISICA.error.puttDist * e)
+    const d = potencia * (plan?.puttMax ?? FISICA.distPuttMax) * (1 + gauss(rng) * FISICA.error.puttDist * e)
     const a = angulo + (plan?.recto ? 0 : gauss(rng) * FISICA.error.puttAng * e)
     const v0 = Math.sqrt(2 * FISICA.roce.green * Math.max(0, d))
     return { modo: 'putt', fase: 'rodando', pos: [...pelota], alt: 0, v: [Math.cos(a) * v0, Math.sin(a) * v0], carry: 0, giro: plan?.giro ?? 0, labio: false, eventos: [] }
@@ -1727,7 +1736,7 @@ function tiroAlHoyo(campo, r, plan, rng) {
   const calma = { ang: 0, kmh: 0 }
   let tiro
   if (plan.putt) {
-    tiro = lanzar(campo, { pelota: r.pelota, angulo: ang, potencia: 0.2, viento: calma, putt: true, lie: r.lie, rng, plan: { ...plan, recto: true, giro: 0 } })
+    tiro = lanzar(campo, { pelota: r.pelota, angulo: ang, potencia: 0.2, viento: calma, putt: true, lie: r.lie, rng, plan: { ...plan, recto: true, giro: 0, puttMax: FISICA.distPuttMax } })
     tiro.iman = { meter: true, deme: true }
   } else {
     const derecho = { putt: false, cuerda: ang, carry: dist(r.pelota, pin), disp: { ang: 0, carry: 0 }, control: null, real: 1, alto: 1.3 }
