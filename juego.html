@@ -4074,6 +4074,64 @@ function arbolito(x, y, k, alfa = 1) {
   ctx.fillText('✨', x + tam * 0.45, y - tam * 0.6)
   ctx.restore()
 }
+/**
+ * La ráfaga de Juanpa, dibujada: tres líneas de viento que ondulan para donde empuja (u), cada una con su rulo en la
+ * punta, crema con borde tinta, como las líneas de las historietas. `t` en segundos (ondulan), `k` de 0 a 1 (aparece).
+ */
+function rafagaDibujada(x, y, ux, uy, t, k = 1) {
+  const nx = -uy, ny = ux
+  const lineas = [{ off: -15, largo: 64, desf: 0, r: 6 }, { off: 0, largo: 92, desf: 1.4, r: 8 }, { off: 15, largo: 58, desf: 2.6, r: 5.5 }]
+  ctx.save()
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.globalAlpha = k
+  for (const L of lineas) {
+    const pts = []
+    const atras = 26 + L.largo // arranca atrás de la pelota y termina un poco antes
+    for (let i = 0; i <= 24; i++) {
+      const q = i / 24
+      const a = -atras + q * L.largo * k
+      const w = Math.sin(q * Math.PI * 2.2 - t * 9 + L.desf) * 3.5 * (1 - q * 0.6)
+      pts.push([x + ux * a + nx * (L.off + w), y + uy * a + ny * (L.off + w)])
+    }
+    // el rulo de la punta: una espiral que se cierra hacia afuera de la ráfaga
+    const [ex, ey] = pts[pts.length - 1]
+    const lado = L.off > 0 ? 1 : -1
+    const cx = ex + nx * L.r * lado, cy = ey + ny * L.r * lado
+    const a0 = Math.atan2(ey - cy, ex - cx)
+    const giro = Math.atan2(ux * ny - uy * nx, ux * nx + uy * ny) > 0 ? -lado : lado
+    for (let i = 1; i <= 16; i++) {
+      const a = a0 + giro * i * 0.38
+      const rr = L.r * (1 - i / 22)
+      pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr])
+    }
+    const trazo = () => { ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (const p of pts) ctx.lineTo(p[0], p[1]) }
+    trazo(); ctx.strokeStyle = 'rgba(12,43,28,.55)'; ctx.lineWidth = 6.5; ctx.stroke()
+    trazo(); ctx.strokeStyle = C.cream; ctx.lineWidth = 3.5; ctx.stroke()
+  }
+  // dos rayitas cortas de velocidad, atrás de todo
+  ctx.strokeStyle = 'rgba(244,238,218,.6)'
+  ctx.lineWidth = 2.5
+  for (const o of [-24, 24]) {
+    const b = -(110 + ((t * 120) % 30))
+    ctx.beginPath(); ctx.moveTo(x + ux * b + nx * o, y + uy * b + ny * o); ctx.lineTo(x + ux * (b + 16) + nx * o, y + uy * (b + 16) + ny * o); ctx.stroke()
+  }
+  ctx.restore()
+}
+/** La nubecita (dibujada) del árbol que se esfuma: unos círculos crema que se abren y se apagan. */
+function nubecita(x, y, k) {
+  ctx.save()
+  ctx.globalAlpha = Math.max(0, 1 - k)
+  ctx.fillStyle = C.cream
+  ctx.strokeStyle = 'rgba(12,43,28,.45)'
+  ctx.lineWidth = 2
+  for (const [dx, dy, r] of [[-16, 4, 9], [0, -6, 12], [16, 3, 9], [-6, 10, 8], [8, 11, 8]]) {
+    ctx.beginPath()
+    ctx.arc(x + dx * (1 + k), y + dy * (1 + k), r * (0.7 + k * 0.6), 0, 7)
+    ctx.fill(); ctx.stroke()
+  }
+  ctx.restore()
+}
 /** Mientras vuela: el árbol que va creciendo donde la va a frenar, el viento que la corre, el carrito que llega. */
 function sorpresaJuanpa(t) {
   const sp = t.sorpresa
@@ -4084,25 +4142,11 @@ function sorpresaJuanpa(t) {
     if (k > 0) { const [x, y] = w2s(M.posVuelo(t, sp.u)); arbolito(x, y, Math.min(1, k * 1.15)) }
   }
   if (sp.tipo === 'rafaga' && t.fase === 'vuelo' && u > sp.u - 0.04) {
-    const [x, y] = w2s(t.pos)
+    const [x, y0] = w2s(t.pos)
     const [vx, vy] = w2s([t.pos[0] + sp.vec[0], t.pos[1] + sp.vec[1]])
-    const d = Math.hypot(vx - x, vy - y) || 1
-    const ux = (vx - x) / d, uy = (vy - y) / d
-    const fase = performance.now() / 90
-    ctx.save()
-    ctx.strokeStyle = 'rgba(244,238,218,.8)'
-    ctx.lineCap = 'round'
-    ctx.lineWidth = 3
-    for (let i = -2; i <= 2; i++) {
-      const off = ((fase + i * 7) % 20) - 10
-      const ox = x - ux * (30 + off * 2) - uy * i * 9, oy = y - uy * (30 + off * 2) + ux * i * 9
-      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + ux * 24, oy + uy * 24); ctx.stroke()
-    }
-    ctx.font = `30px ${EMOJI}`
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('💨', x - ux * 46, y - uy * 46)
-    ctx.restore()
+    const d = Math.hypot(vx - x, vy - y0) || 1
+    const entra = Math.min(1, (u - (sp.u - 0.04)) / 0.08) // aparece de golpe
+    rafagaDibujada(x, y0 - t.alt * levante(), (vx - x) / d, (vy - y0) / d, performance.now() / 1000, entra) // a la altura de la pelota (no de la sombra)
   }
   if (sp.tipo === 'carrito') {
     const ang = Math.atan2(sp.vec[1], sp.vec[0])
@@ -4141,7 +4185,7 @@ function dibujarFxJuanpa() {
       const [x, y] = w2s(f.pos)
       const fuera = Math.max(0, (sg - 0.8) / 0.6)
       arbolito(x, y, 1 + fuera * 0.3, 1 - fuera)
-      if (fuera > 0) { ctx.save(); ctx.globalAlpha = 1 - fuera; ctx.font = `${34 + fuera * 30}px ${EMOJI}`; ctx.textAlign = 'center'; ctx.fillText('💨', x, y - 20); ctx.restore() }
+      if (fuera > 0) nubecita(x, y - 18, fuera)
     } else {
       const d = sg * 26
       const [x, y] = w2s([f.pos[0] + Math.cos(f.ang) * d, f.pos[1] + Math.sin(f.ang) * d])

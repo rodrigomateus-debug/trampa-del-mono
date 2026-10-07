@@ -336,8 +336,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 ## 🦝 Juanpa Pielach, el Mapache (2026-10-07)
 
 - Entra al mazo (`EN_PRUEBA`) el Mapache (HCP ≈3, su foto de la base). Habilidad "Tiros increíbles (y la mala suerte)" (`caos`): le pega increíble (la mitad del error de su handicap, también en el putt), pero en cada tiro fuera del green, una de dos veces (`SORPRESA.chance`) aparece algo, uno de tres (`sortearSorpresa`):
-  - 🌳 **un árbol**: aparece de la nada (crece en el lugar mientras la pelota se acerca), la frena en el aire y cae ahí; después se esfuma.
-  - 💨 **una ráfaga**: entre el 35% y el 80% del vuelo la corre de costado 12 a 26 yardas, de golpe pero suave (se ven las rayas de viento).
+  - 🌳 **un árbol**: aparece de la nada (crece en el lugar mientras la pelota se acerca), la frena en el aire y cae ahí; después se esfuma en una nubecita dibujada.
+  - 💨 **una ráfaga**: entre el 35% y el 80% del vuelo la corre de costado 12 a 26 yardas, de golpe pero suave. Se dibuja (sin emoji): tres líneas de viento que ondulan, crema con borde tinta, con un rulo en la punta, como en las historietas, a la altura de la pelota.
   - 🛺 **un carrito** (rojo): llega de costado justo a donde pica, la levanta y se la lleva 12 a 24 yardas, y la deja (sin rodar); después sigue de largo. Va para el lado que la deja en juego (ni bosque ni afuera, si se puede).
 - LG cuenta lo que pasó ("¡Apareció un árbol de la nada!", etc.). Dificultad medida (20 vueltas): +1,4 (Difícil).
 
@@ -348,5 +348,5 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 
 ## 🔵 El logo del Equipo 5 (2026-10-07)
 
-- `equipo-5.svg`: escudo redondo azul con aro dorado, "EQUIPO" arriba y "SDGA" abajo, dos estrellas y un 5 grande crema con borde y sombra (como los botones del juego), con una pelota de golf en la panza que late cada tanto.
+- `equipo-5.svg`: una medalla verde y dorada, estilo SDGA: canto de oro con el estriado de moneda, fondo verde, "EQUIPO" arriba y "SDGA" abajo en oro, dos estrellas y un 5 grande de oro con relieve (borde y sombra, como los botones del juego), con una pelota de golf en la panza que late. Brilla: cada tanto la cruza un reflejo y titilan dos destellos (2026-10-07: antes era azul).
 - Va en la carta (donde los Dicky llevan el suyo) y en "Ver todos" de los del Equipo 5 (`equipo: 5` en plantel.js): Lechu (Joaquín) y LG (Lucas).
