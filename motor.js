@@ -1075,11 +1075,15 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     return { modo: 'putt', fase: 'rodando', pos: [...pelota], alt: 0, v: [Math.cos(a) * v0, Math.sin(a) * v0], carry: 0, giro: plan?.giro ?? 0, labio: false, eventos: [] }
   }
   const p = plan ?? planBase(angulo, potencia, lie)
-  const ze = gauss(rng)
+  // el error del tiro, en desvíos (el swing de stock lo achica); salió al medio: perfecto (un tiro sin error, como los
+  // de Demetrio o LG sin error, sale perfecto siempre: es real). El perfecto no es cero: hasta `resto` desvíos
+  const k = p.stock ? STOCK.error : 1
+  let ze = gauss(rng) * k
+  let g = gauss(rng) * k
+  const zr = Math.hypot(ze, g)
+  const perfecto = !(p.disp.ang > 0 || p.disp.carry > 0) || zr < PERFECTO.radio
+  if (perfecto && zr > 0) { ze *= PERFECTO.resto / PERFECTO.radio; g *= PERFECTO.resto / PERFECTO.radio }
   const err = ze * p.disp.ang
-  const g = gauss(rng)
-  // salió justo al medio (un tiro sin error, como los de Demetrio o LG sin error, sale perfecto siempre: es real)
-  const perfecto = !(p.disp.ang > 0 || p.disp.carry > 0) || Math.hypot(ze, g) < PERFECTO.radio
   // una bomba mal pegada nunca va más lejos: se queda corta
   const carry = Math.max(0, p.carry * (p.real ?? FISICA.factorReal[lie] ?? 1) * (p.bomba ? 1 - Math.abs(g) * p.disp.carry : 1 + g * p.disp.carry))
   const a = p.cuerda + err
@@ -1117,6 +1121,7 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     bomba: !!p.bomba,
     perfecta: !!p.perfecta,
     perfecto,
+    stock: !!p.stock,
     comba: !!p.comba,
     golpe: p.golpe ?? null,
     ruta, // el Dibuje maestro: el vuelo, punto a punto (relativo a `desde`), a velocidad pareja
@@ -1669,8 +1674,10 @@ export function posVuelo(tiro, u) {
 }
 
 /** Pegarle: cuenta el golpe y devuelve el tiro para animarlo con `avanzar` (que también mueve los monos). */
-export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null) {
+export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null, stock = false) {
   const plan = planTiro(campo, r, angulo, potencia, precision, tiempo, ruta)
+  // el swing de stock (soltó justo en el nudo de ½ o de ¾, con el dedo quieto): no en el putt, la bomba ni el Dibuje
+  if (stock && !plan.putt && !plan.bomba && !ruta && enNudoStock(potencia) != null) plan.stock = true
   r.desde = [...r.pelota]
   r.lieDesde = r.lie
   r.golpes += 1
@@ -2199,12 +2206,19 @@ export const ADULACION = {
 export const PALOS = { wedge: 50 }
 
 /**
- * El tiro PERFECTO: el que sale justo al medio (el error de dirección y el de largo, los dos casi en cero: adentro de
- * `radio` desvíos; ~4% de los tiros completos; los tiros sin error, siempre). Lo dice chiquito al lado de donde salió. En el chip y el approach
- * (hasta `BACKSPIN.approach` yd, no desde la salida) además hace backspin: pica en el green o la calle y vuelve
- * `base` + `porYarda` × el largo del tiro (yardas reales), como los pros.
+ * El tiro PERFECTO: el que sale al medio (el error de dirección y el de largo, los dos adentro de `radio` desvíos: ~4%
+ * de los tiros completos; los tiros sin error, siempre). Perfecto no es cero: sale con `resto` de su error de siempre
+ * como mucho (~un cuarto, en promedio), así que el perfecto de un handicap alto igual se abre más que el de uno bajo.
+ * Lo dice chiquito al lado de donde salió. En el chip y el approach (hasta `BACKSPIN.approach` yd, no desde la salida)
+ * además hace backspin: pica en el green o la calle y vuelve `base` + `porYarda` × el largo del tiro, como los pros.
+ *
+ * El SWING DE STOCK: soltar justo en el nudo de ½ o de ¾ de la goma (± `margen` de potencia) con el dedo quieto
+ * (`quieto` ms sin moverse): el tiro sale con `error` × su error de siempre, y el perfecto pasa de ~4% a ~12%. La
+ * distancia queda la del nudo: como los pros, cada uno se aprende sus yardas de ½ y de ¾ con cada palo.
  */
-export const PERFECTO = { radio: 0.3 }
+export const PERFECTO = { radio: 0.3, resto: 0.35 }
+export const STOCK = { nudos: [0.5, 0.75], margen: 0.02, quieto: 120, error: 0.6 }
+export const enNudoStock = (p) => STOCK.nudos.find((m) => Math.abs(p - m) <= STOCK.margen) ?? null
 export const BACKSPIN = { approach: 110, base: 1.5, porYarda: 0.025, en: ['green', 'fairway'] }
 export function paloDe(campo, r) {
   if (enModoPutt(campo, r)) return 'putter'

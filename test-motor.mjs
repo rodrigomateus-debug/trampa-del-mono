@@ -1824,4 +1824,34 @@ ok('el tiro perfecto (sale justo al medio) y el backspin del chip o el approach 
   assert.equal(sinError.perfecto, true)
 })
 
+ok('el perfecto no es cero (hasta un 35% del error de siempre) y el swing de stock (en el nudo de ½ o ¾) lo hace más seguido', () => {
+  const plan = (stock) => ({ putt: false, cuerda: 0, carry: 100, disp: { ang: 0.1, carry: 0.1 }, control: null, stock })
+  const medir = (stock) => {
+    const rr = M.rngDesde(42)
+    let n = 0, perf = 0, maxPerf = 0, minPerf = 1, errTodos = 0
+    for (let i = 0; i < 20000; i++) {
+      const t = M.lanzar(campo, { pelota: [0, 0], angulo: 0, potencia: 0.5, viento: calma, putt: false, lie: 'fairway', rng: rr, plan: plan(stock) })
+      const e = Math.hypot(Math.atan2(t.carryVec[1], t.carryVec[0]) / 0.1, (t.carry / 100 - 1) / 0.1) // en desvíos
+      n++; errTodos += e
+      if (t.perfecto) { perf++; maxPerf = Math.max(maxPerf, e); minPerf = Math.min(minPerf, e) }
+    }
+    return { perf: perf / n, maxPerf, minPerf, err: errTodos / n }
+  }
+  const normal = medir(false), stock = medir(true)
+  assert.ok(Math.abs(normal.perf - 0.044) < 0.008, `perfectos ${normal.perf}`)
+  assert.ok(Math.abs(stock.perf - 0.117) < 0.012, `perfectos de stock ${stock.perf}`)
+  assert.ok(normal.maxPerf <= M.PERFECTO.resto + 1e-9 && normal.maxPerf > 0.3, `el perfecto llega a ${normal.maxPerf}`)
+  assert.ok(normal.minPerf > 0, 'el perfecto no es cero')
+  assert.ok(Math.abs(stock.err / normal.err - M.STOCK.error) < 0.05)
+  // el nudo: ± 2% de potencia
+  assert.equal(M.enNudoStock(0.51), 0.5)
+  assert.equal(M.enNudoStock(0.735), 0.75)
+  assert.equal(M.enNudoStock(0.6), null)
+  assert.equal(M.enNudoStock(0.98), null) // el de fondo no
+  // golpear: solo si soltó en el nudo (y no en el putt)
+  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
+  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.5, sinRuido(), 0, 0, null, true).stock, true)
+  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.6, sinRuido(), 0, 0, null, true).stock, false)
+})
+
 console.log('\nTodo verde.')
