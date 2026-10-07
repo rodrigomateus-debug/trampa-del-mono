@@ -269,6 +269,8 @@ export function nudo(i, fondo) {
 export function perfecto() { campana(1567.98, 0, 0.09); campana(2093, 0.07, 0.07) }
 /** El backspin: la pelota que muerde el green y vuelve: un "zip" que baja. */
 export function backspin() { ruido(0.22, { f: 3200, f2: 900, q: 2.5, vol: 0.12, ataque: 0.01 }); tono(900, 0.16, { vol: 0.05, f2: 500, tipo: 'triangle', at: 0.03 }) }
+/** El swing de stock: quedaste quieto justo en el nudo: un "tuc" redondo, más grave y suave que el de pasar el nudo. */
+export function stock() { tono(988, 0.09, { vol: 0.11, tipo: 'sine' }); tono(1480, 0.06, { vol: 0.05, tipo: 'sine', at: 0.035 }) }
 export function cargaFin() {
   if (!cargaOsc) return
   const o = cargaOsc, g = cargaGain

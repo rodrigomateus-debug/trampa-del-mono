@@ -2087,7 +2087,10 @@ function apunte() {
     plan = M.planTiro(campo, ronda, ang, p, q, tiempo)
   } else drag.tZona = null
   const arbol = putt ? null : M.pinoEnLaSalida(campo, ronda.pelota, plan) // pega en un árbol al salir: la línea en rojo, cortada ahí
-  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97 }
+  // el swing de stock: justo en el nudo de ½ o de ¾, con el dedo quieto (no en el putt, la bomba ni con la línea del Águila)
+  const nudo = !putt && !plan.bomba ? M.enNudoStock(p) : null
+  const stock = nudo != null && performance.now() - (drag.mov ?? drag.t0) >= M.STOCK.quieto
+  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, nudo, stock }
 }
 
 lienzo.addEventListener('pointerdown', (e) => {
@@ -2127,7 +2130,10 @@ lienzo.addEventListener('pointermove', (e) => {
     trazo.plan = M.planTiro(campo, ronda, 0, 0, 0, 0, trazo.pts)
     return
   }
-  if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY }
+  if (drag && e.pointerId === drag.id) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 1.5) drag.mov = performance.now() // para el swing de stock: el dedo quieto
+    drag.x = e.clientX; drag.y = e.clientY
+  }
 })
 lienzo.addEventListener('pointerup', (e) => {
   if (swipeTito && e.pointerId === swipeTito.id) { soltarSwipeTito(); return }
@@ -2197,7 +2203,7 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
-  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null)
+  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, !!a.stock)
   if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
   else S.golpe(a.p, a.putt)
   // salió justo al medio: "PERFECTO" chiquito al lado de donde salió
@@ -5283,28 +5289,37 @@ function goma(a, bx, by) {
   const g = ctx.createLinearGradient(ax, ay, ex, ey)
   g.addColorStop(0, C.cream); g.addColorStop(1, color)
   ctx.strokeStyle = g; ctx.lineWidth = grosor; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
+  // el agarre en la punta (abajo de los nudos: el del stock queda encima)
+  ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(ex, ey, 8, 0, 7); ctx.fill()
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex, ey, 5.2, 0, 7); ctx.fill()
   NUDOS.forEach((m, i) => {
     const d = r0 + largo * enU(m)
     const x = bx + ux * d + (a.p >= m ? nx * tiembla : 0), y = by + uy * d + (a.p >= m ? ny * tiembla : 0)
     const r = i === 2 ? 8 : 6.5
-    if (a.p < m) {
+    if (a.p < m && !(a.stock && a.nudo === m)) {
       ctx.strokeStyle = 'rgba(244,238,218,.6)'; ctx.lineWidth = 2; ctx.setLineDash([3, 3])
       ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); ctx.setLineDash([])
       return
     }
+    // el swing de stock: el nudo donde estás (con el dedo quieto) brilla
+    if (a.stock && a.nudo === m) {
+      const lat = 0.5 + 0.5 * Math.sin(performance.now() / 90)
+      ctx.fillStyle = `rgba(244,238,218,${0.25 + 0.25 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 3, 0, 7); ctx.fill()
+      ctx.strokeStyle = C.cream; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r + 6 + lat * 3, 0, 7); ctx.stroke()
+    }
     ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
-    ctx.fillStyle = i === 2 ? C.red : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+    ctx.fillStyle = i === 2 ? C.red : a.stock && a.nudo === m ? C.cream : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
     ctx.fillStyle = C.g950; ctx.font = '10px Anton, Impact, sans-serif'; ctx.textAlign = 'center'
     ctx.fillText(i === 2 ? '•' : i === 0 ? '½' : '¾', x, y + 3.6)
   })
-  // el agarre en la punta
-  ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(ex, ey, 8, 0, 7); ctx.fill()
-  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex, ey, 5.2, 0, 7); ctx.fill()
   // el clic y el tic al pasar un nudo (para atrás no suena: solo cuando lo pasás de nuevo)
   let k = -1
   NUDOS.forEach((m, i) => { if (a.p >= m) k = i })
   if (drag && k > (drag.nudo ?? -1)) { S.nudo(k, k === NUDOS.length - 1); tic() }
   if (drag) drag.nudo = k
+  // al quedar quieto justo en el nudo (swing de stock): otro clic, más suave, y otro tic
+  if (drag && a.stock && !drag.stock) { S.stock(); tic() }
+  if (drag) drag.stock = a.stock
 }
 /** El "tic" del celu: Android vibra; en iPhone (iOS 18+) se toca un interruptor nativo escondido, que hace el tic del sistema. */
 function tic() {
