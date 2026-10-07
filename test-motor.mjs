@@ -359,6 +359,45 @@ ok('Mati (El Sueco): el drive con el pulso de Fito; después, la flecha que atra
   assert.ok(putt.putt && putt.recto)
 })
 
+ok('Juanpa (el Mapache): le pega increíble, pero una de dos aparece un árbol, una ráfaga o un carrito', () => {
+  const nueva = () => ({ ...M.nuevaRonda({ apodo: 'Mapache', emoji: '🦝', hcp: 3 }, fijo(0.5)), monos: [], viento: calma, pelota: [...h15.calle[1]], lie: 'fairway' })
+  const linea = angulo(h15.calle[1], h15.pin)
+  // la mitad del error de su handicap
+  const r0 = nueva()
+  const suyo = M.planTiro(quieto, r0, linea, 0.5)
+  const otro = M.planTiro(quieto, { ...r0, jugador: { apodo: 'X', hcp: 3 } }, linea, 0.5)
+  assert.ok(Math.abs(suyo.disp.ang - otro.disp.ang * M.SORPRESA.error) < 1e-12)
+  // una de dos veces (fuera del green) aparece algo; en el green, nunca
+  let veces = 0
+  for (let i = 0; i < 400; i++) if (M.golpear(quieto, nueva(), linea, 0.5, M.rngDesde(i)).sorpresa) veces++
+  assert.ok(veces > 150 && veces < 250, `${veces} de 400`)
+  const enGreen = { ...nueva(), pelota: [h15.pin[0], h15.pin[1] + 5], lie: 'green' }
+  for (let i = 0; i < 40; i++) assert.equal(M.golpear(quieto, { ...enGreen, pelota: [...enGreen.pelota] }, 0, 0.2, M.rngDesde(i)).sorpresa, undefined)
+  // cada sorpresa, forzada
+  const con = (tipo) => {
+    const r = nueva()
+    const t = M.golpear(quieto, r, linea, 0.6, sinRuido())
+    const limpio = M.simular(quieto, { ...t, pos: [...t.pos], eventos: [], sorpresa: null }, h15.pin)
+    t.sorpresa = M.sortearSorpresa(quieto, r, t, M.rngDesde(7), tipo)
+    return { t: M.simular(quieto, t, h15.pin), limpio }
+  }
+  // el árbol: la frena en el aire (mucho antes de donde caía) y queda ahí
+  const arbol = con('arbol')
+  assert.ok(arbol.t.eventos.some((e) => e.tipo === 'arbol') && M.dist(arbol.t.pos, arbol.t.sorpresa.pos) < 1e-9)
+  assert.ok(M.dist(arbol.t.desde, arbol.t.pos) < M.dist(arbol.limpio.desde, arbol.limpio.pos) * 0.85)
+  // la ráfaga: la corre de costado lo que dice
+  const rafaga = con('rafaga')
+  assert.ok(rafaga.t.eventos.some((e) => e.tipo === 'rafaga'))
+  const largo = Math.hypot(...rafaga.t.sorpresa.vec)
+  assert.ok(largo * h15.escala >= M.SORPRESA.rafaga[0] - 1e-9 && largo * h15.escala <= M.SORPRESA.rafaga[1] + 1e-9)
+  // el carrito: donde pica se la lleva de costado y la deja (sin rodar), y nunca afuera
+  const carrito = con('carrito')
+  assert.ok(carrito.t.eventos.some((e) => e.tipo === 'carrito'))
+  const de = carrito.t.sorpresa.de
+  assert.ok(M.dist(carrito.t.pos, [de[0] + carrito.t.sorpresa.vec[0], de[1] + carrito.t.sorpresa.vec[1]]) < 1e-6)
+  assert.notEqual(M.terreno(quieto, carrito.t.pos).tipo, 'afuera')
+})
+
 ok('Fito: la línea se sacude; en el embudo sale derecha', () => {
   const r = { ...M.nuevaRonda({ apodo: 'Fito (Đ)', emoji: '🦅', hcp: 22 }, fijo(0.5)), monos: [] }
   const linea = angulo(h15.tee, h15.pin)

@@ -2290,6 +2290,7 @@ function sonarEventos(t) {
   }
 }
 function alReposo() {
+  sorpresaQueQueda(tiro) // Juanpa: el árbol o el carrito quedan un ratito en pantalla
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
   const largo = M.dist(ronda.desde, h.pin)
@@ -2309,7 +2310,8 @@ function alReposo() {
     embocar(frase)
     return
   }
-  relatar(dicho)
+  // Juanpa: si se le cruzó algo, LG cuenta eso
+  if (tiro.sorpresa?.hecho) { const [lg, verso] = SORPRESA_TXT[tiro.sorpresa.tipo]; relatar({ lg, verso }) } else relatar(dicho)
   // el sonido va antes de las animaciones (que cortan acá con return: si no, el Mono bueno y el malo no sonaban nunca)
   if (res.tipo === 'mono-bueno') S.monoBueno()
   else if (res.tipo === 'mono-malo') S.robo()
@@ -3451,7 +3453,7 @@ function dibujar() {
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
-    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); pelota(tiro.pos, tiro.alt) }
+    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro); pelota(tiro.pos, tiro.alt) }
     else { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
   }
   const a = estado === 'apuntar' ? apunte() : null
@@ -3465,6 +3467,7 @@ function dibujar() {
     else dibujarTrazo(trazoFade.pts, k * k, null, trazoFade.desde)
   }
   if ((ronda?.ruleta || ronda?.prestado) && estado === 'apuntar' && !drag && !anim) etiquetaRuleta()
+  dibujarFxJuanpa()
 
   if (ronda && !ronda.terminada) {
     const ang = ronda.viento.ang + cam.rot
@@ -3893,20 +3896,25 @@ function dibujarCarro(c) {
       ctx.restore()
     }
   }
+  cuerpoCarrito(x, y, c.ang + cam.rot, L)
+}
+/** El carrito (el de Marcos y el que se le cruza a Juanpa): la trompa mira a `ang` (en pantalla). */
+function cuerpoCarrito(x, y, ang, L, carroceria = ['#1f7a45', '#2f9b5d']) {
+  const A = L * 0.58
   ctx.save()
   ctx.translate(x, y)
-  ctx.rotate(c.ang + cam.rot) // la trompa mira a +x
+  ctx.rotate(ang) // la trompa mira a +x
   ctx.fillStyle = 'rgba(8,26,16,.3)' // sombra
   ctx.beginPath(); ctx.roundRect(-L / 2 + 3, -A / 2 + 4, L, A, A * 0.3); ctx.fill()
   ctx.fillStyle = '#121212' // ruedas
   for (const wx of [-L * 0.3, L * 0.28]) for (const s of [-1, 1]) {
     ctx.beginPath(); ctx.roundRect(wx - L * 0.1, s * A * 0.5 - A * 0.09, L * 0.2, A * 0.18, 2); ctx.fill()
   }
-  ctx.fillStyle = '#1f7a45' // la carrocería verde
+  ctx.fillStyle = carroceria[0] // la carrocería
   ctx.strokeStyle = '#0c2b1c'
   ctx.lineWidth = 1.5
   ctx.beginPath(); ctx.roundRect(-L / 2, -A / 2, L, A, A * 0.28); ctx.fill(); ctx.stroke()
-  ctx.fillStyle = '#2f9b5d' // el capot
+  ctx.fillStyle = carroceria[1] // el capot
   ctx.beginPath(); ctx.roundRect(L * 0.18, -A * 0.4, L * 0.3, A * 0.8, A * 0.22); ctx.fill()
   ctx.fillStyle = '#fff3b0' // los faros
   for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(L * 0.46, s * A * 0.3, Math.max(1.5, L * 0.035), 0, 7); ctx.fill() }
@@ -3950,6 +3958,107 @@ function pelotaQuieta() {
 }
 /** La pelota en pantalla: siempre en proporción al hoyo (0,42 vs. 0,66 yd), también en el zoom de la corbata. */
 const radioPelota = () => Math.max(3.2, cam.esc * 0.42)
+// ── 🦝 la mala suerte de Juanpa: el árbol que aparece, la ráfaga y el carrito ──
+let fxJuanpa = [] // lo que sigue en pantalla después del tiro: el árbol que se va, el carrito que se aleja
+const CARRITO_JUANPA = ['#c9472f', '#e0634a']
+const SORPRESA_TXT = {
+  arbol: ['🌳 ¡Apareció un árbol de la nada!', 'La frenó en el aire y se esfumó. Cosas de Juanpa'],
+  rafaga: ['💨 ¡Una ráfaga de la nada!', 'Le corrió la pelota en el aire. Cosas de Juanpa'],
+  carrito: ['🛺 ¡Un carrito de costado!', 'Pasó justo, se la llevó un poco y la dejó. Cosas de Juanpa'],
+}
+const tamCarrito = () => Math.max(44, M.CARRITO.largo * cam.esc * 1.5)
+function arbolito(x, y, k, alfa = 1) {
+  if (k <= 0 || alfa <= 0) return
+  const tam = Math.max(64, 14 * cam.esc) * k
+  ctx.save()
+  ctx.globalAlpha = alfa
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'bottom'
+  ctx.font = `${tam}px ${EMOJI}`
+  ctx.fillText('🌳', x, y + tam * 0.12)
+  ctx.font = `${tam * 0.4}px ${EMOJI}`
+  ctx.fillText('✨', x + tam * 0.45, y - tam * 0.6)
+  ctx.restore()
+}
+/** Mientras vuela: el árbol que va creciendo donde la va a frenar, el viento que la corre, el carrito que llega. */
+function sorpresaJuanpa(t) {
+  const sp = t.sorpresa
+  if (!sp) return
+  const u = t.fase === 'vuelo' ? t.t / t.T : 1
+  if (sp.tipo === 'arbol' && !sp.hecho) {
+    const k = (u - (sp.u - 0.3)) / 0.3
+    if (k > 0) { const [x, y] = w2s(M.posVuelo(t, sp.u)); arbolito(x, y, Math.min(1, k * 1.15)) }
+  }
+  if (sp.tipo === 'rafaga' && t.fase === 'vuelo' && u > sp.u - 0.04) {
+    const [x, y] = w2s(t.pos)
+    const [vx, vy] = w2s([t.pos[0] + sp.vec[0], t.pos[1] + sp.vec[1]])
+    const d = Math.hypot(vx - x, vy - y) || 1
+    const ux = (vx - x) / d, uy = (vy - y) / d
+    const fase = performance.now() / 90
+    ctx.save()
+    ctx.strokeStyle = 'rgba(244,238,218,.8)'
+    ctx.lineCap = 'round'
+    ctx.lineWidth = 3
+    for (let i = -2; i <= 2; i++) {
+      const off = ((fase + i * 7) % 20) - 10
+      const ox = x - ux * (30 + off * 2) - uy * i * 9, oy = y - uy * (30 + off * 2) + ux * i * 9
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + ux * 24, oy + uy * 24); ctx.stroke()
+    }
+    ctx.font = `30px ${EMOJI}`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('💨', x - ux * 46, y - uy * 46)
+    ctx.restore()
+  }
+  if (sp.tipo === 'carrito') {
+    const ang = Math.atan2(sp.vec[1], sp.vec[0])
+    const L = tamCarrito()
+    if (t.fase === 'vuelo' && u > 0.5) {
+      // llega de costado, justo a donde va a picar
+      const cae = M.posVuelo(t, 1)
+      const largo = Math.hypot(...sp.vec) * 2.2
+      const k = (u - 0.5) / 0.5
+      const p = [cae[0] - Math.cos(ang) * largo * (1 - k), cae[1] - Math.sin(ang) * largo * (1 - k)]
+      const [x, y] = w2s(p)
+      cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
+    } else if (t.fase === 'carrito') {
+      const [x, y] = w2s(t.pos)
+      cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
+    }
+  }
+  if (sp.tipo === 'rafaga' && sp.hecho && !sp.sono) { sp.sono = true; S.swipe() }
+  if (sp.tipo === 'carrito' && t.fase === 'carrito' && !sp.sono) { sp.sono = true; S.robo() }
+}
+/** Al quedar quieta: lo que sigue en pantalla (el árbol que se esfuma, el carrito que se va). */
+function sorpresaQueQueda(t) {
+  const sp = t.sorpresa
+  if (!sp?.hecho || sp.tipo === 'rafaga') return
+  fxJuanpa.push({ tipo: sp.tipo, pos: [...(sp.pos ?? t.pos)], ang: Math.atan2(sp.vec[1], sp.vec[0]), t0: performance.now() })
+  if (sp.tipo === 'arbol') S.palo()
+}
+/** Después: el árbol se queda un ratito y se esfuma; el carrito sigue de largo. */
+function dibujarFxJuanpa() {
+  if (!fxJuanpa.length) return
+  const ahora = performance.now()
+  fxJuanpa = fxJuanpa.filter((f) => ahora - f.t0 < 1600)
+  for (const f of fxJuanpa) {
+    const sg = (ahora - f.t0) / 1000
+    if (f.tipo === 'arbol') {
+      const [x, y] = w2s(f.pos)
+      const fuera = Math.max(0, (sg - 0.8) / 0.6)
+      arbolito(x, y, 1 + fuera * 0.3, 1 - fuera)
+      if (fuera > 0) { ctx.save(); ctx.globalAlpha = 1 - fuera; ctx.font = `${34 + fuera * 30}px ${EMOJI}`; ctx.textAlign = 'center'; ctx.fillText('💨', x, y - 20); ctx.restore() }
+    } else {
+      const d = sg * 26
+      const [x, y] = w2s([f.pos[0] + Math.cos(f.ang) * d, f.pos[1] + Math.sin(f.ang) * d])
+      ctx.save()
+      ctx.globalAlpha = Math.max(0, 1 - sg / 1.6)
+      cuerpoCarrito(x, y, f.ang + cam.rot, tamCarrito(), CARRITO_JUANPA)
+      ctx.restore()
+    }
+  }
+}
+
 /** La flecha de El Sueco: mientras vuela, detrás de la pelota va una flecha (asta dorada, plumas rojas) para donde va. */
 function flechaSueco(t) {
   const atras = estela[Math.max(0, estela.length - 5)]

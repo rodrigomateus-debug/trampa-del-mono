@@ -332,3 +332,11 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
   Calle o green con el primero y green con el segundo: no se carga. Del tercer tiro en adelante, solo cuenta el bogey.
 - Llena: Miguelón aparece sacado abajo (foto en rojo, 💢), revolea el palo (vuela girando) y sale el cartel "¡REVOLEÓ EL PALO!". El próximo tiro (o putt) sale con la dispersión del peor handicap ×1,6 y, si es bomba, la peor bomba; el cartel de la distancia dice SACADO 😡. Después de ese tiro la barra vuelve a cero.
 - Cada media barra la avisa LG ("😤 Miguelón se calienta" y por qué). Dificultad remedida (20 vueltas): +0,94 (antes −0,2): Normal.
+
+## 🦝 Juanpa Pielach, el Mapache (2026-10-07)
+
+- Entra al mazo (`EN_PRUEBA`) el Mapache (HCP ≈3, su foto de la base). Habilidad "Tiros increíbles (y la mala suerte)" (`caos`): le pega increíble (la mitad del error de su handicap, también en el putt), pero en cada tiro fuera del green, una de dos veces (`SORPRESA.chance`) aparece algo, uno de tres (`sortearSorpresa`):
+  - 🌳 **un árbol**: aparece de la nada (crece en el lugar mientras la pelota se acerca), la frena en el aire y cae ahí; después se esfuma.
+  - 💨 **una ráfaga**: entre el 35% y el 80% del vuelo la corre de costado 12 a 26 yardas, de golpe pero suave (se ven las rayas de viento).
+  - 🛺 **un carrito** (rojo): llega de costado justo a donde pica, la levanta y se la lleva 12 a 24 yardas, y la deja (sin rodar); después sigue de largo. Va para el lado que la deja en juego (ni bosque ni afuera, si se puede).
+- LG cuenta lo que pasó ("¡Apareció un árbol de la nada!", etc.). Dificultad medida (20 vueltas): +1,4 (Difícil).

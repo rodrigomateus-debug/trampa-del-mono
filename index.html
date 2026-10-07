@@ -1486,7 +1486,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v d7e8d6e · 6/10, 09:22 p. m.</span>
+  <span class="version" id="version">v 86f527c · 6/10, 09:27 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1676,11 +1676,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=f2a760c23d'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=f2a760c23d'
+import * as M from './motor.js?v=cbacdf1a54'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=cbacdf1a54'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=f2a760c23d'
-import * as S from './sonido.js?v=f2a760c23d'
+import * as R from './ranking.js?v=cbacdf1a54'
+import * as S from './sonido.js?v=cbacdf1a54'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2306,6 +2306,7 @@ function sonarEventos(t) {
   }
 }
 function alReposo() {
+  sorpresaQueQueda(tiro) // Juanpa: el árbol o el carrito quedan un ratito en pantalla
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
   const largo = M.dist(ronda.desde, h.pin)
@@ -2325,7 +2326,8 @@ function alReposo() {
     embocar(frase)
     return
   }
-  relatar(dicho)
+  // Juanpa: si se le cruzó algo, LG cuenta eso
+  if (tiro.sorpresa?.hecho) { const [lg, verso] = SORPRESA_TXT[tiro.sorpresa.tipo]; relatar({ lg, verso }) } else relatar(dicho)
   // el sonido va antes de las animaciones (que cortan acá con return: si no, el Mono bueno y el malo no sonaban nunca)
   if (res.tipo === 'mono-bueno') S.monoBueno()
   else if (res.tipo === 'mono-malo') S.robo()
@@ -3467,7 +3469,7 @@ function dibujar() {
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
-    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); pelota(tiro.pos, tiro.alt) }
+    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro); pelota(tiro.pos, tiro.alt) }
     else { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
   }
   const a = estado === 'apuntar' ? apunte() : null
@@ -3481,6 +3483,7 @@ function dibujar() {
     else dibujarTrazo(trazoFade.pts, k * k, null, trazoFade.desde)
   }
   if ((ronda?.ruleta || ronda?.prestado) && estado === 'apuntar' && !drag && !anim) etiquetaRuleta()
+  dibujarFxJuanpa()
 
   if (ronda && !ronda.terminada) {
     const ang = ronda.viento.ang + cam.rot
@@ -3909,20 +3912,25 @@ function dibujarCarro(c) {
       ctx.restore()
     }
   }
+  cuerpoCarrito(x, y, c.ang + cam.rot, L)
+}
+/** El carrito (el de Marcos y el que se le cruza a Juanpa): la trompa mira a `ang` (en pantalla). */
+function cuerpoCarrito(x, y, ang, L, carroceria = ['#1f7a45', '#2f9b5d']) {
+  const A = L * 0.58
   ctx.save()
   ctx.translate(x, y)
-  ctx.rotate(c.ang + cam.rot) // la trompa mira a +x
+  ctx.rotate(ang) // la trompa mira a +x
   ctx.fillStyle = 'rgba(8,26,16,.3)' // sombra
   ctx.beginPath(); ctx.roundRect(-L / 2 + 3, -A / 2 + 4, L, A, A * 0.3); ctx.fill()
   ctx.fillStyle = '#121212' // ruedas
   for (const wx of [-L * 0.3, L * 0.28]) for (const s of [-1, 1]) {
     ctx.beginPath(); ctx.roundRect(wx - L * 0.1, s * A * 0.5 - A * 0.09, L * 0.2, A * 0.18, 2); ctx.fill()
   }
-  ctx.fillStyle = '#1f7a45' // la carrocería verde
+  ctx.fillStyle = carroceria[0] // la carrocería
   ctx.strokeStyle = '#0c2b1c'
   ctx.lineWidth = 1.5
   ctx.beginPath(); ctx.roundRect(-L / 2, -A / 2, L, A, A * 0.28); ctx.fill(); ctx.stroke()
-  ctx.fillStyle = '#2f9b5d' // el capot
+  ctx.fillStyle = carroceria[1] // el capot
   ctx.beginPath(); ctx.roundRect(L * 0.18, -A * 0.4, L * 0.3, A * 0.8, A * 0.22); ctx.fill()
   ctx.fillStyle = '#fff3b0' // los faros
   for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(L * 0.46, s * A * 0.3, Math.max(1.5, L * 0.035), 0, 7); ctx.fill() }
@@ -3966,6 +3974,107 @@ function pelotaQuieta() {
 }
 /** La pelota en pantalla: siempre en proporción al hoyo (0,42 vs. 0,66 yd), también en el zoom de la corbata. */
 const radioPelota = () => Math.max(3.2, cam.esc * 0.42)
+// ── 🦝 la mala suerte de Juanpa: el árbol que aparece, la ráfaga y el carrito ──
+let fxJuanpa = [] // lo que sigue en pantalla después del tiro: el árbol que se va, el carrito que se aleja
+const CARRITO_JUANPA = ['#c9472f', '#e0634a']
+const SORPRESA_TXT = {
+  arbol: ['🌳 ¡Apareció un árbol de la nada!', 'La frenó en el aire y se esfumó. Cosas de Juanpa'],
+  rafaga: ['💨 ¡Una ráfaga de la nada!', 'Le corrió la pelota en el aire. Cosas de Juanpa'],
+  carrito: ['🛺 ¡Un carrito de costado!', 'Pasó justo, se la llevó un poco y la dejó. Cosas de Juanpa'],
+}
+const tamCarrito = () => Math.max(44, M.CARRITO.largo * cam.esc * 1.5)
+function arbolito(x, y, k, alfa = 1) {
+  if (k <= 0 || alfa <= 0) return
+  const tam = Math.max(64, 14 * cam.esc) * k
+  ctx.save()
+  ctx.globalAlpha = alfa
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'bottom'
+  ctx.font = `${tam}px ${EMOJI}`
+  ctx.fillText('🌳', x, y + tam * 0.12)
+  ctx.font = `${tam * 0.4}px ${EMOJI}`
+  ctx.fillText('✨', x + tam * 0.45, y - tam * 0.6)
+  ctx.restore()
+}
+/** Mientras vuela: el árbol que va creciendo donde la va a frenar, el viento que la corre, el carrito que llega. */
+function sorpresaJuanpa(t) {
+  const sp = t.sorpresa
+  if (!sp) return
+  const u = t.fase === 'vuelo' ? t.t / t.T : 1
+  if (sp.tipo === 'arbol' && !sp.hecho) {
+    const k = (u - (sp.u - 0.3)) / 0.3
+    if (k > 0) { const [x, y] = w2s(M.posVuelo(t, sp.u)); arbolito(x, y, Math.min(1, k * 1.15)) }
+  }
+  if (sp.tipo === 'rafaga' && t.fase === 'vuelo' && u > sp.u - 0.04) {
+    const [x, y] = w2s(t.pos)
+    const [vx, vy] = w2s([t.pos[0] + sp.vec[0], t.pos[1] + sp.vec[1]])
+    const d = Math.hypot(vx - x, vy - y) || 1
+    const ux = (vx - x) / d, uy = (vy - y) / d
+    const fase = performance.now() / 90
+    ctx.save()
+    ctx.strokeStyle = 'rgba(244,238,218,.8)'
+    ctx.lineCap = 'round'
+    ctx.lineWidth = 3
+    for (let i = -2; i <= 2; i++) {
+      const off = ((fase + i * 7) % 20) - 10
+      const ox = x - ux * (30 + off * 2) - uy * i * 9, oy = y - uy * (30 + off * 2) + ux * i * 9
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + ux * 24, oy + uy * 24); ctx.stroke()
+    }
+    ctx.font = `30px ${EMOJI}`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('💨', x - ux * 46, y - uy * 46)
+    ctx.restore()
+  }
+  if (sp.tipo === 'carrito') {
+    const ang = Math.atan2(sp.vec[1], sp.vec[0])
+    const L = tamCarrito()
+    if (t.fase === 'vuelo' && u > 0.5) {
+      // llega de costado, justo a donde va a picar
+      const cae = M.posVuelo(t, 1)
+      const largo = Math.hypot(...sp.vec) * 2.2
+      const k = (u - 0.5) / 0.5
+      const p = [cae[0] - Math.cos(ang) * largo * (1 - k), cae[1] - Math.sin(ang) * largo * (1 - k)]
+      const [x, y] = w2s(p)
+      cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
+    } else if (t.fase === 'carrito') {
+      const [x, y] = w2s(t.pos)
+      cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
+    }
+  }
+  if (sp.tipo === 'rafaga' && sp.hecho && !sp.sono) { sp.sono = true; S.swipe() }
+  if (sp.tipo === 'carrito' && t.fase === 'carrito' && !sp.sono) { sp.sono = true; S.robo() }
+}
+/** Al quedar quieta: lo que sigue en pantalla (el árbol que se esfuma, el carrito que se va). */
+function sorpresaQueQueda(t) {
+  const sp = t.sorpresa
+  if (!sp?.hecho || sp.tipo === 'rafaga') return
+  fxJuanpa.push({ tipo: sp.tipo, pos: [...(sp.pos ?? t.pos)], ang: Math.atan2(sp.vec[1], sp.vec[0]), t0: performance.now() })
+  if (sp.tipo === 'arbol') S.palo()
+}
+/** Después: el árbol se queda un ratito y se esfuma; el carrito sigue de largo. */
+function dibujarFxJuanpa() {
+  if (!fxJuanpa.length) return
+  const ahora = performance.now()
+  fxJuanpa = fxJuanpa.filter((f) => ahora - f.t0 < 1600)
+  for (const f of fxJuanpa) {
+    const sg = (ahora - f.t0) / 1000
+    if (f.tipo === 'arbol') {
+      const [x, y] = w2s(f.pos)
+      const fuera = Math.max(0, (sg - 0.8) / 0.6)
+      arbolito(x, y, 1 + fuera * 0.3, 1 - fuera)
+      if (fuera > 0) { ctx.save(); ctx.globalAlpha = 1 - fuera; ctx.font = `${34 + fuera * 30}px ${EMOJI}`; ctx.textAlign = 'center'; ctx.fillText('💨', x, y - 20); ctx.restore() }
+    } else {
+      const d = sg * 26
+      const [x, y] = w2s([f.pos[0] + Math.cos(f.ang) * d, f.pos[1] + Math.sin(f.ang) * d])
+      ctx.save()
+      ctx.globalAlpha = Math.max(0, 1 - sg / 1.6)
+      cuerpoCarrito(x, y, f.ang + cam.rot, tamCarrito(), CARRITO_JUANPA)
+      ctx.restore()
+    }
+  }
+}
+
 /** La flecha de El Sueco: mientras vuela, detrás de la pelota va una flecha (asta dorada, plumas rojas) para donde va. */
 function flechaSueco(t) {
   const atras = estela[Math.max(0, estela.length - 5)]
