@@ -4464,19 +4464,27 @@ function dibujarApunte(a) {
   if (a.putt) {
     // putt: solo la dirección y la fuerza; la distancia la medís vos
     const dir = a.ang + cam.rot
-    ctx.strokeStyle = a.plan.giro ? C.gold : C.cream
-    ctx.lineWidth = 3
-    ctx.setLineDash([1, 8])
-    ctx.beginPath()
     const r0 = Math.max(14, radioPelota() + 4)
-    ctx.moveTo(bx + Math.cos(dir) * r0, by + Math.sin(dir) * r0)
-    if (a.plan.giro) {
+    const fin = dir + Math.sign(a.plan.giro || 0) * 0.45
+    const camino = () => {
+      ctx.beginPath()
+      ctx.moveTo(bx + Math.cos(dir) * r0, by + Math.sin(dir) * r0)
       // el putt del Mago: la línea muestra para dónde dobla
-      const fin = dir + Math.sign(a.plan.giro) * 0.45
-      ctx.quadraticCurveTo(bx + Math.cos(dir) * 60, by + Math.sin(dir) * 60, bx + Math.cos(fin) * 92, by + Math.sin(fin) * 92)
-    } else ctx.lineTo(bx + Math.cos(dir) * 80, by + Math.sin(dir) * 80)
-    ctx.stroke()
+      if (a.plan.giro) ctx.quadraticCurveTo(bx + Math.cos(dir) * 60, by + Math.sin(dir) * 60, bx + Math.cos(fin) * 92, by + Math.sin(fin) * 92)
+      else ctx.lineTo(bx + Math.cos(dir) * 80, by + Math.sin(dir) * 80)
+    }
+    // contraste en el green claro: los puntos con borde tinta abajo (como los botones)
+    ctx.setLineDash([1, 10])
+    camino(); ctx.strokeStyle = 'rgba(12,43,28,.8)'; ctx.lineWidth = 8; ctx.stroke()
+    camino(); ctx.strokeStyle = a.plan.giro ? C.gold : C.cream; ctx.lineWidth = 4.5; ctx.stroke()
     ctx.setLineDash([])
+    if (a.plan.giro) {
+      // la punta de la flecha, para el lado que dobla
+      const ex = bx + Math.cos(fin) * 92, ey = by + Math.sin(fin) * 92
+      const t = Math.atan2(ey - (by + Math.sin(dir) * 60), ex - (bx + Math.cos(dir) * 60))
+      const punta = () => { ctx.beginPath(); ctx.moveTo(ex + Math.cos(t) * 11, ey + Math.sin(t) * 11); ctx.lineTo(ex + Math.cos(t + 2.4) * 10, ey + Math.sin(t + 2.4) * 10); ctx.lineTo(ex + Math.cos(t - 2.4) * 10, ey + Math.sin(t - 2.4) * 10); ctx.closePath() }
+      punta(); ctx.fillStyle = C.gold; ctx.fill(); ctx.strokeStyle = 'rgba(12,43,28,.85)'; ctx.lineWidth = 2.5; ctx.stroke()
+    }
     // el aro de la fuerza, alrededor de la pelota (crece con el zoom, como la pelota)
     const ra = Math.max(20, radioPelota() + 10)
     ctx.strokeStyle = 'rgba(12,43,28,.55)'
@@ -4541,8 +4549,28 @@ function dibujarApunte(a) {
   ctx.stroke()
   ctx.setLineDash([])
   // zona de pique: ±1,5 desvíos en largo y en ancho
-  const largo = Math.max(1.5 * a.disp.carry * a.alcance, 1.5) * cam.esc
-  const ancho = Math.max(a.alcance * Math.tan(1.5 * a.disp.ang), 1.5) * cam.esc
+  // (con dispersiones enormes, como Miguelón sacado, el ángulo pasaba los 90° y la tangente se iba al infinito o daba
+  // negativa: el óvalo quedaba como una línea roja de punta a punta. Se topa el ángulo y el tamaño en pantalla)
+  const topeOvalo = Math.max(W, H) * 0.45
+  const largo = Math.min(topeOvalo, Math.max(1.5 * a.disp.carry * a.alcance, 1.5) * cam.esc)
+  const ancho = Math.min(topeOvalo, Math.max(a.alcance * Math.tan(Math.min(1.5 * a.disp.ang, 1.1)), 1.5) * cam.esc)
+  if (a.plan.furia) {
+    // Miguelón sacado: un abanico rojo desde la pelota, tan abierto como el error (puede ir para cualquier lado ahí)
+    const ab = Math.min(1.5 * a.disp.ang, 1.1)
+    const r = Math.hypot(dx - bx, dy - by) * (1 + Math.min(0.6, 1.5 * a.disp.carry))
+    const base = Math.atan2(dy - by, dx - bx)
+    ctx.beginPath()
+    ctx.moveTo(bx, by)
+    ctx.arc(bx, by, r, base - ab, base + ab)
+    ctx.closePath()
+    ctx.fillStyle = 'rgba(188,75,60,.22)'
+    ctx.fill()
+    ctx.strokeStyle = C.red
+    ctx.lineWidth = 2.5
+    ctx.setLineDash([6, 6])
+    ctx.stroke()
+    ctx.setLineDash([])
+  } else {
   ctx.beginPath()
   ctx.ellipse(dx, dy, largo, ancho, a.plan.cuerda + cam.rot, 0, 7)
   ctx.fillStyle = a.fondo || (bomba && !a.plan.perfecta) ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.4)' : 'rgba(244,238,218,.18)'
@@ -4551,6 +4579,7 @@ function dibujarApunte(a) {
   ctx.setLineDash([5, 5])
   ctx.stroke()
   ctx.setLineDash([])
+  }
   if (a.plan.aguila) {
     // el embudo del Águila: si la línea pasa por acá cuando soltás, sale derecha
     const base = a.ang + cam.rot
@@ -4568,7 +4597,7 @@ function dibujarApunte(a) {
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
   const w = ctx.measureText(txt).width + 16
-  const ly = Math.max(dy - Math.max(largo, ancho) - 18, 40) // con el marcador transparente, puede subir
+  const ly = a.plan.furia ? Math.max(dy - 22, (medirHud().card ?? 20) + 40) : Math.max(dy - Math.max(largo, ancho) - 18, 40) // con el marcador transparente, puede subir
   ctx.fillStyle = 'rgba(12,43,28,.85)'
   ctx.beginPath()
   const lx = Math.max(w / 2 + 8, Math.min(W - w / 2 - 8, dx)) // siempre adentro de la pantalla

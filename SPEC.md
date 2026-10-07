@@ -354,3 +354,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 
 - `equipo-5.svg`: una medalla verde y dorada, estilo SDGA: canto de oro con el estriado de moneda, fondo verde, "EQUIPO" arriba y "SDGA" abajo en oro, dos estrellas y un 5 grande de oro con relieve (borde y sombra, como los botones del juego), con una pelota de golf en la panza que late. Brilla: cada tanto la cruza un reflejo y titilan dos destellos (2026-10-07: antes era azul).
 - Va en la carta (donde los Dicky llevan el suyo) y en "Ver todos" de los del Equipo 5 (`equipo: 5` en plantel.js): Lechu (Joaquín) y LG (Lucas).
+
+## Arreglos de la línea de apuntar (2026-10-07)
+
+- Miguelón sacado tirando muy para atrás: con un error tan grande, el ángulo del óvalo pasaba los 90° y la tangente se iba al infinito (o daba negativa), y el óvalo quedaba como una línea roja punteada de punta a punta. Ahora el ángulo y el tamaño del óvalo en pantalla tienen tope, y el tiro sacado se muestra como un abanico rojo desde la pelota, tan abierto como el error (puede ir para cualquier lado ahí), con el cartel "SACADO 😡" a la vista.
+- La línea punteada del putt tiene más contraste en el green claro: los puntos van con un borde tinta abajo (como los botones), más gruesos; la del Mago (dorada, que dobla) termina en una punta de flecha para el lado que dobla.
