@@ -121,8 +121,14 @@ function pedirApp(tipo, datos = {}) {
 /** Un aviso suelto a la app (p. ej. el color de arriba de la pantalla, para teñir la barra de estado). */
 export const avisarApp = (d) => { if (origenApp) window.parent.postMessage(d, origenApp) }
 
-/** El link para abrir el match: adentro de la app, la pantalla del juego de la app (la misma base: dev o producción); suelto, el juego. */
-export const linkMatch = () => (origenApp ? `${origenApp}/#/juegos/trampa?match=1` : `${location.origin}${location.pathname}?match=1`)
+/**
+ * El link para abrir el match: adentro de la app, la pantalla del juego de la app (la misma base: dev o producción); suelto,
+ * el juego. Con `replay` (el id de un match jugado), abre directo su replay.
+ */
+export const linkMatch = (replay = null) => {
+  const q = `?match=1${replay ? `&replay=${encodeURIComponent(replay)}` : ''}`
+  return origenApp ? `${origenApp}/#/juegos/trampa${q}` : `${location.origin}${location.pathname}${q}`
+}
 
 /** El botón "volver a la SDGApp". */
 export const volverALaApp = () => { if (origenApp) window.parent.postMessage({ tipo: 'trampa:cerrar' }, origenApp) }

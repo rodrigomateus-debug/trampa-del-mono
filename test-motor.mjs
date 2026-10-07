@@ -1667,6 +1667,26 @@ ok('🎰 La Ruleta deja la ronda lista para el que pega (Mago, Mugre, Marcos, Ma
   assert.equal(r.deme.usado, true) // Deme, una vez por vuelta (aunque Maxi salga dos veces)
 })
 
+ok('El viento del match para el replay: el mismo que tuvo la ronda en cada hoyo y después de cada tiro', () => {
+  const cond = M.condicionesMatch(424242)
+  // nublado: el viento cambia en cada tiro, igual que en la ronda (climaTrasTiro)
+  const r = M.aplicarMatch(M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5)), cond)
+  M.ponerClima(campo, r, 'nuboso', cond.semillaClima)
+  const clima = r.clima
+  assert.deepEqual(M.vientoDelMatch(cond, clima, 0, 0), r.viento)
+  for (const g of [1, 2, 3]) {
+    r.golpes = g
+    r.lie = 'green'
+    M.climaTrasTiro(campo, r, fijo(0.5))
+    assert.deepEqual(M.vientoDelMatch(cond, clima, 0, g), r.viento)
+  }
+  // lluvia intensa: nunca menos de su mínimo; sin clima (un match viejo), el del hoyo tal cual
+  const t = { ...M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5)), hoyos: M.HOYOS }
+  M.ponerClima(campo, t, 'tormenta', 1)
+  for (let i = 0; i < M.HOYOS.length; i++) assert.ok(M.vientoDelMatch(cond, t.clima, i, 2).kmh >= M.CLIMAS.tormenta.vientoMin)
+  assert.deepEqual(M.vientoDelMatch(cond, null, 2, 5), cond.vientos[2])
+})
+
 ok('🎰 La Ruleta en un match: los dos juegan con la misma tanda de players', () => {
   const cond = M.condicionesMatch(777)
   const tanda = (seed) => {

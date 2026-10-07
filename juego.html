@@ -913,6 +913,25 @@ input { -webkit-user-select: text; user-select: text; }
 .rp-marcador tr.gano th, .rp-marcador tr.gano td.tot { color: var(--gold); }
 .rp-marcador tr.gano th::after { content: ' 🏆'; font-size: 12px; }
 @media (max-width: 359px) { .rp-fin { font-size: 18px; text-align: center; } .rp-mc-estado span:not(:only-child) { display: none; } .rp-marcador td.t { font-size: 11px; } .rp-marcador thead th:first-child { width: 31%; } .rp-marcador thead th.t { width: 21%; } }
+/* el clima que hubo en el match, al lado del título (el mismo chip que en la vuelta) */
+.rp-titulo .clima-chip { align-self: center; margin-left: 2px; cursor: default; font-size: 12px; }
+/* la vista limpia: tocando la cancha se van los controles y queda solo el hoyo a hoyo, chiquito y arriba de todo.
+   Otro toque (en cualquier lado) los trae de vuelta. */
+#replay.limpio .rp-arriba { padding: calc(var(--safe-top) + 6px) 10px 0; background: none; pointer-events: none; }
+#replay.limpio .rp-cab, #replay.limpio .rp-jugadores, #replay.limpio .rp-nota, #replay.limpio .rp-mandos { display: none; }
+#replay.limpio .rp-marcador { padding: 4px 8px 5px; border-color: transparent; background: rgba(8, 26, 16, .42); animation: rp-limpio 220ms ease-out both; }
+#replay.limpio .rp-mc-estado { margin-bottom: 1px; }
+#replay.limpio .rp-marcador thead th { height: 16px; font-size: 9px; }
+#replay.limpio .rp-marcador thead th small { display: none; }
+#replay.limpio .rp-marcador tbody th { height: 20px; font-size: 13px; }
+#replay.limpio .rp-marcador td { font-size: 15px; }
+#replay.limpio .rp-marcador td.tot { font-size: 16px; }
+#replay.limpio .rp-marcador td.t { font-size: 11px; }
+@keyframes rp-limpio { from { opacity: 0; } }
+/* la primera vez: que se sepa que tocando la cancha se ve sin controles */
+.rp-tip { justify-self: center; margin: 0; padding: 5px 12px; border-radius: 999px; background: rgba(244, 238, 218, .12); font: 700 12px var(--font-body); color: rgba(244, 238, 218, .9); animation: rp-limpio 300ms ease-out both; }
+.rp-tip[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { #replay.limpio .rp-marcador, .rp-tip { animation: none; } }
 .rp-mandos { margin: 0 10px calc(var(--safe-bot) + 10px); padding: 10px 12px 12px; border-radius: 18px; background: rgba(8, 26, 16, .9); box-shadow: var(--shadow-pop); display: grid; gap: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .rp-linea { display: flex; align-items: center; gap: 10px; }
 .rp-t { flex: none; min-width: 34px; font: 700 12px var(--font-body); font-variant-numeric: tabular-nums; color: rgba(244, 238, 218, .85); text-align: center; }
@@ -1699,13 +1718,14 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <section id="replay" hidden aria-label="Replay del match">
   <div class="rp-arriba">
-    <div class="rp-cab"><span class="rp-titulo">REPLAY<small>del match</small></span><button class="redondo" id="rp-cerrar" type="button" aria-label="Cerrar el replay"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button></div>
+    <div class="rp-cab"><span class="rp-titulo">REPLAY<small>del match</small><span class="clima-chip" id="rp-clima" hidden><span class="cc-ico" aria-hidden="true"></span><span class="cc-txt"></span></span></span><button class="redondo" id="rp-cerrar" type="button" aria-label="Cerrar el replay"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button></div>
     <div class="rp-jugadores" id="rp-jugadores"></div>
     <div class="rp-marcador" id="rp-marcador" aria-label="Hoyo a hoyo"></div>
     <p class="rp-nota" id="rp-nota" hidden></p>
     <p class="rp-fin" id="rp-fin" hidden aria-live="polite"></p>
   </div>
   <div class="rp-mandos">
+    <p class="rp-tip" id="rp-tip" hidden>Tocá la cancha para verla sin controles</p>
     <div class="rp-linea">
       <span class="rp-t" id="rp-t">0:00</span>
       <div class="rp-pista"><div class="rp-marcas" id="rp-marcas" aria-hidden="true"></div><input type="range" id="rp-barra" min="0" max="1000" step="100" value="0" aria-label="Momento del replay"></div>
@@ -2093,7 +2113,10 @@ function apunte() {
   return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, nudo, stock }
 }
 
+// el replay: un toque en la cancha (sin arrastrar) saca o trae los controles
+let toqueReplay = null
 lienzo.addEventListener('pointerdown', (e) => {
+  if (replay) { toqueReplay = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now() }; return }
   // Tito: con la pelota en el aire, el swipe es una ráfaga
   if (titoVolando() && !swipeTito) { swipeTito = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; lienzo.setPointerCapture(e.pointerId); return }
   if (estado !== 'apuntar' || drag || trazo) return // un segundo dedo no pisa el tiro que estás armando
@@ -2138,6 +2161,12 @@ lienzo.addEventListener('pointermove', (e) => {
   }
 })
 lienzo.addEventListener('pointerup', (e) => {
+  if (replay) {
+    const t = toqueReplay
+    toqueReplay = null
+    if (t && t.id === e.pointerId && Math.hypot(e.clientX - t.x, e.clientY - t.y) < 14 && performance.now() - t.t < 600) limpioReplay(!replay.limpio)
+    return
+  }
   if (swipeTito && e.pointerId === swipeTito.id) { soltarSwipeTito(); return }
   if (trazo && e.pointerId === trazo.id) { soltarTrazo(); return }
   if (!drag || e.pointerId !== drag.id) return
@@ -2154,6 +2183,7 @@ lienzo.addEventListener('pointerup', (e) => {
   else if (base) obj = base // no pegó: vuelve el zoom de antes
 })
 lienzo.addEventListener('pointercancel', (e) => {
+  if (replay) { toqueReplay = null; return }
   if (swipeTito && e.pointerId === swipeTito.id) { swipeTito = null; return }
   if (trazo && e.pointerId === trazo.id) { trazoFade = { pts: trazo.pts, desde: trazo.desde, t0: performance.now() }; trazo = null; document.body.classList.remove('apuntando'); return }
   if (drag && e.pointerId !== drag.id) return // se canceló otro dedo: el tiro que estás armando sigue
@@ -3861,8 +3891,12 @@ function pintarClima() {
   const id = ronda?.clima?.id
   S.lluvia(id === 'tormenta' ? 1 : id === 'lluvia' ? 0.55 : 0)
 }
+/** El clima que se ve: el de la vuelta que se está jugando o, en el replay, el que hubo en el match. */
+const climaVivo = () => (replay ? replay.clima : ronda && !ronda.terminada ? ronda.clima : null)
+/** El viento que mueve la lluvia y las nubes: el de la vuelta o, en el replay, el del hoyo que se está viendo. */
+const vientoDelCuadro = () => (replay ? replay.viento : ronda?.viento)
 function climaSobreCancha() {
-  const id = ronda && !ronda.terminada ? ronda.clima?.id : null
+  const id = climaVivo()?.id
   if (!id || document.body.classList.contains('retro')) return
   if (TINTE_CLIMA[id]) {
     ctx.save()
@@ -3886,8 +3920,9 @@ function climaSobreCancha() {
 }
 /** Los charcos del hoyo (en la cancha, en yardas): agua azulada con su brillo y, si llueve, las gotas que pican. */
 function dibujarCharcos() {
-  const cl = ronda && !ronda.terminada ? ronda.clima : null
-  const lista = cl?.charcos?.[ronda.idx]
+  const cl = climaVivo()
+  // en el replay, los de los tres hoyos (cada pelota puede ir por un hoyo distinto)
+  const lista = replay ? cl?.charcos?.flat() : cl?.charcos?.[ronda.idx]
   if (!lista?.length) return
   const t = performance.now() / 1000
   const llueve = cl.id === 'lluvia' || cl.id === 'tormenta'
@@ -3926,17 +3961,19 @@ function dibujarCharcos() {
 let gotas = [], copos = [], nubes = [], rayo = { prox: 0, t0: -9 }
 /** Para dónde cae la lluvia en la pantalla: hacia abajo sin viento y, a medida que sopla (del todo desde 12 km/h), para donde va el viento. */
 function dirLluvia() {
-  const kmh = ronda?.viento.kmh ?? 0, ang = (ronda?.viento.ang ?? 0) + cam.rot
+  const v = vientoDelCuadro()
+  const kmh = v?.kmh ?? 0, ang = (v?.ang ?? 0) + cam.rot
   const w = Math.min(1, kmh / 12)
   const dx = Math.cos(ang) * w, dy = (1 - w) + Math.sin(ang) * w
   const n = Math.hypot(dx, dy)
   return n < 0.05 ? [Math.cos(ang), Math.sin(ang)] : [dx / n, dy / n]
 }
 function moverClima(dt) {
-  const id = ronda && !ronda.terminada ? ronda.clima?.id : null
+  const id = climaVivo()?.id
+  const v = vientoDelCuadro()
   const area = Math.min(1.8, (W * H) / 330000)
-  const kmh = ronda?.viento.kmh ?? 0
-  const ang = (ronda?.viento.ang ?? 0) + cam.rot
+  const kmh = v?.kmh ?? 0
+  const ang = (v?.ang ?? 0) + cam.rot
   const lluvia = id === 'tormenta' ? 200 : id === 'lluvia' ? 95 : 0
   const nieve = id === 'nieve' ? 90 : 0
   // la lluvia: cae para donde sopla el viento (con viento fuerte, del todo; sin viento, para abajo) y más rápido cuanto
@@ -3964,7 +4001,7 @@ function moverClima(dt) {
   }
   // las nubes (en la cancha): cruzan con el viento y vuelven a entrar por el otro lado
   if (!nubes.length) for (let i = 0; i < 5; i++) nubes.push({ x: Math.random() * M.MUNDO.w, y: Math.random() * M.MUNDO.h, r: 45 + Math.random() * 45, ang: Math.random() * 3 })
-  const vn = 3 + kmh * 0.35, wa = ronda?.viento.ang ?? 0
+  const vn = 3 + kmh * 0.35, wa = v?.ang ?? 0
   for (const n of nubes) {
     n.x += Math.cos(wa) * vn * dt; n.y += Math.sin(wa) * vn * dt
     if (n.x < -n.r) n.x += M.MUNDO.w + 2 * n.r
@@ -3983,7 +4020,7 @@ function moverClima(dt) {
   } else rayo.prox = 0
 }
 function dibujarClima() {
-  const id = ronda && !ronda.terminada ? ronda.clima?.id : null
+  const id = climaVivo()?.id
   const ahora = performance.now()
   // lo que deja cada tiro
   fxClima = fxClima.filter((f) => ahora - f.t0 < 900)
@@ -4062,13 +4099,13 @@ function dibujarClima() {
 // ── ráfagas: líneas finitas que cruzan la cancha para donde sopla; más viento, más líneas y más rápidas ──
 const rafagas = []
 function moverRafagas(dt) {
-  const kmh = ronda && !ronda.terminada ? ronda.viento.kmh : 0
+  const kmh = (replay ? replay.viento : ronda && !ronda.terminada ? ronda.viento : null)?.kmh ?? 0
   const objetivo = Math.round((kmh / M.FISICA.vientoMax) * 26 * Math.min(1.6, (W * H) / 330000))
   if (rafagas.length < objetivo && Math.random() < dt * 14) {
     rafagas.push({ x: Math.random() * W, y: Math.random() * H, t: 0, T: 1.1 + Math.random() * 1.2, largo: 26 + Math.random() * 46 + kmh * 1.2 })
   }
   const vel = 50 + kmh * 9
-  const ang = (ronda?.viento.ang ?? 0) + cam.rot
+  const ang = (vientoDelCuadro()?.ang ?? 0) + cam.rot
   for (let i = rafagas.length - 1; i >= 0; i--) {
     const r = rafagas[i]
     r.t += dt
@@ -4078,8 +4115,9 @@ function moverRafagas(dt) {
   }
 }
 function dibujarRafagas() {
-  if (!rafagas.length || !ronda) return
-  const ang = ronda.viento.ang + cam.rot
+  const v = vientoDelCuadro()
+  if (!rafagas.length || !v) return
+  const ang = v.ang + cam.rot
   const c = Math.cos(ang), s = Math.sin(ang)
   ctx.lineCap = 'round'
   ctx.lineWidth = 1.4
@@ -5069,7 +5107,7 @@ function pelota(p, alt, alfa = 1, pantalla = null) {
   ctx.ellipse(x + 1, y + 1, r * 0.9, r * 0.6, 0, 0, 7)
   ctx.fill()
   ctx.globalAlpha = alfa
-  ctx.fillStyle = ronda?.clima?.id === 'nieve' ? '#ff7a1a' : '#ffffff' // en la nieve, la pelota naranja (si no, no se ve)
+  ctx.fillStyle = (replay ? replay.clima : ronda?.clima)?.id === 'nieve' ? '#ff7a1a' : '#ffffff' // en la nieve, la pelota naranja (si no, no se ve)
   ctx.strokeStyle = 'rgba(12,43,28,.55)'
   ctx.lineWidth = 1
   ctx.beginPath()
@@ -6248,7 +6286,24 @@ const tabConAviso = () => {
   if (mtDesafios?.some((d) => d.estado === 'jugado' && d.retador.uid === yo && !v.has(d.id))) return 'historial'
   return 'desafiar'
 }
-$('#ver-match').addEventListener('click', () => mostrarMatch(tabConAviso()))
+/**
+ * Entrar al match por el aviso (el número del botón MATCH, el aviso de la SDGApp o el link): con un desafío para jugar,
+ * a Pendientes; con el resultado de uno que mandaste, directo a su replay (`replayId`, el que avisó; si no, el último
+ * que no viste). Al cerrar el replay quedás en el Historial.
+ */
+async function entrarPorAviso({ replayId = null, desdeLink = false } = {}) {
+  if (replayId || desdeLink) await cargarDesafios()
+  const tab = replayId ? 'historial' : tabConAviso()
+  const yo = yoUid(), v = vistos()
+  const jugados = (mtDesafios ?? []).filter((d) => d.estado === 'jugado')
+  // antes de mostrar el Historial: al pintarse, los marca como vistos
+  const d = !replayId && tab !== 'historial' ? null : replayId
+    ? jugados.find((x) => x.id === replayId)
+    : jugados.filter((x) => x.retador.uid === yo && !v.has(x.id)).sort((a, b) => String(b.jugadoFecha ?? b.fecha).localeCompare(String(a.jugadoFecha ?? a.fecha)))[0]
+  await mostrarMatch(desdeLink && tab === 'desafiar' ? 'mios' : tab)
+  if (d && !$('#match').hidden && !replay) abrirReplay(mtDesafios?.find((x) => x.id === d.id) ?? d)
+}
+$('#ver-match').addEventListener('click', () => entrarPorAviso())
 $('#mt-volver').addEventListener('click', () => { $('#match').hidden = true; pintarAvisoMatch() })
 $('#mt-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('[data-mt]')
@@ -6494,7 +6549,10 @@ const ICONO_DE_NUEVO = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><
 const REPLAY_SALTO = 10000 // ms de los botones de atrás / adelante
 // los dos colores del replay: el que desafió en dorado, el desafiado en celeste (el aro de la pelota, su cartel y su fila)
 const REPLAY_COLORES = ['#e8c34a', '#8fd0ff']
-let replay = null // { d, hoyos, pistas, t, dur, vel, play, sigue, arrastra, zona, guardado }
+let replay = null // { d, cond, clima, viento, hoyos, pistas, t, dur, vel, play, sigue, arrastra, limpio, zona, guardado }
+// el clima del match se juega desde que se publicó (7/10/2026, 18:22 UTC): los de antes se jugaron sin clima y el replay
+// no les inventa uno (condicionesMatch igual lo sortea con la semilla)
+const CLIMA_EN_MATCH_DESDE = Date.parse('2026-10-07T18:22:00Z')
 
 /** Lo que hay que saber de una grabación para el replay: cuándo cambia de hoyo (las marcas de la barra) y cada golpe. */
 function pistaReplay(g, x, k) {
@@ -6526,6 +6584,14 @@ async function abrirReplay(d, grabs = null, boton = null) {
   const pistas = [pistaReplay(grabs.retador, d.retador, 0)]
   if (grabs.rival?.length) pistas.push(pistaReplay(grabs.rival, d.rival, 1))
   const cond = M.condicionesMatch(d.semilla)
+  const hoyos = M.HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera }))
+  // el clima que hubo: el de la semilla, con los mismos charcos que vieron los dos (ponerClima, como en la ronda)
+  let clima = null
+  if (cond.clima && Date.parse(d.fecha) >= CLIMA_EN_MATCH_DESDE) {
+    const r0 = { hoyos, monos: [], viento: { ...cond.vientos[0] } }
+    M.ponerClima(campo, r0, cond.clima, cond.semillaClima)
+    clima = r0.clima
+  }
   // lo que estaba en pantalla queda guardado tal cual y vuelve al cerrar
   const ocultas = [...document.querySelectorAll('.pantalla:not([hidden]), #hud-top:not([hidden]), #hud-bot:not([hidden]), .hab-modal:not([hidden])')]
   for (const el of ocultas) el.hidden = true
@@ -6533,16 +6599,23 @@ async function abrirReplay(d, grabs = null, boton = null) {
   const firma = firmaHasta ? Math.max(0, firmaHasta - performance.now()) : 0
   if (firma) clearTimeout(firmaTimer)
   replay = {
-    d, pistas,
-    hoyos: M.HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera })),
-    t: 0, dur: Math.max(...pistas.map((p) => p.fin)) + 600, vel: 1, play: true, sigue: null, arrastra: false, zona: null, pintado: {},
-    guardado: { ronda, tiro, anim, estado, estela, obj: { ...obj }, retro: document.body.classList.contains('retro'), ocultas, firma },
+    d, pistas, cond, clima, hoyos, viento: M.vientoDelMatch(cond, clima, 0), vientoClave: '0:0',
+    t: 0, dur: Math.max(...pistas.map((p) => p.fin)) + 600, vel: 1, play: true, sigue: null, arrastra: false, limpio: false, zona: null, pintado: {},
+    guardado: { ronda, tiro, anim, estado, estela, obj: { ...obj }, retro: document.body.classList.contains('retro'), ocultas, firma, fondo: fondo.getAttribute('src') },
   }
   ronda = null; tiro = null; anim = null; estela = []
   estado = 'replay'
   document.body.classList.remove('retro')
+  // la cancha de ese clima y, si llovía, la lluvia de fondo
+  fondoDelClima(clima?.id ?? null)
+  S.lluvia(clima?.id === 'tormenta' ? 1 : clima?.id === 'lluvia' ? 0.55 : 0)
   armarReplay()
+  $('#replay').classList.remove('limpio')
   $('#replay').hidden = false
+  // la primera vez (hasta que lo uses): que se sepa que tocando la cancha se ve sin controles
+  clearTimeout(abrirReplay.tip)
+  $('#rp-tip').hidden = !!datos.vistoTipReplay
+  if (!datos.vistoTipReplay) abrirReplay.tip = setTimeout(() => { $('#rp-tip').hidden = true; medirReplay() }, 5000)
   medirReplay()
   obj = camaraReplay()
   Object.assign(cam, obj)
@@ -6557,7 +6630,13 @@ function cerrarReplay() {
   if (!replay) return
   const g = replay.guardado
   replay = null
+  clearTimeout(abrirReplay.tip)
   $('#replay').hidden = true
+  $('#replay').classList.remove('limpio')
+  // la cancha y la lluvia que había antes del replay
+  if (g.fondo) fondo.src = g.fondo
+  const id = g.ronda?.clima?.id
+  S.lluvia(id === 'tormenta' ? 1 : id === 'lluvia' ? 0.55 : 0)
   ronda = g.ronda; tiro = g.tiro; anim = g.anim; estado = g.estado; estela = g.estela
   obj = g.obj
   document.body.classList.toggle('retro', g.retro)
@@ -6584,6 +6663,15 @@ function armarReplay() {
       <span class="rp-gana" id="rp-gana-${k}" hidden aria-label="Ganó">🏆</span>
     </button>`
   }).join('')
+  // el clima que hubo (los matches de antes del clima, sin chip)
+  const c = r.clima ? M.CLIMAS[r.clima.id] : null
+  const chip = $('#rp-clima')
+  chip.hidden = !c
+  if (c) {
+    chip.querySelector('.cc-ico').innerHTML = gi(`clima-${r.clima.id}`)
+    chip.querySelector('.cc-txt').textContent = c.nombre.replace(/[¡!]/g, '').replace(' en San Diego', '').toUpperCase()
+    chip.setAttribute('aria-label', `Clima: ${c.nombre}`)
+  }
   $('#rp-nota').hidden = r.pistas.length > 1
   $('#rp-nota').textContent = `De este match solo está grabada la pelota de ${r.d.retador.alias}.`
   $('#rp-marcas').innerHTML = r.pistas.flatMap((p) => p.hoyos.slice(1).map((h) => `<i style="left: ${(100 * h.ms) / r.dur}%; --c: ${p.color}" title="Hoyo ${h.n}"></i>`)).join('')
@@ -6598,8 +6686,43 @@ const tiempoReplay = (ms) => { const t = Math.max(0, Math.floor(ms / 1000)); ret
 function medirReplay() {
   if (!replay) return
   const arriba = $('#replay .rp-arriba').getBoundingClientRect().bottom
-  const abajo = $('#replay .rp-mandos').getBoundingClientRect().top
-  replay.zona = { top: arriba + 34, bot: abajo - 16 }
+  // sin controles, la cancha llega hasta abajo de todo
+  const abajo = replay.limpio ? H - 12 : $('#replay .rp-mandos').getBoundingClientRect().top
+  replay.zona = { top: arriba + (replay.limpio ? 16 : 34), bot: abajo - 16 }
+}
+/**
+ * La vista limpia del replay (como en la tele): tocando la cancha se van los controles y queda solo el hoyo a hoyo,
+ * chiquito arriba de todo. Otro toque en cualquier lado los trae de vuelta (y con ellos, la X para salir).
+ */
+function limpioReplay(si) {
+  const r = replay
+  if (!r || r.limpio === si) return
+  r.limpio = si
+  $('#replay').classList.toggle('limpio', si)
+  if (si) {
+    if (document.activeElement?.closest?.('#replay')) document.activeElement.blur()
+    $('#rp-tip').hidden = true
+    if (!datos.vistoTipReplay) { datos.vistoTipReplay = true; guardar(datos) }
+  }
+  medirReplay()
+}
+/**
+ * El viento del momento que se ve (para la lluvia, las nubes y las ráfagas): el del hoyo de la pelota que va más atrás
+ * (o de la que seguís), con los golpes que lleva en ese hoyo. Mientras la pelota va en el aire, el del golpe que le pegó.
+ */
+function vientoReplay(r) {
+  const pistas = r.sigue != null && r.pistas[r.sigue] ? [r.pistas[r.sigue]] : r.pistas
+  let atras = null
+  for (const p of pistas) {
+    const f = M.fantasmaEn(p.g, r.t)
+    if (f && !f.fin && (!atras || f.idx < atras.f.idx)) atras = { p, f }
+  }
+  if (!atras) return
+  const enHoyo = M.marcadorFantasma(atras.p.g, r.t).porHoyo[atras.f.idx] ?? 0
+  const vuela = atras.p.tramos.some((x) => x.desde <= r.t && r.t <= x.hasta)
+  const golpes = Math.max(0, enHoyo - (vuela ? 1 : 0))
+  const clave = `${atras.f.idx}:${golpes}`
+  if (clave !== r.vientoClave) { r.vientoClave = clave; r.viento = M.vientoDelMatch(r.cond, r.clima, atras.f.idx, golpes) }
 }
 /**
  * La cámara del replay. Con la pelota quieta, encuadra la pelota y lo que tiene adelante (hasta 70 yd hacia la bandera);
@@ -6646,6 +6769,7 @@ function cuadroReplay(dt) {
   }
   obj = camaraReplay()
   velCam = 3
+  vientoReplay(r)
   pintarReplay()
 }
 /**
@@ -6791,7 +6915,7 @@ function playReplay() {
   pintarReplay()
 }
 function teclaReplay(e) {
-  if (e.key === 'Escape') cerrarReplay()
+  if (e.key === 'Escape') { if (replay.limpio) limpioReplay(false); else cerrarReplay() }
   else if (e.key === ' ' || e.key === 'k') { if (e.target?.closest?.('#replay button') && e.key === ' ') return; playReplay() }
   else if (e.key === 'ArrowLeft' && e.target?.id !== 'rp-barra') irReplay(replay.t - REPLAY_SALTO)
   else if (e.key === 'ArrowRight' && e.target?.id !== 'rp-barra') irReplay(replay.t + REPLAY_SALTO)
@@ -6849,8 +6973,8 @@ function mensajeDesafio(r, rival, mia) {
 }
 // ── el resultado de un match, para mandarlo por WhatsApp ──
 const ICONO_WA = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5.5 8.5a3 3 0 0 1 3-3h15a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H15l-5.5 4.5v-4.5h-1a3 3 0 0 1-3-3z" style="fill:var(--gi-f)"/><g style="fill:var(--gi-s)" stroke="none"><circle cx="11" cy="13.5" r="1.7"/><circle cx="16" cy="13.5" r="1.7"/><circle cx="21" cy="13.5" r="1.7"/></g></g></svg>' // el mensaje del set SDGA, no el logo de WhatsApp
-/** El resumen de un match terminado, visto por mí (yo/el: { alias, golpes, vsPar, ms, lp, apodo, emoji }). */
-function textoResultadoMatch(yo, el) {
+/** El resumen de un match terminado, visto por mí (yo/el: { alias, golpes, vsPar, ms, lp, apodo, emoji }), con el link a su replay. */
+function textoResultadoMatch(yo, el, id) {
   const g = M.ganadorMatch(yo, el)
   const linea = (x, quien) => `${quien}: ${x.golpes == null || x.lp ? 'LP 💅' : `${x.golpes} golpes (${M.formatoPar(x.vsPar)})`}${x.ms != null && !x.lp ? ` · ${M.formatoTiempo(x.ms)}` : ''}`
   const apodo = String(yo.apodo ?? el.apodo ?? '').replace(/ \(Đ\)$/, '')
@@ -6866,7 +6990,7 @@ function textoResultadoMatch(yo, el) {
     `Los dos con ${emoji} ${apodo}, mismo viento y mismas banderas${apodo === 'La Ruleta' ? ' (y tiro por tiro, los mismos players)' : ''}.`,
     '',
     cierre,
-    `Desafiame en la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch()}`,
+    `Mirá el replay y desafiame en la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch(id)}`,
   ].join('\n')
 }
 /** Un match terminado, como imagen VS, con el texto del resultado (visto por mí). */
@@ -6876,7 +7000,7 @@ async function compartirMatch(d, boton) {
   if (boton) boton.disabled = true
   const img = await imagenMatch({ izq: d.retador, der: d.rival, jugador, ganador: M.ganadorMatch(d.retador, d.rival) })
   if (boton) boton.disabled = false
-  compartirImagen(img, textoResultadoMatch(yo, el), 'match-trampa-del-mono.png')
+  compartirImagen(img, textoResultadoMatch(yo, el, d.id), 'match-trampa-del-mono.png')
 }
 /** Terminó la vuelta de un match: si desafiaste, se manda; si respondías, se anota y se ve quién ganó. */
 async function cerrarMatch(r) {
@@ -7697,7 +7821,9 @@ R.alEntrar((yo) => {
   if (R.hayMatch()) {
     $('#ver-match').hidden = false
     cargarDesafios()
-    if (new URLSearchParams(location.search).has('match')) cargarDesafios().then(() => mostrarMatch(tabConAviso() === 'desafiar' ? 'mios' : tabConAviso()))
+    // ?match=1 (el aviso de la SDGApp, el link de WhatsApp); con &replay=<id>, directo al replay de ese match
+    const q = new URLSearchParams(location.search)
+    if (q.has('match')) entrarPorAviso({ replayId: q.get('replay') || null, desdeLink: true })
   }
 })
 // suelto, con el ranking de la SDGApp: se entra con Google (la misma cuenta que en la app), no con un nombre
