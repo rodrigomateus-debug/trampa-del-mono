@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy es igual al juego publicado (la raíz).
+Hoy: el juego publicado + el clima del día (con la nieve al 1%: para probar uno, ?clima=lluvia, soleado, nuboso, seco, mojado, tormenta o nieve) y el MODO PRO del match, para probar.

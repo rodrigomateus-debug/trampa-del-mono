@@ -519,6 +519,47 @@ export function viento(kmh) {
   vientoGain.gain.setTargetAtTime(objetivo, ctx.currentTime, 0.6)
 }
 
+// ── el clima: la lluvia de fondo (sube con el diluvio), el trueno, el charco, el palo que resbala y la nieve ──
+let lluviaNodo = null, lluviaGain = null, lluviaGrave = null
+export function lluvia(nivel) {
+  if (!ctx) return
+  if (!lluviaNodo) {
+    if (!nivel) return
+    lluviaNodo = ctx.createBufferSource()
+    lluviaNodo.buffer = ruidoBuf
+    lluviaNodo.loop = true
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 900
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6500
+    lluviaGain = ctx.createGain(); lluviaGain.gain.value = 0
+    lluviaNodo.connect(hp).connect(lp).connect(lluviaGain).connect(sfx)
+    // el rumor grave del diluvio
+    const lg = ctx.createBiquadFilter(); lg.type = 'lowpass'; lg.frequency.value = 260
+    lluviaGrave = ctx.createGain(); lluviaGrave.gain.value = 0
+    lluviaNodo.connect(lg).connect(lluviaGrave).connect(sfx)
+    lluviaNodo.start()
+  }
+  const t = ctx.currentTime
+  lluviaGain.gain.setTargetAtTime(nivel ? 0.025 + nivel * 0.05 : 0, t, 0.8)
+  lluviaGrave.gain.setTargetAtTime(nivel > 0.8 ? 0.06 : 0, t, 0.8)
+}
+/** El trueno: el crack y el retumbo que se va. */
+export function trueno() {
+  agachar(2.5)
+  ruido(0.25, { filtro: 'highpass', f: 1800, vol: 0.12, ataque: 0.004 })
+  ruido(2.6, { filtro: 'lowpass', f: 320, f2: 90, vol: 1, ataque: 0.06, at: 0.05 })
+  ruido(1.8, { filtro: 'lowpass', f: 180, vol: 0.6, ataque: 0.3, at: 0.6 })
+}
+/** Al charco: el "plof" y el agua que salpica. */
+export function charco() {
+  tono(420, 0.14, { vol: 0.22, f2: 140, ataque: 0.003 })
+  ruido(0.4, { f: 1400, f2: 500, q: 1.2, vol: 0.4, ataque: 0.01 })
+  ruido(0.25, { filtro: 'highpass', f: 3500, vol: 0.08, at: 0.08, ataque: 0.02 })
+}
+/** Se le resbaló el palo: un silbido que se cae (como en los dibujitos). */
+export function resbalon() { tono(1100, 0.45, { vol: 0.14, f2: 260, tipo: 'triangle', ataque: 0.01, at: 0.05 }); ruido(0.3, { f: 2000, f2: 600, q: 1, vol: 0.12, ataque: 0.04 }) }
+/** La pelota cae en la nieve: un crunch blandito. */
+export function nieve() { ruido(0.16, { filtro: 'lowpass', f: 1800, vol: 0.5, ataque: 0.005 }); ruido(0.1, { f: 3200, q: 3, vol: 0.14, at: 0.03 }) }
+
 // ── el final ──
 export const firma = () => { ruido(0.12, { filtro: 'lowpass', f: 500, vol: 0.3 }); tono(90, 0.15, { vol: 0.25, f2: 50 }); ruido(0.3, { f: 4000, q: 0.7, vol: 0.05, at: 0.1 }) }
 export const marshall = () => { tono(180, 0.5, { vol: 0.16, tipo: 'square' }); tono(185, 0.5, { vol: 0.12, tipo: 'sawtooth' }) }
