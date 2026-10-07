@@ -23,13 +23,14 @@ function costo(r, t) {
 
 /** Prueba el tiro sin error ni viento, sobre una copia de la ronda. */
 function probar(r, ang, p, q, tiempo) {
-  const rr = { ...r, pelota: [...r.pelota], monos: [], viento: calma }
+  // (el clima, con otra semilla: el bot no sabe de antemano si le va a resbalar el palo)
+  const rr = { ...r, pelota: [...r.pelota], monos: [], viento: calma, clima: r.clima && { ...r.clima, semilla: (r.clima.semilla ^ 0x5bd1e995) >>> 0 } }
   const tiro = M.golpear(vacio, rr, ang, p, sinRuido(), q, tiempo)
   return M.simular(vacio, tiro, M.hoyoActual(r).pin)
 }
 
 /** El Mago elige su golpe: prueba cada uno (en el green, putt con draw y con fade) y se queda con el mejor. */
-function elegirTiro(r) {
+export function elegirTiro(r) {
   if (M.habilidadDe(r.jugador)?.id !== 'comba') return elegirTiroCon(r)
   const putt = M.enModoPutt(campo, r)
   let mejor = null
@@ -41,7 +42,7 @@ function elegirTiro(r) {
   if (mejor) M.elegirGolpeMago(campo, r, mejor.id)
   return mejor
 }
-function elegirTiroCon(r) {
+export function elegirTiroCon(r) {
   const h = M.hoyoActual(r)
   const base = Math.atan2(h.pin[1] - r.pelota[1], h.pin[0] - r.pelota[0])
   const hab = M.habilidadDe(r.jugador)
@@ -50,12 +51,14 @@ function elegirTiroCon(r) {
     const abre = hab?.id === 'comba' ? 26 : 3
     const paso = hab?.id === 'comba' ? 1 : 0.5
     const d = M.dist(r.pelota, h.pin)
-    const pMax = Math.min(1, Math.sqrt(d / M.FISICA.distPuttMax) * 1.6 + 0.05)
+    // las mismas yardas que con el tope de siempre (el tope del putt baja de cerca: `puttMaxDe`)
+    const f = M.FISICA.distPuttMax / M.puttMaxDe(d)
+    const pMax = Math.min(1, (Math.sqrt(d / M.FISICA.distPuttMax) * 1.6 + 0.05) * f)
     for (let g = -abre; g <= abre; g += paso) {
       // como una persona: de las fuerzas que entran, la del medio (ni al límite de corta ni de pasada),
       // y la línea con más margen de fuerza
       const entran = []
-      for (let p = 0.01; p <= pMax; p += 0.006) {
+      for (let p = 0.01 * f; p <= pMax; p += 0.006 * f) {
         const t = probar(r, base + (g * Math.PI) / 180, p, 0, 0)
         if (t.embocada) entran.push(p)
         const c = t.embocada ? -1e6 : M.dist(t.pos, h.pin)
@@ -84,6 +87,8 @@ function elegirTiroCon(r) {
 export function jugarVuelta(jugador, seed) {
   const rng = M.rngDesde(seed)
   const r = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // como en el juego: la bandera, en otro lugar cada vuelta
+  // el clima: CLIMA=lluvia node calibrar.mjs … juega todas las vueltas con ese clima (sin CLIMA, sin clima)
+  if (process.env.CLIMA) M.ponerClima(campo, r, process.env.CLIMA, seed)
   while (!r.terminada) {
     if (M.necesitaLP(r)) { M.levantar(r); break }
     M.turnoRuleta(r, rng) // la Ruleta: antes de cada tiro, otro player
@@ -99,7 +104,7 @@ export function jugarVuelta(jugador, seed) {
     const tiro = M.simular(campo, M.golpear(campo, r, t.ang, t.p, rng, q, tiempo), M.hoyoActual(r).pin)
     const res = M.resolverReposo(campo, r, tiro, rng)
     if (res.tipo === 'embocada') M.cerrarHoyo(r, rng)
-    else M.despertarMonosDe(r), M.calmarMonos(r.monos)
+    else M.climaTrasTiro(campo, r, rng), M.despertarMonosDe(r), M.calmarMonos(r.monos)
   }
   const t = M.totales(r.tarjeta)
   return { vsPar: t.vsPar, hoyos: r.tarjeta.map((f) => f.golpes) }

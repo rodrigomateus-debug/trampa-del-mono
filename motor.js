@@ -12,7 +12,7 @@ export const SEGUNDOS_FIRMA = 10
 // Las perillas de la dificultad viven acá (calibradas con un bot que apunta perfecto).
 export const FISICA = {
   carryMax: 235, // driver a fondo desde el fairway
-  distPuttMax: 32,
+  distPuttMax: 32, // el putt más largo (a fondo desde lejos); de cerca, el tope baja (`puttMaxDe`)
   alturaPino: 9, // debajo de esta altura la pelota choca los pinos (el arco del tiro pasa por arriba)
   radioHoyo: 0.22, // el centro del hoyo
   bocaHoyo: 0.66, // el hoyo como se dibuja (3× el centro): la pelota que pasa por acá siempre reacciona
@@ -180,6 +180,91 @@ export const SORPRESAS = ['arbol', 'rafaga', 'carrito']
 // y en cualquier tiro (también los putts), con chance `chance`: si la pelota iba a entrar, sale un mapache del hoyo,
 // la frena y se va rajando. La deja casi dada: a `dada` yardas reales del hoyo, del lado de donde venía
 export const MAPACHE = { chance: 0.35, dada: [1, 1.6] }
+// ── el clima del día: se sortea en cada vuelta (en un match, sale de la semilla: los dos juegan el mismo día) ──
+// prob = chance de que toque (la nieve, el easter egg: 1 de cada 100). Lo que cambia cada uno:
+// carry = cuánto vuela (se ve al apuntar); pique / roce = cuánto rueda al caer y cuánto lo frena el pasto (fuera del
+// green); green = cuánto frena el green (más = greens lentos: el putt se queda corto de la línea; menos = rápidos);
+// charcos = cuántos charcos por hoyo en la calle (si cae o rueda en uno, se frena de golpe); barro = chance de que la
+// pelota quede con barro al parar en la calle o el rough (el próximo tiro sale con `barroError` × el error);
+// resbalon = chance por tiro de que se resbale el palo (la pega finita: sale derecho pero vuela `resbalonCarry` de lo
+// que iba); vientoMin =
+// km/h mínimos; vientoCambia = el viento cambia en cada tiro; siesta = los monos salen más tarde y más lentos (× vel);
+// sinMonos = no hay monos (se escondieron)
+export const CLIMAS = {
+  soleado: { nombre: 'Soleado pleno', prob: 0.22, carry: 1.05, green: 0.85, siesta: 0.6, texto: 'La pelota vuela un poco más, los greens están rápidos y los monos duermen la siesta: salen tarde y lentos.' },
+  nuboso: { nombre: 'Nublado', prob: 0.22, vientoCambia: true, texto: 'El viento cambia en cada tiro, de dirección y de fuerza: mirá la flecha antes de pegar.' },
+  seco: { nombre: 'Día seco', prob: 0.16, pique: 1.7, roce: 0.6, texto: 'La cancha está durísima: la pelota pica alto y rueda una barbaridad. Pegale corto.' },
+  mojado: { nombre: 'Día mojado', prob: 0.16, pique: 0.3, green: 1.2, charcos: 2, barro: 0.3, texto: 'Llovió anoche: la pelota se clava y casi no rueda, los greens están lentos y a veces queda con barro: el tiro siguiente sale para cualquier lado.' },
+  lluvia: { nombre: 'Lluvia', prob: 0.14, carry: 0.95, pique: 0.5, green: 1.15, charcos: 4, texto: 'Llueve: la pelota vuela un poco menos, rueda poco, los greens están lentos y hay charcos en la calle: si cae o rueda en uno, se frena de golpe.' },
+  tormenta: { nombre: 'Lluvia intensa', prob: 0.09, carry: 0.9, pique: 0.4, green: 1.3, charcos: 7, resbalon: 0.2, vientoMin: 15, sinMonos: true, texto: '¡Diluvia! Viento fuerte, charcos por todos lados, greens lentísimos y el palo mojado resbala: a veces la pegás finita y sale cortita. Los monos se escondieron.' },
+  nieve: { nombre: '¡Nevó en San Diego!', prob: 0.01, carry: 0.95, pique: 0.08, roce: 3, green: 1.25, siesta: 0.5, texto: 'Pasa una vez cada cien vueltas. La pelota (naranja) se clava en la nieve donde cae, en el green rueda lento y los monos, muertos de frío, andan en cámara lenta.' },
+}
+export const CLIMA_EFECTO = { barroError: 1.8, resbalonCarry: 0.55, charco: [2.2, 4.2] }
+/** El clima del día, sorteado según `prob` (la nieve, 1 de cada 100). */
+export function sortearClima(rng) {
+  let u = rng()
+  for (const [id, c] of Object.entries(CLIMAS)) {
+    if (u < c.prob) return id
+    u -= c.prob
+  }
+  return 'nuboso'
+}
+/** Un número 32 bits a partir de otros (para que el clima de cada tiro salga igual en los dos lados de un match). */
+const mezclar = (...ns) => ns.reduce((h, n) => Math.imul(h ^ (n >>> 0), 0x9e3779b1) >>> 0, 0x811c9dc5)
+/**
+ * Pone el clima en la ronda: los charcos de cada hoyo (en la calle, sorteados con `semilla`), los km/h mínimos del
+ * viento, los monos (dormidos o escondidos). Con la misma semilla, los mismos charcos (el match).
+ */
+export function ponerClima(campo, r, id, semilla) {
+  const c = CLIMAS[id] ?? CLIMAS.nuboso
+  const rng = rngDesde(semilla)
+  r.clima = { id, semilla: semilla >>> 0, charcos: (r.hoyos ?? HOYOS).map((h) => charcosDe(campo, h, c.charcos ?? 0, rng)) }
+  if (c.sinMonos) r.monos = []
+  else if (c.siesta) for (const s of r.monos) s.siesta = c.siesta
+  vientoDelClima(r)
+  return r
+}
+/** El clima, sus perillas (o null si no hay clima). */
+export const climaDe = (r) => (r?.clima ? CLIMAS[r.clima.id] : null)
+function charcosDe(campo, h, n, rng) {
+  const out = []
+  for (let k = 0; k < n * 25 && out.length < n; k++) {
+    const i = Math.floor(rng() * (h.calle.length - 1))
+    const t = rng()
+    const a = h.calle[i], b = h.calle[i + 1]
+    const p = [a[0] + (b[0] - a[0]) * t + (rng() - 0.5) * 14, a[1] + (b[1] - a[1]) * t + (rng() - 0.5) * 14]
+    const [r0, r1] = CLIMA_EFECTO.charco
+    const radio = r0 + rng() * (r1 - r0)
+    if (celda(campo, p) !== 'f' || out.some((q) => dist(q.pos, p) < q.r + radio + 2)) continue
+    out.push({ pos: p, r: radio, ang: rng() * Math.PI })
+  }
+  return out
+}
+/** El viento según el clima: con lluvia intensa, nunca menos de `vientoMin`. */
+function vientoDelClima(r) {
+  const c = climaDe(r)
+  if (c?.vientoMin && r.viento.kmh < c.vientoMin) r.viento = { ...r.viento, kmh: c.vientoMin + Math.round((r.viento.kmh / FISICA.vientoMax) * (FISICA.vientoMax - c.vientoMin)) }
+}
+/** ¿Hay un charco en ese punto del hoyo `idx`? */
+export function charcoEn(clima, idx, p) {
+  return clima?.charcos?.[idx]?.find((q) => dist(q.pos, p) < q.r) ?? null
+}
+/**
+ * Después de cada tiro (la pelota quieta, ya resuelto): el viento nuevo si está nublado (el mismo en los dos lados de
+ * un match, sale de la semilla y el número de golpe) y el barro si el día está mojado.
+ */
+export function climaTrasTiro(campo, r, rng) {
+  const c = climaDe(r)
+  if (!c || r.terminada) return null
+  let barro = false
+  if (c.barro && ['fairway', 'rough'].includes(r.lie) && rng() < c.barro) { r.barro = true; barro = true }
+  if (c.vientoCambia) {
+    r.viento = vientoAleatorio(rngDesde(mezclar(r.clima.semilla, r.idx, r.golpes)))
+    vientoDelClima(r)
+  }
+  return { barro, viento: !!c.vientoCambia }
+}
+
 // la flecha de El Sueco (del segundo tiro en adelante): vuela más bajo y más rápido que un tiro normal
 export const FLECHA = { alto: 0.35, tiempo: 0.6 }
 export const PUTTS_MAGO = [
@@ -430,11 +515,22 @@ export function condicionesMatch(semilla) {
   const rv = rngDesde(semilla), rb = rngDesde((semilla ^ 0x5bd1e995) >>> 0)
   const vientos = HOYOS.map(() => vientoAleatorio(rv))
   const conBanderas = sortearBanderas({}, rb)
-  return { semilla, vientos, pines: conBanderas.hoyos.map((h) => ({ pin: [...h.pin], bandera: h.bandera })) }
+  const rc = rngDesde((semilla ^ 0x27d4eb2f) >>> 0) // el clima: otra tirada, así el viento y las banderas no cambian
+  const clima = sortearClima(rc)
+  return { semilla, vientos, pines: conBanderas.hoyos.map((h) => ({ pin: [...h.pin], bandera: h.bandera })), clima, semillaClima: Math.floor(rc() * 4294967296) }
 }
-/** Pone las condiciones del match en la ronda (banderas y el viento del primer hoyo; los siguientes, en cerrarHoyo). */
+// el MODO PRO del match: sin líneas punteadas ni zona de pique (no ves dónde cae). Va marcado en la semilla del
+// desafío (los 16 bits de abajo = `marca`), así viaja con el match sin tocar la base: el que responde juega igual
+export const PRO = { marca: 0xb0ca }
+export const esPro = (semilla) => ((semilla >>> 0) & 0xffff) === PRO.marca
+export const semillaPro = (semilla) => (((semilla >>> 0) & 0xffff0000) | PRO.marca) >>> 0
+/**
+ * Pone las condiciones del match en la ronda (banderas y el viento del primer hoyo; los siguientes, en cerrarHoyo).
+ * El clima lo pone la página después (ponerClima con cond.clima y cond.semillaClima): necesita la cancha.
+ */
 export function aplicarMatch(r, cond) {
   r.match = cond
+  r.pro = esPro(cond.semilla)
   r.hoyos = HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera }))
   r.viento = { ...cond.vientos[r.idx] }
   if (r.ruleta) r.ruleta.rng = rngDesde((cond.semilla ^ 0x2545f491) >>> 0) // la Ruleta: la misma tanda de players para los dos
@@ -684,7 +780,7 @@ export function moverMonos(monos, dt, pelota) {
       continue
     }
     if (s.espera > 0) { s.espera -= dt; continue }
-    if (caminar(s, s.m[s.hacia], MONO.vel, dt)) {
+    if (caminar(s, s.m[s.hacia], MONO.vel * (s.siesta ?? 1), dt)) {
       s.espera = MONO.pausa
       s.hacia = s.hacia === 'a' ? 'b' : 'a'
     }
@@ -698,9 +794,9 @@ export function despertarMonos(monos, pelota, alerta = MONO.alerta) {
     if (s.modo === 'aplastado' || dist(s.pos, pelota) > alerta) continue
     if (s.modo !== 'caza') {
       s.modo = 'caza'
-      s.reaccion = MONO.reaccion
+      s.reaccion = MONO.reaccion / (s.siesta ?? 1) // el clima: con sol (o nieve) salen tarde y lentos
       const falta = Math.max(0, dist(s.pos, pelota) - MONO.radio * 0.8)
-      s.velCaza = Math.min(MONO.velCaza, falta / (MONO.minimo - MONO.reaccion))
+      s.velCaza = Math.min(MONO.velCaza, falta / (MONO.minimo - MONO.reaccion)) * (s.siesta ?? 1)
     }
     n++
   }
@@ -776,14 +872,15 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
   const dif = furioso ? { ...dificultad(r.jugador?.hcp), error: DISPERSION_HCP.error * FURIA.extra } : dificultad(r.jugador?.hcp)
   if (furioso) precision = 0
   if (enModoPutt(campo, r)) {
-    const carry = potencia * FISICA.distPuttMax
+    const puttMax = puttMaxDe(dist(b, hoyoActual(r).pin))
+    const carry = potencia * puttMax
     // el putt del Mago: con draw dobla a la izquierda (ángulo menor), con fade a la derecha
     const pin = hoyoActual(r).pin
     const giro = hab?.id === 'comba' ? puttMagoDe(r).lado * PUTT_MAGO.giro : 0
     // los 3 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
     const noLaFalla = hab?.id === 'dadas' && dist(b, pin) * hoyoActual(r).escala <= DADA
     const retro = hab?.id === 'retro'
-    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso }
+    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso }
   }
   const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
@@ -798,6 +895,8 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
   // la bomba: Miguelón y Taiu (la Rana)
   const bombero = hab?.id === 'bomba' || hab?.id === 'reves'
   if (bombero && tee) plan.carry = (potencia * (par === 3 ? carryPar3De(r.jugador?.hcp) : BOMBA.carry)) / escala // en el par 3, sin bomba
+  const clima = climaDe(r)
+  if (clima?.carry && hab?.id !== 'retro') plan.carry *= clima.carry // el clima: con calor vuela más; con lluvia, menos (se ve al apuntar)
   if (bombero && tee && plan.carry * escala > BOMBA.zona) {
     const q = Math.max(0, Math.min(1, precision))
     plan.bomba = true
@@ -957,12 +1056,20 @@ function puntoEnRuta(pts, s) {
   return [...pts[pts.length - 1]]
 }
 
+/**
+ * El tope del putt (yardas a fondo) según lo lejos que está el hoyo: de cerca, la goma entera es un putt corto y lo
+ * dosificás fino (de 3 yd, el tope es 12: a fondo se pasa 4 veces, no 10). Desde 13 yd, el de siempre. La física del
+ * putt no cambia (el error es proporcional a lo que le pegás), así que el bot y la calibración dan lo mismo.
+ */
+export const PUTT_MAX = { min: 12, porYarda: 2, extra: 6 }
+export const puttMaxDe = (d) => Math.max(PUTT_MAX.min, Math.min(FISICA.distPuttMax, d * PUTT_MAX.porYarda + PUTT_MAX.extra))
+
 /** Arma el tiro. El aim que ve el jugador es `angulo` y `potencia` (o el `plan` de planTiro); acá se suma el error humano y el viento. */
 export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng, plan }) {
   potencia = Math.max(0, Math.min(1, potencia))
   if (putt) {
     const e = plan?.error ?? 1
-    const d = potencia * FISICA.distPuttMax * (1 + gauss(rng) * FISICA.error.puttDist * e)
+    const d = potencia * (plan?.puttMax ?? FISICA.distPuttMax) * (1 + gauss(rng) * FISICA.error.puttDist * e)
     const a = angulo + (plan?.recto ? 0 : gauss(rng) * FISICA.error.puttAng * e)
     const v0 = Math.sqrt(2 * FISICA.roce.green * Math.max(0, d))
     return { modo: 'putt', fase: 'rodando', pos: [...pelota], alt: 0, v: [Math.cos(a) * v0, Math.sin(a) * v0], carry: 0, giro: plan?.giro ?? 0, labio: false, eventos: [] }
@@ -1166,7 +1273,10 @@ export function avanzar(campo, tiro, dt, pin) {
       const dx = n > 1 ? tiro.ruta[n - 1][0] - tiro.ruta[n - 2][0] : tiro.carryVec[0] - k * tiro.controlVec[0] + tiro.deriva[0]
       const dy = n > 1 ? tiro.ruta[n - 1][1] - tiro.ruta[n - 2][1] : tiro.carryVec[1] - k * tiro.controlVec[1] + tiro.deriva[1]
       const d = Math.hypot(dx, dy) || 1
-      const vel = Math.sqrt(1.8 * tiro.carry) * FISICA.pique[t] * (tiro.rueda ?? 1)
+      // el clima: cae en un charco y ahí queda (plop); si no, pica según cómo está la cancha
+      if (tiro.clima && t !== 'green' && charcoEn(tiro.clima, tiro.climaIdx, tiro.pos)) return alCharco(tiro)
+      const pique = t === 'green' ? 1 : tiro.clima?.c.pique ?? 1
+      const vel = Math.sqrt(1.8 * tiro.carry) * FISICA.pique[t] * (tiro.rueda ?? 1) * pique
       tiro.v = [(dx / d) * vel, (dy / d) * vel]
       tiro.fase = 'rodando'
     }
@@ -1188,7 +1298,7 @@ export function avanzar(campo, tiro, dt, pin) {
       const d0 = dist(tiro.pos, pin) || 1
       const meta = tiro.iman.meter ? [...pin] : [pin[0] + ((tiro.pos[0] - pin[0]) / d0) * AGUILA.alLado, pin[1] + ((tiro.pos[1] - pin[1]) / d0) * AGUILA.alLado]
       const d = dist(tiro.pos, meta)
-      const v = Math.sqrt(2 * FISICA.roce.green * d) + (tiro.iman.meter ? 0.1 : 0)
+      const v = Math.sqrt(2 * roceDe(tiro, 'green') * d) + (tiro.iman.meter ? 0.1 : 0)
       tiro.v = [((meta[0] - tiro.pos[0]) / (d || 1)) * v, ((meta[1] - tiro.pos[1]) / (d || 1)) * v]
     }
   } else if (ter.tipo === 'green' && !tiro.greenPlano) {
@@ -1201,7 +1311,7 @@ export function avanzar(campo, tiro, dt, pin) {
     const g = tiro.giro * dt
     tiro.v = [tiro.v[0] * Math.cos(g) - tiro.v[1] * Math.sin(g), tiro.v[0] * Math.sin(g) + tiro.v[1] * Math.cos(g)]
   }
-  const a = FISICA.roce[ter.tipo]
+  const a = roceDe(tiro, ter.tipo)
   const vel = Math.hypot(tiro.v[0], tiro.v[1])
   if (vel <= a * dt) {
     tiro.v = [0, 0]
@@ -1221,6 +1331,8 @@ export function avanzar(campo, tiro, dt, pin) {
   tiro.v = [tiro.v[0] * k, tiro.v[1] * k]
   const prev = tiro.pos
   tiro.pos = [prev[0] + tiro.v[0] * dt, prev[1] + tiro.v[1] * dt]
+  // el clima: rodando entra a un charco y se frena de golpe
+  if (tiro.clima && ter.tipo !== 'green' && charcoEn(tiro.clima, tiro.climaIdx, tiro.pos)) return alCharco(tiro)
   if (robo(tiro)) return tiro.fase
   const otro = pasaPorOtroHoyo(tiro, prev)
   if (otro) return caerAjeno(tiro, otro)
@@ -1323,6 +1435,19 @@ function atajaMapache(tiro, pin) {
   tiro.eventos.push({ tipo: 'mapache' })
   tiro.fase = 'quieta'
   return true
+}
+/** El roce del pasto con el clima del día (Deme, Demetrio y el tiro que va solo al hoyo no lo sienten). */
+function roceDe(tiro, tipo) {
+  const c = tiro.alHoyo || tiro.exacto ? null : tiro.clima?.c
+  return FISICA.roce[tipo] * (tipo === 'green' ? c?.green ?? 1 : c?.roce ?? 1)
+}
+/** Al charco: se frena de golpe, ahí mismo. */
+function alCharco(tiro) {
+  tiro.v = [0, 0]
+  tiro.alt = 0
+  tiro.eventos.push({ tipo: 'charco' })
+  tiro.fase = 'quieta'
+  return tiro.fase
 }
 function caerAjeno(tiro, a) {
   tiro.pos = [...a.pin]
@@ -1550,7 +1675,20 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   // Demetrio: el tiro para par entra siempre, esté donde esté
   if (hab?.id === 'retro' && r.golpes >= hoyoActual(r).par) { const t = tiroAlHoyo(campo, r, plan, rng); t.retro = true; return t }
   const retro = hab?.id === 'retro'
+  // el clima: la pelota con barro (día mojado) le agranda el error a este tiro; el palo que resbala (lluvia intensa):
+  // la pega finita y sale cortita
+  const clima = climaDe(r)
+  let barro = false, resbalo = false
+  if (r.barro) { r.barro = false; barro = !plan.putt && !retro }
+  // el resbalón sale de la semilla del clima, el hoyo y el número de golpe: en un match, a los dos les resbala en el
+  // mismo golpe (y no toca el azar del tiro)
+  if (clima?.resbalon && !plan.putt && !retro && rngDesde(mezclar(r.clima.semilla, r.idx, r.golpes, 7))() < clima.resbalon) resbalo = true
+  if (barro && plan.disp) plan.disp = { ...plan.disp, ang: plan.disp.ang * CLIMA_EFECTO.barroError, carry: plan.disp.carry * CLIMA_EFECTO.barroError }
+  if (resbalo) plan.carry *= CLIMA_EFECTO.resbalonCarry
   const tiro = lanzar(campo, { pelota: r.pelota, angulo, potencia, viento: retro ? { ang: 0, kmh: 0 } : r.viento, putt: plan.putt, lie: r.lie, rng, plan })
+  if (r.clima) { tiro.clima = { c: clima, charcos: r.clima.charcos }; tiro.climaIdx = r.idx }
+  if (barro) { tiro.barro = true; tiro.eventos.push({ tipo: 'barro' }) }
+  if (resbalo) { tiro.resbalo = true; tiro.eventos.push({ tipo: 'resbalon' }) }
   tiro.monos = r.monos
   tiro.furia = !!plan.furia
   // Tito: el viento lo maneja en vivo (arranca con el que hay); la deriva se va sumando en el vuelo
@@ -1598,7 +1736,7 @@ function tiroAlHoyo(campo, r, plan, rng) {
   const calma = { ang: 0, kmh: 0 }
   let tiro
   if (plan.putt) {
-    tiro = lanzar(campo, { pelota: r.pelota, angulo: ang, potencia: 0.2, viento: calma, putt: true, lie: r.lie, rng, plan: { ...plan, recto: true, giro: 0 } })
+    tiro = lanzar(campo, { pelota: r.pelota, angulo: ang, potencia: 0.2, viento: calma, putt: true, lie: r.lie, rng, plan: { ...plan, recto: true, giro: 0, puttMax: FISICA.distPuttMax } })
     tiro.iman = { meter: true, deme: true }
   } else {
     const derecho = { putt: false, cuerda: ang, carry: dist(r.pelota, pin), disp: { ang: 0, carry: 0 }, control: null, real: 1, alto: 1.3 }
@@ -1821,6 +1959,7 @@ export function cerrarHoyo(r, rng) {
     r.lie = 'tee'
     r.lieDesde = 'tee'
     r.viento = r.match ? { ...r.match.vientos[r.idx] } : vientoAleatorio(rng) // en un match, el mismo viento para los dos
+    vientoDelClima(r)
     if (r.panchos || habilidadDe(r.jugador)?.id === 'panchitos') r.panchos = MUGRE.panchos
   }
   return fila
@@ -1904,6 +2043,8 @@ export function marcaDe(r, usuario) {
   return { usuario: String(usuario ?? '').trim(), apodo: j.apodo, emoji: j.emoji, golpes: t.golpes, vsPar: t.vsPar, ms: Math.round(r.ms) }
 }
 
+/** ¿La vuelta se jugó en MODO PRO? (va marcada en el detalle: compite solo en el ranking PRO) */
+export const esMarcaPro = (m) => m?.detalle?.pro === true
 /** De quién es una marca: el usuario de la SDGApp (uid) si viene de ahí; si no, el nombre que puso. */
 export const duenoDe = (m) => (m.uid ? `uid:${m.uid}` : String(m.usuario ?? '').trim().toLowerCase())
 
@@ -2034,6 +2175,17 @@ export const ADULACION = {
     'TRIPLE BOGEY': ['Triple heroico, digno de Penta'],
     otro: ['El Mago siempre gana'],
   },
+}
+
+/**
+ * El palo que tiene el jugador en la mano (solo para el dibujo): el putter en el green; el driver en la salida de los
+ * par 4 (15 y 16) y un hierro en la del par 3 (17); de ahí, un hierro, y a `PALOS.wedge` yardas del hoyo o menos, un wedge.
+ */
+export const PALOS = { wedge: 50 }
+export function paloDe(campo, r) {
+  if (enModoPutt(campo, r)) return 'putter'
+  if (desdeLaSalida(campo, r)) return hoyoActual(r).par === 3 ? 'hierro' : 'driver'
+  return aYardas(r, dist(r.pelota, hoyoActual(r).pin)) <= PALOS.wedge ? 'wedge' : 'hierro'
 }
 
 /** Qué tiro fue: el drive (tee de par 4), el hierro (tee del par 3 o de más de 110 yd), el approach o el putt. */
