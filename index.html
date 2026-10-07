@@ -452,7 +452,7 @@ body.apuntando #pronostico { opacity: .55; }
 /* la cara de Miguelón (recortada, sin fondo) en la esquina: se pone más roja con cada media barra; llena, roja y temblando */
 #furia .fu-cara { position: absolute; top: -30px; right: -20px; width: 34px; height: auto; filter: drop-shadow(0 2px 2px rgba(8, 26, 16, .6)); transition: filter .5s; transform: rotate(6deg); }
 #furia[data-nivel="1"] .fu-cara { filter: sepia(.3) saturate(1.7) hue-rotate(-15deg) drop-shadow(0 2px 2px rgba(8, 26, 16, .6)); }
-#furia.sacado .fu-cara { filter: sepia(.8) saturate(5) hue-rotate(-32deg) brightness(.95) drop-shadow(0 0 5px rgba(224, 48, 30, .9)); animation: fu-tiembla .16s linear infinite; }
+#furia.sacado .fu-cara { filter: sepia(.4) saturate(2.2) hue-rotate(-18deg) drop-shadow(0 0 5px rgba(224, 48, 30, .9)); animation: fu-tiembla .16s linear infinite; }
 @keyframes fu-tiembla { 0% { translate: 0 0; } 25% { translate: -1.5px 1px; } 50% { translate: 1.5px -1px; } 75% { translate: -1px -1.5px; } 100% { translate: 1px 1px; } }
 #furia.sube { animation: fu-sube .7s ease-out; }
 @keyframes fu-sube { 0% { transform: rotate(1.5deg) scale(1); } 30% { transform: rotate(-3deg) scale(1.18); } 60% { transform: rotate(3deg) scale(1.05); } 100% { transform: rotate(1.5deg) scale(1); } }
@@ -463,12 +463,12 @@ body.apuntando #furia { opacity: .45; }
 /* llena: Miguelón aparece sacado y revolea el palo */
 #revoleo { position: fixed; inset: 0; z-index: 70; pointer-events: none; overflow: hidden; }
 #revoleo[hidden] { display: none; }
-#revoleo img { position: absolute; left: -10px; bottom: 0; width: min(58vw, 290px); filter: drop-shadow(0 10px 20px rgba(8, 26, 16, .6)) saturate(1.5) sepia(.45) hue-rotate(-28deg) contrast(1.1); animation: rv-entra 2.6s cubic-bezier(.2, 1.2, .4, 1) forwards; transform-origin: 30% 100%; }
+#revoleo img { position: absolute; left: -10px; bottom: 0; width: min(62vw, 310px); filter: drop-shadow(0 10px 20px rgba(8, 26, 16, .6)) saturate(1.2) sepia(.2) hue-rotate(-12deg) contrast(1.05); animation: rv-entra 2.6s cubic-bezier(.2, 1.2, .4, 1) forwards; transform-origin: 30% 100%; }
 @keyframes rv-entra { 0% { transform: translateY(80%) rotate(-8deg); } 14% { transform: translateY(0) rotate(3deg); } 20%, 30% { transform: translateY(0) rotate(-4deg); } 25%, 35% { transform: translateY(0) rotate(4deg); } 80% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(90%) rotate(-6deg); opacity: 0; } }
 #revoleo .rv-rojo { position: absolute; inset: 0; background: radial-gradient(70% 55% at 20% 100%, rgba(188, 75, 60, .75), rgba(188, 75, 60, 0) 70%); animation: rv-rojo 2.6s ease-out forwards; }
 @keyframes rv-rojo { 0% { opacity: 0; } 15%, 70% { opacity: 1; } 100% { opacity: 0; } }
-#revoleo .rv-ira { position: absolute; left: min(30vw, 150px); bottom: min(46vw, 230px); font-size: 46px; opacity: 0; animation: rv-ira .5s .3s ease-in-out 4 alternate; }
-#revoleo .rv-ira.dos { left: min(8vw, 40px); bottom: min(52vw, 260px); font-size: 34px; animation-delay: .45s; }
+#revoleo .rv-ira { position: absolute; left: min(40vw, 200px); bottom: min(56vw, 280px); font-size: 46px; opacity: 0; animation: rv-ira .5s .3s ease-in-out 4 alternate; }
+#revoleo .rv-ira.dos { left: min(6vw, 30px); bottom: min(50vw, 250px); font-size: 34px; animation-delay: .45s; }
 @keyframes rv-ira { from { opacity: 1; transform: scale(.7) rotate(-10deg); } to { opacity: 1; transform: scale(1.15) rotate(10deg); } }
 #revoleo .rv-palo { position: absolute; left: min(36vw, 180px); bottom: 34vh; width: 46px; height: 122px; opacity: 0; animation: rv-palo 1.7s .45s cubic-bezier(.25, .6, .4, 1) forwards; }
 @keyframes rv-palo { 0% { opacity: 1; transform: translate(0, 0) rotate(-30deg); } 100% { opacity: 1; transform: translate(70vw, -70vh) rotate(1260deg); } }
@@ -1378,7 +1378,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <div id="tito-swipe" hidden aria-live="polite"><span>SWIPEÁ PARA SOPLAR</span><i></i></div>
 
-<div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span><svg class="rv-palo" viewBox="0 0 60 160"><path d="M30 6v118" stroke="#0c2b1c" stroke-width="9" stroke-linecap="round"/><path d="M30 6v118" stroke="#c9ccd1" stroke-width="5" stroke-linecap="round"/><rect x="24" y="4" width="12" height="34" rx="5" fill="#1b1b1b" stroke="#0c2b1c" stroke-width="2.5"/><path d="M27 120h22c6 0 8 10 2 14l-20 8c-6 2-9-3-7-8z" fill="#9aa3ad" stroke="#0c2b1c" stroke-width="3"/></svg><b>¡REVOLEÓ EL PALO!</b><i>😡 el próximo, para cualquier lado</i></div>
+<div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-sacado-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span><svg class="rv-palo" viewBox="0 0 60 160"><path d="M30 6v118" stroke="#0c2b1c" stroke-width="9" stroke-linecap="round"/><path d="M30 6v118" stroke="#c9ccd1" stroke-width="5" stroke-linecap="round"/><rect x="24" y="4" width="12" height="34" rx="5" fill="#1b1b1b" stroke="#0c2b1c" stroke-width="2.5"/><path d="M27 120h22c6 0 8 10 2 14l-20 8c-6 2-9-3-7-8z" fill="#9aa3ad" stroke="#0c2b1c" stroke-width="3"/></svg><b>¡REVOLEÓ EL PALO!</b><i>😡 el próximo, para cualquier lado</i></div>
 
 <div id="ruleta" hidden aria-live="assertive">
   <div class="rl-caja">
@@ -1512,7 +1512,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v a2d1b9d · 6/10, 11:06 p. m.</span>
+  <span class="version" id="version">v 6e7abd6 · 6/10, 11:09 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -3117,6 +3117,10 @@ const sinD = (apodo) => apodo.replace(/ \(Đ\)$/, '')
 let dickyTimer = 0, dickyUltimo = null
 /** Entra el Dicky `d` abajo a la izquierda, con su foto recortada, su nombre, lo que dice y corazones. */
 function dickyVisita(d, texto) {
+  // si Miguelón está revoleando el palo (abajo a la izquierda), el Dicky espera a que termine
+  const falta = (revolearPalo.hasta ?? 0) - performance.now()
+  if (falta > 0) { clearTimeout(dickyTimer); dickyTimer = setTimeout(() => dickyVisita(d, texto), falta + 50); return }
+  dickyVisita.ultima = [d, texto]
   const el = $('#dicky')
   el.querySelector('img').src = d.torso
   el.querySelector('img').alt = d.apodo
@@ -3348,8 +3352,8 @@ const FURIA_TXT = {
   segundo: ['😤 Miguelón se calienta', 'No llegó al green con el segundo: media barra de furia'],
   bogey: ['😤 Bogey: Miguelón se calienta', 'Bogey o peor: media barra de furia'],
 }
-/** La cara de Miguelón según la furia: tranqui, una barrita, sacado (por ahora repite la de una barrita). */
-const CARAS_FURIA = ['jugadores/mike-queboni-cara.webp', 'jugadores/mike-queboni-furia1.webp', 'jugadores/mike-queboni-furia1.webp']
+/** La cara de Miguelón según la furia: tranqui, una barrita, sacado. */
+const CARAS_FURIA = ['jugadores/mike-queboni-cara.webp', 'jugadores/mike-queboni-furia1.webp', 'jugadores/mike-queboni-sacado.webp']
 function pintarFuria(j, oculto) {
   const caja = $('#furia')
   const ver = !oculto && M.habilidadDe(j)?.id === 'bomba' && !$('#hud-top').hidden
@@ -3383,6 +3387,15 @@ function revolearPalo() {
   voz = { lg: '😡 ¡Miguelón revoleó el palo!', extra: 'Está sacado: el próximo tiro sale para cualquier lado. Después se le pasa', hasta: performance.now() + 6000 }
   clearTimeout(revolearPalo.t)
   revolearPalo.t = setTimeout(() => { el.hidden = true }, 3000)
+  // abajo a la izquierda está Miguelón: si había un Dicky con buenas vibras, se va y vuelve cuando se le pasa
+  revolearPalo.hasta = performance.now() + 2800
+  const dk = $('#dicky')
+  if (!dk.hidden && dickyVisita.ultima) {
+    clearTimeout(dickyTimer)
+    dk.hidden = true
+    dk.classList.remove('entra', 'sale', 'derecha', 'tenue')
+    dickyTimer = setTimeout(() => dickyVisita(...dickyVisita.ultima), 2850)
+  }
 }
 // ── los golpes del hoyo, grandes: suben con cada tiro; las multas (+1) se muestran con el motivo ──
 let golpesVistos = null // { r, idx, n }: lo que muestra el contador (de qué ronda y qué hoyo)
