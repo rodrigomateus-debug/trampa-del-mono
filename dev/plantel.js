@@ -361,7 +361,7 @@ export const DIFICULTAD_REAL = {
   'El Sueco': { prom: -0.45, lp: 0 }, // 2026-10-07: el drive con el pulso de Fito, después la flecha
   Grandpa: { prom: -1.22, lp: 2 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
   'El Perro': { prom: -0.83, lp: 0 },
-  'Mike Queboni (Đ)': { prom: -0.2, lp: 8 }, // con la bomba de 405 (llega a los dos par 4), 2026-10-06
+  'Mike Queboni (Đ)': { prom: 0.94, lp: 10 }, // 2026-10-07: con la furia (antes −0,2) // con la bomba de 405 (llega a los dos par 4), 2026-10-06
   'El Ninja (Đ)': { prom: 0.41, lp: 3 },
   LG: { prom: 0.49, lp: 2 },
   'El Mago Rodal': { prom: -0.5, lp: 0, nivel: 2 }, // 2026-10-06: elige el golpe (antes, al azar). Normal a mano: el bot dibuja el vuelo perfecto, la gente no

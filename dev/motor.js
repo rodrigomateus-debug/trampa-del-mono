@@ -99,7 +99,7 @@ export const MONO = { vel: 18, pausa: 3, radio: 3.2, altura: 8, velCaza: 12, ale
 // ── habilidades por jugador (por apodo, como en la app) ──
 export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: antes de cada golpe elegís cuál (Flop, Baby Draw, Una cortada al medio o el Dibuje maestro, que dibujás con el dedo). En el green, putt con draw o con fade.' },
-  'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green.' },
+  'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
   'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después, la flecha.', nombre: 'La flecha', texto: 'El drive, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro, una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
   'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
   // del chat del SDGA:
@@ -165,6 +165,10 @@ export const GOLPES_MAGO = [
 ]
 // el putt del Mago: con draw dobla a la izquierda, con fade a la derecha (giro = radianes por segundo mientras rueda)
 export const PUTT_MAGO = { giro: 0.3 }
+// la furia de Miguelón: una barra de `mitades` mitades. Se carga media si el primer tiro del hoyo no queda en la calle
+// ni en el green, media si el segundo no queda en el green (o no entra) y media si el hoyo termina en bogey o peor.
+// Llena: revolea el palo y el próximo tiro (o putt) sale con la dispersión del peor handicap × `extra`; después, a cero.
+export const FURIA = { mitades: 2, extra: 1.6 }
 // la flecha de El Sueco (del segundo tiro en adelante): vuela más bajo y más rápido que un tiro normal
 export const FLECHA = { alto: 0.35, tiempo: 0.6 }
 export const PUTTS_MAGO = [
@@ -713,8 +717,11 @@ function planBase(angulo, potencia, lie) {
 export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, ruta = null) {
   potencia = Math.max(0, Math.min(1, potencia))
   const b = r.pelota
-  const dif = dificultad(r.jugador?.hcp)
   const hab = habilidadDe(r.jugador)
+  // Miguelón sacado: la dispersión más grande que hay (la del peor handicap, y más) y la bomba, la peor
+  const furioso = hab?.id === 'bomba' && !!r.furia?.enojado
+  const dif = furioso ? { ...dificultad(r.jugador?.hcp), error: DISPERSION_HCP.error * FURIA.extra } : dificultad(r.jugador?.hcp)
+  if (furioso) precision = 0
   if (enModoPutt(campo, r)) {
     const carry = potencia * FISICA.distPuttMax
     // el putt del Mago: con draw dobla a la izquierda (ángulo menor), con fade a la derecha
@@ -723,11 +730,12 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     // los 3 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
     const noLaFalla = hab?.id === 'dadas' && dist(b, pin) * hoyoActual(r).escala <= DADA
     const retro = hab?.id === 'retro'
-    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error, recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla }
+    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error, recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso }
   }
   const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
   plan.salida = tee
+  plan.furia = furioso
   // el carry en yardas reales (según el handicap) pasado a yardas del dibujo con la escala del hoyo
   const escala = hoyoActual(r).escala
   const par = hoyoActual(r).par
@@ -1366,6 +1374,9 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   r.desde = [...r.pelota]
   r.lieDesde = r.lie
   r.golpes += 1
+  r.tirosHoyo = (r.tirosHoyo ?? 0) + 1 // los tiros de verdad en este hoyo (sin las multas): la furia mira el 1.º y el 2.º
+  // Miguelón: el tiro sacado ya salió; la barra vuelve a cero
+  if (plan.furia) r.furia = { nivel: 0, enojado: false, evento: null }
   if (r.ruleta) r.ruletaToca = true // pegó: el próximo tiro, gira la Ruleta
   calmarMonos(r.monos)
   // Maxi invocó a Deme: este tiro, pegue como pegue, va derecho al hoyo y entra (sin error, sin viento)
@@ -1376,6 +1387,7 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   const retro = hab?.id === 'retro'
   const tiro = lanzar(campo, { pelota: r.pelota, angulo, potencia, viento: retro ? { ang: 0, kmh: 0 } : r.viento, putt: plan.putt, lie: r.lie, rng, plan })
   tiro.monos = r.monos
+  tiro.furia = !!plan.furia
   tiro.exacto = retro // Demetrio: queda exactamente donde apuntó (ver avanzar)
   tiro.ajenos = (r.hoyos ?? HOYOS).filter((h) => h.n !== hoyoActual(r).n).map((h) => ({ n: h.n, pin: h.pin }))
   tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada
@@ -1479,8 +1491,30 @@ export function resolverReposo(campo, r, tiro, rng) {
   const res = resolver(campo, r, tiro, rng)
   // LG: si fue un mal tiro, el próximo sale sin error
   if (habilidadDe(r.jugador)?.id === 'calma') r.calma = esMalo(res, tiro)
+  cargarFuria(campo, r, tiro, res)
   devolverDicky(r) // la Dickyllamada: el Dicky que te pegó el tiro te devuelve el palo
   return res
+}
+/** Miguelón: después del 1.º y el 2.º tiro del hoyo, ¿se calienta? (ver FURIA) */
+function cargarFuria(campo, r, tiro, res) {
+  if (habilidadDe(r.jugador)?.id !== 'bomba' || res.tipo === 'embocada') return
+  const n = r.tirosHoyo ?? 0
+  if (n !== 1 && n !== 2) return
+  const h = hoyoActual(r)
+  const ter = terreno(campo, tiro.pos)
+  const multa = ['afuera', 'mono-malo', 'mono-ladron', 'ajena'].includes(res.tipo)
+  const enGreen = ter.tipo === 'green' && ter.hoyo === h.n
+  const bien = !multa && (enGreen || (n === 1 && ter.tipo === 'fairway'))
+  if (!bien) sumarFuria(r, n === 1 ? 'primero' : 'segundo')
+}
+/** Media barra más de furia. Llena: se enoja (el próximo tiro, sacado). El evento queda para que lo muestre la página. */
+export function sumarFuria(r, motivo) {
+  r.furia ??= { nivel: 0, enojado: false, evento: null }
+  if (r.furia.enojado) return r.furia
+  r.furia.nivel = Math.min(FURIA.mitades, r.furia.nivel + 1)
+  r.furia.enojado = r.furia.nivel >= FURIA.mitades
+  r.furia.evento = { motivo, nivel: r.furia.nivel, estalla: r.furia.enojado }
+  return r.furia
 }
 const esMalo = (res, tiro) => ['afuera', 'mono-malo', 'mono-ladron'].includes(res.tipo) || ['rough', 'bunker'].includes(res.terreno) || tiro.eventos.some((e) => e.tipo === 'palo')
 
@@ -1566,6 +1600,7 @@ export function resetNinja(r) {
   calmarMonos(r.monos)
   r.resetNinja = h.n
   r.golpes = 0
+  r.tirosHoyo = 0
   r.pelota = [...teeDe(r, h)]
   r.desde = [...r.pelota]
   r.lie = 'tee'
@@ -1590,6 +1625,9 @@ export function cerrarHoyo(r, rng) {
   // Demetrio no hace más que par (ni con una multa)
   const fila = { n: h.n, par: h.par, golpes: habilidadDe(r.jugador)?.id === 'retro' ? Math.min(r.golpes, h.par) : r.golpes, lp: false }
   r.tarjeta.push(fila)
+  // Miguelón: bogey o peor, media barra de furia
+  if (habilidadDe(r.jugador)?.id === 'bomba' && fila.golpes - fila.par >= 1) sumarFuria(r, 'bogey')
+  r.tirosHoyo = 0
   r.idx += 1
   if (r.idx >= HOYOS.length) {
     r.terminada = true

@@ -407,6 +407,36 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 #g-mas.ve { animation: g-mas 2.6s cubic-bezier(.2, 1.4, .4, 1) forwards; }
 @keyframes g-mas { 0% { opacity: 0; transform: translate(-30px, -50%) scale(.4); } 12% { opacity: 1; transform: translate(0, -50%) scale(1.1); } 20% { transform: translate(0, -50%) scale(1); } 82% { opacity: 1; transform: translate(0, -50%); } 100% { opacity: 0; transform: translate(0, -110%); } }
 #h-golpe { visibility: hidden; } /* el golpe ahora se ve grande en #golpes */
+/* 😤 la furia de Miguelón: dos mitades; llena, roja y latiendo */
+#furia { position: relative; width: 74px; margin-top: 2px; padding: 5px 7px 6px; box-sizing: border-box; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--cream); color: var(--green-900); box-shadow: var(--game-shadow-sm); transform: rotate(1.5deg); display: grid; justify-items: center; gap: 4px; font-family: var(--font-display); pointer-events: none; }
+#furia[hidden] { display: none; }
+#furia small { font-size: 11px; letter-spacing: .12em; color: var(--red); }
+#furia .fu-barra { width: 100%; height: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+#furia .fu-barra i { border: 2px solid var(--game-ink); border-radius: 4px; background: #e7dfc2; overflow: hidden; position: relative; }
+#furia .fu-barra i::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #f0a03a, var(--red)); transform: scaleX(0); transform-origin: 0 50%; transition: transform .5s cubic-bezier(.2, 1.4, .4, 1); }
+#furia .fu-barra i.on::after { transform: scaleX(1); }
+#furia .fu-cara { position: absolute; top: -12px; right: -12px; width: 28px; height: 28px; border-radius: 50%; background: var(--cream); border: 2px solid var(--game-ink); display: grid; place-items: center; font-size: 16px; line-height: 1; }
+#furia.sube { animation: fu-sube .7s ease-out; }
+@keyframes fu-sube { 0% { transform: rotate(1.5deg) scale(1); } 30% { transform: rotate(-3deg) scale(1.18); } 60% { transform: rotate(3deg) scale(1.05); } 100% { transform: rotate(1.5deg) scale(1); } }
+#furia.sacado { background: var(--red); color: var(--cream); animation: fu-late .55s ease-in-out infinite alternate; }
+#furia.sacado small { color: var(--cream); font-size: 10px; letter-spacing: .04em; }
+@keyframes fu-late { from { transform: rotate(1.5deg) scale(1); } to { transform: rotate(-1.5deg) scale(1.07); } }
+body.apuntando #furia { opacity: .45; }
+/* llena: Miguelón aparece sacado y revolea el palo */
+#revoleo { position: fixed; inset: 0; z-index: 70; pointer-events: none; overflow: hidden; }
+#revoleo[hidden] { display: none; }
+#revoleo img { position: absolute; left: -10px; bottom: 0; width: min(58vw, 290px); filter: drop-shadow(0 10px 20px rgba(8, 26, 16, .6)) saturate(1.5) sepia(.45) hue-rotate(-28deg) contrast(1.1); animation: rv-entra 2.6s cubic-bezier(.2, 1.2, .4, 1) forwards; transform-origin: 30% 100%; }
+@keyframes rv-entra { 0% { transform: translateY(80%) rotate(-8deg); } 14% { transform: translateY(0) rotate(3deg); } 20%, 30% { transform: translateY(0) rotate(-4deg); } 25%, 35% { transform: translateY(0) rotate(4deg); } 80% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(90%) rotate(-6deg); opacity: 0; } }
+#revoleo .rv-rojo { position: absolute; inset: 0; background: radial-gradient(70% 55% at 20% 100%, rgba(188, 75, 60, .75), rgba(188, 75, 60, 0) 70%); animation: rv-rojo 2.6s ease-out forwards; }
+@keyframes rv-rojo { 0% { opacity: 0; } 15%, 70% { opacity: 1; } 100% { opacity: 0; } }
+#revoleo .rv-ira { position: absolute; left: min(30vw, 150px); bottom: min(46vw, 230px); font-size: 46px; opacity: 0; animation: rv-ira .5s .3s ease-in-out 4 alternate; }
+#revoleo .rv-ira.dos { left: min(8vw, 40px); bottom: min(52vw, 260px); font-size: 34px; animation-delay: .45s; }
+@keyframes rv-ira { from { opacity: 1; transform: scale(.7) rotate(-10deg); } to { opacity: 1; transform: scale(1.15) rotate(10deg); } }
+#revoleo .rv-palo { position: absolute; left: min(36vw, 180px); bottom: 34vh; width: 46px; height: 122px; opacity: 0; animation: rv-palo 1.7s .45s cubic-bezier(.25, .6, .4, 1) forwards; }
+@keyframes rv-palo { 0% { opacity: 1; transform: translate(0, 0) rotate(-30deg); } 100% { opacity: 1; transform: translate(70vw, -70vh) rotate(1260deg); } }
+#revoleo b { position: absolute; left: 50%; top: 36%; translate: -50% 0; width: max-content; white-space: nowrap; font: min(9vw, 40px)/1 var(--font-display); color: var(--cream); background: var(--red); border: 3px solid var(--game-ink); box-shadow: var(--game-shadow-lg); padding: 10px 16px 8px; transform: rotate(-4deg); opacity: 0; animation: rv-cartel 2.6s .35s ease-out forwards; text-align: center; }
+#revoleo i { position: absolute; left: 50%; top: calc(36% + 74px); translate: -50% 0; width: max-content; max-width: 90vw; font: normal 17px/1 var(--font-display); letter-spacing: .04em; color: var(--game-ink); background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); padding: 6px 10px 5px; transform: rotate(2deg); opacity: 0; animation: rv-cartel 2.6s .55s ease-out forwards; }
+@keyframes rv-cartel { 0% { opacity: 0; scale: 1.8; } 12% { opacity: 1; scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
 /* el carrito de Marcos: los mandos (solo mientras manejás), con la pinta del SDGA: crema, verde, dorado y Anton */
@@ -1292,6 +1322,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <span class="chip" id="lie">TEE</span>
       <button id="sonido" type="button" aria-label="Sonido"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" style="fill:var(--gi-f)"/><path d="M20 12a5.5 5.5 0 0 1 0 8M23.5 8.5a10 10 0 0 1 0 15"/></g></svg></button>
       <div id="golpes" aria-live="polite"><small>GOLPES</small><b id="g-num">0</b><span id="g-par">PAR 4</span><div id="g-mas" aria-hidden="true"></div></div>
+      <div id="furia" hidden aria-live="polite"><small>FURIA</small><div class="fu-barra"><i></i><i></i></div><span class="fu-cara" aria-hidden="true">🙂</span></div>
     </div>
     <div class="der">
       <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
@@ -1304,6 +1335,8 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
 
 <div id="cuenta" hidden aria-live="assertive"></div>
+
+<div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span><svg class="rv-palo" viewBox="0 0 60 160"><path d="M30 6v118" stroke="#0c2b1c" stroke-width="9" stroke-linecap="round"/><path d="M30 6v118" stroke="#c9ccd1" stroke-width="5" stroke-linecap="round"/><rect x="24" y="4" width="12" height="34" rx="5" fill="#1b1b1b" stroke="#0c2b1c" stroke-width="2.5"/><path d="M27 120h22c6 0 8 10 2 14l-20 8c-6 2-9-3-7-8z" fill="#9aa3ad" stroke="#0c2b1c" stroke-width="3"/></svg><b>¡REVOLEÓ EL PALO!</b><i>😡 el próximo, para cualquier lado</i></div>
 
 <div id="ruleta" hidden aria-live="assertive">
   <div class="rl-caja">
@@ -3178,6 +3211,45 @@ function hud() {
   const g = !ronda.golpeMago || oculto ? null : estado === 'tiro' && tiro ? (tiro.modo === 'putt' ? M.PUTTS_MAGO.find((x) => x.lado === Math.sign(tiro.giro)) : M.GOLPES_MAGO.find((x) => x.id === tiro.golpe)) : golpeMago()
   pintarGolpesMago(oculto)
   contarGolpes()
+  pintarFuria(j, oculto)
+}
+// ── 😤 la furia de Miguelón ──
+const FURIA_TXT = {
+  primero: ['😤 Miguelón se calienta', 'No pegó la calle con el primero: media barra de furia'],
+  segundo: ['😤 Miguelón se calienta', 'No llegó al green con el segundo: media barra de furia'],
+  bogey: ['😤 Bogey: Miguelón se calienta', 'Bogey o peor: media barra de furia'],
+}
+function pintarFuria(j, oculto) {
+  const caja = $('#furia')
+  const ver = !oculto && M.habilidadDe(j)?.id === 'bomba' && !$('#hud-top').hidden
+  caja.hidden = !ver
+  const f = ronda.furia
+  const ev = f?.evento
+  if (ev) f.evento = null
+  if (!ver) return
+  const n = f?.nivel ?? 0
+  ;[...caja.querySelectorAll('.fu-barra i')].forEach((el, i) => el.classList.toggle('on', n > i))
+  caja.classList.toggle('sacado', !!f?.enojado)
+  caja.querySelector('small').textContent = f?.enojado ? '¡SACADO!' : 'FURIA'
+  caja.querySelector('.fu-cara').textContent = f?.enojado ? '😡' : n ? '😤' : '🙂'
+  if (!ev) return
+  caja.classList.remove('sube')
+  void caja.offsetWidth
+  caja.classList.add('sube')
+  if (ev.estalla) revolearPalo()
+  else { const [lg, extra] = FURIA_TXT[ev.motivo] ?? FURIA_TXT.primero; voz = { lg, extra, hasta: performance.now() + 4200 } }
+}
+/** La barra se llenó: Miguelón aparece sacado y revolea el palo. El próximo tiro sale con la dispersión máxima. */
+function revolearPalo() {
+  const el = $('#revoleo')
+  el.hidden = true
+  void el.offsetWidth
+  el.hidden = false
+  S.robo()
+  setTimeout(() => S.palo(), 450)
+  voz = { lg: '😡 ¡Miguelón revoleó el palo!', extra: 'Está sacado: el próximo tiro sale para cualquier lado. Después se le pasa', hasta: performance.now() + 6000 }
+  clearTimeout(revolearPalo.t)
+  revolearPalo.t = setTimeout(() => { el.hidden = true }, 3000)
 }
 // ── los golpes del hoyo, grandes: suben con cada tiro; las multas (+1) se muestran con el motivo ──
 let golpesVistos = null // { r, idx, n }: lo que muestra el contador (de qué ronda y qué hoyo)
@@ -4226,7 +4298,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
+  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(M.aYardas(ronda, a.alcance))} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
