@@ -1908,6 +1908,17 @@ const campo = M.crearCampo()
 // la cancha es el dibujo tal cual: CANCHA.escala píxeles = 1 yarda
 const fondo = new Image()
 fondo.src = 'cancha.webp'
+// la cancha de cada clima (dibujadas encima de la original, mismo encuadre: el terreno del juego no cambia). La lluvia
+// intensa usa la de lluvia (con más tinte encima); la nieve, la original con el blanco encima
+const CANCHA_CLIMA = { soleado: 'cancha-soleado.webp', nuboso: 'cancha-nuboso.webp', seco: 'cancha-seco.webp', mojado: 'cancha-mojado.webp', lluvia: 'cancha-lluvia.webp', tormenta: 'cancha-lluvia.webp' }
+function fondoDelClima(id) {
+  const src = CANCHA_CLIMA[id] ?? 'cancha.webp'
+  if (fondo.getAttribute('src') === src) return
+  // se cambia cuando la nueva terminó de cargar (mientras, queda la que estaba)
+  const nueva = new Image()
+  nueva.onload = () => { fondo.src = src }
+  nueva.src = src
+}
 // afuera del dibujo: el verde del SDGA con rayas de pasto cortado (sutiles, para que no distraiga)
 let tramaFondo = null
 function trama() {
@@ -2900,6 +2911,7 @@ function empezar(jugador) {
   else M.ponerClima(campo, ronda, M.CLIMAS[climaUrl] ? climaUrl : M.sortearClima(rng), Math.floor(rng() * 4294967296))
   climaPorAnunciar = true
   fxClima = []
+  fondoDelClima(ronda.clima?.id)
   datos.ultimo = jugador.apodo
   guardar(datos)
   // Demetrio juega en 1960: la cancha en sepia, con viñeta y grano (y sin monos, ver nuevaRonda)
@@ -3744,7 +3756,9 @@ const CLIMA_TXT = {
   viento: ['Cambió el viento', 'Mirá la flecha antes de pegar'],
 }
 // el tinte de la cancha (abajo de la pelota y los monos): cada día con su luz
-const TINTE_CLIMA = { soleado: 'rgba(255,206,110,.12)', nuboso: 'rgba(38,52,64,.16)', seco: 'rgba(214,176,104,.2)', mojado: 'rgba(18,40,62,.16)', lluvia: 'rgba(24,40,62,.26)', tormenta: 'rgba(10,20,36,.38)', nieve: 'rgba(244,248,252,.64)' }
+// (con las canchas dibujadas para cada clima, el tinte ya casi no hace falta: queda el de la lluvia intensa, que usa la
+// de lluvia, y la nieve, que usa la original)
+const TINTE_CLIMA = { soleado: null, nuboso: null, seco: null, mojado: null, lluvia: 'rgba(24,40,62,.06)', tormenta: 'rgba(10,20,36,.28)', nieve: 'rgba(244,248,252,.64)' }
 function mostrarCartelClima() {
   const c = M.climaDe(ronda)
   if (!c) return
@@ -3777,11 +3791,13 @@ function pintarClima() {
 function climaSobreCancha() {
   const id = ronda && !ronda.terminada ? ronda.clima?.id : null
   if (!id || document.body.classList.contains('retro')) return
-  ctx.save()
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-  ctx.fillStyle = TINTE_CLIMA[id]
-  ctx.fillRect(0, 0, W, H)
-  ctx.restore()
+  if (TINTE_CLIMA[id]) {
+    ctx.save()
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.fillStyle = TINTE_CLIMA[id]
+    ctx.fillRect(0, 0, W, H)
+    ctx.restore()
+  }
   // las sombras de las nubes: manchas grandes que cruzan la cancha con el viento (nublado y lluvia)
   if (id === 'nuboso' || id === 'lluvia' || id === 'tormenta') {
     for (const n of nubes) {
@@ -7241,6 +7257,7 @@ function pintarProMazo() {
 $('#el-pro').addEventListener('click', () => { datos.pro = !datos.pro; guardar(datos); pintarProMazo() })
 function mostrarElegir() {
   estado = 'elegir'
+  fondoDelClima(null) // en el mazo, la cancha de siempre
   document.body.classList.remove('retro', 'modo-ruleta')
   S.musica(null)
   S.viento(0)
