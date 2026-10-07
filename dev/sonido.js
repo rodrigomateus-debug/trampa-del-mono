@@ -452,6 +452,12 @@ function chillido(at = 0, n = 4, agudo = 1) {
   }
 }
 export const monosVienen = () => chillido(0, 4, 1)
+/** El mapache de Juanpa: sale del hoyo con un chillido agudito y se va rajando (las patitas que repiquetean). */
+export function mapache() {
+  ruido(0.25, { filtro: 'lowpass', f: 700, vol: 0.18, ataque: 0.01 }) // la tierra del hoyo
+  chillido(0.05, 3, 1.9)
+  for (let i = 0; i < 14; i++) ruido(0.025, { f: 2200 + (i % 2) * 500, q: 3, vol: 0.12 * (1 - i / 16), at: 0.75 + i * 0.07, ataque: 0.002 })
+}
 /** Se la robaron: risa del mono (sílabas rápidas que bajan). */
 export function robo() { chillido(0, 6, 1.3); tono(600, 0.5, { vol: 0.08, f2: 200, tipo: 'triangle', at: 0.6 }) }
 /** El Mono bueno: un glissando mágico para arriba. */

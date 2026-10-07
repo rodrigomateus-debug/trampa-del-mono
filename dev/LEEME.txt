@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy: el juego publicado + la revisión de los sonidos (nuevos para Miguelón, El Sueco, Juanpa, Tito, Rodal, las multas y la pelota rodando), para probar.
+Hoy: el juego publicado + la revisión de los sonidos y el mapache que le frena la pelota a Juanpa en la boca del hoyo, para probar.

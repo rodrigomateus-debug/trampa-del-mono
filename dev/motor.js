@@ -101,7 +101,7 @@ export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: antes de cada golpe elegís cuál (Flop, Baby Draw, Una cortada al medio o el Dibuje maestro, que dibujás con el dedo). En el green, putt con draw o con fade.' },
   'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
   Tito: { id: 'viento', corto: 'Maneja el viento en vivo.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza maneja el viento en vivo: mientras la pelota vuela, cada swipe en la pantalla es una ráfaga para ese lado (más largo, más fuerte) y la pelota se va para ahí. Las ráfagas se suman y se calman solas. Eso sí: en el green el putt es ultra sensible, un milímetro del dedo cambia la línea y la fuerza.' },
-  Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá. Antes de pegar ves lo que se viene (y para qué lado), y después de una sorpresa el próximo sale limpio.' },
+  Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá. Antes de pegar ves lo que se viene (y para qué lado), y después de una sorpresa el próximo sale limpio. Y cuando la está por meter (también en el green), a veces sale un mapache del hoyo, la frena y se va rajando: la deja casi dada.' },
   'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después, la flecha.', nombre: 'La flecha', texto: 'El drive, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro, una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
   'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
   // del chat del SDGA:
@@ -177,6 +177,9 @@ export const FURIA = { mitades: 2, extra: 1.6 }
 // `error`: la mitad del error de su handicap (le pega increíble)
 export const SORPRESA = { chance: 0.5, desde: 0.35, hasta: 0.8, rafaga: [12, 26], carrito: [12, 24], carritoT: 1.2, error: 0.5 }
 export const SORPRESAS = ['arbol', 'rafaga', 'carrito']
+// y en cualquier tiro (también los putts), con chance `chance`: si la pelota iba a entrar, sale un mapache del hoyo,
+// la frena y se va rajando. La deja casi dada: a `dada` yardas reales del hoyo, del lado de donde venía
+export const MAPACHE = { chance: 0.35, dada: [1, 1.6] }
 // la flecha de El Sueco (del segundo tiro en adelante): vuela más bajo y más rápido que un tiro normal
 export const FLECHA = { alto: 0.35, tiempo: 0.6 }
 export const PUTTS_MAGO = [
@@ -1139,6 +1142,7 @@ export function avanzar(campo, tiro, dt, pin) {
       if (otro) return caerAjeno(tiro, otro)
       // cayó en la boca del hoyo: puede quedar adentro de aire
       if (pin && tiro.modo === 'full' && (tiro.alHoyo || suerteDe(tiro) < chanceClavada(dist(tiro.pos, pin)))) {
+        if (atajaMapache(tiro, pin)) return tiro.fase
         tiro.pos = [...pin]
         tiro.v = [0, 0]
         tiro.embocada = true
@@ -1205,6 +1209,7 @@ export function avanzar(campo, tiro, dt, pin) {
     const otro = (tiro.ajenos ?? []).find((a) => dist(tiro.pos, a.pin) < FISICA.bocaHoyo)
     if (otro) return caerAjeno(tiro, otro)
     if (pin && dist(tiro.pos, pin) < FISICA.bocaHoyo) {
+      if (atajaMapache(tiro, pin)) return tiro.fase
       // se frenó adentro del hoyo: cae
       tiro.pos = [...pin]
       tiro.embocada = true
@@ -1230,6 +1235,7 @@ export function avanzar(campo, tiro, dt, pin) {
     // desde afuera del green, llegando rápido, tiene su chance (si no, sigue: corbata o labio)
     // Demetrio: si la línea pasa por la boca, entra (sin labios ni corbatas)
     if (tiro.exacto || v < limiteEmbocar(d) || (tiro.modo === 'full' && suerteDe(tiro) < chanceRodando(d, v))) {
+      if (atajaMapache(tiro, pin)) return tiro.fase
       tiro.pos = [...pin]
       tiro.v = [0, 0]
       tiro.embocada = true
@@ -1298,6 +1304,26 @@ function pasaPorOtroHoyo(tiro, prev) {
   }
   return null
 }
+/**
+ * Juanpa: iba a entrar, pero sale un mapache del hoyo y la frena. La pelota queda casi dada, del lado de donde venía
+ * (nunca más atrás de donde salió ni adentro de la boca), y el mapache se va rajando (lo dibuja la página).
+ */
+function atajaMapache(tiro, pin) {
+  const m = tiro.mapache
+  if (!m || m.hecho || !pin) return false
+  m.hecho = true
+  const de = m.de ?? tiro.desde ?? tiro.pos, d = dist(de, pin)
+  const u = d > 1e-6 ? [(pin[0] - de[0]) / d, (pin[1] - de[1]) / d] : [1, 0]
+  const k = Math.max(FISICA.bocaHoyo + 0.15, Math.min(m.m, d * 0.8))
+  tiro.pos = [pin[0] - u[0] * k, pin[1] - u[1] * k]
+  tiro.v = [0, 0]
+  tiro.alt = 0
+  m.pos = [...tiro.pos]
+  m.dir = u
+  tiro.eventos.push({ tipo: 'mapache' })
+  tiro.fase = 'quieta'
+  return true
+}
 function caerAjeno(tiro, a) {
   tiro.pos = [...a.pin]
   tiro.v = [0, 0]
@@ -1320,6 +1346,7 @@ function darVuelta(tiro, dt, pin) {
   if (vu.falta > 0 && vu.vel > VUELTA.muerta) return tiro.fase
   vu.hecha = true
   if (vu.entra || vu.vel <= VUELTA.muerta) {
+    if (atajaMapache(tiro, pin)) return tiro.fase
     tiro.pos = [...pin]
     tiro.v = [0, 0]
     tiro.embocada = true
@@ -1538,6 +1565,10 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
     if (sp) tiro.sorpresa = armarSorpresa(r, tiro, sp)
     r.sorpresaAnterior = !!sp
     r.proxSorpresa = undefined
+  }
+  if (hab?.id === 'caos' && rng() < MAPACHE.chance) {
+    const [a, b] = MAPACHE.dada
+    tiro.mapache = { m: (a + rng() * (b - a)) / hoyoActual(r).escala, de: [...r.desde], hecho: false } // de: de dónde salió (los putts no traen `desde`)
   }
   tiro.exacto = retro // Demetrio: queda exactamente donde apuntó (ver avanzar)
   tiro.ajenos = (r.hoyos ?? HOYOS).filter((h) => h.n !== hoyoActual(r).n).map((h) => ({ n: h.n, pin: h.pin }))
