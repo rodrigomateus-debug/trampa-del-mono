@@ -342,7 +342,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - LG cuenta lo que pasó ("¡Apareció un árbol de la nada!", etc.).
 - **Se ve venir** (2026-10-07, para que no sea pura suerte): la sorpresa se sortea al empezar a apuntar (`prepararSorpresa`, `r.proxSorpresa`) y debajo del contador de golpes aparece la tarjeta "SE VIENE" con su ícono dibujado y para qué lado: UN ÁRBOL (la frena en el aire), RÁFAGA (te corre a la izq/der) o UN CARRITO (la lleva a la izq/der), o TIRO LIMPIO en verde. Sale exactamente lo anunciado, para ese lado (`armarSorpresa`); así se puede compensar apuntando.
 - **Nunca dos seguidas**: después de una sorpresa, el próximo tiro sale limpio seguro (`r.sorpresaAnterior`).
-- Dificultad medida (20 vueltas): +0,05 (Paseo); antes de anunciarlas y sin el "nunca dos seguidas", +1,4.
+- 🦝 **El mapache del hoyo** (2026-10-07): en cualquier tiro, también en los putts, con chance `MAPACHE.chance` (35%, se sortea al pegar, sin aviso): si la pelota iba a entrar (de aire, rodando, frenándose en la boca o al final de la corbata), sale un mapache del hoyo, la frena y la deja **casi dada**: a 1 a 1,6 yardas reales del hoyo, del lado de donde venía (nunca más atrás de donde salió ni adentro de la boca; `atajaMapache`, evento `mapache`). El mapache (dibujado, de perfil: cola rayada y antifaz) asoma con una nube de tierra, se queda un instante y se va rajando para un costado, a los saltos y levantando polvo; suena un chillido agudito y las patitas (`S.mapache`). LG: "¡Un mapache salió del hoyo!". El tiro de Deme no lo frena nadie.
+- Dificultad medida: +1,93 con el mapache del hoyo (300 vueltas; sin él, +0,39); antes de anunciar las sorpresas y sin el "nunca dos seguidas", +1,4.
 
 ## 🌬️ Tito Esperanza maneja el viento (2026-10-07)
 
