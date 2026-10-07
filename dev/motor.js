@@ -1078,8 +1078,8 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
   const ze = gauss(rng)
   const err = ze * p.disp.ang
   const g = gauss(rng)
-  // salió justo al medio (solo cuenta si el tiro tenía error: sin error, todos saldrían perfectos)
-  const perfecto = (p.disp.ang > 0 || p.disp.carry > 0) && Math.hypot(ze, g) < PERFECTO.radio
+  // salió justo al medio (un tiro sin error, como los de Demetrio o LG sin error, sale perfecto siempre: es real)
+  const perfecto = !(p.disp.ang > 0 || p.disp.carry > 0) || Math.hypot(ze, g) < PERFECTO.radio
   // una bomba mal pegada nunca va más lejos: se queda corta
   const carry = Math.max(0, p.carry * (p.real ?? FISICA.factorReal[lie] ?? 1) * (p.bomba ? 1 - Math.abs(g) * p.disp.carry : 1 + g * p.disp.carry))
   const a = p.cuerda + err
@@ -2200,7 +2200,7 @@ export const PALOS = { wedge: 50 }
 
 /**
  * El tiro PERFECTO: el que sale justo al medio (el error de dirección y el de largo, los dos casi en cero: adentro de
- * `radio` desvíos; ~4% de los tiros completos). Lo dice chiquito al lado de donde salió. En el chip y el approach
+ * `radio` desvíos; ~4% de los tiros completos; los tiros sin error, siempre). Lo dice chiquito al lado de donde salió. En el chip y el approach
  * (hasta `BACKSPIN.approach` yd, no desde la salida) además hace backspin: pica en el green o la calle y vuelve
  * `base` + `porYarda` × el largo del tiro (yardas reales), como los pros.
  */
