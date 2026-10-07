@@ -1819,6 +1819,9 @@ ok('el tiro perfecto (sale justo al medio) y el backspin del chip o el approach 
   const salida = M.golpear(campo, M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), -Math.PI / 2, 0.5, sinRuido())
   assert.equal(salida.perfecto, true)
   assert.equal(salida.backspin, undefined)
+  // un tiro sin error sale perfecto siempre (Demetrio, LG sin error, el tiro de Deme)
+  const sinError = M.lanzar(campo, { pelota: [...r.pelota], angulo: 0, potencia: 0.3, viento: calma, putt: false, lie: 'fairway', rng: fijo(0.9), plan: { putt: false, cuerda: 0, carry: 40, disp: { ang: 0, carry: 0 }, control: null } })
+  assert.equal(sinError.perfecto, true)
 })
 
 console.log('\nTodo verde.')
