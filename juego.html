@@ -2179,6 +2179,7 @@ function pegar(a, base = null) {
   // el jugador hace el swing: la pelota sale cuando el palo llega a la pelota (mientras, nada se toca)
   golfista.desde = [...ronda.pelota]
   golfista.ang = a.ang
+  golfista.palo = M.paloDe(campo, ronda)
   const impacto = swingGolfista(a)
   if (impacto > 16) {
     estado = 'swing'
@@ -4850,8 +4851,42 @@ function brazoG(h, m, afuera, k, camisa) {
   const linea = (w, col) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(h[0], h[1]); ctx.lineTo(codo[0], codo[1]); ctx.lineTo(m[0], m[1]); ctx.stroke() }
   linea(6.5 * k, C.g950); linea(4 * k, camisa)
 }
+/**
+ * La cabeza del palo, vista desde arriba, en (0, 0) = donde termina la vara: +x sigue la vara (para la punta), −y es
+ * para donde mira la cara. El driver: la cabeza grande de pera, negra con la cara plateada y la marquita; el hierro:
+ * la hoja fina y plateada con sus estrías; el wedge: más ancho y redondo, satinado; el putter: la hoja con la línea
+ * blanca para apuntar. En rojo, pasado de fondo.
+ */
+const CENTRO_CARA = { driver: 5.5, hierro: 4.5, wedge: 5, putter: 4 } // del talón al medio de la cara
+function cabezaPalo(tipo, rojo = false) {
+  ctx.lineJoin = 'round'; ctx.strokeStyle = C.g950; ctx.lineWidth = 1.6
+  const borde = () => { ctx.fill(); ctx.stroke() }
+  if (tipo === 'driver') {
+    ctx.fillStyle = rojo ? C.red : '#23272d'
+    ctx.beginPath(); ctx.moveTo(-2.5, -3); ctx.lineTo(9, -3.4)
+    ctx.bezierCurveTo(14.5, -3, 15, 6, 9, 9); ctx.bezierCurveTo(4, 11, -2.5, 7, -3, 2); ctx.closePath(); borde()
+    ctx.strokeStyle = '#c9ccd1'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(-1.5, -2.6); ctx.lineTo(9, -2.9); ctx.stroke() // la cara
+    ctx.strokeStyle = '#e8c34a'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(5, -0.8); ctx.lineTo(5, 2.2); ctx.stroke() // la marquita
+    return
+  }
+  if (tipo === 'putter') {
+    ctx.fillStyle = rojo ? C.red : '#5b626b'
+    ctx.beginPath(); ctx.roundRect(-2.5, -3, 13, 4.6, 1.4); borde()
+    ctx.fillStyle = '#9aa3ad'; ctx.beginPath(); ctx.roundRect(-1.5, -2.6, 11, 1.2, 0.6); ctx.fill() // la cara
+    ctx.strokeStyle = C.cream; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(4, -1.2); ctx.lineTo(4, 1.2); ctx.stroke() // la línea
+    return
+  }
+  const wedge = tipo === 'wedge'
+  ctx.fillStyle = rojo ? C.red : wedge ? '#b7b2a6' : '#c9ccd1'
+  ctx.beginPath(); ctx.moveTo(-2, -2.6); ctx.lineTo(8, -3)
+  if (wedge) ctx.bezierCurveTo(13, -3, 13, 4, 8, 4.4)
+  else ctx.bezierCurveTo(11.5, -3, 11.5, 2.4, 8, 2.6)
+  ctx.lineTo(-1.5, wedge ? 1.8 : 1.2); ctx.closePath(); borde()
+  ctx.strokeStyle = 'rgba(12,43,28,.45)'; ctx.lineWidth = 0.6 // las estrías de la cara
+  for (let i = 0; i < (wedge ? 4 : 3); i++) { const y = -1.8 + i * (wedge ? 1.3 : 1.1); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(8, y - 0.2); ctx.stroke() }
+}
 /** El jugador, en pantalla: la pelota en (bx, by), mirando la línea `dir` (ángulo en pantalla), con este s. */
-function dibujarJugador(bx, by, dir, sv, j, now, conPalo = true, putt = false) {
+function dibujarJugador(bx, by, dir, sv, j, now, conPalo = true, putt = false, tipoPalo = 'hierro') {
   const k = escalaGolfista()
   const pin = pintaDe(j)
   ctx.save()
@@ -4878,11 +4913,13 @@ function dibujarJugador(bx, by, dir, sv, j, now, conPalo = true, putt = false) {
   const pasado = !putt && drag && sv > 1.03
   const palo = () => {
     if (!conPalo) return
-    ctx.strokeStyle = C.g950; ctx.lineWidth = 4.5 * k; ctx.beginPath(); ctx.moveTo(c.manos[0], c.manos[1]); ctx.lineTo(c.cabeza[0], c.cabeza[1]); ctx.stroke()
-    ctx.strokeStyle = pasado ? C.red : '#c9ccd1'; ctx.lineWidth = 2.2 * k; ctx.beginPath(); ctx.moveTo(c.manos[0], c.manos[1]); ctx.lineTo(c.cabeza[0], c.cabeza[1]); ctx.stroke()
-    ctx.save(); ctx.translate(c.cabeza[0], c.cabeza[1]); ctx.rotate(c.P.palo + Math.PI / 2)
-    ctx.fillStyle = pasado ? C.red : '#9aa3ad'; ctx.strokeStyle = C.g950; ctx.lineWidth = 1.8 * k
-    ctx.beginPath(); ctx.roundRect(-4 * k, -2.5 * k, 11 * k, 6 * k, 2.5 * k); ctx.fill(); ctx.stroke()
+    // el talón: la vara entra por ahí; así la pelota queda en el medio de la cara (y la cara, justo detrás de la pelota)
+    const th = c.P.palo, ox = -CENTRO_CARA[tipoPalo] * k, oy = 7 * k
+    const tx = c.cabeza[0] + Math.cos(th) * ox - Math.sin(th) * oy, ty = c.cabeza[1] + Math.sin(th) * ox + Math.cos(th) * oy
+    ctx.strokeStyle = C.g950; ctx.lineWidth = 4.5 * k; ctx.beginPath(); ctx.moveTo(c.manos[0], c.manos[1]); ctx.lineTo(tx, ty); ctx.stroke()
+    ctx.strokeStyle = pasado ? C.red : tipoPalo === 'driver' ? '#4a5058' : '#c9ccd1'; ctx.lineWidth = 2.2 * k; ctx.beginPath(); ctx.moveTo(c.manos[0], c.manos[1]); ctx.lineTo(tx, ty); ctx.stroke()
+    ctx.save(); ctx.translate(tx, ty); ctx.rotate(th); ctx.scale(k, k)
+    cabezaPalo(tipoPalo, pasado)
     ctx.restore()
   }
   const levantado = !putt && (sv > 0.55 || sv < -0.5)
@@ -4939,7 +4976,8 @@ function dibujarGolfista(a) {
   const t = golfista.tira
   const sv = t ? -1 : sGolfista(now, a)
   const putt = a ? a.putt : golfista.swing ? golfista.swing.putt : !enVuelo && M.enModoPutt(campo, ronda)
-  dibujarJugador(bx, by, golfista.ang + cam.rot, sv, ronda.jugador, now, !t, putt && !t)
+  const tipoPalo = golfista.swing || enVuelo ? golfista.palo ?? 'hierro' : M.paloDe(campo, ronda)
+  dibujarJugador(bx, by, golfista.ang + cam.rot, sv, ronda.jugador, now, !t, putt && !t, tipoPalo)
   // Miguelón sacado: el palo sale volando, girando, y se pierde
   if (t) {
     const u = (now - t.t0) / 1300
@@ -4949,9 +4987,10 @@ function dibujarGolfista(a) {
     const x = bx + Math.cos(t.dir) * d, y = by + Math.sin(t.dir) * d - Math.sin(Math.PI * Math.min(1, u * 1.2)) * 60 * k
     ctx.save(); ctx.translate(x, y); ctx.scale(k, k); ctx.rotate(u * 22); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, u - 0.7) / 0.3)
     ctx.lineCap = 'round'
-    ctx.strokeStyle = C.g950; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(14, 0); ctx.stroke()
-    ctx.strokeStyle = '#c9ccd1'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(14, 0); ctx.stroke()
-    ctx.fillStyle = '#9aa3ad'; ctx.strokeStyle = C.g950; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(11, -4, 8, 8, 2); ctx.fill(); ctx.stroke()
+    const tp = golfista.palo ?? M.paloDe(campo, ronda)
+    ctx.strokeStyle = C.g950; ctx.lineWidth = 4.5; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(12, 0); ctx.stroke()
+    ctx.strokeStyle = tp === 'driver' ? '#4a5058' : '#c9ccd1'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(12, 0); ctx.stroke()
+    ctx.translate(12, 0); cabezaPalo(tp)
     ctx.restore()
   }
 }

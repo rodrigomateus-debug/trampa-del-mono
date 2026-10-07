@@ -2177,6 +2177,17 @@ export const ADULACION = {
   },
 }
 
+/**
+ * El palo que tiene el jugador en la mano (solo para el dibujo): el putter en el green; el driver en la salida de los
+ * par 4 (15 y 16) y un hierro en la del par 3 (17); de ahí, un hierro, y a `PALOS.wedge` yardas del hoyo o menos, un wedge.
+ */
+export const PALOS = { wedge: 50 }
+export function paloDe(campo, r) {
+  if (enModoPutt(campo, r)) return 'putter'
+  if (desdeLaSalida(campo, r)) return hoyoActual(r).par === 3 ? 'hierro' : 'driver'
+  return aYardas(r, dist(r.pelota, hoyoActual(r).pin)) <= PALOS.wedge ? 'wedge' : 'hierro'
+}
+
 /** Qué tiro fue: el drive (tee de par 4), el hierro (tee del par 3 o de más de 110 yd), el approach o el putt. */
 export function tipoDeTiro(tiro, hoyo, desde, lieDesde) {
   if (tiro.modo === 'putt') return 'putt'

@@ -1787,4 +1787,17 @@ ok('el tope del putt baja de cerca (la goma entera es un putt corto) y el putt s
   assert.ok(Math.abs(Math.hypot(...t.v) - Math.sqrt(2 * M.FISICA.roce.green * 7)) < 1e-9)
 })
 
+ok('el palo en la mano: driver en la salida de los par 4, hierro en el par 3 y desde lejos, wedge cerca, putter en el green', () => {
+  const campo = M.crearCampo()
+  const r = M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, () => 0.5)
+  assert.equal(M.paloDe(campo, r), 'driver')
+  const h15 = M.HOYOS[0]
+  const ver = (idx, pelota, lie) => M.paloDe(campo, { ...r, idx, pelota, lie })
+  assert.equal(ver(0, [h15.pin[0], h15.pin[1] + 3], 'green'), 'putter')
+  assert.equal(ver(0, [h15.pin[0], h15.pin[1] + 30 / h15.escala], 'fairway'), 'wedge')
+  assert.equal(ver(0, [h15.pin[0], h15.pin[1] + 120 / h15.escala], 'fairway'), 'hierro')
+  assert.equal(ver(1, M.HOYOS[1].tee, 'tee'), 'driver')
+  assert.equal(ver(2, M.HOYOS[2].tee, 'tee'), 'hierro')
+})
+
 console.log('\nTodo verde.')
