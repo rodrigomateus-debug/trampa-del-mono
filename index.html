@@ -1585,7 +1585,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v a7e6e2d · 7/10, 03:01 p. m.</span>
+  <span class="version" id="version">v 2f92a0d · 7/10, 03:03 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -4772,7 +4772,7 @@ function flechaSueco(t) {
 }
 // ── 🏌️ el jugador en la cancha (visto desde arriba): parado al costado de la pelota, de costado a la línea del tiro,
 // hace el swing a la par de la goma (backswing mientras estirás, al soltar baja, pega y termina). Cada player con su
-// pinta: la gorra y la remera de su foto, su emoji en la gorra y alguna cosa propia (el sombrero de Mugre, el gorro del
+// pinta: la gorra y la remera de su foto y alguna cosa propia (el sombrero de Mugre, el gorro del
 // Ninja, la boina de Demetrio, las orejas del Flaco, la cabeza de árbol de Groot, la camisa floreada de Liberty y Fito).
 // Miguelón sacado revolea el palo de verdad. El swing: un parámetro s (0 = address e impacto, 1 = arriba, −1 = final)
 // que recorre poses clave; ver el artefacto de potencia (2026-10-07) ──
@@ -4917,7 +4917,7 @@ function dibujarJugador(bx, by, dir, sv, j, now, conPalo = true, putt = false) {
   brazoG(c.izq, c.manos, [f2(c.f)[0] * -1, f2(c.f)[1] * -1], k, pin.camisa)
   brazoG(c.der, c.manos, f2(c.f), k, pin.camisa)
   ctx.fillStyle = '#e0b38c'; ctx.strokeStyle = C.g950; ctx.lineWidth = 1.8 * k; ctx.beginPath(); ctx.arc(c.manos[0], c.manos[1], 3.8 * k, 0, 7); ctx.fill(); ctx.stroke()
-  // la cabeza: gorra (o sombrero, gorro, boina, árbol), con su emoji arriba
+  // la cabeza: gorra (o sombrero, gorro, boina, árbol)
   const mira = c.P.hombros * 0.55
   const hx = c.cx, hy = c.cy
   if (pin.orejas) { ctx.fillStyle = pin.orejas; for (const sg of [-1, 1]) { ctx.beginPath(); ctx.ellipse(hx - 1 * k, hy + sg * 6.5 * k, 3.4 * k, 2.4 * k, 0, 0, 7); ctx.fill() } }
@@ -4930,11 +4930,6 @@ function dibujarJugador(bx, by, dir, sv, j, now, conPalo = true, putt = false) {
     const v = pin.alReves ? mira + Math.PI : mira // Grandpa, con la gorra al revés
     ctx.fillStyle = pin.gorra; ctx.strokeStyle = C.g950; ctx.lineWidth = 1.2 * k
     ctx.beginPath(); ctx.ellipse(hx + Math.cos(v) * 5 * k, hy + Math.sin(v) * 5 * k, 3.6 * k, 4.6 * k, v, -Math.PI / 2, Math.PI / 2); ctx.fill(); ctx.stroke()
-  }
-  if (j?.emoji && pin.tipo !== 'groot') {
-    ctx.font = `${Math.round(8 * k)}px ${EMOJI}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-    ctx.save(); ctx.translate(hx, hy); ctx.rotate(-(dir + Math.PI / 2)); ctx.fillText(j.emoji, 0, 0.5 * k); ctx.restore()
-    ctx.textBaseline = 'alphabetic'
   }
   if (levantado) palo()
   ctx.restore()
