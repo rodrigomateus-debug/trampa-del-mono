@@ -322,3 +322,13 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - Desde el segundo tiro (fuera del green), una flecha: sale derecho (sin error de dirección), vuela más bajo y más rápido (`FLECHA`) y atraviesa todo: los pinos y los monos que se cruzan en el vuelo (`tiro.flecha`). Si cae en el bosque, igual es bosque. Mientras vuela se dibuja una flecha (asta dorada, plumas rojas) detrás de la pelota. La línea de apuntar no se corta en los árboles.
 - El putt, derecho como siempre. La habilidad se llama "La flecha".
 - Dificultad remedida (20 vueltas): −0,45 (antes −1,35). Sigue en Paseo.
+
+## 😤 La furia de Miguelón (2026-10-07)
+
+- Debajo del contador de golpes, una barrita de FURIA con dos mitades (solo cuando juega Miguelón, también en la Ruleta). Se carga media (`sumarFuria`, `FURIA`):
+  - si el primer tiro del hoyo no queda en la calle ni en el green (las multas cuentan como errados);
+  - si el segundo tiro no queda en el green del hoyo (o no entra);
+  - si el hoyo termina en bogey o peor.
+  Calle o green con el primero y green con el segundo: no se carga. Del tercer tiro en adelante, solo cuenta el bogey.
+- Llena: Miguelón aparece sacado abajo (foto en rojo, 💢), revolea el palo (vuela girando) y sale el cartel "¡REVOLEÓ EL PALO!". El próximo tiro (o putt) sale con la dispersión del peor handicap ×1,6 y, si es bomba, la peor bomba; el cartel de la distancia dice SACADO 😡. Después de ese tiro la barra vuelve a cero.
+- Cada media barra la avisa LG ("😤 Miguelón se calienta" y por qué). Dificultad remedida (20 vueltas): +0,94 (antes −0,2): Normal.

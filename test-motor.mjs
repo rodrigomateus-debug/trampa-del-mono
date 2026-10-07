@@ -219,6 +219,56 @@ ok('Rodal: el putt con draw dobla a la izquierda y con fade a la derecha', () =>
   assert.equal(M.planTiro(plano, otro, 0, 0.2).giro, 0)
 })
 
+ok('Miguelón: la furia se carga de a media (calle, green, bogey) y llena revolea el palo: el próximo, sacado', () => {
+  const nueva = () => ({ ...M.nuevaRonda({ apodo: 'Mike Queboni (Đ)', emoji: '🦍', hcp: 8 }, fijo(0.5)), monos: [], viento: calma })
+  const tirar = (r, destino) => {
+    // un tiro que termina justo en `destino` (sin error ni viento, a mano: lo dejamos ahí)
+    const t = M.golpear(quieto, r, angulo(r.pelota, destino), 0.3, sinRuido())
+    M.simular(quieto, t, M.hoyoActual(r).pin)
+    t.pos = [...destino]
+    t.alt = 0
+    return M.resolverReposo(quieto, r, t, fijo(0.99))
+  }
+  const calle = h15.calle[2], green = [h15.pin[0] + 2, h15.pin[1] + 3], rough = [h15.calle[2][0] + 16, h15.calle[2][1]], bosque = enArbol
+  // calle y green: no se carga
+  let r = nueva()
+  tirar(r, calle)
+  tirar(r, green)
+  assert.equal(r.furia?.nivel ?? 0, 0)
+  // primero al rough: media; el segundo no llega al green: la otra media → se enoja
+  r = nueva()
+  tirar(r, rough)
+  assert.deepEqual([r.furia.nivel, r.furia.enojado, r.furia.evento.motivo], [1, false, 'primero'])
+  tirar(r, calle)
+  assert.deepEqual([r.furia.nivel, r.furia.enojado, r.furia.evento.motivo, r.furia.evento.estalla], [2, true, 'segundo', true])
+  // sacado: el próximo tiro tiene la dispersión más grande (más que el peor handicap) y la bomba, la peor
+  const linea = angulo(r.pelota, h15.pin)
+  const sacado = M.planTiro(quieto, r, linea, 0.6)
+  const normal = M.planTiro(quieto, { ...r, furia: null }, linea, 0.6)
+  assert.ok(sacado.furia && sacado.disp.ang > normal.disp.ang * 2)
+  const peor = M.planTiro(quieto, { ...r, furia: null, jugador: { apodo: 'X', hcp: 36 } }, linea, 0.6)
+  assert.ok(sacado.disp.ang > peor.disp.ang)
+  // después de ese tiro, la barra vuelve a cero
+  M.golpear(quieto, r, linea, 0.6, sinRuido())
+  assert.deepEqual([r.furia.nivel, r.furia.enojado], [0, false])
+  // el tercer tiro del hoyo ya no carga
+  r = nueva()
+  tirar(r, calle)
+  tirar(r, green)
+  tirar(r, bosque)
+  assert.equal(r.furia?.nivel ?? 0, 0)
+  // bogey o peor: media barra al cerrar el hoyo
+  r = nueva()
+  r.golpes = h15.par + 1
+  M.cerrarHoyo(r, fijo(0.5))
+  assert.deepEqual([r.furia.nivel, r.furia.evento.motivo], [1, 'bogey'])
+  assert.equal(r.tirosHoyo, 0)
+  // a los demás, nada
+  const otro = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [], viento: calma }
+  tirar(otro, rough)
+  assert.equal(otro.furia, undefined)
+})
+
 ok('Miguelón: la bomba perfecta llega al green; mal pegada se abre y queda corta', () => {
   const r = M.nuevaRonda({ apodo: 'Mike Queboni (Đ)', emoji: '🍯', hcp: 5 }, fijo(0.5))
   r.monos = []
