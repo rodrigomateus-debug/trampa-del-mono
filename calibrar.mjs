@@ -51,12 +51,14 @@ export function elegirTiroCon(r) {
     const abre = hab?.id === 'comba' ? 26 : 3
     const paso = hab?.id === 'comba' ? 1 : 0.5
     const d = M.dist(r.pelota, h.pin)
-    const pMax = Math.min(1, Math.sqrt(d / M.FISICA.distPuttMax) * 1.6 + 0.05)
+    // las mismas yardas que con el tope de siempre (el tope del putt baja de cerca: `puttMaxDe`)
+    const f = M.FISICA.distPuttMax / M.puttMaxDe(d)
+    const pMax = Math.min(1, (Math.sqrt(d / M.FISICA.distPuttMax) * 1.6 + 0.05) * f)
     for (let g = -abre; g <= abre; g += paso) {
       // como una persona: de las fuerzas que entran, la del medio (ni al límite de corta ni de pasada),
       // y la línea con más margen de fuerza
       const entran = []
-      for (let p = 0.01; p <= pMax; p += 0.006) {
+      for (let p = 0.01 * f; p <= pMax; p += 0.006 * f) {
         const t = probar(r, base + (g * Math.PI) / 180, p, 0, 0)
         if (t.embocada) entran.push(p)
         const c = t.embocada ? -1e6 : M.dist(t.pos, h.pin)

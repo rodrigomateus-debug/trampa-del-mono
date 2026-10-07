@@ -1771,4 +1771,20 @@ ok('📊 stats: vueltas, LP y promedio (de las firmadas), en total y por player'
   assert.equal(M.ordenarStats(M.estadisticas([{ apodo: 'Mugre', jugadas: 9, lps: 9 }, { apodo: 'LG', jugadas: 1, lps: 0 }], [{ apodo: 'LG', golpes: 15, vsPar: 4 }]).por, 'promedio').at(-1).apodo, 'Mugre')
 })
 
+ok('el tope del putt baja de cerca (la goma entera es un putt corto) y el putt sale lo que muestra', () => {
+  const campo = M.crearCampo()
+  const h15 = M.HOYOS[0]
+  assert.equal(M.puttMaxDe(1), M.PUTT_MAX.min)
+  assert.equal(M.puttMaxDe(4), 14)
+  assert.equal(M.puttMaxDe(40), M.FISICA.distPuttMax)
+  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, () => 0.5), pelota: [h15.pin[0], h15.pin[1] + 4], lie: 'green', golpes: 1 }
+  assert.ok(M.enModoPutt(campo, r))
+  const plan = M.planTiro(campo, r, -Math.PI / 2, 0.5)
+  assert.equal(plan.puttMax, 14)
+  assert.ok(Math.abs(plan.carry - 7) < 1e-9)
+  // sin error, el putt rueda lo mismo que dice el plan (lanzar usa el mismo tope)
+  const t = M.lanzar(campo, { pelota: r.pelota, angulo: Math.PI / 2, potencia: 0.5, viento: { ang: 0, kmh: 0 }, putt: true, lie: 'green', rng: () => 0.5, plan: { ...plan, recto: true, error: 0 } })
+  assert.ok(Math.abs(Math.hypot(...t.v) - Math.sqrt(2 * M.FISICA.roce.green * 7)) < 1e-9)
+})
+
 console.log('\nTodo verde.')
