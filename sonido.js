@@ -42,7 +42,8 @@ export function despertar() {
     const d = ruidoBuf.getChannelData(0)
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1
   }
-  if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+  // en iPhone, después de bloquear la pantalla o de una llamada queda 'interrupted' (no 'suspended'): también se despierta
+  if (ctx.state !== 'running') ctx.resume().catch(() => {})
   if (forzado && activo) forzarReproduccion()
   cargarCancion()
 }
@@ -231,7 +232,7 @@ export function logro() {
   campana(1567.98, 0.42, 0.1)
   ruido(0.5, { f: 6000, q: 0.6, vol: 0.03, at: 0.36 })
 }
-export const swipe = () => ruido(0.22, { f: 600, f2: 2400, q: 0.8, vol: 0.12, ataque: 0.06 })
+export const swipe = () => ruido(0.22, { f: 600, f2: 2400, q: 0.8, vol: 0.2, ataque: 0.06 })
 /** Cuenta regresiva: 3, 2, 1 graves y el ¡YA! agudo, con acorde. */
 export function cuenta(n) {
   if (n > 0) tono(523.25, 0.18, { vol: 0.25, tipo: 'square', ataque: 0.004 })
@@ -276,8 +277,9 @@ export function golpe(p, putt) {
     ruido(0.03, { f: 2500, q: 2, vol: 0.06 + p * 0.1, ataque: 0.001 })
     return
   }
+  tono(2600, 0.018, { vol: 0.1 + p * 0.12, tipo: 'triangle', ataque: 0.001 }) // el clic de la cara del palo
   ruido(0.05, { f: 3200, q: 1.2, vol: 0.25 + p * 0.35, ataque: 0.001 })
-  tono(140, 0.12, { vol: 0.25 + p * 0.25, f2: 60, ataque: 0.002 })
+  tono(140, 0.12, { vol: 0.32 + p * 0.3, f2: 60, ataque: 0.002 })
   // el silbido de la pelota que se va
   ruido(0.5 + p * 0.5, { f: 2800, f2: 700, q: 3, vol: 0.05 + p * 0.07, at: 0.03, ataque: 0.05 })
 }
@@ -285,7 +287,7 @@ export function golpe(p, putt) {
 export function pique(terreno, fuerza = 1) {
   const v = Math.min(1, 0.4 + fuerza * 0.6)
   if (terreno === 'bunker') ruido(0.35, { filtro: 'highpass', f: 2500, vol: 0.18 * v, ataque: 0.01 })
-  else if (terreno === 'green') { tono(700, 0.05, { vol: 0.1 * v }); ruido(0.04, { f: 1500, vol: 0.05 * v }) }
+  else if (terreno === 'green') { tono(240, 0.07, { vol: 0.3 * v, f2: 150, ataque: 0.002 }); ruido(0.05, { filtro: 'lowpass', f: 1200, vol: 0.12 * v }) }
   else if (terreno === 'rough') ruido(0.18, { filtro: 'lowpass', f: 900, vol: 0.22 * v, ataque: 0.004 })
   else if (terreno === 'afuera') tono(220, 0.3, { vol: 0.12, f2: 110, tipo: 'sawtooth' })
   else { ruido(0.08, { filtro: 'lowpass', f: 700, vol: 0.25 * v }); tono(110, 0.08, { vol: 0.15 * v, f2: 70 }) }
@@ -306,7 +308,99 @@ export function helicoptero(dur = 3.3) {
     if (i % 2 === 0) tono(95 - 30 * lejos, 0.12, { vol: vol * 0.8, f2: 60, at, ataque: 0.01 })
   }
 }
-export const labio = () => { tono(1900, 0.25, { vol: 0.14, tipo: 'triangle' }); tono(2850, 0.18, { vol: 0.06 }) }
+/** Miguelón sacado: un "¡GRRRAAH!" (una voz grave que tiembla y sube) y un pisotón. */
+export function bronca() {
+  agachar(2)
+  if (!ctx) return
+  const t = ctx.currentTime
+  const o = ctx.createOscillator(), trem = ctx.createOscillator(), tg = ctx.createGain(), fl = ctx.createBiquadFilter(), g = ctx.createGain()
+  o.type = 'sawtooth'
+  o.frequency.setValueAtTime(95, t)
+  o.frequency.exponentialRampToValueAtTime(170, t + 0.45)
+  o.frequency.exponentialRampToValueAtTime(120, t + 0.75)
+  trem.frequency.value = 32; tg.gain.value = 0.5 // el "rrr"
+  fl.type = 'bandpass'; fl.Q.value = 3
+  fl.frequency.setValueAtTime(500, t)
+  fl.frequency.exponentialRampToValueAtTime(900, t + 0.45) // la boca que se abre: GRRR → AAH
+  g.gain.setValueAtTime(0.0001, t)
+  g.gain.exponentialRampToValueAtTime(0.45, t + 0.06)
+  g.gain.setValueAtTime(0.45, t + 0.55)
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.8)
+  const am = ctx.createGain(); am.gain.value = 0.5
+  trem.connect(tg).connect(am.gain)
+  o.connect(fl).connect(am).connect(g).connect(sfx)
+  o.start(t); trem.start(t); o.stop(t + 0.85); trem.stop(t + 0.85)
+  ruido(0.12, { filtro: 'lowpass', f: 300, vol: 0.3, at: 0.05 }) // el pisotón
+  tono(70, 0.18, { vol: 0.3, f2: 45, at: 0.05, ataque: 0.002 })
+}
+/** La furia sube media barra: un refunfuño cortito. */
+export function grunido() {
+  if (!ctx) return
+  const t = ctx.currentTime
+  const o = ctx.createOscillator(), fl = ctx.createBiquadFilter(), g = ctx.createGain()
+  o.type = 'sawtooth'
+  o.frequency.setValueAtTime(120, t)
+  o.frequency.linearRampToValueAtTime(100, t + 0.35)
+  fl.type = 'bandpass'; fl.frequency.value = 450; fl.Q.value = 4
+  g.gain.setValueAtTime(0.0001, t)
+  g.gain.exponentialRampToValueAtTime(0.5, t + 0.04)
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.38)
+  o.connect(fl).connect(g).connect(sfx)
+  o.start(t); o.stop(t + 0.4)
+}
+/** La flecha de El Sueco: la cuerda del arco y el silbido que se va. */
+export function flecha() {
+  tono(196, 0.25, { vol: 0.4, f2: 185, tipo: 'triangle', ataque: 0.002 }) // la cuerda
+  tono(392, 0.18, { vol: 0.15, f2: 370, ataque: 0.002 })
+  ruido(0.75, { f: 3600, f2: 1400, q: 6, vol: 0.35, at: 0.04, ataque: 0.03 }) // fiuuu
+}
+/** Juanpa: aparece un árbol de la nada (un "plop" que sube y las hojas). */
+export function arbolito() {
+  tono(220, 0.16, { vol: 0.18, f2: 520, ataque: 0.004 })
+  ruido(0.45, { filtro: 'highpass', f: 3000, vol: 0.06, at: 0.08, ataque: 0.08 })
+}
+/** Juanpa: una ráfaga que se la lleva (un soplido que sube y baja). */
+export function rafaga() { ruido(0.7, { f: 400, f2: 1800, q: 0.9, vol: 0.35, ataque: 0.2 }); ruido(0.5, { f: 1600, f2: 500, q: 0.9, vol: 0.18, at: 0.35, ataque: 0.1 }) }
+/** Juanpa: el carrito eléctrico (el zumbido que pasa) y la bocina "bip bip". */
+export function carrito() {
+  tono(300, 0.9, { vol: 0.06, f2: 520, tipo: 'sawtooth', ataque: 0.15 })
+  ruido(0.9, { filtro: 'lowpass', f: 600, vol: 0.06, ataque: 0.15 })
+  for (const at of [0.25, 0.42]) { tono(440, 0.12, { vol: 0.12, tipo: 'square', at }); tono(554, 0.12, { vol: 0.08, tipo: 'square', at }) }
+}
+/** Tito, un swipe: el soplido, más fuerte cuanto más largo el swipe (k de 0 a 1). */
+export const soplo = (k = 0.6) => ruido(0.25 + k * 0.25, { f: 500, f2: 1800 + k * 1400, q: 0.8, vol: 0.14 + k * 0.2, ataque: 0.05 })
+/** El +1 de una multa: dos notas que bajan, cortitas. */
+export function multa() { tono(392, 0.09, { vol: 0.1, tipo: 'triangle', at: 0.05 }); tono(277.18, 0.16, { vol: 0.1, tipo: 'triangle', at: 0.15 }) }
+/** Rodal, el Dibuje maestro: el marcador que raspa mientras dibujás (lo llama el juego con cada tramo). */
+let proxMarcador = 0
+export function marcador() {
+  if (!ctx || ctx.currentTime < proxMarcador) return
+  proxMarcador = ctx.currentTime + 0.07
+  ruido(0.07, { f: 2400 + Math.random() * 1200, q: 4, vol: 0.3, ataque: 0.01 })
+}
+/** La pelota rodando: un susurro que sigue a la velocidad (yd/s; 0 la apaga). */
+let ruedaNodo = null, ruedaGain = null, ruedaFl = null, ruedaUlt = 0
+export function rodar(vel) {
+  if (!ctx) return
+  const v = Math.max(0, vel || 0)
+  if (Math.abs(v - ruedaUlt) < 0.25 && (v > 0) === (ruedaUlt > 0)) return
+  ruedaUlt = v
+  if (!ruedaNodo) {
+    if (!v) return
+    ruedaNodo = ctx.createBufferSource()
+    ruedaNodo.buffer = ruidoBuf
+    ruedaNodo.loop = true
+    ruedaFl = ctx.createBiquadFilter()
+    ruedaFl.type = 'lowpass'; ruedaFl.Q.value = 0.7
+    ruedaGain = ctx.createGain(); ruedaGain.gain.value = 0
+    ruedaNodo.connect(ruedaFl).connect(ruedaGain).connect(sfx)
+    ruedaNodo.start()
+  }
+  const t = ctx.currentTime
+  ruedaFl.frequency.setTargetAtTime(250 + Math.min(v, 15) * 45, t, 0.05)
+  ruedaGain.gain.setTargetAtTime(v ? 0.012 + Math.min(1, v / 12) * 0.045 : 0, t, v ? 0.05 : 0.08)
+}
+export const labio = () => { tono(1900, 0.25, { vol: 0.24, tipo: 'triangle' }); tono(2850, 0.18, { vol: 0.1 }) }
 /** La corbata: la pelota raspa el borde mientras da la vuelta, cada vez más lento. */
 export function vuelta() {
   let at = 0
@@ -318,7 +412,9 @@ export function vuelta() {
 /** Adentro: el traqueteo de la taza y unas campanas. */
 export function embocada() {
   agachar(2)
-  for (let i = 0; i < 3; i++) tono(2400 - i * 300, 0.04, { vol: 0.12, tipo: 'triangle', at: i * 0.07, ataque: 0.001 })
+  tono(330, 0.16, { vol: 0.22, f2: 230, ataque: 0.002 }) // el "clonc" hueco de la taza
+  ruido(0.14, { f: 520, q: 9, vol: 0.2, ataque: 0.002 })
+  for (let i = 0; i < 3; i++) tono(2400 - i * 300, 0.04, { vol: 0.1, tipo: 'triangle', at: 0.08 + i * 0.07, ataque: 0.001 })
   ;[523.25, 659.25, 783.99, 1046.5].forEach((f, i) => campana(f, 0.25 + i * 0.09))
 }
 /** El resultado del hoyo: fanfarria para birdie o mejor, dos notas para el par, "wah wah" para el bogey o peor. */
@@ -349,13 +445,19 @@ function chillido(at = 0, n = 4, agudo = 1) {
     o.frequency.exponentialRampToValueAtTime(base * 1.5, t + 0.08)
     fl.type = 'bandpass'; fl.frequency.value = i < n / 2 ? 900 : 1600; fl.Q.value = 4
     g.gain.setValueAtTime(0.0001, t)
-    g.gain.exponentialRampToValueAtTime(0.16, t + 0.015)
+    g.gain.exponentialRampToValueAtTime(0.28, t + 0.015)
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.11)
     o.connect(fl).connect(g).connect(sfx)
     o.start(t); o.stop(t + 0.14)
   }
 }
 export const monosVienen = () => chillido(0, 4, 1)
+/** El mapache de Juanpa: sale del hoyo con un chillido agudito y se va rajando (las patitas que repiquetean). */
+export function mapache() {
+  ruido(0.25, { filtro: 'lowpass', f: 700, vol: 0.18, ataque: 0.01 }) // la tierra del hoyo
+  chillido(0.05, 3, 1.9)
+  for (let i = 0; i < 14; i++) ruido(0.025, { f: 2200 + (i % 2) * 500, q: 3, vol: 0.12 * (1 - i / 16), at: 0.75 + i * 0.07, ataque: 0.002 })
+}
 /** Se la robaron: risa del mono (sílabas rápidas que bajan). */
 export function robo() { chillido(0, 6, 1.3); tono(600, 0.5, { vol: 0.08, f2: 200, tipo: 'triangle', at: 0.6 }) }
 /** El Mono bueno: un glissando mágico para arriba. */
@@ -390,7 +492,9 @@ export function tension(dist, alerta) {
   if (ahora < proxTic) return
   const u = Math.max(0, Math.min(1, dist / alerta))
   proxTic = ahora + 0.18 + u * 0.7
-  tono(u < 0.3 ? 1300 : 950, 0.04, { vol: 0.05 + (1 - u) * 0.07, tipo: 'square' })
+  const v = 0.05 + (1 - u) * 0.07
+  tono(u < 0.3 ? 1250 : 900, 0.035, { vol: v, tipo: 'triangle', ataque: 0.001 }) // un tic de madera (el cuadrado cansaba)
+  ruido(0.02, { f: u < 0.3 ? 2600 : 1900, q: 3, vol: v * 0.6, ataque: 0.001 })
 }
 export const perro = () => { [0, 0.22].forEach((at) => { tono(480, 0.09, { vol: 0.2, tipo: 'sawtooth', f2: 320, at }); ruido(0.08, { f: 1200, q: 2, vol: 0.1, at }) }) }
 export function pancho() { ruido(0.25, { f: 900, f2: 2600, vol: 0.1, ataque: 0.04 }); [0.4, 0.6].forEach((at) => tono(170, 0.12, { vol: 0.14, f2: 120, at })) }

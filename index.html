@@ -1516,7 +1516,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 92170eb · 6/10, 11:22 p. m.</span>
+  <span class="version" id="version">v 6d28880 · 6/10, 11:57 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1706,11 +1706,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=51091232ee'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=51091232ee'
+import * as M from './motor.js?v=bc72bb1776'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=bc72bb1776'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=51091232ee'
-import * as S from './sonido.js?v=51091232ee'
+import * as R from './ranking.js?v=bc72bb1776'
+import * as S from './sonido.js?v=bc72bb1776'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2048,6 +2048,7 @@ lienzo.addEventListener('pointermove', (e) => {
       if (Math.hypot(ev.clientX - trazo.ult[0], ev.clientY - trazo.ult[1]) < 3) continue
       trazo.ult = [ev.clientX, ev.clientY]
       trazo.pts.push(s2w(ev.clientX, ev.clientY))
+      S.marcador()
     }
     trazo.plan = M.planTiro(campo, ronda, 0, 0, 0, 0, trazo.pts)
     return
@@ -2101,12 +2102,13 @@ let escVuelo = null
 function pegar(a, base = null) {
   // pegar desarma el LP: si no, un toque al LP después de un putt corto confirmaba sin volver a preguntar
   if (lpArmado) { lpArmado = 0; $('#lp').textContent = textoLP() }
-  S.golpe(a.p, a.putt)
   velCam = 3.5
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
   tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null)
+  if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
+  else S.golpe(a.p, a.putt)
   estela = []
   estado = 'tiro'
   hud()
@@ -2293,7 +2295,7 @@ function soltarSwipeTito() {
   const kmh = Math.min(M.FISICA.vientoMax, (largo / (Math.min(W, H) * 0.45)) * M.FISICA.vientoMax)
   M.rafagaTito(ronda, tiro, Math.atan2(dy, dx) - cam.rot, kmh)
   rafagasTito.push({ ux: dx / largo, uy: dy / largo, k: kmh / M.FISICA.vientoMax, t0: performance.now() })
-  S.swipe()
+  S.soplo(kmh / M.FISICA.vientoMax)
 }
 /** Las ráfagas de los swipes, dibujadas en la pelota (las mismas líneas de viento que la de Juanpa). */
 function dibujarRafagasTito() {
@@ -2330,6 +2332,7 @@ function cuadro(t) {
   requestAnimationFrame(cuadro)
 }
 function actualizar(dt) {
+  S.rodar(estado === 'tiro' && tiro?.fase === 'rodando' && !tiro.vuelta ? Math.hypot(tiro.v[0], tiro.v[1]) : 0) // el susurro de la pelota que rueda
   if (estado === 'tiro' && tiro) {
     const h = M.hoyoActual(ronda)
     acc += dt
@@ -2388,6 +2391,7 @@ function sonarEventos(t) {
     else if (e.tipo === 'labio') S.labio()
     else if (e.tipo === 'vuelta') S.vuelta()
     else if (e.tipo === 'robo') S.robo()
+    else if (e.tipo === 'mapache') S.mapache()
   }
 }
 function alReposo() {
@@ -2412,7 +2416,8 @@ function alReposo() {
     return
   }
   // Juanpa: si se le cruzó algo, LG cuenta eso
-  if (tiro.sorpresa?.hecho) { const [lg, verso] = SORPRESA_TXT[tiro.sorpresa.tipo]; relatar({ lg, verso }) } else relatar(dicho)
+  const sorpresa = tiro.mapache?.hecho ? 'mapache' : tiro.sorpresa?.hecho ? tiro.sorpresa.tipo : null
+  if (sorpresa) { const [lg, verso] = SORPRESA_TXT[sorpresa]; relatar({ lg, verso }) } else relatar(dicho)
   // el sonido va antes de las animaciones (que cortan acá con return: si no, el Mono bueno y el malo no sonaban nunca)
   if (res.tipo === 'mono-bueno') S.monoBueno()
   else if (res.tipo === 'mono-malo') S.robo()
@@ -3386,7 +3391,7 @@ function pintarFuria(j, oculto) {
   void caja.offsetWidth
   caja.classList.add('sube')
   if (ev.estalla) revolearPalo()
-  else { const [lg, extra] = FURIA_TXT[ev.motivo] ?? FURIA_TXT.primero; voz = { lg, extra, hasta: performance.now() + 4200 } }
+  else { S.grunido(); const [lg, extra] = FURIA_TXT[ev.motivo] ?? FURIA_TXT.primero; voz = { lg, extra, hasta: performance.now() + 4200 } }
 }
 /** La barra se llenó: Miguelón aparece sacado y revolea el palo. El próximo tiro sale con la dispersión máxima. */
 function revolearPalo() {
@@ -3394,7 +3399,7 @@ function revolearPalo() {
   el.hidden = true
   void el.offsetWidth
   el.hidden = false
-  S.robo()
+  S.bronca()
   setTimeout(() => S.helicoptero(3.3), 500)
   voz = { lg: '😡 ¡Miguelón revoleó el palo!', extra: 'Está sacado: el próximo tiro sale para cualquier lado. Después se le pasa', hasta: performance.now() + 6000 }
   clearTimeout(revolearPalo.t)
@@ -3434,6 +3439,7 @@ function contarGolpes() {
   if (!motivo) { caja.classList.add('suma'); return } // un tiro
   caja.classList.add('multa')
   mostrarMas('+1', motivo)
+  S.multa()
 }
 function mostrarMas(grande, chico, reset = false) {
   const el = $('#g-mas')
@@ -4122,6 +4128,7 @@ const SORPRESA_TXT = {
   arbol: ['🌳 ¡Apareció un árbol de la nada!', 'La frenó en el aire y se esfumó. Cosas de Juanpa'],
   rafaga: ['💨 ¡Una ráfaga de la nada!', 'Le corrió la pelota en el aire. Cosas de Juanpa'],
   carrito: ['🛺 ¡Un carrito de costado!', 'Pasó justo, se la llevó un poco y la dejó. Cosas de Juanpa'],
+  mapache: ['🦝 ¡Un mapache salió del hoyo!', 'La frenó en la boca y se fue rajando. Quedó casi dada. Cosas de Juanpa'],
 }
 const tamCarrito = () => Math.max(44, M.CARRITO.largo * cam.esc * 1.5)
 function arbolito(x, y, k, alfa = 1) {
@@ -4181,6 +4188,83 @@ function rafagaDibujada(x, y, ux, uy, t, k = 1) {
   }
   ctx.restore()
 }
+/**
+ * El mapache de Juanpa: sale del hoyo (con una nube de tierra), se queda un instante mirando y se va rajando para un
+ * costado, a los saltos y levantando polvo. `sg`: segundos desde que la frenó.
+ */
+function mapacheRajando(f, sg) {
+  const [hx, hy] = w2s(f.pos)
+  const tam = Math.min(80, Math.max(48, cam.esc * 2.6))
+  // para dónde corre: de costado a la línea del putt (en pantalla)
+  const run = [-f.dir[1] * f.lado, f.dir[0] * f.lado]
+  const [rx, ry] = w2s([f.pos[0] + run[0], f.pos[1] + run[1]])
+  const dl = Math.hypot(rx - hx, ry - hy) || 1
+  const ux = (rx - hx) / dl, uy = (ry - hy) / dl
+  if (sg < 0.5) nubecita(hx, hy, sg / 0.5) // la tierra del hoyo
+  const sale = Math.min(1, sg / 0.25) // asoma del hoyo
+  const corre = Math.max(0, sg - 0.75)
+  const d = Math.pow(corre, 1.35) * 270
+  const salto = corre > 0 ? Math.abs(Math.sin(corre * 24)) * tam * 0.16 : Math.sin(sg * 30) * 1.5
+  const x = hx + ux * d, y = hy + uy * d - salto - tam * 0.18 * sale
+  // el polvo que levanta
+  for (let i = 1; i <= 3 && corre > 0; i++) {
+    const q = corre - i * 0.09
+    if (q <= 0) continue
+    const dq = Math.pow(q, 1.35) * 270
+    nubecita(hx + ux * dq - ux * 8, hy + uy * dq + 4, Math.min(1, 0.35 + i * 0.22))
+  }
+  ctx.save()
+  ctx.globalAlpha = Math.max(0, Math.min(1, (2.3 - sg) / 0.4))
+  mapachito(x, y, tam * (0.4 + 0.6 * sale), ux >= 0 ? 1 : -1, corre > 0 ? corre * 26 : 0)
+  ctx.restore()
+}
+/** Un mapache de perfil (dibujado): cola rayada, cuerpo gris, el antifaz negro y las patitas que corren (`paso`). */
+function mapachito(x, y, s, mira, paso) {
+  const tinta = C.g950
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.scale(mira * s / 60, s / 60) // dibujado en 60 de largo, mirando a la derecha
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+  ctx.lineWidth = 2.6
+  ctx.strokeStyle = tinta
+  // sombra
+  ctx.fillStyle = 'rgba(8,26,16,.25)'
+  ctx.beginPath(); ctx.ellipse(0, 14, 24, 4.5, 0, 0, 7); ctx.fill()
+  // patitas (las de atrás y las de adelante, de a pares, en contrafase)
+  const pata = (px, fase) => {
+    const a = Math.sin(paso + fase) * 0.7
+    ctx.beginPath(); ctx.moveTo(px, 4); ctx.lineTo(px + Math.sin(a) * 7, 4 + Math.cos(a) * 9); ctx.stroke()
+  }
+  ctx.strokeStyle = '#3c3f44'; ctx.lineWidth = 4.2
+  pata(-12, 0); pata(10, Math.PI); pata(-8, Math.PI); pata(14, 0)
+  ctx.strokeStyle = tinta; ctx.lineWidth = 2.6
+  // la cola rayada, para atrás y arriba
+  const cola = [[-22, -2], [-29, -6], [-35, -11], [-40, -17]]
+  cola.forEach(([cx, cy], i) => {
+    ctx.fillStyle = i % 2 ? '#2b2d31' : '#b9bdc3'
+    ctx.beginPath(); ctx.ellipse(cx, cy, 6.5 - i * 0.6, 5.2 - i * 0.4, -0.7, 0, 7); ctx.fill(); ctx.stroke()
+  })
+  // el cuerpo
+  ctx.fillStyle = '#8d9299'
+  ctx.beginPath(); ctx.ellipse(-2, -1, 20, 11, -0.05, 0, 7); ctx.fill(); ctx.stroke()
+  ctx.fillStyle = '#c4c8cd'
+  ctx.beginPath(); ctx.ellipse(0, 4, 13, 5, 0, 0, Math.PI); ctx.fill()
+  // la cabeza: orejas, cara, antifaz, ojo, hocico y nariz
+  ctx.fillStyle = '#8d9299'
+  ctx.beginPath(); ctx.moveTo(15, -15); ctx.lineTo(17, -25); ctx.lineTo(23, -16); ctx.closePath(); ctx.fill(); ctx.stroke()
+  ctx.beginPath(); ctx.arc(22, -9, 10.5, 0, 7); ctx.fill(); ctx.stroke()
+  ctx.fillStyle = '#e9ebee'
+  ctx.beginPath(); ctx.ellipse(29, -5, 8, 5.2, 0.15, 0, 7); ctx.fill(); ctx.stroke()
+  ctx.fillStyle = '#1d1f22'
+  ctx.beginPath(); ctx.ellipse(23, -11, 8.5, 3.6, 0.1, 0, 7); ctx.fill() // el antifaz
+  ctx.fillStyle = '#fff'
+  ctx.beginPath(); ctx.arc(25, -11.5, 2.2, 0, 7); ctx.fill()
+  ctx.fillStyle = '#000'
+  ctx.beginPath(); ctx.arc(25.7, -11.5, 1.1, 0, 7); ctx.fill()
+  ctx.beginPath(); ctx.arc(36.5, -5.5, 2.4, 0, 7); ctx.fill() // la nariz
+  ctx.restore()
+}
 /** La nubecita (dibujada) del árbol que se esfuma: unos círculos crema que se abren y se apagan. */
 function nubecita(x, y, k) {
   ctx.save()
@@ -4202,7 +4286,10 @@ function sorpresaJuanpa(t) {
   const u = t.fase === 'vuelo' ? t.t / t.T : 1
   if (sp.tipo === 'arbol' && !sp.hecho) {
     const k = (u - (sp.u - 0.3)) / 0.3
-    if (k > 0) { const [x, y] = w2s(M.posVuelo(t, sp.u)); arbolito(x, y, Math.min(1, k * 1.15)) }
+    if (k > 0) {
+      if (!sp.brota) { sp.brota = true; S.arbolito() }
+      const [x, y] = w2s(M.posVuelo(t, sp.u)); arbolito(x, y, Math.min(1, k * 1.15))
+    }
   }
   if (sp.tipo === 'rafaga' && t.fase === 'vuelo' && u > sp.u - 0.04) {
     const [x, y0] = w2s(t.pos)
@@ -4227,11 +4314,13 @@ function sorpresaJuanpa(t) {
       cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
     }
   }
-  if (sp.tipo === 'rafaga' && sp.hecho && !sp.sono) { sp.sono = true; S.swipe() }
-  if (sp.tipo === 'carrito' && t.fase === 'carrito' && !sp.sono) { sp.sono = true; S.robo() }
+  if (sp.tipo === 'rafaga' && sp.hecho && !sp.sono) { sp.sono = true; S.rafaga() }
+  if (sp.tipo === 'carrito' && t.fase === 'carrito' && !sp.sono) { sp.sono = true; S.carrito() }
 }
 /** Al quedar quieta: lo que sigue en pantalla (el árbol que se esfuma, el carrito que se va). */
 function sorpresaQueQueda(t) {
+  // el mapache que la frenó en la boca: sale del hoyo y se va rajando para un costado
+  if (t.mapache?.hecho) fxJuanpa.push({ tipo: 'mapache', pos: [...M.hoyoActual(ronda).pin], dir: t.mapache.dir, lado: Math.random() < 0.5 ? 1 : -1, t0: performance.now(), dur: 2300 })
   const sp = t.sorpresa
   if (!sp?.hecho || sp.tipo === 'rafaga') return
   fxJuanpa.push({ tipo: sp.tipo, pos: [...(sp.pos ?? t.pos)], ang: Math.atan2(sp.vec[1], sp.vec[0]), t0: performance.now() })
@@ -4241,10 +4330,11 @@ function sorpresaQueQueda(t) {
 function dibujarFxJuanpa() {
   if (!fxJuanpa.length) return
   const ahora = performance.now()
-  fxJuanpa = fxJuanpa.filter((f) => ahora - f.t0 < 1600)
+  fxJuanpa = fxJuanpa.filter((f) => ahora - f.t0 < (f.dur ?? 1600))
   for (const f of fxJuanpa) {
     const sg = (ahora - f.t0) / 1000
-    if (f.tipo === 'arbol') {
+    if (f.tipo === 'mapache') mapacheRajando(f, sg)
+    else if (f.tipo === 'arbol') {
       const [x, y] = w2s(f.pos)
       const fuera = Math.max(0, (sg - 0.8) / 0.6)
       arbolito(x, y, 1 + fuera * 0.3, 1 - fuera)

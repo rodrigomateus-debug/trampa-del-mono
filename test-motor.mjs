@@ -1164,6 +1164,41 @@ ok('ranking: menos golpes arriba; a igual golpes, el más rápido al milisegundo
 })
 
 
+ok('Juanpa: si la iba a meter, con chance 35% sale un mapache del hoyo, la frena y la deja casi dada', () => {
+  const nueva = () => ({ ...M.nuevaRonda({ apodo: 'Mapache', emoji: '🦝', hcp: 3 }, fijo(0.5)), monos: [], viento: calma, lie: 'green', pelota: [h15.pin[0], h15.pin[1] + 4] })
+  // la chance (en cualquier tiro, también en el green); a los demás, nunca
+  let veces = 0
+  for (let i = 0; i < 600; i++) if (M.golpear(plano, nueva(), -Math.PI / 2, 0.2, M.rngDesde(i)).mapache) veces++
+  assert.ok(veces > 600 * 0.28 && veces < 600 * 0.42, `${veces} de 600`)
+  const otro = { ...nueva(), jugador: { apodo: 'Rorro', emoji: '🥃' } }
+  for (let i = 0; i < 50; i++) assert.equal(M.golpear(plano, { ...otro, pelota: [...otro.pelota] }, -Math.PI / 2, 0.2, M.rngDesde(i)).mapache, undefined)
+  // un putt que entra: sin mapache, adentro; con mapache, casi dada, del lado de donde venía, y sin entrar
+  const putt = (p, conMapache) => {
+    const r = nueva()
+    const t = M.golpear(plano, r, -Math.PI / 2, p, sinRuido())
+    t.mapache = conMapache ? { m: 1.3 / h15.escala, de: [...r.desde], hecho: false } : undefined
+    return M.simular(plano, t, h15.pin)
+  }
+  const entra = [0.1, 0.12, 0.14, 0.16, 0.18, 0.2, 0.22, 0.25].find((p) => putt(p, false).embocada)
+  assert.ok(entra, 'ningún putt entra')
+  const t = putt(entra, true)
+  assert.notEqual(t.embocada, true)
+  assert.ok(t.eventos.some((e) => e.tipo === 'mapache') && t.mapache.hecho)
+  const d = M.dist(t.pos, h15.pin)
+  assert.ok(d > M.FISICA.bocaHoyo && Math.abs(d - 1.3 / h15.escala) < 1e-9, `${d}`)
+  assert.ok(t.pos[1] > h15.pin[1]) // venía de abajo: queda abajo
+  assert.equal(M.resolverReposo(plano, { ...nueva(), monos: [] }, t, fijo(0.5)).tipo === 'embocada', false)
+  // si no la iba a meter, el mapache no sale
+  const corto = putt(0.03, true)
+  assert.equal(corto.mapache.hecho, false)
+  // de muy cerca, la deja más cerca (nunca más atrás de donde salió ni adentro de la boca)
+  const r = { ...nueva(), pelota: [h15.pin[0], h15.pin[1] + 1] }
+  const tc = M.golpear(plano, r, -Math.PI / 2, 0.08, sinRuido())
+  tc.mapache = { m: 1.5 / h15.escala, de: [...r.desde], hecho: false }
+  const fin = M.simular(plano, tc, h15.pin)
+  if (fin.mapache.hecho) { const dc = M.dist(fin.pos, h15.pin); assert.ok(dc > M.FISICA.bocaHoyo && dc < 1, `${dc}`) }
+})
+
 ok('Lechu: de 3 metros o menos no la falla, le pegue como le pegue', () => {
   const r = { ...M.nuevaRonda({ apodo: 'Lechu', emoji: '🦉' }, fijo(0.5)), monos: [] }
   r.lie = 'green'

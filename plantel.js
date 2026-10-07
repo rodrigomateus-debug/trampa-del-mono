@@ -365,7 +365,7 @@ export const DIFICULTAD_REAL = {
   'El Perro': { prom: -0.83, lp: 0 },
   'Mike Queboni (Đ)': { prom: 0.94, lp: 10 }, // 2026-10-07: con la furia (antes −0,2); la bomba de 405 llega a los dos par 4
   Tito: { prom: 3.94, lp: 10 }, // 2026-10-07: el bot apaga el viento antes de cada tiro (HCP 16)
-  Mapache: { prom: 0.05, lp: 0 }, // 2026-10-07: Juanpa, la mitad del error y una de dos, una sorpresa; anunciada y nunca dos seguidas (antes +1,4)
+  Mapache: { prom: 1.93, lp: 1 }, // 2026-10-07: Juanpa con el mapache del hoyo (300 vueltas; sin el mapache, +0,39; antes de anunciar las sorpresas, +1,4)
   'El Ninja (Đ)': { prom: 0.41, lp: 3 },
   LG: { prom: 0.49, lp: 2 },
   'El Mago Rodal': { prom: -0.5, lp: 0, nivel: 2 }, // 2026-10-06: elige el golpe (antes, al azar). Normal a mano: el bot dibuja el vuelo perfecto, la gente no
