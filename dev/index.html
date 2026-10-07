@@ -1453,7 +1453,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 0b86f37 · 6/10, 07:14 p. m.</span>
+  <span class="version" id="version">v 2c34805 · 6/10, 09:17 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1643,11 +1643,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=53ad03d2eb'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=53ad03d2eb'
+import * as M from './motor.js?v=72b48c25cd'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=72b48c25cd'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=53ad03d2eb'
-import * as S from './sonido.js?v=53ad03d2eb'
+import * as R from './ranking.js?v=72b48c25cd'
+import * as S from './sonido.js?v=72b48c25cd'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -3395,7 +3395,7 @@ function dibujar() {
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
-    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); pelota(tiro.pos, tiro.alt) }
+    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); pelota(tiro.pos, tiro.alt) }
     else { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
   }
   const a = estado === 'apuntar' ? apunte() : null
@@ -3894,6 +3894,52 @@ function pelotaQuieta() {
 }
 /** La pelota en pantalla: siempre en proporción al hoyo (0,42 vs. 0,66 yd), también en el zoom de la corbata. */
 const radioPelota = () => Math.max(3.2, cam.esc * 0.42)
+/** La flecha de El Sueco: mientras vuela, detrás de la pelota va una flecha (asta dorada, plumas rojas) para donde va. */
+function flechaSueco(t) {
+  const atras = estela[Math.max(0, estela.length - 5)]
+  if (!atras) return
+  const [x, y] = w2s(t.pos)
+  const [ax, ay] = w2s(atras)
+  const d = Math.hypot(x - ax, y - ay)
+  if (d < 0.5) return
+  const ux = (x - ax) / d, uy = (y - ay) / d, nx = -uy, ny = ux
+  const L = 34, cola = [x - ux * L, y - uy * L]
+  ctx.save()
+  ctx.lineCap = 'round'
+  // estela de velocidad
+  ctx.strokeStyle = 'rgba(244,238,218,.35)'
+  ctx.lineWidth = 2
+  for (const k of [-5, 5]) { ctx.beginPath(); ctx.moveTo(cola[0] + nx * k - ux * 10, cola[1] + ny * k - uy * 10); ctx.lineTo(cola[0] + nx * k - ux * 30, cola[1] + ny * k - uy * 30); ctx.stroke() }
+  // asta
+  ctx.strokeStyle = C.g950
+  ctx.lineWidth = 6
+  ctx.beginPath(); ctx.moveTo(cola[0], cola[1]); ctx.lineTo(x, y); ctx.stroke()
+  ctx.strokeStyle = C.gold
+  ctx.lineWidth = 3
+  ctx.beginPath(); ctx.moveTo(cola[0], cola[1]); ctx.lineTo(x, y); ctx.stroke()
+  // plumas
+  ctx.fillStyle = C.red
+  ctx.strokeStyle = C.g950
+  ctx.lineWidth = 1.5
+  for (const k of [1, -1]) {
+    ctx.beginPath()
+    ctx.moveTo(cola[0] + ux * 12, cola[1] + uy * 12)
+    ctx.lineTo(cola[0] + nx * 7 * k + ux * 2, cola[1] + ny * 7 * k + uy * 2)
+    ctx.lineTo(cola[0] + nx * 7 * k - ux * 6, cola[1] + ny * 7 * k - uy * 6)
+    ctx.lineTo(cola[0] + ux * 2, cola[1] + uy * 2)
+    ctx.closePath()
+    ctx.fill(); ctx.stroke()
+  }
+  // punta
+  ctx.fillStyle = C.cream
+  ctx.beginPath()
+  ctx.moveTo(x + ux * 10, y + uy * 10)
+  ctx.lineTo(x + nx * 6, y + ny * 6)
+  ctx.lineTo(x - nx * 6, y - ny * 6)
+  ctx.closePath()
+  ctx.fill(); ctx.stroke()
+  ctx.restore()
+}
 function pelota(p, alt, alfa = 1, pantalla = null) {
   const [x, y] = pantalla ?? w2s(p)
   const r = radioPelota() * (1 + alt / 50)
@@ -4196,7 +4242,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
+  const extra = bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(M.aYardas(ronda, a.alcance))} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
@@ -6065,7 +6111,9 @@ function previewHab(id) {
   const linea = (d, color = '#f4eeda') => `<path d="${d}" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="1.5 2.5" opacity=".8"/>`
   const txt = (t, x, y, desde, color = '#e8c34a') => `<text x="${x}" y="${y}" font-size="8" font-family="Anton, sans-serif" fill="${color}" text-anchor="middle" opacity="0">${t}${aparece(desde)}</text>`
   const escenas = {
-    derecho: linea('M8 26 L96 26') + bola('M8 26 L96 26'),
+    // El Sueco: el drive con la línea que se sacude; después, la flecha que pasa los árboles
+    derecho: `<line x1="8" y1="26" x2="34" y2="26" stroke="#f4eeda" stroke-width="1" stroke-dasharray="1.5 2.5"><animateTransform attributeName="transform" type="rotate" values="-18 8 26;18 8 26;-18 8 26" dur=".7s" repeatCount="indefinite"/></line>`
+      + arboles(60, 24) + linea('M8 26 L98 26', '#e8c34a') + emo('🏹', 'M8 26 L98 26', { tam: 12 }) + txt('FLECHA', 60, 46, 0.45),
     bomba: txt('BOMBA', 22, 13, 0.05) + linea('M8 26 L96 26', '#e8c34a') + bola('M8 26 L96 26', { kt: '0;0.45;1' }),
     comba: linea('M8 26 L52 4') + linea('M8 26 Q46 -2 92 24', '#e8c34a') + bola('M8 26 Q46 -2 92 24'),
     aguila: `<line x1="8" y1="26" x2="40" y2="26" stroke="#f4eeda" stroke-width="1" stroke-dasharray="1.5 2.5"><animateTransform attributeName="transform" type="rotate" values="-22 8 26;22 8 26;-22 8 26" dur=".7s" repeatCount="indefinite"/></line>`

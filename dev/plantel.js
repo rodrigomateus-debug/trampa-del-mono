@@ -358,7 +358,7 @@ PLANTEL.push(RULETA)
 // El mazo se ordena por esto, no por el handicap. Se midió con el handicap de este archivo: adentro de la app cada uno juega
 // con el suyo real (sdga:plantel), así que el nivel de la carta es una referencia.
 export const DIFICULTAD_REAL = {
-  'El Sueco': { prom: -1.35, lp: 0 },
+  'El Sueco': { prom: -0.45, lp: 0 }, // 2026-10-07: el drive con el pulso de Fito, después la flecha
   Grandpa: { prom: -1.22, lp: 2 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
   'El Perro': { prom: -0.83, lp: 0 },
   'Mike Queboni (Đ)': { prom: -0.2, lp: 8 }, // con la bomba de 405 (llega a los dos par 4), 2026-10-06
