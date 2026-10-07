@@ -23,13 +23,14 @@ function costo(r, t) {
 
 /** Prueba el tiro sin error ni viento, sobre una copia de la ronda. */
 function probar(r, ang, p, q, tiempo) {
-  const rr = { ...r, pelota: [...r.pelota], monos: [], viento: calma }
+  // (el clima, con otra semilla: el bot no sabe de antemano si le va a resbalar el palo)
+  const rr = { ...r, pelota: [...r.pelota], monos: [], viento: calma, clima: r.clima && { ...r.clima, semilla: (r.clima.semilla ^ 0x5bd1e995) >>> 0 } }
   const tiro = M.golpear(vacio, rr, ang, p, sinRuido(), q, tiempo)
   return M.simular(vacio, tiro, M.hoyoActual(r).pin)
 }
 
 /** El Mago elige su golpe: prueba cada uno (en el green, putt con draw y con fade) y se queda con el mejor. */
-function elegirTiro(r) {
+export function elegirTiro(r) {
   if (M.habilidadDe(r.jugador)?.id !== 'comba') return elegirTiroCon(r)
   const putt = M.enModoPutt(campo, r)
   let mejor = null
@@ -41,7 +42,7 @@ function elegirTiro(r) {
   if (mejor) M.elegirGolpeMago(campo, r, mejor.id)
   return mejor
 }
-function elegirTiroCon(r) {
+export function elegirTiroCon(r) {
   const h = M.hoyoActual(r)
   const base = Math.atan2(h.pin[1] - r.pelota[1], h.pin[0] - r.pelota[0])
   const hab = M.habilidadDe(r.jugador)
@@ -84,6 +85,8 @@ function elegirTiroCon(r) {
 export function jugarVuelta(jugador, seed) {
   const rng = M.rngDesde(seed)
   const r = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // como en el juego: la bandera, en otro lugar cada vuelta
+  // el clima: CLIMA=lluvia node calibrar.mjs … juega todas las vueltas con ese clima (sin CLIMA, sin clima)
+  if (process.env.CLIMA) M.ponerClima(campo, r, process.env.CLIMA, seed)
   while (!r.terminada) {
     if (M.necesitaLP(r)) { M.levantar(r); break }
     M.turnoRuleta(r, rng) // la Ruleta: antes de cada tiro, otro player
@@ -99,7 +102,7 @@ export function jugarVuelta(jugador, seed) {
     const tiro = M.simular(campo, M.golpear(campo, r, t.ang, t.p, rng, q, tiempo), M.hoyoActual(r).pin)
     const res = M.resolverReposo(campo, r, tiro, rng)
     if (res.tipo === 'embocada') M.cerrarHoyo(r, rng)
-    else M.despertarMonosDe(r), M.calmarMonos(r.monos)
+    else M.climaTrasTiro(campo, r, rng), M.despertarMonosDe(r), M.calmarMonos(r.monos)
   }
   const t = M.totales(r.tarjeta)
   return { vsPar: t.vsPar, hoyos: r.tarjeta.map((f) => f.golpes) }

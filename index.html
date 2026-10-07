@@ -480,6 +480,40 @@ body.apuntando #furia { opacity: .45; }
 @keyframes rv-aspas { 0%, 100% { opacity: .55; transform: scaleY(.92); } 50% { opacity: 1; transform: scaleY(1); } }
 @media (prefers-reduced-motion: reduce) { #revoleo .rv-palo svg, #revoleo .rv-aspas { animation-duration: 1.2s; } }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
+/* el clima del día: un chip abajo del viento (tocándolo, vuelve el cartel) y el de la pelota con barro */
+.clima-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px 4px 7px; border: 0; border-radius: 999px; background: rgba(12, 43, 28, .78); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); font: 13px/1 var(--font-display); letter-spacing: .05em; cursor: pointer; }
+.clima-chip[hidden] { display: none; }
+.clima-chip .cc-emo { font-size: 15px; }
+.clima-chip.barro { background: #6b4a2b; box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .35); cursor: default; animation: barro-late 1.6s ease-in-out infinite; }
+@keyframes barro-late { 50% { transform: scale(1.06); } }
+/* el MODO PRO del match: el interruptor en Desafiar, la etiqueta en las listas y el chip en la vuelta */
+.mt-pro { display: flex; align-items: center; gap: 12px; width: 100%; margin: 0 0 10px; padding: 10px 12px; text-align: left; border: 2.5px solid var(--game-ink); border-radius: 16px; background: var(--cream); color: var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); cursor: pointer; }
+.mt-pro[hidden] { display: none; }
+.mt-pro .mp-sw { flex: none; position: relative; width: 46px; height: 26px; border-radius: 999px; background: #cfc8b0; box-shadow: inset 0 0 0 2px var(--game-ink); transition: background .2s; }
+.mt-pro .mp-sw i { position: absolute; top: 4px; left: 4px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--game-ink); transition: transform .2s; }
+.mt-pro[aria-pressed="true"] { background: var(--game-ink); color: var(--cream); }
+.mt-pro[aria-pressed="true"] .mp-sw { background: var(--gold); }
+.mt-pro[aria-pressed="true"] .mp-sw i { transform: translateX(20px); }
+.mt-pro .mp-txt { display: grid; gap: 2px; }
+.mt-pro b { font: 18px/1 var(--font-display); letter-spacing: .04em; }
+.mt-pro small { font: 600 12px/1.25 var(--font-body); opacity: .8; }
+.mt-btn.pro { background: var(--game-ink); color: var(--gold); }
+.pro-tag { display: inline-block; margin-left: 6px; padding: 2px 6px 1px; border-radius: 6px; background: var(--game-ink); color: var(--gold); font: 11px/1.2 var(--font-display); letter-spacing: .06em; vertical-align: 1px; }
+.clima-chip.pro { background: var(--game-ink); color: var(--gold); cursor: default; }
+#clima-cartel { position: fixed; inset: 0; z-index: 65; display: grid; place-items: center; padding: 24px; background: rgba(8, 26, 16, .35); }
+#clima-cartel[hidden] { display: none; }
+#clima-cartel .cl-caja { width: min(330px, 100%); display: grid; justify-items: center; gap: 6px; padding: 18px 20px 16px; text-align: center; color: var(--game-ink); background: var(--cream); border: 3px solid var(--game-ink); border-radius: 22px; box-shadow: var(--game-shadow-lg); animation: cl-entra .5s cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes cl-entra { from { opacity: 0; transform: translateY(24px) scale(.85) rotate(-3deg); } }
+#clima-cartel .cl-kick { font: 800 11px/1 var(--font-body); letter-spacing: .18em; color: var(--green-700); }
+#clima-cartel .cl-emo { font-size: 64px; line-height: 1.05; animation: cl-flota 2.4s ease-in-out infinite; }
+@keyframes cl-flota { 50% { transform: translateY(-5px) rotate(4deg); } }
+#clima-cartel .cl-nombre { font: 34px/1 var(--font-display); letter-spacing: .02em; text-transform: uppercase; }
+#clima-cartel .cl-texto { margin: 2px 0 0; font: 600 14px/1.35 var(--font-body); color: #31473a; }
+#clima-cartel .cl-raro { display: none; padding: 5px 10px 4px; font: 13px/1 var(--font-display); letter-spacing: .08em; background: var(--gold); border: 2px solid var(--game-ink); box-shadow: 2px 2px 0 var(--game-ink); transform: rotate(-3deg); }
+#clima-cartel.nieve .cl-raro { display: inline-block; }
+#clima-cartel.nieve .cl-caja { background: linear-gradient(180deg, #ffffff, #e6f1fb); }
+#clima-cartel .cl-toca { font: italic 600 12px/1 var(--font-body); color: #6b7d72; margin-top: 4px; }
+@media (prefers-reduced-motion: reduce) { #clima-cartel .cl-caja, #clima-cartel .cl-emo, .clima-chip.barro { animation: none; } }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
 /* el carrito de Marcos: los mandos (solo mientras manejás), con la pinta del SDGA: crema, verde, dorado y Anton */
 #mandos { position: fixed; left: 0; right: 0; bottom: calc(var(--safe-bot) + 16px); z-index: 25; display: none; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 0 14px; pointer-events: none; }
@@ -1371,10 +1405,15 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <div class="der">
       <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
       <div class="viento" id="viento" aria-label="Viento"><span id="v-flecha"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h9M7 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="v-txt"><b id="v-kmh">0</b><small id="v-uni">KM/H</small></span></div>
+      <button class="clima-chip" id="clima-chip" type="button" hidden aria-label="El clima de hoy"><span class="cc-emo" aria-hidden="true"></span><span class="cc-txt"></span></button>
+      <span class="clima-chip barro" id="barro-chip" hidden>🟤 CON BARRO</span>
+      <span class="clima-chip pro" id="pro-chip" hidden>🎯 MODO PRO</span>
       <button class="btn crema chico" id="lp" type="button">LP 💅</button>
     </div>
   </div>
 </div>
+
+<div id="clima-cartel" hidden role="dialog" aria-live="polite" aria-label="El clima de hoy"><div class="cl-caja"><small class="cl-kick">HOY EN SAN DIEGO</small><span class="cl-emo" aria-hidden="true"></span><b class="cl-nombre"></b><p class="cl-texto"></p><span class="cl-raro">EASTER EGG · 1 EN 100</span><i class="cl-toca">Tocá para jugar</i></div></div>
 
 <button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
 
@@ -1516,7 +1555,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 6d28880 · 7/10, 11:41 a. m.</span>
+  <span class="version" id="version">v 8ad6697 · 7/10, 01:20 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1624,7 +1663,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   <div class="card tarjeta ranking">
     <header>
       <span class="teja" aria-hidden="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M7.5 4.5L22 23.5M24.5 4.5L10 23.5"/><path d="M7.5 4.5l2 2.6M24.5 4.5l-2 2.6" stroke-width="5"/><rect x="19.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><rect x="4.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><circle cx="16" cy="24.5" r="2.5" style="fill:var(--gi-f)"/></g></svg></span>
-      <div><span class="kicker" style="color: var(--text-muted)">Uno contra uno · mismo viento y banderas</span><div class="quien" id="mt-tit">MATCH</div></div>
+      <div><span class="kicker" style="color: var(--text-muted)">Uno contra uno · mismo clima, viento y banderas</span><div class="quien" id="mt-tit">MATCH</div></div>
     </header>
     <div class="rk-ambito" id="mt-tabs" role="tablist" aria-label="Match">
       <button type="button" role="tab" data-mt="desafiar" aria-selected="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="14" cy="18" r="10" style="fill:var(--gi-f)"/><circle cx="14" cy="18" r="5.5" style="fill:var(--gi-a)"/><circle cx="14" cy="18" r="1.8" style="fill:var(--gi-s)" stroke="none"/><path d="M14 18L25 7"/><path d="M25 3.5V7h3.5"/></g></svg>Desafiar</button>
@@ -1632,6 +1671,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <button type="button" role="tab" data-mt="historial" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="5" y="7" width="22" height="20" rx="3" style="fill:var(--gi-f)"/><path d="M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z" style="fill:var(--gi-a)"/><path d="M11 4.5v5M21 4.5v5"/><rect x="9.5" y="17" width="4.5" height="4" rx="1" style="fill:var(--gi-s)" stroke="none"/></g></svg>Historial</button>
       <button type="button" role="tab" data-mt="ranking" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="4.5" y="15.5" width="7.5" height="11.5" rx="1" style="fill:var(--gi-f)"/><rect x="20" y="18.5" width="7.5" height="8.5" rx="1" style="fill:var(--gi-f)"/><rect x="12" y="9.5" width="8" height="17.5" rx="1" style="fill:var(--gi-a)"/><path d="M14.8 14l1.7-1.2v6" stroke-width="2.2"/></g></svg>Ranking</button>
     </div>
+    <button class="mt-pro" id="mt-pro" type="button" aria-pressed="false"><span class="mp-sw" aria-hidden="true"><i></i></span><span class="mp-txt"><b>🎯 MODO PRO</b><small>Sin líneas punteadas: no ves dónde cae la bocha</small></span></button>
     <input class="mt-buscar" id="mt-buscar" type="search" placeholder="Buscar rival…" autocomplete="off" spellcheck="false">
     <ol class="rk-lista" id="mt-lista"></ol>
     <p class="extras" id="mt-nota">Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma.</p>
@@ -1706,11 +1746,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=bc72bb1776'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=bc72bb1776'
+import * as M from './motor.js?v=9ff006c14a'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=9ff006c14a'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=bc72bb1776'
-import * as S from './sonido.js?v=bc72bb1776'
+import * as R from './ranking.js?v=9ff006c14a'
+import * as S from './sonido.js?v=9ff006c14a'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2088,9 +2128,13 @@ function zoomApunte() {
   if (!a) { obj = k; return }
   const b = ronda.pelota
   const c = Math.cos(k.rot), s = Math.sin(k.rot)
-  const dx = a.destino[0] - b[0], dy = a.destino[1] - b[1]
+  // MODO PRO: la cámara no sigue a dónde cae (eso cantaba el largo): se abre hasta el hoyo, o 200 yd, para donde apuntás
+  const h = M.hoyoActual(ronda)
+  const L = Math.min(M.dist(b, h.pin), 200 / h.escala)
+  const destino = ronda.pro ? [b[0] + Math.cos(a.ang) * L, b[1] + Math.sin(a.ang) * L] : a.destino
+  const dx = destino[0] - b[0], dy = destino[1] - b[1]
   const vx = dx * c - dy * s, vy = dx * s + dy * c // en pantalla (por unidad de zoom)
-  const margen = 10 + a.alcance * 0.1 // el óvalo y el cartel de yardas
+  const margen = 10 + (ronda.pro ? L : a.alcance) * 0.1 // el óvalo y el cartel de yardas
   let esc = k.esc
   if (-vy + margen > 0) esc = Math.min(esc, (k.sy - k.techo - 30) / (-vy + margen))
   esc = Math.min(esc, (W / 2 - 14) / (Math.abs(vx) + margen))
@@ -2354,6 +2398,7 @@ function actualizar(dt) {
     if (llego && estado === 'apuntar') llegaronMonos(llego)
   }
   moverRafagas(dt)
+  moverClima(dt)
   zoomApunte()
   if (drag && estado === 'apuntar') { const a = apunte(); S.carga(a?.p ?? 0, a?.plan?.bomba ? a.q : 0) }
   if (ronda && estado === 'apuntar' && !drag) {
@@ -2392,6 +2437,14 @@ function sonarEventos(t) {
     else if (e.tipo === 'vuelta') S.vuelta()
     else if (e.tipo === 'robo') S.robo()
     else if (e.tipo === 'mapache') S.mapache()
+    else if (e.tipo === 'charco') { S.charco(); fxClima.push({ tipo: 'splash', pos: [...t.pos], t0: performance.now() }) }
+    else if (e.tipo === 'resbalon') S.resbalon()
+    if (e.tipo === 'pique' && ronda?.clima) {
+      const id = ronda.clima.id
+      if (id === 'seco' && e.terreno !== 'green') fxClima.push({ tipo: 'polvo', pos: [...t.pos], t0: performance.now() })
+      else if (id === 'nieve' && e.terreno !== 'green') { S.nieve(); fxClima.push({ tipo: 'nieve', pos: [...t.pos], t0: performance.now() }) }
+      else if ((id === 'lluvia' || id === 'tormenta' || id === 'mojado') && e.terreno !== 'green') fxClima.push({ tipo: 'gotas', pos: [...t.pos], t0: performance.now() })
+    }
   }
 }
 function alReposo() {
@@ -2415,9 +2468,15 @@ function alReposo() {
     embocar(frase)
     return
   }
-  // Juanpa: si se le cruzó algo, LG cuenta eso
+  // el clima: nublado, el viento cambia; mojado, la pelota puede quedar con barro
+  const tc = M.climaTrasTiro(campo, ronda, rng)
+  // Juanpa: si se le cruzó algo, LG cuenta eso (y si no, lo que hizo el clima)
   const sorpresa = tiro.mapache?.hecho ? 'mapache' : tiro.sorpresa?.hecho ? tiro.sorpresa.tipo : null
-  if (sorpresa) { const [lg, verso] = SORPRESA_TXT[sorpresa]; relatar({ lg, verso }) } else relatar(dicho)
+  const delClima = tiro.eventos.some((e) => e.tipo === 'charco') ? 'charco' : tiro.resbalo ? 'resbalon' : tiro.barro ? 'conBarro' : tc?.barro ? 'barro' : tc?.viento ? 'viento' : null
+  if (sorpresa) { const [lg, verso] = SORPRESA_TXT[sorpresa]; relatar({ lg, verso }) }
+  else if (delClima && delClima !== 'viento') { const [lg, verso] = CLIMA_TXT[delClima]; relatar({ lg, verso }) }
+  else if (delClima === 'viento' && !dicho.lg) relatar({ lg: CLIMA_TXT.viento[0], verso: CLIMA_TXT.viento[1] })
+  else relatar(dicho)
   // el sonido va antes de las animaciones (que cortan acá con return: si no, el Mono bueno y el malo no sonaban nunca)
   if (res.tipo === 'mono-bueno') S.monoBueno()
   else if (res.tipo === 'mono-malo') S.robo()
@@ -2530,6 +2589,7 @@ $('#ruleta').addEventListener('click', terminarRuleta)
 function aApuntar() {
   estado = 'apuntar'
   apuntarDesde = performance.now()
+  if (climaPorAnunciar) { climaPorAnunciar = false; mostrarCartelClima() }
   obj = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin)
   velCam = 3.5
   despertar()
@@ -2813,6 +2873,13 @@ function empezar(jugador) {
     M.aplicarMatch(ronda, M.condicionesMatch(duelo.semilla))
     ronda.duelo = { ...duelo, grabacion: [] }
   }
+  // el clima del día: en un match, el de la semilla (los dos juegan el mismo día, con los mismos charcos);
+  // si no, sorteado (la nieve, 1 de cada 100). Para probar: ?clima=nieve
+  const climaUrl = PARAMS.get('clima')
+  if (ronda.match) M.ponerClima(campo, ronda, ronda.match.clima, ronda.match.semillaClima)
+  else M.ponerClima(campo, ronda, M.CLIMAS[climaUrl] ? climaUrl : M.sortearClima(rng), Math.floor(rng() * 4294967296))
+  climaPorAnunciar = true
+  fxClima = []
   datos.ultimo = jugador.apodo
   guardar(datos)
   // Demetrio juega en 1960: la cancha en sepia, con viñeta y grano (y sin monos, ver nuevaRonda)
@@ -2854,7 +2921,9 @@ function introHoyo() {
       if (hab && ronda.idx === 0 && !ronda.ruleta) relatar({ lg: `✨ ${hab.nombre}`, verso: hab.texto })
     })
   }
-  banda({ kicker: ronda.carta.retro ? `San Diego · 1960 · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}` : `La Trampa del Mono · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}`, grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${h.yardas[ronda.tee]} YD`, verso: h.verso }, 2800, () => {
+  const cl = M.climaDe(ronda)
+  const hoy = (cl ? ` · ${cl.emoji} ${cl.nombre.toLowerCase().replace(/[¡!]/g, '')}` : '') + (ronda.pro ? ' · 🎯 modo pro' : '')
+  banda({ kicker: ronda.carta.retro ? `San Diego · 1960 · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}` : `La Trampa del Mono · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}`, grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${h.yardas[ronda.tee]} YD`, verso: h.verso }, 2800, () => {
     // la primera vez: 3, 2, 1 y arranca el reloj, que corre hasta el último putt
     if (ronda.t0 == null) {
       // la cuenta regresiva muestra de cerca de dónde salís; en el ¡YA! se abre al hoyo
@@ -3280,6 +3349,9 @@ function hud() {
   $('#v-uni').textContent = ronda.viento.kmh ? 'KM/H' : 'SIN VIENTO'
   $('#viento').classList.toggle('calmo', !ronda.viento.kmh)
   S.viento(ronda.viento.kmh)
+  pintarClima()
+  // el cartel del clima, la primera vez que se apunta en la vuelta (el primer tiro no pasa por aApuntar)
+  if (climaPorAnunciar && estado === 'apuntar') { climaPorAnunciar = false; mostrarCartelClima() }
   // la Ruleta: mientras gira (o todavía no giró para el próximo tiro) el marcador muestra la carta, sin adelantar quién pega
   const oculto = !!ronda.ruleta && (estado === 'ruleta' || (ronda.ruletaToca && estado !== 'tiro' && estado !== 'anim'))
   const j = oculto ? ronda.carta : ronda.jugador
@@ -3538,7 +3610,9 @@ function dibujar() {
   const hoyo = ronda && !ronda.terminada ? M.hoyoActual(ronda) : null
 
   if (vf) dibujarFondo(vf)
+  climaSobreCancha()
   for (const h of M.HOYOS) cajonTee(h)
+  dibujarCharcos()
 
   // caída del green cuando hay que patear
   if (hoyo && estado === 'apuntar' && M.enModoPutt(campo, ronda) && M.habilidadDe(ronda.jugador)?.id !== 'perro') {
@@ -3621,7 +3695,7 @@ function dibujar() {
   const a = estado === 'apuntar' ? apunte() : null
   if (drag) drag.visto = a // lo que se ve es lo que sale al soltar
   if (a) dibujarApunte(a)
-  else if (trazo) dibujarTrazo(trazo.pts, 1, trazo.plan, trazo.desde)
+  else if (trazo) dibujarTrazo(trazo.pts, 1, ronda?.pro ? null : trazo.plan, trazo.desde)
   else dibujarGuia()
   if (trazoFade && !trazo) {
     const k = 1 - (performance.now() - trazoFade.t0) / TRAZO_FADE
@@ -3631,12 +3705,241 @@ function dibujar() {
   if ((ronda?.ruleta || ronda?.prestado) && estado === 'apuntar' && !drag && !anim) etiquetaRuleta()
   dibujarFxJuanpa()
   dibujarRafagasTito()
+  dibujarClima()
 
   if (ronda && !ronda.terminada) {
     const ang = ronda.viento.ang + cam.rot
     const f = $('#v-flecha')
     if (Math.abs((f._ang ?? 99) - ang) > 0.01) { f.style.transform = `rotate(${ang}rad)`; f._ang = ang }
   }
+}
+// ── ☔ el clima del día: el tinte de la cancha, los charcos, las nubes, la lluvia, los rayos, la nieve y el sol ──
+let climaPorAnunciar = false
+let fxClima = [] // lo que deja cada tiro: salpicadura del charco, polvo (seco), nieve, gotas
+const CLIMA_TXT = {
+  charco: ['💦 ¡Al charco!', 'Se frenó de golpe en el agua. Se juega de ahí'],
+  resbalon: ['🫧 ¡Se le resbaló el palo!', 'Con el diluvio, el grip parece jabón. La pegó finita y salió cortita'],
+  conBarro: ['🟤 Salió con el barro encima', 'La pelota embarrada hace cosas raras'],
+  barro: ['🟤 Quedó con barro', 'Ojo: el próximo tiro sale para cualquier lado'],
+  viento: ['⛅ Cambió el viento', 'Mirá la flecha antes de pegar'],
+}
+// el tinte de la cancha (abajo de la pelota y los monos): cada día con su luz
+const TINTE_CLIMA = { soleado: 'rgba(255,206,110,.12)', nuboso: 'rgba(38,52,64,.16)', seco: 'rgba(214,176,104,.2)', mojado: 'rgba(18,40,62,.16)', lluvia: 'rgba(24,40,62,.26)', tormenta: 'rgba(10,20,36,.38)', nieve: 'rgba(244,248,252,.64)' }
+function mostrarCartelClima() {
+  const c = M.climaDe(ronda)
+  if (!c) return
+  const el = $('#clima-cartel')
+  el.querySelector('.cl-emo').textContent = c.emoji
+  el.querySelector('.cl-nombre').textContent = c.nombre
+  el.querySelector('.cl-texto').textContent = c.texto
+  el.classList.toggle('nieve', ronda.clima.id === 'nieve')
+  el.hidden = false
+  if (ronda.clima.id === 'nieve') S.logro()
+  clearTimeout(mostrarCartelClima.t)
+  mostrarCartelClima.t = setTimeout(() => { el.hidden = true }, ronda.clima.id === 'nieve' ? 7000 : 5200)
+}
+$('#clima-cartel').addEventListener('click', () => { $('#clima-cartel').hidden = true })
+$('#clima-chip').addEventListener('click', () => mostrarCartelClima())
+function pintarClima() {
+  const c = M.climaDe(ronda)
+  const chip = $('#clima-chip')
+  chip.hidden = !c || $('#hud-top').hidden
+  if (c) {
+    chip.querySelector('.cc-emo').textContent = c.emoji
+    chip.querySelector('.cc-txt').textContent = c.nombre.replace(/[¡!]/g, '').replace(' en San Diego', '').toUpperCase()
+  }
+  $('#barro-chip').hidden = !ronda?.barro || !c
+  $('#pro-chip').hidden = !ronda?.pro || $('#hud-top').hidden
+  const id = ronda?.clima?.id
+  S.lluvia(id === 'tormenta' ? 1 : id === 'lluvia' ? 0.55 : 0)
+}
+function climaSobreCancha() {
+  const id = ronda && !ronda.terminada ? ronda.clima?.id : null
+  if (!id || document.body.classList.contains('retro')) return
+  ctx.save()
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.fillStyle = TINTE_CLIMA[id]
+  ctx.fillRect(0, 0, W, H)
+  ctx.restore()
+  // las sombras de las nubes: manchas grandes que cruzan la cancha con el viento (nublado y lluvia)
+  if (id === 'nuboso' || id === 'lluvia' || id === 'tormenta') {
+    for (const n of nubes) {
+      const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r)
+      g.addColorStop(0, `rgba(8,22,30,${id === 'nuboso' ? 0.26 : 0.18})`)
+      g.addColorStop(1, 'rgba(8,22,30,0)')
+      ctx.fillStyle = g
+      ctx.beginPath()
+      ctx.ellipse(n.x, n.y, n.r, n.r * 0.62, n.ang, 0, 7)
+      ctx.fill()
+    }
+  }
+}
+/** Los charcos del hoyo (en la cancha, en yardas): agua azulada con su brillo y, si llueve, las gotas que pican. */
+function dibujarCharcos() {
+  const cl = ronda && !ronda.terminada ? ronda.clima : null
+  const lista = cl?.charcos?.[ronda.idx]
+  if (!lista?.length) return
+  const t = performance.now() / 1000
+  const llueve = cl.id === 'lluvia' || cl.id === 'tormenta'
+  for (const q of lista) {
+    const [x, y] = q.pos
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.rotate(q.ang)
+    ctx.fillStyle = 'rgba(54,96,130,.72)'
+    ctx.strokeStyle = 'rgba(12,43,28,.45)'
+    ctx.lineWidth = 0.18
+    ctx.beginPath()
+    ctx.ellipse(0, 0, q.r, q.r * 0.68, 0, 0, 7)
+    ctx.fill()
+    ctx.stroke()
+    ctx.fillStyle = 'rgba(206,228,240,.35)'
+    ctx.beginPath()
+    ctx.ellipse(-q.r * 0.25, -q.r * 0.2, q.r * 0.45, q.r * 0.16, -0.3, 0, 7)
+    ctx.fill()
+    if (llueve) {
+      ctx.strokeStyle = 'rgba(214,232,244,.6)'
+      ctx.lineWidth = 0.08
+      for (let i = 0; i < 4; i++) {
+        const u = (t * 0.9 + i * 0.27 + q.ang) % 1
+        const px = Math.sin(i * 2.3 + q.ang * 5) * q.r * 0.5, py = Math.cos(i * 1.7 + q.ang * 3) * q.r * 0.3
+        ctx.globalAlpha = 1 - u
+        ctx.beginPath()
+        ctx.ellipse(px, py, 0.2 + u * 0.9, (0.2 + u * 0.9) * 0.6, 0, 0, 7)
+        ctx.stroke()
+      }
+    }
+    ctx.restore()
+  }
+}
+// las partículas, en pantalla
+let gotas = [], copos = [], nubes = [], rayo = { prox: 0, t0: -9 }
+function moverClima(dt) {
+  const id = ronda && !ronda.terminada ? ronda.clima?.id : null
+  const area = Math.min(1.8, (W * H) / 330000)
+  const kmh = ronda?.viento.kmh ?? 0
+  const ang = (ronda?.viento.ang ?? 0) + cam.rot
+  const lluvia = id === 'tormenta' ? 200 : id === 'lluvia' ? 95 : 0
+  const nieve = id === 'nieve' ? 90 : 0
+  // la lluvia: cae inclinada para donde sopla
+  while (gotas.length < lluvia * area) gotas.push({ x: Math.random() * W, y: Math.random() * H, v: 700 + Math.random() * 400, l: 10 + Math.random() * 14 })
+  if (gotas.length > lluvia * area) gotas.length = Math.round(lluvia * area)
+  const vx = Math.cos(ang) * kmh * 9, vy = Math.sin(ang) * kmh * 4
+  for (const g of gotas) {
+    g.x += vx * dt; g.y += (g.v + vy) * dt
+    if (g.y > H + 20) { g.y = -20; g.x = Math.random() * W }
+    if (g.x < -30) g.x += W + 60
+    if (g.x > W + 30) g.x -= W + 60
+  }
+  // la nieve: copos que bajan despacio y se mecen
+  while (copos.length < nieve * area) copos.push({ x: Math.random() * W, y: Math.random() * H, r: 1.4 + Math.random() * 2.6, v: 30 + Math.random() * 40, f: Math.random() * 6 })
+  if (copos.length > nieve * area) copos.length = Math.round(nieve * area)
+  for (const c of copos) {
+    c.f += dt * 1.6
+    c.x += (Math.sin(c.f) * 18 + Math.cos(ang) * kmh * 1.5) * dt
+    c.y += c.v * dt
+    if (c.y > H + 10) { c.y = -10; c.x = Math.random() * W }
+    if (c.x < -10) c.x += W + 20
+    if (c.x > W + 10) c.x -= W + 20
+  }
+  // las nubes (en la cancha): cruzan con el viento y vuelven a entrar por el otro lado
+  if (!nubes.length) for (let i = 0; i < 5; i++) nubes.push({ x: Math.random() * M.MUNDO.w, y: Math.random() * M.MUNDO.h, r: 45 + Math.random() * 45, ang: Math.random() * 3 })
+  const vn = 3 + kmh * 0.35, wa = ronda?.viento.ang ?? 0
+  for (const n of nubes) {
+    n.x += Math.cos(wa) * vn * dt; n.y += Math.sin(wa) * vn * dt
+    if (n.x < -n.r) n.x += M.MUNDO.w + 2 * n.r
+    if (n.x > M.MUNDO.w + n.r) n.x -= M.MUNDO.w + 2 * n.r
+    if (n.y < -n.r) n.y += M.MUNDO.h + 2 * n.r
+    if (n.y > M.MUNDO.h + n.r) n.y -= M.MUNDO.h + 2 * n.r
+  }
+  // los rayos (lluvia intensa): un flash doble cada tanto y el trueno un poco después
+  const ahora = performance.now() / 1000
+  if (id === 'tormenta') {
+    if (!rayo.prox) rayo.prox = ahora + 3 + Math.random() * 5
+    if (ahora > rayo.prox) {
+      rayo = { t0: ahora, prox: ahora + 6 + Math.random() * 9, x: W * (0.15 + Math.random() * 0.7) }
+      setTimeout(() => S.trueno(), 350 + Math.random() * 900)
+    }
+  } else rayo.prox = 0
+}
+function dibujarClima() {
+  const id = ronda && !ronda.terminada ? ronda.clima?.id : null
+  const ahora = performance.now()
+  // lo que deja cada tiro
+  fxClima = fxClima.filter((f) => ahora - f.t0 < 900)
+  for (const f of fxClima) {
+    const u = (ahora - f.t0) / 900
+    const [x, y] = w2s(f.pos)
+    ctx.save()
+    if (f.tipo === 'splash') {
+      ctx.strokeStyle = `rgba(214,232,244,${1 - u})`
+      ctx.lineWidth = 2.2
+      for (const k of [0, 0.3]) { const v = Math.min(1, u + k); ctx.beginPath(); ctx.ellipse(x, y, 6 + v * 26, (6 + v * 26) * 0.55, 0, 0, 7); ctx.stroke() }
+      ctx.fillStyle = `rgba(206,228,240,${1 - u})`
+      for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; const d = 6 + u * 22; ctx.beginPath(); ctx.arc(x + Math.cos(a) * d, y - Math.sin(Math.PI * u) * 16 + Math.sin(a) * d * 0.5, 2.2 * (1 - u) + 0.6, 0, 7); ctx.fill() }
+    } else if (f.tipo === 'polvo' || f.tipo === 'nieve') {
+      ctx.fillStyle = f.tipo === 'polvo' ? `rgba(196,160,104,${0.55 * (1 - u)})` : `rgba(255,255,255,${0.8 * (1 - u)})`
+      for (const [dx, dy, r] of [[-8, 0, 7], [0, -5, 9], [8, 1, 7], [-3, 4, 6], [4, 5, 6]]) { ctx.beginPath(); ctx.arc(x + dx * (1 + u * 1.6), y + dy * (1 + u) - u * 8, r * (0.6 + u * 0.9), 0, 7); ctx.fill() }
+    } else if (f.tipo === 'gotas') {
+      ctx.strokeStyle = `rgba(214,232,244,${0.8 * (1 - u)})`
+      ctx.lineWidth = 1.6
+      ctx.beginPath(); ctx.ellipse(x, y, 4 + u * 16, (4 + u * 16) * 0.5, 0, 0, 7); ctx.stroke()
+    }
+    ctx.restore()
+  }
+  if (!id) return
+  ctx.save()
+  // la lluvia
+  if (gotas.length) {
+    const kmh = ronda.viento.kmh, ang = ronda.viento.ang + cam.rot
+    const dx = Math.cos(ang) * kmh * 0.5, dy = 1
+    const n = Math.hypot(dx, dy)
+    ctx.strokeStyle = id === 'tormenta' ? 'rgba(220,234,246,.5)' : 'rgba(220,234,246,.38)'
+    ctx.lineWidth = id === 'tormenta' ? 1.4 : 1.1
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    for (const g of gotas) { ctx.moveTo(g.x, g.y); ctx.lineTo(g.x - (dx / n) * g.l, g.y - (dy / n) * g.l) }
+    ctx.stroke()
+  }
+  // la nieve
+  if (copos.length) {
+    ctx.fillStyle = 'rgba(255,255,255,.92)'
+    ctx.beginPath()
+    for (const c of copos) { ctx.moveTo(c.x + c.r, c.y); ctx.arc(c.x, c.y, c.r, 0, 7) }
+    ctx.fill()
+  }
+  // el rayo: la pantalla se pone blanca dos veces y un relámpago arriba
+  const tr = ahora / 1000 - rayo.t0
+  if (id === 'tormenta' && tr < 0.6) {
+    const a = tr < 0.08 ? 0.55 : tr < 0.16 ? 0.1 : tr < 0.26 ? 0.4 : Math.max(0, 0.4 * (1 - (tr - 0.26) / 0.34))
+    ctx.fillStyle = `rgba(236,242,255,${a})`
+    ctx.fillRect(0, 0, W, H)
+    if (tr < 0.3) {
+      ctx.strokeStyle = 'rgba(255,255,255,.95)'
+      ctx.lineWidth = 3
+      ctx.lineJoin = 'round'
+      ctx.beginPath()
+      let x = rayo.x, y = 0
+      ctx.moveTo(x, y)
+      for (let i = 0; i < 7; i++) { x += (Math.sin(rayo.x * 0.37 + i * 2.1) * 26); y += H * 0.05; ctx.lineTo(x, y) }
+      ctx.stroke()
+    }
+  }
+  // el sol: un brillo cálido arriba, con rayos que giran despacito
+  if (id === 'soleado') {
+    const sx = W * 0.92, sy = H * 0.04
+    const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, Math.max(W, H) * 0.55)
+    g.addColorStop(0, 'rgba(255,236,170,.42)')
+    g.addColorStop(0.35, 'rgba(255,214,120,.12)')
+    g.addColorStop(1, 'rgba(255,214,120,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, W, H)
+    ctx.translate(sx, sy)
+    ctx.rotate(ahora / 9000)
+    ctx.fillStyle = 'rgba(255,240,190,.09)'
+    for (let i = 0; i < 9; i++) { ctx.rotate((Math.PI * 2) / 9); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.max(W, H), -40); ctx.lineTo(Math.max(W, H), 40); ctx.closePath(); ctx.fill() }
+  }
+  ctx.restore()
 }
 // ── ráfagas: líneas finitas que cruzan la cancha para donde sopla; más viento, más líneas y más rápidas ──
 const rafagas = []
@@ -4405,7 +4708,7 @@ function pelota(p, alt, alfa = 1, pantalla = null) {
   ctx.ellipse(x + 1, y + 1, r * 0.9, r * 0.6, 0, 0, 7)
   ctx.fill()
   ctx.globalAlpha = alfa
-  ctx.fillStyle = '#ffffff'
+  ctx.fillStyle = ronda?.clima?.id === 'nieve' ? '#ff7a1a' : '#ffffff' // en la nieve, la pelota naranja (si no, no se ve)
   ctx.strokeStyle = 'rgba(12,43,28,.55)'
   ctx.lineWidth = 1
   ctx.beginPath()
@@ -4581,6 +4884,32 @@ function monoBueno(x, y, tam) {
   ctx.restore()
 }
 
+/**
+ * El MODO PRO: ni línea punteada ni zona de pique. Solo una flechita corta para dónde sale y el aro de la fuerza
+ * alrededor de la pelota (cuánto le pegás, no dónde cae): la distancia la calculás vos.
+ */
+function apuntePro(a, bx, by, col) {
+  const dir = (a.putt ? a.ang : a.plan.cuerda ?? a.ang) + cam.rot
+  const r0 = Math.max(14, radioPelota() + 4)
+  const r1 = r0 + 22
+  const flecha = () => {
+    ctx.beginPath()
+    ctx.moveTo(bx + Math.cos(dir) * r0, by + Math.sin(dir) * r0)
+    ctx.lineTo(bx + Math.cos(dir) * r1, by + Math.sin(dir) * r1)
+    ctx.moveTo(bx + Math.cos(dir) * r1 + Math.cos(dir + 2.5) * 9, by + Math.sin(dir) * r1 + Math.sin(dir + 2.5) * 9)
+    ctx.lineTo(bx + Math.cos(dir) * r1, by + Math.sin(dir) * r1)
+    ctx.lineTo(bx + Math.cos(dir) * r1 + Math.cos(dir - 2.5) * 9, by + Math.sin(dir) * r1 + Math.sin(dir - 2.5) * 9)
+  }
+  ctx.lineJoin = 'round'
+  flecha(); ctx.strokeStyle = 'rgba(12,43,28,.8)'; ctx.lineWidth = 7; ctx.stroke()
+  flecha(); ctx.strokeStyle = a.putt ? C.cream : col; ctx.lineWidth = 3.5; ctx.stroke()
+  const ra = Math.max(20, radioPelota() + 10)
+  ctx.strokeStyle = 'rgba(12,43,28,.55)'
+  ctx.lineWidth = 5
+  ctx.beginPath(); ctx.arc(bx, by, ra, 0, 7); ctx.stroke()
+  ctx.strokeStyle = a.fondo ? C.red : C.gold
+  ctx.beginPath(); ctx.arc(bx, by, ra, -Math.PI / 2, -Math.PI / 2 + Math.min(1, a.p) * 2 * Math.PI); ctx.stroke()
+}
 function dibujarApunte(a) {
   const [bx, by] = w2s(ronda.pelota)
   const [dx, dy] = w2s(a.destino)
@@ -4596,6 +4925,7 @@ function dibujarApunte(a) {
   ctx.arc(drag.x, drag.y, 10, 0, 7)
   ctx.stroke()
   ctx.lineCap = 'round'
+  if (ronda.pro) { apuntePro(a, bx, by, col); return } // el MODO PRO: sin líneas punteadas ni dónde cae
   if (a.putt) {
     // putt: solo la dirección y la fuerza; la distancia la medís vos
     const dir = a.ang + cam.rot
@@ -4787,6 +5117,7 @@ function tarjetaFinal() {
   R.contarVuelta({ apodo: ronda.carta.apodo, lp: !!ronda.lp })
   pintarConteo()
   S.viento(0)
+  S.lluvia(0)
   S.musica('final')
   estado = 'fin'
   $('#hud-top').hidden = true
@@ -5192,6 +5523,7 @@ function irAlInicio() {
   estado = 'portada'
   S.musica(null)
   S.viento(0)
+  S.lluvia(0)
   obj = vistaGeneral()
   velCam = 1
   pintarConteo()
@@ -5314,15 +5646,17 @@ function pintarMatch() {
   pintarAvisoMatch()
   const lista = $('#mt-lista')
   $('#mt-buscar').hidden = mtTab !== 'desafiar'
+  $('#mt-pro').hidden = mtTab !== 'desafiar'
+  $('#mt-pro').setAttribute('aria-pressed', String(mtPro))
   if (mtTab === 'desafiar') {
-    $('#mt-nota').textContent = 'Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma. Mismo viento y banderas para los dos.'
+    $('#mt-nota').textContent = 'Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma. Mismo clima, viento y banderas para los dos.'
     if (!mtRivales) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudo cargar la lista. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; return }
     const q = $('#mt-buscar').value.trim().toLowerCase()
     const rs = mtRivales.filter((r) => !q || r.nombre.toLowerCase().includes(q))
     lista.innerHTML = rs.length ? rs.map((r) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(r.nombre.charAt(0).toUpperCase())}</span>
         <span class="rk-nombre"><b>${esc(r.nombre)}</b>${r.sdga ? '<small>⛳ SDGA</small>' : ''}</span>
-        <button class="mt-btn" type="button" data-desafiar="${esc(r.uid)}">Desafiar</button>
+        <button class="mt-btn${mtPro ? ' pro' : ''}" type="button" data-desafiar="${esc(r.uid)}">${mtPro ? 'Desafiar 🎯' : 'Desafiar'}</button>
       </li>`).join('') : `<li class="rk-vacio">${q ? 'Nadie con ese nombre.' : 'Todavía no hay a quién desafiar.'}</li>`
     return
   }
@@ -5337,12 +5671,12 @@ function pintarMatch() {
   const html = [
     sec('Te desafiaron', meToca.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.retador.alias)}</b><small>Jugás con ${esc(d.retador.emoji)} ${esc(String(d.retador.apodo).replace(/ \(Đ\)$/, ''))} · ya jugó</small></span>
+        <span class="rk-nombre"><b>${esc(d.retador.alias)}${M.esPro(d.semilla) ? '<span class="pro-tag">🎯 PRO</span>' : ''}</b><small>Jugás con ${esc(d.retador.emoji)} ${esc(String(d.retador.apodo).replace(/ \(Đ\)$/, ''))} · ya jugó</small></span>
         <button class="mt-btn oro" type="button" data-responder="${esc(d.id)}">Jugar</button>
       </li>`)),
     sec('Esperando que jueguen', espero.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.rival.alias)}</b><small>Hiciste ${esc(golpesTxt(d.retador))}</small></span>
+        <span class="rk-nombre"><b>${esc(d.rival.alias)}${M.esPro(d.semilla) ? '<span class="pro-tag">🎯 PRO</span>' : ''}</b><small>Hiciste ${esc(golpesTxt(d.retador))}</small></span>
         <span class="mt-estado" title="Esperando que juegue">${gi('calendar')}</span>
       </li>`)),
   ].join('')
@@ -5496,6 +5830,9 @@ $('#mt-tabs').addEventListener('click', (e) => {
   pintarMatch()
 })
 $('#mt-buscar').addEventListener('input', pintarMatch)
+// el MODO PRO: el desafío sale sin líneas punteadas (para los dos)
+let mtPro = false
+$('#mt-pro').addEventListener('click', () => { mtPro = !mtPro; pintarMatch() })
 // el resultado de un match del historial, por WhatsApp
 $('#mt-lista').addEventListener('click', (e) => {
   const b = e.target.closest('[data-wa]')
@@ -5509,7 +5846,8 @@ $('#mt-lista').addEventListener('click', async (e) => {
   if (reto) {
     const rival = mtRivales?.find((r) => r.uid === reto.dataset.desafiar)
     if (!rival) return
-    matchModo = { tipo: 'reto', rival, semilla: crypto.getRandomValues(new Uint32Array(1))[0] }
+    const semilla = crypto.getRandomValues(new Uint32Array(1))[0]
+    matchModo = { tipo: 'reto', rival, semilla: mtPro ? M.semillaPro(semilla) : semilla }
     mostrarElegir()
     return
   }
@@ -6866,6 +7204,7 @@ function mostrarElegir() {
   document.body.classList.remove('retro', 'modo-ruleta')
   S.musica(null)
   S.viento(0)
+  S.lluvia(0)
   for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'stats', 'resumen', 'match']) $('#' + id).hidden = true
   $('.mazo-tit').innerHTML = matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}` : 'Elegí tu nivel de dificultad'
   $('#hud-top').hidden = true

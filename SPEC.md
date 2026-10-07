@@ -374,3 +374,25 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
   - La pelota rodando: un susurro que sigue a la velocidad (`S.rodar`), se apaga al parar.
 - Mejoras: el golpe tiene el clic de la cara del palo y más cuerpo; el pique en el green es un golpecito sordo (antes un "bip" que parecía un aviso); la embocada arranca con el "clonc" hueco de la taza; el tic de la tensión de los monos es de madera (el cuadrado cansaba). Se emparejaron niveles medidos (pico) de los que quedaban muy bajos: el labio, el aviso de los monos, los soplidos.
 - iPhone: después de bloquear la pantalla o de una llamada el audio queda "interrupted" (no "suspended") y no volvía; ahora con el próximo toque se despierta igual.
+
+## ☔ El clima del día (2026-10-07)
+
+- Cada vuelta tiene su clima, sorteado (`sortearClima`, `CLIMAS` en el motor). En un **match** sale de la semilla (`condicionesMatch` → `clima`, `semillaClima`): los dos juegan el mismo día, con los mismos charcos, el mismo viento que cambia y el palo que resbala en el mismo golpe. Para probar: `?clima=lluvia` (soleado, nuboso, seco, mojado, lluvia, tormenta, nieve).
+- Al empezar, un cartel "HOY EN SAN DIEGO" con el emoji, el nombre y qué hace (se va solo o tocándolo); arriba a la derecha, abajo del viento, queda un chip con el clima (tocándolo vuelve el cartel). La banda de cada hoyo también lo dice.
+- Las mecánicas (perillas en `CLIMAS`):
+  - ☀️ **Soleado pleno** (22%): la pelota vuela 5% más (se ve al apuntar), greens rápidos (el putt se pasa de la línea) y los monos duermen la siesta: salen tarde y lentos. Brillo de sol arriba con rayos que giran.
+  - ⛅ **Nublado** (22%): el viento cambia en cada tiro, de dirección y fuerza (sale de la semilla y el número de golpe). Sombras de nubes que cruzan la cancha.
+  - 🌵 **Día seco** (16%): la cancha dura: pica alto y rueda una barbaridad (pique ×1,7, roce ×0,6). Polvo al picar.
+  - 💧 **Día mojado** (16%): la pelota se clava y casi no rueda, greens lentos, 2 charcos por hoyo y, al parar en la calle o el rough, 30% de que quede **con barro**: el próximo tiro sale con 1,8× el error (chip "🟤 CON BARRO").
+  - 🌧️ **Lluvia** (14%): vuela 5% menos, rueda poco, greens lentos, 4 charcos por hoyo. Lluvia en pantalla y su sonido.
+  - ⛈️ **Lluvia intensa** (9%): vuela 10% menos, viento de 15 km/h para arriba, greens lentísimos, 7 charcos por hoyo, **el palo resbala** (20% de los tiros: la pega finita y vuela 55% de lo que iba; "🫧 ¡Se le resbaló el palo!") y **no hay monos** (se escondieron). Diluvio, rayos con flash y trueno.
+  - ❄️ **¡Nevó en San Diego!** (1%, el easter egg): la cancha blanca, copos, la pelota **naranja**, se clava en la nieve donde cae (pique ×0,08, roce ×3), greens lentos y los monos en cámara lenta. El cartel dice "EASTER EGG · 1 EN 100" y suena el logro.
+- **Charcos**: en la calle de cada hoyo (sorteados con la semilla del clima, sin pisarse). Si la pelota cae o rueda en uno, se frena de golpe ("💦 ¡Al charco!", salpicadura y sonido). Se dibujan con su brillo y, si llueve, con gotas que pican.
+- Deme, Demetrio y el tiro que va solo al hoyo no sienten el clima; el imán de Fito y de Joaco usa el mismo green (lento o rápido), así que entra igual.
+- Calibración (Rorro, HCP 14,6, 80 vueltas por clima, `CLIMA=… node calibrar.mjs`; el bot prueba sus tiros con el clima, sin saber de antemano si le resbala el palo): sin clima +3,49 (LP 5%) · soleado +3,63 (11%) · nublado +3,29 (5%) · seco +3,08 (4%) · mojado +3,96 (6%) · lluvia +3,51 (1%) · **lluvia intensa +5,29 (15%)**, el día más difícil · nieve +3,48 (9%). `DIFICULTAD_REAL` sigue midiéndose sin clima.
+
+## 🎯 MODO PRO en el match (2026-10-07)
+
+- En Match › Desafiar, el interruptor **MODO PRO**: el desafío sale sin líneas punteadas, para los dos. Va marcado en la semilla (`semillaPro`: los 16 bits de abajo = `PRO.marca`), así viaja con el match sin tocar la base de la SDGApp; el que responde lo juega igual (`aplicarMatch` → `r.pro`). Una semilla común es PRO por casualidad 1 vez en 65.536.
+- En la vuelta PRO no hay línea punteada, ni zona de pique, ni "PEGA EN EL ÁRBOL", ni la vista del Dibuje maestro: solo una flechita corta para dónde sale y el aro de la fuerza alrededor de la pelota. La cámara no sigue a dónde cae (se abre hasta el hoyo o 200 yd). Chip "🎯 MODO PRO" y "· 🎯 modo pro" en la banda de cada hoyo; en Pendientes, la etiqueta 🎯 PRO.
+

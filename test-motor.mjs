@@ -1164,6 +1164,130 @@ ok('ranking: menos golpes arriba; a igual golpes, el más rápido al milisegundo
 })
 
 
+ok('El clima: se sortea (la nieve, 1 de cada 100) y en un match sale de la semilla, igual para los dos', () => {
+  const veces = {}
+  const N = 20000
+  for (let i = 0; i < N; i++) { const id = M.sortearClima(M.rngDesde(i * 7919 + 13)); veces[id] = (veces[id] ?? 0) + 1 }
+  for (const [id, c] of Object.entries(M.CLIMAS)) assert.ok(Math.abs((veces[id] ?? 0) / N - c.prob) < 0.012, `${id}: ${veces[id]}`)
+  assert.ok(Math.abs(Object.values(M.CLIMAS).reduce((a, c) => a + c.prob, 0) - 1) < 1e-9)
+  // el match: mismo clima y mismos charcos con la misma semilla; el viento y las banderas, como antes
+  const a = M.condicionesMatch(123456), b = M.condicionesMatch(123456)
+  assert.equal(a.clima, b.clima)
+  assert.equal(a.semillaClima, b.semillaClima)
+  const rv = M.rngDesde(123456)
+  assert.deepEqual(a.vientos, M.HOYOS.map(() => M.vientoAleatorio(rv)))
+  const r1 = M.ponerClima(campo, M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5)), 'lluvia', a.semillaClima)
+  const r2 = M.ponerClima(campo, M.nuevaRonda({ apodo: 'Lechu' }, fijo(0.5)), 'lluvia', a.semillaClima)
+  assert.deepEqual(r1.clima.charcos, r2.clima.charcos)
+  // los charcos, en la calle (fairway) de cada hoyo, sin pisarse
+  for (const hoyo of r1.clima.charcos) {
+    assert.equal(hoyo.length, M.CLIMAS.lluvia.charcos)
+    for (const q of hoyo) assert.equal(M.celda(campo, q.pos), 'f')
+  }
+  // la lluvia intensa: sin monos y con viento fuerte; el sol: los monos duermen la siesta
+  const t = M.ponerClima(campo, M.nuevaRonda({ apodo: 'Rorro' }, fijo(0)), 'tormenta', 1)
+  assert.equal(t.monos.length, 0)
+  assert.ok(t.viento.kmh >= M.CLIMAS.tormenta.vientoMin)
+  const sol = M.ponerClima(campo, M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5)), 'soleado', 1)
+  assert.ok(sol.monos.length > 0 && sol.monos.every((m) => m.siesta === M.CLIMAS.soleado.siesta))
+})
+
+ok('El clima en la cancha: rueda más o menos, vuela más o menos, greens rápidos o lentos y los charcos la frenan', () => {
+  const linea = angulo(h15.calle[1], h15.pin)
+  const drive = (id) => {
+    const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 10 }, fijo(0.5)), monos: [], viento: calma, pelota: [...h15.calle[1]], lie: 'fairway' }
+    if (id) { M.ponerClima(plano, r, id, 77); r.clima.charcos = r.clima.charcos.map(() => []) } // sin charcos, para medir la rodada
+    const plan = M.planTiro(plano, r, linea, 0.6)
+    const t = M.simular(plano, M.golpear(plano, r, linea, 0.6, sinRuido()), h15.pin)
+    return { plan, rodada: M.dist(t.pos, [r.pelota[0], r.pelota[1]]), t }
+  }
+  const normal = drive(null), seco = drive('seco'), mojado = drive('mojado'), nieve = drive('nieve'), sol = drive('soleado'), lluvia = drive('lluvia')
+  // el carry, en el plan (se ve al apuntar)
+  assert.ok(Math.abs(sol.plan.carry / normal.plan.carry - M.CLIMAS.soleado.carry) < 1e-9)
+  assert.ok(Math.abs(lluvia.plan.carry / normal.plan.carry - M.CLIMAS.lluvia.carry) < 1e-9)
+  // la rodada después del pique: seco > normal > mojado > nieve (casi nada)
+  const rueda = (x) => M.dist(x.t.pos, x.plan.destino)
+  assert.ok(rueda(seco) > rueda(normal) * 1.4, `${rueda(seco)} ${rueda(normal)}`)
+  assert.ok(rueda(mojado) < rueda(normal) * 0.6, `${rueda(mojado)} ${rueda(normal)}`)
+  assert.ok(rueda(nieve) < rueda(normal) * 0.25, `${rueda(nieve)} ${rueda(normal)}`)
+  // los putts: con lluvia se queda corto; con sol se pasa
+  const putt = (id) => {
+    const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [], lie: 'green', pelota: [h15.pin[0], h15.pin[1] + 12] }
+    if (id) M.ponerClima(plano, r, id, 3)
+    const t = M.simular(plano, M.golpear(plano, r, -Math.PI / 2, 0.25, sinRuido()), null) // hacia el hoyo (sin hoyo): siempre en el green
+    return M.dist(t.pos, [h15.pin[0], h15.pin[1] + 12])
+  }
+  assert.ok(putt('lluvia') < putt(null) * 0.92 && putt('soleado') > putt(null) * 1.1, `${putt('lluvia')} ${putt(null)} ${putt('soleado')}`)
+  // el charco: si cae en uno, ahí queda
+  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 10 }, fijo(0.5)), monos: [], viento: calma, pelota: [...h15.calle[1]], lie: 'fairway' }
+  M.ponerClima(plano, r, 'lluvia', 5)
+  const destino = M.planTiro(plano, r, linea, 0.6).destino
+  r.clima.charcos[0] = [{ pos: [...destino], r: 3, ang: 0 }]
+  const t = M.simular(plano, M.golpear(plano, r, linea, 0.6, sinRuido()), h15.pin)
+  assert.ok(t.eventos.some((e) => e.tipo === 'charco'))
+  assert.ok(M.dist(t.pos, destino) < 3)
+  // a Joaco el green lento no le cambia nada: de 3 metros la mete igual (el imán usa el mismo roce)
+  const lechu = { ...M.nuevaRonda({ apodo: 'Lechu', emoji: '🦉' }, fijo(0.5)), monos: [], lie: 'green', pelota: [h15.pin[0], h15.pin[1] + 3] }
+  M.ponerClima(plano, lechu, 'tormenta', 9)
+  assert.equal(M.simular(plano, M.golpear(plano, lechu, -Math.PI / 2, 0.05, fijo(0.9)), h15.pin).embocada, true)
+})
+
+ok('El MODO PRO del match: va marcado en la semilla y la ronda lo sabe (los dos lados juegan igual)', () => {
+  for (const sem of [0, 1, 123456789, 0xffffffff, 0xb0ca, 0x8000b0ca]) {
+    const pro = M.semillaPro(sem)
+    assert.ok(M.esPro(pro) && pro >= 0 && pro <= 0xffffffff && Number.isInteger(pro))
+    assert.equal(pro >>> 16, sem >>> 16) // conserva el resto de la semilla
+  }
+  // de 100.000 semillas al azar, casi ninguna es PRO sin querer (1 en 65.536)
+  let sin = 0
+  const rng = M.rngDesde(42)
+  for (let i = 0; i < 100000; i++) if (M.esPro(Math.floor(rng() * 4294967296))) sin++
+  assert.ok(sin <= 6, `${sin}`)
+  const r = M.aplicarMatch(M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5)), M.condicionesMatch(M.semillaPro(987654)))
+  assert.equal(r.pro, true)
+  assert.equal(M.aplicarMatch(M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5)), M.condicionesMatch(987654)).pro, false)
+  assert.ok(M.CLIMAS[M.condicionesMatch(M.semillaPro(987654)).clima])
+})
+
+ok('El clima, tiro a tiro: el palo que resbala, la pelota con barro y el viento que cambia (igual en los dos lados de un match)', () => {
+  const nueva = (id) => {
+    const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 10 }, fijo(0.5)), viento: calma, pelota: [...h15.calle[1]], lie: 'fairway' }
+    return M.ponerClima(plano, r, id, 11)
+  }
+  const linea = angulo(h15.calle[1], h15.pin)
+  // el palo que resbala: sale de la semilla del clima, el hoyo y el golpe (igual en los dos lados de un match) y la pega finita
+  let resbalones = 0
+  const conSemilla = (sem) => { const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 10 }, fijo(0.5)), viento: calma, pelota: [...h15.calle[1]], lie: 'fairway' }; return M.ponerClima(plano, r, 'tormenta', sem) }
+  for (let i = 0; i < 1000; i++) if (M.golpear(plano, conSemilla(i), linea, 0.6, M.rngDesde(i)).resbalo) resbalones++
+  assert.ok(Math.abs(resbalones / 1000 - M.CLIMAS.tormenta.resbalon) < 0.04, `${resbalones}`)
+  for (let i = 0; i < 20; i++) assert.equal(M.golpear(plano, conSemilla(i), linea, 0.6, M.rngDesde(1)).resbalo, M.golpear(plano, conSemilla(i), linea, 0.6, M.rngDesde(2)).resbalo)
+  const sem = [...Array(200).keys()].find((i) => M.golpear(plano, conSemilla(i), linea, 0.6, fijo(0.5)).resbalo)
+  const finita = M.planTiro(plano, conSemilla(sem), linea, 0.6)
+  const tr = M.golpear(plano, conSemilla(sem), linea, 0.6, sinRuido())
+  assert.ok(Math.abs(Math.hypot(...tr.carryVec) / finita.carry - M.CLIMA_EFECTO.resbalonCarry) < 0.02, `${Math.hypot(...tr.carryVec) / finita.carry}`)
+  for (let i = 0; i < 100; i++) assert.notEqual(M.golpear(plano, nueva('lluvia'), linea, 0.6, M.rngDesde(i)).resbalo, true)
+  // el barro: queda en la calle con barro (a veces) y el próximo tiro sale con más error
+  let conBarro = 0
+  for (let i = 0; i < 1000; i++) { const r = nueva('mojado'); M.climaTrasTiro(plano, r, M.rngDesde(i)); if (r.barro) conBarro++ }
+  assert.ok(Math.abs(conBarro / 1000 - M.CLIMAS.mojado.barro) < 0.04, `${conBarro}`)
+  const r = nueva('mojado')
+  r.barro = true
+  const t = M.golpear(plano, r, linea, 0.6, sinRuido())
+  assert.ok(t.barro && t.eventos.some((e) => e.tipo === 'barro') && !r.barro)
+  // nublado: el viento cambia después de cada tiro; con la misma semilla y el mismo golpe, el mismo viento
+  const a = nueva('nuboso'), b = nueva('nuboso')
+  a.golpes = b.golpes = 2
+  M.climaTrasTiro(plano, a, M.rngDesde(1)); M.climaTrasTiro(plano, b, M.rngDesde(999))
+  assert.deepEqual(a.viento, b.viento)
+  const antes = { ...a.viento }
+  a.golpes = 3
+  M.climaTrasTiro(plano, a, M.rngDesde(1))
+  assert.notDeepEqual(a.viento, antes)
+  // sin clima, nada
+  const sin = { ...M.nuevaRonda({ apodo: 'Rorro' }, fijo(0.5)), lie: 'fairway' }
+  assert.equal(M.climaTrasTiro(plano, sin, fijo(0)), null)
+})
+
 ok('Juanpa: si la iba a meter, con chance 35% sale un mapache del hoyo, la frena y la deja casi dada', () => {
   const nueva = () => ({ ...M.nuevaRonda({ apodo: 'Mapache', emoji: '🦝', hcp: 3 }, fijo(0.5)), monos: [], viento: calma, lie: 'green', pelota: [h15.pin[0], h15.pin[1] + 4] })
   // la chance (en cualquier tiro, también en el green); a los demás, nunca
