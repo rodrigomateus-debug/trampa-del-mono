@@ -359,3 +359,16 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 
 - Miguelón sacado tirando muy para atrás: con un error tan grande, el ángulo del óvalo pasaba los 90° y la tangente se iba al infinito (o daba negativa), y el óvalo quedaba como una línea roja punteada de punta a punta. Ahora el ángulo y el tamaño del óvalo en pantalla tienen tope, y el tiro sacado se muestra como un abanico rojo desde la pelota, tan abierto como el error (puede ir para cualquier lado ahí), con el cartel "SACADO 😡" a la vista.
 - La línea punteada del putt tiene más contraste en el green claro: los puntos van con un borde tinta abajo (como los botones), más gruesos; la del Mago (dorada, que dobla) termina en una punta de flecha para el lado que dobla.
+
+## Revisión de los sonidos (2026-10-07)
+
+- Sonidos nuevos para lo que no tenía (o usaba uno prestado):
+  - Miguelón sacado: un "¡GRRRAAH!" con pisotón (`S.bronca`, antes sonaba la risa del mono); cuando la furia sube media barra, un refunfuño (`S.grunido`). El palo revoleado suena a helicóptero (`S.helicoptero`).
+  - El Sueco: la flecha suena a arco, la cuerda y el silbido (`S.flecha`), en vez del golpe de palo.
+  - Juanpa: el árbol que brota hace "plop" con hojas (`S.arbolito`); la ráfaga es un soplido largo (`S.rafaga`); el carrito tiene su zumbido eléctrico y bocina "bip bip" (`S.carrito`, antes la risa del mono).
+  - Tito: cada swipe sopla más fuerte cuanto más largo (`S.soplo`).
+  - El +1 de una multa: dos notas que bajan (`S.multa`).
+  - Rodal dibujando con el Dibuje maestro: el marcador que raspa (`S.marcador`).
+  - La pelota rodando: un susurro que sigue a la velocidad (`S.rodar`), se apaga al parar.
+- Mejoras: el golpe tiene el clic de la cara del palo y más cuerpo; el pique en el green es un golpecito sordo (antes un "bip" que parecía un aviso); la embocada arranca con el "clonc" hueco de la taza; el tic de la tensión de los monos es de madera (el cuadrado cansaba). Se emparejaron niveles medidos (pico) de los que quedaban muy bajos: el labio, el aviso de los monos, los soplidos.
+- iPhone: después de bloquear la pantalla o de una llamada el audio queda "interrupted" (no "suspended") y no volvía; ahora con el próximo toque se despierta igual.

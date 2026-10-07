@@ -2032,6 +2032,7 @@ lienzo.addEventListener('pointermove', (e) => {
       if (Math.hypot(ev.clientX - trazo.ult[0], ev.clientY - trazo.ult[1]) < 3) continue
       trazo.ult = [ev.clientX, ev.clientY]
       trazo.pts.push(s2w(ev.clientX, ev.clientY))
+      S.marcador()
     }
     trazo.plan = M.planTiro(campo, ronda, 0, 0, 0, 0, trazo.pts)
     return
@@ -2085,12 +2086,13 @@ let escVuelo = null
 function pegar(a, base = null) {
   // pegar desarma el LP: si no, un toque al LP después de un putt corto confirmaba sin volver a preguntar
   if (lpArmado) { lpArmado = 0; $('#lp').textContent = textoLP() }
-  S.golpe(a.p, a.putt)
   velCam = 3.5
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
   tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null)
+  if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
+  else S.golpe(a.p, a.putt)
   estela = []
   estado = 'tiro'
   hud()
@@ -2277,7 +2279,7 @@ function soltarSwipeTito() {
   const kmh = Math.min(M.FISICA.vientoMax, (largo / (Math.min(W, H) * 0.45)) * M.FISICA.vientoMax)
   M.rafagaTito(ronda, tiro, Math.atan2(dy, dx) - cam.rot, kmh)
   rafagasTito.push({ ux: dx / largo, uy: dy / largo, k: kmh / M.FISICA.vientoMax, t0: performance.now() })
-  S.swipe()
+  S.soplo(kmh / M.FISICA.vientoMax)
 }
 /** Las ráfagas de los swipes, dibujadas en la pelota (las mismas líneas de viento que la de Juanpa). */
 function dibujarRafagasTito() {
@@ -2314,6 +2316,7 @@ function cuadro(t) {
   requestAnimationFrame(cuadro)
 }
 function actualizar(dt) {
+  S.rodar(estado === 'tiro' && tiro?.fase === 'rodando' && !tiro.vuelta ? Math.hypot(tiro.v[0], tiro.v[1]) : 0) // el susurro de la pelota que rueda
   if (estado === 'tiro' && tiro) {
     const h = M.hoyoActual(ronda)
     acc += dt
@@ -3370,7 +3373,7 @@ function pintarFuria(j, oculto) {
   void caja.offsetWidth
   caja.classList.add('sube')
   if (ev.estalla) revolearPalo()
-  else { const [lg, extra] = FURIA_TXT[ev.motivo] ?? FURIA_TXT.primero; voz = { lg, extra, hasta: performance.now() + 4200 } }
+  else { S.grunido(); const [lg, extra] = FURIA_TXT[ev.motivo] ?? FURIA_TXT.primero; voz = { lg, extra, hasta: performance.now() + 4200 } }
 }
 /** La barra se llenó: Miguelón aparece sacado y revolea el palo. El próximo tiro sale con la dispersión máxima. */
 function revolearPalo() {
@@ -3378,7 +3381,7 @@ function revolearPalo() {
   el.hidden = true
   void el.offsetWidth
   el.hidden = false
-  S.robo()
+  S.bronca()
   setTimeout(() => S.helicoptero(3.3), 500)
   voz = { lg: '😡 ¡Miguelón revoleó el palo!', extra: 'Está sacado: el próximo tiro sale para cualquier lado. Después se le pasa', hasta: performance.now() + 6000 }
   clearTimeout(revolearPalo.t)
@@ -3418,6 +3421,7 @@ function contarGolpes() {
   if (!motivo) { caja.classList.add('suma'); return } // un tiro
   caja.classList.add('multa')
   mostrarMas('+1', motivo)
+  S.multa()
 }
 function mostrarMas(grande, chico, reset = false) {
   const el = $('#g-mas')
@@ -4186,7 +4190,10 @@ function sorpresaJuanpa(t) {
   const u = t.fase === 'vuelo' ? t.t / t.T : 1
   if (sp.tipo === 'arbol' && !sp.hecho) {
     const k = (u - (sp.u - 0.3)) / 0.3
-    if (k > 0) { const [x, y] = w2s(M.posVuelo(t, sp.u)); arbolito(x, y, Math.min(1, k * 1.15)) }
+    if (k > 0) {
+      if (!sp.brota) { sp.brota = true; S.arbolito() }
+      const [x, y] = w2s(M.posVuelo(t, sp.u)); arbolito(x, y, Math.min(1, k * 1.15))
+    }
   }
   if (sp.tipo === 'rafaga' && t.fase === 'vuelo' && u > sp.u - 0.04) {
     const [x, y0] = w2s(t.pos)
@@ -4211,8 +4218,8 @@ function sorpresaJuanpa(t) {
       cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
     }
   }
-  if (sp.tipo === 'rafaga' && sp.hecho && !sp.sono) { sp.sono = true; S.swipe() }
-  if (sp.tipo === 'carrito' && t.fase === 'carrito' && !sp.sono) { sp.sono = true; S.robo() }
+  if (sp.tipo === 'rafaga' && sp.hecho && !sp.sono) { sp.sono = true; S.rafaga() }
+  if (sp.tipo === 'carrito' && t.fase === 'carrito' && !sp.sono) { sp.sono = true; S.carrito() }
 }
 /** Al quedar quieta: lo que sigue en pantalla (el árbol que se esfuma, el carrito que se va). */
 function sorpresaQueQueda(t) {
