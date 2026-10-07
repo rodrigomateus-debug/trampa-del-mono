@@ -1935,7 +1935,46 @@ fondo.src = 'cancha.webp'
 // la cancha de cada clima (dibujadas encima de la original, mismo encuadre: el terreno del juego no cambia). La lluvia
 // intensa usa la de lluvia (con más tinte encima); la nieve, la original con el blanco encima
 const CANCHA_CLIMA = { soleado: 'cancha-soleado.webp', nuboso: 'cancha-nuboso.webp', seco: 'cancha-seco.webp', mojado: 'cancha-mojado.webp', lluvia: 'cancha-lluvia.webp', tormenta: 'cancha-lluvia.webp' }
+/**
+ * La lluvia intensa, además, en video: la misma cancha con los árboles moviéndose con el viento (un loop de 8,5 s, sin
+ * costura). Mismo encuadre que el dibujo, a otra escala: `ex`/`ey` px del video por yarda del mapa (medido contra el
+ * terreno: calza igual que el dibujo de lluvia). Mientras carga, si el teléfono no lo reproduce o con "reducir
+ * movimiento", queda el dibujo de siempre.
+ */
+const CANCHA_VIDEO = { tormenta: { src: 'cancha-tormenta.mp4', ex: 2.85, ey: 2.86 } }
+let fondoId = null // el clima de la cancha que se ve (para volver a él después del replay)
+let fondoVideo = null // { el, ex, ey } el video de la cancha, mientras corresponde
+let videoCancha = null // el <video>, uno solo y reusado
+function videoDelClima(id) {
+  const v = CANCHA_VIDEO[id]
+  if (!v || reducido()) {
+    fondoVideo = null
+    videoCancha?.pause()
+    return
+  }
+  if (!videoCancha) {
+    videoCancha = document.createElement('video')
+    Object.assign(videoCancha, { muted: true, loop: true, playsInline: true, preload: 'auto' })
+    videoCancha.setAttribute('playsinline', '')
+    videoCancha.setAttribute('aria-hidden', 'true')
+    // en el DOM (invisible): Safari no siempre decodifica un video suelto
+    videoCancha.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none'
+    document.body.appendChild(videoCancha)
+    videoCancha.addEventListener('error', () => { fondoVideo = null })
+  }
+  if (!videoCancha.src.endsWith(v.src)) videoCancha.src = v.src
+  fondoVideo = { el: videoCancha, ex: v.ex, ey: v.ey }
+  videoCancha.play().catch(() => {}) // sin autoplay (ahorro de batería) se ve su primer cuadro, que es la misma cancha
+}
+// con la app en segundo plano, el video se para
+document.addEventListener('visibilitychange', () => {
+  if (!videoCancha || !fondoVideo) return
+  if (document.hidden) videoCancha.pause()
+  else videoCancha.play().catch(() => {})
+})
 function fondoDelClima(id) {
+  fondoId = id ?? null
+  videoDelClima(id)
   const src = CANCHA_CLIMA[id] ?? 'cancha.webp'
   if (fondo.getAttribute('src') === src) return
   // se cambia cuando la nueva terminó de cargar (mientras, queda la que estaba)
@@ -3716,7 +3755,10 @@ function dibujarFondo({ x0, y0, x1, y1, e }) {
   if (x1 <= x0 || y1 <= y0) return
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'medium'
-  ctx.drawImage(fondo, x0 * e, y0 * e, (x1 - x0) * e, (y1 - y0) * e, x0, y0, x1 - x0, y1 - y0)
+  // la cancha en video (lluvia intensa), apenas tiene un cuadro; si no, el dibujo
+  const v = fondoVideo
+  if (v && v.el.readyState >= 2) ctx.drawImage(v.el, x0 * v.ex, y0 * v.ey, (x1 - x0) * v.ex, (y1 - y0) * v.ey, x0, y0, x1 - x0, y1 - y0)
+  else ctx.drawImage(fondo, x0 * e, y0 * e, (x1 - x0) * e, (y1 - y0) * e, x0, y0, x1 - x0, y1 - y0)
 }
 function dibujar() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -6601,7 +6643,7 @@ async function abrirReplay(d, grabs = null, boton = null) {
   replay = {
     d, pistas, cond, clima, hoyos, viento: M.vientoDelMatch(cond, clima, 0), vientoClave: '0:0',
     t: 0, dur: Math.max(...pistas.map((p) => p.fin)) + 600, vel: 1, play: true, sigue: null, arrastra: false, limpio: false, zona: null, pintado: {},
-    guardado: { ronda, tiro, anim, estado, estela, obj: { ...obj }, retro: document.body.classList.contains('retro'), ocultas, firma, fondo: fondo.getAttribute('src') },
+    guardado: { ronda, tiro, anim, estado, estela, obj: { ...obj }, retro: document.body.classList.contains('retro'), ocultas, firma, fondoId },
   }
   ronda = null; tiro = null; anim = null; estela = []
   estado = 'replay'
@@ -6634,7 +6676,7 @@ function cerrarReplay() {
   $('#replay').hidden = true
   $('#replay').classList.remove('limpio')
   // la cancha y la lluvia que había antes del replay
-  if (g.fondo) fondo.src = g.fondo
+  fondoDelClima(g.fondoId)
   const id = g.ronda?.clima?.id
   S.lluvia(id === 'tormenta' ? 1 : id === 'lluvia' ? 0.55 : 0)
   ronda = g.ronda; tiro = g.tiro; anim = g.anim; estado = g.estado; estela = g.estela
