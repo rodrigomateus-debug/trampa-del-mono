@@ -2107,10 +2107,19 @@ function apunte() {
     plan = M.planTiro(campo, ronda, ang, p, q, tiempo)
   } else drag.tZona = null
   const arbol = putt ? null : M.pinoEnLaSalida(campo, ronda.pelota, plan) // pega en un árbol al salir: la línea en rojo, cortada ahí
-  // el swing de stock: justo en el nudo de ½ o de ¾, con el dedo quieto (no en el putt, la bomba ni con la línea del Águila)
-  const nudo = !putt && !plan.bomba ? M.enNudoStock(p) : null
+  // la bandera de la goma: con qué fuerza pica en la bandera (si llega; en el MODO PRO no se ve dónde cae). Una vez por
+  // tiro: la pelota no se mueve. Con la bandera al alcance, es un nudo más y los otros se reparten alrededor
+  if (drag.goma === undefined) {
+    const pin = M.hoyoActual(ronda).pin, b = ronda.pelota
+    drag.goma = M.nudosGoma(putt || ronda.pro ? null : M.potenciaAlPin(campo, ronda, Math.atan2(pin[1] - b[1], pin[0] - b[0])))
+  }
+  // el swing de stock: justo en un nudo (o en la bandera), con el dedo quieto (no en el putt, la bomba ni con la línea del Águila)
+  const nudo = !putt && !plan.bomba ? M.enNudoStock(p, drag.goma.stock) : null
   const stock = nudo != null && performance.now() - (drag.mov ?? drag.t0) >= M.STOCK.quieto
-  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, nudo, stock }
+  // a fondo: justo en el nudo rojo sale PERFECTO; estirando de más, pasado (con todo el error)
+  const fondo = !putt && !plan.bomba && !plan.comba && p >= 0.97
+  const justo = fondo && M.enFondoJusto(u)
+  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo, justo, nudo, stock, goma: putt ? null : drag.goma }
 }
 
 // el replay: un toque en la cancha (sin arrastrar) saca o trae los controles
@@ -2235,11 +2244,15 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
-  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, !!a.stock)
+  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, a.stock ? a.goma?.stock ?? true : false, !!a.justo)
   if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
   else S.golpe(a.p, a.putt)
-  // salió justo al medio: "PERFECTO" chiquito al lado de donde salió
-  if (tiro.perfecto) { marcarTiro('PERFECTO', ronda.desde ?? golfista.desde ?? ronda.pelota); S.perfecto() }
+  // salió justo al medio: "PERFECTO" chiquito al lado de donde salió. A fondo y justo en el nudo rojo, que se sepa bien
+  if (tiro.fondoJusto) {
+    marcarTiro('¡PERFECTO A FONDO!', ronda.desde ?? golfista.desde ?? ronda.pelota)
+    relatar({ lg: M.elegir(rng, ['¡PERFECTO! A fondo y al medio', '¡A FONDO Y PERFECTO! Qué swing', '¡PERFECTO! La soltó justo']) })
+    S.perfecto(); S.logro()
+  } else if (tiro.perfecto) { marcarTiro('PERFECTO', ronda.desde ?? golfista.desde ?? ronda.pelota); S.perfecto() }
   estela = []
   estado = 'tiro'
   hud()
@@ -5334,16 +5347,26 @@ function apuntePro(a, bx, by, col) {
  * un tiro sin mirar números. A fondo se pone roja y tiembla. (Elegida en el artefacto de potencia, 2026-10-07.)
  */
 const NUDOS = [0.125, 0.25, 0.5, 0.75, 0.97] // en potencia; los de ⅛ y ¼, para los chips cortos; el último es "a fondo" (el mismo umbral del tiro)
-const NUDO_TXT = ['⅛', '¼', '½', '¾', '•']
-const FONDO = NUDOS.length - 1
+const A_FONDO = NUDOS[NUDOS.length - 1]
+/** La mini bandera, parada, adentro de un nudo (centro x, y; `k` = tamaño): palo blanco y la tela del color de la del hoyo. */
+function banderitaEnNudo(x, y, k = 1) {
+  const h = M.hoyoActual(ronda)
+  const [tela] = TELA[h.bandera ?? M.colorBandera(h, h.pin)] ?? TELA.blanca
+  const px = x - 3 * k
+  ctx.lineCap = 'round'
+  ctx.strokeStyle = C.cream; ctx.lineWidth = 2 * k; ctx.beginPath(); ctx.moveTo(px, y + 6 * k); ctx.lineTo(px, y - 7 * k); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(px + 0.5 * k, y - 7 * k); ctx.lineTo(px + 9 * k, y - 3.8 * k); ctx.lineTo(px + 0.5 * k, y - 0.6 * k); ctx.closePath()
+  ctx.fillStyle = tela; ctx.fill(); ctx.strokeStyle = C.g950; ctx.lineWidth = 1.4 * k; ctx.lineJoin = 'round'; ctx.stroke()
+}
 function goma(a, bx, by) {
   const exp = a.putt ? 1.6 : 1.35 // la potencia es el estirón a la `exp` (ver apunte): los nudos van donde está el dedo
   const largo = Math.max(84, Math.min(150, Math.min(W, H) * 0.3))
   const enU = (p) => Math.pow(Math.min(1, p), 1 / exp)
-  const fondo = a.p >= NUDOS[FONDO]
+  const fondo = a.p >= A_FONDO
   const atras = a.ang + cam.rot + Math.PI
   const ux = Math.cos(atras), uy = Math.sin(atras), nx = -uy, ny = ux
-  const tiembla = fondo ? Math.sin(performance.now() / 22) * 2.2 : 0
+  // justo en el nudo rojo (el PERFECTO a fondo) la goma no tiembla: tiembla cuando te pasás
+  const tiembla = fondo && !a.justo ? Math.sin(performance.now() / 22) * 2.2 : 0
   const L = largo * enU(a.p) * (fondo ? 1.04 : 1)
   const r0 = Math.max(9, radioPelota() + 2)
   const ax = bx + ux * r0, ay = by + uy * r0
@@ -5358,14 +5381,39 @@ function goma(a, bx, by) {
   // el agarre en la punta (abajo de los nudos: el del stock queda encima)
   ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(ex, ey, 8, 0, 7); ctx.fill()
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex, ey, 5.2, 0, 7); ctx.fill()
-  NUDOS.forEach((m, i) => {
+  // los nudos de este tiro: los dorados (con la bandera al alcance, repartidos alrededor de ella), la bandera (un nudo
+  // más grande, blanco, con la banderita adentro: con esa fuerza pica en la bandera) y el rojo de a fondo
+  const gm = a.goma ?? M.nudosGoma(null)
+  const lista = [...gm.nudos.map((m) => ({ m, tipo: 'nudo' })), ...(gm.bandera != null ? [{ m: gm.bandera, tipo: 'bandera' }] : []), { m: A_FONDO, tipo: 'fondo' }].sort((x, y) => x.m - y.m)
+  lista.forEach(({ m, tipo }) => {
     const d = r0 + largo * enU(m)
     const x = bx + ux * d + (a.p >= m ? nx * tiembla : 0), y = by + uy * d + (a.p >= m ? ny * tiembla : 0)
-    const r = i === FONDO ? 8 : i < 2 ? 5.5 : 6.5
+    const conBandera = tipo === 'bandera' || (tipo === 'fondo' && gm.enFondo)
+    const r = conBandera ? 11 : tipo === 'fondo' ? 8 : m < 0.3 ? 5.5 : 6.5
+    if (tipo === 'bandera') {
+      // la bandera, siempre a la vista (pasada o no): el aro del stock si estás quieto ahí
+      if (a.stock && a.nudo === m) {
+        const lat = 0.5 + 0.5 * Math.sin(performance.now() / 90)
+        ctx.fillStyle = `rgba(244,238,218,${0.25 + 0.25 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 3, 0, 7); ctx.fill()
+      }
+      // verde oscuro con aro blanco (bien distinto de los dorados): la tela de la bandera, del color que sea, se lee
+      ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+      ctx.fillStyle = C.g700; ctx.beginPath(); ctx.arc(x, y, r - 2.5, 0, 7); ctx.fill()
+      banderitaEnNudo(x, y)
+      return
+    }
     if (a.p < m && !(a.stock && a.nudo === m)) {
       ctx.strokeStyle = 'rgba(244,238,218,.6)'; ctx.lineWidth = 2; ctx.setLineDash([3, 3])
       ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); ctx.setLineDash([])
+      if (conBandera) banderitaEnNudo(x, y)
       return
+    }
+    // a fondo y justo: el nudo rojo brilla en dorado (soltá ahora: PERFECTO)
+    if (tipo === 'fondo' && a.justo) {
+      const lat = 0.5 + 0.5 * Math.sin(performance.now() / 70)
+      ctx.fillStyle = `rgba(232,195,74,${0.3 + 0.3 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 8 + lat * 4, 0, 7); ctx.fill()
+      ctx.strokeStyle = C.gold; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 4, 0, 7); ctx.stroke()
     }
     // el swing de stock: el nudo donde estás (con el dedo quieto) brilla
     if (a.stock && a.nudo === m) {
@@ -5374,14 +5422,13 @@ function goma(a, bx, by) {
       ctx.strokeStyle = C.cream; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r + 6 + lat * 3, 0, 7); ctx.stroke()
     }
     ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
-    ctx.fillStyle = i === FONDO ? C.red : a.stock && a.nudo === m ? C.cream : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
-    ctx.fillStyle = C.g950; ctx.font = `${i < 2 ? 9 : 10}px Anton, Impact, sans-serif`; ctx.textAlign = 'center'
-    ctx.fillText(NUDO_TXT[i], x, y + 3.4)
+    ctx.fillStyle = tipo === 'fondo' ? C.red : a.stock && a.nudo === m ? C.cream : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+    if (conBandera) banderitaEnNudo(x, y) // la bandera a fondo: adentro del rojo
   })
   // el clic y el tic al pasar un nudo (para atrás no suena: solo cuando lo pasás de nuevo)
   let k = -1
-  NUDOS.forEach((m, i) => { if (a.p >= m) k = i })
-  if (drag && k > (drag.nudo ?? -1)) { S.nudo(k, k === NUDOS.length - 1); tic() }
+  lista.forEach(({ m }, i) => { if (a.p >= m) k = i })
+  if (drag && k > (drag.nudo ?? -1)) { S.nudo(k, k === lista.length - 1); tic() }
   if (drag) drag.nudo = k
   // al quedar quieto justo en el nudo (swing de stock): otro clic, más suave, y otro tic
   if (drag && a.stock && !drag.stock) { S.stock(); tic() }
@@ -5396,7 +5443,7 @@ function dibujarApunte(a) {
   const [bx, by] = w2s(ronda.pelota)
   const [dx, dy] = w2s(a.destino)
   const bomba = a.plan.bomba
-  const col = a.fondo || (bomba && !a.plan.perfecta) ? C.red : bomba ? C.gold : C.cream
+  const col = a.justo ? C.gold : a.fondo || (bomba && !a.plan.perfecta) ? C.red : bomba ? C.gold : C.cream
   ctx.lineCap = 'round'
   if (ronda.pro) { apuntePro(a, bx, by, col); goma(a, bx, by); return } // el MODO PRO: sin líneas punteadas ni dónde cae
   goma(a, bx, by)
@@ -5480,8 +5527,10 @@ function dibujarApunte(a) {
   // (con dispersiones enormes, como Miguelón sacado, el ángulo pasaba los 90° y la tangente se iba al infinito o daba
   // negativa: el óvalo quedaba como una línea roja de punta a punta. Se topa el ángulo y el tamaño en pantalla)
   const topeOvalo = Math.max(W, H) * 0.45
-  const largo = Math.min(topeOvalo, Math.max(1.5 * a.disp.carry * a.alcance, 1.5) * cam.esc)
-  const ancho = Math.min(topeOvalo, Math.max(a.alcance * Math.tan(Math.min(1.5 * a.disp.ang, 1.1)), 1.5) * cam.esc)
+  // justo en el nudo rojo, la zona se achica a la del perfecto (hasta `resto` desvíos)
+  const kz = a.justo ? M.PERFECTO.resto / 1.5 : 1
+  const largo = Math.min(topeOvalo, Math.max(1.5 * kz * a.disp.carry * a.alcance, 1.5) * cam.esc)
+  const ancho = Math.min(topeOvalo, Math.max(a.alcance * Math.tan(Math.min(1.5 * kz * a.disp.ang, 1.1)), 1.5) * cam.esc)
   if (a.plan.furia) {
     // Miguelón sacado: un abanico rojo desde la pelota, tan abierto como el error (puede ir para cualquier lado ahí)
     const ab = Math.min(1.5 * a.disp.ang, 1.1)
@@ -5501,7 +5550,7 @@ function dibujarApunte(a) {
   } else {
   ctx.beginPath()
   ctx.ellipse(dx, dy, largo, ancho, a.plan.cuerda + cam.rot, 0, 7)
-  ctx.fillStyle = a.fondo || (bomba && !a.plan.perfecta) ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.4)' : 'rgba(244,238,218,.18)'
+  ctx.fillStyle = a.justo ? 'rgba(232,195,74,.45)' : a.fondo || (bomba && !a.plan.perfecta) ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.4)' : 'rgba(244,238,218,.18)'
   ctx.fill()
   ctx.lineWidth = 2
   ctx.setLineDash([5, 5])
@@ -5520,7 +5569,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
+  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.justo ? ' · ¡PERFECTO!' : a.fondo ? ' · PASADO' : ''
   const txt = `≈ ${Math.round(M.aYardas(ronda, a.alcance))} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
