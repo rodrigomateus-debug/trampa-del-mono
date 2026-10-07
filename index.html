@@ -482,6 +482,7 @@ body.apuntando #furia { opacity: .45; }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el clima del día: un chip abajo del viento (tocándolo, vuelve el cartel) y el de la pelota con barro */
 .clima-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px 4px 7px; border: 0; border-radius: 999px; background: rgba(12, 43, 28, .78); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); font: 13px/1 var(--font-display); letter-spacing: .05em; cursor: pointer; }
+#clima-chip { pointer-events: auto; } /* el HUD no se toca (pasa a la cancha); el chip sí: vuelve el clima */
 .clima-chip[hidden] { display: none; }
 .clima-chip .cc-ico { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--cream); box-shadow: inset 0 0 0 1.5px var(--game-ink); }
 .clima-chip .cc-ico .gi { width: 17px; height: 17px; }
@@ -518,23 +519,24 @@ body.apuntando #furia { opacity: .45; }
 .mt-btn.pro { background: var(--game-ink); color: var(--gold); }
 .pro-tag { display: inline-block; margin-left: 6px; padding: 2px 6px 1px; border-radius: 6px; background: var(--game-ink); color: var(--gold); font: 11px/1.2 var(--font-display); letter-spacing: .06em; vertical-align: 1px; }
 .clima-chip.pro { background: var(--game-ink); color: var(--gold); cursor: default; }
-#clima-cartel { position: fixed; inset: 0; z-index: 65; display: grid; place-items: center; padding: 24px; background: rgba(8, 26, 16, .35); }
+/* el clima del día: un banner chico, debajo del número de la cuenta regresiva (sin tapar ni frenar nada: no se toca) */
+#clima-cartel { position: fixed; left: 50%; top: calc(50% + clamp(88px, 26vw, 136px)); z-index: 65; width: min(340px, calc(100% - 32px)); transform: translateX(-50%); pointer-events: none; }
 #clima-cartel[hidden] { display: none; }
-#clima-cartel .cl-caja { width: min(330px, 100%); display: grid; justify-items: center; gap: 6px; padding: 18px 20px 16px; text-align: center; color: var(--game-ink); background: var(--cream); border: 3px solid var(--game-ink); border-radius: 22px; box-shadow: var(--game-shadow-lg); animation: cl-entra .5s cubic-bezier(.2, 1.4, .4, 1) both; }
-@keyframes cl-entra { from { opacity: 0; transform: translateY(24px) scale(.85) rotate(-3deg); } }
-#clima-cartel .cl-kick { font: 800 11px/1 var(--font-body); letter-spacing: .18em; color: var(--green-700); }
-#clima-cartel .cl-ico { display: grid; place-items: center; width: 92px; height: 92px; margin: 6px 0 4px; border-radius: 22px; background: var(--gold); border: 3px solid var(--game-ink); box-shadow: 4px 5px 0 var(--game-ink); animation: cl-flota 2.4s ease-in-out infinite; }
-#clima-cartel .cl-ico .gi { width: 62px; height: 62px; --gi-a: var(--cream); }
+#clima-cartel .cl-caja { position: relative; display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; padding: 9px 14px 9px 9px; color: var(--game-ink); background: rgba(244, 238, 218, .95); border: 2.5px solid var(--game-ink); border-radius: 18px; box-shadow: 0 4px 0 rgba(12, 43, 28, .55); animation: cl-entra .35s cubic-bezier(.2, 1.3, .4, 1) both; }
+#clima-cartel.sale .cl-caja { animation: cl-sale .25s ease-in both; }
+@keyframes cl-entra { from { opacity: 0; transform: translateY(14px) scale(.92); } }
+@keyframes cl-sale { to { opacity: 0; transform: translateY(8px) scale(.95); } }
+#clima-cartel .cl-ico { grid-row: 1 / span 3; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 2px 3px 0 var(--game-ink); }
+#clima-cartel .cl-ico .gi { width: 34px; height: 34px; --gi-a: var(--cream); }
 #clima-cartel.nieve .cl-ico { background: #dcebf7; }
 #clima-cartel.nieve .cl-ico .gi { --gi-a: var(--gold); }
-@keyframes cl-flota { 50% { transform: translateY(-5px) rotate(4deg); } }
-#clima-cartel .cl-nombre { font: 34px/1 var(--font-display); letter-spacing: .02em; text-transform: uppercase; }
-#clima-cartel .cl-texto { margin: 2px 0 0; font: 600 14px/1.35 var(--font-body); color: #31473a; }
-#clima-cartel .cl-raro { display: none; padding: 5px 10px 4px; font: 13px/1 var(--font-display); letter-spacing: .08em; background: var(--gold); border: 2px solid var(--game-ink); box-shadow: 2px 2px 0 var(--game-ink); transform: rotate(-3deg); }
+#clima-cartel .cl-kick { font: 800 9.5px/1 var(--font-body); letter-spacing: .16em; color: var(--green-700); }
+#clima-cartel .cl-nombre { margin-top: 2px; font: 22px/1 var(--font-display); letter-spacing: .02em; text-transform: uppercase; }
+#clima-cartel .cl-texto { margin: 3px 0 0; font: 600 12.5px/1.3 var(--font-body); color: #31473a; }
+#clima-cartel .cl-raro { display: none; position: absolute; top: -10px; right: 10px; padding: 4px 8px 3px; font: 11px/1 var(--font-display); letter-spacing: .08em; background: var(--gold); border: 2px solid var(--game-ink); box-shadow: 2px 2px 0 var(--game-ink); transform: rotate(3deg); }
 #clima-cartel.nieve .cl-raro { display: inline-block; }
 #clima-cartel.nieve .cl-caja { background: linear-gradient(180deg, #ffffff, #e6f1fb); }
-#clima-cartel .cl-toca { font: italic 600 12px/1 var(--font-body); color: #6b7d72; margin-top: 4px; }
-@media (prefers-reduced-motion: reduce) { #clima-cartel .cl-caja, #clima-cartel .cl-ico, .clima-chip.barro { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #clima-cartel .cl-caja, .clima-chip.barro { animation: none; } }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
 /* el carrito de Marcos: los mandos (solo mientras manejás), con la pinta del SDGA: crema, verde, dorado y Anton */
 #mandos { position: fixed; left: 0; right: 0; bottom: calc(var(--safe-bot) + 16px); z-index: 25; display: none; justify-content: space-between; align-items: flex-end; gap: 10px; padding: 0 14px; pointer-events: none; }
@@ -1443,7 +1445,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
 </div>
 
-<div id="clima-cartel" hidden role="dialog" aria-live="polite" aria-label="El clima de hoy"><div class="cl-caja"><small class="cl-kick">HOY EN SAN DIEGO</small><span class="cl-ico" aria-hidden="true"></span><b class="cl-nombre"></b><p class="cl-texto"></p><span class="cl-raro">EASTER EGG · 1 EN 100</span><i class="cl-toca">Tocá para jugar</i></div></div>
+<div id="clima-cartel" hidden role="status" aria-live="polite" aria-label="El clima de hoy"><div class="cl-caja"><span class="cl-ico" aria-hidden="true"></span><small class="cl-kick">HOY EN SAN DIEGO</small><b class="cl-nombre"></b><p class="cl-texto"></p><span class="cl-raro">1 EN 100</span></div></div>
 
 <button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
 
@@ -1585,7 +1587,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 34cd4f1 · 7/10, 03:22 p. m.</span>
+  <span class="version" id="version">v b70b8d5 · 7/10, 03:26 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1783,11 +1785,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=d9366665c4'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=d9366665c4'
+import * as M from './motor.js?v=e6068eb440'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=e6068eb440'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=d9366665c4'
-import * as S from './sonido.js?v=d9366665c4'
+import * as R from './ranking.js?v=e6068eb440'
+import * as S from './sonido.js?v=e6068eb440'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -3012,6 +3014,9 @@ function cuentaRegresiva(luego) {
   const paso = () => {
     if (n > 0) {
       S.cuenta(n)
+      // el clima, durante la cuenta: sale en el 3 y en el 1 ya se fue (arrancás de una)
+      if (n === 3 && climaPorAnunciar) { climaPorAnunciar = false; mostrarCartelClima({ ms: 0 }) }
+      if (n === 1) ocultarCartelClima()
       el.innerHTML = `<span>${n--}</span>`
       cuentaTimer = setTimeout(paso, 1000)
     } else {
@@ -3027,6 +3032,7 @@ function cuentaRegresiva(luego) {
 function pararCuenta() {
   clearTimeout(cuentaTimer)
   $('#cuenta').hidden = true
+  ocultarCartelClima()
 }
 let cronoPintado = ''
 function pintarCrono() {
@@ -3794,21 +3800,33 @@ const CLIMA_TXT = {
 // (con las canchas dibujadas para cada clima, el tinte ya casi no hace falta: queda el de la lluvia intensa, que usa la
 // de lluvia, y la nieve, que usa la original)
 const TINTE_CLIMA = { soleado: null, nuboso: null, seco: null, mojado: null, lluvia: 'rgba(24,40,62,.06)', tormenta: 'rgba(10,20,36,.28)', nieve: 'rgba(244,248,252,.64)' }
-function mostrarCartelClima() {
+/**
+ * El clima del día, en un banner chico debajo del número de la cuenta regresiva: aparece en el 3 con lo corto de sus
+ * mecánicas y se va en el 1, así no te come tiempo de juego (el reloj arranca en el ¡YA!). No se toca ni frena nada.
+ * Tocando el chip del clima vuelve, con el texto entero, unos segundos. Sin cuenta (una vuelta retomada), sale al apuntar.
+ */
+function mostrarCartelClima({ largo = false, ms = 3200 } = {}) {
   const c = M.climaDe(ronda)
   if (!c) return
   const el = $('#clima-cartel')
   el.querySelector('.cl-ico').innerHTML = gi(`clima-${ronda.clima.id}`)
   el.querySelector('.cl-nombre').textContent = c.nombre
-  el.querySelector('.cl-texto').textContent = c.texto
+  el.querySelector('.cl-texto').textContent = largo ? c.texto : c.corto ?? c.texto
   el.classList.toggle('nieve', ronda.clima.id === 'nieve')
+  el.classList.remove('sale')
   el.hidden = false
-  if (ronda.clima.id === 'nieve') S.logro()
+  if (ronda.clima.id === 'nieve' && !largo) S.logro()
   clearTimeout(mostrarCartelClima.t)
-  mostrarCartelClima.t = setTimeout(() => { el.hidden = true }, ronda.clima.id === 'nieve' ? 7000 : 5200)
+  if (ms) mostrarCartelClima.t = setTimeout(ocultarCartelClima, ms)
 }
-$('#clima-cartel').addEventListener('click', () => { $('#clima-cartel').hidden = true })
-$('#clima-chip').addEventListener('click', () => mostrarCartelClima())
+function ocultarCartelClima() {
+  const el = $('#clima-cartel')
+  clearTimeout(mostrarCartelClima.t)
+  if (el.hidden) return
+  el.classList.add('sale')
+  mostrarCartelClima.t = setTimeout(() => { el.hidden = true; el.classList.remove('sale') }, 250)
+}
+$('#clima-chip').addEventListener('click', () => mostrarCartelClima({ largo: true, ms: 5200 }))
 function pintarClima() {
   const c = M.climaDe(ronda)
   const chip = $('#clima-chip')
