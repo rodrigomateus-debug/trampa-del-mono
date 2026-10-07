@@ -5246,24 +5246,48 @@ function monoBueno(x, y, tam) {
 }
 
 /**
- * El MODO PRO: ni línea punteada ni zona de pique. Solo una flechita corta para dónde sale y la goma con los nudos
+ * El MODO PRO: ni línea punteada ni zona de pique. Solo una flechita corta para dónde sale (con los efectos del Mago,
+ * curvada como va a doblar) y la goma con los nudos
  * (cuánto le pegás, no dónde cae): la distancia la calculás vos.
  */
 function apuntePro(a, bx, by, col) {
   const dir = (a.putt ? a.ang : a.plan.cuerda ?? a.ang) + cam.rot
   const r0 = Math.max(14, radioPelota() + 4)
-  const r1 = r0 + 22
+  const L = r0 + 22
+  // la forma del tiro, achicada a la flechita (sin decir el largo): recta, o, con los efectos del Mago, la curva que va
+  // a hacer (la comba de la pelota y el putt con draw o fade), así en el PRO se puede apuntar con efecto
+  let curva = null
+  if (!a.putt && a.plan.control) {
+    const [cx, cy] = w2s(a.plan.control), [dx, dy] = w2s(a.destino)
+    const k = (L + 10) / (Math.hypot(dx - bx, dy - by) || 1)
+    curva = [[bx + (cx - bx) * k, by + (cy - by) * k], [bx + (dx - bx) * k, by + (dy - by) * k]]
+  } else if (a.putt && a.plan.giro) {
+    const fin = dir + Math.sign(a.plan.giro) * 0.45, l = L + 10
+    curva = [[bx + Math.cos(dir) * l * 0.65, by + Math.sin(dir) * l * 0.65], [bx + Math.cos(fin) * l, by + Math.sin(fin) * l]]
+  }
+  const pts = []
+  if (curva) {
+    const [[cx, cy], [ex, ey]] = curva
+    for (let i = 0; i <= 20; i++) {
+      const t = i / 20, u = 1 - t
+      const x = u * u * bx + 2 * u * t * cx + t * t * ex, y = u * u * by + 2 * u * t * cy + t * t * ey
+      if (Math.hypot(x - bx, y - by) >= r0) pts.push([x, y])
+    }
+  }
+  if (pts.length < 2) { pts.length = 0; pts.push([bx + Math.cos(dir) * r0, by + Math.sin(dir) * r0], [bx + Math.cos(dir) * L, by + Math.sin(dir) * L]) }
+  const [px, py] = pts[pts.length - 2], [fx, fy] = pts[pts.length - 1]
+  const t = Math.atan2(fy - py, fx - px) // la punta, en la dirección del final de la curva
   const flecha = () => {
     ctx.beginPath()
-    ctx.moveTo(bx + Math.cos(dir) * r0, by + Math.sin(dir) * r0)
-    ctx.lineTo(bx + Math.cos(dir) * r1, by + Math.sin(dir) * r1)
-    ctx.moveTo(bx + Math.cos(dir) * r1 + Math.cos(dir + 2.5) * 9, by + Math.sin(dir) * r1 + Math.sin(dir + 2.5) * 9)
-    ctx.lineTo(bx + Math.cos(dir) * r1, by + Math.sin(dir) * r1)
-    ctx.lineTo(bx + Math.cos(dir) * r1 + Math.cos(dir - 2.5) * 9, by + Math.sin(dir) * r1 + Math.sin(dir - 2.5) * 9)
+    ctx.moveTo(pts[0][0], pts[0][1])
+    for (const [x, y] of pts.slice(1)) ctx.lineTo(x, y)
+    ctx.moveTo(fx + Math.cos(t + 2.5) * 9, fy + Math.sin(t + 2.5) * 9)
+    ctx.lineTo(fx, fy)
+    ctx.lineTo(fx + Math.cos(t - 2.5) * 9, fy + Math.sin(t - 2.5) * 9)
   }
   ctx.lineJoin = 'round'
   flecha(); ctx.strokeStyle = 'rgba(12,43,28,.8)'; ctx.lineWidth = 7; ctx.stroke()
-  flecha(); ctx.strokeStyle = a.putt ? C.cream : col; ctx.lineWidth = 3.5; ctx.stroke()
+  flecha(); ctx.strokeStyle = a.putt ? (curva ? C.gold : C.cream) : col; ctx.lineWidth = 3.5; ctx.stroke()
 }
 /**
  * La goma con nudos: sale de la pelota para atrás (para el lado contrario del tiro, como una gomera) y se estira con
