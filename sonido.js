@@ -240,7 +240,7 @@ export function cuenta(n) {
 }
 
 // ── el tiro ──
-/** Mientras tirás para atrás: un tono que sube con la potencia (y un clic al llegar a fondo). */
+/** Mientras tirás para atrás: un tono que sube con la potencia (los clics de los nudos van aparte: `nudo`). */
 export function cargaInicio() {
   if (!ctx || cargaOsc) return
   cargaOsc = ctx.createOscillator()
@@ -253,15 +253,17 @@ export function cargaInicio() {
   cargaOsc.connect(fl).connect(cargaGain).connect(sfx)
   cargaOsc.frequency.value = 180
   cargaOsc.start()
-  cargaInicio.fondo = false
 }
 export function carga(p, latido = 0) {
   if (!cargaOsc) return
   const t = ctx.currentTime
   cargaOsc.frequency.setTargetAtTime(180 + p * 520 + latido * 120, t, 0.03)
   cargaGain.gain.setTargetAtTime(0.03 + p * 0.06, t, 0.04)
-  if (p >= 0.97 && !cargaInicio.fondo) { cargaInicio.fondo = true; tono(1600, 0.06, { vol: 0.15, tipo: 'square' }) }
-  if (p < 0.9) cargaInicio.fondo = false
+}
+/** El clic al pasar un nudo de la goma (½, ¾): cada uno un poco más agudo; el de a fondo, un "tac" más fuerte. */
+export function nudo(i, fondo) {
+  if (fondo) { tono(2100, 0.05, { vol: 0.16, tipo: 'square' }); ruido(0.03, { f: 4200, vol: 0.06 }); return }
+  tono(1400 + i * 160, 0.04, { vol: 0.13, tipo: 'triangle' }); ruido(0.02, { f: 3600, vol: 0.04 })
 }
 export function cargaFin() {
   if (!cargaOsc) return
