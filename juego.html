@@ -448,18 +448,22 @@ body.apuntando #furia { opacity: .45; }
 /* llena: Miguelón aparece sacado y revolea el palo */
 #revoleo { position: fixed; inset: 0; z-index: 70; pointer-events: none; overflow: hidden; }
 #revoleo[hidden] { display: none; }
-#revoleo img { position: absolute; left: -10px; bottom: 0; width: min(62vw, 310px); filter: drop-shadow(0 10px 20px rgba(8, 26, 16, .6)) saturate(1.2) sepia(.2) hue-rotate(-12deg) contrast(1.05); animation: rv-entra 2.6s cubic-bezier(.2, 1.2, .4, 1) forwards; transform-origin: 30% 100%; }
-@keyframes rv-entra { 0% { transform: translateY(80%) rotate(-8deg); } 14% { transform: translateY(0) rotate(3deg); } 20%, 30% { transform: translateY(0) rotate(-4deg); } 25%, 35% { transform: translateY(0) rotate(4deg); } 80% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(90%) rotate(-6deg); opacity: 0; } }
-#revoleo .rv-rojo { position: absolute; inset: 0; background: radial-gradient(70% 55% at 20% 100%, rgba(188, 75, 60, .75), rgba(188, 75, 60, 0) 70%); animation: rv-rojo 2.6s ease-out forwards; }
-@keyframes rv-rojo { 0% { opacity: 0; } 15%, 70% { opacity: 1; } 100% { opacity: 0; } }
+#revoleo img { position: absolute; left: -10px; bottom: 0; width: min(62vw, 310px); filter: drop-shadow(0 10px 20px rgba(8, 26, 16, .6)) saturate(1.2) sepia(.2) hue-rotate(-12deg) contrast(1.05); animation: rv-entra 4.2s cubic-bezier(.2, 1.2, .4, 1) forwards; transform-origin: 30% 100%; }
+@keyframes rv-entra { 0% { transform: translateY(80%) rotate(-8deg); } 9% { transform: translateY(0) rotate(3deg); } 12%, 18% { transform: translateY(0) rotate(-4deg); } 15%, 21% { transform: translateY(0) rotate(4deg); } 86% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(90%) rotate(-6deg); opacity: 0; } }
+#revoleo .rv-rojo { position: absolute; inset: 0; background: radial-gradient(70% 55% at 20% 100%, rgba(188, 75, 60, .75), rgba(188, 75, 60, 0) 70%); animation: rv-rojo 4.2s ease-out forwards; }
+@keyframes rv-rojo { 0% { opacity: 0; } 10%, 80% { opacity: 1; } 100% { opacity: 0; } }
 #revoleo .rv-ira { position: absolute; left: min(40vw, 200px); bottom: min(56vw, 280px); font-size: 46px; opacity: 0; animation: rv-ira .5s .3s ease-in-out 4 alternate; }
 #revoleo .rv-ira.dos { left: min(6vw, 30px); bottom: min(50vw, 250px); font-size: 34px; animation-delay: .45s; }
 @keyframes rv-ira { from { opacity: 1; transform: scale(.7) rotate(-10deg); } to { opacity: 1; transform: scale(1.15) rotate(10deg); } }
-#revoleo .rv-palo { position: absolute; left: min(36vw, 180px); bottom: 34vh; width: 46px; height: 122px; opacity: 0; animation: rv-palo 1.7s .45s cubic-bezier(.25, .6, .4, 1) forwards; }
-@keyframes rv-palo { 0% { opacity: 1; transform: translate(0, 0) rotate(-30deg); } 100% { opacity: 1; transform: translate(70vw, -70vh) rotate(1260deg); } }
-#revoleo b { position: absolute; left: 50%; top: 36%; translate: -50% 0; width: max-content; white-space: nowrap; font: min(9vw, 40px)/1 var(--font-display); color: var(--cream); background: var(--red); border: 3px solid var(--game-ink); box-shadow: var(--game-shadow-lg); padding: 10px 16px 8px; transform: rotate(-4deg); opacity: 0; animation: rv-cartel 2.6s .35s ease-out forwards; text-align: center; }
-#revoleo i { position: absolute; left: 50%; top: calc(36% + 74px); translate: -50% 0; width: max-content; max-width: 90vw; font: normal 17px/1 var(--font-display); letter-spacing: .04em; color: var(--game-ink); background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); padding: 6px 10px 5px; transform: rotate(2deg); opacity: 0; animation: rv-cartel 2.6s .55s ease-out forwards; }
-@keyframes rv-cartel { 0% { opacity: 0; scale: 1.8; } 12% { opacity: 1; scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+/* el palo sale de la mano y se va girando como una hélice, despacio, cruzando la pantalla (con su sonido de helicóptero) */
+#revoleo .rv-palo { position: absolute; left: min(24vw, 120px); bottom: min(36vw, 180px); width: 74px; height: 196px; opacity: 0; animation: rv-palo 3.3s .5s cubic-bezier(.3, .2, .6, 1) forwards; }
+@keyframes rv-palo { 0% { opacity: 1; transform: translate(0, 0) scale(1.1); } 45% { opacity: 1; transform: translate(min(22vw, 110px), -30vh) scale(1.25); } 92% { opacity: 1; transform: translate(min(64vw, 330px), -62vh) scale(.55); } 100% { opacity: 0; transform: translate(min(72vw, 370px), -66vh) scale(.45); } }
+#revoleo .rv-palo svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 6px 6px rgba(8, 26, 16, .5)); animation: rv-gira .42s linear infinite; }
+@keyframes rv-gira { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+/* el borroneo de las aspas: un disco que se ve atrás del palo que gira */
+#revoleo .rv-aspas { position: absolute; left: 50%; top: 50%; width: 180px; height: 180px; margin: -90px 0 0 -90px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, 0) 30%, rgba(230, 236, 240, .22) 62%, rgba(230, 236, 240, .32) 92%, rgba(230, 236, 240, 0)); animation: rv-aspas .42s linear infinite; }
+@keyframes rv-aspas { 0%, 100% { opacity: .55; transform: scaleY(.92); } 50% { opacity: 1; transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { #revoleo .rv-palo svg, #revoleo .rv-aspas { animation-duration: 1.2s; } }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el pancho de la Mugre: botón redondo, grande, abajo a la derecha */
 /* el carrito de Marcos: los mandos (solo mientras manejás), con la pinta del SDGA: crema, verde, dorado y Anton */
@@ -1362,7 +1366,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <div id="tito-swipe" hidden aria-live="polite"><span>SWIPEÁ PARA SOPLAR</span><i></i></div>
 
-<div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-sacado-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span><svg class="rv-palo" viewBox="0 0 60 160"><path d="M30 6v118" stroke="#0c2b1c" stroke-width="9" stroke-linecap="round"/><path d="M30 6v118" stroke="#c9ccd1" stroke-width="5" stroke-linecap="round"/><rect x="24" y="4" width="12" height="34" rx="5" fill="#1b1b1b" stroke="#0c2b1c" stroke-width="2.5"/><path d="M27 120h22c6 0 8 10 2 14l-20 8c-6 2-9-3-7-8z" fill="#9aa3ad" stroke="#0c2b1c" stroke-width="3"/></svg><b>¡REVOLEÓ EL PALO!</b><i>😡 el próximo, para cualquier lado</i></div>
+<div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-sacado-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span><span class="rv-palo"><span class="rv-aspas"></span><svg viewBox="0 0 60 160"><path d="M30 6v118" stroke="#0c2b1c" stroke-width="9" stroke-linecap="round"/><path d="M30 6v118" stroke="#c9ccd1" stroke-width="5" stroke-linecap="round"/><rect x="24" y="4" width="12" height="34" rx="5" fill="#1b1b1b" stroke="#0c2b1c" stroke-width="2.5"/><path d="M27 120h22c6 0 8 10 2 14l-20 8c-6 2-9-3-7-8z" fill="#9aa3ad" stroke="#0c2b1c" stroke-width="3"/></svg></span></div>
 
 <div id="ruleta" hidden aria-live="assertive">
   <div class="rl-caja">
@@ -3375,18 +3379,18 @@ function revolearPalo() {
   void el.offsetWidth
   el.hidden = false
   S.robo()
-  setTimeout(() => S.palo(), 450)
+  setTimeout(() => S.helicoptero(3.3), 500)
   voz = { lg: '😡 ¡Miguelón revoleó el palo!', extra: 'Está sacado: el próximo tiro sale para cualquier lado. Después se le pasa', hasta: performance.now() + 6000 }
   clearTimeout(revolearPalo.t)
-  revolearPalo.t = setTimeout(() => { el.hidden = true }, 3000)
+  revolearPalo.t = setTimeout(() => { el.hidden = true }, 4300)
   // abajo a la izquierda está Miguelón: si había un Dicky con buenas vibras, se va y vuelve cuando se le pasa
-  revolearPalo.hasta = performance.now() + 2800
+  revolearPalo.hasta = performance.now() + 4200
   const dk = $('#dicky')
   if (!dk.hidden && dickyVisita.ultima) {
     clearTimeout(dickyTimer)
     dk.hidden = true
     dk.classList.remove('entra', 'sale', 'derecha', 'tenue')
-    dickyTimer = setTimeout(() => dickyVisita(...dickyVisita.ultima), 2850)
+    dickyTimer = setTimeout(() => dickyVisita(...dickyVisita.ultima), 4250)
   }
 }
 // ── los golpes del hoyo, grandes: suben con cada tiro; las multas (+1) se muestran con el motivo ──

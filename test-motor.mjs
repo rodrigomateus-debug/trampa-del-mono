@@ -468,7 +468,7 @@ ok('Tito Esperanza: maneja el viento en vivo (dirección y fuerza, de 0 a 30) y 
   assert.deepEqual(otro.viento, antes)
 })
 
-ok('Tito en el green: el putt es ultra sensible al dedo (el desvío de la línea al hoyo ×7, la fuerza ×4)', () => {
+ok('Tito en el green: el putt es ultra sensible al dedo (el desvío de la línea al hoyo ×3,5, la fuerza ×4)', () => {
   const ref = 1
   assert.deepEqual(M.puttDeTito(ref, 0.1, ref), { ang: ref, u: 0.1 * M.TITO_PUTT.fuerza })
   const d = 0.02 // un pelito al costado

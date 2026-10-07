@@ -606,7 +606,7 @@ const vientoDe = (v) => ({ ang: Math.atan2(v.wy, v.wx), kmh: Math.hypot(v.wx, v.
 // Tito, en el green: el putt es ultra sensible al dedo. Lo que el dedo se corre de la línea al hoyo se multiplica por
 // `angulo` (y si no apuntás justo al hoyo, la línea se va enseguida para cualquier lado), y a fondo se llega
 // arrastrando 1/`fuerza` de lo normal (un milímetro de más y se pasa de largo)
-export const TITO_PUTT = { angulo: 7, fuerza: 4 }
+export const TITO_PUTT = { angulo: 3.5, fuerza: 4 }
 /** El putt de Tito: el ángulo y la fuerza (0..1+, arrastre / largo) que da el dedo, amplificados. `ref` es el ángulo al hoyo. */
 export function puttDeTito(ang, u, ref) {
   const d = Math.atan2(Math.sin(ang - ref), Math.cos(ang - ref))
