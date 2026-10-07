@@ -1800,4 +1800,25 @@ ok('el palo en la mano: driver en la salida de los par 4, hierro en el par 3 y d
   assert.equal(ver(2, M.HOYOS[2].tee, 'tee'), 'hierro')
 })
 
+const haciaTee = (yd) => { const u = angulo(h15.pin, h15.tee); return [h15.pin[0] + Math.cos(u) * yd / h15.escala, h15.pin[1] + Math.sin(u) * yd / h15.escala] }
+ok('el tiro perfecto (sale justo al medio) y el backspin del chip o el approach perfecto: pica en el green y vuelve', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), pelota: haciaTee(50), lie: 'fairway', golpes: 1, monos: [] }
+  const d = M.dist(r.pelota, h15.pin), cae = d - 4
+  const p = cae / M.FISICA.carryMax
+  const t = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, sinRuido())
+  assert.equal(t.perfecto, true) // sin ruido: justo al medio
+  assert.ok(t.backspin > 0)
+  M.simular(campo, t, h15.pin)
+  assert.ok(t.eventos.some((e) => e.tipo === 'backspin'))
+  const atras = cae - M.dist(r.pelota, t.pos)
+  assert.ok(atras > 1 && atras < 5, `volvió ${atras} yd`)
+  // con error, no es perfecto ni vuelve; desde la salida tampoco hay backspin
+  const t2 = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, fijo(0.9))
+  assert.equal(t2.perfecto, false)
+  assert.equal(t2.backspin, undefined)
+  const salida = M.golpear(campo, M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), -Math.PI / 2, 0.5, sinRuido())
+  assert.equal(salida.perfecto, true)
+  assert.equal(salida.backspin, undefined)
+})
+
 console.log('\nTodo verde.')

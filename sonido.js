@@ -265,6 +265,10 @@ export function nudo(i, fondo) {
   if (fondo) { tono(2100, 0.05, { vol: 0.16, tipo: 'square' }); ruido(0.03, { f: 4200, vol: 0.06 }); return }
   tono(1400 + i * 160, 0.04, { vol: 0.13, tipo: 'triangle' }); ruido(0.02, { f: 3600, vol: 0.04 })
 }
+/** El tiro perfecto: un "ting" cortito y brillante, arriba del golpe. */
+export function perfecto() { campana(1567.98, 0, 0.09); campana(2093, 0.07, 0.07) }
+/** El backspin: la pelota que muerde el green y vuelve: un "zip" que baja. */
+export function backspin() { ruido(0.22, { f: 3200, f2: 900, q: 2.5, vol: 0.12, ataque: 0.01 }); tono(900, 0.16, { vol: 0.05, f2: 500, tipo: 'triangle', at: 0.03 }) }
 export function cargaFin() {
   if (!cargaOsc) return
   const o = cargaOsc, g = cargaGain

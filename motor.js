@@ -1075,8 +1075,11 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     return { modo: 'putt', fase: 'rodando', pos: [...pelota], alt: 0, v: [Math.cos(a) * v0, Math.sin(a) * v0], carry: 0, giro: plan?.giro ?? 0, labio: false, eventos: [] }
   }
   const p = plan ?? planBase(angulo, potencia, lie)
-  const err = gauss(rng) * p.disp.ang
+  const ze = gauss(rng)
+  const err = ze * p.disp.ang
   const g = gauss(rng)
+  // salió justo al medio (solo cuenta si el tiro tenía error: sin error, todos saldrían perfectos)
+  const perfecto = (p.disp.ang > 0 || p.disp.carry > 0) && Math.hypot(ze, g) < PERFECTO.radio
   // una bomba mal pegada nunca va más lejos: se queda corta
   const carry = Math.max(0, p.carry * (p.real ?? FISICA.factorReal[lie] ?? 1) * (p.bomba ? 1 - Math.abs(g) * p.disp.carry : 1 + g * p.disp.carry))
   const a = p.cuerda + err
@@ -1113,6 +1116,7 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     carry,
     bomba: !!p.bomba,
     perfecta: !!p.perfecta,
+    perfecto,
     comba: !!p.comba,
     golpe: p.golpe ?? null,
     ruta, // el Dibuje maestro: el vuelo, punto a punto (relativo a `desde`), a velocidad pareja
@@ -1278,6 +1282,12 @@ export function avanzar(campo, tiro, dt, pin) {
       const pique = t === 'green' ? 1 : tiro.clima?.c.pique ?? 1
       const vel = Math.sqrt(1.8 * tiro.carry) * FISICA.pique[t] * (tiro.rueda ?? 1) * pique
       tiro.v = [(dx / d) * vel, (dy / d) * vel]
+      // el backspin: pica y vuelve para atrás, lo justo para recorrer `backspin` yardas (con el roce de ahí)
+      if (tiro.backspin && BACKSPIN.en.includes(t)) {
+        const vb = Math.sqrt(2 * roceDe(tiro, t) * tiro.backspin)
+        tiro.v = [(-dx / d) * vb, (-dy / d) * vb]
+        tiro.eventos.push({ tipo: 'backspin' })
+      }
       tiro.fase = 'rodando'
     }
     return tiro.fase
@@ -1709,6 +1719,11 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
     tiro.mapache = { m: (a + rng() * (b - a)) / hoyoActual(r).escala, de: [...r.desde], hecho: false } // de: de dónde salió (los putts no traen `desde`)
   }
   tiro.exacto = retro // Demetrio: queda exactamente donde apuntó (ver avanzar)
+  // el chip o el approach perfecto: vuelve (backspin)
+  if (tiro.modo === 'full' && tiro.perfecto && !retro && !tiro.salida) {
+    const h = hoyoActual(r), yd = dist(r.pelota, h.pin) * h.escala
+    if (yd <= BACKSPIN.approach) tiro.backspin = (BACKSPIN.base + BACKSPIN.porYarda * tiro.carry * h.escala) / h.escala
+  }
   tiro.ajenos = (r.hoyos ?? HOYOS).filter((h) => h.n !== hoyoActual(r).n).map((h) => ({ n: h.n, pin: h.pin }))
   tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada
   tiro.calma = !!r.calma
@@ -2182,6 +2197,15 @@ export const ADULACION = {
  * par 4 (15 y 16) y un hierro en la del par 3 (17); de ahí, un hierro, y a `PALOS.wedge` yardas del hoyo o menos, un wedge.
  */
 export const PALOS = { wedge: 50 }
+
+/**
+ * El tiro PERFECTO: el que sale justo al medio (el error de dirección y el de largo, los dos casi en cero: adentro de
+ * `radio` desvíos; ~4% de los tiros completos). Lo dice chiquito al lado de donde salió. En el chip y el approach
+ * (hasta `BACKSPIN.approach` yd, no desde la salida) además hace backspin: pica en el green o la calle y vuelve
+ * `base` + `porYarda` × el largo del tiro (yardas reales), como los pros.
+ */
+export const PERFECTO = { radio: 0.3 }
+export const BACKSPIN = { approach: 110, base: 1.5, porYarda: 0.025, en: ['green', 'fairway'] }
 export function paloDe(campo, r) {
   if (enModoPutt(campo, r)) return 'putter'
   if (desdeLaSalida(campo, r)) return hoyoActual(r).par === 3 ? 'hierro' : 'driver'

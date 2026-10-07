@@ -1587,7 +1587,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v b70b8d5 · 7/10, 03:27 p. m.</span>
+  <span class="version" id="version">v a86ff31 · 7/10, 03:37 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1785,11 +1785,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=e6068eb440'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=e6068eb440'
+import * as M from './motor.js?v=4dbbeaadde'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=4dbbeaadde'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=e6068eb440'
-import * as S from './sonido.js?v=e6068eb440'
+import * as R from './ranking.js?v=4dbbeaadde'
+import * as S from './sonido.js?v=4dbbeaadde'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -1833,7 +1833,7 @@ const C = {
 const LIES = { tee: 'TEE', fairway: 'FAIRWAY', rough: 'ROUGH · 70%', bunker: 'BUNKER · 50%', green: 'GREEN' }
 const EMOJI = 'system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
 const PASO = 1 / 120
-const rng = Math.random
+const rng = () => Math.random() // (llamando a Math.random cada vez: así las pruebas pueden fijar el azar)
 const $ = (s) => document.querySelector(s)
 
 // ── récords en este teléfono ──
@@ -2217,6 +2217,8 @@ function pegarYa(a, base = null) {
   tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null)
   if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
   else S.golpe(a.p, a.putt)
+  // salió justo al medio: "PERFECTO" chiquito al lado de donde salió
+  if (tiro.perfecto) { marcarTiro('PERFECTO', ronda.desde ?? golfista.desde ?? ronda.pelota); S.perfecto() }
   estela = []
   estado = 'tiro'
   hud()
@@ -2490,6 +2492,31 @@ function actualizar(dt) {
   cam.rot += difAng(obj.rot, cam.rot) * k
 }
 
+/**
+ * Los cartelitos chicos de un tiro, en la cancha, al lado de donde pasó: "PERFECTO" (salió justo al medio) al lado de
+ * donde salió y "BACKSPIN" donde picó y volvió. Suben un poquito y se van solos.
+ */
+let marcasTiro = []
+const MARCA_MS = 1900
+function marcarTiro(txt, pos) { marcasTiro.push({ txt, pos: [...pos], t0: performance.now() }) }
+function dibujarMarcasTiro() {
+  if (!marcasTiro.length) return
+  const now = performance.now()
+  marcasTiro = marcasTiro.filter((m) => now - m.t0 < MARCA_MS)
+  ctx.save()
+  ctx.font = '13px Anton, "Arial Narrow", sans-serif'
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'
+  for (const m of marcasTiro) {
+    const u = (now - m.t0) / MARCA_MS
+    const [x0, y0] = w2s(m.pos)
+    const x = x0 + radioPelota() + 10, y = y0 - 12 - u * 16
+    ctx.globalAlpha = u < 0.08 ? u / 0.08 : 1 - Math.max(0, (u - 0.65) / 0.35)
+    const w = ctx.measureText(m.txt).width + 14
+    ctx.fillStyle = 'rgba(12,43,28,.85)'; ctx.beginPath(); ctx.roundRect(x, y - 10, w, 20, 10); ctx.fill()
+    ctx.fillStyle = C.gold; ctx.fillText(m.txt, x + 7, y + 1)
+  }
+  ctx.restore()
+}
 /** Lo que pasó en el tiro desde el último cuadro (pique, palo, labio, robo al vuelo) suena una vez. */
 function sonarEventos(t) {
   t._oidos ??= 0
@@ -2503,6 +2530,7 @@ function sonarEventos(t) {
     else if (e.tipo === 'mapache') S.mapache()
     else if (e.tipo === 'charco') { S.charco(); fxClima.push({ tipo: 'splash', pos: [...t.pos], t0: performance.now() }) }
     else if (e.tipo === 'resbalon') S.resbalon()
+    else if (e.tipo === 'backspin') { S.backspin(); marcarTiro('BACKSPIN', t.pos) }
     if (e.tipo === 'pique' && ronda?.clima) {
       const id = ronda.clima.id
       if (id === 'seco' && e.terreno !== 'green') fxClima.push({ tipo: 'polvo', pos: [...t.pos], t0: performance.now() })
@@ -3758,6 +3786,7 @@ function dibujar() {
   const aJ = estado === 'apuntar' && drag ? apunte() : null
   dibujarGolfista(aJ)
   dibujarMonos()
+  dibujarMarcasTiro()
   if (ronda?.duelo?.fantasma) dibujarFantasma()
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
@@ -3904,6 +3933,14 @@ function dibujarCharcos() {
 }
 // las partículas, en pantalla
 let gotas = [], copos = [], nubes = [], rayo = { prox: 0, t0: -9 }
+/** Para dónde cae la lluvia en la pantalla: hacia abajo sin viento y, a medida que sopla (del todo desde 12 km/h), para donde va el viento. */
+function dirLluvia() {
+  const kmh = ronda?.viento.kmh ?? 0, ang = (ronda?.viento.ang ?? 0) + cam.rot
+  const w = Math.min(1, kmh / 12)
+  const dx = Math.cos(ang) * w, dy = (1 - w) + Math.sin(ang) * w
+  const n = Math.hypot(dx, dy)
+  return n < 0.05 ? [Math.cos(ang), Math.sin(ang)] : [dx / n, dy / n]
+}
 function moverClima(dt) {
   const id = ronda && !ronda.terminada ? ronda.clima?.id : null
   const area = Math.min(1.8, (W * H) / 330000)
@@ -3911,15 +3948,17 @@ function moverClima(dt) {
   const ang = (ronda?.viento.ang ?? 0) + cam.rot
   const lluvia = id === 'tormenta' ? 200 : id === 'lluvia' ? 95 : 0
   const nieve = id === 'nieve' ? 90 : 0
-  // la lluvia: cae inclinada para donde sopla
+  // la lluvia: cae para donde sopla el viento (con viento fuerte, del todo; sin viento, para abajo) y más rápido cuanto
+  // más sopla. Cuando sale de la pantalla vuelve a entrar por el otro lado
   while (gotas.length < lluvia * area) gotas.push({ x: Math.random() * W, y: Math.random() * H, v: 700 + Math.random() * 400, l: 10 + Math.random() * 14 })
   if (gotas.length > lluvia * area) gotas.length = Math.round(lluvia * area)
-  const vx = Math.cos(ang) * kmh * 9, vy = Math.sin(ang) * kmh * 4
+  const [ux, uy] = dirLluvia(), rapida = 1 + Math.min(1, kmh / 30) * 0.6
   for (const g of gotas) {
-    g.x += vx * dt; g.y += (g.v + vy) * dt
-    if (g.y > H + 20) { g.y = -20; g.x = Math.random() * W }
-    if (g.x < -30) g.x += W + 60
-    if (g.x > W + 30) g.x -= W + 60
+    g.x += ux * g.v * rapida * dt; g.y += uy * g.v * rapida * dt
+    if (g.y > H + 30) { g.y -= H + 60; g.x = Math.random() * W }
+    else if (g.y < -30) { g.y += H + 60; g.x = Math.random() * W }
+    if (g.x > W + 30) { g.x -= W + 60; g.y = Math.random() * H }
+    else if (g.x < -30) { g.x += W + 60; g.y = Math.random() * H }
   }
   // la nieve: copos que bajan despacio y se mecen
   while (copos.length < nieve * area) copos.push({ x: Math.random() * W, y: Math.random() * H, r: 1.4 + Math.random() * 2.6, v: 30 + Math.random() * 40, f: Math.random() * 6 })
@@ -3981,9 +4020,7 @@ function dibujarClima() {
   ctx.save()
   // la lluvia
   if (gotas.length) {
-    const kmh = ronda.viento.kmh, ang = ronda.viento.ang + cam.rot
-    const dx = Math.cos(ang) * kmh * 0.5, dy = 1
-    const n = Math.hypot(dx, dy)
+    const [dx, dy] = dirLluvia(), n = 1 // la gota, una rayita en la dirección en que cae
     ctx.strokeStyle = id === 'tormenta' ? 'rgba(220,234,246,.5)' : 'rgba(220,234,246,.38)'
     ctx.lineWidth = id === 'tormenta' ? 1.4 : 1.1
     ctx.lineCap = 'round'
