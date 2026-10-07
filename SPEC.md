@@ -340,3 +340,8 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
   - 💨 **una ráfaga**: entre el 35% y el 80% del vuelo la corre de costado 12 a 26 yardas, de golpe pero suave (se ven las rayas de viento).
   - 🛺 **un carrito** (rojo): llega de costado justo a donde pica, la levanta y se la lleva 12 a 24 yardas, y la deja (sin rodar); después sigue de largo. Va para el lado que la deja en juego (ni bosque ni afuera, si se puede).
 - LG cuenta lo que pasó ("¡Apareció un árbol de la nada!", etc.). Dificultad medida (20 vueltas): +1,4 (Difícil).
+
+## 🌬️ Tito Esperanza maneja el viento (2026-10-07)
+
+- Entra al mazo Tito (HCP 16, 🌬️, su foto de la base). Habilidad "Tranqui, yo lo suspendo" (`viento`): antes de cada tiro, el viento es un botón (con la cinta TOCÁ). Tocándolo se abre un dial: arrastrás desde el centro para elegir para dónde sopla (arriba es para el hoyo, como se ve la cancha) y qué tan fuerte (de 0 a 30 km/h, `controlarViento`); "SIN VIENTO" lo apaga y LISTO cierra. El tiro sale con ese viento y LG lo cuenta ("Tito lo dejó en 30 km/h").
+- El bot apaga el viento antes de cada tiro. Dificultad medida (20 vueltas): +3,9 (Trampa total, por el HCP 16).

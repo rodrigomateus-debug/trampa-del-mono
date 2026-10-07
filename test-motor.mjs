@@ -398,6 +398,24 @@ ok('Juanpa (el Mapache): le pega increíble, pero una de dos aparece un árbol, 
   assert.notEqual(M.terreno(quieto, carrito.t.pos).tipo, 'afuera')
 })
 
+ok('Tito Esperanza: maneja el viento (dirección y fuerza, de 0 a 30); los demás no', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'Tito', emoji: '🌬️', hcp: 16 }, fijo(0.5)), monos: [] }
+  assert.ok(M.controlarViento(r, -Math.PI / 2, 22.4))
+  assert.deepEqual([r.viento.kmh, +r.viento.ang.toFixed(6)], [22, +(1.5 * Math.PI).toFixed(6)])
+  M.controlarViento(r, 0, 99)
+  assert.equal(r.viento.kmh, M.FISICA.vientoMax)
+  M.controlarViento(r, 1, -5)
+  assert.equal(r.viento.kmh, 0)
+  // el viento que eligió es el que pega: a favor, más lejos que en contra
+  const linea = angulo(h15.tee, h15.pin)
+  const con = (ang) => { const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }; M.controlarViento(rr, ang, 30); return M.simular(quieto, M.golpear(quieto, rr, linea, 0.8, sinRuido()), h15.pin) }
+  assert.ok(M.dist(h15.tee, con(linea).pos) > M.dist(h15.tee, con(linea + Math.PI).pos) + 5)
+  const otro = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [] }
+  const antes = { ...otro.viento }
+  assert.equal(M.controlarViento(otro, 0, 0), false)
+  assert.deepEqual(otro.viento, antes)
+})
+
 ok('Fito: la línea se sacude; en el embudo sale derecha', () => {
   const r = { ...M.nuevaRonda({ apodo: 'Fito (Đ)', emoji: '🦅', hcp: 22 }, fijo(0.5)), monos: [] }
   const linea = angulo(h15.tee, h15.pin)

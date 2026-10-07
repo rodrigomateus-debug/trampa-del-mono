@@ -100,6 +100,7 @@ export const MONO = { vel: 18, pausa: 3, radio: 3.2, altura: 8, velCaza: 12, ale
 export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: antes de cada golpe elegís cuál (Flop, Baby Draw, Una cortada al medio o el Dibuje maestro, que dibujás con el dedo). En el green, putt con draw o con fade.' },
   'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
+  Tito: { id: 'viento', corto: 'Él maneja el viento.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza controla el viento: antes de cada tiro tocá el viento y elegí para dónde sopla y qué tan fuerte (de 0 a 30 km/h).' },
   Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá.' },
   'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después, la flecha.', nombre: 'La flecha', texto: 'El drive, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro, una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
   'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
@@ -596,6 +597,13 @@ function masCerca(campo, p, puntos) {
 
 export function vientoAleatorio(rng) {
   return { ang: rng() * 2 * Math.PI, kmh: Math.round(rng() * FISICA.vientoMax) }
+}
+/** Tito Esperanza: él decide el viento (para dónde sopla, en ángulo de la cancha, y de 0 a FISICA.vientoMax km/h). */
+export function controlarViento(r, ang, kmh) {
+  if (habilidadDe(r.jugador)?.id !== 'viento') return false
+  const a = Math.atan2(Math.sin(ang), Math.cos(ang))
+  r.viento = { ang: a < 0 ? a + 2 * Math.PI : a, kmh: Math.round(Math.max(0, Math.min(FISICA.vientoMax, kmh))) }
+  return true
 }
 
 // ── monos ───────────────────────────────────────────────────────────────

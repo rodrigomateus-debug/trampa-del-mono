@@ -89,6 +89,8 @@ export function jugarVuelta(jugador, seed) {
     M.turnoRuleta(r, rng) // la Ruleta: antes de cada tiro, otro player
     // Maxi: llama a Deme en el primer tiro que puede y que no sea un putt corto (a más de 30 yd)
     if (M.puedeInvocarDeme(r) && M.dist(r.pelota, M.hoyoActual(r).pin) > 30) M.invocarDeme(r)
+    // Tito: apaga el viento antes de cada tiro (el bot apunta sin viento)
+    M.controlarViento(r, 0, 0)
     // con el tiro de Deme listo no hace falta apuntar (entra igual); y probar tiros lo gastaría
     const t = r.deme?.listo ? { ang: 0, p: 0.5 } : elegirTiro(r)
     // timing humano: Miguelón suelta el latido con precisión entre 0,5 y 1; Fito cae en el embudo la mitad de las veces
