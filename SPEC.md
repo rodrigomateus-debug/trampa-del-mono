@@ -325,7 +325,7 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 
 ## 😤 La furia de Miguelón (2026-10-07)
 
-- Debajo del contador de golpes, una barrita de FURIA con dos mitades (solo cuando juega Miguelón, también en la Ruleta). A la izquierda, su cara (un recorte redondo de su foto, sin emoji) que se pone roja con la furia: un poco con media barra y muy roja (y temblando) llena, cuando dice ¡SACADO!. Se carga media (`sumarFuria`, `FURIA`):
+- Debajo del contador de golpes, una barrita de FURIA con dos mitades (solo cuando juega Miguelón, también en la Ruleta). En la esquina, asomada como antes el emoji, su cara recortada sin fondo (`jugadores/mike-queboni-cara.webp`, del recorte de su foto, con el cuello que se desvanece) que se pone roja con la furia: colorada con media barra y muy roja, brillando y temblando, llena (¡SACADO!). Se carga media (`sumarFuria`, `FURIA`):
   - si el primer tiro del hoyo no queda en la calle ni en el green (las multas cuentan como errados);
   - si el segundo tiro no queda en el green del hoyo (o no entra);
   - si el hoyo termina en bogey o peor.

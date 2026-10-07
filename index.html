@@ -442,22 +442,18 @@ body.apuntando #pronostico { opacity: .55; }
 @keyframes ts-entra { from { opacity: 0; scale: .6; } }
 @keyframes ts-va { from { transform: translateX(-10px); } to { transform: translateX(10px); } }
 /* 😤 la furia de Miguelón: dos mitades; llena, roja y latiendo */
-#furia { position: relative; width: 112px; margin-top: 2px; padding: 5px 7px 5px 5px; box-sizing: border-box; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--cream); color: var(--green-900); box-shadow: var(--game-shadow-sm); transform: rotate(1.5deg); display: grid; grid-template-columns: 40px 1fr; align-items: center; gap: 6px; font-family: var(--font-display); pointer-events: none; }
-#furia .fu-der { display: grid; gap: 4px; justify-items: start; min-width: 0; }
+#furia { position: relative; width: 74px; margin-top: 14px; padding: 5px 7px 6px; box-sizing: border-box; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--cream); color: var(--green-900); box-shadow: var(--game-shadow-sm); transform: rotate(1.5deg); display: grid; justify-items: start; gap: 4px; font-family: var(--font-display); pointer-events: none; }
 #furia[hidden] { display: none; }
 #furia small { font-size: 11px; letter-spacing: .12em; color: var(--red); }
 #furia .fu-barra { width: 100%; height: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
 #furia .fu-barra i { border: 2px solid var(--game-ink); border-radius: 4px; background: #e7dfc2; overflow: hidden; position: relative; }
 #furia .fu-barra i::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #f0a03a, var(--red)); transform: scaleX(0); transform-origin: 0 50%; transition: transform .5s cubic-bezier(.2, 1.4, .4, 1); }
 #furia .fu-barra i.on::after { transform: scaleX(1); }
-/* la cara de Miguelón (de su recorte): se pone más roja con cada media barra; llena, roja y temblando */
-#furia .fu-cara { position: relative; width: 40px; height: 40px; border-radius: 50%; overflow: hidden; box-sizing: border-box; border: 2.5px solid var(--game-ink); background: #f3e6c8 url("jugadores/mike-queboni-torso.webp") no-repeat; background-size: 100px 100px; background-position: -34px -4px; transition: filter .5s; }
-#furia .fu-cara::after { content: ''; position: absolute; inset: 0; background: #e0301e; mix-blend-mode: multiply; opacity: 0; transition: opacity .5s; }
-#furia[data-nivel="1"] .fu-cara { filter: saturate(1.3) contrast(1.05); }
-#furia[data-nivel="1"] .fu-cara::after { opacity: .38; }
-#furia.sacado .fu-cara { filter: saturate(1.6) contrast(1.15); border-color: #5b1307; animation: fu-tiembla .18s linear infinite; }
-#furia.sacado .fu-cara::after { opacity: .7; }
-@keyframes fu-tiembla { 0% { translate: 0 0; } 25% { translate: -1px 1px; } 50% { translate: 1px -1px; } 75% { translate: -1px -1px; } 100% { translate: 1px 1px; } }
+/* la cara de Miguelón (recortada, sin fondo) en la esquina: se pone más roja con cada media barra; llena, roja y temblando */
+#furia .fu-cara { position: absolute; top: -30px; right: -20px; width: 34px; height: auto; filter: drop-shadow(0 2px 2px rgba(8, 26, 16, .6)); transition: filter .5s; transform: rotate(6deg); }
+#furia[data-nivel="1"] .fu-cara { filter: sepia(.6) saturate(3.2) hue-rotate(-25deg) drop-shadow(0 2px 2px rgba(8, 26, 16, .6)); }
+#furia.sacado .fu-cara { filter: sepia(.8) saturate(5) hue-rotate(-32deg) brightness(.95) drop-shadow(0 0 5px rgba(224, 48, 30, .9)); animation: fu-tiembla .16s linear infinite; }
+@keyframes fu-tiembla { 0% { translate: 0 0; } 25% { translate: -1.5px 1px; } 50% { translate: 1.5px -1px; } 75% { translate: -1px -1.5px; } 100% { translate: 1px 1px; } }
 #furia.sube { animation: fu-sube .7s ease-out; }
 @keyframes fu-sube { 0% { transform: rotate(1.5deg) scale(1); } 30% { transform: rotate(-3deg) scale(1.18); } 60% { transform: rotate(3deg) scale(1.05); } 100% { transform: rotate(1.5deg) scale(1); } }
 #furia.sacado { background: var(--red); color: var(--cream); animation: fu-late .55s ease-in-out infinite alternate; }
@@ -1366,7 +1362,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <button id="sonido" type="button" aria-label="Sonido"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" style="fill:var(--gi-f)"/><path d="M20 12a5.5 5.5 0 0 1 0 8M23.5 8.5a10 10 0 0 1 0 15"/></g></svg></button>
       <div id="golpes" aria-live="polite"><small>GOLPES</small><b id="g-num">0</b><span id="g-par">PAR 4</span><div id="g-mas" aria-hidden="true"></div></div>
       <div id="pronostico" hidden aria-live="polite"><small>SE VIENE</small><span class="pr-ico"></span><b></b><i></i></div>
-      <div id="furia" hidden aria-live="polite"><span class="fu-cara" aria-hidden="true"></span><div class="fu-der"><small>FURIA</small><div class="fu-barra"><i></i><i></i></div></div></div>
+      <div id="furia" hidden aria-live="polite"><small>FURIA</small><div class="fu-barra"><i></i><i></i></div><img class="fu-cara" src="jugadores/mike-queboni-cara.webp" alt="" aria-hidden="true" draggable="false"></div>
     </div>
     <div class="der">
       <span class="chip" id="crono" aria-label="Tiempo">0:00.000</span>
@@ -1516,7 +1512,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 5e398f4 · 6/10, 10:33 p. m.</span>
+  <span class="version" id="version">v 7b9dfa9 · 6/10, 10:40 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
