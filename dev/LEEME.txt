@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy es igual al juego publicado (la raíz).
+Hoy: el juego publicado + la lluvia que cae con el viento, el tiro PERFECTO (sale justo al medio) y el backspin del chip y el approach perfectos, para probar.
