@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy: el juego publicado + la lluvia que cae con el viento, el tiro PERFECTO (también los sin error; no es cero: un cuarto del error de cada uno), el backspin del chip y el approach perfectos y el swing de stock (soltar quieto en el nudo de ½ o ¾), para probar.
+Hoy: el juego publicado + la lluvia que cae con el viento, el tiro PERFECTO (también los sin error; no es cero: un cuarto del error de cada uno), el backspin del chip y el approach perfectos y el swing de stock (soltar quieto en el nudo de ⅛, ¼, ½ o ¾; el perfecto con más margen cerca del hoyo), para probar.

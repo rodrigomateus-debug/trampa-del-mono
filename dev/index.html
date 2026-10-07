@@ -1587,7 +1587,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 2211e45 · 7/10, 03:55 p. m.</span>
+  <span class="version" id="version">v 7645e5a · 7/10, 04:02 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1785,11 +1785,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=f28c257b81'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=f28c257b81'
+import * as M from './motor.js?v=fbd7be3271'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=fbd7be3271'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=f28c257b81'
-import * as S from './sonido.js?v=f28c257b81'
+import * as R from './ranking.js?v=fbd7be3271'
+import * as S from './sonido.js?v=fbd7be3271'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2148,7 +2148,9 @@ lienzo.addEventListener('pointermove', (e) => {
     return
   }
   if (drag && e.pointerId === drag.id) {
-    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 1.5) drag.mov = performance.now() // para el swing de stock: el dedo quieto
+    // para el swing de stock: el dedo quieto (contra un ancla: arrastrar despacito por el nudo no cuenta como quieto)
+    drag.ancla ??= [drag.x0, drag.y0]
+    if (Math.hypot(e.clientX - drag.ancla[0], e.clientY - drag.ancla[1]) > 2) { drag.mov = performance.now(); drag.ancla = [e.clientX, e.clientY] }
     drag.x = e.clientX; drag.y = e.clientY
   }
 })
@@ -5286,12 +5288,14 @@ function apuntePro(a, bx, by, col) {
  * fantasmas más allá de la punta (ahí tenés que llegar). Al pasar cada nudo, un clic y un tic en el celu: así repetís
  * un tiro sin mirar números. A fondo se pone roja y tiembla. (Elegida en el artefacto de potencia, 2026-10-07.)
  */
-const NUDOS = [0.5, 0.75, 0.97] // en potencia; el último es "a fondo" (el mismo umbral del tiro)
+const NUDOS = [0.125, 0.25, 0.5, 0.75, 0.97] // en potencia; los de ⅛ y ¼, para los chips cortos; el último es "a fondo" (el mismo umbral del tiro)
+const NUDO_TXT = ['⅛', '¼', '½', '¾', '•']
+const FONDO = NUDOS.length - 1
 function goma(a, bx, by) {
   const exp = a.putt ? 1.6 : 1.35 // la potencia es el estirón a la `exp` (ver apunte): los nudos van donde está el dedo
   const largo = Math.max(84, Math.min(150, Math.min(W, H) * 0.3))
   const enU = (p) => Math.pow(Math.min(1, p), 1 / exp)
-  const fondo = a.p >= NUDOS[2]
+  const fondo = a.p >= NUDOS[FONDO]
   const atras = a.ang + cam.rot + Math.PI
   const ux = Math.cos(atras), uy = Math.sin(atras), nx = -uy, ny = ux
   const tiembla = fondo ? Math.sin(performance.now() / 22) * 2.2 : 0
@@ -5299,7 +5303,7 @@ function goma(a, bx, by) {
   const r0 = Math.max(9, radioPelota() + 2)
   const ax = bx + ux * r0, ay = by + uy * r0
   const ex = bx + ux * (r0 + L) + nx * tiembla, ey = by + uy * (r0 + L) + ny * tiembla
-  const color = fondo ? C.red : a.p >= NUDOS[0] ? C.gold : C.cream
+  const color = fondo ? C.red : a.p >= 0.5 ? C.gold : C.cream
   const grosor = Math.max(3, 11 - a.p * 7)
   ctx.lineCap = 'round'
   ctx.strokeStyle = 'rgba(12,43,28,.85)'; ctx.lineWidth = grosor + 4; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
@@ -5312,7 +5316,7 @@ function goma(a, bx, by) {
   NUDOS.forEach((m, i) => {
     const d = r0 + largo * enU(m)
     const x = bx + ux * d + (a.p >= m ? nx * tiembla : 0), y = by + uy * d + (a.p >= m ? ny * tiembla : 0)
-    const r = i === 2 ? 8 : 6.5
+    const r = i === FONDO ? 8 : i < 2 ? 5.5 : 6.5
     if (a.p < m && !(a.stock && a.nudo === m)) {
       ctx.strokeStyle = 'rgba(244,238,218,.6)'; ctx.lineWidth = 2; ctx.setLineDash([3, 3])
       ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); ctx.setLineDash([])
@@ -5325,9 +5329,9 @@ function goma(a, bx, by) {
       ctx.strokeStyle = C.cream; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r + 6 + lat * 3, 0, 7); ctx.stroke()
     }
     ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
-    ctx.fillStyle = i === 2 ? C.red : a.stock && a.nudo === m ? C.cream : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
-    ctx.fillStyle = C.g950; ctx.font = '10px Anton, Impact, sans-serif'; ctx.textAlign = 'center'
-    ctx.fillText(i === 2 ? '•' : i === 0 ? '½' : '¾', x, y + 3.6)
+    ctx.fillStyle = i === FONDO ? C.red : a.stock && a.nudo === m ? C.cream : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+    ctx.fillStyle = C.g950; ctx.font = `${i < 2 ? 9 : 10}px Anton, Impact, sans-serif`; ctx.textAlign = 'center'
+    ctx.fillText(NUDO_TXT[i], x, y + 3.4)
   })
   // el clic y el tic al pasar un nudo (para atrás no suena: solo cuando lo pasás de nuevo)
   let k = -1
