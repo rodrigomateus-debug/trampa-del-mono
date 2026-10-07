@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><title>Equipo 5 · SDGA</title>
+<defs>
+  <path id="arriba" d="M34 100A66 66 0 0 1 166 100"/>
+  <path id="abajo" d="M27 100A73 73 0 0 0 173 100"/>
+  <radialGradient id="fondo" cx="50%" cy="38%" r="65%"><stop offset="0" stop-color="#2b55a8"/><stop offset="1" stop-color="#162f6b"/></radialGradient>
+  <style>
+    .t { font-family: Anton, Impact, "Arial Narrow Bold", "Arial Black", sans-serif; font-weight: 900; fill: #e8c34a; text-anchor: middle; }
+    /* la pelota late, despacito */
+    .bola { transform-origin: 103px 117px; animation: bola 3.2s ease-in-out infinite; }
+    @keyframes bola { 0%, 70%, 100% { transform: none; } 80% { transform: scale(1.18); } 90% { transform: scale(.96); } }
+  </style>
+</defs>
+<circle cx="100" cy="100" r="99" fill="#0c2b1c"/>
+<circle cx="100" cy="100" r="94" fill="#e8c34a"/>
+<circle cx="100" cy="100" r="87" fill="url(#fondo)" stroke="#0c2b1c" stroke-width="3"/>
+<text class="t" font-size="21" letter-spacing="4"><textPath href="#arriba" startOffset="50%">EQUIPO</textPath></text>
+<text class="t" font-size="16" letter-spacing="7" dy="-1"><textPath href="#abajo" startOffset="50%">SDGA</textPath></text>
+<g fill="#e8c34a" stroke="#0c2b1c" stroke-width="1.5" stroke-linejoin="round">
+  <path d="M27 100l3.2 6.6 7.2 1-5.2 5 1.2 7.2-6.4-3.4-6.4 3.4 1.2-7.2-5.2-5 7.2-1z" transform="translate(0 -8)"/>
+  <path d="M173 100l3.2 6.6 7.2 1-5.2 5 1.2 7.2-6.4-3.4-6.4 3.4 1.2-7.2-5.2-5 7.2-1z" transform="translate(0 -8)"/>
+</g>
+<!-- el 5: sombra, borde y relleno, como los botones del juego -->
+<g transform="translate(13 12) scale(.86)">
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M128 64H88L84 96C92 90 101 88 109 89C125 91 135 103 135 118C135 136 121 148 103 148C89 148 77 142 71 132" stroke="#0c2b1c" stroke-width="27" transform="translate(4 5)"/>
+  <path d="M128 64H88L84 96C92 90 101 88 109 89C125 91 135 103 135 118C135 136 121 148 103 148C89 148 77 142 71 132" stroke="#0c2b1c" stroke-width="27"/>
+  <path d="M128 64H88L84 96C92 90 101 88 109 89C125 91 135 103 135 118C135 136 121 148 103 148C89 148 77 142 71 132" stroke="#f4eeda" stroke-width="18"/>
+</g>
+<!-- la pelota, en la panza del 5 -->
+<g class="bola">
+  <circle cx="103" cy="117" r="10.5" fill="#ffffff" stroke="#0c2b1c" stroke-width="2.6"/>
+  <g fill="#c9ccd1"><circle cx="99" cy="113" r="1.6"/><circle cx="105" cy="112" r="1.6"/><circle cx="108" cy="118" r="1.6"/><circle cx="101" cy="120" r="1.6"/><circle cx="97" cy="117" r="1.4"/><circle cx="104" cy="123" r="1.4"/></g>
+</g>
+</g>
+</svg>
