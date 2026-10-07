@@ -100,7 +100,7 @@ export const MONO = { vel: 18, pausa: 3, radio: 3.2, altura: 8, velCaza: 12, ale
 export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: antes de cada golpe elegís cuál (Flop, Baby Draw, Una cortada al medio o el Dibuje maestro, que dibujás con el dedo). En el green, putt con draw o con fade.' },
   'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
-  Tito: { id: 'viento', corto: 'Maneja el viento en vivo.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza maneja el viento en vivo: mientras la pelota vuela, cada swipe en la pantalla es una ráfaga para ese lado (más largo, más fuerte) y la pelota se va para ahí. Las ráfagas se suman y se calman solas.' },
+  Tito: { id: 'viento', corto: 'Maneja el viento en vivo.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza maneja el viento en vivo: mientras la pelota vuela, cada swipe en la pantalla es una ráfaga para ese lado (más largo, más fuerte) y la pelota se va para ahí. Las ráfagas se suman y se calman solas. Eso sí: en el green el putt es ultra sensible, un milímetro del dedo cambia la línea y la fuerza.' },
   Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá. Antes de pegar ves lo que se viene (y para qué lado), y después de una sorpresa el próximo sale limpio.' },
   'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después, la flecha.', nombre: 'La flecha', texto: 'El drive, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro, una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
   'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
@@ -603,6 +603,16 @@ export function vientoAleatorio(rng) {
 // ráfaga se calma sola: el viento se apaga con constante `calma` segundos (2026-10-07: antes era un joystick)
 export const TITO = { tiempo: 1.45, fuerza: 2, calma: 0.9 }
 const vientoDe = (v) => ({ ang: Math.atan2(v.wy, v.wx), kmh: Math.hypot(v.wx, v.wy) })
+// Tito, en el green: el putt es ultra sensible al dedo. Lo que el dedo se corre de la línea al hoyo se multiplica por
+// `angulo` (y si no apuntás justo al hoyo, la línea se va enseguida para cualquier lado), y a fondo se llega
+// arrastrando 1/`fuerza` de lo normal (un milímetro de más y se pasa de largo)
+export const TITO_PUTT = { angulo: 7, fuerza: 4 }
+/** El putt de Tito: el ángulo y la fuerza (0..1+, arrastre / largo) que da el dedo, amplificados. `ref` es el ángulo al hoyo. */
+export function puttDeTito(ang, u, ref) {
+  const d = Math.atan2(Math.sin(ang - ref), Math.cos(ang - ref))
+  const k = Math.max(-Math.PI, Math.min(Math.PI, d * TITO_PUTT.angulo))
+  return { ang: ref + k, u: u * TITO_PUTT.fuerza }
+}
 /** Tito, en el aire: el viento pasa a ser este (y con él, para dónde se va la pelota que vuela). */
 export function soplarEnVivo(r, tiro, ang, kmh) {
   if (!controlarViento(r, ang, kmh)) return false
