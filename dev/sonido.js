@@ -296,6 +296,16 @@ export function palo() {
   tono(880, 0.05, { vol: 0.12, ataque: 0.001 })
   ruido(0.4, { filtro: 'highpass', f: 3500, vol: 0.08, at: 0.03, ataque: 0.05 })
 }
+/** El palo revoleado, girando como hélice: un "fup" por cada media vuelta (cada 0,21 s), que se aleja y se apaga. */
+export function helicoptero(dur = 3.3) {
+  const paso = 0.21
+  for (let at = 0, i = 0; at < dur; at += paso, i++) {
+    const lejos = at / dur // 0: en la mano, 1: ya se fue
+    const vol = 0.22 * (1 - lejos * 0.85)
+    ruido(0.16, { f: 1300 - 700 * lejos, f2: 420 - 160 * lejos, q: 1.4, vol, at, ataque: 0.05 })
+    if (i % 2 === 0) tono(95 - 30 * lejos, 0.12, { vol: vol * 0.8, f2: 60, at, ataque: 0.01 })
+  }
+}
 export const labio = () => { tono(1900, 0.25, { vol: 0.14, tipo: 'triangle' }); tono(2850, 0.18, { vol: 0.06 }) }
 /** La corbata: la pelota raspa el borde mientras da la vuelta, cada vez más lento. */
 export function vuelta() {
