@@ -339,12 +339,15 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
   - 🌳 **un árbol**: aparece de la nada (crece en el lugar mientras la pelota se acerca), la frena en el aire y cae ahí; después se esfuma en una nubecita dibujada.
   - 💨 **una ráfaga**: entre el 35% y el 80% del vuelo la corre de costado 12 a 26 yardas, de golpe pero suave. Se dibuja (sin emoji): tres líneas de viento que ondulan, crema con borde tinta, con un rulo en la punta, como en las historietas, a la altura de la pelota.
   - 🛺 **un carrito** (rojo): llega de costado justo a donde pica, la levanta y se la lleva 12 a 24 yardas, y la deja (sin rodar); después sigue de largo. Va para el lado que la deja en juego (ni bosque ni afuera, si se puede).
-- LG cuenta lo que pasó ("¡Apareció un árbol de la nada!", etc.). Dificultad medida (20 vueltas): +1,4 (Difícil).
+- LG cuenta lo que pasó ("¡Apareció un árbol de la nada!", etc.).
+- **Se ve venir** (2026-10-07, para que no sea pura suerte): la sorpresa se sortea al empezar a apuntar (`prepararSorpresa`, `r.proxSorpresa`) y debajo del contador de golpes aparece la tarjeta "SE VIENE" con su ícono dibujado y para qué lado: UN ÁRBOL (la frena en el aire), RÁFAGA (te corre a la izq/der) o UN CARRITO (la lleva a la izq/der), o TIRO LIMPIO en verde. Sale exactamente lo anunciado, para ese lado (`armarSorpresa`); así se puede compensar apuntando.
+- **Nunca dos seguidas**: después de una sorpresa, el próximo tiro sale limpio seguro (`r.sorpresaAnterior`).
+- Dificultad medida (20 vueltas): +0,05 (Paseo); antes de anunciarlas y sin el "nunca dos seguidas", +1,4.
 
 ## 🌬️ Tito Esperanza maneja el viento (2026-10-07)
 
-- Entra al mazo Tito (HCP 16, 🌬️, su foto de la base). Habilidad "Tranqui, yo lo suspendo" (`viento`): maneja el viento **en vivo**. Mientras la pelota vuela aparece abajo un joystick redondo (verde, aro dorado, "VIENTO EN VIVO"): arrastrando la perilla elegís para dónde sopla (360°, arriba es para el hoyo) y qué tan fuerte (de 0 a 30 km/h, más lejos del centro, más fuerte), como con la potencia. La pelota en el aire le hace caso al momento (`soplarEnVivo`): la deriva se va sumando con el viento de cada instante (`tiro.vivo`) y lo mueve `TITO.fuerza` yardas por km/h en un tiro largo, parejo con el largo (también en los approach). Su vuelo dura un 45% más, para que dé tiempo. Al soltar, el viento queda como lo dejó.
-- 2026-10-07: antes era un dial para elegir el viento antes de pegar; Rorro lo pidió en vivo, como un joystick.
+- Entra al mazo Tito (HCP 16, 🌬️, su foto de la base). Habilidad "Tranqui, yo lo suspendo" (`viento`): maneja el viento **en vivo, a swipes**. Mientras la pelota vuela, cada swipe en cualquier parte de la pantalla es una ráfaga para ese lado (`rafagaTito`): más largo el swipe, más fuerte (hasta 30 km/h). Las ráfagas se suman (con tope de 30) y se calman solas (`TITO.calma` = 0,9 s), así que se maneja la pelota con varios swipes. La pelota en el aire le hace caso al momento: la deriva se va sumando con el viento de cada instante (`tiro.vivo`) y lo mueve `TITO.fuerza` (2) yardas por km/h en un tiro largo, parejo con el largo (también en los approach). Su vuelo dura un 45% más, para que dé tiempo. Abajo aparece el cartel "SWIPEÁ PARA SOPLAR" y cada ráfaga se dibuja en la pelota (las mismas líneas de viento que la de Juanpa); el viento de arriba muestra el de cada momento.
+- 2026-10-07: primero fue un dial antes de pegar, después un joystick en vuelo; Rorro lo prefirió a swipes, directo en la pantalla.
 - El bot apaga el viento antes de cada tiro. Dificultad medida (20 vueltas): +3,9 (Trampa total, por el HCP 16).
 
 ## 🔵 El logo del Equipo 5 (2026-10-07)

@@ -371,6 +371,29 @@ ok('Juanpa (el Mapache): le pega increíble, pero una de dos aparece un árbol, 
   let veces = 0
   for (let i = 0; i < 400; i++) if (M.golpear(quieto, nueva(), linea, 0.5, M.rngDesde(i)).sorpresa) veces++
   assert.ok(veces > 150 && veces < 250, `${veces} de 400`)
+  // se anuncia antes de pegar, y sale lo anunciado, para el lado anunciado
+  for (let i = 0; i < 60; i++) {
+    const r = nueva()
+    const prox = M.prepararSorpresa(quieto, r, M.rngDesde(500 + i))
+    const t = M.golpear(quieto, r, linea, 0.5, M.rngDesde(900 + i))
+    assert.equal(t.sorpresa?.tipo ?? null, prox?.tipo ?? null)
+    if (prox) {
+      const lado = t.sorpresa.vec[0] * Math.sin(linea) - t.sorpresa.vec[1] * Math.cos(linea) // + izquierda, − derecha
+      assert.ok(prox.lado === 1 ? lado < 0 : lado > 0, `lado ${prox.lado}`)
+      assert.ok(Math.abs(Math.hypot(...t.sorpresa.vec) * h15.escala - prox.m) < 1e-6)
+    }
+    assert.equal(r.proxSorpresa, undefined)
+  }
+  // después de una sorpresa, el próximo tiro sale limpio (y el siguiente vuelve a poder)
+  for (let i = 0; i < 40; i++) {
+    const r = nueva()
+    M.prepararSorpresa(quieto, r, M.rngDesde(i), 'rafaga')
+    assert.ok(M.golpear(quieto, r, linea, 0.5, M.rngDesde(i)).sorpresa)
+    r.pelota = [...h15.calle[1]]
+    assert.equal(M.prepararSorpresa(quieto, r, M.rngDesde(i)), null)
+    assert.equal(M.golpear(quieto, r, linea, 0.5, M.rngDesde(i)).sorpresa, undefined)
+    assert.equal(r.sorpresaAnterior, false)
+  }
   const enGreen = { ...nueva(), pelota: [h15.pin[0], h15.pin[1] + 5], lie: 'green' }
   for (let i = 0; i < 40; i++) assert.equal(M.golpear(quieto, { ...enGreen, pelota: [...enGreen.pelota] }, 0, 0.2, M.rngDesde(i)).sorpresa, undefined)
   // cada sorpresa, forzada
@@ -416,9 +439,22 @@ ok('Tito Esperanza: maneja el viento en vivo (dirección y fuerza, de 0 a 30) y 
     M.controlarViento(rr, 0, 0)
     const t = M.golpear(quieto, rr, linea, 0.8, sinRuido())
     assert.ok(t.vivo && t.deriva[0] === 0)
-    for (let i = 0; i < 30; i++) M.avanzar(quieto, t, 1 / 60, h15.pin) // un ratito sin viento
-    M.soplarEnVivo(rr, t, ang, 30)
+    // tres swipes para ese lado, cada medio segundo
+    for (let k = 0; k < 3; k++) {
+      for (let i = 0; i < 30; i++) M.avanzar(quieto, t, 1 / 60, h15.pin)
+      assert.ok(M.rafagaTito(rr, t, ang, 20))
+      assert.ok(M.vientoVivo(t).kmh <= M.FISICA.vientoMax + 1e-9)
+    }
     return M.simular(quieto, t, h15.pin)
+  }
+  // la ráfaga se calma sola
+  {
+    const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }
+    M.controlarViento(rr, 0, 0)
+    const t = M.golpear(quieto, rr, linea, 0.8, sinRuido())
+    M.rafagaTito(rr, t, 0, 30)
+    for (let i = 0; i < 120; i++) M.avanzar(quieto, t, 1 / 60, h15.pin)
+    assert.ok(M.vientoVivo(t).kmh < 30 * 0.2)
   }
   const recto = (() => { const rr = { ...r, pelota: [...h15.tee], lie: 'tee' }; M.controlarViento(rr, 0, 0); return M.simular(quieto, M.golpear(quieto, rr, linea, 0.8, sinRuido()), h15.pin) })()
   const lado = (p) => (p[0] - h15.tee[0]) * Math.sin(linea) - (p[1] - h15.tee[1]) * Math.cos(linea)
@@ -428,6 +464,7 @@ ok('Tito Esperanza: maneja el viento en vivo (dirección y fuerza, de 0 a 30) y 
   const antes = { ...otro.viento }
   assert.equal(M.controlarViento(otro, 0, 0), false)
   assert.equal(M.soplarEnVivo(otro, null, 0, 10), false)
+  assert.equal(M.rafagaTito(otro, { vivo: { wx: 0, wy: 0 } }, 0, 10), false)
   assert.deepEqual(otro.viento, antes)
 })
 

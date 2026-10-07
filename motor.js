@@ -100,8 +100,8 @@ export const MONO = { vel: 18, pausa: 3, radio: 3.2, altura: 8, velCaza: 12, ale
 export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: antes de cada golpe elegís cuál (Flop, Baby Draw, Una cortada al medio o el Dibuje maestro, que dibujás con el dedo). En el green, putt con draw o con fade.' },
   'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
-  Tito: { id: 'viento', corto: 'Maneja el viento en vivo.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza maneja el viento en vivo: mientras la pelota vuela aparece un joystick. Arrastrá para donde quieras que sople (360°) y qué tan fuerte, y la pelota se va para ahí.' },
-  Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá.' },
+  Tito: { id: 'viento', corto: 'Maneja el viento en vivo.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza maneja el viento en vivo: mientras la pelota vuela, cada swipe en la pantalla es una ráfaga para ese lado (más largo, más fuerte) y la pelota se va para ahí. Las ráfagas se suman y se calman solas.' },
+  Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá. Antes de pegar ves lo que se viene (y para qué lado), y después de una sorpresa el próximo sale limpio.' },
   'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después, la flecha.', nombre: 'La flecha', texto: 'El drive, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro, una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
   'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
   // del chat del SDGA:
@@ -598,15 +598,31 @@ function masCerca(campo, p, puntos) {
 export function vientoAleatorio(rng) {
   return { ang: rng() * 2 * Math.PI, kmh: Math.round(rng() * FISICA.vientoMax) }
 }
-// Tito: con la pelota en el aire maneja el viento. Su vuelo dura `tiempo` veces más (para que dé tiempo) y el viento
-// lo mueve `fuerza` yardas por km/h en un tiro de carryMax, parejo con el largo (no al cuadrado: también en el approach)
-export const TITO = { tiempo: 1.45, fuerza: 1.5 }
-/** Tito, en el aire: el viento cambia ya (y con él, para dónde se va la pelota que vuela). */
+// Tito: con la pelota en el aire maneja el viento a swipes. Su vuelo dura `tiempo` veces más (para que dé tiempo) y el
+// viento lo mueve `fuerza` yardas por km/h en un tiro de carryMax, parejo con el largo (también en el approach). Cada
+// ráfaga se calma sola: el viento se apaga con constante `calma` segundos (2026-10-07: antes era un joystick)
+export const TITO = { tiempo: 1.45, fuerza: 2, calma: 0.9 }
+const vientoDe = (v) => ({ ang: Math.atan2(v.wy, v.wx), kmh: Math.hypot(v.wx, v.wy) })
+/** Tito, en el aire: el viento pasa a ser este (y con él, para dónde se va la pelota que vuela). */
 export function soplarEnVivo(r, tiro, ang, kmh) {
   if (!controlarViento(r, ang, kmh)) return false
-  if (tiro?.vivo) { tiro.vivo.ang = r.viento.ang; tiro.vivo.kmh = r.viento.kmh }
+  if (tiro?.vivo) { tiro.vivo.wx = Math.cos(r.viento.ang) * r.viento.kmh; tiro.vivo.wy = Math.sin(r.viento.ang) * r.viento.kmh }
   return true
 }
+/** Tito, un swipe: una ráfaga para ese lado que se suma al viento que hay (hasta FISICA.vientoMax). */
+export function rafagaTito(r, tiro, ang, kmh) {
+  if (habilidadDe(r.jugador)?.id !== 'viento' || !tiro?.vivo) return false
+  const v = tiro.vivo
+  v.wx += Math.cos(ang) * kmh
+  v.wy += Math.sin(ang) * kmh
+  const m = Math.hypot(v.wx, v.wy)
+  if (m > FISICA.vientoMax) { v.wx *= FISICA.vientoMax / m; v.wy *= FISICA.vientoMax / m }
+  const w = vientoDe(v)
+  controlarViento(r, w.ang, w.kmh)
+  return true
+}
+/** El viento de ahora en el tiro de Tito (para mostrarlo). */
+export const vientoVivo = (tiro) => (tiro?.vivo ? vientoDe(tiro.vivo) : null)
 /** Tito Esperanza: él decide el viento (para dónde sopla, en ángulo de la cancha, y de 0 a FISICA.vientoMax km/h). */
 export function controlarViento(r, ang, kmh) {
   if (habilidadDe(r.jugador)?.id !== 'viento') return false
@@ -1034,9 +1050,13 @@ export function avanzar(campo, tiro, dt, pin) {
     tiro.t = Math.min(tiro.t + dt, tiro.T)
     const u = tiro.t / tiro.T
     if (tiro.vivo) {
-      // Tito: la deriva se suma con el viento de este momento (a viento parejo, termina igual que u² × el total)
+      // Tito: la deriva se suma con el viento de este momento (a viento parejo, termina igual que u² × el total) y el
+      // viento se va calmando solo
       const um = (u0 + u) / 2, du = u - u0, v = tiro.vivo
-      tiro.deriva = [tiro.deriva[0] + Math.cos(v.ang) * v.kmh * v.k * 2 * um * du, tiro.deriva[1] + Math.sin(v.ang) * v.kmh * v.k * 2 * um * du]
+      tiro.deriva = [tiro.deriva[0] + v.wx * v.k * 2 * um * du, tiro.deriva[1] + v.wy * v.k * 2 * um * du]
+      const calma = Math.exp(-dt / TITO.calma)
+      v.wx *= calma
+      v.wy *= calma
     }
     const fd = tiro.vivo ? 1 : u * u // con viento en vivo la deriva ya viene sumada
     const prev = tiro.pos
@@ -1441,25 +1461,30 @@ export function pinoEnLaSalida(campo, pelota, plan) {
   return null
 }
 
-/** La sorpresa de Juanpa: cuál, cuándo (u del vuelo) y para qué lado (de costado a la línea del tiro). */
-export function sortearSorpresa(campo, r, tiro, rng, tipo = null) {
+/**
+ * Juanpa: lo que se le va a cruzar en el próximo tiro, sorteado al empezar a apuntar (así se ve antes de pegar y se
+ * puede jugar): { tipo, lado (1 = derecha de la línea del tiro, −1 = izquierda), u, m (yardas reales) } o null (limpio).
+ * Después de una sorpresa, el próximo tiro sale limpio seguro. Queda en r.proxSorpresa hasta que pega.
+ */
+export function prepararSorpresa(campo, r, rng, tipo = null) {
+  if (habilidadDe(r.jugador)?.id !== 'caos' || enModoPutt(campo, r)) return (r.proxSorpresa = null)
+  if (!tipo && (r.sorpresaAnterior || rng() >= SORPRESA.chance)) return (r.proxSorpresa = null)
   tipo ??= elegir(rng, SORPRESAS)
   const u = SORPRESA.desde + rng() * (SORPRESA.hasta - SORPRESA.desde)
-  const d = Math.hypot(tiro.carryVec[0], tiro.carryVec[1]) || 1
-  const n = [-tiro.carryVec[1] / d, tiro.carryVec[0] / d] // perpendicular a la línea del tiro
-  const escala = hoyoActual(r).escala
   const [a, b] = tipo === 'carrito' ? SORPRESA.carrito : SORPRESA.rafaga
-  const m = (a + rng() * (b - a)) / escala
-  let lado = rng() < 0.5 ? 1 : -1
-  if (tipo === 'carrito') {
-    // el carrito anda por donde se puede andar: si para un lado la deja en el bosque o afuera, va para el otro
-    const cae = [tiro.desde[0] + tiro.carryVec[0] + tiro.deriva[0], tiro.desde[1] + tiro.carryVec[1] + tiro.deriva[1]]
-    const malo = (l) => ['afuera', 'bosque'].includes(terreno(campo, [cae[0] + n[0] * m * l, cae[1] + n[1] * m * l]).tipo)
-    const peor = (l) => terreno(campo, [cae[0] + n[0] * m * l, cae[1] + n[1] * m * l]).tipo === 'afuera'
-    if (malo(lado) && !malo(-lado)) lado = -lado
-    else if (peor(lado) && !peor(-lado)) lado = -lado
-  }
-  return { tipo, u: tipo === 'carrito' ? 1 : u, vec: [n[0] * m * lado, n[1] * m * lado], hecho: false }
+  return (r.proxSorpresa = { tipo, lado: rng() < 0.5 ? 1 : -1, u: tipo === 'carrito' ? 1 : u, m: a + rng() * (b - a) })
+}
+/** La sorpresa anunciada, ya en el tiro: de costado a la línea del tiro, para el lado que se avisó. */
+export function armarSorpresa(r, tiro, s) {
+  const d = Math.hypot(tiro.carryVec[0], tiro.carryVec[1]) || 1
+  const n = [-tiro.carryVec[1] / d, tiro.carryVec[0] / d] // perpendicular a la línea del tiro, para la derecha
+  const m = (s.m / hoyoActual(r).escala) * s.lado
+  return { tipo: s.tipo, lado: s.lado, u: s.u, vec: [n[0] * m, n[1] * m], hecho: false }
+}
+/** Sortear y armar de una (para probar una sorpresa en particular). */
+export function sortearSorpresa(campo, r, tiro, rng, tipo = null) {
+  const s = prepararSorpresa(campo, { ...r, sorpresaAnterior: false }, rng, tipo ?? elegir(rng, SORPRESAS))
+  return armarSorpresa(r, tiro, s)
 }
 /** Dónde está la pelota en el vuelo (u de 0 a 1), sin contar las sorpresas: para que la página dibuje dónde aparece el árbol. */
 export function posVuelo(tiro, u) {
@@ -1493,12 +1518,17 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   tiro.furia = !!plan.furia
   // Tito: el viento lo maneja en vivo (arranca con el que hay); la deriva se va sumando en el vuelo
   if (hab?.id === 'viento' && !plan.putt && tiro.modo === 'full') {
-    tiro.vivo = { ang: r.viento.ang, kmh: r.viento.kmh, k: FISICA.vientoYd * TITO.fuerza * (tiro.carry / FISICA.carryMax) }
+    tiro.vivo = { wx: Math.cos(r.viento.ang) * r.viento.kmh, wy: Math.sin(r.viento.ang) * r.viento.kmh, k: FISICA.vientoYd * TITO.fuerza * (tiro.carry / FISICA.carryMax) }
     tiro.deriva = [0, 0]
     tiro.T *= TITO.tiempo
   }
-  // Juanpa: una de dos veces, algo se cruza
-  if (hab?.id === 'caos' && !plan.putt && rng() < SORPRESA.chance) tiro.sorpresa = sortearSorpresa(campo, r, tiro, rng)
+  // Juanpa: lo que se anunció al apuntar (si no se sorteó, ahora); después de una sorpresa, el próximo sale limpio
+  if (hab?.id === 'caos' && !plan.putt) {
+    const sp = r.proxSorpresa !== undefined ? r.proxSorpresa : prepararSorpresa(campo, r, rng)
+    if (sp) tiro.sorpresa = armarSorpresa(r, tiro, sp)
+    r.sorpresaAnterior = !!sp
+    r.proxSorpresa = undefined
+  }
   tiro.exacto = retro // Demetrio: queda exactamente donde apuntó (ver avanzar)
   tiro.ajenos = (r.hoyos ?? HOYOS).filter((h) => h.n !== hoyoActual(r).n).map((h) => ({ n: h.n, pin: h.pin }))
   tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada
