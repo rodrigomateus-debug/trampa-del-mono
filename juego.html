@@ -1972,9 +1972,17 @@ function apunte() {
   let u = len / drag.largo
   // Taiu (la Rana): los controles al revés: empuja (la pelota sale para donde va el dedo); la fuerza, igual
   if (M.alReves(ronda.jugador)) ({ px, py, u } = M.invertirArrastre(px, py, u))
-  const p = Math.min(1, Math.pow(u, putt ? 1.6 : 1.35))
   const [wx, wy] = s2wVec(px, py)
-  const ang = Math.atan2(wy, wx)
+  let ang = Math.atan2(wy, wx)
+  let p = Math.min(1, Math.pow(u, putt ? 1.6 : 1.35))
+  // Tito en el green: el putt es ultra sensible al dedo (cualquier milímetro cambia la línea y la fuerza)
+  if (putt && M.habilidadDe(ronda.jugador)?.id === 'viento') {
+    const pin = M.hoyoActual(ronda).pin, b = ronda.pelota
+    // la fuerza cuenta desde que el dedo arranca (si no, los 8 px de arranque ya eran un putt de 2 yardas)
+    const t = M.puttDeTito(ang, (len - 8) / drag.largo, Math.atan2(pin[1] - b[1], pin[0] - b[0]))
+    ang = t.ang
+    p = Math.min(1, Math.pow(t.u, 1.6))
+  }
   let q = 0
   const tiempo = (performance.now() - drag.t0) / 1000 // el Águila: la línea se sacude con el tiempo
   let plan = M.planTiro(campo, ronda, ang, p, 0, tiempo)

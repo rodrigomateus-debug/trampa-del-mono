@@ -468,6 +468,17 @@ ok('Tito Esperanza: maneja el viento en vivo (dirección y fuerza, de 0 a 30) y 
   assert.deepEqual(otro.viento, antes)
 })
 
+ok('Tito en el green: el putt es ultra sensible al dedo (el desvío de la línea al hoyo ×7, la fuerza ×4)', () => {
+  const ref = 1
+  assert.deepEqual(M.puttDeTito(ref, 0.1, ref), { ang: ref, u: 0.1 * M.TITO_PUTT.fuerza })
+  const d = 0.02 // un pelito al costado
+  assert.ok(Math.abs(M.puttDeTito(ref + d, 0.2, ref).ang - (ref + d * M.TITO_PUTT.angulo)) < 1e-9)
+  assert.ok(Math.abs(M.puttDeTito(ref - d, 0.2, ref).ang - (ref - d * M.TITO_PUTT.angulo)) < 1e-9)
+  // del otro lado del círculo no se desarma: a lo sumo da media vuelta
+  const lejos = M.puttDeTito(ref + 3, 0.2, ref).ang - ref
+  assert.ok(Math.abs(lejos) <= Math.PI + 1e-9)
+})
+
 ok('Fito: la línea se sacude; en el embudo sale derecha', () => {
   const r = { ...M.nuevaRonda({ apodo: 'Fito (Đ)', emoji: '🦅', hcp: 22 }, fijo(0.5)), monos: [] }
   const linea = angulo(h15.tee, h15.pin)
