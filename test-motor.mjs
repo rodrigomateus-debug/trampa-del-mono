@@ -1848,6 +1848,13 @@ ok('el perfecto no es cero (hasta un 35% del error de siempre) y el swing de sto
   assert.equal(M.enNudoStock(0.735), 0.75)
   assert.equal(M.enNudoStock(0.6), null)
   assert.equal(M.enNudoStock(0.98), null) // el de fondo no
+  assert.equal(M.enNudoStock(0.125), 0.125) // los de los chips cortos
+  assert.equal(M.enNudoStock(0.26), 0.25)
+  assert.equal(M.enNudoStock(0.18), null)
+  // cerca del hoyo, más margen para el perfecto
+  assert.equal(M.radioPerfecto(200), M.PERFECTO.radio)
+  assert.equal(M.radioPerfecto(20), M.PERFECTO.cerca)
+  assert.ok(M.radioPerfecto(90) > M.PERFECTO.radio && M.radioPerfecto(90) < M.PERFECTO.cerca)
   // golpear: solo si soltó en el nudo (y no en el putt)
   const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
   assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.5, sinRuido(), 0, 0, null, true).stock, true)

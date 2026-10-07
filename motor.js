@@ -1081,8 +1081,9 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
   let ze = gauss(rng) * k
   let g = gauss(rng) * k
   const zr = Math.hypot(ze, g)
-  const perfecto = !(p.disp.ang > 0 || p.disp.carry > 0) || zr < PERFECTO.radio
-  if (perfecto && zr > 0) { ze *= PERFECTO.resto / PERFECTO.radio; g *= PERFECTO.resto / PERFECTO.radio }
+  const radio = p.radioPerfecto ?? PERFECTO.radio
+  const perfecto = !(p.disp.ang > 0 || p.disp.carry > 0) || zr < radio
+  if (perfecto && zr > 0) { ze *= PERFECTO.resto / radio; g *= PERFECTO.resto / radio }
   const err = ze * p.disp.ang
   // una bomba mal pegada nunca va más lejos: se queda corta
   const carry = Math.max(0, p.carry * (p.real ?? FISICA.factorReal[lie] ?? 1) * (p.bomba ? 1 - Math.abs(g) * p.disp.carry : 1 + g * p.disp.carry))
@@ -1678,6 +1679,8 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   const plan = planTiro(campo, r, angulo, potencia, precision, tiempo, ruta)
   // el swing de stock (soltó justo en el nudo de ½ o de ¾, con el dedo quieto): no en el putt, la bomba ni el Dibuje
   if (stock && !plan.putt && !plan.bomba && !ruta && enNudoStock(potencia) != null) plan.stock = true
+  // cuanto más cerca del hoyo, más margen para el perfecto
+  if (!plan.putt) plan.radioPerfecto = radioPerfecto(aYardas(r, dist(r.pelota, hoyoActual(r).pin)))
   r.desde = [...r.pelota]
   r.lieDesde = r.lie
   r.golpes += 1
@@ -2212,13 +2215,19 @@ export const PALOS = { wedge: 50 }
  * Lo dice chiquito al lado de donde salió. En el chip y el approach (hasta `BACKSPIN.approach` yd, no desde la salida)
  * además hace backspin: pica en el green o la calle y vuelve `base` + `porYarda` × el largo del tiro, como los pros.
  *
- * El SWING DE STOCK: soltar justo en el nudo de ½ o de ¾ de la goma (± `margen` de potencia) con el dedo quieto
- * (`quieto` ms sin moverse): el tiro sale con `error` × su error de siempre, y el perfecto pasa de ~4% a ~12%. La
- * distancia queda la del nudo: como los pros, cada uno se aprende sus yardas de ½ y de ¾ con cada palo.
+ * Cuanto más cerca del hoyo, más margen para el perfecto (`radioPerfecto`): de ~4% de lejos a ~12% cerca.
+ *
+ * El SWING DE STOCK: soltar justo en un nudo de la goma (⅛, ¼, ½ o ¾; ± `margenU` del estirón) con el dedo quieto
+ * (`quieto` ms sin moverse): el tiro sale con `error` × su error de siempre, y el perfecto sale ~3 veces más. La
+ * distancia queda la del nudo: como los pros, cada uno se aprende sus yardas de cada nudo con cada palo.
  */
-export const PERFECTO = { radio: 0.3, resto: 0.35 }
-export const STOCK = { nudos: [0.5, 0.75], margen: 0.02, quieto: 120, error: 0.6 }
-export const enNudoStock = (p) => STOCK.nudos.find((m) => Math.abs(p - m) <= STOCK.margen) ?? null
+export const PERFECTO = { radio: 0.3, cerca: 0.5, lejos: 150, junto: 30, resto: 0.35 }
+/** El margen del perfecto según lo lejos del hoyo (yardas reales): cuanto más cerca, más fácil (`radio` desde `lejos` yd, `cerca` a `junto` yd o menos). */
+export const radioPerfecto = (yd) => PERFECTO.radio + (PERFECTO.cerca - PERFECTO.radio) * Math.max(0, Math.min(1, (PERFECTO.lejos - yd) / (PERFECTO.lejos - PERFECTO.junto)))
+// los nudos de stock: ⅛ y ¼ (chips cortos), ½ y ¾. El margen es de largo de dedo (en el estirón, no en la potencia:
+// la potencia es el estirón a la 1,35), así todos los nudos piden la misma puntería
+export const STOCK = { nudos: [0.125, 0.25, 0.5, 0.75], margenU: 0.025, quieto: 120, error: 0.6, exp: 1.35 }
+export const enNudoStock = (p) => STOCK.nudos.find((m) => Math.abs(Math.pow(p, 1 / STOCK.exp) - Math.pow(m, 1 / STOCK.exp)) <= STOCK.margenU) ?? null
 export const BACKSPIN = { approach: 110, base: 1.5, porYarda: 0.025, en: ['green', 'fairway'] }
 export function paloDe(campo, r) {
   if (enModoPutt(campo, r)) return 'putter'
