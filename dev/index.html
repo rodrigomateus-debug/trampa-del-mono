@@ -342,27 +342,6 @@ button.carta-prev:active { transform: scale(.98); background: #0f3a26; }
 .hab-x { --sh: 3px 3px 0 var(--game-ink); --dx: 3px; --dy: 3px; position: absolute; right: 10px; top: 10px; z-index: 1; width: var(--game-h-sm); height: var(--game-h-sm); padding: 0; border-radius: 50%; background: var(--cream); display: grid; place-items: center; }
 .hab-x .gi { width: 22px; height: 22px; }
 @keyframes hab-in { from { opacity: 0; } }
-/* 🌬️ Tito maneja el viento: un dial (dirección y fuerza) */
-.tv-caja { display: grid; gap: 10px; justify-items: center; text-align: center; }
-.tv-caja .hab-de, .tv-caja h3 { justify-self: stretch; text-align: left; }
-.tv-dial { width: min(78vw, 260px); aspect-ratio: 1; touch-action: none; cursor: grab; }
-.tv-caja .tv-dial svg { width: 100%; height: 100%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #1c5638, #0f3624 70%); box-shadow: inset 0 0 0 3px var(--game-ink), 0 0 0 3px var(--gold); }
-.tv-aro { fill: none; stroke: rgba(244, 238, 218, .45); stroke-width: 2; }
-.tv-aro.fino { stroke-width: 1; stroke-dasharray: 3 5; }
-.tv-marcas line { stroke: rgba(244, 238, 218, .7); stroke-width: 2; }
-.tv-hoyo { fill: var(--gold); font: 12px var(--font-display); letter-spacing: .06em; text-anchor: middle; }
-#tv-flecha { stroke: var(--gold); stroke-width: 7; stroke-linecap: round; }
-#tv-punta { fill: var(--gold); stroke: var(--game-ink); stroke-width: 2; }
-#tv-perilla { fill: var(--cream); stroke: var(--game-ink); stroke-width: 3; }
-.tv-val { margin: 0; font: 22px var(--font-display); letter-spacing: .06em; color: var(--cream); }
-.tv-val b { font-size: 40px; font-weight: 400; color: var(--gold); }
-.tv-ayuda { margin: 0; font-size: 13px; line-height: 1.35; color: rgba(244, 238, 218, .75); }
-.tv-botones { display: flex; gap: 10px; justify-content: center; }
-/* con Tito, el viento es un botón */
-.viento.tito { pointer-events: auto; cursor: pointer; position: relative; box-shadow: inset 0 0 0 2px var(--gold); animation: tv-llama 2.4s ease-in-out infinite; }
-.viento.tito::after { content: 'TOCÁ'; position: absolute; left: -10px; top: -9px; transform: rotate(-8deg); background: var(--gold); color: var(--game-ink); border: 2px solid var(--game-ink); font: 10px/1 var(--font-display); letter-spacing: .08em; padding: 3px 5px 2px; white-space: nowrap; }
-@keyframes tv-llama { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-3deg) scale(1.04); } }
-body.apuntando .viento.tito { pointer-events: none; }
 @keyframes hab-pop { from { opacity: 0; transform: translateY(14px) scale(.94); } }
 .carta dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
 .carta dt { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -443,6 +422,21 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 #g-mas.ve { animation: g-mas 2.6s cubic-bezier(.2, 1.4, .4, 1) forwards; }
 @keyframes g-mas { 0% { opacity: 0; transform: translate(-30px, -50%) scale(.4); } 12% { opacity: 1; transform: translate(0, -50%) scale(1.1); } 20% { transform: translate(0, -50%) scale(1); } 82% { opacity: 1; transform: translate(0, -50%); } 100% { opacity: 0; transform: translate(0, -110%); } }
 #h-golpe { visibility: hidden; } /* el golpe ahora se ve grande en #golpes */
+/* 🌬️ el joystick de Tito: con la pelota en el aire, el viento en vivo */
+#tito-joy { position: fixed; left: 50%; bottom: calc(var(--safe-bot) + 18px); z-index: 32; translate: -50% 0; display: grid; justify-items: center; gap: 6px; touch-action: none; animation: tj-entra .25s cubic-bezier(.2, 1.4, .4, 1); }
+#tito-joy[hidden] { display: none; }
+@keyframes tj-entra { from { opacity: 0; scale: .6; } }
+#tito-joy .tj-tit { font: 13px/1 var(--font-display); letter-spacing: .08em; color: var(--game-ink); background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); padding: 5px 9px 4px; transform: rotate(-3deg); }
+#tito-joy .tj-base { width: 148px; height: 148px; border-radius: 50%; background: radial-gradient(circle at 45% 38%, #2e7d4f, #14402a 70%); border: 3px solid var(--game-ink); box-shadow: 0 0 0 4px var(--gold), 5px 7px 0 4px var(--game-ink); cursor: grab; touch-action: none; }
+#tito-joy .tj-base svg { width: 100%; height: 100%; display: block; }
+.tj-aro { fill: none; stroke: rgba(244, 238, 218, .4); stroke-width: 1.5; }
+.tj-aro.fino { stroke-width: 1; stroke-dasharray: 2 4; }
+.tj-marcas line { stroke: rgba(244, 238, 218, .65); stroke-width: 1.6; }
+#tj-flecha { stroke: var(--gold); stroke-width: 6; stroke-linecap: round; }
+#tj-punta { fill: var(--gold); stroke: var(--game-ink); stroke-width: 1.6; }
+#tj-perilla { fill: var(--cream); stroke: var(--game-ink); stroke-width: 3; }
+#tito-joy.activo #tj-perilla { fill: var(--gold); }
+#tito-joy b { font: 18px/1 var(--font-display); letter-spacing: .06em; color: var(--cream); background: rgba(12, 43, 28, .85); border-radius: 999px; padding: 5px 12px 4px; }
 /* 😤 la furia de Miguelón: dos mitades; llena, roja y latiendo */
 #furia { position: relative; width: 74px; margin-top: 2px; padding: 5px 7px 6px; box-sizing: border-box; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--cream); color: var(--green-900); box-shadow: var(--game-shadow-sm); transform: rotate(1.5deg); display: grid; justify-items: center; gap: 4px; font-family: var(--font-display); pointer-events: none; }
 #furia[hidden] { display: none; }
@@ -1373,6 +1367,8 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <div id="cuenta" hidden aria-live="assertive"></div>
 
+<div id="tito-joy" hidden aria-label="Tito maneja el viento: arrastrá"><span class="tj-tit">VIENTO EN VIVO</span><div class="tj-base"><svg viewBox="-60 -60 120 120" aria-hidden="true"><circle r="55" class="tj-aro"/><circle r="36" class="tj-aro fino"/><circle r="18" class="tj-aro fino"/><g class="tj-marcas"></g><line id="tj-flecha" x1="0" y1="0" x2="0" y2="0"/><path id="tj-punta" d="M0 0"/><circle id="tj-perilla" r="13"/></svg></div><b id="tj-kmh">0 KM/H</b></div>
+
 <div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span><svg class="rv-palo" viewBox="0 0 60 160"><path d="M30 6v118" stroke="#0c2b1c" stroke-width="9" stroke-linecap="round"/><path d="M30 6v118" stroke="#c9ccd1" stroke-width="5" stroke-linecap="round"/><rect x="24" y="4" width="12" height="34" rx="5" fill="#1b1b1b" stroke="#0c2b1c" stroke-width="2.5"/><path d="M27 120h22c6 0 8 10 2 14l-20 8c-6 2-9-3-7-8z" fill="#9aa3ad" stroke="#0c2b1c" stroke-width="3"/></svg><b>¡REVOLEÓ EL PALO!</b><i>😡 el próximo, para cualquier lado</i></div>
 
 <div id="ruleta" hidden aria-live="assertive">
@@ -1453,26 +1449,6 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <button class="tu-despues" type="button" data-cerrar>Después</button>
   </div>
 </div>
-<div class="hab-modal" id="tito-viento" hidden>
-  <div class="hab-fondo" data-cerrar></div>
-  <div class="hab-caja tv-caja" role="dialog" aria-modal="true" aria-labelledby="tv-tit">
-    <p class="hab-de">🌬️ Tito Esperanza</p>
-    <h3 id="tv-tit">Tranqui, yo lo suspendo</h3>
-    <div class="tv-dial" id="tv-dial">
-      <svg viewBox="-110 -110 220 220" aria-hidden="true">
-        <circle r="96" class="tv-aro"/><circle r="64" class="tv-aro fino"/><circle r="32" class="tv-aro fino"/>
-        <g class="tv-marcas"></g>
-        <text x="0" y="-74" class="tv-hoyo">⛳ AL HOYO</text>
-        <line id="tv-flecha" x1="0" y1="0" x2="0" y2="0"/>
-        <path id="tv-punta" d="M0 0"/>
-        <circle id="tv-perilla" r="13" cx="0" cy="0"/>
-      </svg>
-    </div>
-    <p class="tv-val"><b id="tv-kmh">0</b> KM/H</p>
-    <p class="tv-ayuda">Arrastrá desde el centro: para dónde sopla y qué tan fuerte (hasta 30). Arriba es para el hoyo.</p>
-    <div class="tv-botones"><button class="btn crema chico" type="button" id="tv-calma">SIN VIENTO</button><button class="btn chico" type="button" id="tv-listo">LISTO</button></div>
-  </div>
-</div>
 <div class="hab-modal" id="dicky-sel" hidden>
   <div class="hab-fondo" data-cerrar></div>
   <div class="dk-caja" role="dialog" aria-modal="true" aria-labelledby="dk-tit">
@@ -1527,7 +1503,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v be82e48 · 6/10, 09:33 p. m.</span>
+  <span class="version" id="version">v 510f3e7 · 6/10, 09:47 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1717,11 +1693,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=35aa6564bd'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=35aa6564bd'
+import * as M from './motor.js?v=1dd719c486'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=1dd719c486'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=35aa6564bd'
-import * as S from './sonido.js?v=35aa6564bd'
+import * as R from './ranking.js?v=1dd719c486'
+import * as S from './sonido.js?v=1dd719c486'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2266,54 +2242,51 @@ function guiaDibujo(x, y, t) {
   ctx.restore()
 }
 
-// ── 🌬️ Tito maneja el viento: el dial ──
-const TV_R = 96 // el radio del dial (en las unidades del SVG): ahí, 30 km/h
-function abrirVientoTito() {
-  if (estado !== 'apuntar' || drag || M.habilidadDe(ronda?.jugador)?.id !== 'viento') return
-  const marcas = $('#tito-viento .tv-marcas')
-  if (!marcas.childElementCount) marcas.innerHTML = Array.from({ length: 16 }, (_, i) => { const a = (i * Math.PI) / 8; const r0 = i % 4 ? 90 : 84; return `<line x1="${Math.cos(a) * r0}" y1="${Math.sin(a) * r0}" x2="${Math.cos(a) * 102}" y2="${Math.sin(a) * 102}"/>` }).join('')
-  pintarDialViento()
-  $('#tito-viento').hidden = false
-  S.tap?.()
+
+// ── 🌬️ Tito: con la pelota en el aire, un joystick maneja el viento en vivo ──
+const TJ_R = 47 // hasta dónde va la perilla (en las unidades del SVG): ahí, 30 km/h
+let tjDedo = null
+function joystickTito() {
+  const ver = estado === 'tiro' && !!tiro?.vivo && tiro.fase === 'vuelo' && !replay
+  const el = $('#tito-joy')
+  if (el.hidden === !ver) return
+  el.hidden = !ver
+  if (!ver) { tjDedo = null; el.classList.remove('activo'); return }
+  const marcas = el.querySelector('.tj-marcas')
+  if (!marcas.childElementCount) marcas.innerHTML = Array.from({ length: 12 }, (_, i) => { const a = (i * Math.PI) / 6; return `<line x1="${Math.cos(a) * 49}" y1="${Math.sin(a) * 49}" x2="${Math.cos(a) * 56}" y2="${Math.sin(a) * 56}"/>` }).join('')
+  pintarJoystick()
 }
-/** El dial muestra el viento como se ve en la pantalla (arriba = para el hoyo). */
-function pintarDialViento() {
+/** La perilla muestra el viento como se ve en pantalla (arriba = para el hoyo). */
+function pintarJoystick() {
   const v = ronda.viento
   const a = v.ang + cam.rot
-  const largo = (v.kmh / M.FISICA.vientoMax) * TV_R
+  const largo = (v.kmh / M.FISICA.vientoMax) * TJ_R
   const x = Math.cos(a) * largo, y = Math.sin(a) * largo
-  const f = $('#tv-flecha')
-  f.setAttribute('x2', x); f.setAttribute('y2', y)
-  // la punta de la flecha
+  $('#tj-flecha').setAttribute('x2', x); $('#tj-flecha').setAttribute('y2', y)
   const ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux
-  const t = largo > 18 ? 1 : 0
-  $('#tv-punta').setAttribute('d', t ? `M${x + ux * 16} ${y + uy * 16}L${x + nx * 11} ${y + ny * 11}L${x - nx * 11} ${y - ny * 11}Z` : 'M0 0')
-  const k = $('#tv-perilla')
-  k.setAttribute('cx', x); k.setAttribute('cy', y)
-  $('#tv-kmh').textContent = v.kmh
+  $('#tj-punta').setAttribute('d', largo > 16 ? `M${x + ux * 12} ${y + uy * 12}L${x + nx * 8} ${y + ny * 8}L${x - nx * 8} ${y - ny * 8}Z` : 'M0 0')
+  $('#tj-perilla').setAttribute('cx', x); $('#tj-perilla').setAttribute('cy', y)
+  $('#tj-kmh').textContent = `${v.kmh} KM/H`
 }
-function vientoDelDedo(e) {
-  const box = $('#tv-dial').getBoundingClientRect()
-  const sx = ((e.clientX - box.left) / box.width) * 220 - 110
-  const sy = ((e.clientY - box.top) / box.height) * 220 - 110
-  const kmh = Math.min(1, Math.hypot(sx, sy) / TV_R) * M.FISICA.vientoMax
-  M.controlarViento(ronda, Math.atan2(sy, sx) - cam.rot, kmh < 1.5 ? 0 : kmh)
-  pintarDialViento()
-  hud()
+function vientoDelJoystick(e) {
+  const box = $('#tito-joy .tj-base').getBoundingClientRect()
+  const sx = ((e.clientX - box.left) / box.width) * 120 - 60
+  const sy = ((e.clientY - box.top) / box.height) * 120 - 60
+  const kmh = Math.min(1, Math.hypot(sx, sy) / TJ_R) * M.FISICA.vientoMax
+  M.soplarEnVivo(ronda, tiro, Math.atan2(sy, sx) - cam.rot, kmh < 1.5 ? 0 : kmh)
+  pintarJoystick()
+  $('#v-kmh').textContent = ronda.viento.kmh
+  $('#viento').classList.toggle('calmo', !ronda.viento.kmh)
 }
-let tvArrastre = null
-$('#tv-dial').addEventListener('pointerdown', (e) => { tvArrastre = e.pointerId; $('#tv-dial').setPointerCapture(e.pointerId); vientoDelDedo(e) })
-$('#tv-dial').addEventListener('pointermove', (e) => { if (tvArrastre === e.pointerId) vientoDelDedo(e) })
-$('#tv-dial').addEventListener('pointerup', (e) => { if (tvArrastre === e.pointerId) { tvArrastre = null; S.viento(ronda.viento.kmh) } })
-$('#tv-calma').addEventListener('click', () => { M.controlarViento(ronda, ronda.viento.ang, 0); pintarDialViento(); hud() })
-const cerrarVientoTito = () => {
-  if ($('#tito-viento').hidden) return
-  $('#tito-viento').hidden = true
-  if (ronda) voz = { lg: ronda.viento.kmh ? `🌬️ Tito lo dejó en ${ronda.viento.kmh} km/h` : '🌬️ Tito lo suspendió: sin viento', extra: 'Tranqui, yo lo suspendo', hasta: performance.now() + 3500 }
-}
-$('#tv-listo').addEventListener('click', cerrarVientoTito)
-$('#tito-viento').addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) cerrarVientoTito() })
-$('#viento').addEventListener('click', abrirVientoTito)
+$('#tito-joy .tj-base').addEventListener('pointerdown', (e) => {
+  if (!tiro?.vivo) return
+  tjDedo = e.pointerId
+  e.currentTarget.setPointerCapture(e.pointerId)
+  $('#tito-joy').classList.add('activo')
+  vientoDelJoystick(e)
+})
+$('#tito-joy .tj-base').addEventListener('pointermove', (e) => { if (tjDedo === e.pointerId && tiro?.vivo) vientoDelJoystick(e) })
+for (const ev of ['pointerup', 'pointercancel']) $('#tito-joy .tj-base').addEventListener(ev, (e) => { if (tjDedo === e.pointerId) { tjDedo = null; $('#tito-joy').classList.remove('activo'); S.viento(ronda.viento.kmh) } })
 
 // ── ciclo ──
 let ultimo = performance.now(), acc = 0
@@ -2331,6 +2304,7 @@ function cuadro(t) {
   actualizar(dt)
   if (!tapada()) dibujar()
   noTapenLaPelota(t)
+  joystickTito()
   hudCuadro = null
   requestAnimationFrame(cuadro)
 }
@@ -3278,10 +3252,6 @@ function hud() {
   S.viento(ronda.viento.kmh)
   // la Ruleta: mientras gira (o todavía no giró para el próximo tiro) el marcador muestra la carta, sin adelantar quién pega
   const oculto = !!ronda.ruleta && (estado === 'ruleta' || (ronda.ruletaToca && estado !== 'tiro' && estado !== 'anim'))
-  // Tito: el viento es un botón (lo maneja él), solo cuando apuntás
-  const tito = !oculto && M.habilidadDe(ronda.jugador)?.id === 'viento'
-  $('#viento').classList.toggle('tito', tito && estado === 'apuntar')
-  $('#viento').setAttribute('role', tito ? 'button' : 'img')
   const j = oculto ? ronda.carta : ronda.jugador
   $('#j-ruleta').hidden = !ronda.ruleta
   if (ronda.ruleta) $('#j-ruleta').textContent = oculto ? '🎰 GIRA…' : `🎰 TIRO ${ronda.ruleta.tiros.length}`
@@ -4090,6 +4060,64 @@ function arbolito(x, y, k, alfa = 1) {
   ctx.fillText('✨', x + tam * 0.45, y - tam * 0.6)
   ctx.restore()
 }
+/**
+ * La ráfaga de Juanpa, dibujada: tres líneas de viento que ondulan para donde empuja (u), cada una con su rulo en la
+ * punta, crema con borde tinta, como las líneas de las historietas. `t` en segundos (ondulan), `k` de 0 a 1 (aparece).
+ */
+function rafagaDibujada(x, y, ux, uy, t, k = 1) {
+  const nx = -uy, ny = ux
+  const lineas = [{ off: -15, largo: 64, desf: 0, r: 6 }, { off: 0, largo: 92, desf: 1.4, r: 8 }, { off: 15, largo: 58, desf: 2.6, r: 5.5 }]
+  ctx.save()
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.globalAlpha = k
+  for (const L of lineas) {
+    const pts = []
+    const atras = 26 + L.largo // arranca atrás de la pelota y termina un poco antes
+    for (let i = 0; i <= 24; i++) {
+      const q = i / 24
+      const a = -atras + q * L.largo * k
+      const w = Math.sin(q * Math.PI * 2.2 - t * 9 + L.desf) * 3.5 * (1 - q * 0.6)
+      pts.push([x + ux * a + nx * (L.off + w), y + uy * a + ny * (L.off + w)])
+    }
+    // el rulo de la punta: una espiral que se cierra hacia afuera de la ráfaga
+    const [ex, ey] = pts[pts.length - 1]
+    const lado = L.off > 0 ? 1 : -1
+    const cx = ex + nx * L.r * lado, cy = ey + ny * L.r * lado
+    const a0 = Math.atan2(ey - cy, ex - cx)
+    const giro = Math.atan2(ux * ny - uy * nx, ux * nx + uy * ny) > 0 ? -lado : lado
+    for (let i = 1; i <= 16; i++) {
+      const a = a0 + giro * i * 0.38
+      const rr = L.r * (1 - i / 22)
+      pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr])
+    }
+    const trazo = () => { ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (const p of pts) ctx.lineTo(p[0], p[1]) }
+    trazo(); ctx.strokeStyle = 'rgba(12,43,28,.55)'; ctx.lineWidth = 6.5; ctx.stroke()
+    trazo(); ctx.strokeStyle = C.cream; ctx.lineWidth = 3.5; ctx.stroke()
+  }
+  // dos rayitas cortas de velocidad, atrás de todo
+  ctx.strokeStyle = 'rgba(244,238,218,.6)'
+  ctx.lineWidth = 2.5
+  for (const o of [-24, 24]) {
+    const b = -(110 + ((t * 120) % 30))
+    ctx.beginPath(); ctx.moveTo(x + ux * b + nx * o, y + uy * b + ny * o); ctx.lineTo(x + ux * (b + 16) + nx * o, y + uy * (b + 16) + ny * o); ctx.stroke()
+  }
+  ctx.restore()
+}
+/** La nubecita (dibujada) del árbol que se esfuma: unos círculos crema que se abren y se apagan. */
+function nubecita(x, y, k) {
+  ctx.save()
+  ctx.globalAlpha = Math.max(0, 1 - k)
+  ctx.fillStyle = C.cream
+  ctx.strokeStyle = 'rgba(12,43,28,.45)'
+  ctx.lineWidth = 2
+  for (const [dx, dy, r] of [[-16, 4, 9], [0, -6, 12], [16, 3, 9], [-6, 10, 8], [8, 11, 8]]) {
+    ctx.beginPath()
+    ctx.arc(x + dx * (1 + k), y + dy * (1 + k), r * (0.7 + k * 0.6), 0, 7)
+    ctx.fill(); ctx.stroke()
+  }
+  ctx.restore()
+}
 /** Mientras vuela: el árbol que va creciendo donde la va a frenar, el viento que la corre, el carrito que llega. */
 function sorpresaJuanpa(t) {
   const sp = t.sorpresa
@@ -4100,25 +4128,11 @@ function sorpresaJuanpa(t) {
     if (k > 0) { const [x, y] = w2s(M.posVuelo(t, sp.u)); arbolito(x, y, Math.min(1, k * 1.15)) }
   }
   if (sp.tipo === 'rafaga' && t.fase === 'vuelo' && u > sp.u - 0.04) {
-    const [x, y] = w2s(t.pos)
+    const [x, y0] = w2s(t.pos)
     const [vx, vy] = w2s([t.pos[0] + sp.vec[0], t.pos[1] + sp.vec[1]])
-    const d = Math.hypot(vx - x, vy - y) || 1
-    const ux = (vx - x) / d, uy = (vy - y) / d
-    const fase = performance.now() / 90
-    ctx.save()
-    ctx.strokeStyle = 'rgba(244,238,218,.8)'
-    ctx.lineCap = 'round'
-    ctx.lineWidth = 3
-    for (let i = -2; i <= 2; i++) {
-      const off = ((fase + i * 7) % 20) - 10
-      const ox = x - ux * (30 + off * 2) - uy * i * 9, oy = y - uy * (30 + off * 2) + ux * i * 9
-      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + ux * 24, oy + uy * 24); ctx.stroke()
-    }
-    ctx.font = `30px ${EMOJI}`
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('💨', x - ux * 46, y - uy * 46)
-    ctx.restore()
+    const d = Math.hypot(vx - x, vy - y0) || 1
+    const entra = Math.min(1, (u - (sp.u - 0.04)) / 0.08) // aparece de golpe
+    rafagaDibujada(x, y0 - t.alt * levante(), (vx - x) / d, (vy - y0) / d, performance.now() / 1000, entra) // a la altura de la pelota (no de la sombra)
   }
   if (sp.tipo === 'carrito') {
     const ang = Math.atan2(sp.vec[1], sp.vec[0])
@@ -4157,7 +4171,7 @@ function dibujarFxJuanpa() {
       const [x, y] = w2s(f.pos)
       const fuera = Math.max(0, (sg - 0.8) / 0.6)
       arbolito(x, y, 1 + fuera * 0.3, 1 - fuera)
-      if (fuera > 0) { ctx.save(); ctx.globalAlpha = 1 - fuera; ctx.font = `${34 + fuera * 30}px ${EMOJI}`; ctx.textAlign = 'center'; ctx.fillText('💨', x, y - 20); ctx.restore() }
+      if (fuera > 0) nubecita(x, y - 18, fuera)
     } else {
       const d = sg * 26
       const [x, y] = w2s([f.pos[0] + Math.cos(f.ang) * d, f.pos[1] + Math.sin(f.ang) * d])

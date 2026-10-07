@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy: el juego publicado + El Sueco (drive de Fito y flecha), la furia de Miguelón, Juanpa Pielach (el Mapache), Tito Esperanza (maneja el viento) y el logo del Equipo 5 en Lechu y LG, para probar.
+Hoy: el juego publicado + El Sueco (drive de Fito y flecha), la furia de Miguelón, Juanpa Pielach (el Mapache), Tito Esperanza (el viento en vivo, con joystick) y la medalla del Equipo 5 en Lechu y LG, para probar.
