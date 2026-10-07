@@ -331,7 +331,7 @@ export const DEMETRIO = {
 export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp": null, "foto": null, "misterio": true }
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
+export const EN_PRUEBA = ['Tito', 'Mapache', 'El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
 
 // 🔒 Taiu se desbloquea (2026-10-06): con una tarjeta firmada de −1 o mejor con cada uno de estos Dicky
 // (vale el récord del teléfono y, con tu usuario, tus vueltas del ranking). Hasta entonces, su carta va con candado.
@@ -361,7 +361,9 @@ export const DIFICULTAD_REAL = {
   'El Sueco': { prom: -0.45, lp: 0 }, // 2026-10-07: el drive con el pulso de Fito, después la flecha
   Grandpa: { prom: -1.22, lp: 2 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
   'El Perro': { prom: -0.83, lp: 0 },
-  'Mike Queboni (Đ)': { prom: 0.94, lp: 10 }, // 2026-10-07: con la furia (antes −0,2) // con la bomba de 405 (llega a los dos par 4), 2026-10-06
+  'Mike Queboni (Đ)': { prom: 0.94, lp: 10 }, // 2026-10-07: con la furia (antes −0,2); la bomba de 405 llega a los dos par 4
+  Tito: { prom: 3.94, lp: 10 }, // 2026-10-07: el bot apaga el viento antes de cada tiro (HCP 16)
+  Mapache: { prom: 1.4, lp: 0 }, // 2026-10-07: Juanpa, la mitad del error y una de dos, una sorpresa (árbol, ráfaga o carrito)
   'El Ninja (Đ)': { prom: 0.41, lp: 3 },
   LG: { prom: 0.49, lp: 2 },
   'El Mago Rodal': { prom: -0.5, lp: 0, nivel: 2 }, // 2026-10-06: elige el golpe (antes, al azar). Normal a mano: el bot dibuja el vuelo perfecto, la gente no

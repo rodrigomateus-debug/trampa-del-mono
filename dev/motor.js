@@ -100,6 +100,8 @@ export const MONO = { vel: 18, pausa: 3, radio: 3.2, altura: 8, velCaza: 12, ale
 export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: antes de cada golpe elegís cuál (Flop, Baby Draw, Una cortada al medio o el Dibuje maestro, que dibujás con el dedo). En el green, putt con draw o con fade.' },
   'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
+  Tito: { id: 'viento', corto: 'Él maneja el viento.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza controla el viento: antes de cada tiro tocá el viento y elegí para dónde sopla y qué tan fuerte (de 0 a 30 km/h).' },
+  Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá.' },
   'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después, la flecha.', nombre: 'La flecha', texto: 'El drive, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro, una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
   'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
   // del chat del SDGA:
@@ -169,6 +171,12 @@ export const PUTT_MAGO = { giro: 0.3 }
 // ni en el green, media si el segundo no queda en el green (o no entra) y media si el hoyo termina en bogey o peor.
 // Llena: revolea el palo y el próximo tiro (o putt) sale con la dispersión del peor handicap × `extra`; después, a cero.
 export const FURIA = { mitades: 2, extra: 1.6 }
+// la mala suerte de Juanpa (el Mapache): en cada tiro fuera del green, con chance `chance`, una sorpresa (árbol, ráfaga
+// o carrito, una de tres). El árbol y la ráfaga pasan entre `desde` y `hasta` del vuelo; la ráfaga la corre de costado
+// `rafaga` yardas reales y el carrito, al picar, se la lleva `carrito` yardas reales en `carritoT` segundos.
+// `error`: la mitad del error de su handicap (le pega increíble)
+export const SORPRESA = { chance: 0.5, desde: 0.35, hasta: 0.8, rafaga: [12, 26], carrito: [12, 24], carritoT: 1.2, error: 0.5 }
+export const SORPRESAS = ['arbol', 'rafaga', 'carrito']
 // la flecha de El Sueco (del segundo tiro en adelante): vuela más bajo y más rápido que un tiro normal
 export const FLECHA = { alto: 0.35, tiempo: 0.6 }
 export const PUTTS_MAGO = [
@@ -590,6 +598,13 @@ function masCerca(campo, p, puntos) {
 export function vientoAleatorio(rng) {
   return { ang: rng() * 2 * Math.PI, kmh: Math.round(rng() * FISICA.vientoMax) }
 }
+/** Tito Esperanza: él decide el viento (para dónde sopla, en ángulo de la cancha, y de 0 a FISICA.vientoMax km/h). */
+export function controlarViento(r, ang, kmh) {
+  if (habilidadDe(r.jugador)?.id !== 'viento') return false
+  const a = Math.atan2(Math.sin(ang), Math.cos(ang))
+  r.viento = { ang: a < 0 ? a + 2 * Math.PI : a, kmh: Math.round(Math.max(0, Math.min(FISICA.vientoMax, kmh))) }
+  return true
+}
 
 // ── monos ───────────────────────────────────────────────────────────────
 /** Los monos de los tres hoyos, cada uno arrancando en su lado de pinos (fase = cuánto espera al principio). */
@@ -730,7 +745,7 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     // los 3 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
     const noLaFalla = hab?.id === 'dadas' && dist(b, pin) * hoyoActual(r).escala <= DADA
     const retro = hab?.id === 'retro'
-    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error, recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso }
+    return { putt: true, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso }
   }
   const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
@@ -768,6 +783,7 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     plan.disp = { ...plan.disp, ang: 0, carry: 0 }
     plan.calma = true
   }
+  if (hab?.id === 'caos') plan.disp = { ...plan.disp, ang: plan.disp.ang * SORPRESA.error, carry: plan.disp.carry * SORPRESA.error }
   if (hab?.id === 'derecho' && !tee) {
     // El Sueco, desde el segundo tiro: una flecha. Derecho (sin error de dirección), bajo y rápido, y atraviesa
     // todo: los pinos y los monos que se cruzan en el vuelo (2026-10-07, antes era "siempre derecho" también el drive)
@@ -990,6 +1006,20 @@ function robo(tiro) {
 /** Un paso de física. Muta `tiro`; devuelve la fase ('vuelo' | 'rodando' | 'quieta'). */
 export function avanzar(campo, tiro, dt, pin) {
   if (tiro.monos && tiro.fase !== 'quieta') moverMonos(tiro.monos, dt, null) // los monos siguen caminando mientras vuela
+  if (tiro.fase === 'carrito') {
+    // el carrito de Juanpa se la lleva de costado y la deja
+    const s = tiro.sorpresa
+    s.t += dt
+    const k = Math.min(1, s.t / SORPRESA.carritoT)
+    const e = k * k * (3 - 2 * k)
+    tiro.pos = [s.de[0] + s.vec[0] * e, s.de[1] + s.vec[1] * e]
+    if (k >= 1) {
+      tiro.v = [0, 0]
+      tiro.fase = 'quieta'
+      tiro.eventos.push({ tipo: 'carrito' })
+    }
+    return tiro.fase
+  }
   if (tiro.fase === 'vuelo') {
     tiro.t = Math.min(tiro.t + dt, tiro.T)
     const u = tiro.t / tiro.T
@@ -1007,6 +1037,24 @@ export function avanzar(campo, tiro, dt, pin) {
       tiro.desde[1] + tiro.controlVec[1] * b1 + tiro.carryVec[1] * b2 + tiro.deriva[1] * b2,
     ]
     tiro.alt = 4 * tiro.hMax * u * (1 - u)
+    const sp = tiro.sorpresa
+    if (sp?.tipo === 'rafaga' && u > sp.u) {
+      // la ráfaga: la corre de costado, de golpe pero suave
+      const k = Math.min(1, (u - sp.u) / Math.max(0.05, 1 - sp.u))
+      const e = k * k * (3 - 2 * k)
+      tiro.pos = [tiro.pos[0] + sp.vec[0] * e, tiro.pos[1] + sp.vec[1] * e]
+      if (!sp.hecho) { sp.hecho = true; tiro.eventos.push({ tipo: 'rafaga' }) }
+    }
+    if (sp?.tipo === 'arbol' && u >= sp.u && !sp.hecho) {
+      // el árbol que aparece: la frena en el aire y cae ahí, al pie
+      sp.hecho = true
+      sp.pos = [...tiro.pos]
+      tiro.alt = 0
+      tiro.v = [0, 0]
+      tiro.fase = 'quieta'
+      tiro.eventos.push({ tipo: 'arbol' })
+      return tiro.fase
+    }
     if (u > 0.02 && !tiro.alHoyo && !tiro.flecha && robo(tiro)) return tiro.fase // el tiro de Deme (o el de par de Demetrio) no lo para nadie
     // los golpes del Mago vuelan por arriba de los pinos (menos la viborita, que va al ras)
     const pino = !tiro.alHoyo && !tiro.exacto && !tiro.flecha && (!tiro.comba || tiro.rasante) && u > 0.02 && u < 1 && tiro.alt < FISICA.alturaPino ? pinoEn(campo, tiro.pos) : null
@@ -1050,6 +1098,15 @@ export function avanzar(campo, tiro, dt, pin) {
         tiro.embocada = true
         tiro.eventos.push({ tipo: 'clavada' }, { tipo: 'embocada' })
         tiro.fase = 'quieta'
+        return tiro.fase
+      }
+      // el carrito de Juanpa: pasa justo, la levanta y se la lleva
+      if (tiro.sorpresa?.tipo === 'carrito' && !tiro.sorpresa.hecho) {
+        tiro.sorpresa.hecho = true
+        tiro.sorpresa.de = [...tiro.pos]
+        tiro.sorpresa.t = 0
+        tiro.v = [0, 0]
+        tiro.fase = 'carrito'
         return tiro.fase
       }
       // rueda en la dirección con la que llega; la comba del Mago, en cambio, pica y sigue derecho a la bandera
@@ -1368,6 +1425,36 @@ export function pinoEnLaSalida(campo, pelota, plan) {
   return null
 }
 
+/** La sorpresa de Juanpa: cuál, cuándo (u del vuelo) y para qué lado (de costado a la línea del tiro). */
+export function sortearSorpresa(campo, r, tiro, rng, tipo = null) {
+  tipo ??= elegir(rng, SORPRESAS)
+  const u = SORPRESA.desde + rng() * (SORPRESA.hasta - SORPRESA.desde)
+  const d = Math.hypot(tiro.carryVec[0], tiro.carryVec[1]) || 1
+  const n = [-tiro.carryVec[1] / d, tiro.carryVec[0] / d] // perpendicular a la línea del tiro
+  const escala = hoyoActual(r).escala
+  const [a, b] = tipo === 'carrito' ? SORPRESA.carrito : SORPRESA.rafaga
+  const m = (a + rng() * (b - a)) / escala
+  let lado = rng() < 0.5 ? 1 : -1
+  if (tipo === 'carrito') {
+    // el carrito anda por donde se puede andar: si para un lado la deja en el bosque o afuera, va para el otro
+    const cae = [tiro.desde[0] + tiro.carryVec[0] + tiro.deriva[0], tiro.desde[1] + tiro.carryVec[1] + tiro.deriva[1]]
+    const malo = (l) => ['afuera', 'bosque'].includes(terreno(campo, [cae[0] + n[0] * m * l, cae[1] + n[1] * m * l]).tipo)
+    const peor = (l) => terreno(campo, [cae[0] + n[0] * m * l, cae[1] + n[1] * m * l]).tipo === 'afuera'
+    if (malo(lado) && !malo(-lado)) lado = -lado
+    else if (peor(lado) && !peor(-lado)) lado = -lado
+  }
+  return { tipo, u: tipo === 'carrito' ? 1 : u, vec: [n[0] * m * lado, n[1] * m * lado], hecho: false }
+}
+/** Dónde está la pelota en el vuelo (u de 0 a 1), sin contar las sorpresas: para que la página dibuje dónde aparece el árbol. */
+export function posVuelo(tiro, u) {
+  if (tiro.ruta) {
+    const q = puntoEnRuta(tiro.ruta, u * (tiro.rutaLargo ??= largoRuta(tiro.ruta)))
+    return [tiro.desde[0] + q[0] + tiro.deriva[0] * u * u, tiro.desde[1] + q[1] + tiro.deriva[1] * u * u]
+  }
+  const b1 = 2 * u * (1 - u), b2 = u * u
+  return [tiro.desde[0] + tiro.controlVec[0] * b1 + (tiro.carryVec[0] + tiro.deriva[0]) * b2, tiro.desde[1] + tiro.controlVec[1] * b1 + (tiro.carryVec[1] + tiro.deriva[1]) * b2]
+}
+
 /** Pegarle: cuenta el golpe y devuelve el tiro para animarlo con `avanzar` (que también mueve los monos). */
 export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null) {
   const plan = planTiro(campo, r, angulo, potencia, precision, tiempo, ruta)
@@ -1388,6 +1475,8 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   const tiro = lanzar(campo, { pelota: r.pelota, angulo, potencia, viento: retro ? { ang: 0, kmh: 0 } : r.viento, putt: plan.putt, lie: r.lie, rng, plan })
   tiro.monos = r.monos
   tiro.furia = !!plan.furia
+  // Juanpa: una de dos veces, algo se cruza
+  if (hab?.id === 'caos' && !plan.putt && rng() < SORPRESA.chance) tiro.sorpresa = sortearSorpresa(campo, r, tiro, rng)
   tiro.exacto = retro // Demetrio: queda exactamente donde apuntó (ver avanzar)
   tiro.ajenos = (r.hoyos ?? HOYOS).filter((h) => h.n !== hoyoActual(r).n).map((h) => ({ n: h.n, pin: h.pin }))
   tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada

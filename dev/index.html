@@ -342,6 +342,27 @@ button.carta-prev:active { transform: scale(.98); background: #0f3a26; }
 .hab-x { --sh: 3px 3px 0 var(--game-ink); --dx: 3px; --dy: 3px; position: absolute; right: 10px; top: 10px; z-index: 1; width: var(--game-h-sm); height: var(--game-h-sm); padding: 0; border-radius: 50%; background: var(--cream); display: grid; place-items: center; }
 .hab-x .gi { width: 22px; height: 22px; }
 @keyframes hab-in { from { opacity: 0; } }
+/* 🌬️ Tito maneja el viento: un dial (dirección y fuerza) */
+.tv-caja { display: grid; gap: 10px; justify-items: center; text-align: center; }
+.tv-caja .hab-de, .tv-caja h3 { justify-self: stretch; text-align: left; }
+.tv-dial { width: min(78vw, 260px); aspect-ratio: 1; touch-action: none; cursor: grab; }
+.tv-caja .tv-dial svg { width: 100%; height: 100%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #1c5638, #0f3624 70%); box-shadow: inset 0 0 0 3px var(--game-ink), 0 0 0 3px var(--gold); }
+.tv-aro { fill: none; stroke: rgba(244, 238, 218, .45); stroke-width: 2; }
+.tv-aro.fino { stroke-width: 1; stroke-dasharray: 3 5; }
+.tv-marcas line { stroke: rgba(244, 238, 218, .7); stroke-width: 2; }
+.tv-hoyo { fill: var(--gold); font: 12px var(--font-display); letter-spacing: .06em; text-anchor: middle; }
+#tv-flecha { stroke: var(--gold); stroke-width: 7; stroke-linecap: round; }
+#tv-punta { fill: var(--gold); stroke: var(--game-ink); stroke-width: 2; }
+#tv-perilla { fill: var(--cream); stroke: var(--game-ink); stroke-width: 3; }
+.tv-val { margin: 0; font: 22px var(--font-display); letter-spacing: .06em; color: var(--cream); }
+.tv-val b { font-size: 40px; font-weight: 400; color: var(--gold); }
+.tv-ayuda { margin: 0; font-size: 13px; line-height: 1.35; color: rgba(244, 238, 218, .75); }
+.tv-botones { display: flex; gap: 10px; justify-content: center; }
+/* con Tito, el viento es un botón */
+.viento.tito { pointer-events: auto; cursor: pointer; position: relative; box-shadow: inset 0 0 0 2px var(--gold); animation: tv-llama 2.4s ease-in-out infinite; }
+.viento.tito::after { content: 'TOCÁ'; position: absolute; left: -10px; top: -9px; transform: rotate(-8deg); background: var(--gold); color: var(--game-ink); border: 2px solid var(--game-ink); font: 10px/1 var(--font-display); letter-spacing: .08em; padding: 3px 5px 2px; white-space: nowrap; }
+@keyframes tv-llama { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-3deg) scale(1.04); } }
+body.apuntando .viento.tito { pointer-events: none; }
 @keyframes hab-pop { from { opacity: 0; transform: translateY(14px) scale(.94); } }
 .carta dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
 .carta dt { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1432,6 +1453,26 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <button class="tu-despues" type="button" data-cerrar>Después</button>
   </div>
 </div>
+<div class="hab-modal" id="tito-viento" hidden>
+  <div class="hab-fondo" data-cerrar></div>
+  <div class="hab-caja tv-caja" role="dialog" aria-modal="true" aria-labelledby="tv-tit">
+    <p class="hab-de">🌬️ Tito Esperanza</p>
+    <h3 id="tv-tit">Tranqui, yo lo suspendo</h3>
+    <div class="tv-dial" id="tv-dial">
+      <svg viewBox="-110 -110 220 220" aria-hidden="true">
+        <circle r="96" class="tv-aro"/><circle r="64" class="tv-aro fino"/><circle r="32" class="tv-aro fino"/>
+        <g class="tv-marcas"></g>
+        <text x="0" y="-74" class="tv-hoyo">⛳ AL HOYO</text>
+        <line id="tv-flecha" x1="0" y1="0" x2="0" y2="0"/>
+        <path id="tv-punta" d="M0 0"/>
+        <circle id="tv-perilla" r="13" cx="0" cy="0"/>
+      </svg>
+    </div>
+    <p class="tv-val"><b id="tv-kmh">0</b> KM/H</p>
+    <p class="tv-ayuda">Arrastrá desde el centro: para dónde sopla y qué tan fuerte (hasta 30). Arriba es para el hoyo.</p>
+    <div class="tv-botones"><button class="btn crema chico" type="button" id="tv-calma">SIN VIENTO</button><button class="btn chico" type="button" id="tv-listo">LISTO</button></div>
+  </div>
+</div>
 <div class="hab-modal" id="dicky-sel" hidden>
   <div class="hab-fondo" data-cerrar></div>
   <div class="dk-caja" role="dialog" aria-modal="true" aria-labelledby="dk-tit">
@@ -1486,7 +1527,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v d7e8d6e · 6/10, 09:22 p. m.</span>
+  <span class="version" id="version">v 8db7fb9 · 6/10, 09:30 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1676,11 +1717,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=f2a760c23d'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=f2a760c23d'
+import * as M from './motor.js?v=611e0907df'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=611e0907df'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=f2a760c23d'
-import * as S from './sonido.js?v=f2a760c23d'
+import * as R from './ranking.js?v=611e0907df'
+import * as S from './sonido.js?v=611e0907df'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2225,6 +2266,55 @@ function guiaDibujo(x, y, t) {
   ctx.restore()
 }
 
+// ── 🌬️ Tito maneja el viento: el dial ──
+const TV_R = 96 // el radio del dial (en las unidades del SVG): ahí, 30 km/h
+function abrirVientoTito() {
+  if (estado !== 'apuntar' || drag || M.habilidadDe(ronda?.jugador)?.id !== 'viento') return
+  const marcas = $('#tito-viento .tv-marcas')
+  if (!marcas.childElementCount) marcas.innerHTML = Array.from({ length: 16 }, (_, i) => { const a = (i * Math.PI) / 8; const r0 = i % 4 ? 90 : 84; return `<line x1="${Math.cos(a) * r0}" y1="${Math.sin(a) * r0}" x2="${Math.cos(a) * 102}" y2="${Math.sin(a) * 102}"/>` }).join('')
+  pintarDialViento()
+  $('#tito-viento').hidden = false
+  S.tap?.()
+}
+/** El dial muestra el viento como se ve en la pantalla (arriba = para el hoyo). */
+function pintarDialViento() {
+  const v = ronda.viento
+  const a = v.ang + cam.rot
+  const largo = (v.kmh / M.FISICA.vientoMax) * TV_R
+  const x = Math.cos(a) * largo, y = Math.sin(a) * largo
+  const f = $('#tv-flecha')
+  f.setAttribute('x2', x); f.setAttribute('y2', y)
+  // la punta de la flecha
+  const ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux
+  const t = largo > 18 ? 1 : 0
+  $('#tv-punta').setAttribute('d', t ? `M${x + ux * 16} ${y + uy * 16}L${x + nx * 11} ${y + ny * 11}L${x - nx * 11} ${y - ny * 11}Z` : 'M0 0')
+  const k = $('#tv-perilla')
+  k.setAttribute('cx', x); k.setAttribute('cy', y)
+  $('#tv-kmh').textContent = v.kmh
+}
+function vientoDelDedo(e) {
+  const box = $('#tv-dial').getBoundingClientRect()
+  const sx = ((e.clientX - box.left) / box.width) * 220 - 110
+  const sy = ((e.clientY - box.top) / box.height) * 220 - 110
+  const kmh = Math.min(1, Math.hypot(sx, sy) / TV_R) * M.FISICA.vientoMax
+  M.controlarViento(ronda, Math.atan2(sy, sx) - cam.rot, kmh < 1.5 ? 0 : kmh)
+  pintarDialViento()
+  hud()
+}
+let tvArrastre = null
+$('#tv-dial').addEventListener('pointerdown', (e) => { tvArrastre = e.pointerId; $('#tv-dial').setPointerCapture(e.pointerId); vientoDelDedo(e) })
+$('#tv-dial').addEventListener('pointermove', (e) => { if (tvArrastre === e.pointerId) vientoDelDedo(e) })
+$('#tv-dial').addEventListener('pointerup', (e) => { if (tvArrastre === e.pointerId) { tvArrastre = null; S.viento(ronda.viento.kmh) } })
+$('#tv-calma').addEventListener('click', () => { M.controlarViento(ronda, ronda.viento.ang, 0); pintarDialViento(); hud() })
+const cerrarVientoTito = () => {
+  if ($('#tito-viento').hidden) return
+  $('#tito-viento').hidden = true
+  if (ronda) voz = { lg: ronda.viento.kmh ? `🌬️ Tito lo dejó en ${ronda.viento.kmh} km/h` : '🌬️ Tito lo suspendió: sin viento', extra: 'Tranqui, yo lo suspendo', hasta: performance.now() + 3500 }
+}
+$('#tv-listo').addEventListener('click', cerrarVientoTito)
+$('#tito-viento').addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) cerrarVientoTito() })
+$('#viento').addEventListener('click', abrirVientoTito)
+
 // ── ciclo ──
 let ultimo = performance.now(), acc = 0
 // Las pantallas opacas que tapan la cancha entera: con una de estas arriba, dibujarla es trabajo tirado (y en la intro
@@ -2306,6 +2396,7 @@ function sonarEventos(t) {
   }
 }
 function alReposo() {
+  sorpresaQueQueda(tiro) // Juanpa: el árbol o el carrito quedan un ratito en pantalla
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
   const largo = M.dist(ronda.desde, h.pin)
@@ -2325,7 +2416,8 @@ function alReposo() {
     embocar(frase)
     return
   }
-  relatar(dicho)
+  // Juanpa: si se le cruzó algo, LG cuenta eso
+  if (tiro.sorpresa?.hecho) { const [lg, verso] = SORPRESA_TXT[tiro.sorpresa.tipo]; relatar({ lg, verso }) } else relatar(dicho)
   // el sonido va antes de las animaciones (que cortan acá con return: si no, el Mono bueno y el malo no sonaban nunca)
   if (res.tipo === 'mono-bueno') S.monoBueno()
   else if (res.tipo === 'mono-malo') S.robo()
@@ -3186,6 +3278,10 @@ function hud() {
   S.viento(ronda.viento.kmh)
   // la Ruleta: mientras gira (o todavía no giró para el próximo tiro) el marcador muestra la carta, sin adelantar quién pega
   const oculto = !!ronda.ruleta && (estado === 'ruleta' || (ronda.ruletaToca && estado !== 'tiro' && estado !== 'anim'))
+  // Tito: el viento es un botón (lo maneja él), solo cuando apuntás
+  const tito = !oculto && M.habilidadDe(ronda.jugador)?.id === 'viento'
+  $('#viento').classList.toggle('tito', tito && estado === 'apuntar')
+  $('#viento').setAttribute('role', tito ? 'button' : 'img')
   const j = oculto ? ronda.carta : ronda.jugador
   $('#j-ruleta').hidden = !ronda.ruleta
   if (ronda.ruleta) $('#j-ruleta').textContent = oculto ? '🎰 GIRA…' : `🎰 TIRO ${ronda.ruleta.tiros.length}`
@@ -3467,7 +3563,7 @@ function dibujar() {
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
-    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); pelota(tiro.pos, tiro.alt) }
+    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro); pelota(tiro.pos, tiro.alt) }
     else { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
   }
   const a = estado === 'apuntar' ? apunte() : null
@@ -3481,6 +3577,7 @@ function dibujar() {
     else dibujarTrazo(trazoFade.pts, k * k, null, trazoFade.desde)
   }
   if ((ronda?.ruleta || ronda?.prestado) && estado === 'apuntar' && !drag && !anim) etiquetaRuleta()
+  dibujarFxJuanpa()
 
   if (ronda && !ronda.terminada) {
     const ang = ronda.viento.ang + cam.rot
@@ -3909,20 +4006,25 @@ function dibujarCarro(c) {
       ctx.restore()
     }
   }
+  cuerpoCarrito(x, y, c.ang + cam.rot, L)
+}
+/** El carrito (el de Marcos y el que se le cruza a Juanpa): la trompa mira a `ang` (en pantalla). */
+function cuerpoCarrito(x, y, ang, L, carroceria = ['#1f7a45', '#2f9b5d']) {
+  const A = L * 0.58
   ctx.save()
   ctx.translate(x, y)
-  ctx.rotate(c.ang + cam.rot) // la trompa mira a +x
+  ctx.rotate(ang) // la trompa mira a +x
   ctx.fillStyle = 'rgba(8,26,16,.3)' // sombra
   ctx.beginPath(); ctx.roundRect(-L / 2 + 3, -A / 2 + 4, L, A, A * 0.3); ctx.fill()
   ctx.fillStyle = '#121212' // ruedas
   for (const wx of [-L * 0.3, L * 0.28]) for (const s of [-1, 1]) {
     ctx.beginPath(); ctx.roundRect(wx - L * 0.1, s * A * 0.5 - A * 0.09, L * 0.2, A * 0.18, 2); ctx.fill()
   }
-  ctx.fillStyle = '#1f7a45' // la carrocería verde
+  ctx.fillStyle = carroceria[0] // la carrocería
   ctx.strokeStyle = '#0c2b1c'
   ctx.lineWidth = 1.5
   ctx.beginPath(); ctx.roundRect(-L / 2, -A / 2, L, A, A * 0.28); ctx.fill(); ctx.stroke()
-  ctx.fillStyle = '#2f9b5d' // el capot
+  ctx.fillStyle = carroceria[1] // el capot
   ctx.beginPath(); ctx.roundRect(L * 0.18, -A * 0.4, L * 0.3, A * 0.8, A * 0.22); ctx.fill()
   ctx.fillStyle = '#fff3b0' // los faros
   for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(L * 0.46, s * A * 0.3, Math.max(1.5, L * 0.035), 0, 7); ctx.fill() }
@@ -3966,6 +4068,107 @@ function pelotaQuieta() {
 }
 /** La pelota en pantalla: siempre en proporción al hoyo (0,42 vs. 0,66 yd), también en el zoom de la corbata. */
 const radioPelota = () => Math.max(3.2, cam.esc * 0.42)
+// ── 🦝 la mala suerte de Juanpa: el árbol que aparece, la ráfaga y el carrito ──
+let fxJuanpa = [] // lo que sigue en pantalla después del tiro: el árbol que se va, el carrito que se aleja
+const CARRITO_JUANPA = ['#c9472f', '#e0634a']
+const SORPRESA_TXT = {
+  arbol: ['🌳 ¡Apareció un árbol de la nada!', 'La frenó en el aire y se esfumó. Cosas de Juanpa'],
+  rafaga: ['💨 ¡Una ráfaga de la nada!', 'Le corrió la pelota en el aire. Cosas de Juanpa'],
+  carrito: ['🛺 ¡Un carrito de costado!', 'Pasó justo, se la llevó un poco y la dejó. Cosas de Juanpa'],
+}
+const tamCarrito = () => Math.max(44, M.CARRITO.largo * cam.esc * 1.5)
+function arbolito(x, y, k, alfa = 1) {
+  if (k <= 0 || alfa <= 0) return
+  const tam = Math.max(64, 14 * cam.esc) * k
+  ctx.save()
+  ctx.globalAlpha = alfa
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'bottom'
+  ctx.font = `${tam}px ${EMOJI}`
+  ctx.fillText('🌳', x, y + tam * 0.12)
+  ctx.font = `${tam * 0.4}px ${EMOJI}`
+  ctx.fillText('✨', x + tam * 0.45, y - tam * 0.6)
+  ctx.restore()
+}
+/** Mientras vuela: el árbol que va creciendo donde la va a frenar, el viento que la corre, el carrito que llega. */
+function sorpresaJuanpa(t) {
+  const sp = t.sorpresa
+  if (!sp) return
+  const u = t.fase === 'vuelo' ? t.t / t.T : 1
+  if (sp.tipo === 'arbol' && !sp.hecho) {
+    const k = (u - (sp.u - 0.3)) / 0.3
+    if (k > 0) { const [x, y] = w2s(M.posVuelo(t, sp.u)); arbolito(x, y, Math.min(1, k * 1.15)) }
+  }
+  if (sp.tipo === 'rafaga' && t.fase === 'vuelo' && u > sp.u - 0.04) {
+    const [x, y] = w2s(t.pos)
+    const [vx, vy] = w2s([t.pos[0] + sp.vec[0], t.pos[1] + sp.vec[1]])
+    const d = Math.hypot(vx - x, vy - y) || 1
+    const ux = (vx - x) / d, uy = (vy - y) / d
+    const fase = performance.now() / 90
+    ctx.save()
+    ctx.strokeStyle = 'rgba(244,238,218,.8)'
+    ctx.lineCap = 'round'
+    ctx.lineWidth = 3
+    for (let i = -2; i <= 2; i++) {
+      const off = ((fase + i * 7) % 20) - 10
+      const ox = x - ux * (30 + off * 2) - uy * i * 9, oy = y - uy * (30 + off * 2) + ux * i * 9
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + ux * 24, oy + uy * 24); ctx.stroke()
+    }
+    ctx.font = `30px ${EMOJI}`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('💨', x - ux * 46, y - uy * 46)
+    ctx.restore()
+  }
+  if (sp.tipo === 'carrito') {
+    const ang = Math.atan2(sp.vec[1], sp.vec[0])
+    const L = tamCarrito()
+    if (t.fase === 'vuelo' && u > 0.5) {
+      // llega de costado, justo a donde va a picar
+      const cae = M.posVuelo(t, 1)
+      const largo = Math.hypot(...sp.vec) * 2.2
+      const k = (u - 0.5) / 0.5
+      const p = [cae[0] - Math.cos(ang) * largo * (1 - k), cae[1] - Math.sin(ang) * largo * (1 - k)]
+      const [x, y] = w2s(p)
+      cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
+    } else if (t.fase === 'carrito') {
+      const [x, y] = w2s(t.pos)
+      cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
+    }
+  }
+  if (sp.tipo === 'rafaga' && sp.hecho && !sp.sono) { sp.sono = true; S.swipe() }
+  if (sp.tipo === 'carrito' && t.fase === 'carrito' && !sp.sono) { sp.sono = true; S.robo() }
+}
+/** Al quedar quieta: lo que sigue en pantalla (el árbol que se esfuma, el carrito que se va). */
+function sorpresaQueQueda(t) {
+  const sp = t.sorpresa
+  if (!sp?.hecho || sp.tipo === 'rafaga') return
+  fxJuanpa.push({ tipo: sp.tipo, pos: [...(sp.pos ?? t.pos)], ang: Math.atan2(sp.vec[1], sp.vec[0]), t0: performance.now() })
+  if (sp.tipo === 'arbol') S.palo()
+}
+/** Después: el árbol se queda un ratito y se esfuma; el carrito sigue de largo. */
+function dibujarFxJuanpa() {
+  if (!fxJuanpa.length) return
+  const ahora = performance.now()
+  fxJuanpa = fxJuanpa.filter((f) => ahora - f.t0 < 1600)
+  for (const f of fxJuanpa) {
+    const sg = (ahora - f.t0) / 1000
+    if (f.tipo === 'arbol') {
+      const [x, y] = w2s(f.pos)
+      const fuera = Math.max(0, (sg - 0.8) / 0.6)
+      arbolito(x, y, 1 + fuera * 0.3, 1 - fuera)
+      if (fuera > 0) { ctx.save(); ctx.globalAlpha = 1 - fuera; ctx.font = `${34 + fuera * 30}px ${EMOJI}`; ctx.textAlign = 'center'; ctx.fillText('💨', x, y - 20); ctx.restore() }
+    } else {
+      const d = sg * 26
+      const [x, y] = w2s([f.pos[0] + Math.cos(f.ang) * d, f.pos[1] + Math.sin(f.ang) * d])
+      ctx.save()
+      ctx.globalAlpha = Math.max(0, 1 - sg / 1.6)
+      cuerpoCarrito(x, y, f.ang + cam.rot, tamCarrito(), CARRITO_JUANPA)
+      ctx.restore()
+    }
+  }
+}
+
 /** La flecha de El Sueco: mientras vuela, detrás de la pelota va una flecha (asta dorada, plumas rojas) para donde va. */
 function flechaSueco(t) {
   const atras = estela[Math.max(0, estela.length - 5)]
@@ -6183,6 +6386,11 @@ function previewHab(id) {
   const linea = (d, color = '#f4eeda') => `<path d="${d}" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="1.5 2.5" opacity=".8"/>`
   const txt = (t, x, y, desde, color = '#e8c34a') => `<text x="${x}" y="${y}" font-size="8" font-family="Anton, sans-serif" fill="${color}" text-anchor="middle" opacity="0">${t}${aparece(desde)}</text>`
   const escenas = {
+    // Tito: la flecha del viento gira y la pelota va para donde él quiere
+    viento: `<g transform="translate(24 12)"><circle r="8" fill="#e8c34a" stroke="#0c2b1c" stroke-width="1"/><path d="M-4 0h7M1 -3l3 3-3 3" fill="none" stroke="#0c2b1c" stroke-width="1.6" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="90;-20;0;0" keyTimes="0;0.25;0.35;1" dur="${D}s" repeatCount="indefinite"/></path></g>`
+      + emo('🌬️', 'M10 40 L10 40', { tam: 11 }) + linea('M8 26 Q50 34 96 27') + bola('M8 26 Q50 34 96 27', { kt: '0;0.35;0.85;1', kp: '0;0;1;1' }) + txt('YO LO SUSPENDO', 58, 47, 0.35),
+    // Juanpa: le pega increíble… y aparece un árbol de la nada que la frena
+    caos: linea('M8 26 L96 26') + `<text x="58" y="30" font-size="16" text-anchor="middle" opacity="0">🌳${aparece(0.3)}</text>` + bola('M8 26 L52 26 L52 26 L54 30', { kt: '0;0.45;0.5;1', kp: '0;0.9;0.9;1' }) + txt('¿Y ESE ÁRBOL?', 70, 47, 0.5),
     // El Sueco: el drive con la línea que se sacude; después, la flecha que pasa los árboles
     derecho: `<line x1="8" y1="26" x2="34" y2="26" stroke="#f4eeda" stroke-width="1" stroke-dasharray="1.5 2.5"><animateTransform attributeName="transform" type="rotate" values="-18 8 26;18 8 26;-18 8 26" dur=".7s" repeatCount="indefinite"/></line>`
       + arboles(60, 24) + linea('M8 26 L98 26', '#e8c34a') + emo('🏹', 'M8 26 L98 26', { tam: 12 }) + txt('FLECHA', 60, 46, 0.45),
