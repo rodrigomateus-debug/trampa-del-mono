@@ -261,6 +261,18 @@ function charcosDe(campo, h, n, rng) {
   }
   return out
 }
+/**
+ * El viento que tuvo un match en el hoyo `idx` después de `golpes` golpes en ese hoyo (para el replay): el del hoyo,
+ * que sale de la semilla, con el mínimo del clima; nublado, el que cambió después de cada tiro (climaTrasTiro). Sin
+ * clima (un match de antes del clima), el del hoyo tal cual.
+ */
+export function vientoDelMatch(cond, clima, idx, golpes = 0) {
+  const r = { clima, idx, golpes: 0, lie: 'green', terminada: false, viento: { ...cond.vientos[idx] } }
+  if (!clima) return r.viento
+  vientoDelClima(r)
+  if (golpes > 0) { r.golpes = golpes; climaTrasTiro(null, r, () => 1) }
+  return r.viento
+}
 /** El viento según el clima: con lluvia intensa, nunca menos de `vientoMin`. */
 function vientoDelClima(r) {
   const c = climaDe(r)
