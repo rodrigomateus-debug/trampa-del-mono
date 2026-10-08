@@ -269,24 +269,30 @@ ok('Miguelón: la furia se carga de a media (calle, green, bogey) y llena revole
   assert.equal(otro.furia, undefined)
 })
 
-ok('Miguelón: la bomba perfecta llega al green; mal pegada se abre y queda corta', () => {
+ok('Miguelón: la bomba (la goma llega más lejos) se abre; perfecta (del latido, como todos) llega al green', () => {
   const r = M.nuevaRonda({ apodo: 'Mike Queboni (Đ)', emoji: '🍯', hcp: 5 }, fijo(0.5))
   r.monos = []
   r.viento = calma
   const azul = h15.tees.azul
   assert.deepEqual(r.pelota, azul) // HCP 5: sale de las azules
   const linea = angulo(azul, h15.pin)
-  const perfecta = M.planTiro(quieto, r, linea, 1, 1)
-  assert.ok(perfecta.bomba && perfecta.perfecta)
-  // midiendo bien la distancia, alguna bomba perfecta termina en el green del 15 (392 yd desde las azules)
+  const bomba = M.planTiro(quieto, r, linea, 1)
+  // la bomba se abre: BOMBA.ang grados por el error del handicap (HCP 5: la mitad)
+  assert.ok(bomba.bomba && Math.abs(bomba.disp.ang - ((M.BOMBA.ang * Math.PI) / 180) * M.errorDe(5)) < 1e-12)
+  assert.ok(bomba.carry * h15.escala > 380)
+  // soltada en el sweet spot: perfecta (con un cuarto del error); midiendo bien la distancia, termina en el green del 15
+  const rr0 = { ...r, pelota: [...azul], lie: 'tee', golpes: 0 }
+  assert.equal(M.golpear(quieto, { ...rr0, pelota: [...azul] }, linea, 1, sinRuido(), 0, 0, null, true).perfecta, true)
   const alGreen = Array.from({ length: 21 }, (_, i) => 0.8 + i * 0.01).some((p) => {
     const rr = { ...r, pelota: [...azul], lie: 'tee', golpes: 0 }
-    return M.terreno(campo, M.simular(quieto, M.golpear(quieto, rr, linea, p, sinRuido(), 1), h15.pin).pos).tipo === 'green'
+    return M.terreno(campo, M.simular(quieto, M.golpear(quieto, rr, linea, p, sinRuido(), 0, 0, null, true), h15.pin).pos).tipo === 'green'
   })
   assert.ok(alGreen)
-  const mala = M.planTiro(quieto, r, linea, 1, 0.4)
-  // mal pegada se abre (con HCP 5, la mitad del tope de dispersión: ~5,7° con 0,4 de precisión) y mucho más que la perfecta
-  assert.ok(!mala.perfecta && mala.disp.ang > (5 * Math.PI) / 180 && mala.disp.ang > perfecta.disp.ang * 4)
+  // sacado (la furia): el aro es casi imposible (más rápido y con una ventana chiquita) y, perfecto, igual se abre más
+  // que una bomba normal
+  assert.ok(M.FURIA.latido < 1 && M.FURIA.ventana < 0.5)
+  const sacado = { ...rr0, pelota: [...azul], furia: { nivel: 0, enojado: true } }
+  assert.ok(M.planTiro(quieto, sacado, linea, 1).disp.ang > bomba.disp.ang * 1.5)
   // por debajo de la zona de bomba es un drive normal (aunque más largo)
   const corto = M.planTiro(quieto, r, linea, 0.7, 0)
   assert.ok(!corto.bomba && corto.carry * h15.escala > M.carryDe(5) * 0.9)
@@ -344,7 +350,8 @@ ok('Mati (El Sueco): el drive con el pulso de Fito; después, la flecha que atra
   const desde = [h15.tee[0] - 18, h15.tee[1] - 60] // en el bosque de la izquierda, con pinos adelante
   const rr = { ...r, pelota: [...desde], lie: 'rough' }
   const fl = M.planTiro(quieto, rr, angulo(desde, h15.pin), 0.6, 0, M.AGUILA.periodo / 4)
-  assert.ok(fl.flecha && !fl.aguila && fl.disp.ang === 0 && fl.cuerda === angulo(desde, h15.pin))
+  // (de lejos, casi sin error de dirección: le queda solo el mínimo del juego corto, que a esta distancia es nada)
+  assert.ok(fl.flecha && !fl.aguila && fl.disp.ang < 0.01 && fl.cuerda === angulo(desde, h15.pin))
   assert.equal(M.pinoEnLaSalida(quieto, desde, fl), null)
   // contra la fila de pinos de al lado: un tiro normal choca, la flecha pasa
   const cruza = angulo(desde, [desde[0] + 40, desde[1]])
@@ -535,9 +542,14 @@ ok('la caída del green cambia por zonas, fluida (de 2 a 4 por hoyo)', () => {
     assert.ok(h.caidas.length >= 2 && h.caidas.length <= 4, `hoyo ${h.n}`)
     // en cada zona, casi su caída
     for (const z of h.caidas) {
-      const c = M.caidaEn(h, z.p)
-      assert.ok(Math.hypot(c[0] - z.v[0], c[1] - z.v[1]) < 0.25, `hoyo ${h.n} zona ${z.p}`)
+      const c = M.caidaEn(h, z.p), k = z.fuerte ? M.CAIDA.fuerte : 1
+      assert.ok(Math.hypot(c[0] - z.v[0] * k, c[1] - z.v[1] * k) < 0.25 * k, `hoyo ${h.n} zona ${z.p}`)
     }
+    // un sector pronunciado por green: ahí cae más que en cualquier otra zona
+    const fuertes = h.caidas.filter((z) => z.fuerte)
+    assert.equal(fuertes.length, 1, `hoyo ${h.n}: un sector pronunciado`)
+    const f = Math.hypot(...M.caidaEn(h, fuertes[0].p))
+    for (const z of h.caidas.filter((x) => !x.fuerte)) assert.ok(f > 1.6 * Math.hypot(...M.caidaEn(h, z.p)), `hoyo ${h.n}: el pronunciado cae más`)
     // fluida: medio paso cambia poco
     const [a, b] = h.caidas
     const m = [(a.p[0] + b.p[0]) / 2, (a.p[1] + b.p[1]) / 2]
@@ -1825,18 +1837,24 @@ ok('el tiro perfecto (sale justo al medio) y el backspin del chip o el approach 
   const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), pelota: haciaTee(50), lie: 'fairway', golpes: 1, monos: [] }
   const d = M.dist(r.pelota, h15.pin), cae = d - 4
   const p = cae / M.FISICA.carryMax
-  const t = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, sinRuido())
-  assert.equal(t.perfecto, true) // sin ruido: justo al medio
-  assert.ok(t.backspin > 0)
+  const t = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, sinRuido(), 0, 0, null, true)
+  assert.equal(t.perfecto, true) // soltó en el sweet spot del latido
+  assert.ok(t.backspin.d > 0)
   M.simular(campo, t, h15.pin)
   assert.ok(t.eventos.some((e) => e.tipo === 'backspin'))
   const atras = cae - M.dist(r.pelota, t.pos)
-  assert.ok(atras > 1 && atras < 5, `volvió ${atras} yd`)
-  // con error, no es perfecto ni vuelve; desde la salida tampoco hay backspin
-  const t2 = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, fijo(0.9))
+  assert.ok(atras > 0.5 && atras < 6, `volvió ${atras} yd`)
+  // cuánto vuelve: el wedge más; los hierros largos, menos
+  assert.ok(M.yardasBackspin(100) > M.yardasBackspin(40) && M.yardasBackspin(180) < M.yardasBackspin(110) && M.yardasBackspin(400) === M.BACKSPIN.minimo)
+  // el tiro de salida del par 3 (hierro), perfecto, también puede volver; el drive no
+  const r17 = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), idx: 2, monos: [] }
+  r17.pelota = [...M.HOYOS[2].tee]; r17.lie = 'tee'
+  assert.ok(M.golpear(campo, r17, angulo(r17.pelota, M.HOYOS[2].pin), 0.7, sinRuido(), 0, 0, null, true).backspin?.d > 0)
+  // sin el sweet spot no es perfecto ni vuelve (aunque salga derecho); desde la salida tampoco hay backspin
+  const t2 = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, sinRuido())
   assert.equal(t2.perfecto, false)
   assert.equal(t2.backspin, undefined)
-  const salida = M.golpear(campo, M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), -Math.PI / 2, 0.5, sinRuido())
+  const salida = M.golpear(campo, M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), -Math.PI / 2, 0.5, sinRuido(), 0, 0, null, true)
   assert.equal(salida.perfecto, true)
   assert.equal(salida.backspin, undefined)
   // un tiro sin error sale perfecto siempre (Demetrio, LG sin error, el tiro de Deme)
@@ -1844,114 +1862,96 @@ ok('el tiro perfecto (sale justo al medio) y el backspin del chip o el approach 
   assert.equal(sinError.perfecto, true)
 })
 
-ok('el perfecto no es cero (hasta un 35% del error de siempre) y el swing de stock (en el nudo de ½ o ¾) lo hace más seguido', () => {
-  const plan = (stock) => ({ putt: false, cuerda: 0, carry: 100, disp: { ang: 0.1, carry: 0.1 }, control: null, stock })
-  const medir = (stock) => {
+ok('el latido de la potencia: más rápido cuanto más fuerte, ventana más ancha cerca del hoyo, y el perfecto con un cuarto del error', () => {
+  assert.ok(M.periodoLatido(1) < M.periodoLatido(0.5) && M.periodoLatido(0.5) < M.periodoLatido(0))
+  assert.equal(M.periodoLatido(0), M.PERFECTO.lento)
+  assert.ok(Math.abs(M.periodoLatido(1) - M.PERFECTO.rapido) < 1e-12)
+  assert.equal(M.ventanaPerfecto(200), M.PERFECTO.ventana)
+  assert.ok(Math.abs(M.ventanaPerfecto(20) - M.PERFECTO.ventana * M.PERFECTO.cerca) < 1e-12)
+  assert.ok(M.ventanaPerfecto(90) > M.ventanaPerfecto(150) && M.ventanaPerfecto(90) < M.ventanaPerfecto(30))
+  // el sweet spot: cuando el aro llega al dorado (en `centro` de cada latido), ± la ventana (un poco más del lado de tarde)
+  const c = M.PERFECTO.centro
+  assert.ok(M.enSweetSpot(3 + c, 0.07) && M.enSweetSpot(2 + c - 0.06, 0.07) && M.enSweetSpot(4 + c + 0.08, 0.07))
+  assert.ok(!M.enSweetSpot(3 + c - 0.08, 0.07) && !M.enSweetSpot(3.3, 0.07))
+  // temprano o tarde, perfecto, bueno o nada
+  assert.deepEqual([M.soltadaLatido(c - 0.03, 0.07).nivel, M.soltadaLatido(c - 0.03, 0.07).lado], ['perfecto', -1])
+  assert.deepEqual([M.soltadaLatido(c + 0.12, 0.07).nivel, M.soltadaLatido(c + 0.12, 0.07).lado], ['bueno', 1])
+  assert.deepEqual([M.soltadaLatido(c - 0.12, 0.07).nivel, M.soltadaLatido(c - 0.12, 0.07).lado], ['bueno', -1])
+  assert.deepEqual([M.soltadaLatido(0.3, 0.07).nivel, M.soltadaLatido(0.3, 0.07).lado], [null, -1])
+  assert.equal(M.soltadaLatido(1 + c + 0.1, 0.07).lado, 1) // el aro ya pasó el dorado: tarde
+  assert.equal(M.soltadaLatido(1.02, 0.07).lado, -1) // volvió a empezar (grande): temprano del próximo
+  // el perfecto: un cuarto del error de siempre (no cero); sin el sweet spot, nunca perfecto
+  const plan = (perfecto) => ({ putt: false, cuerda: 0, carry: 100, disp: { ang: 0.1, carry: 0.1 }, control: null, perfecto })
+  const medir = (perfecto) => {
     const rr = M.rngDesde(42)
-    let n = 0, perf = 0, maxPerf = 0, minPerf = 1, errTodos = 0
-    for (let i = 0; i < 20000; i++) {
-      const t = M.lanzar(campo, { pelota: [0, 0], angulo: 0, potencia: 0.5, viento: calma, putt: false, lie: 'fairway', rng: rr, plan: plan(stock) })
-      const e = Math.hypot(Math.atan2(t.carryVec[1], t.carryVec[0]) / 0.1, (t.carry / 100 - 1) / 0.1) // en desvíos
-      n++; errTodos += e
-      if (t.perfecto) { perf++; maxPerf = Math.max(maxPerf, e); minPerf = Math.min(minPerf, e) }
+    let perf = 0, err = 0, min = Infinity
+    for (let i = 0; i < 5000; i++) {
+      const t = M.lanzar(campo, { pelota: [0, 0], angulo: 0, potencia: 0.5, viento: calma, putt: false, lie: 'fairway', rng: rr, plan: plan(perfecto) })
+      const e = Math.hypot(Math.atan2(t.carryVec[1], t.carryVec[0]) / 0.1, (t.carry / 100 - 1) / 0.1)
+      if (t.perfecto) perf++
+      err += e; min = Math.min(min, e)
     }
-    return { perf: perf / n, maxPerf, minPerf, err: errTodos / n }
+    return { perf, err: err / 5000, min }
   }
-  const normal = medir(false), stock = medir(true)
-  assert.ok(Math.abs(normal.perf - 0.044) < 0.008, `perfectos ${normal.perf}`)
-  assert.ok(Math.abs(stock.perf - 0.117) < 0.012, `perfectos de stock ${stock.perf}`)
-  assert.ok(normal.maxPerf <= M.PERFECTO.resto + 1e-9 && normal.maxPerf > 0.3, `el perfecto llega a ${normal.maxPerf}`)
-  assert.ok(normal.minPerf > 0, 'el perfecto no es cero')
-  assert.ok(Math.abs(stock.err / normal.err - M.STOCK.error) < 0.05)
-  // el nudo: ± 2% de potencia
-  assert.equal(M.enNudoStock(0.51), 0.5)
-  assert.equal(M.enNudoStock(0.735), 0.75)
-  assert.equal(M.enNudoStock(0.6), null)
-  assert.equal(M.enNudoStock(0.98), null) // el de fondo no
-  assert.equal(M.enNudoStock(0.125), 0.125) // los de los chips cortos
-  assert.equal(M.enNudoStock(0.26), 0.25)
-  assert.equal(M.enNudoStock(0.18), null)
-  // cerca del hoyo, más margen para el perfecto
-  assert.equal(M.radioPerfecto(200), M.PERFECTO.radio)
-  assert.equal(M.radioPerfecto(20), M.PERFECTO.cerca)
-  assert.ok(M.radioPerfecto(90) > M.PERFECTO.radio && M.radioPerfecto(90) < M.PERFECTO.cerca)
-  // golpear: solo si soltó en el nudo (y no en el putt)
+  const comun = medir(false), perfecto = medir(true)
+  assert.equal(comun.perf, 0)
+  assert.equal(perfecto.perf, 5000)
+  assert.ok(Math.abs(perfecto.err / comun.err - M.PERFECTO.error) < 0.02, `el perfecto sale con ${perfecto.err / comun.err} del error`)
+  assert.ok(perfecto.min > 0)
+  // el bueno: con `errorBueno` del error; el lado lo decide cuándo soltó (temprano: izquierda; tarde: derecha)
+  const lados = (lado, bueno) => {
+    const rr = M.rngDesde(7)
+    let izq = 0, der = 0, err = 0
+    for (let i = 0; i < 2000; i++) {
+      const t = M.lanzar(campo, { pelota: [0, 0], angulo: 0, potencia: 0.5, viento: calma, putt: false, lie: 'fairway', rng: rr, plan: { ...plan(false), bueno, lado } })
+      const a = Math.atan2(t.carryVec[1], t.carryVec[0])
+      if (a < 0) izq++; else if (a > 0) der++
+      err += Math.abs(a) / 0.1
+    }
+    return { izq, der, err: err / 2000 }
+  }
+  const temprano = lados(-1, false), tarde = lados(1, false), bueno = lados(1, true)
+  assert.equal(temprano.der, 0); assert.ok(temprano.izq > 1900)
+  assert.equal(tarde.izq, 0); assert.ok(tarde.der > 1900)
+  assert.ok(Math.abs(bueno.err / tarde.err - M.PERFECTO.errorBueno) < 0.05)
+  // golpear: el perfecto no va en el putt
   const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
-  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.5, sinRuido(), 0, 0, null, true).stock, true)
-  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.6, sinRuido(), 0, 0, null, true).stock, false)
+  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.5, sinRuido(), 0, 0, null, true).perfecto, true)
+  const green = { ...r, pelota: [h15.pin[0], h15.pin[1] + 4], lie: 'green' }
+  assert.equal(M.golpear(campo, green, -Math.PI / 2, 0.3, sinRuido(), 0, 0, null, true).modo, 'putt')
 })
 
-ok('el PERFECTO A FONDO: soltar justo en el nudo rojo sale perfecto; pasarse, no', () => {
-  // en el lanzar: siempre perfecto, adentro del margen del perfecto, y no es cero
-  const plan = { putt: false, cuerda: 0, carry: 100, disp: { ang: 0.1, carry: 0.1, fondo: true }, control: null, perfectoFondo: true }
-  const rr = M.rngDesde(7)
-  let max = 0, min = 1
-  for (let i = 0; i < 20000; i++) {
-    const t = M.lanzar(campo, { pelota: [0, 0], angulo: 0, potencia: 1, viento: calma, putt: false, lie: 'tee', rng: rr, plan })
-    assert.ok(t.perfecto && t.fondoJusto)
-    const e = Math.hypot(Math.atan2(t.carryVec[1], t.carryVec[0]) / 0.1, (t.carry / 100 - 1) / 0.1)
-    max = Math.max(max, e); min = Math.min(min, e)
-  }
-  assert.ok(max <= M.PERFECTO.resto + 1e-9, `el perfecto a fondo llega a ${max}`)
-  assert.ok(min > 0)
-  // la ventana: desde el nudo rojo (0,97 de potencia) hasta un pelito pasado; ni antes ni estirando de más
-  assert.equal(M.enFondoJusto(Math.pow(0.97, 1 / M.STOCK.exp)), true)
-  assert.equal(M.enFondoJusto(1), true)
-  assert.equal(M.enFondoJusto(0.95), false)
-  assert.equal(M.enFondoJusto(1.2), false)
-  // golpear: a fondo y justo, perfecto con cualquier rng; sin "justo", a fondo con su error; y nunca en el putt
-  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
-  let perf = 0, perfSin = 0
-  for (let i = 0; i < 200; i++) {
-    const t = M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 1, M.rngDesde(i), 0, 0, null, false, true)
-    if (t.perfecto && t.fondoJusto) perf++
-    if (M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 1, M.rngDesde(i)).perfecto) perfSin++
-  }
-  assert.equal(perf, 200)
-  assert.ok(perfSin < 30, `sin soltar justo, ${perfSin} perfectos`)
-  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.8, M.rngDesde(1), 0, 0, null, false, true).fondoJusto, false) // no es a fondo
+ok('el palo de la bandera: el tiro que baja sobre el hoyo le pega (adentro o rebota afuera); el putt no', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'Lechu', emoji: '🦉', hcp: 7 }, fijo(0.5)), pelota: haciaTee(40), lie: 'fairway', golpes: 1, monos: [], viento: calma }
+  const d = M.dist(r.pelota, h15.pin)
+  const t = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), (d + 1) / M.FISICA.carryMax, sinRuido())
+  M.simular(campo, t, h15.pin)
+  assert.ok(t.eventos.some((e) => e.tipo === 'bandera'), JSON.stringify(t.eventos))
+  assert.ok(t.embocada || M.dist(t.pos, h15.pin) > M.FISICA.bocaHoyo, 'adentro o afuera de la boca, nunca encima del hoyo')
+  // el putt, sin bandera
+  const putt = { ...r, pelota: [h15.pin[0], h15.pin[1] + 5], lie: 'green' }
+  const tp = M.golpear(campo, { ...putt, pelota: [...putt.pelota] }, angulo(putt.pelota, h15.pin), 0.6, sinRuido())
+  M.simular(campo, tp, h15.pin)
+  assert.ok(!tp.eventos.some((e) => e.tipo === 'bandera'))
 })
 
-ok('la mini bandera de la goma: la potencia que pica en la bandera (null si no llega o en el green)', () => {
-  // desde el tee del 17 (par 3): llega, y con esa potencia el tiro pica en la bandera
-  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
-  r.idx = 2
-  r.pelota = [...M.hoyoActual(r).tees.blanca]
-  r.lie = 'tee'
-  const pin = M.hoyoActual(r).pin
-  const ang = Math.atan2(pin[1] - r.pelota[1], pin[0] - r.pelota[0])
-  const p = M.potenciaAlPin(campo, r, ang)
-  assert.ok(p > 0.3 && p <= 1, `potencia ${p}`)
-  assert.ok(Math.abs(M.planTiro(campo, r, ang, p).carry - M.dist(r.pelota, pin)) < 0.5)
-  // desde el tee del 15 (par 4) no llega
-  const r15 = { ...r, idx: 0, pelota: [...M.HOYOS[0].tees.blanca] }
-  assert.equal(M.potenciaAlPin(campo, r15, -Math.PI / 2), null)
-  // en el green: es putt, no hay bandera en la goma
-  const enGreen = { ...r, pelota: [pin[0] + 2, pin[1] + 2], lie: 'green' }
-  assert.equal(M.potenciaAlPin(campo, enGreen, 0), null)
+ok('el juego corto: el error no baja de un mínimo en yardas (también un scratch) y el chip que se frena en la boca lejos del centro queda colgando', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'El Ruso', emoji: '🇮🇪', hcp: 0 }, fijo(0.5)), pelota: haciaTee(20), lie: 'fairway', golpes: 1, monos: [], viento: calma }
+  const plan = M.planTiro(campo, r, angulo(r.pelota, h15.pin), 0.08)
+  const cy = plan.carry * h15.escala
+  assert.ok(cy < 60)
+  assert.ok(Math.abs(plan.disp.carry * cy - M.CORTO.largo * M.CORTO.minimo) < 1e-9, `largo ${plan.disp.carry * cy}`)
+  assert.ok(Math.abs(Math.tan(plan.disp.ang) * cy - M.CORTO.ancho * M.CORTO.minimo) < 1e-9)
+  // de lejos, nada
+  const lejos = M.planTiro(campo, r, angulo(r.pelota, h15.pin), 0.6)
+  assert.ok(lejos.carry * h15.escala > 100 && lejos.disp.ang < 1e-9)
+  // el chip que se frena dentro de la boca pero lejos del centro: colgando en el borde (afuera); el putt, adentro
+  const chip = { modo: 'full', fase: 'rodando', pos: [h15.pin[0] + 0.45, h15.pin[1]], alt: 0, v: [0.0001, 0], eventos: [], carry: 20, ajenos: [] }
+  M.avanzar(campo, chip, 1 / 60, h15.pin)
+  assert.ok(!chip.embocada && chip.eventos.some((e) => e.tipo === 'borde') && M.dist(chip.pos, h15.pin) > M.FISICA.bocaHoyo)
+  const putt = { modo: 'putt', fase: 'rodando', pos: [h15.pin[0] + 0.45, h15.pin[1]], alt: 0, v: [0.0001, 0], eventos: [], ajenos: [] }
+  M.avanzar(campo, putt, 1 / 60, h15.pin)
+  assert.equal(putt.embocada, true)
 })
 
-ok('los nudos de la goma con la bandera al alcance: la bandera es un nudo y los otros se reparten parejo', () => {
-  const uDe = (p) => Math.pow(p, 1 / M.STOCK.exp)
-  const uR = uDe(0.97)
-  assert.deepEqual(M.nudosGoma(null).nudos, M.STOCK.nudos)
-  assert.equal(M.nudosGoma(0.99).enFondo, true)
-  for (const alPin of [0.03, 0.2, 0.45, 0.7, 0.93]) {
-    const g = M.nudosGoma(alPin)
-    assert.equal(g.nudos.length, 4)
-    assert.ok(g.stock.includes(alPin))
-    const antes = g.nudos.filter((p) => p < alPin).map(uDe), despues = g.nudos.filter((p) => p > alPin).map(uDe)
-    // parejos: cada tramo con el mismo paso, de 0 a la bandera y de la bandera al rojo
-    const paso = (lista, desde, hasta) => lista.length && lista.every((u, i) => Math.abs(u - (desde + ((hasta - desde) * (i + 1)) / (lista.length + 1))) < 1e-9)
-    if (antes.length) assert.ok(paso(antes, 0, uDe(alPin)))
-    if (despues.length) assert.ok(paso(despues, uDe(alPin), uR))
-    assert.ok(g.nudos.every((p) => p > 0 && p < 0.97))
-  }
-  // el stock, en los nudos nuevos (y en la bandera)
-  const g = M.nudosGoma(0.45)
-  assert.equal(M.enNudoStock(0.45, g.stock), 0.45)
-  const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
-  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.45, sinRuido(), 0, 0, null, g.stock).stock, true)
-  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.45, sinRuido(), 0, 0, null, true).stock, false)
-})
 console.log('\nTodo verde.')

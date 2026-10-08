@@ -360,23 +360,24 @@ PLANTEL.push(RULETA)
 // El mazo se ordena por esto, no por el handicap. Se midió con el handicap de este archivo: adentro de la app cada uno juega
 // con el suyo real (sdga:plantel), así que el nivel de la carta es una referencia.
 export const DIFICULTAD_REAL = {
-  'El Sueco': { prom: -0.45, lp: 0 }, // 2026-10-07: el drive con el pulso de Fito, después la flecha
-  Grandpa: { prom: -1.22, lp: 2 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
-  'El Perro': { prom: -0.83, lp: 0 },
-  'Mike Queboni (Đ)': { prom: 0.94, lp: 10 }, // 2026-10-07: con la furia (antes −0,2); la bomba de 405 llega a los dos par 4
-  Tito: { prom: 3.94, lp: 10 }, // 2026-10-07: el bot apaga el viento antes de cada tiro (HCP 16)
-  Mapache: { prom: 1.93, lp: 1 }, // 2026-10-07: Juanpa con el mapache del hoyo (300 vueltas; sin el mapache, +0,39; antes de anunciar las sorpresas, +1,4)
-  'El Ninja (Đ)': { prom: 0.41, lp: 3 },
-  LG: { prom: 0.49, lp: 2 },
-  'El Mago Rodal': { prom: -0.5, lp: 0, nivel: 2 }, // 2026-10-06: elige el golpe (antes, al azar). Normal a mano: el bot dibuja el vuelo perfecto, la gente no
+  // 2026-10-08: recalibrado (80 vueltas) con los chips menos fáciles, el palo de la bandera y la bomba con el latido
+  'El Sueco': { prom: 0.23, lp: 1 }, // el drive con el pulso de Fito, después la flecha
+  Grandpa: { prom: -1.1, lp: 1 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
+  'El Perro': { prom: -0.74, lp: 0 },
+  'Mike Queboni (Đ)': { prom: 1.4, lp: 4 }, // con la furia; la bomba (405) con el latido: el bot nunca la saca perfecta, la gente sí
+  Tito: { prom: 4.67, lp: 18 }, // el bot apaga el viento antes de cada tiro (HCP 16)
+  Mapache: { prom: 2.07, lp: 5 }, // Juanpa con el mapache del hoyo y las sorpresas anunciadas
+  'El Ninja (Đ)': { prom: 0.83, lp: 3 },
+  LG: { prom: 0.68, lp: 1 },
+  'El Mago Rodal': { prom: -0.17, lp: 0, nivel: 2 }, // elige el golpe. Normal a mano: el bot dibuja el vuelo perfecto, la gente no
   'El Flaco Ordoñez': { prom: 1.4, lp: 0 }, // el bot no maneja: el carrito le cuesta tiempo, no golpes
-  Lechu: { prom: 1.63, lp: 0 },
-  Liberty: { prom: 2.45, lp: 8 },
-  Mugre: { prom: 2.52, lp: 3 },
+  Lechu: { prom: 1.43, lp: 1 },
+  Liberty: { prom: 2.51, lp: 8 },
+  Mugre: { prom: 2.32, lp: 3 },
   // Trampa total a mano (dicen los que juegan que es el más difícil: el embudo de la línea que se sacude)
-  'Fito (Đ)': { prom: 2.19, lp: 5, nivel: 5 },
+  'Fito (Đ)': { prom: 2.35, lp: 4, nivel: 5 },
   // el bot no sufre el cambio (apunta perfecto con cualquiera); la gente sí: cada tiro es otra habilidad y otro handicap
-  'La Ruleta': { prom: 0.63, lp: 0, nivel: 4 },
+  'La Ruleta': { prom: 0.29, lp: 3, nivel: 4 },
   // Taiu: el bot no sufre los controles al revés (juega bárbaro: bombas y approach perfectos); la gente sí
-  'Taiu (Đ)': { prom: -0.64, lp: 7, nivel: 3 },
+  'Taiu (Đ)': { prom: -0.79, lp: 6, nivel: 3 },
 }

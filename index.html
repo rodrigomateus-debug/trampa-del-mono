@@ -470,15 +470,6 @@ body.apuntando #furia { opacity: .45; }
 #revoleo .rv-ira { position: absolute; left: min(40vw, 200px); bottom: min(56vw, 280px); font-size: 46px; opacity: 0; animation: rv-ira .5s .3s ease-in-out 4 alternate; }
 #revoleo .rv-ira.dos { left: min(6vw, 30px); bottom: min(50vw, 250px); font-size: 34px; animation-delay: .45s; }
 @keyframes rv-ira { from { opacity: 1; transform: scale(.7) rotate(-10deg); } to { opacity: 1; transform: scale(1.15) rotate(10deg); } }
-/* el palo sale de la mano y se va girando como una hélice, despacio, cruzando la pantalla (con su sonido de helicóptero) */
-#revoleo .rv-palo { position: absolute; left: min(24vw, 120px); bottom: min(36vw, 180px); width: 74px; height: 196px; opacity: 0; animation: rv-palo 3.3s .5s cubic-bezier(.3, .2, .6, 1) forwards; }
-@keyframes rv-palo { 0% { opacity: 1; transform: translate(0, 0) scale(1.1); } 45% { opacity: 1; transform: translate(min(22vw, 110px), -30vh) scale(1.25); } 92% { opacity: 1; transform: translate(min(64vw, 330px), -62vh) scale(.55); } 100% { opacity: 0; transform: translate(min(72vw, 370px), -66vh) scale(.45); } }
-#revoleo .rv-palo svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 6px 6px rgba(8, 26, 16, .5)); animation: rv-gira .42s linear infinite; }
-@keyframes rv-gira { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-/* el borroneo de las aspas: un disco que se ve atrás del palo que gira */
-#revoleo .rv-aspas { position: absolute; left: 50%; top: 50%; width: 180px; height: 180px; margin: -90px 0 0 -90px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, 0) 30%, rgba(230, 236, 240, .22) 62%, rgba(230, 236, 240, .32) 92%, rgba(230, 236, 240, 0)); animation: rv-aspas .42s linear infinite; }
-@keyframes rv-aspas { 0%, 100% { opacity: .55; transform: scaleY(.92); } 50% { opacity: 1; transform: scaleY(1); } }
-@media (prefers-reduced-motion: reduce) { #revoleo .rv-palo svg, #revoleo .rv-aspas { animation-duration: 1.2s; } }
 #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el clima del día: un chip abajo del viento (tocándolo, vuelve el cartel) y el de la pelota con barro */
 .clima-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px 4px 7px; border: 0; border-radius: 999px; background: rgba(12, 43, 28, .78); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); font: 13px/1 var(--font-display); letter-spacing: .05em; cursor: pointer; }
@@ -1472,7 +1463,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <div id="tito-swipe" hidden aria-live="polite"><span>SWIPEÁ PARA SOPLAR</span><i></i></div>
 
-<div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-sacado-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span><span class="rv-palo"><span class="rv-aspas"></span><svg viewBox="0 0 60 160"><path d="M30 6v118" stroke="#0c2b1c" stroke-width="9" stroke-linecap="round"/><path d="M30 6v118" stroke="#c9ccd1" stroke-width="5" stroke-linecap="round"/><rect x="24" y="4" width="12" height="34" rx="5" fill="#1b1b1b" stroke="#0c2b1c" stroke-width="2.5"/><path d="M27 120h22c6 0 8 10 2 14l-20 8c-6 2-9-3-7-8z" fill="#9aa3ad" stroke="#0c2b1c" stroke-width="3"/></svg></span></div>
+<div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-sacado-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span></div>
 
 <div id="ruleta" hidden aria-live="assertive">
   <div class="rl-caja">
@@ -1606,7 +1597,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 0cb4208 · 7/10, 07:47 p. m.</span>
+  <span class="version" id="version">v 9b801cc · 8/10, 07:25 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1805,11 +1796,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=f4d34873d6'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=f4d34873d6'
+import * as M from './motor.js?v=56875cef8f'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=56875cef8f'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=f4d34873d6'
-import * as S from './sonido.js?v=f4d34873d6'
+import * as R from './ranking.js?v=56875cef8f'
+import * as S from './sonido.js?v=56875cef8f'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2114,29 +2105,21 @@ function apunte() {
     ang = t.ang
     p = Math.min(1, Math.pow(t.u, 1.6))
   }
-  let q = 0
+  const q = 0
   const tiempo = (performance.now() - drag.t0) / 1000 // el Águila: la línea se sacude con el tiempo
-  let plan = M.planTiro(campo, ronda, ang, p, 0, tiempo)
-  if (plan.bomba) {
-    // el óvalo de Miguelón late: la precisión es máxima a mitad de cada latido
-    drag.tZona ??= performance.now()
-    q = 0.5 - 0.5 * Math.cos((2 * Math.PI * (performance.now() - drag.tZona)) / 1000 / M.BOMBA.periodo)
-    plan = M.planTiro(campo, ronda, ang, p, q, tiempo)
-  } else drag.tZona = null
+  const plan = M.planTiro(campo, ronda, ang, p, 0, tiempo)
   const arbol = putt ? null : M.pinoEnLaSalida(campo, ronda.pelota, plan) // pega en un árbol al salir: la línea en rojo, cortada ahí
-  // la bandera de la goma: con qué fuerza pica en la bandera (si llega; en el MODO PRO no se ve dónde cae). Una vez por
-  // tiro: la pelota no se mueve. Con la bandera al alcance, es un nudo más y los otros se reparten alrededor
-  if (drag.goma === undefined) {
-    const pin = M.hoyoActual(ronda).pin, b = ronda.pelota
-    drag.goma = M.nudosGoma(putt || ronda.pro ? null : M.potenciaAlPin(campo, ronda, Math.atan2(pin[1] - b[1], pin[0] - b[0])))
-  }
-  // el swing de stock: justo en un nudo (o en la bandera), con el dedo quieto (no en el putt, la bomba ni con la línea del Águila)
-  const nudo = !putt && !plan.bomba ? M.enNudoStock(p, drag.goma.stock) : null
-  const stock = nudo != null && performance.now() - (drag.mov ?? drag.t0) >= M.STOCK.quieto
-  // a fondo: justo en el nudo rojo sale PERFECTO; estirando de más, pasado (con todo el error)
-  const fondo = !putt && !plan.bomba && !plan.comba && p >= 0.97
-  const justo = fondo && M.enFondoJusto(u)
-  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo, justo, nudo, stock, goma: putt ? null : drag.goma }
+  // el latido de la potencia: el aro que se achica alrededor de la pelota hasta el dorado (también la bomba de Miguelón y
+  // Taiu, desde el 2026-10-08). Soltando cuando llega (el sweet spot) sale perfecto; cerca, bueno; y si no, el lado del
+  // error lo dice cuándo soltaste. Cerca del hoyo, las ventanas son más anchas. No en el putt, ni con Miguelón sacado
+  // (sale para cualquier lado), ni en los tiros que ya son perfectos por una habilidad (el sin error de LG, el approach
+  // de Taiu, Demetrio, el tiro de Deme): esos salen perfectos sin el aro
+  const yaPerfecto = plan.calma || plan.approachPerfecto || plan.exacto || !!ronda.deme?.listo
+  const latido = !putt && !yaPerfecto
+  // Miguelón sacado: el aro late más rápido y la ventana es chiquita (casi imposible)
+  const ventana = latido ? M.ventanaPerfecto(M.aYardas(ronda, M.dist(ronda.pelota, M.hoyoActual(ronda).pin))) * (plan.furia ? M.FURIA.ventana : 1) : 0
+  const soltada = latido ? M.soltadaLatido(drag.fase ?? 0, ventana) : null
+  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, latido, ventana, soltada, sweet: soltada?.nivel === 'perfecto' }
 }
 
 // el replay: un toque en la cancha (sin arrastrar) saca o trae los controles
@@ -2179,12 +2162,7 @@ lienzo.addEventListener('pointermove', (e) => {
     trazo.plan = M.planTiro(campo, ronda, 0, 0, 0, 0, trazo.pts)
     return
   }
-  if (drag && e.pointerId === drag.id) {
-    // para el swing de stock: el dedo quieto (contra un ancla: arrastrar despacito por el nudo no cuenta como quieto)
-    drag.ancla ??= [drag.x0, drag.y0]
-    if (Math.hypot(e.clientX - drag.ancla[0], e.clientY - drag.ancla[1]) > 2) { drag.mov = performance.now(); drag.ancla = [e.clientX, e.clientY] }
-    drag.x = e.clientX; drag.y = e.clientY
-  }
+  if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY }
 })
 lienzo.addEventListener('pointerup', (e) => {
   if (replay) {
@@ -2200,7 +2178,16 @@ lienzo.addEventListener('pointerup', (e) => {
   // latido de la bomba se mueven hasta ~4° por cuadro, y soltando en "¡DERECHA!" o "¡PERFECTA!" a veces no salía así
   // (si al soltar el dedo ya volvió al lugar, no sale nada: así se cancela un tiro)
   const ahora = apunte()
-  const a = ahora && (drag.visto ?? ahora)
+  let a = ahora && (drag.visto ?? ahora)
+  // el latido, en el momento real en que levantaste el dedo (`e.timeStamp`: el evento llega tarde en muchos celus) y
+  // con el atraso de la pantalla descontado (el aro que viste es de un cuadro antes): así lo que se ve es lo que sale
+  if (a?.latido) {
+    const ya = performance.now()
+    const t = e.timeStamp > ya - 1000 && e.timeStamp <= ya + 5 ? e.timeStamp : ya
+    const f = (drag.fase ?? 0) + (t - ATRASO_PANTALLA - (drag.tFase ?? ya)) / 1000 / (drag.periodo ?? M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1))
+    a = { ...a, soltada: M.soltadaLatido(f, a.ventana) }
+    destello = { t0: ya, nivel: a.soltada.nivel, pos: [...ronda.pelota] }
+  }
   const base = drag.base
   drag = null
   S.cargaFin()
@@ -2261,15 +2248,13 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
-  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, a.stock ? a.goma?.stock ?? true : false, !!a.justo)
+  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, a.soltada ?? null)
   if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
   else S.golpe(a.p, a.putt)
-  // salió justo al medio: "PERFECTO" chiquito al lado de donde salió. A fondo y justo en el nudo rojo, que se sepa bien
-  if (tiro.fondoJusto) {
-    marcarTiro('¡PERFECTO A FONDO!', ronda.desde ?? golfista.desde ?? ronda.pelota)
-    relatar({ lg: M.elegir(rng, ['¡PERFECTO! A fondo y al medio', '¡A FONDO Y PERFECTO! Qué swing', '¡PERFECTO! La soltó justo']) })
-    S.perfecto(); S.logro()
-  } else if (tiro.perfecto) { marcarTiro('PERFECTO', ronda.desde ?? golfista.desde ?? ronda.pelota); S.perfecto() }
+  // cómo soltó, chiquito al lado de donde salió: PERFECTO (o un tiro sin error), BUENO y para qué lado, o TEMPRANO / TARDE
+  const desde = ronda.desde ?? golfista.desde ?? ronda.pelota
+  if (tiro.perfecto) { marcarTiro('PERFECTO', desde); S.perfecto() }
+  else if (a.soltada) marcarTiro(`${a.soltada.nivel === 'bueno' ? 'BUENO · ' : ''}${a.soltada.lado < 0 ? 'TEMPRANO' : 'TARDE'}`, desde, a.soltada.nivel === 'bueno' ? 'bueno' : 'pifia')
   estela = []
   estado = 'tiro'
   hud()
@@ -2517,7 +2502,23 @@ function actualizar(dt) {
   moverRafagas(dt)
   moverClima(dt)
   zoomApunte()
-  if (drag && estado === 'apuntar') { const a = apunte(); S.carga(a?.p ?? 0, a?.plan?.bomba ? a.q : 0) }
+  if (drag && estado === 'apuntar') {
+    const a = apunte()
+    S.carga(a?.p ?? 0, 0)
+    // el latido de la potencia: más rápido cuanto más fuerte, pero el ritmo cambia de a poco (si no, mientras ajustás el
+    // dedo tartamudea). Dos tics que suben mientras el aro se acerca y la campanita (y el tic del celu) cuando llega
+    if (a?.latido) {
+      const objetivo = M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1)
+      drag.periodo = drag.periodo == null ? objetivo : drag.periodo + (objetivo - drag.periodo) * Math.min(1, dt / 0.3)
+      const antes = drag.fase ?? 0
+      drag.fase = antes + dt / drag.periodo
+      drag.tFase = performance.now()
+      const cruza = (m) => Math.floor(antes - m) < Math.floor(drag.fase - m)
+      if (cruza(M.PERFECTO.centro)) { S.latido(2); tic() }
+      else if (cruza(M.PERFECTO.centro - 0.15)) S.latido(1)
+      else if (cruza(M.PERFECTO.centro - 0.3)) S.latido(0)
+    }
+  }
   if (ronda && estado === 'apuntar' && !drag) {
     // tensión: un tic que se acelera con el mono más cercano que viene
     let d = null
@@ -2549,7 +2550,7 @@ function actualizar(dt) {
  */
 let marcasTiro = []
 const MARCA_MS = 1900
-function marcarTiro(txt, pos) { marcasTiro.push({ txt, pos: [...pos], t0: performance.now() }) }
+function marcarTiro(txt, pos, tono = 'oro') { marcasTiro.push({ txt, pos: [...pos], t0: performance.now(), tono }) }
 function dibujarMarcasTiro() {
   if (!marcasTiro.length) return
   const now = performance.now()
@@ -2564,7 +2565,7 @@ function dibujarMarcasTiro() {
     ctx.globalAlpha = u < 0.08 ? u / 0.08 : 1 - Math.max(0, (u - 0.65) / 0.35)
     const w = ctx.measureText(m.txt).width + 14
     ctx.fillStyle = 'rgba(12,43,28,.85)'; ctx.beginPath(); ctx.roundRect(x, y - 10, w, 20, 10); ctx.fill()
-    ctx.fillStyle = C.gold; ctx.fillText(m.txt, x + 7, y + 1)
+    ctx.fillStyle = m.tono === 'oro' ? C.gold : m.tono === 'bueno' ? C.cream : 'rgba(244,238,218,.72)'; ctx.fillText(m.txt, x + 7, y + 1)
   }
   ctx.restore()
 }
@@ -2582,6 +2583,8 @@ function sonarEventos(t) {
     else if (e.tipo === 'charco') { S.charco(); fxClima.push({ tipo: 'splash', pos: [...t.pos], t0: performance.now() }) }
     else if (e.tipo === 'resbalon') S.resbalon()
     else if (e.tipo === 'backspin') { S.backspin(); marcarTiro('BACKSPIN', t.pos) }
+    else if (e.tipo === 'borde') { S.labio(); marcarTiro('¡COLGANDO!', t.pos, 'bueno') }
+    else if (e.tipo === 'bandera') { S.bandera(); golpeBandera = { n: M.hoyoActual(ronda).n, t0: performance.now() }; marcarTiro('¡AL PALO!', M.hoyoActual(ronda).pin) }
     if (e.tipo === 'pique' && ronda?.clima) {
       const id = ronda.clima.id
       if (id === 'seco' && e.terreno !== 'green') fxClima.push({ tipo: 'polvo', pos: [...t.pos], t0: performance.now() })
@@ -3620,9 +3623,9 @@ function revolearPalo() {
   el.hidden = true
   void el.offsetWidth
   el.hidden = false
-  golfistaTiraPalo()
+  golfistaTiraPalo() // el palo lo revolea el muñequito (el palo grande que cruzaba la pantalla se sacó: eran dos)
   S.bronca()
-  setTimeout(() => S.helicoptero(3.3), 500)
+  setTimeout(() => S.helicoptero(TIRA_MS / 1000), 150)
   voz = { lg: '😡 ¡Miguelón revoleó el palo!', extra: 'Está sacado: el próximo tiro sale para cualquier lado. Después se le pasa', hasta: performance.now() + 6000 }
   clearTimeout(revolearPalo.t)
   revolearPalo.t = setTimeout(() => { el.hidden = true }, 4300)
@@ -3769,8 +3772,9 @@ function dibujar() {
     // todo el green, una marca cada 2 yd con la caída de ese lugar (cambia por zonas, fluida). Animadas: cada una
     // corre para donde cae, aparece y se apaga, y vuelve a empezar; donde cae más, corren más rápido.
     const ahora = performance.now() / 1000
-    ctx.strokeStyle = 'rgb(20,64,42)'
-    ctx.lineWidth = 0.12
+    // en los greens oscuros (lluvia y lluvia intensa) las flechitas van claras; en los demás, oscuras
+    ctx.strokeStyle = ['lluvia', 'tormenta'].includes(ronda.clima?.id) ? 'rgb(236,242,232)' : 'rgb(16,54,34)'
+    ctx.lineWidth = 0.13
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     for (const m of marcasCaida(hoyo)) {
@@ -3780,9 +3784,10 @@ function dibujar() {
       const cx = m.x + m.dx * (u - 0.5) * CAIDA_VIAJE, cy = m.y + m.dy * (u - 0.5) * CAIDA_VIAJE
       ctx.globalAlpha = a
       ctx.beginPath()
-      ctx.moveTo(cx - m.dx * 0.32 - m.dy * 0.3, cy - m.dy * 0.32 + m.dx * 0.3)
-      ctx.lineTo(cx + m.dx * 0.07, cy + m.dy * 0.07)
-      ctx.lineTo(cx - m.dx * 0.32 + m.dy * 0.3, cy - m.dy * 0.32 - m.dx * 0.3)
+      const t = m.tam
+      ctx.moveTo(cx - (m.dx * 0.32 + m.dy * 0.3) * t, cy - (m.dy * 0.32 - m.dx * 0.3) * t)
+      ctx.lineTo(cx + m.dx * 0.07 * t, cy + m.dy * 0.07 * t)
+      ctx.lineTo(cx - (m.dx * 0.32 - m.dy * 0.3) * t, cy - (m.dy * 0.32 + m.dx * 0.3) * t)
       ctx.stroke()
     }
     ctx.globalAlpha = 1
@@ -3798,7 +3803,10 @@ function dibujar() {
     ctx.textAlign = 'center'
     ctx.fillText(`TEE ${h.n}`, tx, ty + 5)
     hoyoNitido(w2s(h.pin))
-    bandera(w2s(h.pin), h.n, !hoyo || h.n === hoyo.n, h.bandera ?? M.colorBandera(h, h.pin)) // las del dibujo se borraron: van todas acá
+    if (hoyo && h.n === hoyo.n && tiro?.embocada && !replay) pelotaEnHoyo(tiro, h.pin) // adentro, abajo del palo
+    // en los putts, la bandera se saca (como en la tele: queda solo el hoyo)
+    const sacada = hoyo && h.n === hoyo.n && ronda && !replay && ((estado === 'apuntar' && M.enModoPutt(campo, ronda)) || tiro?.modo === 'putt')
+    if (!sacada) bandera(w2s(h.pin), h.n, !hoyo || h.n === hoyo.n, h.bandera ?? M.colorBandera(h, h.pin)) // las del dibujo se borraron: van todas acá
   }
   // las marcas de salida: azul, blanca y amarilla (de atrás para adelante), cada una donde sale; la tuya, más grande
   for (const h of M.HOYOS) {
@@ -3825,9 +3833,9 @@ function dibujar() {
   for (let i = 0; i < estela.length; i += 2) {
     const [x, y, alt] = estela[i]
     const [sx, sy] = w2s([x, y])
-    ctx.fillStyle = `rgba(244,238,218,${(0.35 * i) / estela.length})`
+    ctx.fillStyle = tiro?.perfecto ? `rgba(232,195,74,${(0.7 * i) / estela.length})` : `rgba(244,238,218,${(0.35 * i) / estela.length})` // el perfecto, dorada
     ctx.beginPath()
-    ctx.arc(sx, sy - alt * levante(), 1.6, 0, 7)
+    ctx.arc(sx, sy - alt * levante(), tiro?.perfecto ? 2.3 : 1.6, 0, 7)
     ctx.fill()
   }
 
@@ -3838,11 +3846,12 @@ function dibujar() {
   dibujarGolfista(aJ)
   dibujarMonos()
   dibujarMarcasTiro()
+  dibujarDestello()
   if (ronda?.duelo?.fantasma) dibujarFantasma()
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
-    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro); pelota(tiro.pos, tiro.alt) }
+    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro); if (!tiro.embocada) pelota(tiro.pos, tiro.alt) }
     else { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
   }
   const a = estado === 'apuntar' ? apunte() : null
@@ -4384,21 +4393,65 @@ function cajonTee(h) {
   ctx.restore()
 }
 /** El hoyo dibujado encima del dibujo (vectorial, nítido): 3 veces el real (y más grande que la pelota), con borde claro. */
+/**
+ * El hoyo, como uno de verdad: el corte del green (un borde finito de tierra), adentro oscuro con la sombra del lado de
+ * la luz (arriba a la izquierda), la pared de enfrente iluminada y el vaso blanco que asoma. De lejos, chiquito y con
+ * un borde claro para que se lea (antes tenía un mínimo de 5,4 px y con la cancha entera parecía un pozo).
+ */
 function hoyoNitido([x, y]) {
-  // del tamaño real del dibujo; de lejos, chiquito (antes tenía un mínimo de 5,4 px y con la cancha entera parecía un pozo)
   const r = Math.max(M.FISICA.bocaHoyo * cam.esc, 2.6)
-  ctx.fillStyle = 'rgba(244,238,218,.9)'
-  ctx.beginPath()
-  ctx.arc(x, y, r + Math.max(1, r * 0.22), 0, 7)
-  ctx.fill()
-  ctx.fillStyle = '#081a10'
-  ctx.beginPath()
-  ctx.arc(x, y, r, 0, 7)
-  ctx.fill()
-  ctx.fillStyle = 'rgba(255,255,255,.18)' // un brillo adentro, para que se lea como pozo
-  ctx.beginPath()
-  ctx.arc(x - r * 0.25, y + r * 0.3, r * 0.45, 0, 7)
-  ctx.fill()
+  if (r < 5) {
+    ctx.fillStyle = 'rgba(244,238,218,.9)'
+    ctx.beginPath(); ctx.arc(x, y, r + Math.max(1, r * 0.22), 0, 7); ctx.fill()
+    ctx.fillStyle = '#081a10'
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+    return
+  }
+  ctx.save()
+  // el corte: un borde de tierra y, del lado de enfrente, el pasto del borde que toma luz
+  ctx.fillStyle = 'rgba(52,40,24,.6)'
+  ctx.beginPath(); ctx.arc(x, y, r * 1.07, 0, 7); ctx.fill()
+  ctx.strokeStyle = 'rgba(255,255,240,.28)'; ctx.lineWidth = Math.max(1, r * 0.06)
+  ctx.beginPath(); ctx.arc(x, y, r * 1.08, -0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke()
+  // adentro: oscuro, más claro hacia la pared de enfrente (abajo a la derecha)
+  const g = ctx.createRadialGradient(x + r * 0.32, y + r * 0.38, r * 0.05, x, y, r)
+  g.addColorStop(0, '#1d3a28'); g.addColorStop(0.5, '#0c1f14'); g.addColorStop(1, '#040b07')
+  ctx.fillStyle = g
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.clip()
+  // el vaso blanco: se ve la pared de enfrente (iluminada); la de atrás, en sombra
+  ctx.lineWidth = r * 0.15
+  ctx.strokeStyle = 'rgba(238,238,232,.85)'
+  ctx.beginPath(); ctx.arc(x + r * 0.1, y + r * 0.12, r * 0.8, -0.2 * Math.PI, 0.9 * Math.PI); ctx.stroke()
+  ctx.strokeStyle = 'rgba(160,165,160,.3)'
+  ctx.beginPath(); ctx.arc(x + r * 0.1, y + r * 0.12, r * 0.8, 0.9 * Math.PI, 1.8 * Math.PI); ctx.stroke()
+  // la sombra del borde de atrás (arriba a la izquierda) cayendo adentro
+  const sh = ctx.createRadialGradient(x - r * 0.55, y - r * 0.6, r * 0.2, x - r * 0.55, y - r * 0.6, r * 1.1)
+  sh.addColorStop(0, 'rgba(0,0,0,.55)'); sh.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = sh
+  ctx.fillRect(x - r, y - r, 2 * r, 2 * r)
+  ctx.restore()
+}
+/**
+ * La pelota adentro del hoyo: cae (se achica un poco, se va contra la pared de enfrente) y queda en la sombra del vaso.
+ */
+function pelotaEnHoyo(t, pin) {
+  const ahora = performance.now()
+  t._tHoyo ??= ahora
+  const u = Math.min(1, (ahora - t._tHoyo) / 280)
+  const [hx, hy] = w2s(pin)
+  const rH = Math.max(M.FISICA.bocaHoyo * cam.esc, 2.6)
+  const [ox, oy] = w2s(t.desde ?? golfista.desde ?? pin)
+  const dl = Math.hypot(hx - ox, hy - oy) || 1
+  const esc = 1 - 0.22 * u
+  const off = Math.max(0, Math.min(rH * 0.3, rH - radioPelota() * esc)) * u
+  const bx = hx + ((hx - ox) / dl) * off, by = hy + ((hy - oy) / dl) * off
+  ctx.save()
+  ctx.beginPath(); ctx.arc(hx, hy, rH, 0, 7); ctx.clip()
+  pelota(pin, 0, 1, [bx, by], esc)
+  ctx.fillStyle = `rgba(4,11,7,${0.5 * u})`
+  ctx.beginPath(); ctx.arc(bx, by, radioPelota() * esc, 0, 7); ctx.fill()
+  ctx.restore()
 }
 // La bandera sigue el zoom como la cancha: crece en los putts cortos y se achica al alejarse (antes quedaba
 // de 34 px fija y, con la cancha chiquita, parecía que crecía). Entre 0,45× y 3,5× su tamaño a 10 px/yd.
@@ -4419,8 +4472,9 @@ function marcasCaida(h) {
     const fase = (Math.sin(p[0] * 12.9898 + p[1] * 78.233) * 43758.5453) % 1 // cada una a su tiempo: orgánico
     lista.push({
       x: p[0], y: p[1], dx: c[0] / (fuerza || 1), dy: c[1] / (fuerza || 1),
-      alfa: Math.min(0.42, 0.14 + 0.38 * fuerza), // más tenues que antes
-      vel: 0.35 + 2.4 * fuerza, // yd/s: donde cae más, más rápido
+      alfa: Math.min(0.62, 0.2 + 0.32 * fuerza),
+      vel: 0.35 + 2.4 * fuerza, // yd/s: donde cae más, más rápido (en el sector pronunciado se nota: corren el doble)
+      tam: 0.85 + 0.35 * Math.min(1.6, fuerza), // y un poco más grandes
       fase: Math.abs(fase),
     })
   }
@@ -4429,34 +4483,89 @@ function marcasCaida(h) {
 }
 // el color de la bandera dice en qué tercio del green está: roja adelante, blanca al medio, azul al fondo
 const TELA = { roja: ['#c8352e', '#f4eeda'], blanca: ['#f4eeda', '#14402a'], azul: ['#2f5fd0', '#f4eeda'] }
+/**
+ * La bandera, como una de verdad: el palo blanco con su volumen y su sombra en el green (la luz viene de arriba a la
+ * izquierda), una bolita en la punta y el paño rectangular que flamea para donde sopla el viento: más estirado y más
+ * rápido cuanto más sopla; sin viento, caído. Cuando la pelota le pega al palo, tiembla.
+ */
+let golpeBandera = null // { n, t0 }: el palo que tiembla
 function bandera([x, y], n, actual, color = 'blanca') {
   const k = escalaZoom()
+  const ahora = performance.now()
+  const alto = 34 * k
+  let tiembla = 0
+  if (golpeBandera?.n === n) {
+    const u = (ahora - golpeBandera.t0) / 750
+    if (u < 1) tiembla = Math.sin(u * 30) * (1 - u) * 4.5 * k
+    else golpeBandera = null
+  }
+  const px = x + tiembla, py = y - alto // la punta
+  ctx.save()
   ctx.globalAlpha = actual ? 1 : 0.55
-  ctx.strokeStyle = C.cream
-  ctx.lineWidth = 2 * k
-  ctx.beginPath()
-  ctx.moveTo(x, y)
-  ctx.lineTo(x, y - 34 * k)
-  ctx.stroke()
+  ctx.lineCap = 'round'
+  // la sombra del palo y del paño en el green: para abajo a la derecha
+  ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 2 * k
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + alto * 0.5, y + alto * 0.32); ctx.stroke()
+  // el palo: un borde oscuro finito, blanco y un lado en sombra
+  ctx.strokeStyle = 'rgba(12,43,28,.45)'; ctx.lineWidth = 3.4 * k
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(px, py); ctx.stroke()
+  ctx.strokeStyle = '#f7f5ee'; ctx.lineWidth = 2.1 * k
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(px, py); ctx.stroke()
+  ctx.strokeStyle = 'rgba(150,155,150,.7)'; ctx.lineWidth = 0.8 * k
+  ctx.beginPath(); ctx.moveTo(x + 0.6 * k, y); ctx.lineTo(px + 0.6 * k, py); ctx.stroke()
+  // el paño: flamea con el viento (en el replay, el del hoyo que se ve)
+  const v = vientoDelCuadro() ?? { ang: 0, kmh: 6 }
+  const a = v.ang + cam.rot
+  const lado = Math.cos(a) >= 0 ? 1 : -1
+  const fuerza = Math.max(0, Math.min(1, v.kmh / 22))
+  const largo = 22 * k, anchoP = 12.5 * k
+  const dx = lado * (0.3 + 0.7 * fuerza), dy = 1.1 * (1 - fuerza) + 0.08 // sin viento, cae pegado al palo
+  const dl = Math.hypot(dx, dy)
+  const ux = dx / dl, uy = dy / dl, nx = -uy * lado, ny = ux * lado
+  const t = ahora / 1000 * (3 + 9 * fuerza)
+  const amp = anchoP * (0.08 + 0.14 * fuerza)
+  const N = 10
+  const arriba = [], abajo = []
+  for (let i = 0; i <= N; i++) {
+    const s2 = i / N
+    const ola = Math.sin(t - s2 * 5.5) * amp * s2
+    const bx = px + ux * largo * s2 + nx * ola, by = py + 1.5 * k + uy * largo * s2 + ny * ola
+    arriba.push([bx, by])
+    abajo.push([bx, by + anchoP * (0.85 + 0.15 * fuerza)]) // el ancho, siempre para abajo (con viento, un rectángulo; sin viento, cae finito)
+  }
   const [tela, letra] = TELA[color] ?? TELA.blanca
+  // el paño entero, y encima la luz de la ola (un degradé a lo largo: sin costuras)
+  const paño = () => {
+    ctx.beginPath()
+    arriba.forEach((q, i) => (i ? ctx.lineTo(...q) : ctx.moveTo(...q)))
+    for (let i = N; i >= 0; i--) ctx.lineTo(...abajo[i])
+    ctx.closePath()
+  }
+  ctx.globalAlpha = actual ? 1 : 0.55
   ctx.fillStyle = tela
-  ctx.strokeStyle = 'rgba(12,43,28,.55)' // un borde fino, para que la blanca se lea sobre el green claro
-  ctx.lineWidth = Math.max(1, k)
-  ctx.beginPath()
-  ctx.moveTo(x + k, y - 34 * k)
-  ctx.lineTo(x + 23 * k, y - 28 * k)
-  ctx.lineTo(x + k, y - 21 * k)
-  ctx.closePath()
-  ctx.fill()
-  ctx.stroke()
-  if (k >= 0.6) {
-    // el número, solo si la bandera es lo bastante grande para leerse
+  paño(); ctx.fill()
+  const gl = ctx.createLinearGradient(arriba[0][0], arriba[0][1], arriba[N][0], arriba[N][1])
+  for (let i = 0; i <= N; i++) {
+    const luz = Math.cos(t - (i / N) * 5.5) * 0.16 * Math.min(1, 0.4 + fuerza)
+    gl.addColorStop(i / N, luz < 0 ? `rgba(0,0,0,${-luz})` : `rgba(255,255,255,${luz})`)
+  }
+  ctx.fillStyle = gl
+  paño(); ctx.fill()
+  ctx.strokeStyle = 'rgba(12,43,28,.5)'; ctx.lineWidth = Math.max(0.8, 0.8 * k)
+  paño(); ctx.stroke()
+  if (k >= 0.6 && fuerza > 0.3) {
+    // el número, solo si la bandera es lo bastante grande para leerse (y está abierta: caída, no se ve)
+    const m = arriba[4], mb = abajo[4]
     ctx.fillStyle = letra
     ctx.font = `${10 * k}px Anton, "Arial Narrow", sans-serif`
-    ctx.textAlign = 'center'
-    ctx.fillText(String(n), x + 9 * k, y - 24.5 * k)
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    ctx.fillText(String(n), (m[0] + mb[0]) / 2, (m[1] + mb[1]) / 2 + 0.5 * k)
+    ctx.textBaseline = 'alphabetic'
   }
-  ctx.globalAlpha = 1
+  // la bolita de la punta
+  ctx.fillStyle = '#f7f5ee'; ctx.strokeStyle = 'rgba(12,43,28,.5)'; ctx.lineWidth = Math.max(0.8, 0.7 * k)
+  ctx.beginPath(); ctx.arc(px, py, 1.7 * k, 0, 7); ctx.fill(); ctx.stroke()
+  ctx.restore()
 }
 
 /** El carrito verde de Marcos, visto de arriba (con su bolsa atrás). Manejando: el destino y una flecha hacia la pelota. */
@@ -5111,9 +5220,9 @@ function dibujarGolfista(a) {
   dibujarJugador(bx, by, golfista.ang + cam.rot, sv, ronda.jugador, now, !t, putt && !t, tipoPalo)
   // Miguelón sacado: el palo sale volando, girando, y se pierde
   if (t) {
-    const u = (now - t.t0) / 1300
+    const u = (now - t.t0) / TIRA_MS
     if (u >= 1) { golfista.tira = null; return }
-    const k = escalaGolfista()
+    const k = Math.max(1.4, escalaGolfista()) // de lejos, un poco más grande que el muñequito: que se vea el revoleo
     const d = k * (40 + u * 200)
     const x = bx + Math.cos(t.dir) * d, y = by + Math.sin(t.dir) * d - Math.sin(Math.PI * Math.min(1, u * 1.2)) * 60 * k
     ctx.save(); ctx.translate(x, y); ctx.scale(k, k); ctx.rotate(u * 22); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, u - 0.7) / 0.3)
@@ -5126,24 +5235,70 @@ function dibujarGolfista(a) {
   }
 }
 /** Miguelón revolea el palo: el jugador termina el swing con bronca y el palo sale volando para cualquier lado. */
+const TIRA_MS = 2000 // lo que vuela el palo que revolea Miguelón (con el helicóptero a la par)
 function golfistaTiraPalo() { golfista.tira = { t0: performance.now(), dir: -Math.PI / 2 + (Math.random() - 0.5) * 2.4 } }
 
-function pelota(p, alt, alfa = 1, pantalla = null) {
+/**
+ * La pelota, como una de golf de verdad: blanca, con sus dimples (los hoyuelos, en panal, más chatos hacia el borde
+ * como en una esfera, cada uno con su sombrita del lado de la luz), la luz de arriba a la izquierda con su brillo, el
+ * borde un poco más gris y una sombra suave en el piso. Los dimples van en una textura que se arma una vez por color y
+ * gira a medida que la pelota avanza (rueda); la luz y la sombra quedan fijas. En la nieve, naranja.
+ */
+const SPRITE_PELOTA = new Map()
+function spritePelota(color) {
+  if (SPRITE_PELOTA.has(color)) return SPRITE_PELOTA.get(color)
+  const R = 48, c = document.createElement('canvas')
+  c.width = c.height = R * 2
+  const g = c.getContext('2d')
+  g.fillStyle = color
+  g.beginPath(); g.arc(R, R, R, 0, 7); g.fill()
+  g.save(); g.beginPath(); g.arc(R, R, R, 0, 7); g.clip()
+  const paso = 8.6, rd = 3.3 // el panal de dimples
+  for (let fila = -7; fila <= 7; fila++) for (let col = -7; col <= 7; col++) {
+    const x = col * paso + (fila % 2 ? paso / 2 : 0), y = fila * paso * 0.866
+    const d = Math.hypot(x, y) / R
+    if (d > 1.04) continue
+    const k = Math.sqrt(Math.max(0.08, 1 - Math.min(1, d) * Math.min(1, d))) // hacia el borde, más chatos (de costado)
+    g.save(); g.translate(R + x, R + y); g.rotate(Math.atan2(y, x))
+    g.fillStyle = 'rgba(70,80,90,.16)'; g.beginPath(); g.ellipse(-0.5 * k, 0, rd * k, rd, 0, 0, 7); g.fill() // el hueco
+    g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(0.7 * k, 0, rd * k * 0.55, rd * 0.75, 0, 0, 7); g.fill() // el borde que toma luz
+    g.restore()
+  }
+  g.restore()
+  SPRITE_PELOTA.set(color, c)
+  return c
+}
+function pelota(p, alt, alfa = 1, pantalla = null, escala = 1) {
   const [x, y] = pantalla ?? w2s(p)
-  const r = radioPelota() * (1 + alt / 50)
-  ctx.globalAlpha = alfa * 0.35
-  ctx.fillStyle = '#000'
-  ctx.beginPath()
-  ctx.ellipse(x + 1, y + 1, r * 0.9, r * 0.6, 0, 0, 7)
-  ctx.fill()
+  const r = radioPelota() * (1 + alt / 50) * escala
+  const yb = y - alt * levante()
+  // la sombra en el piso: suave, abajo a la derecha (en el aire, más chica y más clara)
+  const lejos = Math.min(1, alt / 30)
+  ctx.globalAlpha = alfa * (0.4 - 0.2 * lejos)
+  const sg = ctx.createRadialGradient(x + r * 0.35, y + r * 0.45, 0, x + r * 0.35, y + r * 0.45, r * (1.05 - 0.25 * lejos))
+  sg.addColorStop(0, 'rgba(0,0,0,.9)'); sg.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = sg
+  ctx.beginPath(); ctx.ellipse(x + r * 0.35, y + r * 0.45, r * (1.05 - 0.25 * lejos), r * (0.75 - 0.2 * lejos), 0, 0, 7); ctx.fill()
   ctx.globalAlpha = alfa
-  ctx.fillStyle = (replay ? replay.clima : ronda?.clima)?.id === 'nieve' ? '#ff7a1a' : '#ffffff' // en la nieve, la pelota naranja (si no, no se ve)
-  ctx.strokeStyle = 'rgba(12,43,28,.55)'
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.arc(x, y - alt * levante(), r, 0, 7)
-  ctx.fill()
-  ctx.stroke()
+  // la pelota con sus dimples (gira con lo que avanza)
+  const color = (replay ? replay.clima : ronda?.clima)?.id === 'nieve' ? '#ff7a1a' : '#ffffff' // en la nieve, la pelota naranja (si no, no se ve)
+  const gira = p ? (p[0] * 1.7 + p[1] * 2.3) / 0.42 : 0
+  ctx.save(); ctx.translate(x, yb); ctx.rotate(gira)
+  ctx.drawImage(spritePelota(color), -r, -r, 2 * r, 2 * r)
+  ctx.restore()
+  // la luz: el brillo arriba a la izquierda y el borde de abajo a la derecha, más gris
+  const luz = ctx.createRadialGradient(x - r * 0.38, yb - r * 0.42, r * 0.05, x - r * 0.1, yb - r * 0.1, r * 1.05)
+  luz.addColorStop(0, 'rgba(255,255,255,.95)')
+  luz.addColorStop(0.28, 'rgba(255,255,255,.25)')
+  luz.addColorStop(0.62, 'rgba(255,255,255,0)')
+  luz.addColorStop(0.88, 'rgba(70,82,96,.16)')
+  luz.addColorStop(1, 'rgba(40,50,62,.38)')
+  ctx.fillStyle = luz
+  ctx.beginPath(); ctx.arc(x, yb, r, 0, 7); ctx.fill()
+  // un borde finito, para que se lea sobre el green claro y la nieve
+  ctx.strokeStyle = 'rgba(12,43,28,.4)'
+  ctx.lineWidth = r > 8 ? 1.2 : 0.8
+  ctx.beginPath(); ctx.arc(x, yb, r, 0, 7); ctx.stroke()
   ctx.globalAlpha = 1
 }
 
@@ -5315,7 +5470,7 @@ function monoBueno(x, y, tam) {
 
 /**
  * El MODO PRO: ni línea punteada ni zona de pique. Solo una flechita corta para dónde sale (con los efectos del Mago,
- * curvada como va a doblar) y la goma con los nudos
+ * curvada como va a doblar), la goma y el latido de la potencia
  * (cuánto le pegás, no dónde cae): la distancia la calculás vos.
  */
 function apuntePro(a, bx, by, col) {
@@ -5358,33 +5513,18 @@ function apuntePro(a, bx, by, col) {
   flecha(); ctx.strokeStyle = a.putt ? (curva ? C.gold : C.cream) : col; ctx.lineWidth = 3.5; ctx.stroke()
 }
 /**
- * La goma con nudos: sale de la pelota para atrás (para el lado contrario del tiro, como una gomera) y se estira con
- * la fuerza. Tiene tres nudos fijos (½, ¾ y a fondo): los que pasaste quedan dorados sobre la goma y los que faltan,
- * fantasmas más allá de la punta (ahí tenés que llegar). Al pasar cada nudo, un clic y un tic en el celu: así repetís
- * un tiro sin mirar números. A fondo se pone roja y tiembla. (Elegida en el artefacto de potencia, 2026-10-07.)
+ * La goma: sale de la pelota para atrás (para el lado contrario del tiro, como una gomera) y se estira con la fuerza. A
+ * fondo se pone roja y tiembla, con un clic y un tic. (Elegida en el artefacto de potencia, 2026-10-07; los nudos se
+ * sacaron el 2026-10-08: el perfecto sale del latido, ver `dibujarLatido`.)
  */
-const NUDOS = [0.125, 0.25, 0.5, 0.75, 0.97] // en potencia; los de ⅛ y ¼, para los chips cortos; el último es "a fondo" (el mismo umbral del tiro)
-const A_FONDO = NUDOS[NUDOS.length - 1]
-/** La mini bandera, parada, adentro de un nudo (centro x, y; `k` = tamaño): palo blanco y la tela del color de la del hoyo. */
-function banderitaEnNudo(x, y, k = 1) {
-  const h = M.hoyoActual(ronda)
-  const [tela] = TELA[h.bandera ?? M.colorBandera(h, h.pin)] ?? TELA.blanca
-  const px = x - 3 * k
-  ctx.lineCap = 'round'
-  ctx.strokeStyle = C.cream; ctx.lineWidth = 2 * k; ctx.beginPath(); ctx.moveTo(px, y + 6 * k); ctx.lineTo(px, y - 7 * k); ctx.stroke()
-  ctx.beginPath(); ctx.moveTo(px + 0.5 * k, y - 7 * k); ctx.lineTo(px + 9 * k, y - 3.8 * k); ctx.lineTo(px + 0.5 * k, y - 0.6 * k); ctx.closePath()
-  ctx.fillStyle = tela; ctx.fill(); ctx.strokeStyle = C.g950; ctx.lineWidth = 1.4 * k; ctx.lineJoin = 'round'; ctx.stroke()
-}
 function goma(a, bx, by) {
-  const exp = a.putt ? 1.6 : 1.35 // la potencia es el estirón a la `exp` (ver apunte): los nudos van donde está el dedo
+  const exp = a.putt ? 1.6 : 1.35 // la potencia es el estirón a la `exp` (ver apunte)
   const largo = Math.max(84, Math.min(150, Math.min(W, H) * 0.3))
-  const enU = (p) => Math.pow(Math.min(1, p), 1 / exp)
-  const fondo = a.p >= A_FONDO
+  const fondo = a.p >= 0.97
   const atras = a.ang + cam.rot + Math.PI
   const ux = Math.cos(atras), uy = Math.sin(atras), nx = -uy, ny = ux
-  // justo en el nudo rojo (el PERFECTO a fondo) la goma no tiembla: tiembla cuando te pasás
-  const tiembla = fondo && !a.justo ? Math.sin(performance.now() / 22) * 2.2 : 0
-  const L = largo * enU(a.p) * (fondo ? 1.04 : 1)
+  const tiembla = fondo ? Math.sin(performance.now() / 22) * 2.2 : 0
+  const L = largo * Math.pow(Math.min(1, a.p), 1 / exp) * (fondo ? 1.04 : 1)
   const r0 = Math.max(9, radioPelota() + 2)
   const ax = bx + ux * r0, ay = by + uy * r0
   const ex = bx + ux * (r0 + L) + nx * tiembla, ey = by + uy * (r0 + L) + ny * tiembla
@@ -5395,61 +5535,65 @@ function goma(a, bx, by) {
   const g = ctx.createLinearGradient(ax, ay, ex, ey)
   g.addColorStop(0, C.cream); g.addColorStop(1, color)
   ctx.strokeStyle = g; ctx.lineWidth = grosor; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
-  // el agarre en la punta (abajo de los nudos: el del stock queda encima)
   ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(ex, ey, 8, 0, 7); ctx.fill()
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex, ey, 5.2, 0, 7); ctx.fill()
-  // los nudos de este tiro: los dorados (con la bandera al alcance, repartidos alrededor de ella), la bandera (un nudo
-  // más grande, blanco, con la banderita adentro: con esa fuerza pica en la bandera) y el rojo de a fondo
-  const gm = a.goma ?? M.nudosGoma(null)
-  const lista = [...gm.nudos.map((m) => ({ m, tipo: 'nudo' })), ...(gm.bandera != null ? [{ m: gm.bandera, tipo: 'bandera' }] : []), { m: A_FONDO, tipo: 'fondo' }].sort((x, y) => x.m - y.m)
-  lista.forEach(({ m, tipo }) => {
-    const d = r0 + largo * enU(m)
-    const x = bx + ux * d + (a.p >= m ? nx * tiembla : 0), y = by + uy * d + (a.p >= m ? ny * tiembla : 0)
-    const conBandera = tipo === 'bandera' || (tipo === 'fondo' && gm.enFondo)
-    const r = conBandera ? 11 : tipo === 'fondo' ? 8 : m < 0.3 ? 5.5 : 6.5
-    if (tipo === 'bandera') {
-      // la bandera, siempre a la vista (pasada o no): el aro del stock si estás quieto ahí
-      if (a.stock && a.nudo === m) {
-        const lat = 0.5 + 0.5 * Math.sin(performance.now() / 90)
-        ctx.fillStyle = `rgba(244,238,218,${0.25 + 0.25 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 3, 0, 7); ctx.fill()
-      }
-      // verde oscuro con aro blanco (bien distinto de los dorados): la tela de la bandera, del color que sea, se lee
-      ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
-      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
-      ctx.fillStyle = C.g700; ctx.beginPath(); ctx.arc(x, y, r - 2.5, 0, 7); ctx.fill()
-      banderitaEnNudo(x, y)
-      return
-    }
-    if (a.p < m && !(a.stock && a.nudo === m)) {
-      ctx.strokeStyle = 'rgba(244,238,218,.6)'; ctx.lineWidth = 2; ctx.setLineDash([3, 3])
-      ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); ctx.setLineDash([])
-      if (conBandera) banderitaEnNudo(x, y)
-      return
-    }
-    // a fondo y justo: el nudo rojo brilla en dorado (soltá ahora: PERFECTO)
-    if (tipo === 'fondo' && a.justo) {
-      const lat = 0.5 + 0.5 * Math.sin(performance.now() / 70)
-      ctx.fillStyle = `rgba(232,195,74,${0.3 + 0.3 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 8 + lat * 4, 0, 7); ctx.fill()
-      ctx.strokeStyle = C.gold; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 4, 0, 7); ctx.stroke()
-    }
-    // el swing de stock: el nudo donde estás (con el dedo quieto) brilla
-    if (a.stock && a.nudo === m) {
-      const lat = 0.5 + 0.5 * Math.sin(performance.now() / 90)
-      ctx.fillStyle = `rgba(244,238,218,${0.25 + 0.25 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 3, 0, 7); ctx.fill()
-      ctx.strokeStyle = C.cream; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r + 6 + lat * 3, 0, 7); ctx.stroke()
-    }
-    ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
-    ctx.fillStyle = tipo === 'fondo' ? C.red : a.stock && a.nudo === m ? C.cream : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
-    if (conBandera) banderitaEnNudo(x, y) // la bandera a fondo: adentro del rojo
-  })
-  // el clic y el tic al pasar un nudo (para atrás no suena: solo cuando lo pasás de nuevo)
-  let k = -1
-  lista.forEach(({ m }, i) => { if (a.p >= m) k = i })
-  if (drag && k > (drag.nudo ?? -1)) { S.nudo(k, k === lista.length - 1); tic() }
-  if (drag) drag.nudo = k
-  // al quedar quieto justo en el nudo (swing de stock): otro clic, más suave, y otro tic
-  if (drag && a.stock && !drag.stock) { S.stock(); tic() }
-  if (drag) drag.stock = a.stock
+  if (drag && fondo && !drag.fondo) { S.nudo(0, true); tic() }
+  if (drag) drag.fondo = fondo
+  if (drag && a.latido) dibujarLatido(a, bx, by)
+}
+/**
+ * El latido de la potencia, alrededor de la pelota (donde mirás la línea, y la mano no lo tapa): un aro que se achica a
+ * velocidad pareja hasta el aro dorado, lo pasa un poquito y vuelve a empezar grande. La franja dorada es el sweet spot
+ * (más ancha cerca del hoyo); cuando el aro está adentro, todo se prende dorado. Cuanto más rápido late, más rojo.
+ */
+const ATRASO_PANTALLA = 20 // ms: lo que tarda en verse un cuadro (el aro que viste al soltar es de antes)
+const LATIDO_R = { afuera: 78 }
+/** El aro dorado es el borde de la pelota: el que late termina ahí (y, si llegás tarde, la aprieta un poquito). */
+const doradoLatido = () => radioPelota() + 1.5
+function radioLatido(f) {
+  const c = M.PERFECTO.centro, dorado = doradoLatido(), afuera = Math.max(LATIDO_R.afuera, dorado + 44)
+  if (f <= c) return dorado + (afuera - dorado) * (c - f) / c // parejo hasta el borde de la pelota
+  return dorado * (1 - 0.3 * (f - c) / (1 - c)) // tarde: la aprieta
+}
+function dibujarLatido(a, x, y) {
+  const f = (((drag.fase ?? 0) % 1) + 1) % 1
+  const c = M.PERFECTO.centro, v = a.ventana
+  const sweet = a.sweet
+  // cuanto más rápido late, más rojo (de crema a rojo)
+  const rapido = Math.max(0, Math.min(1, (M.PERFECTO.lento - (drag.periodo ?? M.periodoLatido(a.p))) / (M.PERFECTO.lento - M.PERFECTO.rapido)))
+  const mezcla = (a1, b1) => Math.round(a1 + (b1 - a1) * rapido)
+  const colAro = sweet ? C.gold : `rgb(${mezcla(244, 214)},${mezcla(238, 92)},${mezcla(218, 74)})`
+  ctx.save()
+  // la franja del sweet spot (de donde entra la ventana de perfecto hasta el borde de la pelota)
+  const r1 = radioLatido(c - v), r2 = doradoLatido()
+  ctx.fillStyle = sweet ? 'rgba(232,195,74,.42)' : 'rgba(232,195,74,.2)'
+  ctx.beginPath(); ctx.arc(x, y, r1, 0, 7); ctx.arc(x, y, r2, 0, 7, true); ctx.fill()
+  // el aro dorado, en el borde de la pelota: ahí tiene que llegar
+  const rd = doradoLatido()
+  ctx.strokeStyle = 'rgba(12,43,28,.65)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, rd, 0, 7); ctx.stroke()
+  ctx.strokeStyle = C.gold; ctx.lineWidth = sweet ? 2.8 : 1.8; ctx.beginPath(); ctx.arc(x, y, rd, 0, 7); ctx.stroke()
+  // el aro que se achica (aparece suave cuando vuelve a empezar)
+  const r = radioLatido(f)
+  ctx.globalAlpha = Math.min(1, f / 0.1)
+  ctx.strokeStyle = 'rgba(12,43,28,.8)'; ctx.lineWidth = 7.5; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke()
+  ctx.strokeStyle = colAro; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke()
+  if (sweet) { ctx.globalAlpha = 0.35; ctx.strokeStyle = C.gold; ctx.lineWidth = 12; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke() }
+  ctx.restore()
+}
+/** Al soltar, el aro se abre en un destello: dorado si fue perfecto, crema si fue bueno, apenas si no. */
+let destello = null
+function dibujarDestello() {
+  if (!destello) return
+  const u = (performance.now() - destello.t0) / 420
+  if (u >= 1) { destello = null; return }
+  const [x, y] = w2s(destello.pos)
+  const col = destello.nivel === 'perfecto' ? '232,195,74' : destello.nivel === 'bueno' ? '244,238,218' : '244,238,218'
+  const fuerza = destello.nivel === 'perfecto' ? 1 : destello.nivel === 'bueno' ? 0.6 : 0.25
+  ctx.save()
+  ctx.strokeStyle = `rgba(${col},${(1 - u) * 0.9 * fuerza})`
+  ctx.lineWidth = 5 * (1 - u) + 1
+  ctx.beginPath(); ctx.arc(x, y, doradoLatido() + u * 60, 0, 7); ctx.stroke()
+  ctx.restore()
 }
 /** El "tic" del celu: Android vibra; en iPhone (iOS 18+) se toca un interruptor nativo escondido, que hace el tic del sistema. */
 function tic() {
@@ -5460,7 +5604,7 @@ function dibujarApunte(a) {
   const [bx, by] = w2s(ronda.pelota)
   const [dx, dy] = w2s(a.destino)
   const bomba = a.plan.bomba
-  const col = a.justo ? C.gold : a.fondo || (bomba && !a.plan.perfecta) ? C.red : bomba ? C.gold : C.cream
+  const col = a.fondo ? C.red : bomba ? C.gold : C.cream
   ctx.lineCap = 'round'
   if (ronda.pro) { apuntePro(a, bx, by, col); goma(a, bx, by); return } // el MODO PRO: sin líneas punteadas ni dónde cae
   goma(a, bx, by)
@@ -5544,10 +5688,8 @@ function dibujarApunte(a) {
   // (con dispersiones enormes, como Miguelón sacado, el ángulo pasaba los 90° y la tangente se iba al infinito o daba
   // negativa: el óvalo quedaba como una línea roja de punta a punta. Se topa el ángulo y el tamaño en pantalla)
   const topeOvalo = Math.max(W, H) * 0.45
-  // justo en el nudo rojo, la zona se achica a la del perfecto (hasta `resto` desvíos)
-  const kz = a.justo ? M.PERFECTO.resto / 1.5 : 1
-  const largo = Math.min(topeOvalo, Math.max(1.5 * kz * a.disp.carry * a.alcance, 1.5) * cam.esc)
-  const ancho = Math.min(topeOvalo, Math.max(a.alcance * Math.tan(Math.min(1.5 * kz * a.disp.ang, 1.1)), 1.5) * cam.esc)
+  const largo = Math.min(topeOvalo, Math.max(1.5 * a.disp.carry * a.alcance, 1.5) * cam.esc)
+  const ancho = Math.min(topeOvalo, Math.max(a.alcance * Math.tan(Math.min(1.5 * a.disp.ang, 1.1)), 1.5) * cam.esc)
   if (a.plan.furia) {
     // Miguelón sacado: un abanico rojo desde la pelota, tan abierto como el error (puede ir para cualquier lado ahí)
     const ab = Math.min(1.5 * a.disp.ang, 1.1)
@@ -5567,7 +5709,7 @@ function dibujarApunte(a) {
   } else {
   ctx.beginPath()
   ctx.ellipse(dx, dy, largo, ancho, a.plan.cuerda + cam.rot, 0, 7)
-  ctx.fillStyle = a.justo ? 'rgba(232,195,74,.45)' : a.fondo || (bomba && !a.plan.perfecta) ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.4)' : 'rgba(244,238,218,.18)'
+  ctx.fillStyle = a.fondo ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.3)' : 'rgba(244,238,218,.18)'
   ctx.fill()
   ctx.lineWidth = 2
   ctx.setLineDash([5, 5])
@@ -5586,7 +5728,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.justo ? ' · ¡PERFECTO!' : a.fondo ? ' · PASADO' : ''
+  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? ' · BOMBA' : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(M.aYardas(ronda, a.alcance))} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
@@ -6060,7 +6202,7 @@ function irAlInicio() {
   $('#portada').hidden = false
 }
 $('#fin-inicio').addEventListener('click', irAlInicio)
-$('#fin-match').addEventListener('click', () => { irAlInicio(); mostrarMatch(tabConAviso()) })
+$('#fin-match').addEventListener('click', () => { irAlInicio(); entrarPorAviso() })
 $('#otra').addEventListener('click', () => empezar(ronda.carta))
 $('#fin-ranking').addEventListener('click', () => { rkPro = !!ronda?.pro; mostrarRanking(ronda?.carta.apodo ?? 'general') })
 

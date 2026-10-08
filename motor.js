@@ -45,12 +45,28 @@ export const VUELTA = { max: 5, radio: 0.6, freno: 0.6, salida: 1.7, entra: 0.5,
 // rápido que un putt: si CAE en la boca, entra con probabilidad `clavada` (más cerca del centro, más);
 // si llega rodando, hasta `max` yd/s tiene chance (más centrada y más lenta, más chance, hasta `prob`).
 // La suerte de cada tiro sale del tiro mismo (suerteDe): determinista, sin tocar el rng.
-export const CHIP = { clavada: 0.8, max: 10, prob: 0.7 }
+// clavada: la que pica justo en el hoyo, de aire; prob: la que pasa rodando rápido por la boca; centro: el chip que llega
+// rodando entra como un putt solo a esta distancia del centro; vuelta: el chip que da la vuelta al hoyo (la corbata)
+// entra solo esta parte de las veces (2026-10-08: clavada era 0,8 y prob 0,7, sin centro ni vuelta: los chips entraban
+// muchísimo)
+export const CHIP = { clavada: 0.35, max: 10, prob: 0.25, centro: 0.18, vuelta: 0.25 }
+// El juego corto (2026-10-08): el error de un tiro no baja de `largo` yd de largo y `ancho` yd de costado (un desvío, a
+// error 1 = handicap 10; se escala con el handicap como todo el error, pero no menos de `minimo`: un scratch también le
+// erra a un chip). Antes era proporcional al largo y un chip de 15 yd
+// caía en medio metro: se metían muchísimos. La zona de pique lo muestra.
+export const CORTO = { largo: 3, ancho: 1.8, minimo: 0.6, hasta: 100, transicion: 40 } // entero hasta 60 yd; a 100, nada
 /** Un número 0–1 propio de cada tiro (de dónde sale y adónde va): la "suerte" del chip in. */
 export function suerteDe(tiro) {
   const x = Math.sin(tiro.desde[0] * 12.9898 + tiro.desde[1] * 78.233 + tiro.carryVec[0] * 37.719 + tiro.carryVec[1] * 4.581) * 43758.5453
   return x - Math.floor(x)
 }
+/**
+ * El palo de la bandera (2026-10-08): un tiro completo que baja sobre el hoyo puede pegarle al palo antes de tocar el
+ * piso (a menos de `radio` yd del palo y por debajo de `alto` yd). Si igual caía en la boca, entra como la que entra
+ * de aire; si no, abajo cae adentro (hasta `CHIP.clavada`) y cuanto más arriba le pega, más rebota: sale para atrás y para un costado, a `rebote` yd/s. Los
+ * putts no: se patean sin bandera. La flecha del Sueco, el tiro de Deme y Demetrio no le pegan.
+ */
+export const PALO_BANDERA = { radio: 0.2, alto: 2.4, rebote: [1.6, 3.2] }
 /** La chance de entrar de un tiro completo que cae a d yardas del centro del hoyo. */
 export function chanceClavada(d) {
   if (d >= FISICA.bocaHoyo) return 0
@@ -76,16 +92,20 @@ export function limiteEmbocar(d) {
 
 // La caída del green, fluida como en uno real: cada hoyo tiene de 2 a 4 zonas (`caidas`, un punto y su caída en
 // yd/s²) y en cada lugar del green la caída es la mezcla de todas, pesada por cercanía (campana de `ancho` yardas).
-export const CAIDA = { ancho: 8 }
+// Cada green tiene un sector pronunciado (`fuerte`, 2026-10-08): ahí cae `fuerte` veces más, en una campana más chica
+// (`anchoFuerte`): la pelota se va más y las flechitas corren más rápido; el resto, como siempre.
+export const CAIDA = { ancho: 8, fuerte: 2.2, anchoFuerte: 6 }
 /** La caída del green en ese punto (yd/s²). Sin zonas, la del hoyo. */
 export function caidaEn(h, p) {
   if (!h.caidas?.length) return h.caida
   let sx = 0, sy = 0, sw = 0
   for (const z of h.caidas) {
     const d2 = (p[0] - z.p[0]) ** 2 + (p[1] - z.p[1]) ** 2
-    const w = Math.exp(-d2 / (2 * CAIDA.ancho * CAIDA.ancho)) + 1e-9
-    sx += z.v[0] * w
-    sy += z.v[1] * w
+    const a = z.fuerte ? CAIDA.anchoFuerte : CAIDA.ancho // el sector pronunciado es más chico
+    const w = Math.exp(-d2 / (2 * a * a)) + 1e-9
+    const k = z.fuerte ? CAIDA.fuerte : 1
+    sx += z.v[0] * k * w
+    sy += z.v[1] * k * w
     sw += w
   }
   return [sx / sw, sy / sw]
@@ -99,7 +119,7 @@ export const MONO = { vel: 18, pausa: 3, radio: 3.2, altura: 8, velCaza: 12, ale
 // ── habilidades por jugador (por apodo, como en la app) ──
 export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: antes de cada golpe elegís cuál (Flop, Baby Draw, Una cortada al medio o el Dibuje maestro, que dibujás con el dedo). En el green, putt con draw o con fade.' },
-  'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
+  'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'Desde el tee, la bomba: la goma llega mucho más lejos (405 yd). Soltá en el sweet spot del latido y sale perfecta: al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
   Tito: { id: 'viento', corto: 'Maneja el viento en vivo.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza maneja el viento en vivo: mientras la pelota vuela, cada swipe en la pantalla es una ráfaga para ese lado (más largo, más fuerte) y la pelota se va para ahí. Las ráfagas se suman y se calman solas. Eso sí: en el green el putt es ultra sensible, un milímetro del dedo cambia la línea y la fuerza.' },
   Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá. Antes de pegar ves lo que se viene (y para qué lado), y después de una sorpresa el próximo sale limpio. Y cuando la está por meter (también en el green), a veces sale un mapache del hoyo, la frena y se va rajando: la deja casi dada.' },
   'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después, la flecha.', nombre: 'La flecha', texto: 'El drive, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro, una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
@@ -113,7 +133,7 @@ export const HABILIDADES = {
   Grandpa: { id: 'deme', nombre: 'Invocar a Deme', texto: 'Maxi, una vez por vuelta (no desde el tee): llama a Deme, el mentor. Te enseña a agarrar el palo y el próximo tiro entra de una, le pegues como le pegues.' },
   'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro (y de tee a tee) lo manejás vos hasta la pelota. Los árboles no se atraviesan. El reloj corre.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
-  'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (soltá en el latido) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
+  'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (la goma llega más lejos; en el sweet spot, perfecta) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
@@ -170,7 +190,8 @@ export const PUTT_MAGO = { giro: 0.3 }
 // la furia de Miguelón: una barra de `mitades` mitades. Se carga media si el primer tiro del hoyo no queda en la calle
 // ni en el green, media si el segundo no queda en el green (o no entra) y media si el hoyo termina en bogey o peor.
 // Llena: revolea el palo y el próximo tiro (o putt) sale con la dispersión del peor handicap × `extra`; después, a cero.
-export const FURIA = { mitades: 2, extra: 1.6 }
+// sacado, el latido late `latido` veces más rápido y la ventana del sweet spot es `ventana` de la normal: casi imposible
+export const FURIA = { mitades: 2, extra: 1.6, latido: 0.75, ventana: 0.3 }
 // la mala suerte de Juanpa (el Mapache): en cada tiro fuera del green, con chance `chance`, una sorpresa (árbol, ráfaga
 // o carrito, una de tres). El árbol y la ráfaga pasan entre `desde` y `hasta` del vuelo; la ráfaga la corre de costado
 // `rafaga` yardas reales y el carrito, al picar, se la lleva `carrito` yardas reales en `carritoT` segundos.
@@ -287,8 +308,11 @@ export const PUTTS_MAGO = [
 // `puntos` puntos; con menos de `minimo` yardas no hay tiro
 export const DIBUJO = { paso: 1.5, pasadas: 14, puntos: 48, minimo: 4 }
 // la bomba de Miguelón (y de Taiu): desde el tee su driver vuela hasta `carry` yardas reales: llega a los dos par 4 desde
-// las azules (el 16, 415 yd, a fondo; el 15, 392, con un poco menos; 2026-10-06, antes 365 y al 16 no llegaba); pasando `zona` yardas el óvalo late (periodo, en segundos) y es perfecta si suelta con precisión >= perfecta
-export const BOMBA = { carry: 405, zona: 285, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
+// las azules (el 16, 415 yd, a fondo; el 15, 392, con un poco menos; 2026-10-06, antes 365 y al 16 no llegaba). Pasando
+// `zona` yardas es la bomba: se abre (`ang` grados × el error del handicap) y mal pegada queda corta (`largo`). Desde el
+// 2026-10-08, el perfecto sale del latido como para todos (antes, del óvalo que latía): la bomba perfecta llega al green
+
+export const BOMBA = { carry: 405, zona: 285, ang: 6, largo: 0.1 }
 // el Águila (Fito): la línea de tiro se sacude ±amplitud grados cada `periodo` s; si suelta con el desvío dentro de
 // ±ventana (el embudo) sale derecha. A `chip` yardas reales o menos del hoyo, si cae en el green el imán la mete.
 // (`alLado`: dónde la dejaría un imán que no la mete; hoy siempre la mete.)
@@ -316,7 +340,7 @@ export const HOYOS = [
     calle: [[58, 278], [50, 237.5], [47.5, 186], [46.3, 135], [43.8, 80]],
     caida: [0.55, -0.35],
     // la caída cambia por zonas (centros de cada parte del green; se mezclan suave, ver caidaEn)
-    caidas: [{ p: [40, 31], v: [-0.5, 0.3] }, { p: [29, 43], v: [0.55, -0.35] }, { p: [39, 53], v: [0.3, 0.55] }],
+    caidas: [{ p: [40, 31], v: [-0.5, 0.3], fuerte: true }, { p: [29, 43], v: [0.55, -0.35] }, { p: [39, 53], v: [0.3, 0.55] }],
     monos: [{ a: [26.5, 200.5], b: [72.5, 195.5], fase: 0 }, { a: [22.5, 106.5], b: [62.5, 117.5], fase: 11 }],
   },
   {
@@ -329,7 +353,7 @@ export const HOYOS = [
     verso: 'El dieciséis no es más fácil, te desafía sin piedad.',
     calle: [[105, 172.5], [105.5, 222.5], [106.3, 275], [104.5, 325], [103.8, 347.5]],
     caida: [-0.5, 0.45],
-    caidas: [{ p: [105, 386], v: [0.45, 0.4] }, { p: [107, 401], v: [-0.5, 0.45] }, { p: [118, 414], v: [-0.3, -0.5] }, { p: [103, 420], v: [0.5, -0.3] }],
+    caidas: [{ p: [105, 386], v: [0.45, 0.4] }, { p: [107, 401], v: [-0.5, 0.45] }, { p: [118, 414], v: [-0.3, -0.5], fuerte: true }, { p: [103, 420], v: [0.5, -0.3] }],
     monos: [{ a: [75.5, 225.5], b: [130.5, 220.5], fase: 4 }, { a: [77.5, 315.5], b: [128.5, 323.5], fase: 15 }],
   },
   {
@@ -342,7 +366,7 @@ export const HOYOS = [
     verso: 'El diecisiete llega, pensás que vas a escapar…',
     calle: [[148.8, 265], [151.3, 212.5], [155, 162.5], [156.3, 120]],
     caida: [0.45, 0.55],
-    caidas: [{ p: [149, 65], v: [0.45, 0.55] }, { p: [155, 89], v: [-0.55, -0.2] }],
+    caidas: [{ p: [149, 65], v: [0.45, 0.55] }, { p: [155, 89], v: [-0.55, -0.2], fuerte: true }],
     monos: [{ a: [124.5, 174.5], b: [180.5, 172.5], fase: 7 }, { a: [129.5, 271.5], b: [174.5, 264.5], fase: 18 }],
   },
 ]
@@ -873,7 +897,8 @@ function planBase(angulo, potencia, lie) {
 
 /**
  * Lo que ve el jugador al apuntar (sin error ni viento): dónde pica, la curva si la hay y la zona de pique.
- * Acá entran las habilidades: la comba de Rodal y la bomba de Miguelón (`precision` 0..1, del latido del óvalo).
+ * Acá entran las habilidades: la comba de Rodal y la bomba de Miguelón (`precision`: ya no se usa, era el latido del
+ * óvalo de la bomba).
  */
 export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, ruta = null) {
   potencia = Math.max(0, Math.min(1, potencia))
@@ -910,11 +935,9 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
   const clima = climaDe(r)
   if (clima?.carry && hab?.id !== 'retro') plan.carry *= clima.carry // el clima: con calor vuela más; con lluvia, menos (se ve al apuntar)
   if (bombero && tee && plan.carry * escala > BOMBA.zona) {
-    const q = Math.max(0, Math.min(1, precision))
+    // la bomba: el tope más largo (la goma llega a BOMBA.carry); el perfecto, del latido, como para todos
     plan.bomba = true
-    plan.perfecta = q >= BOMBA.perfecta
-    const grados = plan.perfecta ? BOMBA.angPerfecta : BOMBA.angBase + BOMBA.angMala * (1 - q)
-    plan.disp = { ang: ((grados * Math.PI) / 180) * dif.error, carry: (plan.perfecta ? 0.02 : 0.05 + 0.15 * (1 - q)) * dif.error, fondo: false }
+    plan.disp = { ang: ((BOMBA.ang * Math.PI) / 180) * dif.error, carry: BOMBA.largo * dif.error, fondo: false }
   }
   if (hab?.id === 'approach') {
     // Liberty: el drive, perfecto; el approach, una tragedia
@@ -971,6 +994,17 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     // cerca del green el imán la mete (antes la dejaba dada al lado; pedido de Rorro, 2026-10-04: "así es más justo")
     // AGUILA.chip son yardas reales; `radio` = hasta dónde tira el imán, en yardas del dibujo. El imán es solo de Fito
     if (hab?.id === 'aguila' && dist(b, pin) * escala <= AGUILA.chip) plan.iman = { meter: true, radio: AGUILA.chip / escala }
+  }
+  // el juego corto: el error no baja de un mínimo en yardas (un chip de 15 yd no cae en un pañuelo), según el handicap
+  // (y un scratch también le erra: no menos de `CORTO.minimo`). También la flecha del Sueco, de cerca. No los tiros sin
+  // error de una habilidad (LG sin error, el approach de Taiu, Demetrio, el embudo de Fito) ni la bomba
+  const sinError = plan.calma || plan.approachPerfecto || plan.exacto || plan.bomba || plan.aguila?.enVentana
+  const cy = plan.carry * escala
+  // (y el perfecto de cerca sale con `PERFECTO.errorCorto`, no con un cuarto: de cerca el latido es lento y la ventana ancha)
+  if (cy < CORTO.hasta) plan.errorPerfecto = PERFECTO.error + (PERFECTO.errorCorto - PERFECTO.error) * Math.min(1, (CORTO.hasta - cy) / CORTO.transicion)
+  if (!sinError && cy > 1 && cy < CORTO.hasta) {
+    const e = Math.max(dif.error, CORTO.minimo) * Math.min(1, (CORTO.hasta - cy) / CORTO.transicion) // solo de cerca
+    plan.disp = { ...plan.disp, carry: Math.max(plan.disp.carry, (CORTO.largo * e) / cy), ang: Math.max(plan.disp.ang, Math.atan((CORTO.ancho * e) / cy)) }
   }
   plan.destino = [b[0] + Math.cos(plan.cuerda) * plan.carry, b[1] + Math.sin(plan.cuerda) * plan.carry]
   return plan
@@ -1087,16 +1121,14 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     return { modo: 'putt', fase: 'rodando', pos: [...pelota], alt: 0, v: [Math.cos(a) * v0, Math.sin(a) * v0], carry: 0, giro: plan?.giro ?? 0, labio: false, eventos: [] }
   }
   const p = plan ?? planBase(angulo, potencia, lie)
-  // el error del tiro, en desvíos (el swing de stock lo achica); salió al medio: perfecto (un tiro sin error, como los
-  // de Demetrio o LG sin error, sale perfecto siempre: es real). El perfecto no es cero: hasta `resto` desvíos
-  const k = p.stock ? STOCK.error : 1
+  // el error del tiro, en desvíos: el perfecto (soltó en el sweet spot del latido) sale con un cuarto, no con cero; el
+  // bueno, con `errorBueno`. Un tiro sin error (Demetrio, LG sin error, el de Deme) sale perfecto siempre: es real.
+  // Con el latido, el lado del error lo decide cuándo soltó: temprano, a la izquierda; tarde, a la derecha
+  const k = p.perfecto ? p.errorPerfecto ?? PERFECTO.error : p.bueno ? PERFECTO.errorBueno : 1
   let ze = gauss(rng) * k
-  let g = gauss(rng) * k
-  const zr = Math.hypot(ze, g)
-  const radio = p.radioPerfecto ?? PERFECTO.radio
-  const perfecto = !!p.perfectoFondo || !(p.disp.ang > 0 || p.disp.carry > 0) || zr < radio
-  // adentro del perfecto (hasta `resto` desvíos); el perfecto a fondo que salió afuera, también, más cerca cuanto más lejos
-  if (perfecto && zr > 0) { const f = zr < radio ? PERFECTO.resto / radio : (PERFECTO.resto * radio) / (zr * zr); ze *= f; g *= f }
+  const g = gauss(rng) * k
+  if (p.lado && !p.perfecto) ze = Math.abs(ze) * p.lado
+  const perfecto = !!p.perfecto || !(p.disp.ang > 0 || p.disp.carry > 0)
   const err = ze * p.disp.ang
   // una bomba mal pegada nunca va más lejos: se queda corta
   const carry = Math.max(0, p.carry * (p.real ?? FISICA.factorReal[lie] ?? 1) * (p.bomba ? 1 - Math.abs(g) * p.disp.carry : 1 + g * p.disp.carry))
@@ -1133,10 +1165,10 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     deriva: [Math.cos(viento.ang) * kv, Math.sin(viento.ang) * kv],
     carry,
     bomba: !!p.bomba,
-    perfecta: !!p.perfecta,
+    perfecta: !!p.bomba && perfecto, // la bomba perfecta (para el relato)
     perfecto,
-    fondoJusto: !!p.perfectoFondo,
-    stock: !!p.stock,
+    bueno: !perfecto && !!p.bueno,
+    lado: p.lado ?? 0,
     comba: !!p.comba,
     golpe: p.golpe ?? null,
     ruta, // el Dibuje maestro: el vuelo, punto a punto (relativo a `desde`), a velocidad pareja
@@ -1160,6 +1192,50 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
   }
 }
 
+/** Se queda colgando en el borde del hoyo (afuera, justo): el próximo es un putt de nada. */
+function alBorde(tiro, pin) {
+  const d = dist(tiro.pos, pin)
+  const ux = d > 1e-6 ? (tiro.pos[0] - pin[0]) / d : 0, uy = d > 1e-6 ? (tiro.pos[1] - pin[1]) / d : 1
+  tiro.pos = [pin[0] + ux * (FISICA.bocaHoyo + 0.02), pin[1] + uy * (FISICA.bocaHoyo + 0.02)]
+  tiro.v = [0, 0]
+  tiro.fase = 'quieta'
+  tiro.eventos.push({ tipo: 'borde' })
+  return tiro.fase
+}
+/** Pegó en el palo de la bandera: abajo cae adentro; arriba, rebota para atrás y para un costado (la suerte, del tiro). */
+function alPalo(tiro, prev, pin) {
+  tiro.pegoPalo = { alt: tiro.alt }
+  tiro.eventos.push({ tipo: 'bandera' })
+  const x = Math.sin(suerteDe(tiro) * 9301.17 + 0.5) * 43758.5453
+  const suerte = x - Math.floor(x)
+  const abajo = 1 - tiro.alt / PALO_BANDERA.alto
+  // si de todos modos caía en la boca del hoyo, entra como la que entra de aire (pegarle al palo no la saca); si no,
+  // cuanto más abajo le pega, más cae
+  const n = tiro.ruta?.length ?? 0
+  const cae = n ? [tiro.desde[0] + tiro.ruta[n - 1][0] + tiro.deriva[0], tiro.desde[1] + tiro.ruta[n - 1][1] + tiro.deriva[1]]
+    : [tiro.desde[0] + tiro.carryVec[0] + tiro.deriva[0], tiro.desde[1] + tiro.carryVec[1] + tiro.deriva[1]]
+  if (suerte < Math.max(chanceClavada(dist(cae, pin)), CHIP.clavada * abajo)) {
+    if (atajaMapache(tiro, pin)) return tiro.fase
+    tiro.pos = [...pin]
+    tiro.alt = 0
+    tiro.v = [0, 0]
+    tiro.embocada = true
+    tiro.eventos.push({ tipo: 'embocada' })
+    tiro.fase = 'quieta'
+    return tiro.fase
+  }
+  // rebota: para atrás, desviada para un lado (afuera de la boca, para que no la vuelva a agarrar de una)
+  const dx = tiro.pos[0] - prev[0], dy = tiro.pos[1] - prev[1], d = Math.hypot(dx, dy) || 1
+  const a = Math.atan2(-dy / d, -dx / d) + (suerte - 0.5) * 2.4
+  const [v0, v1] = PALO_BANDERA.rebote
+  const vel = v0 + (v1 - v0) * abajo * 0.5 + (v1 - v0) * 0.5 * suerte
+  tiro.pos = [pin[0] + Math.cos(a) * (FISICA.bocaHoyo + 0.05), pin[1] + Math.sin(a) * (FISICA.bocaHoyo + 0.05)]
+  tiro.alt = 0
+  tiro.v = [Math.cos(a) * vel, Math.sin(a) * vel]
+  tiro.labio = true // ya pasó por el hoyo: no hay corbata ni labio de vuelta
+  tiro.fase = 'rodando'
+  return tiro.fase
+}
 function robo(tiro) {
   if (!tiro.monos || tiro.alt >= MONO.altura) return false
   const m = tiro.monos.find((s) => monoActivo(s) && dist(s.pos, tiro.pos) < MONO.radio)
@@ -1236,6 +1312,11 @@ export function avanzar(campo, tiro, dt, pin) {
       return tiro.fase
     }
     if (u > 0.02 && !tiro.alHoyo && !tiro.flecha && robo(tiro)) return tiro.fase // el tiro de Deme (o el de par de Demetrio) no lo para nadie
+    // el palo de la bandera: bajando sobre el hoyo, le pega
+    if (pin && tiro.modo === 'full' && !tiro.alHoyo && !tiro.exacto && !tiro.flecha && !tiro.pegoPalo && u > 0.5 && tiro.alt < PALO_BANDERA.alto) {
+      const c = cercanoEnSegmento(pin, prev, tiro.pos)
+      if (dist(c, pin) < PALO_BANDERA.radio) return alPalo(tiro, prev, pin)
+    }
     // los golpes del Mago vuelan por arriba de los pinos (menos la viborita, que va al ras)
     const pino = !tiro.alHoyo && !tiro.exacto && !tiro.flecha && (!tiro.comba || tiro.rasante) && u > 0.02 && u < 1 && tiro.alt < FISICA.alturaPino ? pinoEn(campo, tiro.pos) : null
     // el pino que tiene la pelota debajo de la copa no la frena al salir
@@ -1302,10 +1383,12 @@ export function avanzar(campo, tiro, dt, pin) {
       const pique = t === 'green' ? 1 : tiro.clima?.c.pique ?? 1
       const vel = Math.sqrt(1.8 * tiro.carry) * FISICA.pique[t] * (tiro.rueda ?? 1) * pique
       tiro.v = [(dx / d) * vel, (dy / d) * vel]
-      // el backspin: pica y vuelve para atrás, lo justo para recorrer `backspin` yardas (con el roce de ahí)
+      // el backspin: pica y vuelve para atrás (un poquito torcido), lo justo para recorrer `backspin.d` yardas en plano
+      // (con el roce de ahí); la caída del green lo lleva mientras rueda
       if (tiro.backspin && BACKSPIN.en.includes(t)) {
-        const vb = Math.sqrt(2 * roceDe(tiro, t) * tiro.backspin)
-        tiro.v = [(-dx / d) * vb, (-dy / d) * vb]
+        const vb = Math.sqrt(2 * roceDe(tiro, t) * tiro.backspin.d)
+        const a = Math.atan2(-dy, -dx) + tiro.backspin.desvio
+        tiro.v = [Math.cos(a) * vb, Math.sin(a) * vb]
         tiro.eventos.push({ tipo: 'backspin' })
       }
       tiro.fase = 'rodando'
@@ -1349,6 +1432,9 @@ export function avanzar(campo, tiro, dt, pin) {
     const otro = (tiro.ajenos ?? []).find((a) => dist(tiro.pos, a.pin) < FISICA.bocaHoyo)
     if (otro) return caerAjeno(tiro, otro)
     if (pin && dist(tiro.pos, pin) < FISICA.bocaHoyo) {
+      // el chip (un tiro completo) que se frena lejos del centro queda colgando en el borde (la boca del dibujo es mucho
+      // más grande que un hoyo de verdad); el putt, cae
+      if (tiro.modo === 'full' && dist(tiro.pos, pin) > CHIP.centro) return alBorde(tiro, pin)
       if (atajaMapache(tiro, pin)) return tiro.fase
       // se frenó adentro del hoyo: cae
       tiro.pos = [...pin]
@@ -1376,7 +1462,10 @@ export function avanzar(campo, tiro, dt, pin) {
     const d = dist(cerca, pin)
     // desde afuera del green, llegando rápido, tiene su chance (si no, sigue: corbata o labio)
     // Demetrio: si la línea pasa por la boca, entra (sin labios ni corbatas)
-    if (tiro.exacto || v < limiteEmbocar(d) || (tiro.modo === 'full' && suerteDe(tiro) < chanceRodando(d, v))) {
+    // un tiro completo que llega rodando (el chip) entra como un putt solo si pasa cerca del centro (`CHIP.centro`): la
+    // boca del dibujo es mucho más grande que un hoyo de verdad y, si no, se metían muchísimos chips
+    const comoPutt = v < limiteEmbocar(d) && (tiro.modo !== 'full' || d <= CHIP.centro)
+    if (tiro.exacto || comoPutt || (tiro.modo === 'full' && suerteDe(tiro) < chanceRodando(d, v))) {
       if (atajaMapache(tiro, pin)) return tiro.fase
       tiro.pos = [...pin]
       tiro.v = [0, 0]
@@ -1397,7 +1486,8 @@ export function avanzar(campo, tiro, dt, pin) {
         s,
         falta: Math.PI * (0.5 + 0.9 * (1 - Math.min(1, (d - FISICA.medioHoyo) / (FISICA.bocaHoyo - FISICA.medioHoyo)))), // de un cuarto (borde) a casi tres cuartos de vuelta (cerca del medio)
         vel: v * 0.65, // el golpe contra el borde la frena
-        entra: v < limiteEmbocar(d) + VUELTA.entra,
+        // el chip que da la vuelta casi siempre sale (llega con más velocidad y menos derecho que un putt)
+        entra: v < limiteEmbocar(d) + VUELTA.entra && (tiro.modo !== 'full' || suerteDe(tiro) < CHIP.vuelta),
       }
       tiro.pos = [pin[0] + Math.cos(tiro.vuelta.ang) * VUELTA.radio, pin[1] + Math.sin(tiro.vuelta.ang) * VUELTA.radio]
       return tiro.fase
@@ -1500,6 +1590,8 @@ function darVuelta(tiro, dt, pin) {
   tiro.v = [-Math.sin(vu.ang) * vu.s * vu.vel, Math.cos(vu.ang) * vu.s * vu.vel]
   if (vu.falta > 0 && vu.vel > VUELTA.muerta) return tiro.fase
   vu.hecha = true
+  // el chip que se queda sin velocidad dando la vuelta y no entra, queda colgando en el borde
+  if (!vu.entra && vu.vel <= VUELTA.muerta && tiro.modo === 'full') return alBorde(tiro, pin)
   if (vu.entra || vu.vel <= VUELTA.muerta) {
     if (atajaMapache(tiro, pin)) return tiro.fase
     tiro.pos = [...pin]
@@ -1688,31 +1780,16 @@ export function posVuelo(tiro, u) {
   return [tiro.desde[0] + tiro.controlVec[0] * b1 + (tiro.carryVec[0] + tiro.deriva[0]) * b2, tiro.desde[1] + tiro.controlVec[1] * b1 + (tiro.carryVec[1] + tiro.deriva[1]) * b2]
 }
 
-/**
- * La potencia que hace picar la pelota en la bandera (la mini bandera de la goma), apuntando para `angulo`: sin viento ni
- * error, con lo que se ve al apuntar (el lie, el clima, la bomba) y lo que pasa de verdad (el bunker: la mitad). null si
- * no llega ni a fondo, o en el green (el putt).
- */
-export function potenciaAlPin(campo, r, angulo) {
-  if (enModoPutt(campo, r)) return null
-  const d = dist(r.pelota, hoyoActual(r).pin)
-  const llega = (p) => { const pl = planTiro(campo, r, angulo, p); return pl.carry * (pl.real ?? 1) }
-  if (llega(1) < d) return null
-  let lo = 0, hi = 1
-  for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (llega(m) < d) lo = m; else hi = m }
-  return hi
-}
-
 /** Pegarle: cuenta el golpe y devuelve el tiro para animarlo con `avanzar` (que también mueve los monos). */
-export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null, stock = false, justo = false) {
+export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null, soltada = null) {
   const plan = planTiro(campo, r, angulo, potencia, precision, tiempo, ruta)
-  // soltó justo en el nudo rojo (a fondo): sale perfecto. No en el putt, la bomba, la comba ni el Dibuje
-  if (justo && !plan.putt && !plan.bomba && !plan.comba && !ruta && plan.disp?.fondo) plan.perfectoFondo = true
-  // el swing de stock (soltó justo en el nudo de ½ o de ¾, con el dedo quieto): no en el putt, la bomba ni el Dibuje
-  // (`stock`: true con los nudos de siempre, o la lista de los nudos que tenía la goma: con la bandera al alcance, se mueven)
-  if (stock && !plan.putt && !plan.bomba && !ruta && enNudoStock(potencia, Array.isArray(stock) ? stock : STOCK.nudos) != null) plan.stock = true
-  // cuanto más cerca del hoyo, más margen para el perfecto
-  if (!plan.putt) plan.radioPerfecto = radioPerfecto(aYardas(r, dist(r.pelota, hoyoActual(r).pin)))
+  // cómo soltó en el latido (`soltadaLatido`; `true` = perfecto): no en el putt, la bomba de Miguelón ni el Dibuje
+  const s = soltada === true ? { nivel: 'perfecto', lado: 0 } : soltada
+  if (s && !plan.putt && !ruta) { // Miguelón sacado: el aro aparece, pero casi imposible (ver FURIA)
+    if (s.nivel === 'perfecto') plan.perfecto = true
+    else if (s.nivel === 'bueno') plan.bueno = true
+    if (s.lado) plan.lado = s.lado
+  }
   r.desde = [...r.pelota]
   r.lieDesde = r.lie
   r.golpes += 1
@@ -1761,10 +1838,13 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
     tiro.mapache = { m: (a + rng() * (b - a)) / hoyoActual(r).escala, de: [...r.desde], hecho: false } // de: de dónde salió (los putts no traen `desde`)
   }
   tiro.exacto = retro // Demetrio: queda exactamente donde apuntó (ver avanzar)
-  // el chip o el approach perfecto: vuelve (backspin)
-  if (tiro.modo === 'full' && tiro.perfecto && !retro && !tiro.salida) {
-    const h = hoyoActual(r), yd = dist(r.pelota, h.pin) * h.escala
-    if (yd <= BACKSPIN.approach) tiro.backspin = (BACKSPIN.base + BACKSPIN.porYarda * tiro.carry * h.escala) / h.escala
+  // el tiro perfecto vuelve si cae en el green (backspin), menos el drive del 15 y el 16. El azar sale del tiro (no gasta)
+  const hb = hoyoActual(r)
+  if (tiro.modo === 'full' && tiro.perfecto && !retro && !(tiro.salida && hb.par !== 3)) {
+    const x = Math.sin(suerteDe(tiro) * 7919.3 + 1.7) * 43758.5453, u = x - Math.floor(x)
+    const y = Math.sin(u * 3571.9 + 0.3) * 43758.5453, w = y - Math.floor(y)
+    const [a0, a1] = BACKSPIN.azar
+    tiro.backspin = { d: (yardasBackspin(tiro.carry * hb.escala) * (a0 + (a1 - a0) * u)) / hb.escala, desvio: (w - 0.5) * 2 * BACKSPIN.desvio }
   }
   tiro.ajenos = (r.hoyos ?? HOYOS).filter((h) => h.n !== hoyoActual(r).n).map((h) => ({ n: h.n, pin: h.pin }))
   tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada
@@ -2241,55 +2321,49 @@ export const ADULACION = {
 export const PALOS = { wedge: 50 }
 
 /**
- * El tiro PERFECTO: el que sale al medio (el error de dirección y el de largo, los dos adentro de `radio` desvíos: ~4%
- * de los tiros completos; los tiros sin error, siempre). Perfecto no es cero: sale con `resto` de su error de siempre
- * como mucho (~un cuarto, en promedio), así que el perfecto de un handicap alto igual se abre más que el de uno bajo.
- * Lo dice chiquito al lado de donde salió. En el chip y el approach (hasta `BACKSPIN.approach` yd, no desde la salida)
- * además hace backspin: pica en el green o la calle y vuelve `base` + `porYarda` × el largo del tiro, como los pros.
- *
- * Cuanto más cerca del hoyo, más margen para el perfecto (`radioPerfecto`): de ~4% de lejos a ~12% cerca.
- *
- * El SWING DE STOCK: soltar justo en un nudo de la goma (⅛, ¼, ½ o ¾; ± `margenU` del estirón) con el dedo quieto
- * (`quieto` ms sin moverse): el tiro sale con `error` × su error de siempre, y el perfecto sale ~3 veces más. La
- * distancia queda la del nudo: como los pros, cada uno se aprende sus yardas de cada nudo con cada palo.
+ * El LATIDO de la potencia: mientras estirás, alrededor de la pelota un aro se achica a velocidad pareja hacia un aro
+ * fijo dorado, lo pasa un poquito y vuelve a empezar. Cuanto más fuerte le vas a pegar, más rápido late (de `lento`
+ * segundos por latido con lo más suave a `rapido` a fondo). El aro llega al dorado en `centro` del latido: soltar ahí
+ * (± `ventana`, un poco más de margen para el lado de tarde: `tarde`) es el tiro PERFECTO, y cerca (× `bueno`) es
+ * BUENO. Cerca del hoyo las ventanas son más anchas (hasta × `cerca` a `junto` yd o menos).
+ * - PERFECTO: sale con `error` × su error de siempre (un cuarto; en el juego corto, `errorCorto`: no es cero, y como el error depende del handicap, el
+ *   perfecto de un handicap alto se abre más que el de uno bajo). Los tiros sin error (Demetrio, LG sin error, el tiro
+ *   de Deme) salen perfectos siempre. Si cae en el green, además, backspin (ver BACKSPIN; menos el drive).
+ * - BUENO: sale con `errorBueno` × su error.
+ * - Y el lado del error lo decide cuándo soltaste (como en el golf de verdad): temprano, la cara cerrada, se va a la
+ *   izquierda (hook); tarde, abierta, a la derecha (slice). El largo, como siempre.
  */
-export const PERFECTO = { radio: 0.3, cerca: 0.5, lejos: 150, junto: 30, resto: 0.35 }
-/** El margen del perfecto según lo lejos del hoyo (yardas reales): cuanto más cerca, más fácil (`radio` desde `lejos` yd, `cerca` a `junto` yd o menos). */
-export const radioPerfecto = (yd) => PERFECTO.radio + (PERFECTO.cerca - PERFECTO.radio) * Math.max(0, Math.min(1, (PERFECTO.lejos - yd) / (PERFECTO.lejos - PERFECTO.junto)))
-// los nudos de stock: ⅛ y ¼ (chips cortos), ½ y ¾. El margen es de largo de dedo (en el estirón, no en la potencia:
-// la potencia es el estirón a la 1,35), así todos los nudos piden la misma puntería
-export const STOCK = { nudos: [0.125, 0.25, 0.5, 0.75], margenU: 0.025, quieto: 120, error: 0.6, exp: 1.35 }
-export const enNudoStock = (p, nudos = STOCK.nudos) => nudos.find((m) => Math.abs(Math.pow(p, 1 / STOCK.exp) - Math.pow(m, 1 / STOCK.exp)) <= STOCK.margenU) ?? null
+// (2026-10-08, pedido de Rorro: "un poco más difícil los golpes perfectos": la ventana de 0,07 a 0,06, el margen de tarde
+// de ×1,25 a ×1,15 y la de cerca del hoyo de ×1,6 a ×1,4; el BUENO queda casi igual de ancho, × 2,6)
+export const PERFECTO = { lento: 1.2, rapido: 0.42, centro: 0.85, ventana: 0.06, tarde: 1.15, bueno: 2.6, cerca: 1.4, lejos: 150, junto: 30, error: 0.25, errorCorto: 0.5, errorBueno: 0.6 }
+/** Segundos por latido con esta potencia (0 a 1). */
+export const periodoLatido = (p) => PERFECTO.lento + (PERFECTO.rapido - PERFECTO.lento) * Math.max(0, Math.min(1, p))
+/** La ventana del sweet spot (fracción del latido, para el lado de temprano) según lo lejos del hoyo (yardas reales). */
+export const ventanaPerfecto = (yd) => PERFECTO.ventana * (1 + (PERFECTO.cerca - 1) * Math.max(0, Math.min(1, (PERFECTO.lejos - yd) / (PERFECTO.lejos - PERFECTO.junto))))
 /**
- * Los nudos de la goma (en potencia), sin el rojo de "a fondo". Sin la bandera al alcance, los de siempre (⅛, ¼, ½, ¾).
- * Con la bandera al alcance (`alPin`: la potencia que pica en ella, ver potenciaAlPin), la bandera es un nudo más y los
- * otros cuatro se reparten parejo, en el largo de la goma, antes de ella y entre ella y el rojo (cuantos más de un
- * lado, cuanto más largo es ese tramo). Todos valen para el swing de stock (`stock`), la bandera también. Si la bandera
- * queda a fondo (`enFondo`), va adentro del nudo rojo y los nudos son los de siempre.
+ * Cómo soltó: `fase` cuenta latidos (en cada uno, el aro llega al dorado en `centro`). Devuelve { nivel: 'perfecto' |
+ * 'bueno' | null, lado: -1 (temprano) | 1 (tarde), d } (d: cuánto antes o después, en fracción del latido).
  */
-export function nudosGoma(alPin = null) {
-  const e = STOCK.exp, uR = Math.pow(0.97, 1 / e)
-  if (alPin == null) return { nudos: STOCK.nudos, bandera: null, enFondo: false, stock: STOCK.nudos }
-  if (alPin >= 0.97) return { nudos: STOCK.nudos, bandera: null, enFondo: true, stock: STOCK.nudos }
-  const uF = Math.pow(Math.max(0, alPin), 1 / e)
-  const n = STOCK.nudos.length
-  const antes = Math.max(0, Math.min(n, Math.round((n * uF) / uR)))
-  const despues = n - antes
-  const us = [
-    ...Array.from({ length: antes }, (_, i) => (uF * (i + 1)) / (antes + 1)),
-    ...Array.from({ length: despues }, (_, i) => uF + ((uR - uF) * (i + 1)) / (despues + 1)),
-  ]
-  const nudos = us.map((u) => Math.pow(u, e))
-  return { nudos, bandera: alPin, enFondo: false, stock: [...nudos, alPin].sort((a, b) => a - b) }
+export function soltadaLatido(fase, ventana) {
+  const f = ((fase % 1) + 1) % 1
+  // < 0: el aro todavía no llegó (temprano); > 0: ya pasó (tarde). Cuando vuelve a empezar (grande), es temprano del
+  // próximo: así lo ves
+  const d = f - PERFECTO.centro
+  const v = d < 0 ? ventana : ventana * PERFECTO.tarde
+  const nivel = Math.abs(d) <= v ? 'perfecto' : Math.abs(d) <= v * PERFECTO.bueno ? 'bueno' : null
+  return { nivel, lado: d < 0 ? -1 : 1, d }
 }
+/** ¿Está en el sweet spot? */
+export const enSweetSpot = (fase, ventana) => soltadaLatido(fase, ventana).nivel === 'perfecto'
 /**
- * El PERFECTO A FONDO (2026-10-07): soltar justo en el nudo rojo de la goma (el estirón `u`, largo del dedo / largo a
- * fondo, entre `desde` —donde empieza "a fondo", 0,97 de potencia— y `hasta`) sale perfecto, aunque a fondo el error es
- * el más grande. Estirar de más (pasarse del nudo) sigue siendo a fondo con todo su error: hay que soltar justo.
+ * El backspin (2026-10-08, rehecho): todo tiro perfecto que cae en el green vuelve, menos el drive (la salida de los par
+ * 4: 15 y 16). Cuánto, según el palo: con el wedge (hasta `largo` yd) `base` + `porYarda` × el largo, hasta `tope`; los
+ * hierros, cada vez menos (`baja` por yarda, no menos de `minimo`). Con azar (× `azar`) y un poquito torcido (± `desvio`
+ * radianes); mientras vuelve, la caída del green la lleva como a cualquier pelota.
  */
-export const FONDO_JUSTO = { desde: Math.pow(0.97, 1 / STOCK.exp), hasta: 1.05 }
-export const enFondoJusto = (u) => u >= FONDO_JUSTO.desde && u <= FONDO_JUSTO.hasta
-export const BACKSPIN = { approach: 110, base: 1.5, porYarda: 0.025, en: ['green', 'fairway'] }
+export const BACKSPIN = { base: 1.5, porYarda: 0.03, tope: 4.8, largo: 110, baja: 0.02, minimo: 0.6, azar: [0.5, 1.35], desvio: 0.2, en: ['green'] }
+/** Las yardas que vuelve un tiro perfecto de `yd` yardas reales (sin el azar). */
+export const yardasBackspin = (yd) => yd <= BACKSPIN.largo ? Math.min(BACKSPIN.tope, BACKSPIN.base + BACKSPIN.porYarda * yd) : Math.max(BACKSPIN.minimo, BACKSPIN.tope - BACKSPIN.baja * (yd - BACKSPIN.largo))
 export function paloDe(campo, r) {
   if (enModoPutt(campo, r)) return 'putter'
   if (desdeLaSalida(campo, r)) return hoyoActual(r).par === 3 ? 'hierro' : 'driver'

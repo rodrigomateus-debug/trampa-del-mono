@@ -26,7 +26,7 @@ function probar(r, ang, p, q, tiempo) {
   // (el clima, con otra semilla: el bot no sabe de antemano si le va a resbalar el palo)
   const rr = { ...r, pelota: [...r.pelota], monos: [], viento: calma, clima: r.clima && { ...r.clima, semilla: (r.clima.semilla ^ 0x5bd1e995) >>> 0 } }
   const tiro = M.golpear(vacio, rr, ang, p, sinRuido(), q, tiempo)
-  tiro.backspin = null // sin ruido todo sale "perfecto": el bot no cuenta con el backspin (le toca al ~4% de verdad)
+  tiro.pegoPalo = { prueba: true } // el bot no cuenta con el palo de la bandera (es suerte: si no, apunta a pasarle por arriba)
   return M.simular(vacio, tiro, M.hoyoActual(r).pin)
 }
 
