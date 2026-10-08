@@ -1594,7 +1594,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v ed6cd0d · 8/10, 02:36 p. m.</span>
+  <span class="version" id="version">v 7e69dc2 · 8/10, 02:55 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1792,11 +1792,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=c9d1c32d85'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=c9d1c32d85'
+import * as M from './motor.js?v=72f2fdef8a'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=72f2fdef8a'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=c9d1c32d85'
-import * as S from './sonido.js?v=c9d1c32d85'
+import * as R from './ranking.js?v=72f2fdef8a'
+import * as S from './sonido.js?v=72f2fdef8a'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2101,20 +2101,17 @@ function apunte() {
     ang = t.ang
     p = Math.min(1, Math.pow(t.u, 1.6))
   }
-  let q = 0
+  const q = 0
   const tiempo = (performance.now() - drag.t0) / 1000 // el Águila: la línea se sacude con el tiempo
-  let plan = M.planTiro(campo, ronda, ang, p, 0, tiempo)
-  if (plan.bomba) {
-    // el óvalo de Miguelón late: la precisión es máxima a mitad de cada latido
-    drag.tZona ??= performance.now()
-    q = 0.5 - 0.5 * Math.cos((2 * Math.PI * (performance.now() - drag.tZona)) / 1000 / M.BOMBA.periodo)
-    plan = M.planTiro(campo, ronda, ang, p, q, tiempo)
-  } else drag.tZona = null
+  const plan = M.planTiro(campo, ronda, ang, p, 0, tiempo)
   const arbol = putt ? null : M.pinoEnLaSalida(campo, ronda.pelota, plan) // pega en un árbol al salir: la línea en rojo, cortada ahí
-  // el latido de la potencia: el aro que se achica alrededor de la pelota hasta el dorado (no en el putt ni en la bomba de
-  // Miguelón, que tiene el suyo). Soltando cuando llega (el sweet spot) sale perfecto; cerca, bueno; y si no, el lado
-  // del error lo dice cuándo soltaste. Cerca del hoyo, las ventanas son más anchas
-  const latido = !putt && !plan.bomba
+  // el latido de la potencia: el aro que se achica alrededor de la pelota hasta el dorado (también la bomba de Miguelón y
+  // Taiu, desde el 2026-10-08). Soltando cuando llega (el sweet spot) sale perfecto; cerca, bueno; y si no, el lado del
+  // error lo dice cuándo soltaste. Cerca del hoyo, las ventanas son más anchas. No en el putt, ni con Miguelón sacado
+  // (sale para cualquier lado), ni en los tiros que ya son perfectos por una habilidad (el sin error de LG, el approach
+  // de Taiu, Demetrio, el tiro de Deme): esos salen perfectos sin el aro
+  const yaPerfecto = plan.calma || plan.approachPerfecto || plan.exacto || !!ronda.deme?.listo
+  const latido = !putt && !plan.furia && !yaPerfecto
   const ventana = latido ? M.ventanaPerfecto(M.aYardas(ronda, M.dist(ronda.pelota, M.hoyoActual(ronda).pin))) : 0
   const soltada = latido ? M.soltadaLatido(drag.fase ?? 0, ventana) : null
   return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, latido, ventana, soltada, sweet: soltada?.nivel === 'perfecto' }
@@ -2492,7 +2489,7 @@ function actualizar(dt) {
   zoomApunte()
   if (drag && estado === 'apuntar') {
     const a = apunte()
-    S.carga(a?.p ?? 0, a?.plan?.bomba ? a.q : 0)
+    S.carga(a?.p ?? 0, 0)
     // el latido de la potencia: más rápido cuanto más fuerte, pero el ritmo cambia de a poco (si no, mientras ajustás el
     // dedo tartamudea). Dos tics que suben mientras el aro se acerca y la campanita (y el tic del celu) cuando llega
     if (a?.latido) {
@@ -5583,7 +5580,7 @@ function dibujarApunte(a) {
   const [bx, by] = w2s(ronda.pelota)
   const [dx, dy] = w2s(a.destino)
   const bomba = a.plan.bomba
-  const col = a.fondo || (bomba && !a.plan.perfecta) ? C.red : bomba ? C.gold : C.cream
+  const col = a.fondo ? C.red : bomba ? C.gold : C.cream
   ctx.lineCap = 'round'
   if (ronda.pro) { apuntePro(a, bx, by, col); goma(a, bx, by); return } // el MODO PRO: sin líneas punteadas ni dónde cae
   goma(a, bx, by)
@@ -5688,7 +5685,7 @@ function dibujarApunte(a) {
   } else {
   ctx.beginPath()
   ctx.ellipse(dx, dy, largo, ancho, a.plan.cuerda + cam.rot, 0, 7)
-  ctx.fillStyle = a.fondo || (bomba && !a.plan.perfecta) ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.4)' : 'rgba(244,238,218,.18)'
+  ctx.fillStyle = a.fondo ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.3)' : 'rgba(244,238,218,.18)'
   ctx.fill()
   ctx.lineWidth = 2
   ctx.setLineDash([5, 5])
@@ -5707,7 +5704,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
+  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? ' · BOMBA' : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(M.aYardas(ronda, a.alcance))} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'

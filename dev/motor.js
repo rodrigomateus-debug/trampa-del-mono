@@ -119,7 +119,7 @@ export const MONO = { vel: 18, pausa: 3, radio: 3.2, altura: 8, velCaza: 12, ale
 // ── habilidades por jugador (por apodo, como en la app) ──
 export const HABILIDADES = {
   'El Mago Rodal': { id: 'comba', adulado: true, nombre: 'Golpes de mago', texto: 'Nunca derecho: antes de cada golpe elegís cuál (Flop, Baby Draw, Una cortada al medio o el Dibuje maestro, que dibujás con el dedo). En el green, putt con draw o con fade.' },
-  'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'A fondo desde el tee el óvalo late: soltá cuando está más chico y llega al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
+  'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'Desde el tee, la bomba: la goma llega mucho más lejos (405 yd). Soltá en el sweet spot del latido y sale perfecta: al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
   Tito: { id: 'viento', corto: 'Maneja el viento en vivo.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza maneja el viento en vivo: mientras la pelota vuela, cada swipe en la pantalla es una ráfaga para ese lado (más largo, más fuerte) y la pelota se va para ahí. Las ráfagas se suman y se calman solas. Eso sí: en el green el putt es ultra sensible, un milímetro del dedo cambia la línea y la fuerza.' },
   Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá. Antes de pegar ves lo que se viene (y para qué lado), y después de una sorpresa el próximo sale limpio. Y cuando la está por meter (también en el green), a veces sale un mapache del hoyo, la frena y se va rajando: la deja casi dada.' },
   'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después, la flecha.', nombre: 'La flecha', texto: 'El drive, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro, una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
@@ -133,7 +133,7 @@ export const HABILIDADES = {
   Grandpa: { id: 'deme', nombre: 'Invocar a Deme', texto: 'Maxi, una vez por vuelta (no desde el tee): llama a Deme, el mentor. Te enseña a agarrar el palo y el próximo tiro entra de una, le pegues como le pegues.' },
   'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro (y de tee a tee) lo manejás vos hasta la pelota. Los árboles no se atraviesan. El reloj corre.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
-  'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (soltá en el latido) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
+  'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (la goma llega más lejos; en el sweet spot, perfecta) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
@@ -295,8 +295,11 @@ export const PUTTS_MAGO = [
 // `puntos` puntos; con menos de `minimo` yardas no hay tiro
 export const DIBUJO = { paso: 1.5, pasadas: 14, puntos: 48, minimo: 4 }
 // la bomba de Miguelón (y de Taiu): desde el tee su driver vuela hasta `carry` yardas reales: llega a los dos par 4 desde
-// las azules (el 16, 415 yd, a fondo; el 15, 392, con un poco menos; 2026-10-06, antes 365 y al 16 no llegaba); pasando `zona` yardas el óvalo late (periodo, en segundos) y es perfecta si suelta con precisión >= perfecta
-export const BOMBA = { carry: 405, zona: 285, perfecta: 0.93, periodo: 0.9, angPerfecta: 1, angBase: 3, angMala: 14 }
+// las azules (el 16, 415 yd, a fondo; el 15, 392, con un poco menos; 2026-10-06, antes 365 y al 16 no llegaba). Pasando
+// `zona` yardas es la bomba: se abre (`ang` grados × el error del handicap) y mal pegada queda corta (`largo`). Desde el
+// 2026-10-08, el perfecto sale del latido como para todos (antes, del óvalo que latía): la bomba perfecta llega al green
+
+export const BOMBA = { carry: 405, zona: 285, ang: 6, largo: 0.1 }
 // el Águila (Fito): la línea de tiro se sacude ±amplitud grados cada `periodo` s; si suelta con el desvío dentro de
 // ±ventana (el embudo) sale derecha. A `chip` yardas reales o menos del hoyo, si cae en el green el imán la mete.
 // (`alLado`: dónde la dejaría un imán que no la mete; hoy siempre la mete.)
@@ -881,7 +884,8 @@ function planBase(angulo, potencia, lie) {
 
 /**
  * Lo que ve el jugador al apuntar (sin error ni viento): dónde pica, la curva si la hay y la zona de pique.
- * Acá entran las habilidades: la comba de Rodal y la bomba de Miguelón (`precision` 0..1, del latido del óvalo).
+ * Acá entran las habilidades: la comba de Rodal y la bomba de Miguelón (`precision`: ya no se usa, era el latido del
+ * óvalo de la bomba).
  */
 export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, ruta = null) {
   potencia = Math.max(0, Math.min(1, potencia))
@@ -918,11 +922,9 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
   const clima = climaDe(r)
   if (clima?.carry && hab?.id !== 'retro') plan.carry *= clima.carry // el clima: con calor vuela más; con lluvia, menos (se ve al apuntar)
   if (bombero && tee && plan.carry * escala > BOMBA.zona) {
-    const q = Math.max(0, Math.min(1, precision))
+    // la bomba: el tope más largo (la goma llega a BOMBA.carry); el perfecto, del latido, como para todos
     plan.bomba = true
-    plan.perfecta = q >= BOMBA.perfecta
-    const grados = plan.perfecta ? BOMBA.angPerfecta : BOMBA.angBase + BOMBA.angMala * (1 - q)
-    plan.disp = { ang: ((grados * Math.PI) / 180) * dif.error, carry: (plan.perfecta ? 0.02 : 0.05 + 0.15 * (1 - q)) * dif.error, fondo: false }
+    plan.disp = { ang: ((BOMBA.ang * Math.PI) / 180) * dif.error, carry: BOMBA.largo * dif.error, fondo: false }
   }
   if (hab?.id === 'approach') {
     // Liberty: el drive, perfecto; el approach, una tragedia
@@ -1150,7 +1152,7 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     deriva: [Math.cos(viento.ang) * kv, Math.sin(viento.ang) * kv],
     carry,
     bomba: !!p.bomba,
-    perfecta: !!p.perfecta,
+    perfecta: !!p.bomba && perfecto, // la bomba perfecta (para el relato)
     perfecto,
     bueno: !perfecto && !!p.bueno,
     lado: p.lado ?? 0,
@@ -1770,7 +1772,7 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   const plan = planTiro(campo, r, angulo, potencia, precision, tiempo, ruta)
   // cómo soltó en el latido (`soltadaLatido`; `true` = perfecto): no en el putt, la bomba de Miguelón ni el Dibuje
   const s = soltada === true ? { nivel: 'perfecto', lado: 0 } : soltada
-  if (s && !plan.putt && !plan.bomba && !ruta) {
+  if (s && !plan.putt && !plan.furia && !ruta) { // Miguelón sacado: sale para cualquier lado, el latido no lo salva
     if (s.nivel === 'perfecto') plan.perfecto = true
     else if (s.nivel === 'bueno') plan.bueno = true
     if (s.lado) plan.lado = s.lado
