@@ -274,6 +274,8 @@ export function latido(k = 2) {
 export function perfecto() { campana(1567.98, 0, 0.09); campana(2093, 0.07, 0.07) }
 /** El backspin: la pelota que muerde el green y vuelve: un "zip" que baja. */
 export function backspin() { ruido(0.22, { f: 3200, f2: 900, q: 2.5, vol: 0.12, ataque: 0.01 }); tono(900, 0.16, { vol: 0.05, f2: 500, tipo: 'triangle', at: 0.03 }) }
+/** La pelota le pega al palo de la bandera: un "tink" metálico que queda vibrando. */
+export function bandera() { tono(2637, 0.35, { vol: 0.11, tipo: 'triangle' }); tono(3951, 0.22, { vol: 0.05, tipo: 'sine', at: 0.005 }); ruido(0.03, { f: 5200, q: 3, vol: 0.06 }) }
 export function cargaFin() {
   if (!cargaOsc) return
   const o = cargaOsc, g = cargaGain

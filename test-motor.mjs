@@ -1888,4 +1888,18 @@ ok('el latido de la potencia: más rápido cuanto más fuerte, ventana más anch
   assert.equal(M.golpear(campo, green, -Math.PI / 2, 0.3, sinRuido(), 0, 0, null, true).modo, 'putt')
 })
 
+ok('el palo de la bandera: el tiro que baja sobre el hoyo le pega (adentro o rebota afuera); el putt no', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'Lechu', emoji: '🦉', hcp: 7 }, fijo(0.5)), pelota: haciaTee(40), lie: 'fairway', golpes: 1, monos: [], viento: calma }
+  const d = M.dist(r.pelota, h15.pin)
+  const t = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), (d + 1) / M.FISICA.carryMax, sinRuido())
+  M.simular(campo, t, h15.pin)
+  assert.ok(t.eventos.some((e) => e.tipo === 'bandera'), JSON.stringify(t.eventos))
+  assert.ok(t.embocada || M.dist(t.pos, h15.pin) > M.FISICA.bocaHoyo, 'adentro o afuera de la boca, nunca encima del hoyo')
+  // el putt, sin bandera
+  const putt = { ...r, pelota: [h15.pin[0], h15.pin[1] + 5], lie: 'green' }
+  const tp = M.golpear(campo, { ...putt, pelota: [...putt.pelota] }, angulo(putt.pelota, h15.pin), 0.6, sinRuido())
+  M.simular(campo, tp, h15.pin)
+  assert.ok(!tp.eventos.some((e) => e.tipo === 'bandera'))
+})
+
 console.log('\nTodo verde.')
