@@ -1812,11 +1812,17 @@ ok('el tiro perfecto (sale justo al medio) y el backspin del chip o el approach 
   const p = cae / M.FISICA.carryMax
   const t = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, sinRuido(), 0, 0, null, true)
   assert.equal(t.perfecto, true) // soltó en el sweet spot del latido
-  assert.ok(t.backspin > 0)
+  assert.ok(t.backspin.d > 0)
   M.simular(campo, t, h15.pin)
   assert.ok(t.eventos.some((e) => e.tipo === 'backspin'))
   const atras = cae - M.dist(r.pelota, t.pos)
-  assert.ok(atras > 1 && atras < 5, `volvió ${atras} yd`)
+  assert.ok(atras > 0.5 && atras < 6, `volvió ${atras} yd`)
+  // cuánto vuelve: el wedge más; los hierros largos, menos
+  assert.ok(M.yardasBackspin(100) > M.yardasBackspin(40) && M.yardasBackspin(180) < M.yardasBackspin(110) && M.yardasBackspin(400) === M.BACKSPIN.minimo)
+  // el tiro de salida del par 3 (hierro), perfecto, también puede volver; el drive no
+  const r17 = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), idx: 2, monos: [] }
+  r17.pelota = [...M.HOYOS[2].tee]; r17.lie = 'tee'
+  assert.ok(M.golpear(campo, r17, angulo(r17.pelota, M.HOYOS[2].pin), 0.7, sinRuido(), 0, 0, null, true).backspin?.d > 0)
   // sin el sweet spot no es perfecto ni vuelve (aunque salga derecho); desde la salida tampoco hay backspin
   const t2 = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, sinRuido())
   assert.equal(t2.perfecto, false)

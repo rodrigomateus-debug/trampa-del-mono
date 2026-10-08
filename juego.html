@@ -3774,10 +3774,9 @@ function dibujar() {
     ctx.fillText(`TEE ${h.n}`, tx, ty + 5)
     hoyoNitido(w2s(h.pin))
     if (hoyo && h.n === hoyo.n && tiro?.embocada && !replay) pelotaEnHoyo(tiro, h.pin) // adentro, abajo del palo
-    // en los putts, la bandera se saca (como casi siempre): queda tirada en el green, al lado del hoyo
+    // en los putts, la bandera se saca (como en la tele: queda solo el hoyo)
     const sacada = hoyo && h.n === hoyo.n && ronda && !replay && ((estado === 'apuntar' && M.enModoPutt(campo, ronda)) || tiro?.modo === 'putt')
-    if (sacada) banderaEnElPiso(w2s(h.pin), h.n, h.bandera ?? M.colorBandera(h, h.pin))
-    else bandera(w2s(h.pin), h.n, !hoyo || h.n === hoyo.n, h.bandera ?? M.colorBandera(h, h.pin)) // las del dibujo se borraron: van todas acá
+    if (!sacada) bandera(w2s(h.pin), h.n, !hoyo || h.n === hoyo.n, h.bandera ?? M.colorBandera(h, h.pin)) // las del dibujo se borraron: van todas acá
   }
   // las marcas de salida: azul, blanca y amarilla (de atrás para adelante), cada una donde sale; la tuya, más grande
   for (const h of M.HOYOS) {
@@ -4452,45 +4451,6 @@ const TELA = { roja: ['#c8352e', '#f4eeda'], blanca: ['#f4eeda', '#14402a'], azu
  * rápido cuanto más sopla; sin viento, caído. Cuando la pelota le pega al palo, tiembla.
  */
 let golpeBandera = null // { n, t0 }: el palo que tiembla
-/** La bandera sacada para los putts: tirada en el green, al costado del hoyo (el palo y el paño, planos, con su sombra). */
-function banderaEnElPiso([x, y], n, color = 'blanca') {
-  const k = escalaZoom()
-  const rH = Math.max(M.FISICA.bocaHoyo * cam.esc, 2.6)
-  const largo = 34 * k, a = 0.42
-  const ux = Math.cos(a), uy = Math.sin(a)
-  const x0 = x + rH * 1.9 + 4 * k, y0 = y + rH * 0.9 + 2 * k, x1 = x0 + ux * largo, y1 = y0 + uy * largo
-  const [tela, letra] = TELA[color] ?? TELA.blanca
-  ctx.save()
-  ctx.lineCap = 'round'
-  // la sombra (pegada: está en el piso)
-  ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.lineWidth = 3 * k
-  ctx.beginPath(); ctx.moveTo(x0 + k, y0 + 1.2 * k); ctx.lineTo(x1 + k, y1 + 1.2 * k); ctx.stroke()
-  // el paño, plano y un poco arrugado, en la punta
-  const nx = -uy, ny = ux, L = 20 * k, A = 11 * k
-  const px = x1 - ux * 1.5 * k, py = y1 - uy * 1.5 * k
-  ctx.fillStyle = 'rgba(0,0,0,.18)'
-  ctx.beginPath(); ctx.moveTo(px + k, py + 1.4 * k); ctx.lineTo(px + ux * L + k, py + uy * L + 1.4 * k); ctx.lineTo(px + ux * L + nx * A + k, py + uy * L + ny * A + 1.4 * k); ctx.lineTo(px + nx * A + k, py + ny * A + 1.4 * k); ctx.fill()
-  ctx.fillStyle = tela; ctx.strokeStyle = 'rgba(12,43,28,.5)'; ctx.lineWidth = Math.max(0.8, 0.8 * k)
-  ctx.beginPath()
-  ctx.moveTo(px, py)
-  ctx.quadraticCurveTo(px + ux * L * 0.5 + nx * 1.5 * k, py + uy * L * 0.5 + ny * 1.5 * k, px + ux * L, py + uy * L)
-  ctx.lineTo(px + ux * L + nx * A, py + uy * L + ny * A)
-  ctx.quadraticCurveTo(px + ux * L * 0.5 + nx * (A + 1.5 * k), py + uy * L * 0.5 + ny * (A + 1.5 * k), px + nx * A, py + ny * A)
-  ctx.closePath(); ctx.fill(); ctx.stroke()
-  if (k >= 0.6) {
-    ctx.save(); ctx.translate(px + ux * L * 0.5 + nx * A * 0.5, py + uy * L * 0.5 + ny * A * 0.5); ctx.rotate(a)
-    ctx.fillStyle = letra; ctx.font = `${9 * k}px Anton, "Arial Narrow", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-    ctx.fillText(String(n), 0, 0.5 * k); ctx.restore()
-  }
-  // el palo, blanco, con su lado en sombra
-  ctx.strokeStyle = 'rgba(12,43,28,.45)'; ctx.lineWidth = 3.2 * k
-  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke()
-  ctx.strokeStyle = '#f7f5ee'; ctx.lineWidth = 2 * k
-  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke()
-  ctx.strokeStyle = 'rgba(150,155,150,.7)'; ctx.lineWidth = 0.7 * k
-  ctx.beginPath(); ctx.moveTo(x0 + ny * 0.6 * k, y0 - nx * 0.6 * k + 0.6 * k); ctx.lineTo(x1 + ny * 0.6 * k, y1 + 0.6 * k); ctx.stroke()
-  ctx.restore()
-}
 function bandera([x, y], n, actual, color = 'blanca') {
   const k = escalaZoom()
   const ahora = performance.now()
