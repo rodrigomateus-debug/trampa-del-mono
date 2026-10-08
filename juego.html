@@ -866,6 +866,13 @@ input { -webkit-user-select: text; user-select: text; }
 #replay { position: fixed; inset: 0; z-index: 55; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; color: var(--cream); }
 #replay[hidden] { display: none; }
 #replay > * { pointer-events: auto; }
+/* el replay limpio: tocando la cancha se van los controles y queda arriba, sutil, solo el hoyo a hoyo; otro toque y vuelven */
+.rp-arriba, .rp-mandos, .rp-marcador { transition: opacity 220ms ease, transform 220ms ease, background 220ms ease; }
+#replay.limpio .rp-arriba { padding-bottom: 8px; background: none; pointer-events: none; }
+#replay.limpio .rp-arriba > :not(.rp-marcador) { display: none; }
+#replay.limpio .rp-marcador { opacity: .85; background: rgba(12, 43, 28, .55); }
+#replay.limpio .rp-mandos { opacity: 0; transform: translateY(14px); pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .rp-arriba, .rp-mandos, .rp-marcador { transition: none; } }
 .rp-arriba { padding: calc(var(--safe-top) + 10px) 12px 26px; background: linear-gradient(rgba(8, 26, 16, .9), rgba(8, 26, 16, .62) 70%, transparent); display: grid; gap: 8px; }
 .rp-cab { display: flex; align-items: center; justify-content: space-between; }
 .rp-titulo { font: 26px/1 var(--font-display); letter-spacing: .04em; display: flex; align-items: baseline; gap: 8px; }
@@ -5956,7 +5963,7 @@ function irAlInicio() {
   $('#portada').hidden = false
 }
 $('#fin-inicio').addEventListener('click', irAlInicio)
-$('#fin-match').addEventListener('click', () => { irAlInicio(); mostrarMatch(tabConAviso()) })
+$('#fin-match').addEventListener('click', () => { irAlInicio(); abrirAvisoMatch() })
 $('#otra').addEventListener('click', () => empezar(ronda.carta))
 $('#fin-ranking').addEventListener('click', () => { rkPro = !!ronda?.pro; mostrarRanking(ronda?.carta.apodo ?? 'general') })
 
@@ -6248,7 +6255,20 @@ const tabConAviso = () => {
   if (mtDesafios?.some((d) => d.estado === 'jugado' && d.retador.uid === yo && !v.has(d.id))) return 'historial'
   return 'desafiar'
 }
-$('#ver-match').addEventListener('click', () => mostrarMatch(tabConAviso()))
+/**
+ * El aviso del match (el botón MATCH con su numerito, el del final de la vuelta, el de la SDGApp): si lo que hay es un
+ * resultado nuevo de un desafío que mandaste (y nada para jugar), va directo al replay (abajo queda el historial, que
+ * es adonde volvés al cerrarlo). Con `id`, el replay de ese match (el link de la app: ?match=1&replay=…).
+ */
+async function abrirAvisoMatch(id = null) {
+  const tab = tabConAviso()
+  const yo = yoUid(), v = vistos()
+  const d = id ? mtDesafios?.find((x) => x.id === id && x.estado === 'jugado')
+    : tab === 'historial' ? mtDesafios?.find((x) => x.estado === 'jugado' && x.retador.uid === yo && !v.has(x.id)) : null // el más nuevo (vienen del más nuevo al más viejo)
+  await mostrarMatch(d ? 'historial' : tab === 'desafiar' && id ? 'mios' : tab)
+  if (d && !$('#match').hidden) abrirReplay(d)
+}
+$('#ver-match').addEventListener('click', () => abrirAvisoMatch())
 $('#mt-volver').addEventListener('click', () => { $('#match').hidden = true; pintarAvisoMatch() })
 $('#mt-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('[data-mt]')
@@ -6557,6 +6577,7 @@ function cerrarReplay() {
   if (!replay) return
   const g = replay.guardado
   replay = null
+  $('#replay').classList.remove('limpio')
   $('#replay').hidden = true
   ronda = g.ronda; tiro = g.tiro; anim = g.anim; estado = g.estado; estela = g.estela
   obj = g.obj
@@ -6598,7 +6619,7 @@ const tiempoReplay = (ms) => { const t = Math.max(0, Math.floor(ms / 1000)); ret
 function medirReplay() {
   if (!replay) return
   const arriba = $('#replay .rp-arriba').getBoundingClientRect().bottom
-  const abajo = $('#replay .rp-mandos').getBoundingClientRect().top
+  const abajo = replay.limpio ? H - 8 : $('#replay .rp-mandos').getBoundingClientRect().top
   replay.zona = { top: arriba + 34, bot: abajo - 16 }
 }
 /**
@@ -6693,6 +6714,14 @@ function htmlMarcadorReplay(r) {
     <th><span class="rp-punto" aria-hidden="true"></span>${esc(f.p.x.alias ?? '—')}</th>${f.golpes.map((v, k) => celda(f, v, k)).join('')}<td class="tot${f.lp ? ' lp' : ''}">${f.total}</td><td class="t${tiempo && i === gana ? ' decide' : ''}">${f.tiempo}</td>
   </tr>`).join('')}</tbody></table>`
 }
+/** Tocar la cancha en el replay: se van los controles (queda arriba el hoyo a hoyo) o vuelven. */
+function alternarReplayLimpio(limpio = !$('#replay').classList.contains('limpio')) {
+  if (!replay) return
+  $('#replay').classList.toggle('limpio', limpio)
+  replay.limpio = limpio
+  medirReplay()
+}
+lienzo.addEventListener('click', () => { if (replay) alternarReplayLimpio() })
 /** Escribe en la pantalla lo que cambió (cada texto, solo si es distinto del que ya está). */
 function pintarReplay(todo = false) {
   const r = replay, pp = r.pintado
@@ -7697,7 +7726,9 @@ R.alEntrar((yo) => {
   if (R.hayMatch()) {
     $('#ver-match').hidden = false
     cargarDesafios()
-    if (new URLSearchParams(location.search).has('match')) cargarDesafios().then(() => mostrarMatch(tabConAviso() === 'desafiar' ? 'mios' : tabConAviso()))
+    // ?match=1 (el aviso de la app, el link de WhatsApp): directo al match; con &replay=<id>, directo a ese replay
+    const q = new URLSearchParams(location.search)
+    if (q.has('match')) cargarDesafios().then(() => q.get('replay') ? abrirAvisoMatch(q.get('replay')) : mostrarMatch(tabConAviso() === 'desafiar' ? 'mios' : tabConAviso()))
   }
 })
 // suelto, con el ranking de la SDGApp: se entra con Google (la misma cuenta que en la app), no con un nombre
