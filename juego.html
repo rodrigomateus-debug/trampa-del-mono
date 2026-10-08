@@ -2094,10 +2094,12 @@ function apunte() {
     plan = M.planTiro(campo, ronda, ang, p, q, tiempo)
   } else drag.tZona = null
   const arbol = putt ? null : M.pinoEnLaSalida(campo, ronda.pelota, plan) // pega en un árbol al salir: la línea en rojo, cortada ahí
-  // el swing de stock: justo en el nudo de ½ o de ¾, con el dedo quieto (no en el putt, la bomba ni con la línea del Águila)
-  const nudo = !putt && !plan.bomba ? M.enNudoStock(p) : null
-  const stock = nudo != null && performance.now() - (drag.mov ?? drag.t0) >= M.STOCK.quieto
-  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, nudo, stock }
+  // el latido de la potencia: el aro que se abre y se cierra alrededor del dedo (no en el putt ni en la bomba de Miguelón,
+  // que tiene el suyo). Soltando con el aro cerrado (el sweet spot) sale perfecto; cerca del hoyo, la ventana es más ancha
+  const latido = !putt && !plan.bomba
+  const ventana = latido ? M.ventanaPerfecto(M.aYardas(ronda, M.dist(ronda.pelota, M.hoyoActual(ronda).pin))) : 0
+  const sweet = latido && M.enSweetSpot(drag.fase ?? 0.5, ventana)
+  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, latido, ventana, sweet }
 }
 
 lienzo.addEventListener('pointerdown', (e) => {
@@ -2137,12 +2139,7 @@ lienzo.addEventListener('pointermove', (e) => {
     trazo.plan = M.planTiro(campo, ronda, 0, 0, 0, 0, trazo.pts)
     return
   }
-  if (drag && e.pointerId === drag.id) {
-    // para el swing de stock: el dedo quieto (contra un ancla: arrastrar despacito por el nudo no cuenta como quieto)
-    drag.ancla ??= [drag.x0, drag.y0]
-    if (Math.hypot(e.clientX - drag.ancla[0], e.clientY - drag.ancla[1]) > 2) { drag.mov = performance.now(); drag.ancla = [e.clientX, e.clientY] }
-    drag.x = e.clientX; drag.y = e.clientY
-  }
+  if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY }
 })
 lienzo.addEventListener('pointerup', (e) => {
   if (swipeTito && e.pointerId === swipeTito.id) { soltarSwipeTito(); return }
@@ -2152,7 +2149,12 @@ lienzo.addEventListener('pointerup', (e) => {
   // latido de la bomba se mueven hasta ~4° por cuadro, y soltando en "¡DERECHA!" o "¡PERFECTA!" a veces no salía así
   // (si al soltar el dedo ya volvió al lugar, no sale nada: así se cancela un tiro)
   const ahora = apunte()
-  const a = ahora && (drag.visto ?? ahora)
+  let a = ahora && (drag.visto ?? ahora)
+  // el latido, justo al soltar (lo que avanzó desde el último cuadro también cuenta): ¿con el aro cerrado?
+  if (a?.latido) {
+    const f = (drag.fase ?? 0.5) + (performance.now() - (drag.tFase ?? performance.now())) / 1000 / M.periodoLatido(a.p)
+    a = { ...a, perfecto: M.enSweetSpot(f, a.ventana) }
+  }
   const base = drag.base
   drag = null
   S.cargaFin()
@@ -2212,10 +2214,10 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
-  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, !!a.stock)
+  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, !!a.perfecto)
   if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
   else S.golpe(a.p, a.putt)
-  // salió justo al medio: "PERFECTO" chiquito al lado de donde salió
+  // soltó en el sweet spot (o es un tiro sin error): "PERFECTO" chiquito al lado de donde salió
   if (tiro.perfecto) { marcarTiro('PERFECTO', ronda.desde ?? golfista.desde ?? ronda.pelota); S.perfecto() }
   estela = []
   estado = 'tiro'
@@ -2464,7 +2466,17 @@ function actualizar(dt) {
   moverRafagas(dt)
   moverClima(dt)
   zoomApunte()
-  if (drag && estado === 'apuntar') { const a = apunte(); S.carga(a?.p ?? 0, a?.plan?.bomba ? a.q : 0) }
+  if (drag && estado === 'apuntar') {
+    const a = apunte()
+    S.carga(a?.p ?? 0, a?.plan?.bomba ? a.q : 0)
+    // el latido de la potencia: avanza más rápido cuanto más fuerte; cada vez que el aro se cierra, un tic suave
+    if (a?.latido) {
+      const antes = drag.fase ?? 0.5
+      drag.fase = antes + dt / M.periodoLatido(a.p)
+      drag.tFase = performance.now()
+      if (Math.floor(drag.fase) > Math.floor(antes)) { S.latido(); tic() }
+    }
+  }
   if (ronda && estado === 'apuntar' && !drag) {
     // tensión: un tic que se acelera con el mono más cercano que viene
     let d = null
@@ -3716,8 +3728,9 @@ function dibujar() {
     // todo el green, una marca cada 2 yd con la caída de ese lugar (cambia por zonas, fluida). Animadas: cada una
     // corre para donde cae, aparece y se apaga, y vuelve a empezar; donde cae más, corren más rápido.
     const ahora = performance.now() / 1000
-    ctx.strokeStyle = 'rgb(20,64,42)'
-    ctx.lineWidth = 0.12
+    // en los greens oscuros (lluvia y lluvia intensa) las flechitas van claras; en los demás, oscuras
+    ctx.strokeStyle = ['lluvia', 'tormenta'].includes(ronda.clima?.id) ? 'rgb(236,242,232)' : 'rgb(16,54,34)'
+    ctx.lineWidth = 0.13
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     for (const m of marcasCaida(hoyo)) {
@@ -3727,9 +3740,10 @@ function dibujar() {
       const cx = m.x + m.dx * (u - 0.5) * CAIDA_VIAJE, cy = m.y + m.dy * (u - 0.5) * CAIDA_VIAJE
       ctx.globalAlpha = a
       ctx.beginPath()
-      ctx.moveTo(cx - m.dx * 0.32 - m.dy * 0.3, cy - m.dy * 0.32 + m.dx * 0.3)
-      ctx.lineTo(cx + m.dx * 0.07, cy + m.dy * 0.07)
-      ctx.lineTo(cx - m.dx * 0.32 + m.dy * 0.3, cy - m.dy * 0.32 - m.dx * 0.3)
+      const t = m.tam
+      ctx.moveTo(cx - (m.dx * 0.32 + m.dy * 0.3) * t, cy - (m.dy * 0.32 - m.dx * 0.3) * t)
+      ctx.lineTo(cx + m.dx * 0.07 * t, cy + m.dy * 0.07 * t)
+      ctx.lineTo(cx - (m.dx * 0.32 - m.dy * 0.3) * t, cy - (m.dy * 0.32 + m.dx * 0.3) * t)
       ctx.stroke()
     }
     ctx.globalAlpha = 1
@@ -4358,8 +4372,9 @@ function marcasCaida(h) {
     const fase = (Math.sin(p[0] * 12.9898 + p[1] * 78.233) * 43758.5453) % 1 // cada una a su tiempo: orgánico
     lista.push({
       x: p[0], y: p[1], dx: c[0] / (fuerza || 1), dy: c[1] / (fuerza || 1),
-      alfa: Math.min(0.42, 0.14 + 0.38 * fuerza), // más tenues que antes
-      vel: 0.35 + 2.4 * fuerza, // yd/s: donde cae más, más rápido
+      alfa: Math.min(0.62, 0.2 + 0.32 * fuerza),
+      vel: 0.35 + 2.4 * fuerza, // yd/s: donde cae más, más rápido (en el sector pronunciado se nota: corren el doble)
+      tam: 0.85 + 0.35 * Math.min(1.6, fuerza), // y un poco más grandes
       fase: Math.abs(fase),
     })
   }
@@ -5254,7 +5269,7 @@ function monoBueno(x, y, tam) {
 
 /**
  * El MODO PRO: ni línea punteada ni zona de pique. Solo una flechita corta para dónde sale (con los efectos del Mago,
- * curvada como va a doblar) y la goma con los nudos
+ * curvada como va a doblar), la goma y el latido de la potencia
  * (cuánto le pegás, no dónde cae): la distancia la calculás vos.
  */
 function apuntePro(a, bx, by, col) {
@@ -5297,23 +5312,18 @@ function apuntePro(a, bx, by, col) {
   flecha(); ctx.strokeStyle = a.putt ? (curva ? C.gold : C.cream) : col; ctx.lineWidth = 3.5; ctx.stroke()
 }
 /**
- * La goma con nudos: sale de la pelota para atrás (para el lado contrario del tiro, como una gomera) y se estira con
- * la fuerza. Tiene tres nudos fijos (½, ¾ y a fondo): los que pasaste quedan dorados sobre la goma y los que faltan,
- * fantasmas más allá de la punta (ahí tenés que llegar). Al pasar cada nudo, un clic y un tic en el celu: así repetís
- * un tiro sin mirar números. A fondo se pone roja y tiembla. (Elegida en el artefacto de potencia, 2026-10-07.)
+ * La goma: sale de la pelota para atrás (para el lado contrario del tiro, como una gomera) y se estira con la fuerza. A
+ * fondo se pone roja y tiembla, con un clic y un tic. (Elegida en el artefacto de potencia, 2026-10-07; los nudos se
+ * sacaron el 2026-10-08: el perfecto sale del latido, ver `dibujarLatido`.)
  */
-const NUDOS = [0.125, 0.25, 0.5, 0.75, 0.97] // en potencia; los de ⅛ y ¼, para los chips cortos; el último es "a fondo" (el mismo umbral del tiro)
-const NUDO_TXT = ['⅛', '¼', '½', '¾', '•']
-const FONDO = NUDOS.length - 1
 function goma(a, bx, by) {
-  const exp = a.putt ? 1.6 : 1.35 // la potencia es el estirón a la `exp` (ver apunte): los nudos van donde está el dedo
+  const exp = a.putt ? 1.6 : 1.35 // la potencia es el estirón a la `exp` (ver apunte)
   const largo = Math.max(84, Math.min(150, Math.min(W, H) * 0.3))
-  const enU = (p) => Math.pow(Math.min(1, p), 1 / exp)
-  const fondo = a.p >= NUDOS[FONDO]
+  const fondo = a.p >= 0.97
   const atras = a.ang + cam.rot + Math.PI
   const ux = Math.cos(atras), uy = Math.sin(atras), nx = -uy, ny = ux
   const tiembla = fondo ? Math.sin(performance.now() / 22) * 2.2 : 0
-  const L = largo * enU(a.p) * (fondo ? 1.04 : 1)
+  const L = largo * Math.pow(Math.min(1, a.p), 1 / exp) * (fondo ? 1.04 : 1)
   const r0 = Math.max(9, radioPelota() + 2)
   const ax = bx + ux * r0, ay = by + uy * r0
   const ex = bx + ux * (r0 + L) + nx * tiembla, ey = by + uy * (r0 + L) + ny * tiembla
@@ -5324,37 +5334,33 @@ function goma(a, bx, by) {
   const g = ctx.createLinearGradient(ax, ay, ex, ey)
   g.addColorStop(0, C.cream); g.addColorStop(1, color)
   ctx.strokeStyle = g; ctx.lineWidth = grosor; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
-  // el agarre en la punta (abajo de los nudos: el del stock queda encima)
   ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(ex, ey, 8, 0, 7); ctx.fill()
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex, ey, 5.2, 0, 7); ctx.fill()
-  NUDOS.forEach((m, i) => {
-    const d = r0 + largo * enU(m)
-    const x = bx + ux * d + (a.p >= m ? nx * tiembla : 0), y = by + uy * d + (a.p >= m ? ny * tiembla : 0)
-    const r = i === FONDO ? 8 : i < 2 ? 5.5 : 6.5
-    if (a.p < m && !(a.stock && a.nudo === m)) {
-      ctx.strokeStyle = 'rgba(244,238,218,.6)'; ctx.lineWidth = 2; ctx.setLineDash([3, 3])
-      ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); ctx.setLineDash([])
-      return
-    }
-    // el swing de stock: el nudo donde estás (con el dedo quieto) brilla
-    if (a.stock && a.nudo === m) {
-      const lat = 0.5 + 0.5 * Math.sin(performance.now() / 90)
-      ctx.fillStyle = `rgba(244,238,218,${0.25 + 0.25 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 3, 0, 7); ctx.fill()
-      ctx.strokeStyle = C.cream; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r + 6 + lat * 3, 0, 7); ctx.stroke()
-    }
-    ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
-    ctx.fillStyle = i === FONDO ? C.red : a.stock && a.nudo === m ? C.cream : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
-    ctx.fillStyle = C.g950; ctx.font = `${i < 2 ? 9 : 10}px Anton, Impact, sans-serif`; ctx.textAlign = 'center'
-    ctx.fillText(NUDO_TXT[i], x, y + 3.4)
-  })
-  // el clic y el tic al pasar un nudo (para atrás no suena: solo cuando lo pasás de nuevo)
-  let k = -1
-  NUDOS.forEach((m, i) => { if (a.p >= m) k = i })
-  if (drag && k > (drag.nudo ?? -1)) { S.nudo(k, k === NUDOS.length - 1); tic() }
-  if (drag) drag.nudo = k
-  // al quedar quieto justo en el nudo (swing de stock): otro clic, más suave, y otro tic
-  if (drag && a.stock && !drag.stock) { S.stock(); tic() }
-  if (drag) drag.stock = a.stock
+  if (drag && fondo && !drag.fondo) { S.nudo(0, true); tic() }
+  if (drag) drag.fondo = fondo
+  if (drag && a.latido) dibujarLatido(a)
+}
+/**
+ * El latido de la potencia, alrededor del dedo: un aro que se abre y se cierra sobre un aro fijo dorado. Cuanto más
+ * fuerte, más rápido late. Cuando se cierra (el sweet spot), los dos se prenden dorados: soltando ahí, sale perfecto.
+ */
+function dibujarLatido(a) {
+  const f = (((drag.fase ?? 0.5) % 1) + 1) % 1
+  const abre = 0.5 - 0.5 * Math.cos(2 * Math.PI * f) // 0: cerrado; 1: abierto
+  const x = drag.x, y = drag.y
+  const rIn = 26, rOut = 64
+  const r = rIn + (rOut - rIn) * abre
+  ctx.save()
+  if (a.sweet) { ctx.fillStyle = 'rgba(232,195,74,.28)'; ctx.beginPath(); ctx.arc(x, y, rIn + 6, 0, 7); ctx.fill() }
+  // el aro fijo: ahí se tiene que cerrar
+  ctx.strokeStyle = 'rgba(12,43,28,.7)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(x, y, rIn, 0, 7); ctx.stroke()
+  ctx.strokeStyle = a.sweet ? C.gold : 'rgba(232,195,74,.8)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, rIn, 0, 7); ctx.stroke()
+  // el aro que late
+  const col = a.sweet ? C.gold : a.fondo ? C.red : C.cream
+  ctx.globalAlpha = a.sweet ? 1 : 0.55 + 0.45 * (1 - abre)
+  ctx.strokeStyle = 'rgba(12,43,28,.8)'; ctx.lineWidth = 7.5; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke()
+  ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke()
+  ctx.restore()
 }
 /** El "tic" del celu: Android vibra; en iPhone (iOS 18+) se toca un interruptor nativo escondido, que hace el tic del sistema. */
 function tic() {

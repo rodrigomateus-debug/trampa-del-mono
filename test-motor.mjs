@@ -535,9 +535,14 @@ ok('la caída del green cambia por zonas, fluida (de 2 a 4 por hoyo)', () => {
     assert.ok(h.caidas.length >= 2 && h.caidas.length <= 4, `hoyo ${h.n}`)
     // en cada zona, casi su caída
     for (const z of h.caidas) {
-      const c = M.caidaEn(h, z.p)
-      assert.ok(Math.hypot(c[0] - z.v[0], c[1] - z.v[1]) < 0.25, `hoyo ${h.n} zona ${z.p}`)
+      const c = M.caidaEn(h, z.p), k = z.fuerte ? M.CAIDA.fuerte : 1
+      assert.ok(Math.hypot(c[0] - z.v[0] * k, c[1] - z.v[1] * k) < 0.25 * k, `hoyo ${h.n} zona ${z.p}`)
     }
+    // un sector pronunciado por green: ahí cae más que en cualquier otra zona
+    const fuertes = h.caidas.filter((z) => z.fuerte)
+    assert.equal(fuertes.length, 1, `hoyo ${h.n}: un sector pronunciado`)
+    const f = Math.hypot(...M.caidaEn(h, fuertes[0].p))
+    for (const z of h.caidas.filter((x) => !x.fuerte)) assert.ok(f > 1.6 * Math.hypot(...M.caidaEn(h, z.p)), `hoyo ${h.n}: el pronunciado cae más`)
     // fluida: medio paso cambia poco
     const [a, b] = h.caidas
     const m = [(a.p[0] + b.p[0]) / 2, (a.p[1] + b.p[1]) / 2]
@@ -1805,18 +1810,18 @@ ok('el tiro perfecto (sale justo al medio) y el backspin del chip o el approach 
   const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), pelota: haciaTee(50), lie: 'fairway', golpes: 1, monos: [] }
   const d = M.dist(r.pelota, h15.pin), cae = d - 4
   const p = cae / M.FISICA.carryMax
-  const t = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, sinRuido())
-  assert.equal(t.perfecto, true) // sin ruido: justo al medio
+  const t = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, sinRuido(), 0, 0, null, true)
+  assert.equal(t.perfecto, true) // soltó en el sweet spot del latido
   assert.ok(t.backspin > 0)
   M.simular(campo, t, h15.pin)
   assert.ok(t.eventos.some((e) => e.tipo === 'backspin'))
   const atras = cae - M.dist(r.pelota, t.pos)
   assert.ok(atras > 1 && atras < 5, `volvió ${atras} yd`)
-  // con error, no es perfecto ni vuelve; desde la salida tampoco hay backspin
-  const t2 = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, fijo(0.9))
+  // sin el sweet spot no es perfecto ni vuelve (aunque salga derecho); desde la salida tampoco hay backspin
+  const t2 = M.golpear(campo, { ...r, pelota: [...r.pelota] }, angulo(r.pelota, h15.pin), p, sinRuido())
   assert.equal(t2.perfecto, false)
   assert.equal(t2.backspin, undefined)
-  const salida = M.golpear(campo, M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), -Math.PI / 2, 0.5, sinRuido())
+  const salida = M.golpear(campo, M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), -Math.PI / 2, 0.5, sinRuido(), 0, 0, null, true)
   assert.equal(salida.perfecto, true)
   assert.equal(salida.backspin, undefined)
   // un tiro sin error sale perfecto siempre (Demetrio, LG sin error, el tiro de Deme)
@@ -1824,41 +1829,39 @@ ok('el tiro perfecto (sale justo al medio) y el backspin del chip o el approach 
   assert.equal(sinError.perfecto, true)
 })
 
-ok('el perfecto no es cero (hasta un 35% del error de siempre) y el swing de stock (en el nudo de ½ o ¾) lo hace más seguido', () => {
-  const plan = (stock) => ({ putt: false, cuerda: 0, carry: 100, disp: { ang: 0.1, carry: 0.1 }, control: null, stock })
-  const medir = (stock) => {
+ok('el latido de la potencia: más rápido cuanto más fuerte, ventana más ancha cerca del hoyo, y el perfecto con un cuarto del error', () => {
+  assert.ok(M.periodoLatido(1) < M.periodoLatido(0.5) && M.periodoLatido(0.5) < M.periodoLatido(0))
+  assert.equal(M.periodoLatido(0), M.PERFECTO.lento)
+  assert.ok(Math.abs(M.periodoLatido(1) - M.PERFECTO.rapido) < 1e-12)
+  assert.equal(M.ventanaPerfecto(200), M.PERFECTO.ventana)
+  assert.ok(Math.abs(M.ventanaPerfecto(20) - M.PERFECTO.ventana * M.PERFECTO.cerca) < 1e-12)
+  assert.ok(M.ventanaPerfecto(90) > M.ventanaPerfecto(150) && M.ventanaPerfecto(90) < M.ventanaPerfecto(30))
+  // el sweet spot: con el aro cerrado (cada latido entero), ± la ventana
+  assert.ok(M.enSweetSpot(3, 0.07) && M.enSweetSpot(2.95, 0.07) && M.enSweetSpot(4.06, 0.07))
+  assert.ok(!M.enSweetSpot(3.5, 0.07) && !M.enSweetSpot(3.1, 0.07))
+  // el perfecto: un cuarto del error de siempre (no cero); sin el sweet spot, nunca perfecto
+  const plan = (perfecto) => ({ putt: false, cuerda: 0, carry: 100, disp: { ang: 0.1, carry: 0.1 }, control: null, perfecto })
+  const medir = (perfecto) => {
     const rr = M.rngDesde(42)
-    let n = 0, perf = 0, maxPerf = 0, minPerf = 1, errTodos = 0
-    for (let i = 0; i < 20000; i++) {
-      const t = M.lanzar(campo, { pelota: [0, 0], angulo: 0, potencia: 0.5, viento: calma, putt: false, lie: 'fairway', rng: rr, plan: plan(stock) })
-      const e = Math.hypot(Math.atan2(t.carryVec[1], t.carryVec[0]) / 0.1, (t.carry / 100 - 1) / 0.1) // en desvíos
-      n++; errTodos += e
-      if (t.perfecto) { perf++; maxPerf = Math.max(maxPerf, e); minPerf = Math.min(minPerf, e) }
+    let perf = 0, err = 0, min = Infinity
+    for (let i = 0; i < 5000; i++) {
+      const t = M.lanzar(campo, { pelota: [0, 0], angulo: 0, potencia: 0.5, viento: calma, putt: false, lie: 'fairway', rng: rr, plan: plan(perfecto) })
+      const e = Math.hypot(Math.atan2(t.carryVec[1], t.carryVec[0]) / 0.1, (t.carry / 100 - 1) / 0.1)
+      if (t.perfecto) perf++
+      err += e; min = Math.min(min, e)
     }
-    return { perf: perf / n, maxPerf, minPerf, err: errTodos / n }
+    return { perf, err: err / 5000, min }
   }
-  const normal = medir(false), stock = medir(true)
-  assert.ok(Math.abs(normal.perf - 0.044) < 0.008, `perfectos ${normal.perf}`)
-  assert.ok(Math.abs(stock.perf - 0.117) < 0.012, `perfectos de stock ${stock.perf}`)
-  assert.ok(normal.maxPerf <= M.PERFECTO.resto + 1e-9 && normal.maxPerf > 0.3, `el perfecto llega a ${normal.maxPerf}`)
-  assert.ok(normal.minPerf > 0, 'el perfecto no es cero')
-  assert.ok(Math.abs(stock.err / normal.err - M.STOCK.error) < 0.05)
-  // el nudo: ± 2% de potencia
-  assert.equal(M.enNudoStock(0.51), 0.5)
-  assert.equal(M.enNudoStock(0.735), 0.75)
-  assert.equal(M.enNudoStock(0.6), null)
-  assert.equal(M.enNudoStock(0.98), null) // el de fondo no
-  assert.equal(M.enNudoStock(0.125), 0.125) // los de los chips cortos
-  assert.equal(M.enNudoStock(0.26), 0.25)
-  assert.equal(M.enNudoStock(0.18), null)
-  // cerca del hoyo, más margen para el perfecto
-  assert.equal(M.radioPerfecto(200), M.PERFECTO.radio)
-  assert.equal(M.radioPerfecto(20), M.PERFECTO.cerca)
-  assert.ok(M.radioPerfecto(90) > M.PERFECTO.radio && M.radioPerfecto(90) < M.PERFECTO.cerca)
-  // golpear: solo si soltó en el nudo (y no en el putt)
+  const comun = medir(false), perfecto = medir(true)
+  assert.equal(comun.perf, 0)
+  assert.equal(perfecto.perf, 5000)
+  assert.ok(Math.abs(perfecto.err / comun.err - M.PERFECTO.error) < 0.02, `el perfecto sale con ${perfecto.err / comun.err} del error`)
+  assert.ok(perfecto.min > 0)
+  // golpear: el perfecto no va en el putt
   const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
-  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.5, sinRuido(), 0, 0, null, true).stock, true)
-  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.6, sinRuido(), 0, 0, null, true).stock, false)
+  assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.5, sinRuido(), 0, 0, null, true).perfecto, true)
+  const green = { ...r, pelota: [h15.pin[0], h15.pin[1] + 4], lie: 'green' }
+  assert.equal(M.golpear(campo, green, -Math.PI / 2, 0.3, sinRuido(), 0, 0, null, true).modo, 'putt')
 })
 
 console.log('\nTodo verde.')
