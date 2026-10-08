@@ -456,15 +456,8 @@ body.apuntando #furia { opacity: .45; }
 #revoleo .rv-ira.dos { left: min(6vw, 30px); bottom: min(50vw, 250px); font-size: 34px; animation-delay: .45s; }
 @keyframes rv-ira { from { opacity: 1; transform: scale(.7) rotate(-10deg); } to { opacity: 1; transform: scale(1.15) rotate(10deg); } }
 /* el palo sale de la mano y se va girando como una hélice, despacio, cruzando la pantalla (con su sonido de helicóptero) */
-#revoleo .rv-palo { position: absolute; left: min(24vw, 120px); bottom: min(36vw, 180px); width: 74px; height: 196px; opacity: 0; animation: rv-palo 3.3s .5s cubic-bezier(.3, .2, .6, 1) forwards; }
-@keyframes rv-palo { 0% { opacity: 1; transform: translate(0, 0) scale(1.1); } 45% { opacity: 1; transform: translate(min(22vw, 110px), -30vh) scale(1.25); } 92% { opacity: 1; transform: translate(min(64vw, 330px), -62vh) scale(.55); } 100% { opacity: 0; transform: translate(min(72vw, 370px), -66vh) scale(.45); } }
-#revoleo .rv-palo svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 6px 6px rgba(8, 26, 16, .5)); animation: rv-gira .42s linear infinite; }
-@keyframes rv-gira { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 /* el borroneo de las aspas: un disco que se ve atrás del palo que gira */
-#revoleo .rv-aspas { position: absolute; left: 50%; top: 50%; width: 180px; height: 180px; margin: -90px 0 0 -90px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, 0) 30%, rgba(230, 236, 240, .22) 62%, rgba(230, 236, 240, .32) 92%, rgba(230, 236, 240, 0)); animation: rv-aspas .42s linear infinite; }
-@keyframes rv-aspas { 0%, 100% { opacity: .55; transform: scaleY(.92); } 50% { opacity: 1; transform: scaleY(1); } }
-@media (prefers-reduced-motion: reduce) { #revoleo .rv-palo svg, #revoleo .rv-aspas { animation-duration: 1.2s; } }
-#hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
+@media (prefers-reduced-motion: reduce) { #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el clima del día: un chip abajo del viento (tocándolo, vuelve el cartel) y el de la pelota con barro */
 .clima-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px 4px 7px; border: 0; border-radius: 999px; background: rgba(12, 43, 28, .78); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); font: 13px/1 var(--font-display); letter-spacing: .05em; cursor: pointer; }
 #clima-chip { pointer-events: auto; } /* el HUD no se toca (pasa a la cancha); el chip sí: vuelve el clima */
@@ -1443,7 +1436,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <div id="tito-swipe" hidden aria-live="polite"><span>SWIPEÁ PARA SOPLAR</span><i></i></div>
 
-<div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-sacado-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span><span class="rv-palo"><span class="rv-aspas"></span><svg viewBox="0 0 60 160"><path d="M30 6v118" stroke="#0c2b1c" stroke-width="9" stroke-linecap="round"/><path d="M30 6v118" stroke="#c9ccd1" stroke-width="5" stroke-linecap="round"/><rect x="24" y="4" width="12" height="34" rx="5" fill="#1b1b1b" stroke="#0c2b1c" stroke-width="2.5"/><path d="M27 120h22c6 0 8 10 2 14l-20 8c-6 2-9-3-7-8z" fill="#9aa3ad" stroke="#0c2b1c" stroke-width="3"/></svg></span></div>
+<div id="revoleo" hidden aria-hidden="true"><span class="rv-rojo"></span><img src="jugadores/mike-queboni-sacado-torso.webp" alt=""><span class="rv-ira">💢</span><span class="rv-ira dos">💢</span></div>
 
 <div id="ruleta" hidden aria-live="assertive">
   <div class="rl-caja">
@@ -2094,8 +2087,9 @@ function apunte() {
   // (sale para cualquier lado), ni en los tiros que ya son perfectos por una habilidad (el sin error de LG, el approach
   // de Taiu, Demetrio, el tiro de Deme): esos salen perfectos sin el aro
   const yaPerfecto = plan.calma || plan.approachPerfecto || plan.exacto || !!ronda.deme?.listo
-  const latido = !putt && !plan.furia && !yaPerfecto
-  const ventana = latido ? M.ventanaPerfecto(M.aYardas(ronda, M.dist(ronda.pelota, M.hoyoActual(ronda).pin))) : 0
+  const latido = !putt && !yaPerfecto
+  // Miguelón sacado: el aro late más rápido y la ventana es chiquita (casi imposible)
+  const ventana = latido ? M.ventanaPerfecto(M.aYardas(ronda, M.dist(ronda.pelota, M.hoyoActual(ronda).pin))) * (plan.furia ? M.FURIA.ventana : 1) : 0
   const soltada = latido ? M.soltadaLatido(drag.fase ?? 0, ventana) : null
   return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, latido, ventana, soltada, sweet: soltada?.nivel === 'perfecto' }
 }
@@ -2153,7 +2147,7 @@ lienzo.addEventListener('pointerup', (e) => {
   if (a?.latido) {
     const ya = performance.now()
     const t = e.timeStamp > ya - 1000 && e.timeStamp <= ya + 5 ? e.timeStamp : ya
-    const f = (drag.fase ?? 0) + (t - ATRASO_PANTALLA - (drag.tFase ?? ya)) / 1000 / (drag.periodo ?? M.periodoLatido(a.p))
+    const f = (drag.fase ?? 0) + (t - ATRASO_PANTALLA - (drag.tFase ?? ya)) / 1000 / (drag.periodo ?? M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1))
     a = { ...a, soltada: M.soltadaLatido(f, a.ventana) }
     destello = { t0: ya, nivel: a.soltada.nivel, pos: [...ronda.pelota] }
   }
@@ -2476,7 +2470,7 @@ function actualizar(dt) {
     // el latido de la potencia: más rápido cuanto más fuerte, pero el ritmo cambia de a poco (si no, mientras ajustás el
     // dedo tartamudea). Dos tics que suben mientras el aro se acerca y la campanita (y el tic del celu) cuando llega
     if (a?.latido) {
-      const objetivo = M.periodoLatido(a.p)
+      const objetivo = M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1)
       drag.periodo = drag.periodo == null ? objetivo : drag.periodo + (objetivo - drag.periodo) * Math.min(1, dt / 0.3)
       const antes = drag.fase ?? 0
       drag.fase = antes + dt / drag.periodo
@@ -3591,9 +3585,9 @@ function revolearPalo() {
   el.hidden = true
   void el.offsetWidth
   el.hidden = false
-  golfistaTiraPalo()
+  golfistaTiraPalo() // el palo lo revolea el muñequito (el palo grande que cruzaba la pantalla se sacó: eran dos)
   S.bronca()
-  setTimeout(() => S.helicoptero(3.3), 500)
+  setTimeout(() => S.helicoptero(TIRA_MS / 1000), 150)
   voz = { lg: '😡 ¡Miguelón revoleó el palo!', extra: 'Está sacado: el próximo tiro sale para cualquier lado. Después se le pasa', hasta: performance.now() + 6000 }
   clearTimeout(revolearPalo.t)
   revolearPalo.t = setTimeout(() => { el.hidden = true }, 4300)
@@ -5180,9 +5174,9 @@ function dibujarGolfista(a) {
   dibujarJugador(bx, by, golfista.ang + cam.rot, sv, ronda.jugador, now, !t, putt && !t, tipoPalo)
   // Miguelón sacado: el palo sale volando, girando, y se pierde
   if (t) {
-    const u = (now - t.t0) / 1300
+    const u = (now - t.t0) / TIRA_MS
     if (u >= 1) { golfista.tira = null; return }
-    const k = escalaGolfista()
+    const k = Math.max(1.4, escalaGolfista()) // de lejos, un poco más grande que el muñequito: que se vea el revoleo
     const d = k * (40 + u * 200)
     const x = bx + Math.cos(t.dir) * d, y = by + Math.sin(t.dir) * d - Math.sin(Math.PI * Math.min(1, u * 1.2)) * 60 * k
     ctx.save(); ctx.translate(x, y); ctx.scale(k, k); ctx.rotate(u * 22); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, u - 0.7) / 0.3)
@@ -5195,6 +5189,7 @@ function dibujarGolfista(a) {
   }
 }
 /** Miguelón revolea el palo: el jugador termina el swing con bronca y el palo sale volando para cualquier lado. */
+const TIRA_MS = 2000 // lo que vuela el palo que revolea Miguelón (con el helicóptero a la par)
 function golfistaTiraPalo() { golfista.tira = { t0: performance.now(), dir: -Math.PI / 2 + (Math.random() - 0.5) * 2.4 } }
 
 /**

@@ -190,7 +190,8 @@ export const PUTT_MAGO = { giro: 0.3 }
 // la furia de Miguelón: una barra de `mitades` mitades. Se carga media si el primer tiro del hoyo no queda en la calle
 // ni en el green, media si el segundo no queda en el green (o no entra) y media si el hoyo termina en bogey o peor.
 // Llena: revolea el palo y el próximo tiro (o putt) sale con la dispersión del peor handicap × `extra`; después, a cero.
-export const FURIA = { mitades: 2, extra: 1.6 }
+// sacado, el latido late `latido` veces más rápido y la ventana del sweet spot es `ventana` de la normal: casi imposible
+export const FURIA = { mitades: 2, extra: 1.6, latido: 0.75, ventana: 0.3 }
 // la mala suerte de Juanpa (el Mapache): en cada tiro fuera del green, con chance `chance`, una sorpresa (árbol, ráfaga
 // o carrito, una de tres). El árbol y la ráfaga pasan entre `desde` y `hasta` del vuelo; la ráfaga la corre de costado
 // `rafaga` yardas reales y el carrito, al picar, se la lleva `carrito` yardas reales en `carritoT` segundos.
@@ -1772,7 +1773,7 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   const plan = planTiro(campo, r, angulo, potencia, precision, tiempo, ruta)
   // cómo soltó en el latido (`soltadaLatido`; `true` = perfecto): no en el putt, la bomba de Miguelón ni el Dibuje
   const s = soltada === true ? { nivel: 'perfecto', lado: 0 } : soltada
-  if (s && !plan.putt && !plan.furia && !ruta) { // Miguelón sacado: sale para cualquier lado, el latido no lo salva
+  if (s && !plan.putt && !ruta) { // Miguelón sacado: el aro aparece, pero casi imposible (ver FURIA)
     if (s.nivel === 'perfecto') plan.perfecto = true
     else if (s.nivel === 'bueno') plan.bueno = true
     if (s.lado) plan.lado = s.lado
