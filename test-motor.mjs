@@ -344,7 +344,8 @@ ok('Mati (El Sueco): el drive con el pulso de Fito; después, la flecha que atra
   const desde = [h15.tee[0] - 18, h15.tee[1] - 60] // en el bosque de la izquierda, con pinos adelante
   const rr = { ...r, pelota: [...desde], lie: 'rough' }
   const fl = M.planTiro(quieto, rr, angulo(desde, h15.pin), 0.6, 0, M.AGUILA.periodo / 4)
-  assert.ok(fl.flecha && !fl.aguila && fl.disp.ang === 0 && fl.cuerda === angulo(desde, h15.pin))
+  // (de lejos, casi sin error de dirección: le queda solo el mínimo del juego corto, que a esta distancia es nada)
+  assert.ok(fl.flecha && !fl.aguila && fl.disp.ang < 0.01 && fl.cuerda === angulo(desde, h15.pin))
   assert.equal(M.pinoEnLaSalida(quieto, desde, fl), null)
   // contra la fila de pinos de al lado: un tiro normal choca, la flecha pasa
   const cruza = angulo(desde, [desde[0] + 40, desde[1]])
@@ -1906,6 +1907,25 @@ ok('el palo de la bandera: el tiro que baja sobre el hoyo le pega (adentro o reb
   const tp = M.golpear(campo, { ...putt, pelota: [...putt.pelota] }, angulo(putt.pelota, h15.pin), 0.6, sinRuido())
   M.simular(campo, tp, h15.pin)
   assert.ok(!tp.eventos.some((e) => e.tipo === 'bandera'))
+})
+
+ok('el juego corto: el error no baja de un mínimo en yardas (también un scratch) y el chip que se frena en la boca lejos del centro queda colgando', () => {
+  const r = { ...M.nuevaRonda({ apodo: 'El Ruso', emoji: '🇮🇪', hcp: 0 }, fijo(0.5)), pelota: haciaTee(20), lie: 'fairway', golpes: 1, monos: [], viento: calma }
+  const plan = M.planTiro(campo, r, angulo(r.pelota, h15.pin), 0.08)
+  const cy = plan.carry * h15.escala
+  assert.ok(cy < 60)
+  assert.ok(Math.abs(plan.disp.carry * cy - M.CORTO.largo * M.CORTO.minimo) < 1e-9, `largo ${plan.disp.carry * cy}`)
+  assert.ok(Math.abs(Math.tan(plan.disp.ang) * cy - M.CORTO.ancho * M.CORTO.minimo) < 1e-9)
+  // de lejos, nada
+  const lejos = M.planTiro(campo, r, angulo(r.pelota, h15.pin), 0.6)
+  assert.ok(lejos.carry * h15.escala > 100 && lejos.disp.ang < 1e-9)
+  // el chip que se frena dentro de la boca pero lejos del centro: colgando en el borde (afuera); el putt, adentro
+  const chip = { modo: 'full', fase: 'rodando', pos: [h15.pin[0] + 0.45, h15.pin[1]], alt: 0, v: [0.0001, 0], eventos: [], carry: 20, ajenos: [] }
+  M.avanzar(campo, chip, 1 / 60, h15.pin)
+  assert.ok(!chip.embocada && chip.eventos.some((e) => e.tipo === 'borde') && M.dist(chip.pos, h15.pin) > M.FISICA.bocaHoyo)
+  const putt = { modo: 'putt', fase: 'rodando', pos: [h15.pin[0] + 0.45, h15.pin[1]], alt: 0, v: [0.0001, 0], eventos: [], ajenos: [] }
+  M.avanzar(campo, putt, 1 / 60, h15.pin)
+  assert.equal(putt.embocada, true)
 })
 
 console.log('\nTodo verde.')

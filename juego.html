@@ -2554,6 +2554,7 @@ function sonarEventos(t) {
     else if (e.tipo === 'charco') { S.charco(); fxClima.push({ tipo: 'splash', pos: [...t.pos], t0: performance.now() }) }
     else if (e.tipo === 'resbalon') S.resbalon()
     else if (e.tipo === 'backspin') { S.backspin(); marcarTiro('BACKSPIN', t.pos) }
+    else if (e.tipo === 'borde') { S.labio(); marcarTiro('¡COLGANDO!', t.pos, 'bueno') }
     else if (e.tipo === 'bandera') { S.bandera(); golpeBandera = { n: M.hoyoActual(ronda).n, t0: performance.now() }; marcarTiro('¡AL PALO!', M.hoyoActual(ronda).pin) }
     if (e.tipo === 'pique' && ronda?.clima) {
       const id = ronda.clima.id

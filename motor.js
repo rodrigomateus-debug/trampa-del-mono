@@ -45,7 +45,16 @@ export const VUELTA = { max: 5, radio: 0.6, freno: 0.6, salida: 1.7, entra: 0.5,
 // rápido que un putt: si CAE en la boca, entra con probabilidad `clavada` (más cerca del centro, más);
 // si llega rodando, hasta `max` yd/s tiene chance (más centrada y más lenta, más chance, hasta `prob`).
 // La suerte de cada tiro sale del tiro mismo (suerteDe): determinista, sin tocar el rng.
-export const CHIP = { clavada: 0.8, max: 10, prob: 0.7 }
+// clavada: la que pica justo en el hoyo, de aire; prob: la que pasa rodando rápido por la boca; centro: el chip que llega
+// rodando entra como un putt solo a esta distancia del centro; vuelta: el chip que da la vuelta al hoyo (la corbata)
+// entra solo esta parte de las veces (2026-10-08: clavada era 0,8 y prob 0,7, sin centro ni vuelta: los chips entraban
+// muchísimo)
+export const CHIP = { clavada: 0.35, max: 10, prob: 0.25, centro: 0.18, vuelta: 0.25 }
+// El juego corto (2026-10-08): el error de un tiro no baja de `largo` yd de largo y `ancho` yd de costado (un desvío, a
+// error 1 = handicap 10; se escala con el handicap como todo el error, pero no menos de `minimo`: un scratch también le
+// erra a un chip). Antes era proporcional al largo y un chip de 15 yd
+// caía en medio metro: se metían muchísimos. La zona de pique lo muestra.
+export const CORTO = { largo: 3, ancho: 1.8, minimo: 0.6, hasta: 100, transicion: 40 } // entero hasta 60 yd; a 100, nada
 /** Un número 0–1 propio de cada tiro (de dónde sale y adónde va): la "suerte" del chip in. */
 export function suerteDe(tiro) {
   const x = Math.sin(tiro.desde[0] * 12.9898 + tiro.desde[1] * 78.233 + tiro.carryVec[0] * 37.719 + tiro.carryVec[1] * 4.581) * 43758.5453
@@ -971,6 +980,17 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     // AGUILA.chip son yardas reales; `radio` = hasta dónde tira el imán, en yardas del dibujo. El imán es solo de Fito
     if (hab?.id === 'aguila' && dist(b, pin) * escala <= AGUILA.chip) plan.iman = { meter: true, radio: AGUILA.chip / escala }
   }
+  // el juego corto: el error no baja de un mínimo en yardas (un chip de 15 yd no cae en un pañuelo), según el handicap
+  // (y un scratch también le erra: no menos de `CORTO.minimo`). También la flecha del Sueco, de cerca. No los tiros sin
+  // error de una habilidad (LG sin error, el approach de Taiu, Demetrio, el embudo de Fito) ni la bomba
+  const sinError = plan.calma || plan.approachPerfecto || plan.exacto || plan.bomba || plan.aguila?.enVentana
+  const cy = plan.carry * escala
+  // (y el perfecto de cerca sale con `PERFECTO.errorCorto`, no con un cuarto: de cerca el latido es lento y la ventana ancha)
+  if (cy < CORTO.hasta) plan.errorPerfecto = PERFECTO.error + (PERFECTO.errorCorto - PERFECTO.error) * Math.min(1, (CORTO.hasta - cy) / CORTO.transicion)
+  if (!sinError && cy > 1 && cy < CORTO.hasta) {
+    const e = Math.max(dif.error, CORTO.minimo) * Math.min(1, (CORTO.hasta - cy) / CORTO.transicion) // solo de cerca
+    plan.disp = { ...plan.disp, carry: Math.max(plan.disp.carry, (CORTO.largo * e) / cy), ang: Math.max(plan.disp.ang, Math.atan((CORTO.ancho * e) / cy)) }
+  }
   plan.destino = [b[0] + Math.cos(plan.cuerda) * plan.carry, b[1] + Math.sin(plan.cuerda) * plan.carry]
   return plan
 }
@@ -1089,7 +1109,7 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
   // el error del tiro, en desvíos: el perfecto (soltó en el sweet spot del latido) sale con un cuarto, no con cero; el
   // bueno, con `errorBueno`. Un tiro sin error (Demetrio, LG sin error, el de Deme) sale perfecto siempre: es real.
   // Con el latido, el lado del error lo decide cuándo soltó: temprano, a la izquierda; tarde, a la derecha
-  const k = p.perfecto ? PERFECTO.error : p.bueno ? PERFECTO.errorBueno : 1
+  const k = p.perfecto ? p.errorPerfecto ?? PERFECTO.error : p.bueno ? PERFECTO.errorBueno : 1
   let ze = gauss(rng) * k
   const g = gauss(rng) * k
   if (p.lado && !p.perfecto) ze = Math.abs(ze) * p.lado
@@ -1157,6 +1177,16 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
   }
 }
 
+/** Se queda colgando en el borde del hoyo (afuera, justo): el próximo es un putt de nada. */
+function alBorde(tiro, pin) {
+  const d = dist(tiro.pos, pin)
+  const ux = d > 1e-6 ? (tiro.pos[0] - pin[0]) / d : 0, uy = d > 1e-6 ? (tiro.pos[1] - pin[1]) / d : 1
+  tiro.pos = [pin[0] + ux * (FISICA.bocaHoyo + 0.02), pin[1] + uy * (FISICA.bocaHoyo + 0.02)]
+  tiro.v = [0, 0]
+  tiro.fase = 'quieta'
+  tiro.eventos.push({ tipo: 'borde' })
+  return tiro.fase
+}
 /** Pegó en el palo de la bandera: abajo cae adentro; arriba, rebota para atrás y para un costado (la suerte, del tiro). */
 function alPalo(tiro, prev, pin) {
   tiro.pegoPalo = { alt: tiro.alt }
@@ -1387,6 +1417,9 @@ export function avanzar(campo, tiro, dt, pin) {
     const otro = (tiro.ajenos ?? []).find((a) => dist(tiro.pos, a.pin) < FISICA.bocaHoyo)
     if (otro) return caerAjeno(tiro, otro)
     if (pin && dist(tiro.pos, pin) < FISICA.bocaHoyo) {
+      // el chip (un tiro completo) que se frena lejos del centro queda colgando en el borde (la boca del dibujo es mucho
+      // más grande que un hoyo de verdad); el putt, cae
+      if (tiro.modo === 'full' && dist(tiro.pos, pin) > CHIP.centro) return alBorde(tiro, pin)
       if (atajaMapache(tiro, pin)) return tiro.fase
       // se frenó adentro del hoyo: cae
       tiro.pos = [...pin]
@@ -1414,7 +1447,10 @@ export function avanzar(campo, tiro, dt, pin) {
     const d = dist(cerca, pin)
     // desde afuera del green, llegando rápido, tiene su chance (si no, sigue: corbata o labio)
     // Demetrio: si la línea pasa por la boca, entra (sin labios ni corbatas)
-    if (tiro.exacto || v < limiteEmbocar(d) || (tiro.modo === 'full' && suerteDe(tiro) < chanceRodando(d, v))) {
+    // un tiro completo que llega rodando (el chip) entra como un putt solo si pasa cerca del centro (`CHIP.centro`): la
+    // boca del dibujo es mucho más grande que un hoyo de verdad y, si no, se metían muchísimos chips
+    const comoPutt = v < limiteEmbocar(d) && (tiro.modo !== 'full' || d <= CHIP.centro)
+    if (tiro.exacto || comoPutt || (tiro.modo === 'full' && suerteDe(tiro) < chanceRodando(d, v))) {
       if (atajaMapache(tiro, pin)) return tiro.fase
       tiro.pos = [...pin]
       tiro.v = [0, 0]
@@ -1435,7 +1471,8 @@ export function avanzar(campo, tiro, dt, pin) {
         s,
         falta: Math.PI * (0.5 + 0.9 * (1 - Math.min(1, (d - FISICA.medioHoyo) / (FISICA.bocaHoyo - FISICA.medioHoyo)))), // de un cuarto (borde) a casi tres cuartos de vuelta (cerca del medio)
         vel: v * 0.65, // el golpe contra el borde la frena
-        entra: v < limiteEmbocar(d) + VUELTA.entra,
+        // el chip que da la vuelta casi siempre sale (llega con más velocidad y menos derecho que un putt)
+        entra: v < limiteEmbocar(d) + VUELTA.entra && (tiro.modo !== 'full' || suerteDe(tiro) < CHIP.vuelta),
       }
       tiro.pos = [pin[0] + Math.cos(tiro.vuelta.ang) * VUELTA.radio, pin[1] + Math.sin(tiro.vuelta.ang) * VUELTA.radio]
       return tiro.fase
@@ -1538,6 +1575,8 @@ function darVuelta(tiro, dt, pin) {
   tiro.v = [-Math.sin(vu.ang) * vu.s * vu.vel, Math.cos(vu.ang) * vu.s * vu.vel]
   if (vu.falta > 0 && vu.vel > VUELTA.muerta) return tiro.fase
   vu.hecha = true
+  // el chip que se queda sin velocidad dando la vuelta y no entra, queda colgando en el borde
+  if (!vu.entra && vu.vel <= VUELTA.muerta && tiro.modo === 'full') return alBorde(tiro, pin)
   if (vu.entra || vu.vel <= VUELTA.muerta) {
     if (atajaMapache(tiro, pin)) return tiro.fase
     tiro.pos = [...pin]
@@ -2272,14 +2311,14 @@ export const PALOS = { wedge: 50 }
  * segundos por latido con lo más suave a `rapido` a fondo). El aro llega al dorado en `centro` del latido: soltar ahí
  * (± `ventana`, un poco más de margen para el lado de tarde: `tarde`) es el tiro PERFECTO, y cerca (× `bueno`) es
  * BUENO. Cerca del hoyo las ventanas son más anchas (hasta × `cerca` a `junto` yd o menos).
- * - PERFECTO: sale con `error` × su error de siempre (un cuarto: no es cero, y como el error depende del handicap, el
+ * - PERFECTO: sale con `error` × su error de siempre (un cuarto; en el juego corto, `errorCorto`: no es cero, y como el error depende del handicap, el
  *   perfecto de un handicap alto se abre más que el de uno bajo). Los tiros sin error (Demetrio, LG sin error, el tiro
  *   de Deme) salen perfectos siempre. Si cae en el green, además, backspin (ver BACKSPIN; menos el drive).
  * - BUENO: sale con `errorBueno` × su error.
  * - Y el lado del error lo decide cuándo soltaste (como en el golf de verdad): temprano, la cara cerrada, se va a la
  *   izquierda (hook); tarde, abierta, a la derecha (slice). El largo, como siempre.
  */
-export const PERFECTO = { lento: 1.2, rapido: 0.42, centro: 0.85, ventana: 0.07, tarde: 1.25, bueno: 2.2, cerca: 1.6, lejos: 150, junto: 30, error: 0.25, errorBueno: 0.6 }
+export const PERFECTO = { lento: 1.2, rapido: 0.42, centro: 0.85, ventana: 0.07, tarde: 1.25, bueno: 2.2, cerca: 1.6, lejos: 150, junto: 30, error: 0.25, errorCorto: 0.5, errorBueno: 0.6 }
 /** Segundos por latido con esta potencia (0 a 1). */
 export const periodoLatido = (p) => PERFECTO.lento + (PERFECTO.rapido - PERFECTO.lento) * Math.max(0, Math.min(1, p))
 /** La ventana del sweet spot (fracción del latido, para el lado de temprano) según lo lejos del hoyo (yardas reales). */
