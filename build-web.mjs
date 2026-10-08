@@ -4,6 +4,17 @@ import fs from 'node:fs'
 import './intro/armar-app.mjs' // textos y logo de la intro para la app (intro/app-overlay.js)
 
 const juego = fs.readFileSync('juego.html', 'utf8')
+// el CSS tiene que cerrar todas sus llaves: una sin cerrar (pasó el 2026-10-08) se come todo lo que viene después y la
+// portada sale sin estilos. Se cuentan las llaves de cada <style>, sin los comentarios ni lo que va entre comillas
+for (const [, css] of juego.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
+  const limpio = css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/"[^"\n]*"|'[^'\n]*'/g, '""')
+  let nivel = 0
+  for (const [i, ch] of [...limpio].entries()) {
+    nivel += ch === '{' ? 1 : ch === '}' ? -1 : 0
+    if (nivel < 0) throw new Error(`CSS: una llave de más cerca de «${limpio.slice(Math.max(0, i - 60), i + 1)}»`)
+  }
+  if (nivel !== 0) throw new Error(`CSS: ${nivel} llave(s) sin cerrar en juego.html`)
+}
 const corte = juego.indexOf('<canvas id="cancha"')
 if (corte < 0) throw new Error('no encontré el canvas en juego.html')
 const cabeza = juego.slice(0, corte).trim() // <title>, fuentes y estilos
