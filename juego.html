@@ -2094,12 +2094,13 @@ function apunte() {
     plan = M.planTiro(campo, ronda, ang, p, q, tiempo)
   } else drag.tZona = null
   const arbol = putt ? null : M.pinoEnLaSalida(campo, ronda.pelota, plan) // pega en un árbol al salir: la línea en rojo, cortada ahí
-  // el latido de la potencia: el aro que se abre y se cierra alrededor del dedo (no en el putt ni en la bomba de Miguelón,
-  // que tiene el suyo). Soltando con el aro cerrado (el sweet spot) sale perfecto; cerca del hoyo, la ventana es más ancha
+  // el latido de la potencia: el aro que se achica alrededor de la pelota hasta el dorado (no en el putt ni en la bomba de
+  // Miguelón, que tiene el suyo). Soltando cuando llega (el sweet spot) sale perfecto; cerca, bueno; y si no, el lado
+  // del error lo dice cuándo soltaste. Cerca del hoyo, las ventanas son más anchas
   const latido = !putt && !plan.bomba
   const ventana = latido ? M.ventanaPerfecto(M.aYardas(ronda, M.dist(ronda.pelota, M.hoyoActual(ronda).pin))) : 0
-  const sweet = latido && M.enSweetSpot(drag.fase ?? 0.5, ventana)
-  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, latido, ventana, sweet }
+  const soltada = latido ? M.soltadaLatido(drag.fase ?? 0, ventana) : null
+  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, latido, ventana, soltada, sweet: soltada?.nivel === 'perfecto' }
 }
 
 lienzo.addEventListener('pointerdown', (e) => {
@@ -2150,10 +2151,14 @@ lienzo.addEventListener('pointerup', (e) => {
   // (si al soltar el dedo ya volvió al lugar, no sale nada: así se cancela un tiro)
   const ahora = apunte()
   let a = ahora && (drag.visto ?? ahora)
-  // el latido, justo al soltar (lo que avanzó desde el último cuadro también cuenta): ¿con el aro cerrado?
+  // el latido, en el momento real en que levantaste el dedo (`e.timeStamp`: el evento llega tarde en muchos celus) y
+  // con el atraso de la pantalla descontado (el aro que viste es de un cuadro antes): así lo que se ve es lo que sale
   if (a?.latido) {
-    const f = (drag.fase ?? 0.5) + (performance.now() - (drag.tFase ?? performance.now())) / 1000 / M.periodoLatido(a.p)
-    a = { ...a, perfecto: M.enSweetSpot(f, a.ventana) }
+    const ya = performance.now()
+    const t = e.timeStamp > ya - 1000 && e.timeStamp <= ya + 5 ? e.timeStamp : ya
+    const f = (drag.fase ?? 0) + (t - ATRASO_PANTALLA - (drag.tFase ?? ya)) / 1000 / (drag.periodo ?? M.periodoLatido(a.p))
+    a = { ...a, soltada: M.soltadaLatido(f, a.ventana) }
+    destello = { t0: ya, nivel: a.soltada.nivel, pos: [...ronda.pelota] }
   }
   const base = drag.base
   drag = null
@@ -2214,11 +2219,13 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
-  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, !!a.perfecto)
+  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, a.soltada ?? null)
   if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
   else S.golpe(a.p, a.putt)
-  // soltó en el sweet spot (o es un tiro sin error): "PERFECTO" chiquito al lado de donde salió
-  if (tiro.perfecto) { marcarTiro('PERFECTO', ronda.desde ?? golfista.desde ?? ronda.pelota); S.perfecto() }
+  // cómo soltó, chiquito al lado de donde salió: PERFECTO (o un tiro sin error), BUENO y para qué lado, o TEMPRANO / TARDE
+  const desde = ronda.desde ?? golfista.desde ?? ronda.pelota
+  if (tiro.perfecto) { marcarTiro('PERFECTO', desde); S.perfecto() }
+  else if (a.soltada) marcarTiro(`${a.soltada.nivel === 'bueno' ? 'BUENO · ' : ''}${a.soltada.lado < 0 ? 'TEMPRANO' : 'TARDE'}`, desde, a.soltada.nivel === 'bueno' ? 'bueno' : 'pifia')
   estela = []
   estado = 'tiro'
   hud()
@@ -2469,12 +2476,18 @@ function actualizar(dt) {
   if (drag && estado === 'apuntar') {
     const a = apunte()
     S.carga(a?.p ?? 0, a?.plan?.bomba ? a.q : 0)
-    // el latido de la potencia: avanza más rápido cuanto más fuerte; cada vez que el aro se cierra, un tic suave
+    // el latido de la potencia: más rápido cuanto más fuerte, pero el ritmo cambia de a poco (si no, mientras ajustás el
+    // dedo tartamudea). Dos tics que suben mientras el aro se acerca y la campanita (y el tic del celu) cuando llega
     if (a?.latido) {
-      const antes = drag.fase ?? 0.5
-      drag.fase = antes + dt / M.periodoLatido(a.p)
+      const objetivo = M.periodoLatido(a.p)
+      drag.periodo = drag.periodo == null ? objetivo : drag.periodo + (objetivo - drag.periodo) * Math.min(1, dt / 0.3)
+      const antes = drag.fase ?? 0
+      drag.fase = antes + dt / drag.periodo
       drag.tFase = performance.now()
-      if (Math.floor(drag.fase) > Math.floor(antes)) { S.latido(); tic() }
+      const cruza = (m) => Math.floor(antes - m) < Math.floor(drag.fase - m)
+      if (cruza(M.PERFECTO.centro)) { S.latido(2); tic() }
+      else if (cruza(M.PERFECTO.centro - 0.15)) S.latido(1)
+      else if (cruza(M.PERFECTO.centro - 0.3)) S.latido(0)
     }
   }
   if (ronda && estado === 'apuntar' && !drag) {
@@ -2508,7 +2521,7 @@ function actualizar(dt) {
  */
 let marcasTiro = []
 const MARCA_MS = 1900
-function marcarTiro(txt, pos) { marcasTiro.push({ txt, pos: [...pos], t0: performance.now() }) }
+function marcarTiro(txt, pos, tono = 'oro') { marcasTiro.push({ txt, pos: [...pos], t0: performance.now(), tono }) }
 function dibujarMarcasTiro() {
   if (!marcasTiro.length) return
   const now = performance.now()
@@ -2523,7 +2536,7 @@ function dibujarMarcasTiro() {
     ctx.globalAlpha = u < 0.08 ? u / 0.08 : 1 - Math.max(0, (u - 0.65) / 0.35)
     const w = ctx.measureText(m.txt).width + 14
     ctx.fillStyle = 'rgba(12,43,28,.85)'; ctx.beginPath(); ctx.roundRect(x, y - 10, w, 20, 10); ctx.fill()
-    ctx.fillStyle = C.gold; ctx.fillText(m.txt, x + 7, y + 1)
+    ctx.fillStyle = m.tono === 'oro' ? C.gold : m.tono === 'bueno' ? C.cream : 'rgba(244,238,218,.72)'; ctx.fillText(m.txt, x + 7, y + 1)
   }
   ctx.restore()
 }
@@ -3786,9 +3799,9 @@ function dibujar() {
   for (let i = 0; i < estela.length; i += 2) {
     const [x, y, alt] = estela[i]
     const [sx, sy] = w2s([x, y])
-    ctx.fillStyle = `rgba(244,238,218,${(0.35 * i) / estela.length})`
+    ctx.fillStyle = tiro?.perfecto ? `rgba(232,195,74,${(0.7 * i) / estela.length})` : `rgba(244,238,218,${(0.35 * i) / estela.length})` // el perfecto, dorada
     ctx.beginPath()
-    ctx.arc(sx, sy - alt * levante(), 1.6, 0, 7)
+    ctx.arc(sx, sy - alt * levante(), tiro?.perfecto ? 2.3 : 1.6, 0, 7)
     ctx.fill()
   }
 
@@ -3799,6 +3812,7 @@ function dibujar() {
   dibujarGolfista(aJ)
   dibujarMonos()
   dibujarMarcasTiro()
+  dibujarDestello()
   if (ronda?.duelo?.fantasma) dibujarFantasma()
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
@@ -5383,28 +5397,56 @@ function goma(a, bx, by) {
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex, ey, 5.2, 0, 7); ctx.fill()
   if (drag && fondo && !drag.fondo) { S.nudo(0, true); tic() }
   if (drag) drag.fondo = fondo
-  if (drag && a.latido) dibujarLatido(a)
+  if (drag && a.latido) dibujarLatido(a, bx, by)
 }
 /**
- * El latido de la potencia, alrededor del dedo: un aro que se abre y se cierra sobre un aro fijo dorado. Cuanto más
- * fuerte, más rápido late. Cuando se cierra (el sweet spot), los dos se prenden dorados: soltando ahí, sale perfecto.
+ * El latido de la potencia, alrededor de la pelota (donde mirás la línea, y la mano no lo tapa): un aro que se achica a
+ * velocidad pareja hasta el aro dorado, lo pasa un poquito y vuelve a empezar grande. La franja dorada es el sweet spot
+ * (más ancha cerca del hoyo); cuando el aro está adentro, todo se prende dorado. Cuanto más rápido late, más rojo.
  */
-function dibujarLatido(a) {
-  const f = (((drag.fase ?? 0.5) % 1) + 1) % 1
-  const abre = 0.5 - 0.5 * Math.cos(2 * Math.PI * f) // 0: cerrado; 1: abierto
-  const x = drag.x, y = drag.y
-  const rIn = 26, rOut = 64
-  const r = rIn + (rOut - rIn) * abre
+const ATRASO_PANTALLA = 20 // ms: lo que tarda en verse un cuadro (el aro que viste al soltar es de antes)
+const LATIDO_R = { dorado: 30, afuera: 78 }
+function radioLatido(f) {
+  const c = M.PERFECTO.centro, { dorado, afuera } = LATIDO_R
+  return dorado + (afuera - dorado) * (c - f) / c // pareja: en `centro` llega al dorado; después sigue un poquito adentro
+}
+function dibujarLatido(a, x, y) {
+  const f = (((drag.fase ?? 0) % 1) + 1) % 1
+  const c = M.PERFECTO.centro, v = a.ventana
+  const sweet = a.sweet
+  // cuanto más rápido late, más rojo (de crema a rojo)
+  const rapido = Math.max(0, Math.min(1, (M.PERFECTO.lento - (drag.periodo ?? M.periodoLatido(a.p))) / (M.PERFECTO.lento - M.PERFECTO.rapido)))
+  const mezcla = (a1, b1) => Math.round(a1 + (b1 - a1) * rapido)
+  const colAro = sweet ? C.gold : `rgb(${mezcla(244, 214)},${mezcla(238, 92)},${mezcla(218, 74)})`
   ctx.save()
-  if (a.sweet) { ctx.fillStyle = 'rgba(232,195,74,.28)'; ctx.beginPath(); ctx.arc(x, y, rIn + 6, 0, 7); ctx.fill() }
-  // el aro fijo: ahí se tiene que cerrar
-  ctx.strokeStyle = 'rgba(12,43,28,.7)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(x, y, rIn, 0, 7); ctx.stroke()
-  ctx.strokeStyle = a.sweet ? C.gold : 'rgba(232,195,74,.8)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, rIn, 0, 7); ctx.stroke()
-  // el aro que late
-  const col = a.sweet ? C.gold : a.fondo ? C.red : C.cream
-  ctx.globalAlpha = a.sweet ? 1 : 0.55 + 0.45 * (1 - abre)
+  // la franja del sweet spot (de donde entra a donde sale la ventana de perfecto)
+  const r1 = radioLatido(c - v), r2 = radioLatido(Math.min(1, c + v * M.PERFECTO.tarde))
+  ctx.fillStyle = sweet ? 'rgba(232,195,74,.42)' : 'rgba(232,195,74,.2)'
+  ctx.beginPath(); ctx.arc(x, y, r1, 0, 7); ctx.arc(x, y, r2, 0, 7, true); ctx.fill()
+  // el aro dorado: ahí tiene que llegar
+  ctx.strokeStyle = 'rgba(12,43,28,.65)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(x, y, LATIDO_R.dorado, 0, 7); ctx.stroke()
+  ctx.strokeStyle = C.gold; ctx.lineWidth = sweet ? 3.2 : 2.2; ctx.beginPath(); ctx.arc(x, y, LATIDO_R.dorado, 0, 7); ctx.stroke()
+  // el aro que se achica (aparece suave cuando vuelve a empezar)
+  const r = radioLatido(f)
+  ctx.globalAlpha = Math.min(1, f / 0.1)
   ctx.strokeStyle = 'rgba(12,43,28,.8)'; ctx.lineWidth = 7.5; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke()
-  ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke()
+  ctx.strokeStyle = colAro; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke()
+  if (sweet) { ctx.globalAlpha = 0.35; ctx.strokeStyle = C.gold; ctx.lineWidth = 12; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke() }
+  ctx.restore()
+}
+/** Al soltar, el aro se abre en un destello: dorado si fue perfecto, crema si fue bueno, apenas si no. */
+let destello = null
+function dibujarDestello() {
+  if (!destello) return
+  const u = (performance.now() - destello.t0) / 420
+  if (u >= 1) { destello = null; return }
+  const [x, y] = w2s(destello.pos)
+  const col = destello.nivel === 'perfecto' ? '232,195,74' : destello.nivel === 'bueno' ? '244,238,218' : '244,238,218'
+  const fuerza = destello.nivel === 'perfecto' ? 1 : destello.nivel === 'bueno' ? 0.6 : 0.25
+  ctx.save()
+  ctx.strokeStyle = `rgba(${col},${(1 - u) * 0.9 * fuerza})`
+  ctx.lineWidth = 5 * (1 - u) + 1
+  ctx.beginPath(); ctx.arc(x, y, LATIDO_R.dorado + u * 60, 0, 7); ctx.stroke()
   ctx.restore()
 }
 /** El "tic" del celu: Android vibra; en iPhone (iOS 18+) se toca un interruptor nativo escondido, que hace el tic del sistema. */

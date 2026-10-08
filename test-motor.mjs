@@ -1836,9 +1836,17 @@ ok('el latido de la potencia: más rápido cuanto más fuerte, ventana más anch
   assert.equal(M.ventanaPerfecto(200), M.PERFECTO.ventana)
   assert.ok(Math.abs(M.ventanaPerfecto(20) - M.PERFECTO.ventana * M.PERFECTO.cerca) < 1e-12)
   assert.ok(M.ventanaPerfecto(90) > M.ventanaPerfecto(150) && M.ventanaPerfecto(90) < M.ventanaPerfecto(30))
-  // el sweet spot: con el aro cerrado (cada latido entero), ± la ventana
-  assert.ok(M.enSweetSpot(3, 0.07) && M.enSweetSpot(2.95, 0.07) && M.enSweetSpot(4.06, 0.07))
-  assert.ok(!M.enSweetSpot(3.5, 0.07) && !M.enSweetSpot(3.1, 0.07))
+  // el sweet spot: cuando el aro llega al dorado (en `centro` de cada latido), ± la ventana (un poco más del lado de tarde)
+  const c = M.PERFECTO.centro
+  assert.ok(M.enSweetSpot(3 + c, 0.07) && M.enSweetSpot(2 + c - 0.06, 0.07) && M.enSweetSpot(4 + c + 0.08, 0.07))
+  assert.ok(!M.enSweetSpot(3 + c - 0.08, 0.07) && !M.enSweetSpot(3.3, 0.07))
+  // temprano o tarde, perfecto, bueno o nada
+  assert.deepEqual([M.soltadaLatido(c - 0.03, 0.07).nivel, M.soltadaLatido(c - 0.03, 0.07).lado], ['perfecto', -1])
+  assert.deepEqual([M.soltadaLatido(c + 0.12, 0.07).nivel, M.soltadaLatido(c + 0.12, 0.07).lado], ['bueno', 1])
+  assert.deepEqual([M.soltadaLatido(c - 0.12, 0.07).nivel, M.soltadaLatido(c - 0.12, 0.07).lado], ['bueno', -1])
+  assert.deepEqual([M.soltadaLatido(0.3, 0.07).nivel, M.soltadaLatido(0.3, 0.07).lado], [null, -1])
+  assert.equal(M.soltadaLatido(1 + c + 0.1, 0.07).lado, 1) // el aro ya pasó el dorado: tarde
+  assert.equal(M.soltadaLatido(1.02, 0.07).lado, -1) // volvió a empezar (grande): temprano del próximo
   // el perfecto: un cuarto del error de siempre (no cero); sin el sweet spot, nunca perfecto
   const plan = (perfecto) => ({ putt: false, cuerda: 0, carry: 100, disp: { ang: 0.1, carry: 0.1 }, control: null, perfecto })
   const medir = (perfecto) => {
@@ -1857,6 +1865,22 @@ ok('el latido de la potencia: más rápido cuanto más fuerte, ventana más anch
   assert.equal(perfecto.perf, 5000)
   assert.ok(Math.abs(perfecto.err / comun.err - M.PERFECTO.error) < 0.02, `el perfecto sale con ${perfecto.err / comun.err} del error`)
   assert.ok(perfecto.min > 0)
+  // el bueno: con `errorBueno` del error; el lado lo decide cuándo soltó (temprano: izquierda; tarde: derecha)
+  const lados = (lado, bueno) => {
+    const rr = M.rngDesde(7)
+    let izq = 0, der = 0, err = 0
+    for (let i = 0; i < 2000; i++) {
+      const t = M.lanzar(campo, { pelota: [0, 0], angulo: 0, potencia: 0.5, viento: calma, putt: false, lie: 'fairway', rng: rr, plan: { ...plan(false), bueno, lado } })
+      const a = Math.atan2(t.carryVec[1], t.carryVec[0])
+      if (a < 0) izq++; else if (a > 0) der++
+      err += Math.abs(a) / 0.1
+    }
+    return { izq, der, err: err / 2000 }
+  }
+  const temprano = lados(-1, false), tarde = lados(1, false), bueno = lados(1, true)
+  assert.equal(temprano.der, 0); assert.ok(temprano.izq > 1900)
+  assert.equal(tarde.izq, 0); assert.ok(tarde.der > 1900)
+  assert.ok(Math.abs(bueno.err / tarde.err - M.PERFECTO.errorBueno) < 0.05)
   // golpear: el perfecto no va en el putt
   const r = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃', hcp: 14.6 }, fijo(0.5)), monos: [] }
   assert.equal(M.golpear(campo, { ...r, pelota: [...r.pelota] }, -Math.PI / 2, 0.5, sinRuido(), 0, 0, null, true).perfecto, true)
