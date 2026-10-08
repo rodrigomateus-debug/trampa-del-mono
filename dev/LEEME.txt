@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy es igual al juego publicado (la raíz).
+Hoy: el juego publicado + el récord de matches sin empates (Historial, ranking de matches y la ficha: solo ganados y perdidos), para probar.
