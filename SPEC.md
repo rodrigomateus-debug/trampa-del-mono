@@ -434,3 +434,7 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - Cada green tiene un **sector pronunciado** (`fuerte: true` en una de sus `caidas`): ahí cae `CAIDA.fuerte` = 2,2 veces más, en una campana más chica (`anchoFuerte` = 6 yd): la pelota se va más. 15: el fondo; 16: atrás a la derecha; 17: el de adelante.
 - Las flechitas: donde cae más, corren más rápido (como siempre, ahora se nota: en el sector pronunciado van al doble) y son un poco más grandes; más marcadas (alfa hasta 0,62). En los greens oscuros (lluvia y lluvia intensa) van claras; en los demás, oscuras.
 - Calibración (80 vueltas): Lechu +1,35, El Sueco +0,07 (el bot calcula la caída exacta: para una persona, más difícil de lo que dice el número).
+
+## ⚪ La pelota de golf (2026-10-08)
+
+- La pelota se parece a una de verdad (`pelota`): blanca con sus dimples en panal (más chatos hacia el borde, como en una esfera, cada uno con su sombrita del lado de la luz), luz de arriba a la izquierda con su brillo, el borde de abajo a la derecha un poco más gris, un borde finito para que se lea sobre el green claro y la nieve, y una sombra suave en el piso (en el aire, más chica y más clara). Los dimples son una textura que se arma una vez por color (`spritePelota`) y gira a medida que la pelota avanza: se nota que rueda. En la nieve, naranja con los mismos dimples. Mismo tamaño que antes (`radioPelota`).

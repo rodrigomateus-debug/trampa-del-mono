@@ -1594,7 +1594,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 44a64a8 · 8/10, 08:10 a. m.</span>
+  <span class="version" id="version">v 367360c · 8/10, 08:26 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -5099,22 +5099,67 @@ function dibujarGolfista(a) {
 /** Miguelón revolea el palo: el jugador termina el swing con bronca y el palo sale volando para cualquier lado. */
 function golfistaTiraPalo() { golfista.tira = { t0: performance.now(), dir: -Math.PI / 2 + (Math.random() - 0.5) * 2.4 } }
 
+/**
+ * La pelota, como una de golf de verdad: blanca, con sus dimples (los hoyuelos, en panal, más chatos hacia el borde
+ * como en una esfera, cada uno con su sombrita del lado de la luz), la luz de arriba a la izquierda con su brillo, el
+ * borde un poco más gris y una sombra suave en el piso. Los dimples van en una textura que se arma una vez por color y
+ * gira a medida que la pelota avanza (rueda); la luz y la sombra quedan fijas. En la nieve, naranja.
+ */
+const SPRITE_PELOTA = new Map()
+function spritePelota(color) {
+  if (SPRITE_PELOTA.has(color)) return SPRITE_PELOTA.get(color)
+  const R = 48, c = document.createElement('canvas')
+  c.width = c.height = R * 2
+  const g = c.getContext('2d')
+  g.fillStyle = color
+  g.beginPath(); g.arc(R, R, R, 0, 7); g.fill()
+  g.save(); g.beginPath(); g.arc(R, R, R, 0, 7); g.clip()
+  const paso = 8.6, rd = 3.3 // el panal de dimples
+  for (let fila = -7; fila <= 7; fila++) for (let col = -7; col <= 7; col++) {
+    const x = col * paso + (fila % 2 ? paso / 2 : 0), y = fila * paso * 0.866
+    const d = Math.hypot(x, y) / R
+    if (d > 1.04) continue
+    const k = Math.sqrt(Math.max(0.08, 1 - Math.min(1, d) * Math.min(1, d))) // hacia el borde, más chatos (de costado)
+    g.save(); g.translate(R + x, R + y); g.rotate(Math.atan2(y, x))
+    g.fillStyle = 'rgba(70,80,90,.16)'; g.beginPath(); g.ellipse(-0.5 * k, 0, rd * k, rd, 0, 0, 7); g.fill() // el hueco
+    g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(0.7 * k, 0, rd * k * 0.55, rd * 0.75, 0, 0, 7); g.fill() // el borde que toma luz
+    g.restore()
+  }
+  g.restore()
+  SPRITE_PELOTA.set(color, c)
+  return c
+}
 function pelota(p, alt, alfa = 1, pantalla = null) {
   const [x, y] = pantalla ?? w2s(p)
   const r = radioPelota() * (1 + alt / 50)
-  ctx.globalAlpha = alfa * 0.35
-  ctx.fillStyle = '#000'
-  ctx.beginPath()
-  ctx.ellipse(x + 1, y + 1, r * 0.9, r * 0.6, 0, 0, 7)
-  ctx.fill()
+  const yb = y - alt * levante()
+  // la sombra en el piso: suave, abajo a la derecha (en el aire, más chica y más clara)
+  const lejos = Math.min(1, alt / 30)
+  ctx.globalAlpha = alfa * (0.4 - 0.2 * lejos)
+  const sg = ctx.createRadialGradient(x + r * 0.35, y + r * 0.45, 0, x + r * 0.35, y + r * 0.45, r * (1.05 - 0.25 * lejos))
+  sg.addColorStop(0, 'rgba(0,0,0,.9)'); sg.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = sg
+  ctx.beginPath(); ctx.ellipse(x + r * 0.35, y + r * 0.45, r * (1.05 - 0.25 * lejos), r * (0.75 - 0.2 * lejos), 0, 0, 7); ctx.fill()
   ctx.globalAlpha = alfa
-  ctx.fillStyle = ronda?.clima?.id === 'nieve' ? '#ff7a1a' : '#ffffff' // en la nieve, la pelota naranja (si no, no se ve)
-  ctx.strokeStyle = 'rgba(12,43,28,.55)'
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.arc(x, y - alt * levante(), r, 0, 7)
-  ctx.fill()
-  ctx.stroke()
+  // la pelota con sus dimples (gira con lo que avanza)
+  const color = ronda?.clima?.id === 'nieve' ? '#ff7a1a' : '#ffffff' // en la nieve, la pelota naranja (si no, no se ve)
+  const gira = p ? (p[0] * 1.7 + p[1] * 2.3) / 0.42 : 0
+  ctx.save(); ctx.translate(x, yb); ctx.rotate(gira)
+  ctx.drawImage(spritePelota(color), -r, -r, 2 * r, 2 * r)
+  ctx.restore()
+  // la luz: el brillo arriba a la izquierda y el borde de abajo a la derecha, más gris
+  const luz = ctx.createRadialGradient(x - r * 0.38, yb - r * 0.42, r * 0.05, x - r * 0.1, yb - r * 0.1, r * 1.05)
+  luz.addColorStop(0, 'rgba(255,255,255,.95)')
+  luz.addColorStop(0.28, 'rgba(255,255,255,.25)')
+  luz.addColorStop(0.62, 'rgba(255,255,255,0)')
+  luz.addColorStop(0.88, 'rgba(70,82,96,.16)')
+  luz.addColorStop(1, 'rgba(40,50,62,.38)')
+  ctx.fillStyle = luz
+  ctx.beginPath(); ctx.arc(x, yb, r, 0, 7); ctx.fill()
+  // un borde finito, para que se lea sobre el green claro y la nieve
+  ctx.strokeStyle = 'rgba(12,43,28,.4)'
+  ctx.lineWidth = r > 8 ? 1.2 : 0.8
+  ctx.beginPath(); ctx.arc(x, yb, r, 0, 7); ctx.stroke()
   ctx.globalAlpha = 1
 }
 
