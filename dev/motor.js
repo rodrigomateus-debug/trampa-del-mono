@@ -76,16 +76,20 @@ export function limiteEmbocar(d) {
 
 // La caída del green, fluida como en uno real: cada hoyo tiene de 2 a 4 zonas (`caidas`, un punto y su caída en
 // yd/s²) y en cada lugar del green la caída es la mezcla de todas, pesada por cercanía (campana de `ancho` yardas).
-export const CAIDA = { ancho: 8 }
+// Cada green tiene un sector pronunciado (`fuerte`, 2026-10-08): ahí cae `fuerte` veces más, en una campana más chica
+// (`anchoFuerte`): la pelota se va más y las flechitas corren más rápido; el resto, como siempre.
+export const CAIDA = { ancho: 8, fuerte: 2.2, anchoFuerte: 6 }
 /** La caída del green en ese punto (yd/s²). Sin zonas, la del hoyo. */
 export function caidaEn(h, p) {
   if (!h.caidas?.length) return h.caida
   let sx = 0, sy = 0, sw = 0
   for (const z of h.caidas) {
     const d2 = (p[0] - z.p[0]) ** 2 + (p[1] - z.p[1]) ** 2
-    const w = Math.exp(-d2 / (2 * CAIDA.ancho * CAIDA.ancho)) + 1e-9
-    sx += z.v[0] * w
-    sy += z.v[1] * w
+    const a = z.fuerte ? CAIDA.anchoFuerte : CAIDA.ancho // el sector pronunciado es más chico
+    const w = Math.exp(-d2 / (2 * a * a)) + 1e-9
+    const k = z.fuerte ? CAIDA.fuerte : 1
+    sx += z.v[0] * k * w
+    sy += z.v[1] * k * w
     sw += w
   }
   return [sx / sw, sy / sw]
@@ -240,18 +244,6 @@ function charcosDe(campo, h, n, rng) {
   }
   return out
 }
-/**
- * El viento que tuvo un match en el hoyo `idx` después de `golpes` golpes en ese hoyo (para el replay): el del hoyo,
- * que sale de la semilla, con el mínimo del clima; nublado, el que cambió después de cada tiro (climaTrasTiro). Sin
- * clima (un match de antes del clima), el del hoyo tal cual.
- */
-export function vientoDelMatch(cond, clima, idx, golpes = 0) {
-  const r = { clima, idx, golpes: 0, lie: 'green', terminada: false, viento: { ...cond.vientos[idx] } }
-  if (!clima) return r.viento
-  vientoDelClima(r)
-  if (golpes > 0) { r.golpes = golpes; climaTrasTiro(null, r, () => 1) }
-  return r.viento
-}
 /** El viento según el clima: con lluvia intensa, nunca menos de `vientoMin`. */
 function vientoDelClima(r) {
   const c = climaDe(r)
@@ -316,7 +308,7 @@ export const HOYOS = [
     calle: [[58, 278], [50, 237.5], [47.5, 186], [46.3, 135], [43.8, 80]],
     caida: [0.55, -0.35],
     // la caída cambia por zonas (centros de cada parte del green; se mezclan suave, ver caidaEn)
-    caidas: [{ p: [40, 31], v: [-0.5, 0.3] }, { p: [29, 43], v: [0.55, -0.35] }, { p: [39, 53], v: [0.3, 0.55] }],
+    caidas: [{ p: [40, 31], v: [-0.5, 0.3], fuerte: true }, { p: [29, 43], v: [0.55, -0.35] }, { p: [39, 53], v: [0.3, 0.55] }],
     monos: [{ a: [26.5, 200.5], b: [72.5, 195.5], fase: 0 }, { a: [22.5, 106.5], b: [62.5, 117.5], fase: 11 }],
   },
   {
@@ -329,7 +321,7 @@ export const HOYOS = [
     verso: 'El dieciséis no es más fácil, te desafía sin piedad.',
     calle: [[105, 172.5], [105.5, 222.5], [106.3, 275], [104.5, 325], [103.8, 347.5]],
     caida: [-0.5, 0.45],
-    caidas: [{ p: [105, 386], v: [0.45, 0.4] }, { p: [107, 401], v: [-0.5, 0.45] }, { p: [118, 414], v: [-0.3, -0.5] }, { p: [103, 420], v: [0.5, -0.3] }],
+    caidas: [{ p: [105, 386], v: [0.45, 0.4] }, { p: [107, 401], v: [-0.5, 0.45] }, { p: [118, 414], v: [-0.3, -0.5], fuerte: true }, { p: [103, 420], v: [0.5, -0.3] }],
     monos: [{ a: [75.5, 225.5], b: [130.5, 220.5], fase: 4 }, { a: [77.5, 315.5], b: [128.5, 323.5], fase: 15 }],
   },
   {
@@ -342,7 +334,7 @@ export const HOYOS = [
     verso: 'El diecisiete llega, pensás que vas a escapar…',
     calle: [[148.8, 265], [151.3, 212.5], [155, 162.5], [156.3, 120]],
     caida: [0.45, 0.55],
-    caidas: [{ p: [149, 65], v: [0.45, 0.55] }, { p: [155, 89], v: [-0.55, -0.2] }],
+    caidas: [{ p: [149, 65], v: [0.45, 0.55] }, { p: [155, 89], v: [-0.55, -0.2], fuerte: true }],
     monos: [{ a: [124.5, 174.5], b: [180.5, 172.5], fase: 7 }, { a: [129.5, 271.5], b: [174.5, 264.5], fase: 18 }],
   },
 ]
@@ -1087,16 +1079,12 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     return { modo: 'putt', fase: 'rodando', pos: [...pelota], alt: 0, v: [Math.cos(a) * v0, Math.sin(a) * v0], carry: 0, giro: plan?.giro ?? 0, labio: false, eventos: [] }
   }
   const p = plan ?? planBase(angulo, potencia, lie)
-  // el error del tiro, en desvíos (el swing de stock lo achica); salió al medio: perfecto (un tiro sin error, como los
-  // de Demetrio o LG sin error, sale perfecto siempre: es real). El perfecto no es cero: hasta `resto` desvíos
-  const k = p.stock ? STOCK.error : 1
-  let ze = gauss(rng) * k
-  let g = gauss(rng) * k
-  const zr = Math.hypot(ze, g)
-  const radio = p.radioPerfecto ?? PERFECTO.radio
-  const perfecto = !!p.perfectoFondo || !(p.disp.ang > 0 || p.disp.carry > 0) || zr < radio
-  // adentro del perfecto (hasta `resto` desvíos); el perfecto a fondo que salió afuera, también, más cerca cuanto más lejos
-  if (perfecto && zr > 0) { const f = zr < radio ? PERFECTO.resto / radio : (PERFECTO.resto * radio) / (zr * zr); ze *= f; g *= f }
+  // el error del tiro, en desvíos: el perfecto (soltó en el sweet spot del latido) sale con un cuarto, no con cero.
+  // Un tiro sin error (Demetrio, LG sin error, el de Deme) sale perfecto siempre: es real
+  const k = p.perfecto ? PERFECTO.error : 1
+  const ze = gauss(rng) * k
+  const g = gauss(rng) * k
+  const perfecto = !!p.perfecto || !(p.disp.ang > 0 || p.disp.carry > 0)
   const err = ze * p.disp.ang
   // una bomba mal pegada nunca va más lejos: se queda corta
   const carry = Math.max(0, p.carry * (p.real ?? FISICA.factorReal[lie] ?? 1) * (p.bomba ? 1 - Math.abs(g) * p.disp.carry : 1 + g * p.disp.carry))
@@ -1135,8 +1123,6 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     bomba: !!p.bomba,
     perfecta: !!p.perfecta,
     perfecto,
-    fondoJusto: !!p.perfectoFondo,
-    stock: !!p.stock,
     comba: !!p.comba,
     golpe: p.golpe ?? null,
     ruta, // el Dibuje maestro: el vuelo, punto a punto (relativo a `desde`), a velocidad pareja
@@ -1688,31 +1674,11 @@ export function posVuelo(tiro, u) {
   return [tiro.desde[0] + tiro.controlVec[0] * b1 + (tiro.carryVec[0] + tiro.deriva[0]) * b2, tiro.desde[1] + tiro.controlVec[1] * b1 + (tiro.carryVec[1] + tiro.deriva[1]) * b2]
 }
 
-/**
- * La potencia que hace picar la pelota en la bandera (la mini bandera de la goma), apuntando para `angulo`: sin viento ni
- * error, con lo que se ve al apuntar (el lie, el clima, la bomba) y lo que pasa de verdad (el bunker: la mitad). null si
- * no llega ni a fondo, o en el green (el putt).
- */
-export function potenciaAlPin(campo, r, angulo) {
-  if (enModoPutt(campo, r)) return null
-  const d = dist(r.pelota, hoyoActual(r).pin)
-  const llega = (p) => { const pl = planTiro(campo, r, angulo, p); return pl.carry * (pl.real ?? 1) }
-  if (llega(1) < d) return null
-  let lo = 0, hi = 1
-  for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (llega(m) < d) lo = m; else hi = m }
-  return hi
-}
-
 /** Pegarle: cuenta el golpe y devuelve el tiro para animarlo con `avanzar` (que también mueve los monos). */
-export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null, stock = false, justo = false) {
+export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null, perfecto = false) {
   const plan = planTiro(campo, r, angulo, potencia, precision, tiempo, ruta)
-  // soltó justo en el nudo rojo (a fondo): sale perfecto. No en el putt, la bomba, la comba ni el Dibuje
-  if (justo && !plan.putt && !plan.bomba && !plan.comba && !ruta && plan.disp?.fondo) plan.perfectoFondo = true
-  // el swing de stock (soltó justo en el nudo de ½ o de ¾, con el dedo quieto): no en el putt, la bomba ni el Dibuje
-  // (`stock`: true con los nudos de siempre, o la lista de los nudos que tenía la goma: con la bandera al alcance, se mueven)
-  if (stock && !plan.putt && !plan.bomba && !ruta && enNudoStock(potencia, Array.isArray(stock) ? stock : STOCK.nudos) != null) plan.stock = true
-  // cuanto más cerca del hoyo, más margen para el perfecto
-  if (!plan.putt) plan.radioPerfecto = radioPerfecto(aYardas(r, dist(r.pelota, hoyoActual(r).pin)))
+  // soltó en el sweet spot del latido: el tiro perfecto (no en el putt, la bomba de Miguelón ni el Dibuje)
+  if (perfecto && !plan.putt && !plan.bomba && !ruta) plan.perfecto = true
   r.desde = [...r.pelota]
   r.lieDesde = r.lie
   r.golpes += 1
@@ -2241,54 +2207,22 @@ export const ADULACION = {
 export const PALOS = { wedge: 50 }
 
 /**
- * El tiro PERFECTO: el que sale al medio (el error de dirección y el de largo, los dos adentro de `radio` desvíos: ~4%
- * de los tiros completos; los tiros sin error, siempre). Perfecto no es cero: sale con `resto` de su error de siempre
- * como mucho (~un cuarto, en promedio), así que el perfecto de un handicap alto igual se abre más que el de uno bajo.
- * Lo dice chiquito al lado de donde salió. En el chip y el approach (hasta `BACKSPIN.approach` yd, no desde la salida)
- * además hace backspin: pica en el green o la calle y vuelve `base` + `porYarda` × el largo del tiro, como los pros.
- *
- * Cuanto más cerca del hoyo, más margen para el perfecto (`radioPerfecto`): de ~4% de lejos a ~12% cerca.
- *
- * El SWING DE STOCK: soltar justo en un nudo de la goma (⅛, ¼, ½ o ¾; ± `margenU` del estirón) con el dedo quieto
- * (`quieto` ms sin moverse): el tiro sale con `error` × su error de siempre, y el perfecto sale ~3 veces más. La
- * distancia queda la del nudo: como los pros, cada uno se aprende sus yardas de cada nudo con cada palo.
+ * El tiro PERFECTO sale del LATIDO de la potencia: mientras estirás, alrededor del dedo un aro se abre y se cierra, y
+ * cuanto más fuerte le vas a pegar, más rápido late (de `lento` segundos por latido con lo más suave a `rapido` a
+ * fondo). Soltar justo cuando el aro se cierra (el sweet spot: ± `ventana` del latido) es el tiro perfecto: sale con
+ * `error` × su error de siempre (un cuarto: no es cero, y como el error depende del handicap, el perfecto de un handicap
+ * alto se abre más que el de uno bajo). Cerca del hoyo la ventana es más ancha (hasta × `cerca` a `junto` yd o menos).
+ * Los tiros sin error (Demetrio, LG sin error, el tiro de Deme) salen perfectos siempre. Lo dice chiquito al lado de
+ * donde salió. En el chip y el approach (hasta `BACKSPIN.approach` yd, no desde la salida) además hace backspin: pica en
+ * el green o la calle y vuelve `base` + `porYarda` × el largo del tiro, como los pros.
  */
-export const PERFECTO = { radio: 0.3, cerca: 0.5, lejos: 150, junto: 30, resto: 0.35 }
-/** El margen del perfecto según lo lejos del hoyo (yardas reales): cuanto más cerca, más fácil (`radio` desde `lejos` yd, `cerca` a `junto` yd o menos). */
-export const radioPerfecto = (yd) => PERFECTO.radio + (PERFECTO.cerca - PERFECTO.radio) * Math.max(0, Math.min(1, (PERFECTO.lejos - yd) / (PERFECTO.lejos - PERFECTO.junto)))
-// los nudos de stock: ⅛ y ¼ (chips cortos), ½ y ¾. El margen es de largo de dedo (en el estirón, no en la potencia:
-// la potencia es el estirón a la 1,35), así todos los nudos piden la misma puntería
-export const STOCK = { nudos: [0.125, 0.25, 0.5, 0.75], margenU: 0.025, quieto: 120, error: 0.6, exp: 1.35 }
-export const enNudoStock = (p, nudos = STOCK.nudos) => nudos.find((m) => Math.abs(Math.pow(p, 1 / STOCK.exp) - Math.pow(m, 1 / STOCK.exp)) <= STOCK.margenU) ?? null
-/**
- * Los nudos de la goma (en potencia), sin el rojo de "a fondo". Sin la bandera al alcance, los de siempre (⅛, ¼, ½, ¾).
- * Con la bandera al alcance (`alPin`: la potencia que pica en ella, ver potenciaAlPin), la bandera es un nudo más y los
- * otros cuatro se reparten parejo, en el largo de la goma, antes de ella y entre ella y el rojo (cuantos más de un
- * lado, cuanto más largo es ese tramo). Todos valen para el swing de stock (`stock`), la bandera también. Si la bandera
- * queda a fondo (`enFondo`), va adentro del nudo rojo y los nudos son los de siempre.
- */
-export function nudosGoma(alPin = null) {
-  const e = STOCK.exp, uR = Math.pow(0.97, 1 / e)
-  if (alPin == null) return { nudos: STOCK.nudos, bandera: null, enFondo: false, stock: STOCK.nudos }
-  if (alPin >= 0.97) return { nudos: STOCK.nudos, bandera: null, enFondo: true, stock: STOCK.nudos }
-  const uF = Math.pow(Math.max(0, alPin), 1 / e)
-  const n = STOCK.nudos.length
-  const antes = Math.max(0, Math.min(n, Math.round((n * uF) / uR)))
-  const despues = n - antes
-  const us = [
-    ...Array.from({ length: antes }, (_, i) => (uF * (i + 1)) / (antes + 1)),
-    ...Array.from({ length: despues }, (_, i) => uF + ((uR - uF) * (i + 1)) / (despues + 1)),
-  ]
-  const nudos = us.map((u) => Math.pow(u, e))
-  return { nudos, bandera: alPin, enFondo: false, stock: [...nudos, alPin].sort((a, b) => a - b) }
-}
-/**
- * El PERFECTO A FONDO (2026-10-07): soltar justo en el nudo rojo de la goma (el estirón `u`, largo del dedo / largo a
- * fondo, entre `desde` —donde empieza "a fondo", 0,97 de potencia— y `hasta`) sale perfecto, aunque a fondo el error es
- * el más grande. Estirar de más (pasarse del nudo) sigue siendo a fondo con todo su error: hay que soltar justo.
- */
-export const FONDO_JUSTO = { desde: Math.pow(0.97, 1 / STOCK.exp), hasta: 1.05 }
-export const enFondoJusto = (u) => u >= FONDO_JUSTO.desde && u <= FONDO_JUSTO.hasta
+export const PERFECTO = { lento: 1.2, rapido: 0.42, ventana: 0.07, cerca: 1.6, lejos: 150, junto: 30, error: 0.25 }
+/** Segundos por latido con esta potencia (0 a 1). */
+export const periodoLatido = (p) => PERFECTO.lento + (PERFECTO.rapido - PERFECTO.lento) * Math.max(0, Math.min(1, p))
+/** La ventana del sweet spot (fracción del latido, para cada lado) según lo lejos del hoyo (yardas reales). */
+export const ventanaPerfecto = (yd) => PERFECTO.ventana * (1 + (PERFECTO.cerca - 1) * Math.max(0, Math.min(1, (PERFECTO.lejos - yd) / (PERFECTO.lejos - PERFECTO.junto))))
+/** ¿Está en el sweet spot? `fase` cuenta latidos: en cada entero el aro está cerrado. */
+export const enSweetSpot = (fase, ventana) => { const f = ((fase % 1) + 1) % 1; return Math.min(f, 1 - f) <= ventana }
 export const BACKSPIN = { approach: 110, base: 1.5, porYarda: 0.025, en: ['green', 'fairway'] }
 export function paloDe(campo, r) {
   if (enModoPutt(campo, r)) return 'putter'

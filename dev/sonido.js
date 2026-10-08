@@ -260,17 +260,17 @@ export function carga(p, latido = 0) {
   cargaOsc.frequency.setTargetAtTime(180 + p * 520 + latido * 120, t, 0.03)
   cargaGain.gain.setTargetAtTime(0.03 + p * 0.06, t, 0.04)
 }
-/** El clic al pasar un nudo de la goma (½, ¾): cada uno un poco más agudo; el de a fondo, un "tac" más fuerte. */
+/** El clic de la goma a fondo: un "tac" seco. */
 export function nudo(i, fondo) {
   if (fondo) { tono(2100, 0.05, { vol: 0.16, tipo: 'square' }); ruido(0.03, { f: 4200, vol: 0.06 }); return }
   tono(1400 + i * 160, 0.04, { vol: 0.13, tipo: 'triangle' }); ruido(0.02, { f: 3600, vol: 0.04 })
 }
+/** El latido de la potencia: cada vez que el aro se cierra (el sweet spot), un "tuc" suave y redondo. */
+export function latido() { tono(988, 0.07, { vol: 0.08, tipo: 'sine' }); tono(1480, 0.05, { vol: 0.035, tipo: 'sine', at: 0.02 }) }
 /** El tiro perfecto: un "ting" cortito y brillante, arriba del golpe. */
 export function perfecto() { campana(1567.98, 0, 0.09); campana(2093, 0.07, 0.07) }
 /** El backspin: la pelota que muerde el green y vuelve: un "zip" que baja. */
 export function backspin() { ruido(0.22, { f: 3200, f2: 900, q: 2.5, vol: 0.12, ataque: 0.01 }); tono(900, 0.16, { vol: 0.05, f2: 500, tipo: 'triangle', at: 0.03 }) }
-/** El swing de stock: quedaste quieto justo en el nudo: un "tuc" redondo, más grave y suave que el de pasar el nudo. */
-export function stock() { tono(988, 0.09, { vol: 0.11, tipo: 'sine' }); tono(1480, 0.06, { vol: 0.05, tipo: 'sine', at: 0.035 }) }
 export function cargaFin() {
   if (!cargaOsc) return
   const o = cargaOsc, g = cargaGain

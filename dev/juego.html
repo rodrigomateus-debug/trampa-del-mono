@@ -866,6 +866,13 @@ input { -webkit-user-select: text; user-select: text; }
 #replay { position: fixed; inset: 0; z-index: 55; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; color: var(--cream); }
 #replay[hidden] { display: none; }
 #replay > * { pointer-events: auto; }
+/* el replay limpio: tocando la cancha se van los controles y queda arriba, sutil, solo el hoyo a hoyo; otro toque y vuelven */
+.rp-arriba, .rp-mandos, .rp-marcador { transition: opacity 220ms ease, transform 220ms ease, background 220ms ease; }
+#replay.limpio .rp-arriba { padding-bottom: 8px; background: none; pointer-events: none; }
+#replay.limpio .rp-arriba > :not(.rp-marcador) { display: none; }
+#replay.limpio .rp-marcador { opacity: .85; background: rgba(12, 43, 28, .55); }
+#replay.limpio .rp-mandos { opacity: 0; transform: translateY(14px); pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .rp-arriba, .rp-mandos, .rp-marcador { transition: none; } }
 .rp-arriba { padding: calc(var(--safe-top) + 10px) 12px 26px; background: linear-gradient(rgba(8, 26, 16, .9), rgba(8, 26, 16, .62) 70%, transparent); display: grid; gap: 8px; }
 .rp-cab { display: flex; align-items: center; justify-content: space-between; }
 .rp-titulo { font: 26px/1 var(--font-display); letter-spacing: .04em; display: flex; align-items: baseline; gap: 8px; }
@@ -913,25 +920,6 @@ input { -webkit-user-select: text; user-select: text; }
 .rp-marcador tr.gano th, .rp-marcador tr.gano td.tot { color: var(--gold); }
 .rp-marcador tr.gano th::after { content: ' 🏆'; font-size: 12px; }
 @media (max-width: 359px) { .rp-fin { font-size: 18px; text-align: center; } .rp-mc-estado span:not(:only-child) { display: none; } .rp-marcador td.t { font-size: 11px; } .rp-marcador thead th:first-child { width: 31%; } .rp-marcador thead th.t { width: 21%; } }
-/* el clima que hubo en el match, al lado del título (el mismo chip que en la vuelta) */
-.rp-titulo .clima-chip { align-self: center; margin-left: 2px; cursor: default; font-size: 12px; }
-/* la vista limpia: tocando la cancha se van los controles y queda solo el hoyo a hoyo, chiquito y arriba de todo.
-   Otro toque (en cualquier lado) los trae de vuelta. */
-#replay.limpio .rp-arriba { padding: calc(var(--safe-top) + 6px) 10px 0; background: none; pointer-events: none; }
-#replay.limpio .rp-cab, #replay.limpio .rp-jugadores, #replay.limpio .rp-nota, #replay.limpio .rp-mandos { display: none; }
-#replay.limpio .rp-marcador { padding: 4px 8px 5px; border-color: transparent; background: rgba(8, 26, 16, .42); animation: rp-limpio 220ms ease-out both; }
-#replay.limpio .rp-mc-estado { margin-bottom: 1px; }
-#replay.limpio .rp-marcador thead th { height: 16px; font-size: 9px; }
-#replay.limpio .rp-marcador thead th small { display: none; }
-#replay.limpio .rp-marcador tbody th { height: 20px; font-size: 13px; }
-#replay.limpio .rp-marcador td { font-size: 15px; }
-#replay.limpio .rp-marcador td.tot { font-size: 16px; }
-#replay.limpio .rp-marcador td.t { font-size: 11px; }
-@keyframes rp-limpio { from { opacity: 0; } }
-/* la primera vez: que se sepa que tocando la cancha se ve sin controles */
-.rp-tip { justify-self: center; margin: 0; padding: 5px 12px; border-radius: 999px; background: rgba(244, 238, 218, .12); font: 700 12px var(--font-body); color: rgba(244, 238, 218, .9); animation: rp-limpio 300ms ease-out both; }
-.rp-tip[hidden] { display: none; }
-@media (prefers-reduced-motion: reduce) { #replay.limpio .rp-marcador, .rp-tip { animation: none; } }
 .rp-mandos { margin: 0 10px calc(var(--safe-bot) + 10px); padding: 10px 12px 12px; border-radius: 18px; background: rgba(8, 26, 16, .9); box-shadow: var(--shadow-pop); display: grid; gap: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .rp-linea { display: flex; align-items: center; gap: 10px; }
 .rp-t { flex: none; min-width: 34px; font: 700 12px var(--font-body); font-variant-numeric: tabular-nums; color: rgba(244, 238, 218, .85); text-align: center; }
@@ -1718,14 +1706,13 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <section id="replay" hidden aria-label="Replay del match">
   <div class="rp-arriba">
-    <div class="rp-cab"><span class="rp-titulo">REPLAY<small>del match</small><span class="clima-chip" id="rp-clima" hidden><span class="cc-ico" aria-hidden="true"></span><span class="cc-txt"></span></span></span><button class="redondo" id="rp-cerrar" type="button" aria-label="Cerrar el replay"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button></div>
+    <div class="rp-cab"><span class="rp-titulo">REPLAY<small>del match</small></span><button class="redondo" id="rp-cerrar" type="button" aria-label="Cerrar el replay"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button></div>
     <div class="rp-jugadores" id="rp-jugadores"></div>
     <div class="rp-marcador" id="rp-marcador" aria-label="Hoyo a hoyo"></div>
     <p class="rp-nota" id="rp-nota" hidden></p>
     <p class="rp-fin" id="rp-fin" hidden aria-live="polite"></p>
   </div>
   <div class="rp-mandos">
-    <p class="rp-tip" id="rp-tip" hidden>Tocá la cancha para verla sin controles</p>
     <div class="rp-linea">
       <span class="rp-t" id="rp-t">0:00</span>
       <div class="rp-pista"><div class="rp-marcas" id="rp-marcas" aria-hidden="true"></div><input type="range" id="rp-barra" min="0" max="1000" step="100" value="0" aria-label="Momento del replay"></div>
@@ -2107,25 +2094,15 @@ function apunte() {
     plan = M.planTiro(campo, ronda, ang, p, q, tiempo)
   } else drag.tZona = null
   const arbol = putt ? null : M.pinoEnLaSalida(campo, ronda.pelota, plan) // pega en un árbol al salir: la línea en rojo, cortada ahí
-  // la bandera de la goma: con qué fuerza pica en la bandera (si llega; en el MODO PRO no se ve dónde cae). Una vez por
-  // tiro: la pelota no se mueve. Con la bandera al alcance, es un nudo más y los otros se reparten alrededor
-  if (drag.goma === undefined) {
-    const pin = M.hoyoActual(ronda).pin, b = ronda.pelota
-    drag.goma = M.nudosGoma(putt || ronda.pro ? null : M.potenciaAlPin(campo, ronda, Math.atan2(pin[1] - b[1], pin[0] - b[0])))
-  }
-  // el swing de stock: justo en un nudo (o en la bandera), con el dedo quieto (no en el putt, la bomba ni con la línea del Águila)
-  const nudo = !putt && !plan.bomba ? M.enNudoStock(p, drag.goma.stock) : null
-  const stock = nudo != null && performance.now() - (drag.mov ?? drag.t0) >= M.STOCK.quieto
-  // a fondo: justo en el nudo rojo sale PERFECTO; estirando de más, pasado (con todo el error)
-  const fondo = !putt && !plan.bomba && !plan.comba && p >= 0.97
-  const justo = fondo && M.enFondoJusto(u)
-  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo, justo, nudo, stock, goma: putt ? null : drag.goma }
+  // el latido de la potencia: el aro que se abre y se cierra alrededor del dedo (no en el putt ni en la bomba de Miguelón,
+  // que tiene el suyo). Soltando con el aro cerrado (el sweet spot) sale perfecto; cerca del hoyo, la ventana es más ancha
+  const latido = !putt && !plan.bomba
+  const ventana = latido ? M.ventanaPerfecto(M.aYardas(ronda, M.dist(ronda.pelota, M.hoyoActual(ronda).pin))) : 0
+  const sweet = latido && M.enSweetSpot(drag.fase ?? 0.5, ventana)
+  return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, latido, ventana, sweet }
 }
 
-// el replay: un toque en la cancha (sin arrastrar) saca o trae los controles
-let toqueReplay = null
 lienzo.addEventListener('pointerdown', (e) => {
-  if (replay) { toqueReplay = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now() }; return }
   // Tito: con la pelota en el aire, el swipe es una ráfaga
   if (titoVolando() && !swipeTito) { swipeTito = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; lienzo.setPointerCapture(e.pointerId); return }
   if (estado !== 'apuntar' || drag || trazo) return // un segundo dedo no pisa el tiro que estás armando
@@ -2162,20 +2139,9 @@ lienzo.addEventListener('pointermove', (e) => {
     trazo.plan = M.planTiro(campo, ronda, 0, 0, 0, 0, trazo.pts)
     return
   }
-  if (drag && e.pointerId === drag.id) {
-    // para el swing de stock: el dedo quieto (contra un ancla: arrastrar despacito por el nudo no cuenta como quieto)
-    drag.ancla ??= [drag.x0, drag.y0]
-    if (Math.hypot(e.clientX - drag.ancla[0], e.clientY - drag.ancla[1]) > 2) { drag.mov = performance.now(); drag.ancla = [e.clientX, e.clientY] }
-    drag.x = e.clientX; drag.y = e.clientY
-  }
+  if (drag && e.pointerId === drag.id) { drag.x = e.clientX; drag.y = e.clientY }
 })
 lienzo.addEventListener('pointerup', (e) => {
-  if (replay) {
-    const t = toqueReplay
-    toqueReplay = null
-    if (t && t.id === e.pointerId && Math.hypot(e.clientX - t.x, e.clientY - t.y) < 14 && performance.now() - t.t < 600) limpioReplay(!replay.limpio)
-    return
-  }
   if (swipeTito && e.pointerId === swipeTito.id) { soltarSwipeTito(); return }
   if (trazo && e.pointerId === trazo.id) { soltarTrazo(); return }
   if (!drag || e.pointerId !== drag.id) return
@@ -2183,7 +2149,12 @@ lienzo.addEventListener('pointerup', (e) => {
   // latido de la bomba se mueven hasta ~4° por cuadro, y soltando en "¡DERECHA!" o "¡PERFECTA!" a veces no salía así
   // (si al soltar el dedo ya volvió al lugar, no sale nada: así se cancela un tiro)
   const ahora = apunte()
-  const a = ahora && (drag.visto ?? ahora)
+  let a = ahora && (drag.visto ?? ahora)
+  // el latido, justo al soltar (lo que avanzó desde el último cuadro también cuenta): ¿con el aro cerrado?
+  if (a?.latido) {
+    const f = (drag.fase ?? 0.5) + (performance.now() - (drag.tFase ?? performance.now())) / 1000 / M.periodoLatido(a.p)
+    a = { ...a, perfecto: M.enSweetSpot(f, a.ventana) }
+  }
   const base = drag.base
   drag = null
   S.cargaFin()
@@ -2192,7 +2163,6 @@ lienzo.addEventListener('pointerup', (e) => {
   else if (base) obj = base // no pegó: vuelve el zoom de antes
 })
 lienzo.addEventListener('pointercancel', (e) => {
-  if (replay) { toqueReplay = null; return }
   if (swipeTito && e.pointerId === swipeTito.id) { swipeTito = null; return }
   if (trazo && e.pointerId === trazo.id) { trazoFade = { pts: trazo.pts, desde: trazo.desde, t0: performance.now() }; trazo = null; document.body.classList.remove('apuntando'); return }
   if (drag && e.pointerId !== drag.id) return // se canceló otro dedo: el tiro que estás armando sigue
@@ -2244,15 +2214,11 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
-  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, a.stock ? a.goma?.stock ?? true : false, !!a.justo)
+  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, !!a.perfecto)
   if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
   else S.golpe(a.p, a.putt)
-  // salió justo al medio: "PERFECTO" chiquito al lado de donde salió. A fondo y justo en el nudo rojo, que se sepa bien
-  if (tiro.fondoJusto) {
-    marcarTiro('¡PERFECTO A FONDO!', ronda.desde ?? golfista.desde ?? ronda.pelota)
-    relatar({ lg: M.elegir(rng, ['¡PERFECTO! A fondo y al medio', '¡A FONDO Y PERFECTO! Qué swing', '¡PERFECTO! La soltó justo']) })
-    S.perfecto(); S.logro()
-  } else if (tiro.perfecto) { marcarTiro('PERFECTO', ronda.desde ?? golfista.desde ?? ronda.pelota); S.perfecto() }
+  // soltó en el sweet spot (o es un tiro sin error): "PERFECTO" chiquito al lado de donde salió
+  if (tiro.perfecto) { marcarTiro('PERFECTO', ronda.desde ?? golfista.desde ?? ronda.pelota); S.perfecto() }
   estela = []
   estado = 'tiro'
   hud()
@@ -2500,7 +2466,17 @@ function actualizar(dt) {
   moverRafagas(dt)
   moverClima(dt)
   zoomApunte()
-  if (drag && estado === 'apuntar') { const a = apunte(); S.carga(a?.p ?? 0, a?.plan?.bomba ? a.q : 0) }
+  if (drag && estado === 'apuntar') {
+    const a = apunte()
+    S.carga(a?.p ?? 0, a?.plan?.bomba ? a.q : 0)
+    // el latido de la potencia: avanza más rápido cuanto más fuerte; cada vez que el aro se cierra, un tic suave
+    if (a?.latido) {
+      const antes = drag.fase ?? 0.5
+      drag.fase = antes + dt / M.periodoLatido(a.p)
+      drag.tFase = performance.now()
+      if (Math.floor(drag.fase) > Math.floor(antes)) { S.latido(); tic() }
+    }
+  }
   if (ronda && estado === 'apuntar' && !drag) {
     // tensión: un tic que se acelera con el mono más cercano que viene
     let d = null
@@ -3752,8 +3728,9 @@ function dibujar() {
     // todo el green, una marca cada 2 yd con la caída de ese lugar (cambia por zonas, fluida). Animadas: cada una
     // corre para donde cae, aparece y se apaga, y vuelve a empezar; donde cae más, corren más rápido.
     const ahora = performance.now() / 1000
-    ctx.strokeStyle = 'rgb(20,64,42)'
-    ctx.lineWidth = 0.12
+    // en los greens oscuros (lluvia y lluvia intensa) las flechitas van claras; en los demás, oscuras
+    ctx.strokeStyle = ['lluvia', 'tormenta'].includes(ronda.clima?.id) ? 'rgb(236,242,232)' : 'rgb(16,54,34)'
+    ctx.lineWidth = 0.13
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     for (const m of marcasCaida(hoyo)) {
@@ -3763,9 +3740,10 @@ function dibujar() {
       const cx = m.x + m.dx * (u - 0.5) * CAIDA_VIAJE, cy = m.y + m.dy * (u - 0.5) * CAIDA_VIAJE
       ctx.globalAlpha = a
       ctx.beginPath()
-      ctx.moveTo(cx - m.dx * 0.32 - m.dy * 0.3, cy - m.dy * 0.32 + m.dx * 0.3)
-      ctx.lineTo(cx + m.dx * 0.07, cy + m.dy * 0.07)
-      ctx.lineTo(cx - m.dx * 0.32 + m.dy * 0.3, cy - m.dy * 0.32 - m.dx * 0.3)
+      const t = m.tam
+      ctx.moveTo(cx - (m.dx * 0.32 + m.dy * 0.3) * t, cy - (m.dy * 0.32 - m.dx * 0.3) * t)
+      ctx.lineTo(cx + m.dx * 0.07 * t, cy + m.dy * 0.07 * t)
+      ctx.lineTo(cx - (m.dx * 0.32 - m.dy * 0.3) * t, cy - (m.dy * 0.32 + m.dx * 0.3) * t)
       ctx.stroke()
     }
     ctx.globalAlpha = 1
@@ -3904,12 +3882,8 @@ function pintarClima() {
   const id = ronda?.clima?.id
   S.lluvia(id === 'tormenta' ? 1 : id === 'lluvia' ? 0.55 : 0)
 }
-/** El clima que se ve: el de la vuelta que se está jugando o, en el replay, el que hubo en el match. */
-const climaVivo = () => (replay ? replay.clima : ronda && !ronda.terminada ? ronda.clima : null)
-/** El viento que mueve la lluvia y las nubes: el de la vuelta o, en el replay, el del hoyo que se está viendo. */
-const vientoDelCuadro = () => (replay ? replay.viento : ronda?.viento)
 function climaSobreCancha() {
-  const id = climaVivo()?.id
+  const id = ronda && !ronda.terminada ? ronda.clima?.id : null
   if (!id || document.body.classList.contains('retro')) return
   if (TINTE_CLIMA[id]) {
     ctx.save()
@@ -3933,9 +3907,8 @@ function climaSobreCancha() {
 }
 /** Los charcos del hoyo (en la cancha, en yardas): agua azulada con su brillo y, si llueve, las gotas que pican. */
 function dibujarCharcos() {
-  const cl = climaVivo()
-  // en el replay, los de los tres hoyos (cada pelota puede ir por un hoyo distinto)
-  const lista = replay ? cl?.charcos?.flat() : cl?.charcos?.[ronda.idx]
+  const cl = ronda && !ronda.terminada ? ronda.clima : null
+  const lista = cl?.charcos?.[ronda.idx]
   if (!lista?.length) return
   const t = performance.now() / 1000
   const llueve = cl.id === 'lluvia' || cl.id === 'tormenta'
@@ -3974,19 +3947,17 @@ function dibujarCharcos() {
 let gotas = [], copos = [], nubes = [], rayo = { prox: 0, t0: -9 }
 /** Para dónde cae la lluvia en la pantalla: hacia abajo sin viento y, a medida que sopla (del todo desde 12 km/h), para donde va el viento. */
 function dirLluvia() {
-  const v = vientoDelCuadro()
-  const kmh = v?.kmh ?? 0, ang = (v?.ang ?? 0) + cam.rot
+  const kmh = ronda?.viento.kmh ?? 0, ang = (ronda?.viento.ang ?? 0) + cam.rot
   const w = Math.min(1, kmh / 12)
   const dx = Math.cos(ang) * w, dy = (1 - w) + Math.sin(ang) * w
   const n = Math.hypot(dx, dy)
   return n < 0.05 ? [Math.cos(ang), Math.sin(ang)] : [dx / n, dy / n]
 }
 function moverClima(dt) {
-  const id = climaVivo()?.id
-  const v = vientoDelCuadro()
+  const id = ronda && !ronda.terminada ? ronda.clima?.id : null
   const area = Math.min(1.8, (W * H) / 330000)
-  const kmh = v?.kmh ?? 0
-  const ang = (v?.ang ?? 0) + cam.rot
+  const kmh = ronda?.viento.kmh ?? 0
+  const ang = (ronda?.viento.ang ?? 0) + cam.rot
   const lluvia = id === 'tormenta' ? 200 : id === 'lluvia' ? 95 : 0
   const nieve = id === 'nieve' ? 90 : 0
   // la lluvia: cae para donde sopla el viento (con viento fuerte, del todo; sin viento, para abajo) y más rápido cuanto
@@ -4014,7 +3985,7 @@ function moverClima(dt) {
   }
   // las nubes (en la cancha): cruzan con el viento y vuelven a entrar por el otro lado
   if (!nubes.length) for (let i = 0; i < 5; i++) nubes.push({ x: Math.random() * M.MUNDO.w, y: Math.random() * M.MUNDO.h, r: 45 + Math.random() * 45, ang: Math.random() * 3 })
-  const vn = 3 + kmh * 0.35, wa = v?.ang ?? 0
+  const vn = 3 + kmh * 0.35, wa = ronda?.viento.ang ?? 0
   for (const n of nubes) {
     n.x += Math.cos(wa) * vn * dt; n.y += Math.sin(wa) * vn * dt
     if (n.x < -n.r) n.x += M.MUNDO.w + 2 * n.r
@@ -4033,7 +4004,7 @@ function moverClima(dt) {
   } else rayo.prox = 0
 }
 function dibujarClima() {
-  const id = climaVivo()?.id
+  const id = ronda && !ronda.terminada ? ronda.clima?.id : null
   const ahora = performance.now()
   // lo que deja cada tiro
   fxClima = fxClima.filter((f) => ahora - f.t0 < 900)
@@ -4112,13 +4083,13 @@ function dibujarClima() {
 // ── ráfagas: líneas finitas que cruzan la cancha para donde sopla; más viento, más líneas y más rápidas ──
 const rafagas = []
 function moverRafagas(dt) {
-  const kmh = (replay ? replay.viento : ronda && !ronda.terminada ? ronda.viento : null)?.kmh ?? 0
+  const kmh = ronda && !ronda.terminada ? ronda.viento.kmh : 0
   const objetivo = Math.round((kmh / M.FISICA.vientoMax) * 26 * Math.min(1.6, (W * H) / 330000))
   if (rafagas.length < objetivo && Math.random() < dt * 14) {
     rafagas.push({ x: Math.random() * W, y: Math.random() * H, t: 0, T: 1.1 + Math.random() * 1.2, largo: 26 + Math.random() * 46 + kmh * 1.2 })
   }
   const vel = 50 + kmh * 9
-  const ang = (vientoDelCuadro()?.ang ?? 0) + cam.rot
+  const ang = (ronda?.viento.ang ?? 0) + cam.rot
   for (let i = rafagas.length - 1; i >= 0; i--) {
     const r = rafagas[i]
     r.t += dt
@@ -4128,9 +4099,8 @@ function moverRafagas(dt) {
   }
 }
 function dibujarRafagas() {
-  const v = vientoDelCuadro()
-  if (!rafagas.length || !v) return
-  const ang = v.ang + cam.rot
+  if (!rafagas.length || !ronda) return
+  const ang = ronda.viento.ang + cam.rot
   const c = Math.cos(ang), s = Math.sin(ang)
   ctx.lineCap = 'round'
   ctx.lineWidth = 1.4
@@ -4402,8 +4372,9 @@ function marcasCaida(h) {
     const fase = (Math.sin(p[0] * 12.9898 + p[1] * 78.233) * 43758.5453) % 1 // cada una a su tiempo: orgánico
     lista.push({
       x: p[0], y: p[1], dx: c[0] / (fuerza || 1), dy: c[1] / (fuerza || 1),
-      alfa: Math.min(0.42, 0.14 + 0.38 * fuerza), // más tenues que antes
-      vel: 0.35 + 2.4 * fuerza, // yd/s: donde cae más, más rápido
+      alfa: Math.min(0.62, 0.2 + 0.32 * fuerza),
+      vel: 0.35 + 2.4 * fuerza, // yd/s: donde cae más, más rápido (en el sector pronunciado se nota: corren el doble)
+      tam: 0.85 + 0.35 * Math.min(1.6, fuerza), // y un poco más grandes
       fase: Math.abs(fase),
     })
   }
@@ -5120,7 +5091,7 @@ function pelota(p, alt, alfa = 1, pantalla = null) {
   ctx.ellipse(x + 1, y + 1, r * 0.9, r * 0.6, 0, 0, 7)
   ctx.fill()
   ctx.globalAlpha = alfa
-  ctx.fillStyle = (replay ? replay.clima : ronda?.clima)?.id === 'nieve' ? '#ff7a1a' : '#ffffff' // en la nieve, la pelota naranja (si no, no se ve)
+  ctx.fillStyle = ronda?.clima?.id === 'nieve' ? '#ff7a1a' : '#ffffff' // en la nieve, la pelota naranja (si no, no se ve)
   ctx.strokeStyle = 'rgba(12,43,28,.55)'
   ctx.lineWidth = 1
   ctx.beginPath()
@@ -5298,7 +5269,7 @@ function monoBueno(x, y, tam) {
 
 /**
  * El MODO PRO: ni línea punteada ni zona de pique. Solo una flechita corta para dónde sale (con los efectos del Mago,
- * curvada como va a doblar) y la goma con los nudos
+ * curvada como va a doblar), la goma y el latido de la potencia
  * (cuánto le pegás, no dónde cae): la distancia la calculás vos.
  */
 function apuntePro(a, bx, by, col) {
@@ -5341,33 +5312,18 @@ function apuntePro(a, bx, by, col) {
   flecha(); ctx.strokeStyle = a.putt ? (curva ? C.gold : C.cream) : col; ctx.lineWidth = 3.5; ctx.stroke()
 }
 /**
- * La goma con nudos: sale de la pelota para atrás (para el lado contrario del tiro, como una gomera) y se estira con
- * la fuerza. Tiene tres nudos fijos (½, ¾ y a fondo): los que pasaste quedan dorados sobre la goma y los que faltan,
- * fantasmas más allá de la punta (ahí tenés que llegar). Al pasar cada nudo, un clic y un tic en el celu: así repetís
- * un tiro sin mirar números. A fondo se pone roja y tiembla. (Elegida en el artefacto de potencia, 2026-10-07.)
+ * La goma: sale de la pelota para atrás (para el lado contrario del tiro, como una gomera) y se estira con la fuerza. A
+ * fondo se pone roja y tiembla, con un clic y un tic. (Elegida en el artefacto de potencia, 2026-10-07; los nudos se
+ * sacaron el 2026-10-08: el perfecto sale del latido, ver `dibujarLatido`.)
  */
-const NUDOS = [0.125, 0.25, 0.5, 0.75, 0.97] // en potencia; los de ⅛ y ¼, para los chips cortos; el último es "a fondo" (el mismo umbral del tiro)
-const A_FONDO = NUDOS[NUDOS.length - 1]
-/** La mini bandera, parada, adentro de un nudo (centro x, y; `k` = tamaño): palo blanco y la tela del color de la del hoyo. */
-function banderitaEnNudo(x, y, k = 1) {
-  const h = M.hoyoActual(ronda)
-  const [tela] = TELA[h.bandera ?? M.colorBandera(h, h.pin)] ?? TELA.blanca
-  const px = x - 3 * k
-  ctx.lineCap = 'round'
-  ctx.strokeStyle = C.cream; ctx.lineWidth = 2 * k; ctx.beginPath(); ctx.moveTo(px, y + 6 * k); ctx.lineTo(px, y - 7 * k); ctx.stroke()
-  ctx.beginPath(); ctx.moveTo(px + 0.5 * k, y - 7 * k); ctx.lineTo(px + 9 * k, y - 3.8 * k); ctx.lineTo(px + 0.5 * k, y - 0.6 * k); ctx.closePath()
-  ctx.fillStyle = tela; ctx.fill(); ctx.strokeStyle = C.g950; ctx.lineWidth = 1.4 * k; ctx.lineJoin = 'round'; ctx.stroke()
-}
 function goma(a, bx, by) {
-  const exp = a.putt ? 1.6 : 1.35 // la potencia es el estirón a la `exp` (ver apunte): los nudos van donde está el dedo
+  const exp = a.putt ? 1.6 : 1.35 // la potencia es el estirón a la `exp` (ver apunte)
   const largo = Math.max(84, Math.min(150, Math.min(W, H) * 0.3))
-  const enU = (p) => Math.pow(Math.min(1, p), 1 / exp)
-  const fondo = a.p >= A_FONDO
+  const fondo = a.p >= 0.97
   const atras = a.ang + cam.rot + Math.PI
   const ux = Math.cos(atras), uy = Math.sin(atras), nx = -uy, ny = ux
-  // justo en el nudo rojo (el PERFECTO a fondo) la goma no tiembla: tiembla cuando te pasás
-  const tiembla = fondo && !a.justo ? Math.sin(performance.now() / 22) * 2.2 : 0
-  const L = largo * enU(a.p) * (fondo ? 1.04 : 1)
+  const tiembla = fondo ? Math.sin(performance.now() / 22) * 2.2 : 0
+  const L = largo * Math.pow(Math.min(1, a.p), 1 / exp) * (fondo ? 1.04 : 1)
   const r0 = Math.max(9, radioPelota() + 2)
   const ax = bx + ux * r0, ay = by + uy * r0
   const ex = bx + ux * (r0 + L) + nx * tiembla, ey = by + uy * (r0 + L) + ny * tiembla
@@ -5378,61 +5334,33 @@ function goma(a, bx, by) {
   const g = ctx.createLinearGradient(ax, ay, ex, ey)
   g.addColorStop(0, C.cream); g.addColorStop(1, color)
   ctx.strokeStyle = g; ctx.lineWidth = grosor; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke()
-  // el agarre en la punta (abajo de los nudos: el del stock queda encima)
   ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(ex, ey, 8, 0, 7); ctx.fill()
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ex, ey, 5.2, 0, 7); ctx.fill()
-  // los nudos de este tiro: los dorados (con la bandera al alcance, repartidos alrededor de ella), la bandera (un nudo
-  // más grande, blanco, con la banderita adentro: con esa fuerza pica en la bandera) y el rojo de a fondo
-  const gm = a.goma ?? M.nudosGoma(null)
-  const lista = [...gm.nudos.map((m) => ({ m, tipo: 'nudo' })), ...(gm.bandera != null ? [{ m: gm.bandera, tipo: 'bandera' }] : []), { m: A_FONDO, tipo: 'fondo' }].sort((x, y) => x.m - y.m)
-  lista.forEach(({ m, tipo }) => {
-    const d = r0 + largo * enU(m)
-    const x = bx + ux * d + (a.p >= m ? nx * tiembla : 0), y = by + uy * d + (a.p >= m ? ny * tiembla : 0)
-    const conBandera = tipo === 'bandera' || (tipo === 'fondo' && gm.enFondo)
-    const r = conBandera ? 11 : tipo === 'fondo' ? 8 : m < 0.3 ? 5.5 : 6.5
-    if (tipo === 'bandera') {
-      // la bandera, siempre a la vista (pasada o no): el aro del stock si estás quieto ahí
-      if (a.stock && a.nudo === m) {
-        const lat = 0.5 + 0.5 * Math.sin(performance.now() / 90)
-        ctx.fillStyle = `rgba(244,238,218,${0.25 + 0.25 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 3, 0, 7); ctx.fill()
-      }
-      // verde oscuro con aro blanco (bien distinto de los dorados): la tela de la bandera, del color que sea, se lee
-      ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
-      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
-      ctx.fillStyle = C.g700; ctx.beginPath(); ctx.arc(x, y, r - 2.5, 0, 7); ctx.fill()
-      banderitaEnNudo(x, y)
-      return
-    }
-    if (a.p < m && !(a.stock && a.nudo === m)) {
-      ctx.strokeStyle = 'rgba(244,238,218,.6)'; ctx.lineWidth = 2; ctx.setLineDash([3, 3])
-      ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); ctx.setLineDash([])
-      if (conBandera) banderitaEnNudo(x, y)
-      return
-    }
-    // a fondo y justo: el nudo rojo brilla en dorado (soltá ahora: PERFECTO)
-    if (tipo === 'fondo' && a.justo) {
-      const lat = 0.5 + 0.5 * Math.sin(performance.now() / 70)
-      ctx.fillStyle = `rgba(232,195,74,${0.3 + 0.3 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 8 + lat * 4, 0, 7); ctx.fill()
-      ctx.strokeStyle = C.gold; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 4, 0, 7); ctx.stroke()
-    }
-    // el swing de stock: el nudo donde estás (con el dedo quieto) brilla
-    if (a.stock && a.nudo === m) {
-      const lat = 0.5 + 0.5 * Math.sin(performance.now() / 90)
-      ctx.fillStyle = `rgba(244,238,218,${0.25 + 0.25 * lat})`; ctx.beginPath(); ctx.arc(x, y, r + 7 + lat * 3, 0, 7); ctx.fill()
-      ctx.strokeStyle = C.cream; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r + 6 + lat * 3, 0, 7); ctx.stroke()
-    }
-    ctx.fillStyle = C.g950; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill()
-    ctx.fillStyle = tipo === 'fondo' ? C.red : a.stock && a.nudo === m ? C.cream : C.gold; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
-    if (conBandera) banderitaEnNudo(x, y) // la bandera a fondo: adentro del rojo
-  })
-  // el clic y el tic al pasar un nudo (para atrás no suena: solo cuando lo pasás de nuevo)
-  let k = -1
-  lista.forEach(({ m }, i) => { if (a.p >= m) k = i })
-  if (drag && k > (drag.nudo ?? -1)) { S.nudo(k, k === lista.length - 1); tic() }
-  if (drag) drag.nudo = k
-  // al quedar quieto justo en el nudo (swing de stock): otro clic, más suave, y otro tic
-  if (drag && a.stock && !drag.stock) { S.stock(); tic() }
-  if (drag) drag.stock = a.stock
+  if (drag && fondo && !drag.fondo) { S.nudo(0, true); tic() }
+  if (drag) drag.fondo = fondo
+  if (drag && a.latido) dibujarLatido(a)
+}
+/**
+ * El latido de la potencia, alrededor del dedo: un aro que se abre y se cierra sobre un aro fijo dorado. Cuanto más
+ * fuerte, más rápido late. Cuando se cierra (el sweet spot), los dos se prenden dorados: soltando ahí, sale perfecto.
+ */
+function dibujarLatido(a) {
+  const f = (((drag.fase ?? 0.5) % 1) + 1) % 1
+  const abre = 0.5 - 0.5 * Math.cos(2 * Math.PI * f) // 0: cerrado; 1: abierto
+  const x = drag.x, y = drag.y
+  const rIn = 26, rOut = 64
+  const r = rIn + (rOut - rIn) * abre
+  ctx.save()
+  if (a.sweet) { ctx.fillStyle = 'rgba(232,195,74,.28)'; ctx.beginPath(); ctx.arc(x, y, rIn + 6, 0, 7); ctx.fill() }
+  // el aro fijo: ahí se tiene que cerrar
+  ctx.strokeStyle = 'rgba(12,43,28,.7)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(x, y, rIn, 0, 7); ctx.stroke()
+  ctx.strokeStyle = a.sweet ? C.gold : 'rgba(232,195,74,.8)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, rIn, 0, 7); ctx.stroke()
+  // el aro que late
+  const col = a.sweet ? C.gold : a.fondo ? C.red : C.cream
+  ctx.globalAlpha = a.sweet ? 1 : 0.55 + 0.45 * (1 - abre)
+  ctx.strokeStyle = 'rgba(12,43,28,.8)'; ctx.lineWidth = 7.5; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke()
+  ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke()
+  ctx.restore()
 }
 /** El "tic" del celu: Android vibra; en iPhone (iOS 18+) se toca un interruptor nativo escondido, que hace el tic del sistema. */
 function tic() {
@@ -5443,7 +5371,7 @@ function dibujarApunte(a) {
   const [bx, by] = w2s(ronda.pelota)
   const [dx, dy] = w2s(a.destino)
   const bomba = a.plan.bomba
-  const col = a.justo ? C.gold : a.fondo || (bomba && !a.plan.perfecta) ? C.red : bomba ? C.gold : C.cream
+  const col = a.fondo || (bomba && !a.plan.perfecta) ? C.red : bomba ? C.gold : C.cream
   ctx.lineCap = 'round'
   if (ronda.pro) { apuntePro(a, bx, by, col); goma(a, bx, by); return } // el MODO PRO: sin líneas punteadas ni dónde cae
   goma(a, bx, by)
@@ -5527,10 +5455,8 @@ function dibujarApunte(a) {
   // (con dispersiones enormes, como Miguelón sacado, el ángulo pasaba los 90° y la tangente se iba al infinito o daba
   // negativa: el óvalo quedaba como una línea roja de punta a punta. Se topa el ángulo y el tamaño en pantalla)
   const topeOvalo = Math.max(W, H) * 0.45
-  // justo en el nudo rojo, la zona se achica a la del perfecto (hasta `resto` desvíos)
-  const kz = a.justo ? M.PERFECTO.resto / 1.5 : 1
-  const largo = Math.min(topeOvalo, Math.max(1.5 * kz * a.disp.carry * a.alcance, 1.5) * cam.esc)
-  const ancho = Math.min(topeOvalo, Math.max(a.alcance * Math.tan(Math.min(1.5 * kz * a.disp.ang, 1.1)), 1.5) * cam.esc)
+  const largo = Math.min(topeOvalo, Math.max(1.5 * a.disp.carry * a.alcance, 1.5) * cam.esc)
+  const ancho = Math.min(topeOvalo, Math.max(a.alcance * Math.tan(Math.min(1.5 * a.disp.ang, 1.1)), 1.5) * cam.esc)
   if (a.plan.furia) {
     // Miguelón sacado: un abanico rojo desde la pelota, tan abierto como el error (puede ir para cualquier lado ahí)
     const ab = Math.min(1.5 * a.disp.ang, 1.1)
@@ -5550,7 +5476,7 @@ function dibujarApunte(a) {
   } else {
   ctx.beginPath()
   ctx.ellipse(dx, dy, largo, ancho, a.plan.cuerda + cam.rot, 0, 7)
-  ctx.fillStyle = a.justo ? 'rgba(232,195,74,.45)' : a.fondo || (bomba && !a.plan.perfecta) ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.4)' : 'rgba(244,238,218,.18)'
+  ctx.fillStyle = a.fondo || (bomba && !a.plan.perfecta) ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.4)' : 'rgba(244,238,218,.18)'
   ctx.fill()
   ctx.lineWidth = 2
   ctx.setLineDash([5, 5])
@@ -5569,7 +5495,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.justo ? ' · ¡PERFECTO!' : a.fondo ? ' · PASADO' : ''
+  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(M.aYardas(ronda, a.alcance))} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
@@ -6043,7 +5969,7 @@ function irAlInicio() {
   $('#portada').hidden = false
 }
 $('#fin-inicio').addEventListener('click', irAlInicio)
-$('#fin-match').addEventListener('click', () => { irAlInicio(); mostrarMatch(tabConAviso()) })
+$('#fin-match').addEventListener('click', () => { irAlInicio(); abrirAvisoMatch() })
 $('#otra').addEventListener('click', () => empezar(ronda.carta))
 $('#fin-ranking').addEventListener('click', () => { rkPro = !!ronda?.pro; mostrarRanking(ronda?.carta.apodo ?? 'general') })
 
@@ -6336,23 +6262,19 @@ const tabConAviso = () => {
   return 'desafiar'
 }
 /**
- * Entrar al match por el aviso (el número del botón MATCH, el aviso de la SDGApp o el link): con un desafío para jugar,
- * a Pendientes; con el resultado de uno que mandaste, directo a su replay (`replayId`, el que avisó; si no, el último
- * que no viste). Al cerrar el replay quedás en el Historial.
+ * El aviso del match (el botón MATCH con su numerito, el del final de la vuelta, el de la SDGApp): si lo que hay es un
+ * resultado nuevo de un desafío que mandaste (y nada para jugar), va directo al replay (abajo queda el historial, que
+ * es adonde volvés al cerrarlo). Con `id`, el replay de ese match (el link de la app: ?match=1&replay=…).
  */
-async function entrarPorAviso({ replayId = null, desdeLink = false } = {}) {
-  if (replayId || desdeLink) await cargarDesafios()
-  const tab = replayId ? 'historial' : tabConAviso()
+async function abrirAvisoMatch(id = null) {
+  const tab = tabConAviso()
   const yo = yoUid(), v = vistos()
-  const jugados = (mtDesafios ?? []).filter((d) => d.estado === 'jugado')
-  // antes de mostrar el Historial: al pintarse, los marca como vistos
-  const d = !replayId && tab !== 'historial' ? null : replayId
-    ? jugados.find((x) => x.id === replayId)
-    : jugados.filter((x) => x.retador.uid === yo && !v.has(x.id)).sort((a, b) => String(b.jugadoFecha ?? b.fecha).localeCompare(String(a.jugadoFecha ?? a.fecha)))[0]
-  await mostrarMatch(desdeLink && tab === 'desafiar' ? 'mios' : tab)
-  if (d && !$('#match').hidden && !replay) abrirReplay(mtDesafios?.find((x) => x.id === d.id) ?? d)
+  const d = id ? mtDesafios?.find((x) => x.id === id && x.estado === 'jugado')
+    : tab === 'historial' ? mtDesafios?.find((x) => x.estado === 'jugado' && x.retador.uid === yo && !v.has(x.id)) : null // el más nuevo (vienen del más nuevo al más viejo)
+  await mostrarMatch(d ? 'historial' : tab === 'desafiar' && id ? 'mios' : tab)
+  if (d && !$('#match').hidden) abrirReplay(d)
 }
-$('#ver-match').addEventListener('click', () => entrarPorAviso())
+$('#ver-match').addEventListener('click', () => abrirAvisoMatch())
 $('#mt-volver').addEventListener('click', () => { $('#match').hidden = true; pintarAvisoMatch() })
 $('#mt-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('[data-mt]')
@@ -6598,10 +6520,7 @@ const ICONO_DE_NUEVO = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><
 const REPLAY_SALTO = 10000 // ms de los botones de atrás / adelante
 // los dos colores del replay: el que desafió en dorado, el desafiado en celeste (el aro de la pelota, su cartel y su fila)
 const REPLAY_COLORES = ['#e8c34a', '#8fd0ff']
-let replay = null // { d, cond, clima, viento, hoyos, pistas, t, dur, vel, play, sigue, arrastra, limpio, zona, guardado }
-// el clima del match se juega desde que se publicó (7/10/2026, 18:22 UTC): los de antes se jugaron sin clima y el replay
-// no les inventa uno (condicionesMatch igual lo sortea con la semilla)
-const CLIMA_EN_MATCH_DESDE = Date.parse('2026-10-07T18:22:00Z')
+let replay = null // { d, hoyos, pistas, t, dur, vel, play, sigue, arrastra, zona, guardado }
 
 /** Lo que hay que saber de una grabación para el replay: cuándo cambia de hoyo (las marcas de la barra) y cada golpe. */
 function pistaReplay(g, x, k) {
@@ -6633,14 +6552,6 @@ async function abrirReplay(d, grabs = null, boton = null) {
   const pistas = [pistaReplay(grabs.retador, d.retador, 0)]
   if (grabs.rival?.length) pistas.push(pistaReplay(grabs.rival, d.rival, 1))
   const cond = M.condicionesMatch(d.semilla)
-  const hoyos = M.HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera }))
-  // el clima que hubo: el de la semilla, con los mismos charcos que vieron los dos (ponerClima, como en la ronda)
-  let clima = null
-  if (cond.clima && Date.parse(d.fecha) >= CLIMA_EN_MATCH_DESDE) {
-    const r0 = { hoyos, monos: [], viento: { ...cond.vientos[0] } }
-    M.ponerClima(campo, r0, cond.clima, cond.semillaClima)
-    clima = r0.clima
-  }
   // lo que estaba en pantalla queda guardado tal cual y vuelve al cerrar
   const ocultas = [...document.querySelectorAll('.pantalla:not([hidden]), #hud-top:not([hidden]), #hud-bot:not([hidden]), .hab-modal:not([hidden])')]
   for (const el of ocultas) el.hidden = true
@@ -6648,23 +6559,16 @@ async function abrirReplay(d, grabs = null, boton = null) {
   const firma = firmaHasta ? Math.max(0, firmaHasta - performance.now()) : 0
   if (firma) clearTimeout(firmaTimer)
   replay = {
-    d, pistas, cond, clima, hoyos, viento: M.vientoDelMatch(cond, clima, 0), vientoClave: '0:0',
-    t: 0, dur: Math.max(...pistas.map((p) => p.fin)) + 600, vel: 1, play: true, sigue: null, arrastra: false, limpio: false, zona: null, pintado: {},
-    guardado: { ronda, tiro, anim, estado, estela, obj: { ...obj }, retro: document.body.classList.contains('retro'), ocultas, firma, fondo: fondo.getAttribute('src') },
+    d, pistas,
+    hoyos: M.HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera })),
+    t: 0, dur: Math.max(...pistas.map((p) => p.fin)) + 600, vel: 1, play: true, sigue: null, arrastra: false, zona: null, pintado: {},
+    guardado: { ronda, tiro, anim, estado, estela, obj: { ...obj }, retro: document.body.classList.contains('retro'), ocultas, firma },
   }
   ronda = null; tiro = null; anim = null; estela = []
   estado = 'replay'
   document.body.classList.remove('retro')
-  // la cancha de ese clima y, si llovía, la lluvia de fondo
-  fondoDelClima(clima?.id ?? null)
-  S.lluvia(clima?.id === 'tormenta' ? 1 : clima?.id === 'lluvia' ? 0.55 : 0)
   armarReplay()
-  $('#replay').classList.remove('limpio')
   $('#replay').hidden = false
-  // la primera vez (hasta que lo uses): que se sepa que tocando la cancha se ve sin controles
-  clearTimeout(abrirReplay.tip)
-  $('#rp-tip').hidden = !!datos.vistoTipReplay
-  if (!datos.vistoTipReplay) abrirReplay.tip = setTimeout(() => { $('#rp-tip').hidden = true; medirReplay() }, 5000)
   medirReplay()
   obj = camaraReplay()
   Object.assign(cam, obj)
@@ -6679,13 +6583,8 @@ function cerrarReplay() {
   if (!replay) return
   const g = replay.guardado
   replay = null
-  clearTimeout(abrirReplay.tip)
-  $('#replay').hidden = true
   $('#replay').classList.remove('limpio')
-  // la cancha y la lluvia que había antes del replay
-  if (g.fondo) fondo.src = g.fondo
-  const id = g.ronda?.clima?.id
-  S.lluvia(id === 'tormenta' ? 1 : id === 'lluvia' ? 0.55 : 0)
+  $('#replay').hidden = true
   ronda = g.ronda; tiro = g.tiro; anim = g.anim; estado = g.estado; estela = g.estela
   obj = g.obj
   document.body.classList.toggle('retro', g.retro)
@@ -6712,15 +6611,6 @@ function armarReplay() {
       <span class="rp-gana" id="rp-gana-${k}" hidden aria-label="Ganó">🏆</span>
     </button>`
   }).join('')
-  // el clima que hubo (los matches de antes del clima, sin chip)
-  const c = r.clima ? M.CLIMAS[r.clima.id] : null
-  const chip = $('#rp-clima')
-  chip.hidden = !c
-  if (c) {
-    chip.querySelector('.cc-ico').innerHTML = gi(`clima-${r.clima.id}`)
-    chip.querySelector('.cc-txt').textContent = c.nombre.replace(/[¡!]/g, '').replace(' en San Diego', '').toUpperCase()
-    chip.setAttribute('aria-label', `Clima: ${c.nombre}`)
-  }
   $('#rp-nota').hidden = r.pistas.length > 1
   $('#rp-nota').textContent = `De este match solo está grabada la pelota de ${r.d.retador.alias}.`
   $('#rp-marcas').innerHTML = r.pistas.flatMap((p) => p.hoyos.slice(1).map((h) => `<i style="left: ${(100 * h.ms) / r.dur}%; --c: ${p.color}" title="Hoyo ${h.n}"></i>`)).join('')
@@ -6735,43 +6625,8 @@ const tiempoReplay = (ms) => { const t = Math.max(0, Math.floor(ms / 1000)); ret
 function medirReplay() {
   if (!replay) return
   const arriba = $('#replay .rp-arriba').getBoundingClientRect().bottom
-  // sin controles, la cancha llega hasta abajo de todo
-  const abajo = replay.limpio ? H - 12 : $('#replay .rp-mandos').getBoundingClientRect().top
-  replay.zona = { top: arriba + (replay.limpio ? 16 : 34), bot: abajo - 16 }
-}
-/**
- * La vista limpia del replay (como en la tele): tocando la cancha se van los controles y queda solo el hoyo a hoyo,
- * chiquito arriba de todo. Otro toque en cualquier lado los trae de vuelta (y con ellos, la X para salir).
- */
-function limpioReplay(si) {
-  const r = replay
-  if (!r || r.limpio === si) return
-  r.limpio = si
-  $('#replay').classList.toggle('limpio', si)
-  if (si) {
-    if (document.activeElement?.closest?.('#replay')) document.activeElement.blur()
-    $('#rp-tip').hidden = true
-    if (!datos.vistoTipReplay) { datos.vistoTipReplay = true; guardar(datos) }
-  }
-  medirReplay()
-}
-/**
- * El viento del momento que se ve (para la lluvia, las nubes y las ráfagas): el del hoyo de la pelota que va más atrás
- * (o de la que seguís), con los golpes que lleva en ese hoyo. Mientras la pelota va en el aire, el del golpe que le pegó.
- */
-function vientoReplay(r) {
-  const pistas = r.sigue != null && r.pistas[r.sigue] ? [r.pistas[r.sigue]] : r.pistas
-  let atras = null
-  for (const p of pistas) {
-    const f = M.fantasmaEn(p.g, r.t)
-    if (f && !f.fin && (!atras || f.idx < atras.f.idx)) atras = { p, f }
-  }
-  if (!atras) return
-  const enHoyo = M.marcadorFantasma(atras.p.g, r.t).porHoyo[atras.f.idx] ?? 0
-  const vuela = atras.p.tramos.some((x) => x.desde <= r.t && r.t <= x.hasta)
-  const golpes = Math.max(0, enHoyo - (vuela ? 1 : 0))
-  const clave = `${atras.f.idx}:${golpes}`
-  if (clave !== r.vientoClave) { r.vientoClave = clave; r.viento = M.vientoDelMatch(r.cond, r.clima, atras.f.idx, golpes) }
+  const abajo = replay.limpio ? H - 8 : $('#replay .rp-mandos').getBoundingClientRect().top
+  replay.zona = { top: arriba + 34, bot: abajo - 16 }
 }
 /**
  * La cámara del replay. Con la pelota quieta, encuadra la pelota y lo que tiene adelante (hasta 70 yd hacia la bandera);
@@ -6818,7 +6673,6 @@ function cuadroReplay(dt) {
   }
   obj = camaraReplay()
   velCam = 3
-  vientoReplay(r)
   pintarReplay()
 }
 /**
@@ -6866,6 +6720,14 @@ function htmlMarcadorReplay(r) {
     <th><span class="rp-punto" aria-hidden="true"></span>${esc(f.p.x.alias ?? '—')}</th>${f.golpes.map((v, k) => celda(f, v, k)).join('')}<td class="tot${f.lp ? ' lp' : ''}">${f.total}</td><td class="t${tiempo && i === gana ? ' decide' : ''}">${f.tiempo}</td>
   </tr>`).join('')}</tbody></table>`
 }
+/** Tocar la cancha en el replay: se van los controles (queda arriba el hoyo a hoyo) o vuelven. */
+function alternarReplayLimpio(limpio = !$('#replay').classList.contains('limpio')) {
+  if (!replay) return
+  $('#replay').classList.toggle('limpio', limpio)
+  replay.limpio = limpio
+  medirReplay()
+}
+lienzo.addEventListener('click', () => { if (replay) alternarReplayLimpio() })
 /** Escribe en la pantalla lo que cambió (cada texto, solo si es distinto del que ya está). */
 function pintarReplay(todo = false) {
   const r = replay, pp = r.pintado
@@ -6964,7 +6826,7 @@ function playReplay() {
   pintarReplay()
 }
 function teclaReplay(e) {
-  if (e.key === 'Escape') { if (replay.limpio) limpioReplay(false); else cerrarReplay() }
+  if (e.key === 'Escape') cerrarReplay()
   else if (e.key === ' ' || e.key === 'k') { if (e.target?.closest?.('#replay button') && e.key === ' ') return; playReplay() }
   else if (e.key === 'ArrowLeft' && e.target?.id !== 'rp-barra') irReplay(replay.t - REPLAY_SALTO)
   else if (e.key === 'ArrowRight' && e.target?.id !== 'rp-barra') irReplay(replay.t + REPLAY_SALTO)
@@ -7022,8 +6884,8 @@ function mensajeDesafio(r, rival, mia) {
 }
 // ── el resultado de un match, para mandarlo por WhatsApp ──
 const ICONO_WA = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5.5 8.5a3 3 0 0 1 3-3h15a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H15l-5.5 4.5v-4.5h-1a3 3 0 0 1-3-3z" style="fill:var(--gi-f)"/><g style="fill:var(--gi-s)" stroke="none"><circle cx="11" cy="13.5" r="1.7"/><circle cx="16" cy="13.5" r="1.7"/><circle cx="21" cy="13.5" r="1.7"/></g></g></svg>' // el mensaje del set SDGA, no el logo de WhatsApp
-/** El resumen de un match terminado, visto por mí (yo/el: { alias, golpes, vsPar, ms, lp, apodo, emoji }), con el link a su replay. */
-function textoResultadoMatch(yo, el, id) {
+/** El resumen de un match terminado, visto por mí (yo/el: { alias, golpes, vsPar, ms, lp, apodo, emoji }). */
+function textoResultadoMatch(yo, el) {
   const g = M.ganadorMatch(yo, el)
   const linea = (x, quien) => `${quien}: ${x.golpes == null || x.lp ? 'LP 💅' : `${x.golpes} golpes (${M.formatoPar(x.vsPar)})`}${x.ms != null && !x.lp ? ` · ${M.formatoTiempo(x.ms)}` : ''}`
   const apodo = String(yo.apodo ?? el.apodo ?? '').replace(/ \(Đ\)$/, '')
@@ -7039,7 +6901,7 @@ function textoResultadoMatch(yo, el, id) {
     `Los dos con ${emoji} ${apodo}, mismo viento y mismas banderas${apodo === 'La Ruleta' ? ' (y tiro por tiro, los mismos players)' : ''}.`,
     '',
     cierre,
-    `Mirá el replay y desafiame en la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch(id)}`,
+    `Desafiame en la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch()}`,
   ].join('\n')
 }
 /** Un match terminado, como imagen VS, con el texto del resultado (visto por mí). */
@@ -7049,7 +6911,7 @@ async function compartirMatch(d, boton) {
   if (boton) boton.disabled = true
   const img = await imagenMatch({ izq: d.retador, der: d.rival, jugador, ganador: M.ganadorMatch(d.retador, d.rival) })
   if (boton) boton.disabled = false
-  compartirImagen(img, textoResultadoMatch(yo, el, d.id), 'match-trampa-del-mono.png')
+  compartirImagen(img, textoResultadoMatch(yo, el), 'match-trampa-del-mono.png')
 }
 /** Terminó la vuelta de un match: si desafiaste, se manda; si respondías, se anota y se ve quién ganó. */
 async function cerrarMatch(r) {
@@ -7870,9 +7732,9 @@ R.alEntrar((yo) => {
   if (R.hayMatch()) {
     $('#ver-match').hidden = false
     cargarDesafios()
-    // ?match=1 (el aviso de la SDGApp, el link de WhatsApp); con &replay=<id>, directo al replay de ese match
+    // ?match=1 (el aviso de la app, el link de WhatsApp): directo al match; con &replay=<id>, directo a ese replay
     const q = new URLSearchParams(location.search)
-    if (q.has('match')) entrarPorAviso({ replayId: q.get('replay') || null, desdeLink: true })
+    if (q.has('match')) cargarDesafios().then(() => q.get('replay') ? abrirAvisoMatch(q.get('replay')) : mostrarMatch(tabConAviso() === 'desafiar' ? 'mios' : tabConAviso()))
   }
 })
 // suelto, con el ranking de la SDGApp: se entra con Google (la misma cuenta que en la app), no con un nombre
