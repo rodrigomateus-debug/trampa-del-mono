@@ -265,8 +265,11 @@ export function nudo(i, fondo) {
   if (fondo) { tono(2100, 0.05, { vol: 0.16, tipo: 'square' }); ruido(0.03, { f: 4200, vol: 0.06 }); return }
   tono(1400 + i * 160, 0.04, { vol: 0.13, tipo: 'triangle' }); ruido(0.02, { f: 3600, vol: 0.04 })
 }
-/** El latido de la potencia: cada vez que el aro se cierra (el sweet spot), un "tuc" suave y redondo. */
-export function latido() { tono(988, 0.07, { vol: 0.08, tipo: 'sine' }); tono(1480, 0.05, { vol: 0.035, tipo: 'sine', at: 0.02 }) }
+/** El latido de la potencia: dos tics que suben mientras el aro se acerca (k = 0 y 1) y la campanita cuando llega (k = 2). */
+export function latido(k = 2) {
+  if (k < 2) { tono(k ? 1175 : 880, 0.035, { vol: 0.05, tipo: 'sine' }); return }
+  campana(1567.98, 0, 0.07)
+}
 /** El tiro perfecto: un "ting" cortito y brillante, arriba del golpe. */
 export function perfecto() { campana(1567.98, 0, 0.09); campana(2093, 0.07, 0.07) }
 /** El backspin: la pelota que muerde el green y vuelve: un "zip" que baja. */

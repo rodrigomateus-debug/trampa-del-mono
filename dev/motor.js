@@ -1079,11 +1079,13 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     return { modo: 'putt', fase: 'rodando', pos: [...pelota], alt: 0, v: [Math.cos(a) * v0, Math.sin(a) * v0], carry: 0, giro: plan?.giro ?? 0, labio: false, eventos: [] }
   }
   const p = plan ?? planBase(angulo, potencia, lie)
-  // el error del tiro, en desvíos: el perfecto (soltó en el sweet spot del latido) sale con un cuarto, no con cero.
-  // Un tiro sin error (Demetrio, LG sin error, el de Deme) sale perfecto siempre: es real
-  const k = p.perfecto ? PERFECTO.error : 1
-  const ze = gauss(rng) * k
+  // el error del tiro, en desvíos: el perfecto (soltó en el sweet spot del latido) sale con un cuarto, no con cero; el
+  // bueno, con `errorBueno`. Un tiro sin error (Demetrio, LG sin error, el de Deme) sale perfecto siempre: es real.
+  // Con el latido, el lado del error lo decide cuándo soltó: temprano, a la izquierda; tarde, a la derecha
+  const k = p.perfecto ? PERFECTO.error : p.bueno ? PERFECTO.errorBueno : 1
+  let ze = gauss(rng) * k
   const g = gauss(rng) * k
+  if (p.lado && !p.perfecto) ze = Math.abs(ze) * p.lado
   const perfecto = !!p.perfecto || !(p.disp.ang > 0 || p.disp.carry > 0)
   const err = ze * p.disp.ang
   // una bomba mal pegada nunca va más lejos: se queda corta
@@ -1123,6 +1125,8 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
     bomba: !!p.bomba,
     perfecta: !!p.perfecta,
     perfecto,
+    bueno: !perfecto && !!p.bueno,
+    lado: p.lado ?? 0,
     comba: !!p.comba,
     golpe: p.golpe ?? null,
     ruta, // el Dibuje maestro: el vuelo, punto a punto (relativo a `desde`), a velocidad pareja
@@ -1675,10 +1679,15 @@ export function posVuelo(tiro, u) {
 }
 
 /** Pegarle: cuenta el golpe y devuelve el tiro para animarlo con `avanzar` (que también mueve los monos). */
-export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null, perfecto = false) {
+export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, ruta = null, soltada = null) {
   const plan = planTiro(campo, r, angulo, potencia, precision, tiempo, ruta)
-  // soltó en el sweet spot del latido: el tiro perfecto (no en el putt, la bomba de Miguelón ni el Dibuje)
-  if (perfecto && !plan.putt && !plan.bomba && !ruta) plan.perfecto = true
+  // cómo soltó en el latido (`soltadaLatido`; `true` = perfecto): no en el putt, la bomba de Miguelón ni el Dibuje
+  const s = soltada === true ? { nivel: 'perfecto', lado: 0 } : soltada
+  if (s && !plan.putt && !plan.bomba && !ruta) {
+    if (s.nivel === 'perfecto') plan.perfecto = true
+    else if (s.nivel === 'bueno') plan.bueno = true
+    if (s.lado) plan.lado = s.lado
+  }
   r.desde = [...r.pelota]
   r.lieDesde = r.lie
   r.golpes += 1
@@ -2207,22 +2216,38 @@ export const ADULACION = {
 export const PALOS = { wedge: 50 }
 
 /**
- * El tiro PERFECTO sale del LATIDO de la potencia: mientras estirás, alrededor del dedo un aro se abre y se cierra, y
- * cuanto más fuerte le vas a pegar, más rápido late (de `lento` segundos por latido con lo más suave a `rapido` a
- * fondo). Soltar justo cuando el aro se cierra (el sweet spot: ± `ventana` del latido) es el tiro perfecto: sale con
- * `error` × su error de siempre (un cuarto: no es cero, y como el error depende del handicap, el perfecto de un handicap
- * alto se abre más que el de uno bajo). Cerca del hoyo la ventana es más ancha (hasta × `cerca` a `junto` yd o menos).
- * Los tiros sin error (Demetrio, LG sin error, el tiro de Deme) salen perfectos siempre. Lo dice chiquito al lado de
- * donde salió. En el chip y el approach (hasta `BACKSPIN.approach` yd, no desde la salida) además hace backspin: pica en
- * el green o la calle y vuelve `base` + `porYarda` × el largo del tiro, como los pros.
+ * El LATIDO de la potencia: mientras estirás, alrededor de la pelota un aro se achica a velocidad pareja hacia un aro
+ * fijo dorado, lo pasa un poquito y vuelve a empezar. Cuanto más fuerte le vas a pegar, más rápido late (de `lento`
+ * segundos por latido con lo más suave a `rapido` a fondo). El aro llega al dorado en `centro` del latido: soltar ahí
+ * (± `ventana`, un poco más de margen para el lado de tarde: `tarde`) es el tiro PERFECTO, y cerca (× `bueno`) es
+ * BUENO. Cerca del hoyo las ventanas son más anchas (hasta × `cerca` a `junto` yd o menos).
+ * - PERFECTO: sale con `error` × su error de siempre (un cuarto: no es cero, y como el error depende del handicap, el
+ *   perfecto de un handicap alto se abre más que el de uno bajo). Los tiros sin error (Demetrio, LG sin error, el tiro
+ *   de Deme) salen perfectos siempre. En el chip y el approach, además, backspin (ver BACKSPIN).
+ * - BUENO: sale con `errorBueno` × su error.
+ * - Y el lado del error lo decide cuándo soltaste (como en el golf de verdad): temprano, la cara cerrada, se va a la
+ *   izquierda (hook); tarde, abierta, a la derecha (slice). El largo, como siempre.
  */
-export const PERFECTO = { lento: 1.2, rapido: 0.42, ventana: 0.07, cerca: 1.6, lejos: 150, junto: 30, error: 0.25 }
+export const PERFECTO = { lento: 1.2, rapido: 0.42, centro: 0.85, ventana: 0.07, tarde: 1.25, bueno: 2.2, cerca: 1.6, lejos: 150, junto: 30, error: 0.25, errorBueno: 0.6 }
 /** Segundos por latido con esta potencia (0 a 1). */
 export const periodoLatido = (p) => PERFECTO.lento + (PERFECTO.rapido - PERFECTO.lento) * Math.max(0, Math.min(1, p))
-/** La ventana del sweet spot (fracción del latido, para cada lado) según lo lejos del hoyo (yardas reales). */
+/** La ventana del sweet spot (fracción del latido, para el lado de temprano) según lo lejos del hoyo (yardas reales). */
 export const ventanaPerfecto = (yd) => PERFECTO.ventana * (1 + (PERFECTO.cerca - 1) * Math.max(0, Math.min(1, (PERFECTO.lejos - yd) / (PERFECTO.lejos - PERFECTO.junto))))
-/** ¿Está en el sweet spot? `fase` cuenta latidos: en cada entero el aro está cerrado. */
-export const enSweetSpot = (fase, ventana) => { const f = ((fase % 1) + 1) % 1; return Math.min(f, 1 - f) <= ventana }
+/**
+ * Cómo soltó: `fase` cuenta latidos (en cada uno, el aro llega al dorado en `centro`). Devuelve { nivel: 'perfecto' |
+ * 'bueno' | null, lado: -1 (temprano) | 1 (tarde), d } (d: cuánto antes o después, en fracción del latido).
+ */
+export function soltadaLatido(fase, ventana) {
+  const f = ((fase % 1) + 1) % 1
+  // < 0: el aro todavía no llegó (temprano); > 0: ya pasó (tarde). Cuando vuelve a empezar (grande), es temprano del
+  // próximo: así lo ves
+  const d = f - PERFECTO.centro
+  const v = d < 0 ? ventana : ventana * PERFECTO.tarde
+  const nivel = Math.abs(d) <= v ? 'perfecto' : Math.abs(d) <= v * PERFECTO.bueno ? 'bueno' : null
+  return { nivel, lado: d < 0 ? -1 : 1, d }
+}
+/** ¿Está en el sweet spot? */
+export const enSweetSpot = (fase, ventana) => soltadaLatido(fase, ventana).nivel === 'perfecto'
 export const BACKSPIN = { approach: 110, base: 1.5, porYarda: 0.025, en: ['green', 'fairway'] }
 export function paloDe(campo, r) {
   if (enModoPutt(campo, r)) return 'putter'
