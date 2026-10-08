@@ -51,6 +51,13 @@ export function suerteDe(tiro) {
   const x = Math.sin(tiro.desde[0] * 12.9898 + tiro.desde[1] * 78.233 + tiro.carryVec[0] * 37.719 + tiro.carryVec[1] * 4.581) * 43758.5453
   return x - Math.floor(x)
 }
+/**
+ * El palo de la bandera (2026-10-08): un tiro completo que baja sobre el hoyo puede pegarle al palo antes de tocar el
+ * piso (a menos de `radio` yd del palo y por debajo de `alto` yd). Si igual caía en la boca, entra como la que entra
+ * de aire; si no, abajo cae adentro (hasta `CHIP.clavada`) y cuanto más arriba le pega, más rebota: sale para atrás y para un costado, a `rebote` yd/s. Los
+ * putts no: se patean sin bandera. La flecha del Sueco, el tiro de Deme y Demetrio no le pegan.
+ */
+export const PALO_BANDERA = { radio: 0.2, alto: 2.4, rebote: [1.6, 3.2] }
 /** La chance de entrar de un tiro completo que cae a d yardas del centro del hoyo. */
 export function chanceClavada(d) {
   if (d >= FISICA.bocaHoyo) return 0
@@ -1150,6 +1157,40 @@ export function lanzar(campo, { pelota, angulo, potencia, viento, putt, lie, rng
   }
 }
 
+/** Pegó en el palo de la bandera: abajo cae adentro; arriba, rebota para atrás y para un costado (la suerte, del tiro). */
+function alPalo(tiro, prev, pin) {
+  tiro.pegoPalo = { alt: tiro.alt }
+  tiro.eventos.push({ tipo: 'bandera' })
+  const x = Math.sin(suerteDe(tiro) * 9301.17 + 0.5) * 43758.5453
+  const suerte = x - Math.floor(x)
+  const abajo = 1 - tiro.alt / PALO_BANDERA.alto
+  // si de todos modos caía en la boca del hoyo, entra como la que entra de aire (pegarle al palo no la saca); si no,
+  // cuanto más abajo le pega, más cae
+  const n = tiro.ruta?.length ?? 0
+  const cae = n ? [tiro.desde[0] + tiro.ruta[n - 1][0] + tiro.deriva[0], tiro.desde[1] + tiro.ruta[n - 1][1] + tiro.deriva[1]]
+    : [tiro.desde[0] + tiro.carryVec[0] + tiro.deriva[0], tiro.desde[1] + tiro.carryVec[1] + tiro.deriva[1]]
+  if (suerte < Math.max(chanceClavada(dist(cae, pin)), CHIP.clavada * abajo)) {
+    if (atajaMapache(tiro, pin)) return tiro.fase
+    tiro.pos = [...pin]
+    tiro.alt = 0
+    tiro.v = [0, 0]
+    tiro.embocada = true
+    tiro.eventos.push({ tipo: 'embocada' })
+    tiro.fase = 'quieta'
+    return tiro.fase
+  }
+  // rebota: para atrás, desviada para un lado (afuera de la boca, para que no la vuelva a agarrar de una)
+  const dx = tiro.pos[0] - prev[0], dy = tiro.pos[1] - prev[1], d = Math.hypot(dx, dy) || 1
+  const a = Math.atan2(-dy / d, -dx / d) + (suerte - 0.5) * 2.4
+  const [v0, v1] = PALO_BANDERA.rebote
+  const vel = v0 + (v1 - v0) * abajo * 0.5 + (v1 - v0) * 0.5 * suerte
+  tiro.pos = [pin[0] + Math.cos(a) * (FISICA.bocaHoyo + 0.05), pin[1] + Math.sin(a) * (FISICA.bocaHoyo + 0.05)]
+  tiro.alt = 0
+  tiro.v = [Math.cos(a) * vel, Math.sin(a) * vel]
+  tiro.labio = true // ya pasó por el hoyo: no hay corbata ni labio de vuelta
+  tiro.fase = 'rodando'
+  return tiro.fase
+}
 function robo(tiro) {
   if (!tiro.monos || tiro.alt >= MONO.altura) return false
   const m = tiro.monos.find((s) => monoActivo(s) && dist(s.pos, tiro.pos) < MONO.radio)
@@ -1226,6 +1267,11 @@ export function avanzar(campo, tiro, dt, pin) {
       return tiro.fase
     }
     if (u > 0.02 && !tiro.alHoyo && !tiro.flecha && robo(tiro)) return tiro.fase // el tiro de Deme (o el de par de Demetrio) no lo para nadie
+    // el palo de la bandera: bajando sobre el hoyo, le pega
+    if (pin && tiro.modo === 'full' && !tiro.alHoyo && !tiro.exacto && !tiro.flecha && !tiro.pegoPalo && u > 0.5 && tiro.alt < PALO_BANDERA.alto) {
+      const c = cercanoEnSegmento(pin, prev, tiro.pos)
+      if (dist(c, pin) < PALO_BANDERA.radio) return alPalo(tiro, prev, pin)
+    }
     // los golpes del Mago vuelan por arriba de los pinos (menos la viborita, que va al ras)
     const pino = !tiro.alHoyo && !tiro.exacto && !tiro.flecha && (!tiro.comba || tiro.rasante) && u > 0.02 && u < 1 && tiro.alt < FISICA.alturaPino ? pinoEn(campo, tiro.pos) : null
     // el pino que tiene la pelota debajo de la copa no la frena al salir
