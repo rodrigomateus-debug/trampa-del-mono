@@ -810,7 +810,7 @@ input { -webkit-user-select: text; user-select: text; }
 .mtr-pct small { display: block; font: 600 10px var(--font-body); color: var(--text-muted); letter-spacing: .04em; }
 .rs-rivales { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .rs-rivales li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(20, 64, 42, .07); font: 700 14px var(--font-body); }
-.rs-record { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.rs-record { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
 .rs-record div { padding: 10px 6px 8px; border-radius: 14px; text-align: center; background: rgba(20, 64, 42, .07); }
 .rs-record b { display: block; font: 40px/1 var(--font-display); font-weight: 400; }
 .rs-record span { font: 800 10px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
@@ -984,7 +984,7 @@ input { -webkit-user-select: text; user-select: text; }
 .t-match.gana { background: var(--gold); }
 .t-match.pierde { background: rgba(188, 75, 60, .15); }
 .t-match button { margin-top: 8px; }
-.mt-record { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; list-style: none; padding: 4px 0 8px; }
+.mt-record { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; list-style: none; padding: 4px 0 8px; }
 .mt-record div { border-radius: 12px; padding: 8px 4px; text-align: center; background: rgba(20, 64, 42, .08); }
 .mt-record b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1; }
 .mt-record span { font: 800 10px var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
@@ -1597,7 +1597,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 9b801cc · 8/10, 07:25 p. m.</span>
+  <span class="version" id="version">v e0d7b70 · 8/10, 07:40 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -6374,7 +6374,7 @@ function pintarRankingMatch(lista) {
   const filas = [...mtRanking].sort(ordenMatch)
   mtRankingVista = filas
   const yo = yoUid()
-  const wdl = (x) => `<span class="wdl" aria-label="${x.ganados} ganados, ${x.empatados} empatados, ${x.perdidos} perdidos"><i class="g">${x.ganados}G</i><i>${x.empatados}E</i><i class="p">${x.perdidos}P</i></span>`
+  const wdl = (x) => wdlMatch(x.ganados, x.empatados, x.perdidos)
   let pos = 0, prev = null
   lista.innerHTML = filas.length ? filas.map((x, k) => {
     if (!prev || ordenMatch(prev, x) !== 0 || prev.ganados !== x.ganados || prev.perdidos !== x.perdidos || prev.jugados !== x.jugados) pos = k + 1
@@ -6387,6 +6387,12 @@ function pintarRankingMatch(lista) {
     </li>`
   }).join('') : '<li class="rk-vacio">Todavía no se terminó ningún match. ¡Desafiá a alguien!</li>'
 }
+/**
+ * El récord de matches: ganados y perdidos (pedido de Rorro, 2026-10-08: nunca hubo un empate). El empate solo
+ * aparece si alguna vez hay uno (los dos LP, o mismos golpes y mismo tiempo al milisegundo), para que las cuentas den.
+ */
+const wdlMatch = (g, e, p) => `<span class="wdl" aria-label="${g} ganados${e ? `, ${e} empatados` : ''}, ${p} perdidos"><i class="g">${g}G</i>${e ? `<i>${e}E</i>` : ''}<i class="p">${p}P</i></span>`
+const cajasRecord = (g, e, p) => `<div class="g"><b>${g}</b><span>Ganados</span></div>${e ? `<div><b>${e}</b><span>Empatados</span></div>` : ''}<div class="p"><b>${p}</b><span>Perdidos</span></div>`
 function abrirRecordMatch(x) {
   if (!x) return
   $('.rs-caja').classList.remove('bloqueado')
@@ -6399,7 +6405,7 @@ function abrirRecordMatch(x) {
   $('#rs-cuerpo').innerHTML = `
     <p class="rs-kicker">Ranking de matches${pos ? ` · ${pos}° puesto` : ''}</p>
     <h3 class="rs-quien" id="rs-quien">${esc(x.nombre)}${x.sdga ? selloSdga() : ''}</h3>
-    <div class="rs-record"><div class="g"><b>${x.ganados}</b><span>Ganados</span></div><div><b>${x.empatados}</b><span>Empatados</span></div><div class="p"><b>${x.perdidos}</b><span>Perdidos</span></div></div>
+    <div class="rs-record">${cajasRecord(x.ganados, x.empatados, x.perdidos)}</div>
     <dl class="rs-datos">
       <div><dt>Jugados</dt><dd>${x.jugados}</dd></div>
       <div><dt>Ganados</dt><dd>${pctGanados(x)}%<small>de los matches</small></dd></div>
@@ -6407,7 +6413,7 @@ function abrirRecordMatch(x) {
       ${verdugo ? `<div><dt>Su verdugo</dt><dd>${esc(verdugo.nombre)}<small>le ganó ${verdugo.p} ${verdugo.p === 1 ? 'vez' : 'veces'}</small></dd></div>` : ''}
       <div class="ancho"><dt>Último match</dt><dd>${f ? `${esc(f.dia)}<small>a las ${f.hora} h</small>` : '—'}</dd></div>
     </dl>
-    ${rivales.length ? `<p class="rs-titulo">Contra cada rival</p><ul class="rs-rivales">${rivales.map((r) => `<li><span>${esc(r.nombre)}</span><span class="wdl"><i class="g">${r.g}G</i><i>${r.e}E</i><i class="p">${r.p}P</i></span></li>`).join('')}</ul>` : ''}`
+    ${rivales.length ? `<p class="rs-titulo">Contra cada rival</p><ul class="rs-rivales">${rivales.map((r) => `<li><span>${esc(r.nombre)}</span>${wdlMatch(r.g, r.e, r.p)}</li>`).join('')}</ul>` : ''}`
   $('#rk-resumen').hidden = false
   $('#rk-resumen .hab-x').focus({ preventScroll: true })
 }
@@ -6449,9 +6455,9 @@ async function abrirDetalleMatch(id) {
   caja.innerHTML = tabla(grabs) + (grabs ? '' : '<p class="extras">No se pudo cargar el hoyo a hoyo.</p>')
 }
 $('#mt-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const li = e.target.closest('[data-mtr]'); if (li) { e.preventDefault(); abrirRecordMatch(mtRankingVista[+li.dataset.mtr]) } })
-/** El historial: tu récord (G-E-P), contra cada rival y match por match. */
+/** El historial: tu récord (ganados y perdidos), contra cada rival y match por match. */
 function pintarHistorial(lista) {
-  $('#mt-nota').textContent = 'G = ganados · E = empatados · P = perdidos. Cuentan los matches que jugaron los dos. Con ▶ ves el replay.'
+  $('#mt-nota').textContent = 'G = ganados · P = perdidos. Cuentan los matches que jugaron los dos. Con ▶ ves el replay.'
   const yo = yoUid()
   const jugados = mtDesafios.filter((d) => d.estado === 'jugado').sort((a, b) => String(b.jugadoFecha ?? b.fecha).localeCompare(String(a.jugadoFecha ?? a.fecha)))
   if (!jugados.length) { lista.innerHTML = '<li class="rk-vacio">Todavía no terminaste ningún match.</li>'; return }
@@ -6467,9 +6473,9 @@ function pintarHistorial(lista) {
     x[k]++
     por.set(uid, x)
   }
-  const wdl = (x) => `<span class="wdl" aria-label="${x.g} ganados, ${x.e} empatados, ${x.p} perdidos"><i class="g">${x.g}G</i><i>${x.e}E</i><i class="p">${x.p}P</i></span>`
+  const wdl = (x) => wdlMatch(x.g, x.e, x.p)
   const rivales = [...por.values()].sort((a, b) => b.g + b.e + b.p - (a.g + a.e + a.p) || b.g - a.g)
-  lista.innerHTML = `<li class="mt-record"><div class="g"><b>${tot.g}</b><span>Ganados</span></div><div><b>${tot.e}</b><span>Empatados</span></div><div class="p"><b>${tot.p}</b><span>Perdidos</span></div></li>
+  lista.innerHTML = `<li class="mt-record">${cajasRecord(tot.g, tot.e, tot.p)}</li>
     <li class="mt-sec">Contra cada rival</li>
     ${rivales.map((x) => `<li class="rk-fila mt-fila">
       <span class="mini" aria-hidden="true">${esc(String(x.alias).charAt(0).toUpperCase())}</span>
