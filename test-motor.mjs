@@ -269,24 +269,28 @@ ok('Miguelón: la furia se carga de a media (calle, green, bogey) y llena revole
   assert.equal(otro.furia, undefined)
 })
 
-ok('Miguelón: la bomba perfecta llega al green; mal pegada se abre y queda corta', () => {
+ok('Miguelón: la bomba (la goma llega más lejos) se abre; perfecta (del latido, como todos) llega al green', () => {
   const r = M.nuevaRonda({ apodo: 'Mike Queboni (Đ)', emoji: '🍯', hcp: 5 }, fijo(0.5))
   r.monos = []
   r.viento = calma
   const azul = h15.tees.azul
   assert.deepEqual(r.pelota, azul) // HCP 5: sale de las azules
   const linea = angulo(azul, h15.pin)
-  const perfecta = M.planTiro(quieto, r, linea, 1, 1)
-  assert.ok(perfecta.bomba && perfecta.perfecta)
-  // midiendo bien la distancia, alguna bomba perfecta termina en el green del 15 (392 yd desde las azules)
+  const bomba = M.planTiro(quieto, r, linea, 1)
+  // la bomba se abre: BOMBA.ang grados por el error del handicap (HCP 5: la mitad)
+  assert.ok(bomba.bomba && Math.abs(bomba.disp.ang - ((M.BOMBA.ang * Math.PI) / 180) * M.errorDe(5)) < 1e-12)
+  assert.ok(bomba.carry * h15.escala > 380)
+  // soltada en el sweet spot: perfecta (con un cuarto del error); midiendo bien la distancia, termina en el green del 15
+  const rr0 = { ...r, pelota: [...azul], lie: 'tee', golpes: 0 }
+  assert.equal(M.golpear(quieto, { ...rr0, pelota: [...azul] }, linea, 1, sinRuido(), 0, 0, null, true).perfecta, true)
   const alGreen = Array.from({ length: 21 }, (_, i) => 0.8 + i * 0.01).some((p) => {
     const rr = { ...r, pelota: [...azul], lie: 'tee', golpes: 0 }
-    return M.terreno(campo, M.simular(quieto, M.golpear(quieto, rr, linea, p, sinRuido(), 1), h15.pin).pos).tipo === 'green'
+    return M.terreno(campo, M.simular(quieto, M.golpear(quieto, rr, linea, p, sinRuido(), 0, 0, null, true), h15.pin).pos).tipo === 'green'
   })
   assert.ok(alGreen)
-  const mala = M.planTiro(quieto, r, linea, 1, 0.4)
-  // mal pegada se abre (con HCP 5, la mitad del tope de dispersión: ~5,7° con 0,4 de precisión) y mucho más que la perfecta
-  assert.ok(!mala.perfecta && mala.disp.ang > (5 * Math.PI) / 180 && mala.disp.ang > perfecta.disp.ang * 4)
+  // sacado (la furia), el latido no lo salva
+  const sacado = { ...rr0, pelota: [...azul], furia: { nivel: 0, enojado: true } }
+  assert.equal(M.golpear(quieto, sacado, linea, 1, sinRuido(), 0, 0, null, true).perfecta, false)
   // por debajo de la zona de bomba es un drive normal (aunque más largo)
   const corto = M.planTiro(quieto, r, linea, 0.7, 0)
   assert.ok(!corto.bomba && corto.carry * h15.escala > M.carryDe(5) * 0.9)

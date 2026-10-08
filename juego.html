@@ -2084,20 +2084,17 @@ function apunte() {
     ang = t.ang
     p = Math.min(1, Math.pow(t.u, 1.6))
   }
-  let q = 0
+  const q = 0
   const tiempo = (performance.now() - drag.t0) / 1000 // el Águila: la línea se sacude con el tiempo
-  let plan = M.planTiro(campo, ronda, ang, p, 0, tiempo)
-  if (plan.bomba) {
-    // el óvalo de Miguelón late: la precisión es máxima a mitad de cada latido
-    drag.tZona ??= performance.now()
-    q = 0.5 - 0.5 * Math.cos((2 * Math.PI * (performance.now() - drag.tZona)) / 1000 / M.BOMBA.periodo)
-    plan = M.planTiro(campo, ronda, ang, p, q, tiempo)
-  } else drag.tZona = null
+  const plan = M.planTiro(campo, ronda, ang, p, 0, tiempo)
   const arbol = putt ? null : M.pinoEnLaSalida(campo, ronda.pelota, plan) // pega en un árbol al salir: la línea en rojo, cortada ahí
-  // el latido de la potencia: el aro que se achica alrededor de la pelota hasta el dorado (no en el putt ni en la bomba de
-  // Miguelón, que tiene el suyo). Soltando cuando llega (el sweet spot) sale perfecto; cerca, bueno; y si no, el lado
-  // del error lo dice cuándo soltaste. Cerca del hoyo, las ventanas son más anchas
-  const latido = !putt && !plan.bomba
+  // el latido de la potencia: el aro que se achica alrededor de la pelota hasta el dorado (también la bomba de Miguelón y
+  // Taiu, desde el 2026-10-08). Soltando cuando llega (el sweet spot) sale perfecto; cerca, bueno; y si no, el lado del
+  // error lo dice cuándo soltaste. Cerca del hoyo, las ventanas son más anchas. No en el putt, ni con Miguelón sacado
+  // (sale para cualquier lado), ni en los tiros que ya son perfectos por una habilidad (el sin error de LG, el approach
+  // de Taiu, Demetrio, el tiro de Deme): esos salen perfectos sin el aro
+  const yaPerfecto = plan.calma || plan.approachPerfecto || plan.exacto || !!ronda.deme?.listo
+  const latido = !putt && !plan.furia && !yaPerfecto
   const ventana = latido ? M.ventanaPerfecto(M.aYardas(ronda, M.dist(ronda.pelota, M.hoyoActual(ronda).pin))) : 0
   const soltada = latido ? M.soltadaLatido(drag.fase ?? 0, ventana) : null
   return { ang, p, q, tiempo, putt, plan, arbol, alcance: plan.carry, disp: plan.disp, destino: plan.destino, fondo: !putt && !plan.bomba && !plan.comba && p >= 0.97, latido, ventana, soltada, sweet: soltada?.nivel === 'perfecto' }
@@ -2475,7 +2472,7 @@ function actualizar(dt) {
   zoomApunte()
   if (drag && estado === 'apuntar') {
     const a = apunte()
-    S.carga(a?.p ?? 0, a?.plan?.bomba ? a.q : 0)
+    S.carga(a?.p ?? 0, 0)
     // el latido de la potencia: más rápido cuanto más fuerte, pero el ritmo cambia de a poco (si no, mientras ajustás el
     // dedo tartamudea). Dos tics que suben mientras el aro se acerca y la campanita (y el tic del celu) cuando llega
     if (a?.latido) {
@@ -5566,7 +5563,7 @@ function dibujarApunte(a) {
   const [bx, by] = w2s(ronda.pelota)
   const [dx, dy] = w2s(a.destino)
   const bomba = a.plan.bomba
-  const col = a.fondo || (bomba && !a.plan.perfecta) ? C.red : bomba ? C.gold : C.cream
+  const col = a.fondo ? C.red : bomba ? C.gold : C.cream
   ctx.lineCap = 'round'
   if (ronda.pro) { apuntePro(a, bx, by, col); goma(a, bx, by); return } // el MODO PRO: sin líneas punteadas ni dónde cae
   goma(a, bx, by)
@@ -5671,7 +5668,7 @@ function dibujarApunte(a) {
   } else {
   ctx.beginPath()
   ctx.ellipse(dx, dy, largo, ancho, a.plan.cuerda + cam.rot, 0, 7)
-  ctx.fillStyle = a.fondo || (bomba && !a.plan.perfecta) ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.4)' : 'rgba(244,238,218,.18)'
+  ctx.fillStyle = a.fondo ? 'rgba(188,75,60,.25)' : bomba ? 'rgba(232,195,74,.3)' : 'rgba(244,238,218,.18)'
   ctx.fill()
   ctx.lineWidth = 2
   ctx.setLineDash([5, 5])
@@ -5690,7 +5687,7 @@ function dibujarApunte(a) {
     ctx.lineTo(bx + Math.cos(base + ab) * 54, by + Math.sin(base + ab) * 54)
     ctx.stroke()
   }
-  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? (a.plan.perfecta ? ' · ¡PERFECTA!' : ' · BOMBA') : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
+  const extra = a.plan.furia ? ' · SACADO 😡' : bomba ? ' · BOMBA' : a.plan.aguila ? (a.plan.aguila.enVentana ? ' · ¡DERECHA!' : M.habilidadDe(ronda.jugador)?.id === 'derecho' ? ' · PULSO' : ' · ÁGUILA') + (a.plan.iman ? ' · IMÁN' : '') : a.plan.flecha ? ' · FLECHA 🏹' : a.plan.noLaFalla ? ' · NO LA FALLA 🦉' : a.plan.calma ? ' · SIN ERROR 📺' : a.plan.approach ? ' · APPROACH ×3' : a.plan.comba ? ` · ${M.GOLPES_MAGO.find((g) => g.id === a.plan.golpe)?.nombre.toUpperCase() ?? 'COMBA'}` : a.fondo ? ' · A FONDO' : ''
   const txt = `≈ ${Math.round(M.aYardas(ronda, a.alcance))} YD${extra}`
   ctx.font = '16px Anton, "Arial Narrow", sans-serif'
   ctx.textAlign = 'center'
