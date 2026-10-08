@@ -2321,7 +2321,9 @@ export const PALOS = { wedge: 50 }
  * - Y el lado del error lo decide cuándo soltaste (como en el golf de verdad): temprano, la cara cerrada, se va a la
  *   izquierda (hook); tarde, abierta, a la derecha (slice). El largo, como siempre.
  */
-export const PERFECTO = { lento: 1.2, rapido: 0.42, centro: 0.85, ventana: 0.07, tarde: 1.25, bueno: 2.2, cerca: 1.6, lejos: 150, junto: 30, error: 0.25, errorCorto: 0.5, errorBueno: 0.6 }
+// (2026-10-08, pedido de Rorro: "un poco más difícil los golpes perfectos": la ventana de 0,07 a 0,06, el margen de tarde
+// de ×1,25 a ×1,15 y la de cerca del hoyo de ×1,6 a ×1,4; el BUENO queda casi igual de ancho, × 2,6)
+export const PERFECTO = { lento: 1.2, rapido: 0.42, centro: 0.85, ventana: 0.06, tarde: 1.15, bueno: 2.6, cerca: 1.4, lejos: 150, junto: 30, error: 0.25, errorCorto: 0.5, errorBueno: 0.6 }
 /** Segundos por latido con esta potencia (0 a 1). */
 export const periodoLatido = (p) => PERFECTO.lento + (PERFECTO.rapido - PERFECTO.lento) * Math.max(0, Math.min(1, p))
 /** La ventana del sweet spot (fracción del latido, para el lado de temprano) según lo lejos del hoyo (yardas reales). */
