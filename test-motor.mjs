@@ -288,9 +288,11 @@ ok('Miguelón: la bomba (la goma llega más lejos) se abre; perfecta (del latido
     return M.terreno(campo, M.simular(quieto, M.golpear(quieto, rr, linea, p, sinRuido(), 0, 0, null, true), h15.pin).pos).tipo === 'green'
   })
   assert.ok(alGreen)
-  // sacado (la furia), el latido no lo salva
+  // sacado (la furia): el aro es casi imposible (más rápido y con una ventana chiquita) y, perfecto, igual se abre más
+  // que una bomba normal
+  assert.ok(M.FURIA.latido < 1 && M.FURIA.ventana < 0.5)
   const sacado = { ...rr0, pelota: [...azul], furia: { nivel: 0, enojado: true } }
-  assert.equal(M.golpear(quieto, sacado, linea, 1, sinRuido(), 0, 0, null, true).perfecta, false)
+  assert.ok(M.planTiro(quieto, sacado, linea, 1).disp.ang > bomba.disp.ang * 1.5)
   // por debajo de la zona de bomba es un drive normal (aunque más largo)
   const corto = M.planTiro(quieto, r, linea, 0.7, 0)
   assert.ok(!corto.bomba && corto.carry * h15.escala > M.carryDe(5) * 0.9)
