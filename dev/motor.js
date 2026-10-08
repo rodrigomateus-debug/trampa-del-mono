@@ -1338,10 +1338,12 @@ export function avanzar(campo, tiro, dt, pin) {
       const pique = t === 'green' ? 1 : tiro.clima?.c.pique ?? 1
       const vel = Math.sqrt(1.8 * tiro.carry) * FISICA.pique[t] * (tiro.rueda ?? 1) * pique
       tiro.v = [(dx / d) * vel, (dy / d) * vel]
-      // el backspin: pica y vuelve para atrás, lo justo para recorrer `backspin` yardas (con el roce de ahí)
+      // el backspin: pica y vuelve para atrás (un poquito torcido), lo justo para recorrer `backspin.d` yardas en plano
+      // (con el roce de ahí); la caída del green lo lleva mientras rueda
       if (tiro.backspin && BACKSPIN.en.includes(t)) {
-        const vb = Math.sqrt(2 * roceDe(tiro, t) * tiro.backspin)
-        tiro.v = [(-dx / d) * vb, (-dy / d) * vb]
+        const vb = Math.sqrt(2 * roceDe(tiro, t) * tiro.backspin.d)
+        const a = Math.atan2(-dy, -dx) + tiro.backspin.desvio
+        tiro.v = [Math.cos(a) * vb, Math.sin(a) * vb]
         tiro.eventos.push({ tipo: 'backspin' })
       }
       tiro.fase = 'rodando'
@@ -1782,10 +1784,13 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
     tiro.mapache = { m: (a + rng() * (b - a)) / hoyoActual(r).escala, de: [...r.desde], hecho: false } // de: de dónde salió (los putts no traen `desde`)
   }
   tiro.exacto = retro // Demetrio: queda exactamente donde apuntó (ver avanzar)
-  // el chip o el approach perfecto: vuelve (backspin)
-  if (tiro.modo === 'full' && tiro.perfecto && !retro && !tiro.salida) {
-    const h = hoyoActual(r), yd = dist(r.pelota, h.pin) * h.escala
-    if (yd <= BACKSPIN.approach) tiro.backspin = (BACKSPIN.base + BACKSPIN.porYarda * tiro.carry * h.escala) / h.escala
+  // el tiro perfecto vuelve si cae en el green (backspin), menos el drive del 15 y el 16. El azar sale del tiro (no gasta)
+  const hb = hoyoActual(r)
+  if (tiro.modo === 'full' && tiro.perfecto && !retro && !(tiro.salida && hb.par !== 3)) {
+    const x = Math.sin(suerteDe(tiro) * 7919.3 + 1.7) * 43758.5453, u = x - Math.floor(x)
+    const y = Math.sin(u * 3571.9 + 0.3) * 43758.5453, w = y - Math.floor(y)
+    const [a0, a1] = BACKSPIN.azar
+    tiro.backspin = { d: (yardasBackspin(tiro.carry * hb.escala) * (a0 + (a1 - a0) * u)) / hb.escala, desvio: (w - 0.5) * 2 * BACKSPIN.desvio }
   }
   tiro.ajenos = (r.hoyos ?? HOYOS).filter((h) => h.n !== hoyoActual(r).n).map((h) => ({ n: h.n, pin: h.pin }))
   tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada
@@ -2269,7 +2274,7 @@ export const PALOS = { wedge: 50 }
  * BUENO. Cerca del hoyo las ventanas son más anchas (hasta × `cerca` a `junto` yd o menos).
  * - PERFECTO: sale con `error` × su error de siempre (un cuarto: no es cero, y como el error depende del handicap, el
  *   perfecto de un handicap alto se abre más que el de uno bajo). Los tiros sin error (Demetrio, LG sin error, el tiro
- *   de Deme) salen perfectos siempre. En el chip y el approach, además, backspin (ver BACKSPIN).
+ *   de Deme) salen perfectos siempre. Si cae en el green, además, backspin (ver BACKSPIN; menos el drive).
  * - BUENO: sale con `errorBueno` × su error.
  * - Y el lado del error lo decide cuándo soltaste (como en el golf de verdad): temprano, la cara cerrada, se va a la
  *   izquierda (hook); tarde, abierta, a la derecha (slice). El largo, como siempre.
@@ -2294,7 +2299,15 @@ export function soltadaLatido(fase, ventana) {
 }
 /** ¿Está en el sweet spot? */
 export const enSweetSpot = (fase, ventana) => soltadaLatido(fase, ventana).nivel === 'perfecto'
-export const BACKSPIN = { approach: 110, base: 1.5, porYarda: 0.025, en: ['green', 'fairway'] }
+/**
+ * El backspin (2026-10-08, rehecho): todo tiro perfecto que cae en el green vuelve, menos el drive (la salida de los par
+ * 4: 15 y 16). Cuánto, según el palo: con el wedge (hasta `largo` yd) `base` + `porYarda` × el largo, hasta `tope`; los
+ * hierros, cada vez menos (`baja` por yarda, no menos de `minimo`). Con azar (× `azar`) y un poquito torcido (± `desvio`
+ * radianes); mientras vuelve, la caída del green la lleva como a cualquier pelota.
+ */
+export const BACKSPIN = { base: 1.5, porYarda: 0.03, tope: 4.8, largo: 110, baja: 0.02, minimo: 0.6, azar: [0.5, 1.35], desvio: 0.2, en: ['green'] }
+/** Las yardas que vuelve un tiro perfecto de `yd` yardas reales (sin el azar). */
+export const yardasBackspin = (yd) => yd <= BACKSPIN.largo ? Math.min(BACKSPIN.tope, BACKSPIN.base + BACKSPIN.porYarda * yd) : Math.max(BACKSPIN.minimo, BACKSPIN.tope - BACKSPIN.baja * (yd - BACKSPIN.largo))
 export function paloDe(campo, r) {
   if (enModoPutt(campo, r)) return 'putter'
   if (desdeLaSalida(campo, r)) return hoyoActual(r).par === 3 ? 'hierro' : 'driver'
