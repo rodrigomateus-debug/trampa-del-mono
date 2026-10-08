@@ -470,9 +470,7 @@ body.apuntando #furia { opacity: .45; }
 #revoleo .rv-ira { position: absolute; left: min(40vw, 200px); bottom: min(56vw, 280px); font-size: 46px; opacity: 0; animation: rv-ira .5s .3s ease-in-out 4 alternate; }
 #revoleo .rv-ira.dos { left: min(6vw, 30px); bottom: min(50vw, 250px); font-size: 34px; animation-delay: .45s; }
 @keyframes rv-ira { from { opacity: 1; transform: scale(.7) rotate(-10deg); } to { opacity: 1; transform: scale(1.15) rotate(10deg); } }
-/* el palo sale de la mano y se va girando como una hélice, despacio, cruzando la pantalla (con su sonido de helicóptero) */
-/* el borroneo de las aspas: un disco que se ve atrás del palo que gira */
-@media (prefers-reduced-motion: reduce) { #hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
+#hud-chips .der { flex: none; display: grid; gap: 6px; justify-items: end; }
 /* el clima del día: un chip abajo del viento (tocándolo, vuelve el cartel) y el de la pelota con barro */
 .clima-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px 4px 7px; border: 0; border-radius: 999px; background: rgba(12, 43, 28, .78); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); font: 13px/1 var(--font-display); letter-spacing: .05em; cursor: pointer; }
 #clima-chip { pointer-events: auto; } /* el HUD no se toca (pasa a la cancha); el chip sí: vuelve el clima */
@@ -1587,7 +1585,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 605f240 · 8/10, 04:17 p. m.</span>
+  <span class="version" id="version">v 988e879 · 8/10, 06:02 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
