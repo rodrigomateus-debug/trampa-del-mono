@@ -1350,6 +1350,9 @@ body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
 #mp-sel .mp-tit img { width: 36px; height: 36px; border-radius: 50%; }
 #mp-sel .mp-tit small { display: block; margin-top: 2px; font: 800 12px/1.1 system-ui, sans-serif; letter-spacing: .02em; color: var(--text-muted); }
 #mp-ops { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+#mp-ops.tres .mp-op.dicky { grid-column: 1 / -1; } /* la del Dicky que se coló, abajo y a lo ancho */
+.mp-op.dicky { background: #ffe7ef; }
+.mp-op .mp-ojo { display: block; margin-top: 2px; font-size: 11px; font-style: normal; font-weight: 800; line-height: 1.2; color: var(--red); }
 .mp-op { position: relative; display: grid; grid-template-columns: 46px 1fr; gap: 8px; align-items: center; min-width: 0; padding: 8px; text-align: left; font: inherit; color: var(--green-900); background: #fff8e6; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; box-shadow: 4px 5px 0 var(--game-ink); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .mp-op.es-mejor { background: #fff1c2; }
 .mp-op:active { translate: 3px 4px; box-shadow: 0 0 0 var(--game-ink); }
@@ -2443,7 +2446,7 @@ function pegarYa(a, base = null) {
   cerrarContra() // si no llegaste al ABRAZO / ¡FUERA, DICKY!, este tiro sale mufado / blando
   // 🦉📺 la Mejor pelota: el primero lo pegás vos (cuenta el golpe); el segundo, el compañero desde el mismo lugar (no cuenta)
   const mp = ronda.mejorPelota
-  if (mp?.fase === 'segunda') { tiro = M.golpeCompa(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.soltada ?? null); mp.fase = 'vuela' }
+  if (mp?.fase === 'segunda') { tiro = M.golpeCompa(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.soltada ?? null); mp.fase = 'vuela'; mp.golpe2 = { ang: a.ang, p: a.p, q: a.q, tiempo: a.tiempo } }
   else {
     if (M.mejorPelotaArmada(ronda)) mp.fase = 'primera'
     tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, a.soltada ?? null)
@@ -2799,7 +2802,14 @@ function alReposo() {
     if (!tiro.embocada) { segundaPelota(); return }
     ronda.mejorPelota = { compa: mp.compa, armada: false, usada: true }
     tiro.mejorPelota = true
-  } else if (mp?.fase === 'vuela') { mp.segunda = tiro; tiro = null; elegirPelota(); return }
+  } else if (mp?.fase === 'vuela') {
+    mp.segunda = tiro
+    // 🤝 la interna: a veces se cuela un Dicky y tira una tercera "por amor"
+    if (!tiro.embocada && dickysLibres().length && rng() < M.INTERNA.tercera) { terceraPelota(); return }
+    tiro = null
+    elegirPelota()
+    return
+  } else if (mp?.fase === 'intruso') { mp.tercera = tiro; tiro = null; elegirPelota(); return }
   sorpresaQueQueda(tiro) // Juanpa: el árbol o el carrito quedan un ratito en pantalla
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
@@ -2857,7 +2867,7 @@ function alReposo() {
   siguienteTiro()
 }
 // ── 🦉📺 la Mejor pelota: pegás vos, después el compañero desde el mismo lugar (lo apuntás vos) y elegís con cuál te quedás ──
-let descartada = null // la que no elegiste: se apaga donde quedó
+let descartadas = [] // las que no elegiste: se apagan donde quedaron
 /** Paró la tuya: queda ahí (con su cartel) y la ronda vuelve a donde pegaste; ahora pega el compañero. */
 function segundaPelota() {
   const mp = ronda.mejorPelota
@@ -2879,23 +2889,40 @@ function segundaPelota() {
   cara.classList.add('nuevo')
   aApuntar()
 }
-/** Pararon las dos: abajo, con cuál te quedás (la mejor, marcada); arriba se ven las dos. Si la del compañero entró, esa. */
+/** La interna: se cuela un Dicky en el fourball y tira una tercera pelota, desde el mismo lugar y para el mismo lado. */
+function terceraPelota() {
+  const mp = ronda.mejorPelota
+  const d = M.elegir(rng, dickysLibres())
+  const g = mp.golpe2
+  mp.dicky = d
+  mp.fase = 'intruso'
+  tiro = M.golpeDe(campo, ronda, d, g.ang, g.p, rng, g.q, g.tiempo, { nivel: 'bueno', lado: rng() < 0.5 ? -1 : 1 })
+  estela = []
+  S.golpe(g.p, tiro.modo === 'putt')
+  dickyVisita(d, M.fraseInterna(rng, 'tercera', mp.antes))
+  voz = { lg: `💛 ¡SE COLÓ ${sinD(d.apodo).toUpperCase()} EN EL FOURBALL!`, extra: 'Tira una tercera pelota "por amor"', hasta: performance.now() + 4500 }
+  hud()
+}
+/** Pararon todas: abajo, con cuál te quedás (la mejor, marcada); arriba se ven todas. Si la del compañero entró, esa. */
 function elegirPelota() {
   const mp = ronda.mejorPelota
-  const A = mp.primera, B = mp.segunda
+  const A = mp.primera, B = mp.segunda, C = mp.tercera ?? null
   if (B.embocada) { quedarseCon(B); return }
   mp.fase = 'elegir'
   estado = 'mejor'
   drag = null
   ronda.jugador = mp.antes // arriba vuelve el que juega (el compañero ya pegó)
-  const mejor = M.mejorDeLasDos(campo, ronda, A, B)
+  const todas = [A, B, C].filter(Boolean)
+  const mejor = todas.reduce((m, t) => (M.valorPelota(campo, ronda, t) < M.valorPelota(campo, ronda, m) ? t : m))
   const op = (t, j, i) => {
     const q = M.dondeQuedo(campo, ronda, t)
-    return `<button class="mp-op${t === mejor ? ' es-mejor' : ''}" type="button" data-cual="${i}">${t === mejor ? '<i class="mp-mejor">LA MEJOR</i>' : ''}<span class="cara"><img src="${j.torso ?? j.foto}" alt="" draggable="false"></span><span><b>${j.emoji} ${esc(j.apodo)}</b><small${q.multa ? ' class="multa"' : ''}>${esc(textoDonde(q))}</small></span></button>`
+    const del = i === 2 ? '<em class="mp-ojo">😤 el Equipo 5 se ofende: sin tu habilidad hasta el final</em>' : ''
+    return `<button class="mp-op${t === mejor ? ' es-mejor' : ''}${i === 2 ? ' dicky' : ''}" type="button" data-cual="${i}">${t === mejor ? '<i class="mp-mejor">LA MEJOR</i>' : ''}<span class="cara"><img src="${j.torso ?? j.foto}" alt="" draggable="false"></span><span><b>${j.emoji} ${esc(sinD(j.apodo))}</b><small${q.multa ? ' class="multa"' : ''}>${esc(textoDonde(q))}</small>${del}</span></button>`
   }
-  $('#mp-ops').innerHTML = op(A, mp.antes, 0) + op(B, mp.compa, 1)
+  $('#mp-ops').innerHTML = op(A, mp.antes, 0) + op(B, mp.compa, 1) + (C ? op(C, mp.dicky, 2) : '')
+  $('#mp-ops').classList.toggle('tres', !!C)
   $('#mp-sel').hidden = false
-  obj = encuadreDos(A.pos, B.pos, $('#mp-sel').getBoundingClientRect().top)
+  obj = encuadrePelotas(todas.map((t) => t.pos), $('#mp-sel').getBoundingClientRect().top)
   velCam = 3
   S.ruletaCae()
   hud()
@@ -2912,28 +2939,31 @@ function textoDonde(q) {
   const dada = q.lie === 'green' && M.habilidadDe(ronda.mejorPelota?.antes)?.id === 'dadas' && q.yd <= M.DADA ? ' · DADA 🦉' : ''
   return `${yd} del hoyo · ${q.lie}${dada}`
 }
-/** La cámara con las dos pelotas, arriba del panel de elegir (la bandera para arriba, como al apuntar). */
-function encuadreDos(a, b, panel) {
+/** La cámara con las pelotas, arriba del panel de elegir (la bandera para arriba, como al apuntar). */
+function encuadrePelotas(ps, panel) {
   const { top } = zona()
   const abajo = Math.min(zona().bot, (panel || H) - 24)
   const pin = M.hoyoActual(ronda).pin
-  const d = Math.max(M.dist(a, b), 1)
+  let d = 1
+  for (const a of ps) for (const b of ps) d = Math.max(d, M.dist(a, b))
+  const xs = ps.map((p) => p[0]), ys = ps.map((p) => p[1])
   const esc = Math.min(4.5, Math.max(0.6, (Math.min(abajo - top, W) - 110) / d)) // no tan de cerca: que se vea alrededor
-  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, esc, rot: -Math.PI / 2 - Math.atan2(pin[1] - ronda.pelota[1], pin[0] - ronda.pelota[0]), sy: (top + abajo) / 2 }
+  return { cx: (Math.min(...xs) + Math.max(...xs)) / 2, cy: (Math.min(...ys) + Math.max(...ys)) / 2, esc, rot: -Math.PI / 2 - Math.atan2(pin[1] - ronda.pelota[1], pin[0] - ronda.pelota[0]), sy: (top + abajo) / 2 }
 }
 /** Te quedás con `t`: vuelve el que juega y se sigue desde ahí (con la multa, si la tiene); la otra se apaga. */
 function quedarseCon(t) {
   const mp = ronda.mejorPelota
   $('#mp-sel').hidden = true
-  const otra = t === mp.primera ? mp.segunda : mp.primera
   ronda.jugador = mp.antes
   ronda.calma = false
   if (mp.ruletaToca) ronda.ruletaToca = true
   ronda.mejorPelota = { compa: mp.compa, armada: false, usada: true }
   tiro = t
   tiro.mejorPelota = true
-  if (!otra.embocada) descartada = { pos: [...otra.pos], t0: performance.now() }
-  marcarTiro(t === mp.segunda ? `QUEDA LA DE ${mp.compa.apodo.toUpperCase()}` : 'QUEDA LA TUYA', t.pos)
+  // la del Dicky que se coló: el Equipo 5 se ofende (sin tu habilidad hasta el final de la vuelta)
+  if (t === mp.tercera) { tiro.tercera = true; ronda.ofendido = true }
+  descartadas = [mp.primera, mp.segunda, mp.tercera].filter((x) => x && x !== t && !x.embocada).map((x) => ({ pos: [...x.pos], t0: performance.now() }))
+  marcarTiro(t === mp.tercera ? `QUEDA LA DE ${sinD(mp.dicky.apodo).toUpperCase()}` : t === mp.segunda ? `QUEDA LA DE ${mp.compa.apodo.toUpperCase()}` : 'QUEDA LA TUYA', t.pos)
   S.tap()
   estado = 'tiro'
   hud()
@@ -2943,7 +2973,7 @@ $('#mp-sel').addEventListener('click', (e) => {
   const b = e.target.closest('[data-cual]')
   const mp = ronda?.mejorPelota
   if (!b || estado !== 'mejor' || mp?.fase !== 'elegir') return
-  quedarseCon(b.dataset.cual === '1' ? mp.segunda : mp.primera)
+  quedarseCon([mp.primera, mp.segunda, mp.tercera][+b.dataset.cual] ?? mp.primera)
 })
 function siguienteTiro() {
   tiro = null
@@ -3323,7 +3353,7 @@ function empezar(jugador) {
   climaPorAnunciar = true
   fxClima = []
   chicanaDe = null; chicanaVino = false; ablandoVino = false; cerrarContra()
-  descartada = null; $('#mp-sel').hidden = true
+  descartadas = []; $('#mp-sel').hidden = true
   fondoDelClima(ronda.clima?.id)
   datos.ultimo = jugador.apodo
   guardar(datos)
@@ -3696,6 +3726,9 @@ function dickyDespues(res, tiro) {
   if (tiro.prestado) {
     const d = DICKYS.find((x) => x.apodo === tiro.prestado)
     if (d) dickyVisita(d, M.fraseDicky(rng, d.apodo, yo, 'ayuda'))
+    // la interna: te pegó el del Equipo 5 que atendió
+    const e = !d && EQUIPO5.find((x) => x.apodo === tiro.prestado)
+    if (e) dickyVisita(e, M.fraseInterna(rng, 'ayuda', yo), true)
     return
   }
   if (M.esEquipo5(yo)) { compaDespues(res, tiro); return }
@@ -3717,6 +3750,7 @@ function otroDicky(yo) {
 }
 // ── 🦉📺 el Equipo 5 (Lechu y LG): los rivales de siempre de los Dicky ──
 const EQUIPO5 = TODOS.filter((j) => M.esEquipo5(j) && j.torso)
+const E5_RIVALES = EQUIPO5.filter((j) => !j.pase) // Joaco y Lucas (los que chicanean y se meten en la interna; no Fito de pase)
 let chicanaDe = null, chicanaVino = false, ablandoVino = false
 /**
  * Se cuela `e` (Lechu o LG) a chicanear al Dicky que juega, y te mufa el próximo tiro (más error, el latido más rápido)…
@@ -3788,6 +3822,7 @@ function compaDespues(res, tiro) {
   const compa = M.compaE5(yo, EQUIPO5)
   if (!compa) return
   const m = M.momentoDicky(res)
+  if (tiro.tercera) { dickyVisita(compa, M.fraseInterna(rng, 'ofendido', yo), true); return }
   if (tiro.blando) { dickyVisita(compa, M.fraseCompaE5(rng, 'ablandado', yo), true); return }
   if (tiro.mejorPelota && m !== 'mal') { dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, tiro.compa ? 'compa' : 'tuya'), true); return }
   // a veces (nunca dos seguidas) se cuela un Dicky a ablandarte
@@ -3834,13 +3869,18 @@ $('#dicky-sel').addEventListener('click', (e) => {
   if (!b) return
   const d = DICKYS.find((x) => x.apodo === b.dataset.apodo)
   const yo = ronda.jugador
-  if (!d || !M.dickyllamar(ronda, d)) return
+  // 🤝 la interna: a veces atiende el Equipo 5 ("Equivocado, habla el #Equipo5") y te pega él
+  const intruso = d && E5_RIVALES.length && rng() < M.INTERNA.atiende ? M.elegir(rng, E5_RIVALES) : null
+  const quien = intruso ?? d
+  if (!d || !M.dickyllamar(ronda, d, quien)) return
   $('#dicky-sel').hidden = true
   estado = 'apuntar'
   apuntarDesde = performance.now()
-  const hab = M.habilidadDe(d)
-  voz = { lg: `📞 Atendió ${d.emoji} ${sinD(d.apodo)}: te pega este tiro`, extra: hab ? `✨ ${hab.nombre}: ${hab.texto}` : hcpEtiqueta(d), hasta: performance.now() + 5500 }
-  dickyVisita(d, M.fraseDicky(rng, d.apodo, yo, 'atiende'))
+  const hab = M.habilidadDe(quien)
+  voz = intruso
+    ? { lg: `📞 ¡Atendió ${intruso.emoji} ${M.NOMBRE_E5[intruso.apodo] ?? intruso.apodo}! Equivocado: te pega el #Equipo5`, extra: hab ? `✨ ${hab.nombre}: ${hab.texto}` : hcpEtiqueta(intruso), hasta: performance.now() + 6000 }
+    : { lg: `📞 Atendió ${d.emoji} ${sinD(d.apodo)}: te pega este tiro`, extra: hab ? `✨ ${hab.nombre}: ${hab.texto}` : hcpEtiqueta(d), hasta: performance.now() + 5500 }
+  dickyVisita(quien, intruso ? M.fraseInterna(rng, 'atiende', d) : M.fraseDicky(rng, d.apodo, yo, 'atiende'), !!intruso)
   S.ruletaCae()
   hud()
   const cara = $('#hud-top .cara')
@@ -3851,7 +3891,7 @@ $('#dicky-sel').addEventListener('click', (e) => {
 function relatar({ lg, excusa, verso }) {
   if (!lg) return
   // la excusa es del que pegó (si te pegó el tiro un Dicky de la Dickyllamada, la pone él)
-  const quien = (tiro?.prestado && DICKYS.find((d) => d.apodo === tiro.prestado)) || ronda.jugador
+  const quien = (tiro?.prestado && TODOS.find((d) => d.apodo === tiro.prestado)) || ronda.jugador
   const extra = excusa ? `${quien.emoji} «${excusa}»` : verso ? `“${verso}”` : ''
   voz = { lg, extra, hasta: performance.now() + 4200 }
 }
@@ -3899,28 +3939,30 @@ function pintarVoz() {
   $('#r-extra').textContent = extra
 }
 
-/** La Mejor pelota: la tuya (quieta, con tu cartel) mientras pega el compañero, su cartel mientras vuela y las dos mientras elegís. */
+/** La Mejor pelota: la tuya (quieta, con tu cartel) mientras pega el compañero, y cada una con su cartel (la del compañero
+ *  dorada; la del Dicky que se coló, rosa). La que vuela la dibuja el tiro; acá, su cartel. Cerca, los carteles escalonados. */
 function pelotasFourball() {
   const mp = ronda.mejorPelota
   if (!mp?.primera) return
-  const A = mp.primera, B = estado === 'mejor' ? mp.segunda : mp.fase === 'vuela' ? tiro : null
-  const donde = (t) => { const [x, y0] = w2s(t.pos); return [x, y0 - t.alt * levante(), radioPelota() * (1 + t.alt / 50)] }
-  const pa = donde(A)
-  if (!A.embocada) { pelota(A.pos, A.alt); cartelPelota(pa[0], pa[1], pa[2], mp.antes.emoji, mp.antes.apodo, false, 0, H - 90, '#f4eeda', 0.9) }
-  if (!B || B.embocada) return
-  if (estado === 'mejor') pelota(B.pos, B.alt) // mientras vuela la dibuja el tiro
-  const pb = donde(B)
-  // si están juntas, el cartel del compañero va arriba del tuyo (apilado, como en el replay)
-  const juntas = !A.embocada && Math.abs(pa[0] - pb[0]) < 90 && Math.abs(pa[1] - pb[1]) < 26
-  const [x, y, r] = juntas ? pa : pb
-  cartelPelota(x, y, r, mp.compa.emoji, mp.compa.apodo, false, 0, H - 90, '#e8c34a', 0.9, juntas ? 23 : 0)
+  const lista = [[mp.primera, mp.antes, '#f4eeda', true]]
+  if (mp.segunda || mp.fase === 'vuela') lista.push([mp.segunda ?? tiro, mp.compa, '#e8c34a', !!mp.segunda])
+  if (mp.dicky) lista.push([mp.tercera ?? tiro, mp.dicky, '#ffd3e2', !!mp.tercera])
+  const puestos = []
+  for (const [t, j, fondo, quieta] of lista) {
+    if (!t || t.embocada) continue
+    if (quieta) pelota(t.pos, t.alt)
+    const [x, y0] = w2s(t.pos)
+    const p = [x, y0 - t.alt * levante(), radioPelota() * (1 + t.alt / 50)]
+    // cada cartel arriba de su pelota; si se pisaría con otro, un escalón más arriba (sin la puntita)
+    const sube = 23 * puestos.filter((q) => Math.abs(q[0] - p[0]) < 80 && Math.abs(q[1] - p[1]) < 24).length
+    puestos.push(p)
+    cartelPelota(p[0], p[1], p[2], j.emoji, j.apodo.replace(/ \(Đ\)$/, ''), false, 0, H - 90, fondo, 0.9, sube)
+  }
 }
-/** La pelota que no quedó (la Mejor pelota): se apaga de a poco donde paró. */
+/** Las pelotas que no quedaron (la Mejor pelota): se apagan de a poco donde pararon. */
 function pelotaDescartada() {
-  if (!descartada) return
-  const u = (performance.now() - descartada.t0) / 1500
-  if (u >= 1) { descartada = null; return }
-  pelota(descartada.pos, 0, 0.8 * (1 - u))
+  descartadas = descartadas.filter((d) => performance.now() - d.t0 < 1500)
+  for (const d of descartadas) pelota(d.pos, 0, 0.8 * (1 - (performance.now() - d.t0) / 1500))
 }
 
 // ── HUD ──
