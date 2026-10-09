@@ -125,7 +125,7 @@ export const HABILIDADES = {
   'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después, la flecha.', nombre: 'La flecha', texto: 'El drive, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro, una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
   'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
   // del chat del SDGA:
-  Lechu: { id: 'dadas', nombre: 'Contando todas las dadas', texto: 'Joaco no falla los putts de 3 metros o menos: le pegues como le pegues, entra.' },
+  Lechu: { id: 'dadas', nombre: 'Contando todas las dadas', texto: 'Joaco no falla los putts de 6 metros o menos: le pegues como le pegues, entra.' },
   'El Ninja (Đ)': { id: 'tradicion', corto: 'Su reset del hoyo, si todavía no lo usaste.',  nombre: 'Reset ninja', texto: 'Una vez por vuelta, su LP no levanta: resetea el hoyo. Volvés al tee con cero golpes, sin multa, como si no hubiera pasado nada. Es el botón 🥷 RESET.' },
   'El Perro': { id: 'perro', nombre: 'Va a buscarla', texto: 'Los greens están habilitados (sin caída) y si va al bosque el perro te la trae al fairway sin multa. Tarda: el reloj corre.' },
   Mugre: { id: 'panchitos', nombre: 'Tirar panchos', texto: 'A la Mugre los monos la huelen de lejos y vienen más. Pero tiene 3 panchos por hoyo: se los tirás, van, comen un segundo y vuelven.' },
@@ -318,9 +318,9 @@ export const BOMBA = { carry: 405, zona: 285, ang: 6, largo: 0.1 }
 // (`alLado`: dónde la dejaría un imán que no la mete; hoy siempre la mete.)
 // Mati (El Sueco): sin error de dirección (pega lo que pega su handicap)
 export const AGUILA = { amplitud: 25, periodo: 0.7, ventana: 5, chip: 40, alLado: 0.85, metida: 4 }
-// Lechu (Joaco): el putt desde DADA yardas o menos (3 metros) entra siempre, le pegue como le pegue. El Perro: tarda `segundos` en traerla. Liberty: approach entre `desde` y `hasta` yd, error x`error`.
+// Lechu (Joaco): el putt desde DADA yardas o menos (6 metros; hasta el 2026-10-09 eran 3) entra siempre, le pegue como le pegue. El Perro: tarda `segundos` en traerla. Liberty: approach entre `desde` y `hasta` yd, error x`error`.
 // DADA, AGUILA.chip y APPROACH van en yardas REALES (las del marcador): se comparan con la distancia del dibujo × la escala del hoyo.
-export const DADA = 3.28 // 3 metros
+export const DADA = 6.56 // 6 metros
 export const PERRO = { segundos: 4 }
 // Mugre: los monos lo huelen desde `alerta` yd; `panchos` por hoyo; los tira a `tiro` yd (para el lado de los monos) y comen `comer` s
 export const MUGRE = { alerta: 90, panchos: 3, tiro: 26, comer: 1 }
@@ -914,7 +914,7 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     // el putt del Mago: con draw dobla a la izquierda (ángulo menor), con fade a la derecha
     const pin = hoyoActual(r).pin
     const giro = hab?.id === 'comba' ? puttMagoDe(r).lado * PUTT_MAGO.giro : 0
-    // los 3 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
+    // los 6 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
     const noLaFalla = hab?.id === 'dadas' && dist(b, pin) * hoyoActual(r).escala <= DADA
     const retro = hab?.id === 'retro'
     return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso }
@@ -1851,7 +1851,7 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   tiro.calma = !!r.calma
   r.calma = false
   if (r.prestado) tiro.prestado = r.jugador.apodo // la Dickyllamada: este lo pegó el Dicky que atendió
-  // Joaco: de 3 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola)
+  // Joaco: de 6 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola)
   if (plan.noLaFalla) tiro.iman = { meter: true, lechu: true }
   return tiro
 }
@@ -1948,6 +1948,7 @@ export function resolverReposo(campo, r, tiro, rng) {
   const res = resolver(campo, r, tiro, rng)
   // LG: si fue un mal tiro, el próximo sale sin error
   if (habilidadDe(r.jugador)?.id === 'calma') r.calma = esMalo(res, tiro)
+  r.ultimoMalo = esMalo(res, tiro) // (para LG cuando pega de compañero en la Mejor pelota)
   cargarFuria(campo, r, tiro, res)
   devolverDicky(r) // la Dickyllamada: el Dicky que te pegó el tiro te devuelve el palo
   return res
@@ -2236,7 +2237,7 @@ export const RELATO = {
   monoLadron: ['¡LE PEGASTE A UN MONO! Se la llevó. +1', 'Un mono se la robó al vuelo. +1', 'Mono ladrón. +1 y dropeá ahí'],
   lp: ['Entraste en la lista LP 💅'],
   putt: ['Uff, le faltó', 'Casi', 'Se pasó. Uff'],
-  dada: ['Esas Joaco no las falla', 'De tres metros, la Lechuza no perdona', 'Adentro, como corresponde al campeón', 'Contando todas las dadas'],
+  dada: ['Esas Joaco no las falla', 'De seis metros, la Lechuza no perdona', 'Adentro, como corresponde al campeón', 'Contando todas las dadas'],
   ninjaReset: ['Acá no pasó nada 🥷', 'Reset ninja: de nuevo en el tee, cero golpes', 'El Ninja borró el hoyo. Nadie vio nada', 'LP ninja: el hoyo empieza de nuevo'],
   perro: ['¡El perro la trajo! Al fairway, sin multa', 'Buen perro. La vida no es mucho más que esto', 'Perrolo fue a buscarla'],
   approach: ['Si no era por el approach ganaba', 'Los wedges ya van a funcionar', 'El approach, otra vez'],
@@ -2572,6 +2573,8 @@ export const VESTUARIO = {
   ],
   // la Mejor pelota: cuando la armás, y después, si quedó la del compañero (el que habla) o la tuya
   arma: [() => 'El #Equipo5 utiliza su excepción: fourball 🦉📺', (n) => `Dale, ${n}: pegamos los dos y queda la mejor`, () => 'Fourball del Equipo 5. Que miren los Dicky'],
+  // la arma después de un mal tiro: Lucas no se enoja (el suyo sale sin error)
+  armaCalma: [(n) => `Tranqui, ${n}: el que se enoja pierde. El mío sale derecho 📺`, () => 'Yo no me enojo. Este lo pego derecho 📺', (n) => `Respirá, ${n}. Dejá que LG la pega sin error`],
   compa: [(n) => `Tranqui, ${n}: quedó la mía. #Equipo5`, () => 'Para eso está el compañero. Fourball del Equipo 5', () => 'Mejor pelota: la mía. De nada 😌'],
   tuya: [(n) => `Quedó la tuya, ${n}. Así juega el Equipo 5`, () => 'Mejor tarjeta Guarino/Castelli 🏆', (n) => `La tuya era mejor, ${n}. Yo te cuidaba la espalda`],
 }
@@ -2594,7 +2597,7 @@ export function contestaDicky(rng, quien, e5) {
 }
 /** Lo que le dice `quien` (el compañero del Equipo 5) al que juega (`para`). `momento`: bien / mal / todos, o arma / compa / tuya (la Mejor pelota). */
 export function fraseVestuario(rng, quien, para, momento = 'todos') {
-  if (['arma', 'compa', 'tuya'].includes(momento)) return elegir(rng, VESTUARIO[momento])(nombreDe(para))
+  if (['arma', 'armaCalma', 'compa', 'tuya'].includes(momento)) return elegir(rng, VESTUARIO[momento])(nombreDe(para))
   return deLaLista(rng, VESTUARIO[momento] ?? VESTUARIO.todos, VESTUARIO_PROPIA[quien])(nombreDe(para))
 }
 
@@ -2615,16 +2618,18 @@ export function desarmarMejorPelota(r) {
   if (r.mejorPelota && !r.mejorPelota.usada) r.mejorPelota = null
 }
 export const mejorPelotaArmada = (r) => !!r.mejorPelota?.armada && !r.mejorPelota.usada && puedeMejorPelota(r)
+/** ¿El compañero pega sin error? LG, después de un mal tiro (el que se enoja pierde), como cuando juega él. */
+export const compaSinError = (r) => habilidadDe(r.mejorPelota?.compa)?.id === 'calma' && !!r.ultimoMalo
 /**
  * El tiro del compañero: llamar ANTES del `golpear` del que juega (sale del mismo lugar, con el mismo golpe). Le pega
  * sobre una copia de la ronda (no cuenta golpe, no toca los monos ni el barro) y su pelota no la roban en el aire.
- * Gasta la Mejor pelota.
+ * Con su habilidad: las dadas de Joaco y, si el tiro anterior salió mal, LG sin error. Gasta la Mejor pelota.
  */
 export function golpeCompa(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0) {
   const compa = r.mejorPelota.compa
   const u = rng()
   const soltada = u < MEJOR_PELOTA.perfecto ? true : { nivel: u < MEJOR_PELOTA.perfecto + MEJOR_PELOTA.bueno ? 'bueno' : null, lado: rng() < 0.5 ? -1 : 1 }
-  const copia = { ...r, jugador: compa, monos: [], golpeMago: null, deme: null, furia: null, calma: false, barro: false, proxSorpresa: undefined, ruleta: null, ruletaToca: false, prestado: null, carro: null }
+  const copia = { ...r, jugador: compa, monos: [], golpeMago: null, deme: null, furia: null, calma: compaSinError(r), barro: false, proxSorpresa: undefined, ruleta: null, ruletaToca: false, prestado: null, carro: null }
   const t = golpear(campo, copia, angulo, potencia, rng, precision, tiempo, null, soltada)
   t.monos = null
   t.compa = compa.apodo
