@@ -1328,6 +1328,24 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 #e5-btn[disabled] { animation: none; }
 @keyframes e5-late { from { transform: rotate(-5deg) scale(1); } to { transform: rotate(-5deg) scale(1.07); } }
 @media (prefers-reduced-motion: reduce) { #e5-btn, #e5-btn.armada { animation: none; } }
+/* la Mejor pelota: pararon las dos; abajo, con cuál te quedás (arriba se ven las dos pelotas con su cartel) */
+#mp-sel { position: fixed; left: 12px; right: 12px; bottom: calc(var(--safe-bot) + 12px); z-index: 32; max-width: 460px; margin: 0 auto; box-sizing: border-box; padding: 10px 12px 12px; background: var(--cream); color: var(--green-900); border: var(--game-stroke) solid var(--game-ink); border-radius: 18px; box-shadow: 5px 6px 0 var(--game-ink); animation: mp-sube .32s cubic-bezier(.2, 1.3, .4, 1); }
+#mp-sel[hidden] { display: none; }
+#mp-sel .mp-tit { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font: 21px/1 var(--font-display); letter-spacing: .02em; }
+#mp-sel .mp-tit img { width: 36px; height: 36px; border-radius: 50%; }
+#mp-sel .mp-tit small { display: block; margin-top: 2px; font: 800 12px/1.1 system-ui, sans-serif; letter-spacing: .02em; color: var(--text-muted); }
+#mp-ops { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mp-op { position: relative; display: grid; grid-template-columns: 46px 1fr; gap: 8px; align-items: center; min-width: 0; padding: 8px; text-align: left; font: inherit; color: var(--green-900); background: #fff8e6; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; box-shadow: 4px 5px 0 var(--game-ink); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.mp-op.es-mejor { background: #fff1c2; }
+.mp-op:active { translate: 3px 4px; box-shadow: 0 0 0 var(--game-ink); }
+.mp-op .cara { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: var(--green-900); border: 2px solid var(--game-ink); display: flex; align-items: flex-end; justify-content: center; }
+.mp-op .cara img { width: 58px; height: auto; margin-bottom: -6px; }
+.mp-op b { display: block; font: 17px/1 var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-op small { display: block; margin-top: 3px; font-size: 12px; font-weight: 800; line-height: 1.2; }
+.mp-op small.multa { color: var(--red); }
+.mp-op .mp-mejor { position: absolute; top: -11px; right: 8px; background: var(--gold); color: var(--game-ink); border: 2px solid var(--game-ink); font: 11px/1 var(--font-display); font-style: normal; letter-spacing: .06em; padding: 3px 6px 2px; transform: rotate(3deg); }
+@keyframes mp-sube { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { #mp-sel { animation: none; } }
 
 /* el Ninja: el botón RESET (el mismo diseño que Deme y el pancho: redondo, borde tinta, sombra dura) */
 #ninja-btn { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 88px; height: 88px; border-radius: 50%; background: var(--game-ink); color: var(--cream); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; font-family: var(--font-display); animation: g-wiggle 3.6s ease-in-out 1.2s infinite; }
@@ -1646,6 +1664,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
 <div id="mago-golpes" role="group" aria-label="Golpes del Mago: elegí con cuál pegás" hidden></div>
 <button id="ninja-btn" type="button" hidden aria-label="Reset ninja: el hoyo de nuevo desde el tee, sin multa"><span class="emo" aria-hidden="true">🥷</span><span class="txt">RESET</span><b aria-hidden="true">1</b></button>
+<div id="mp-sel" hidden role="dialog" aria-label="Mejor pelota: elegí con cuál te quedás"><p class="mp-tit"><img src="equipo-5.svg" alt="" draggable="false"><span>MEJOR PELOTA<small>¿Con cuál te quedás?</small></span></p><div id="mp-ops"></div></div>
 <button id="e5-btn" type="button" hidden aria-label="Mejor pelota: el próximo tiro lo pegan los dos y queda la mejor"><img src="equipo-5.svg" alt="" draggable="false"><span class="cinta">MEJOR PELOTA</span><b aria-hidden="true"></b></button>
 <button id="dicky-btn" type="button" hidden aria-label="Dickyllamada: llamá a otro Dicky"><img src="dicky-toons.svg" alt="" draggable="false"><span class="cinta">DICKYLLAMADA</span><b aria-hidden="true">📞</b></button>
 <button id="logro" type="button" hidden aria-live="assertive" aria-label="Logro desbloqueado: Taiu. Tocá para verlo">
@@ -2392,10 +2411,13 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
-  // 🦉📺 la Mejor pelota: el compañero le pega antes que vos (desde el mismo lugar y para el mismo lado) y vuelan las dos
-  tiroCompa = M.mejorPelotaArmada(ronda) ? M.golpeCompa(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo) : null
-  estelaCompa = []
-  tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, a.soltada ?? null)
+  // 🦉📺 la Mejor pelota: el primero lo pegás vos (cuenta el golpe); el segundo, el compañero desde el mismo lugar (no cuenta)
+  const mp = ronda.mejorPelota
+  if (mp?.fase === 'segunda') { tiro = M.golpeCompa(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.soltada ?? null); mp.fase = 'vuela' }
+  else {
+    if (M.mejorPelotaArmada(ronda)) mp.fase = 'primera'
+    tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, a.soltada ?? null)
+  }
   if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
   else S.golpe(a.p, a.putt)
   // cómo soltó, chiquito al lado de donde salió: PERFECTO (o un tiro sin error), BUENO y para qué lado, o TEMPRANO / TARDE
@@ -2629,33 +2651,21 @@ function actualizar(dt) {
   if (estado === 'tiro' && tiro) {
     const h = M.hoyoActual(ronda)
     acc += dt
-    // con la Mejor pelota vuelan dos: se espera a que paren las dos
-    const anda = () => tiro.fase !== 'quieta' || (tiroCompa && tiroCompa.fase !== 'quieta')
-    while (acc >= PASO && anda()) {
-      if (tiro.fase !== 'quieta') M.avanzar(campo, tiro, PASO, h.pin)
-      if (tiroCompa && tiroCompa.fase !== 'quieta') M.avanzar(campo, tiroCompa, PASO, h.pin)
-      acc -= PASO
-    }
+    while (acc >= PASO && tiro.fase !== 'quieta') { M.avanzar(campo, tiro, PASO, h.pin); acc -= PASO }
     sonarEventos(tiro)
     estela.push([tiro.pos[0], tiro.pos[1], tiro.alt])
     if (estela.length > 70) estela.shift()
-    if (tiroCompa) {
-      sonarEventos(tiroCompa)
-      estelaCompa.push([tiroCompa.pos[0], tiroCompa.pos[1], tiroCompa.alt])
-      if (estelaCompa.length > 70) estelaCompa.shift()
-    }
-    const t = tiro.fase === 'quieta' && tiroCompa && tiroCompa.fase !== 'quieta' ? tiroCompa : tiro // la que sigue la cámara
     // la corbata: la cámara se acerca al hoyo para que se vea la vuelta
-    if (t.vuelta && !t.vuelta.hecha) { obj = { ...obj, cx: h.pin[0], cy: h.pin[1], esc: Math.max(obj.esc, 30) }; velCam = 4 }
+    if (tiro.vuelta && !tiro.vuelta.hecha) { obj = { ...obj, cx: h.pin[0], cy: h.pin[1], esc: Math.max(obj.esc, 30) }; velCam = 4 }
     // tiro completo: la cámara se vuelve a acercar y acompaña a la pelota (de cerca, no con la cancha entera)
-    else if (escVuelo && t.modo === 'full') { obj = { ...obj, cx: t.pos[0], cy: t.pos[1], esc: escVuelo }; velCam = 6 }
-    else seguir(t.pos)
-    if (!anda()) { acc = 0; alReposo() }
+    else if (escVuelo && tiro.modo === 'full') { obj = { ...obj, cx: tiro.pos[0], cy: tiro.pos[1], esc: escVuelo }; velCam = 6 }
+    else seguir(tiro.pos)
+    if (tiro.fase === 'quieta') { acc = 0; alReposo() }
   }
   if (estado === 'manejar' && ronda?.carro) manejarCuadro(dt)
   if (ronda && estado !== 'tiro') {
     // con la pelota quieta, los monos que cazan van hacia ella (arriba del carrito, hacia el carrito)
-    const llego = M.moverMonos(ronda.monos, dt, estado === 'apuntar' ? ronda.pelota : estado === 'manejar' ? ronda.carro?.pos : null)
+    const llego = M.moverMonos(ronda.monos, dt, estado === 'apuntar' && ronda.mejorPelota?.fase !== 'segunda' ? ronda.pelota : estado === 'manejar' ? ronda.carro?.pos : null)
     if (llego && estado === 'apuntar') llegaronMonos(llego)
   }
   moverRafagas(dt)
@@ -2753,7 +2763,13 @@ function sonarEventos(t) {
   }
 }
 function alReposo() {
-  if (tiroCompa) elegirMejorPelota()
+  // 🦉📺 la Mejor pelota: paró la tuya → pega el compañero (si la metiste, no hace falta); paró la suya → elegís
+  const mp = ronda.mejorPelota
+  if (mp?.fase === 'primera') {
+    if (!tiro.embocada) { segundaPelota(); return }
+    ronda.mejorPelota = { compa: mp.compa, armada: false, usada: true }
+    tiro.mejorPelota = true
+  } else if (mp?.fase === 'vuela') { mp.segunda = tiro; tiro = null; elegirPelota(); return }
   sorpresaQueQueda(tiro) // Juanpa: el árbol o el carrito quedan un ratito en pantalla
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
@@ -2810,20 +2826,95 @@ function alReposo() {
   }
   siguienteTiro()
 }
-/** La Mejor pelota: pararon las dos; queda la mejor (desde ahí se sigue, con la multa si la tiene) y la otra se apaga. */
-let tiroCompa = null, estelaCompa = [], descartada = null
-function elegirMejorPelota() {
-  const mia = tiro, suya = tiroCompa
-  const compa = ronda.mejorPelota?.compa
-  tiroCompa = null
-  estelaCompa = []
-  tiro = M.mejorDeLasDos(campo, ronda, mia, suya)
-  tiro.mejorPelota = true
-  const otra = tiro === mia ? suya : mia
-  if (!otra.embocada) descartada = { pos: [...otra.pos], t0: performance.now() }
-  marcarTiro(tiro === suya ? `QUEDA LA DE ${(compa?.apodo ?? '').toUpperCase()}` : 'QUEDA LA TUYA', tiro.pos)
+// ── 🦉📺 la Mejor pelota: pegás vos, después el compañero desde el mismo lugar (lo apuntás vos) y elegís con cuál te quedás ──
+let descartada = null // la que no elegiste: se apaga donde quedó
+/** Paró la tuya: queda ahí (con su cartel) y la ronda vuelve a donde pegaste; ahora pega el compañero. */
+function segundaPelota() {
+  const mp = ronda.mejorPelota
+  mp.primera = tiro
+  mp.antes = ronda.jugador
+  mp.fase = 'segunda'
+  // la Ruleta no gira entre los dos tiros (es el mismo golpe)
+  mp.ruletaToca = ronda.ruletaToca
+  ronda.ruletaToca = false
+  ronda.jugador = mp.compa
+  ronda.calma = M.compaSinError(ronda) // LG, después de un mal tiro: sin error (y el óvalo lo muestra)
+  tiro = null
+  estela = []
   S.ruletaCae()
+  dickyVisita(mp.compa, M.fraseVestuario(rng, mp.compa.apodo, mp.antes, ronda.calma ? 'armaCalma' : 'segunda'), true)
+  const cara = $('#hud-top .cara')
+  cara.classList.remove('nuevo')
+  void cara.offsetWidth
+  cara.classList.add('nuevo')
+  aApuntar()
 }
+/** Pararon las dos: abajo, con cuál te quedás (la mejor, marcada); arriba se ven las dos. Si la del compañero entró, esa. */
+function elegirPelota() {
+  const mp = ronda.mejorPelota
+  const A = mp.primera, B = mp.segunda
+  if (B.embocada) { quedarseCon(B); return }
+  mp.fase = 'elegir'
+  estado = 'mejor'
+  drag = null
+  ronda.jugador = mp.antes // arriba vuelve el que juega (el compañero ya pegó)
+  const mejor = M.mejorDeLasDos(campo, ronda, A, B)
+  const op = (t, j, i) => {
+    const q = M.dondeQuedo(campo, ronda, t)
+    return `<button class="mp-op${t === mejor ? ' es-mejor' : ''}" type="button" data-cual="${i}">${t === mejor ? '<i class="mp-mejor">LA MEJOR</i>' : ''}<span class="cara"><img src="${j.torso ?? j.foto}" alt="" draggable="false"></span><span><b>${j.emoji} ${esc(j.apodo)}</b><small${q.multa ? ' class="multa"' : ''}>${esc(textoDonde(q))}</small></span></button>`
+  }
+  $('#mp-ops').innerHTML = op(A, mp.antes, 0) + op(B, mp.compa, 1)
+  $('#mp-sel').hidden = false
+  obj = encuadreDos(A.pos, B.pos, $('#mp-sel').getBoundingClientRect().top)
+  velCam = 3
+  S.ruletaCae()
+  hud()
+}
+/** Lo que dice el botón de cada pelota: dónde quedó. */
+function textoDonde(q) {
+  if (q.tipo === 'adentro') return '¡ADENTRO!'
+  if (q.tipo === 'afuera') return 'AFUERA · +1'
+  if (q.tipo === 'robada') return 'Se la robó un mono · +1'
+  if (q.tipo === 'bosque') return 'Al bosque · +1 (o el mono bueno)'
+  const yd = q.yd < 10 ? `${q.yd.toFixed(1).replace('.', ',')} yd` : `${Math.round(q.yd)} yd`
+  if (q.tipo === 'ajena') return `${yd} · en el green del ${q.n}`
+  // en el green, si el que sigue es Joaco y está a 15 metros o menos: dada
+  const dada = q.lie === 'green' && M.habilidadDe(ronda.mejorPelota?.antes)?.id === 'dadas' && q.yd <= M.DADA ? ' · DADA 🦉' : ''
+  return `${yd} del hoyo · ${q.lie}${dada}`
+}
+/** La cámara con las dos pelotas, arriba del panel de elegir (la bandera para arriba, como al apuntar). */
+function encuadreDos(a, b, panel) {
+  const { top } = zona()
+  const abajo = Math.min(zona().bot, (panel || H) - 24)
+  const pin = M.hoyoActual(ronda).pin
+  const d = Math.max(M.dist(a, b), 1)
+  const esc = Math.min(4.5, Math.max(0.6, (Math.min(abajo - top, W) - 110) / d)) // no tan de cerca: que se vea alrededor
+  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, esc, rot: -Math.PI / 2 - Math.atan2(pin[1] - ronda.pelota[1], pin[0] - ronda.pelota[0]), sy: (top + abajo) / 2 }
+}
+/** Te quedás con `t`: vuelve el que juega y se sigue desde ahí (con la multa, si la tiene); la otra se apaga. */
+function quedarseCon(t) {
+  const mp = ronda.mejorPelota
+  $('#mp-sel').hidden = true
+  const otra = t === mp.primera ? mp.segunda : mp.primera
+  ronda.jugador = mp.antes
+  ronda.calma = false
+  if (mp.ruletaToca) ronda.ruletaToca = true
+  ronda.mejorPelota = { compa: mp.compa, armada: false, usada: true }
+  tiro = t
+  tiro.mejorPelota = true
+  if (!otra.embocada) descartada = { pos: [...otra.pos], t0: performance.now() }
+  marcarTiro(t === mp.segunda ? `QUEDA LA DE ${mp.compa.apodo.toUpperCase()}` : 'QUEDA LA TUYA', t.pos)
+  S.tap()
+  estado = 'tiro'
+  hud()
+  alReposo()
+}
+$('#mp-sel').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-cual]')
+  const mp = ronda?.mejorPelota
+  if (!b || estado !== 'mejor' || mp?.fase !== 'elegir') return
+  quedarseCon(b.dataset.cual === '1' ? mp.segunda : mp.primera)
+})
 function siguienteTiro() {
   tiro = null
   estela = []
@@ -3202,7 +3293,7 @@ function empezar(jugador) {
   climaPorAnunciar = true
   fxClima = []
   chicanaDe = null; chicanaVino = false; clearTimeout(chicanaTimer)
-  tiroCompa = null; estelaCompa = []; descartada = null
+  descartada = null; $('#mp-sel').hidden = true
   fondoDelClima(ronda.clima?.id)
   datos.ultimo = jugador.apodo
   guardar(datos)
@@ -3693,9 +3784,14 @@ function pintarVoz() {
     clase = ''; dice = voz.lg; extra = voz.extra
   } else if (estado === 'apuntar' && !datos.vistoTip) {
     clase = ''; dice = '👆 Arrastrá para atrás y soltá'; extra = 'El óvalo es donde puede caer'
+  } else if (estado === 'mejor') {
+    clase = ''; dice = '🦉📺 ¿CON CUÁL TE QUEDÁS?'; extra = 'Tocá la que querés: desde ahí se sigue'
+  } else if (estado === 'apuntar' && ronda?.mejorPelota?.fase === 'segunda') {
+    const c = ronda.mejorPelota.compa
+    clase = ''; dice = `${c.emoji} AHORA PEGA ${c.apodo.toUpperCase()}`; extra = ronda.calma ? 'No se enoja: el suyo sale sin error' : 'Desde el mismo lugar. Después elegís con cuál'
   } else if (estado === 'apuntar' && ronda && M.mejorPelotaArmada(ronda)) {
     const c = ronda.mejorPelota.compa
-    clase = ''; dice = '🦉📺 MEJOR PELOTA: PEGAN LOS DOS'; extra = M.compaSinError(ronda) ? `${c.emoji} ${c.apodo} no se enoja: el suyo sale sin error` : `Vos y ${c.emoji} ${c.apodo}: queda la mejor de las dos`
+    clase = ''; dice = '🦉📺 MEJOR PELOTA'; extra = `Pegás vos, después ${c.emoji} ${c.apodo} y elegís`
   } else if (estado === 'apuntar' && ronda?.calma) {
     clase = ''; dice = '📺 LG no se enoja'; extra = 'El que se enoja pierde: este golpe sale sin error'
   } else if (estado === 'apuntar' && golpeMago()) {
@@ -3711,24 +3807,21 @@ function pintarVoz() {
   $('#r-extra').textContent = extra
 }
 
-/** La Mejor pelota en el aire: la del compañero, con su estela dorada, y un cartelito arriba de cada una (quién es quién). */
-function dosPelotas() {
-  const c = ronda.mejorPelota?.compa
-  for (let i = 0; i < estelaCompa.length; i += 2) {
-    const [x, y, alt] = estelaCompa[i]
-    const [sx, sy] = w2s([x, y])
-    ctx.fillStyle = `rgba(232,195,74,${(0.55 * i) / estelaCompa.length})`
-    ctx.beginPath(); ctx.arc(sx, sy - alt * levante(), 1.8, 0, 7); ctx.fill()
-  }
+/** La Mejor pelota: la tuya (quieta, con tu cartel) mientras pega el compañero, su cartel mientras vuela y las dos mientras elegís. */
+function pelotasFourball() {
+  const mp = ronda.mejorPelota
+  if (!mp?.primera) return
+  const A = mp.primera, B = estado === 'mejor' ? mp.segunda : mp.fase === 'vuela' ? tiro : null
   const donde = (t) => { const [x, y0] = w2s(t.pos); return [x, y0 - t.alt * levante(), radioPelota() * (1 + t.alt / 50)] }
-  const [xm, ym, rm] = donde(tiro), [xc, yc, rc] = donde(tiroCompa)
-  // si van juntas, el cartel del compañero va arriba del tuyo (apilado, como en el replay)
-  const juntas = !tiro.embocada && Math.abs(xm - xc) < 90 && Math.abs(ym - yc) < 26
-  if (!tiro.embocada) cartelPelota(xm, ym, rm, ronda.jugador.emoji, 'VOS', false, 0, H - 90, '#f4eeda', 0.9)
-  if (!tiroCompa.embocada) {
-    pelota(tiroCompa.pos, tiroCompa.alt)
-    if (c) cartelPelota(juntas ? xm : xc, juntas ? ym : yc, juntas ? rm : rc, c.emoji, c.apodo, false, 0, H - 90, '#e8c34a', 0.9, juntas ? 23 : 0)
-  }
+  const pa = donde(A)
+  if (!A.embocada) { pelota(A.pos, A.alt); cartelPelota(pa[0], pa[1], pa[2], mp.antes.emoji, mp.antes.apodo, false, 0, H - 90, '#f4eeda', 0.9) }
+  if (!B || B.embocada) return
+  if (estado === 'mejor') pelota(B.pos, B.alt) // mientras vuela la dibuja el tiro
+  const pb = donde(B)
+  // si están juntas, el cartel del compañero va arriba del tuyo (apilado, como en el replay)
+  const juntas = !A.embocada && Math.abs(pa[0] - pb[0]) < 90 && Math.abs(pa[1] - pb[1]) < 26
+  const [x, y, r] = juntas ? pa : pb
+  cartelPelota(x, y, r, mp.compa.emoji, mp.compa.apodo, false, 0, H - 90, '#e8c34a', 0.9, juntas ? 23 : 0)
 }
 /** La pelota que no quedó (la Mejor pelota): se apaga de a poco donde paró. */
 function pelotaDescartada() {
@@ -3771,7 +3864,7 @@ function hud() {
   $('#j-apodo').textContent = j.apodo.toUpperCase()
   $('#j-hcp').textContent = hcpEtiqueta(j)
   $('#j-total').textContent = M.formatoPar(M.totales(ronda.tarjeta).vsPar)
-  $('#lp').disabled = estado !== 'apuntar'
+  $('#lp').disabled = estado !== 'apuntar' || !!ronda.mejorPelota?.fase // en la Mejor pelota, no
   if (!lpArmado) $('#lp').textContent = oculto ? 'LP 💅' : textoLP()
   const mugre = M.habilidadDe(j)?.id === 'panchitos'
   $('#pancho').hidden = !mugre || $('#hud-top').hidden
@@ -3795,7 +3888,7 @@ function hud() {
   if (!ninja || $('#ninja-btn').disabled) { ninjaArmado = 0; $('#ninja-btn').classList.remove('armado'); $('#ninja-btn .txt').textContent = 'RESET' }
   document.body.classList.toggle('dos-botones', dicky && ninja && !$('#hud-top').hidden)
   // el Equipo 5: la Mejor pelota (una por vuelta: el próximo tiro lo pegan los dos y queda la mejor)
-  const compa = !oculto && M.puedeMejorPelota(ronda) ? M.compaE5(ronda.jugador, EQUIPO5) : null
+  const compa = !oculto && M.puedeMejorPelota(ronda) && !ronda.mejorPelota?.fase ? M.compaE5(ronda.jugador, EQUIPO5) : null
   $('#e5-btn').hidden = !compa || $('#hud-top').hidden
   if (compa) {
     const armada = M.mejorPelotaArmada(ronda)
@@ -3975,7 +4068,7 @@ $('#e5-btn').addEventListener('click', () => {
   const compa = M.compaE5(yo, EQUIPO5)
   if (!compa || !M.armarMejorPelota(ronda, compa)) return
   S.ruletaCae()
-  dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, M.compaSinError(ronda) ? 'armaCalma' : 'arma'), true)
+  dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, 'arma'), true)
   hud()
 })
 $('#ninja-btn').addEventListener('click', resetDelNinja)
@@ -4125,8 +4218,9 @@ function dibujar() {
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
-    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro); if (!tiro.embocada) pelota(tiro.pos, tiro.alt); if (tiroCompa) dosPelotas() }
-    else { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
+    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro); if (!tiro.embocada) pelota(tiro.pos, tiro.alt) }
+    else if (estado !== 'mejor') { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
+    pelotasFourball()
     pelotaDescartada()
   }
   const a = estado === 'apuntar' ? apunte() : null
@@ -4139,7 +4233,7 @@ function dibujar() {
     if (k <= 0) trazoFade = null
     else dibujarTrazo(trazoFade.pts, k * k, null, trazoFade.desde)
   }
-  if ((ronda?.ruleta || ronda?.prestado) && estado === 'apuntar' && !drag && !anim) etiquetaRuleta()
+  if ((ronda?.ruleta || ronda?.prestado || ronda?.mejorPelota?.fase === 'segunda') && estado === 'apuntar' && !drag && !anim) etiquetaRuleta()
   dibujarFxJuanpa()
   dibujarRafagasTito()
   dibujarClima()
@@ -6070,6 +6164,7 @@ function tarjetaFinal() {
   $('#pancho').hidden = true
   $('#dicky-btn').hidden = true
   $('#e5-btn').hidden = true
+  $('#mp-sel').hidden = true
   $('#ninja-btn').hidden = true
   $('#mago-golpes').hidden = true
   document.body.classList.remove('con-mago')
@@ -8680,6 +8775,7 @@ function mostrarElegir() {
   $('#pancho').hidden = true
   $('#dicky-btn').hidden = true
   $('#e5-btn').hidden = true
+  $('#mp-sel').hidden = true
   $('#ninja-btn').hidden = true
   $('#mago-golpes').hidden = true
   document.body.classList.remove('con-mago')

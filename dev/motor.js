@@ -2572,11 +2572,13 @@ export const VESTUARIO = {
     (n) => `El que se enoja pierde, ${n}. Respirá`,
   ],
   // la Mejor pelota: cuando la armás, y después, si quedó la del compañero (el que habla) o la tuya
-  arma: [() => 'El #Equipo5 utiliza su excepción: fourball 🦉📺', (n) => `Dale, ${n}: pegamos los dos y queda la mejor`, () => 'Fourball del Equipo 5. Que miren los Dicky'],
-  // la arma después de un mal tiro: Lucas no se enoja (el suyo sale sin error)
+  arma: [() => 'El #Equipo5 utiliza su excepción: fourball 🦉📺', (n) => `Dale, ${n}: pegamos los dos y elegís la mejor`, () => 'Fourball del Equipo 5. Que miren los Dicky'],
+  // cuando le toca pegar al compañero (desde el mismo lugar); después de un mal tiro, Lucas no se enoja (sale sin error)
+  segunda: [(n) => `Ahora yo, ${n}. Mirá y aprendé`, () => 'Mi turno. Fourball del #Equipo5', (n) => `Dejame a mí, ${n}. Después elegís`],
   armaCalma: [(n) => `Tranqui, ${n}: el que se enoja pierde. El mío sale derecho 📺`, () => 'Yo no me enojo. Este lo pego derecho 📺', (n) => `Respirá, ${n}. Dejá que LG la pega sin error`],
-  compa: [(n) => `Tranqui, ${n}: quedó la mía. #Equipo5`, () => 'Para eso está el compañero. Fourball del Equipo 5', () => 'Mejor pelota: la mía. De nada 😌'],
-  tuya: [(n) => `Quedó la tuya, ${n}. Así juega el Equipo 5`, () => 'Mejor tarjeta Guarino/Castelli 🏆', (n) => `La tuya era mejor, ${n}. Yo te cuidaba la espalda`],
+  // y cuando elegiste: la del compañero (el que habla) o la tuya
+  compa: [(n) => `Buena elección, ${n}: la mía. #Equipo5`, () => 'Para eso está el compañero. Fourball del Equipo 5', () => 'Mejor pelota: la mía. De nada 😌'],
+  tuya: [(n) => `Quedate con la tuya, ${n}. Así juega el Equipo 5`, () => 'Mejor tarjeta Guarino/Castelli 🏆', (n) => `La tuya era mejor, ${n}. Yo te cuidaba la espalda`],
 }
 // las de cada uno (el que habla): Lucas le habla a Joaco y Joaco a Lucas
 export const VESTUARIO_PROPIA = {
@@ -2595,17 +2597,15 @@ export function contestaDicky(rng, quien, e5) {
   const suyas = DICKY_CONTESTA_PROPIA[quien] ?? {}
   return deLaLista(rng, DICKY_CONTESTA, [...(suyas[e] ?? []), ...(suyas.todos ?? [])], 0.5)(e)
 }
-/** Lo que le dice `quien` (el compañero del Equipo 5) al que juega (`para`). `momento`: bien / mal / todos, o arma / compa / tuya (la Mejor pelota). */
+/** Lo que le dice `quien` (el compañero del Equipo 5) al que juega (`para`). `momento`: bien / mal / todos, o arma / segunda / armaCalma / compa / tuya (la Mejor pelota). */
 export function fraseVestuario(rng, quien, para, momento = 'todos') {
-  if (['arma', 'armaCalma', 'compa', 'tuya'].includes(momento)) return elegir(rng, VESTUARIO[momento])(nombreDe(para))
+  if (['arma', 'segunda', 'armaCalma', 'compa', 'tuya'].includes(momento)) return elegir(rng, VESTUARIO[momento])(nombreDe(para))
   return deLaLista(rng, VESTUARIO[momento] ?? VESTUARIO.todos, VESTUARIO_PROPIA[quien])(nombreDe(para))
 }
 
-// ── 🦉📺 la Mejor pelota del Equipo 5 (una por vuelta): el próximo tiro lo pegan los dos, desde el mismo lugar y para
-// el mismo lado, cada uno con su handicap y su habilidad; vuelan las dos y queda la mejor ("fourball: Guarino-Castelli,
-// mejor tarjeta") ──
-// cómo suelta el compañero (eso no lo manejás vos): perfecto, bueno o normal
-export const MEJOR_PELOTA = { perfecto: 0.25, bueno: 0.45 }
+// ── 🦉📺 la Mejor pelota del Equipo 5 (una por vuelta, "fourball: Guarino-Castelli, mejor tarjeta"): pegás vos, después
+// el compañero desde el mismo lugar (también lo apuntás vos), cada uno con su handicap y su habilidad, y elegís con cuál
+// te quedás. Cuenta un golpe ──
 export const puedeMejorPelota = (r) => esEquipo5(r.jugador) && !r.mejorPelota?.usada && !r.prestado && !r.terminada
 /** Arma la Mejor pelota con `compa`: el próximo tiro lo pegan los dos. Devuelve false si no se puede. */
 export function armarMejorPelota(r, compa) {
@@ -2621,19 +2621,19 @@ export const mejorPelotaArmada = (r) => !!r.mejorPelota?.armada && !r.mejorPelot
 /** ¿El compañero pega sin error? LG, después de un mal tiro (el que se enoja pierde), como cuando juega él. */
 export const compaSinError = (r) => habilidadDe(r.mejorPelota?.compa)?.id === 'calma' && !!r.ultimoMalo
 /**
- * El tiro del compañero: llamar ANTES del `golpear` del que juega (sale del mismo lugar, con el mismo golpe). Le pega
- * sobre una copia de la ronda (no cuenta golpe, no toca los monos ni el barro) y su pelota no la roban en el aire.
- * Con su habilidad: las dadas de Joaco y, si el tiro anterior salió mal, LG sin error. Gasta la Mejor pelota.
+ * El tiro del compañero (el segundo): desde donde está la pelota de la ronda (la tuya ya salió, pero `r.pelota` todavía
+ * es de donde pegaste), con el golpe que armaste vos (`soltada`: cómo soltaste en el latido). Le pega sobre una copia de
+ * la ronda (no cuenta golpe, no toca los monos ni el barro) y su pelota no la roban en el aire. Con su habilidad: las
+ * dadas de Joaco y, si el tiro anterior salió mal, LG sin error. Gasta la Mejor pelota.
  */
-export function golpeCompa(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0) {
+export function golpeCompa(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, soltada = null) {
   const compa = r.mejorPelota.compa
-  const u = rng()
-  const soltada = u < MEJOR_PELOTA.perfecto ? true : { nivel: u < MEJOR_PELOTA.perfecto + MEJOR_PELOTA.bueno ? 'bueno' : null, lado: rng() < 0.5 ? -1 : 1 }
   const copia = { ...r, jugador: compa, monos: [], golpeMago: null, deme: null, furia: null, calma: compaSinError(r), barro: false, proxSorpresa: undefined, ruleta: null, ruletaToca: false, prestado: null, carro: null }
   const t = golpear(campo, copia, angulo, potencia, rng, precision, tiempo, null, soltada)
   t.monos = null
   t.compa = compa.apodo
-  r.mejorPelota = { ...r.mejorPelota, armada: false, usada: true }
+  r.mejorPelota.armada = false
+  r.mejorPelota.usada = true
   return t
 }
 /** Cuánto cuesta dónde quedó una pelota (para elegir la mejor): por las yardas al hoyo, peor fuera de la calle; con multa, mucho más. */
@@ -2649,7 +2649,18 @@ export function valorPelota(campo, r, t) {
   if (t.ajena) return 30 + yd * LIE_MEJOR.rough
   return yd * (LIE_MEJOR[ter.tipo] ?? LIE_MEJOR.rough)
 }
-/** De las dos, la que queda: la que cuesta menos (si empatan, la tuya). */
+/** Dónde quedó una pelota (para elegir): { tipo: adentro / afuera / robada / bosque / ajena / normal, yd reales al hoyo, lie, n, multa }. */
+export function dondeQuedo(campo, r, t) {
+  const h = hoyoActual(r)
+  const yd = dist(t.pos, h.pin) * (h.escala ?? 1)
+  if (t.embocada) return { tipo: 'adentro', yd: 0, multa: 0 }
+  if (t.robada) return { tipo: 'robada', yd, multa: 1 }
+  if (t.ajena) return { tipo: 'ajena', yd, n: t.ajena, multa: 0 }
+  const ter = terreno(campo, t.pos)
+  if (ter.tipo === 'afuera' || ter.tipo === 'bosque') return { tipo: ter.tipo, yd, multa: 1 }
+  return { tipo: 'normal', yd, lie: ter.tipo, multa: 0 }
+}
+/** De las dos, la mejor (la que se recomienda): la que cuesta menos (si empatan, la tuya). */
 export const mejorDeLasDos = (campo, r, mia, delCompa) => (valorPelota(campo, r, delCompa) < valorPelota(campo, r, mia) ? delCompa : mia)
 
 export const FRASES_CARGA = [
