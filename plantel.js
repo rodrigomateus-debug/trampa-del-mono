@@ -1,4 +1,4 @@
-// El plantel del SDGA para elegir nivel (dicky: es de los Dicky Toons, lleva el logo en la carta; equipo: su equipo, con su logo (el 5: equipo-5.svg); torso: su foto recortada, para la Dickyllamada): de la base de la FedE Cup (handicap, frase, emoji) y del
+// El plantel del SDGA para elegir nivel (dicky: es de los Dicky Toons, lleva el logo en la carta; equipo: su equipo, con su logo (el 5: equipo-5.svg); torso: su foto recortada, para cuando aparece en pantalla: la Dickyllamada y el Equipo 5): de la base de la FedE Cup (handicap, frase, emoji) y del
 // design system (fotos, stats 2024–2026). Foto del 2026-10-03.
 // Ordenado por handicap, de menor a mayor. aprox: handicap aproximado que pasó Rorro (no está en la base).
 // En la app esto sale de la tabla players (usePlayers) y de photoForPlayer, no de este archivo.
@@ -137,6 +137,7 @@ export const PLANTEL = [
     "aprox": true,
     "frase": "Droi droi droi",
     "foto": "jugadores/lechu.webp",
+    "torso": "jugadores/lechu-torso.webp",
     "stats": {
       "tarjetas": 60,
       "netoPromedio": 5.7,
@@ -191,6 +192,7 @@ export const PLANTEL = [
     "hcp": 11.1,
     "frase": "El que se enoja pierde",
     "foto": "jugadores/lg.webp",
+    "torso": "jugadores/lg-torso.webp",
     "stats": {
       "tarjetas": 82,
       "netoPromedio": 7.4,
@@ -333,11 +335,22 @@ export const DEMETRIO = {
 export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp": null, "foto": null, "misterio": true }
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['Tito', 'Mapache', 'El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
+export const EN_PRUEBA = ['Tito', 'Mapache', 'El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'Fito (5)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
 
 // 🔒 Taiu se desbloquea (2026-10-06): con una tarjeta firmada de −1 o mejor con cada uno de estos Dicky
 // (vale el récord del teléfono y, con tu usuario, tus vueltas del ranking). Hasta entonces, su carta va con candado.
 export const DESBLOQUEO_TAIU = { apodo: 'Taiu (Đ)', con: ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'], vsPar: -1 }
+
+// 🦅 El pase de Fito (2026-10-09; del chat: "por un par de días Fito deja de ser Dicky", "salimos del mismo vientre"): una
+// carta de Fito en el Equipo 5, con el escudo del 5, la misma foto, handicap y habilidad (`pase`: de quién es), y la Mejor
+// pelota con Lucas, su hermano (`compa`), en vez de la Dickyllamada. Se desbloquea con −1 o mejor (firmado) con Joaco y
+// con Lucas. No sale en la Ruleta (es Fito dos veces).
+const FITO = PLANTEL.find((j) => j.apodo === 'Fito (Đ)')
+export const FITO_PASE = { ...FITO, apodo: 'Fito (5)', dicky: false, equipo: 5, pase: FITO.apodo, compa: 'LG', frase: 'Por un par de días Fito deja de ser Dicky' }
+PLANTEL.splice(PLANTEL.indexOf(FITO) + 1, 0, FITO_PASE)
+export const DESBLOQUEO_FITO = { apodo: 'Fito (5)', con: ['Lechu', 'LG'], vsPar: -1 }
+/** Los que arrancan con candado. */
+export const DESBLOQUEOS = [DESBLOQUEO_TAIU, DESBLOQUEO_FITO]
 
 // 🎰 La Ruleta (2026-10-05): no es un player, es una carta del mazo. Cada tiro lo pega uno del mazo al azar, con su
 // handicap y su habilidad, y nunca el mismo dos veces seguidas (`turnoRuleta` en motor.js). `pool`: los que pueden salir
@@ -351,7 +364,7 @@ export const RULETA = {
   "foto": null,
   "stats": null,
   "ruleta": true,
-  "pool": PLANTEL.filter((j) => EN_PRUEBA.includes(j.apodo))
+  "pool": PLANTEL.filter((j) => EN_PRUEBA.includes(j.apodo) && !j.pase)
 }
 PLANTEL.push(RULETA)
 
@@ -371,11 +384,12 @@ export const DIFICULTAD_REAL = {
   LG: { prom: 0.68, lp: 1 },
   'El Mago Rodal': { prom: -0.17, lp: 0, nivel: 2 }, // elige el golpe. Normal a mano: el bot dibuja el vuelo perfecto, la gente no
   'El Flaco Ordoñez': { prom: 1.4, lp: 0 }, // el bot no maneja: el carrito le cuesta tiempo, no golpes
-  Lechu: { prom: 1.43, lp: 1 },
+  Lechu: { prom: 0.98, lp: 1 }, // 2026-10-09: las dadas de 15 metros (200 vueltas; con las de 3: +1,53, con las de 6: +1,40; el bot patea bien, a mano se nota más)
   Liberty: { prom: 2.51, lp: 8 },
   Mugre: { prom: 2.32, lp: 3 },
   // Trampa total a mano (dicen los que juegan que es el más difícil: el embudo de la línea que se sacude)
   'Fito (Đ)': { prom: 2.35, lp: 4, nivel: 5 },
+  'Fito (5)': { prom: 2.35, lp: 4, nivel: 5 }, // el mismo Fito (el bot no usa la Mejor pelota)
   // el bot no sufre el cambio (apunta perfecto con cualquiera); la gente sí: cada tiro es otra habilidad y otro handicap
   'La Ruleta': { prom: 0.29, lp: 3, nivel: 4 },
   // Taiu: el bot no sufre los controles al revés (juega bárbaro: bombas y approach perfectos); la gente sí
