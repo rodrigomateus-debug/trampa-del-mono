@@ -8631,10 +8631,10 @@ function pintarClasico() {
     <p class="cl-va"><b>${va}</b> · ${quedan > 1 ? `faltan ${quedan} días` : 'termina hoy'}</p>
     <p class="cl-top"><span><small>DICKY</small>${top(c.aportes.dicky)}</span><span><small>EQUIPO 5</small>${top(c.aportes.e5)}</span></p>
     ${antes.dicky + antes.e5 ? `<p class="cl-antes">La semana pasada ${salio}, ${antes.dicky} a ${antes.e5} · 📺 LG: «${esc(lgClasico(antes))}»</p>` : ''}
-    <p class="cl-como">Cada vuelta firmada con un Dicky o con el Equipo 5 suma para su equipo: 1 punto, más 1 por cada golpe bajo par (hasta 5 vueltas por día). Termina el domingo a la noche${hayBananas ? `; los que jugaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}.</p>`
+    <p class="cl-como">Solo suman las vueltas bajo par: cada vuelta firmada con un Dicky o con el Equipo 5, un punto por cada golpe bajo par para su equipo (hasta 5 vueltas por día). Termina el domingo a la noche${hayBananas ? `; los que sumaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}.</p>`
   el.hidden = false
 }
-/** Al entrar: si el Clásico de la semana pasada lo ganó tu equipo (y jugaste), el mono te tira las bananas. Una vez por semana (lo cuida la base). */
+/** Al entrar: si el Clásico de la semana pasada lo ganó tu equipo (y sumaste), el mono te tira las bananas. Una vez por semana (lo cuida la base). */
 async function cobrarClasico() {
   if (cobrarClasico.hecho) return
   cobrarClasico.hecho = true
@@ -8645,7 +8645,7 @@ async function cobrarClasico() {
   const quien = r.ganador === 'dicky' ? 'los Dicky' : 'el Equipo 5'
   S.monoBueno()
   await hojaBananas(`<div class="cl-cobro">${stickerBanana()}<p class="bn-tit" id="bn-tit">¡${r.ganador === 'dicky' ? 'GANARON LOS DICKY' : 'GANÓ EL EQUIPO 5'}!</p>
-    <p>El Clásico de la semana pasada: <b>Dicky ${r.dicky} · Equipo 5 ${r.e5}</b>. Jugaste para ${quien}: el mono te tira <b>+${r.cobraste}</b>${BN}</p>
+    <p>El Clásico de la semana pasada: <b>Dicky ${r.dicky} · Equipo 5 ${r.e5}</b>. Sumaste para ${quien}: el mono te tira <b>+${r.cobraste}</b>${BN}</p>
     <p class="cl-lg">📺 LG: «${esc(lgClasico({ ganador: r.ganador, desde: Date.parse(r.semana ?? 0) || 0 }))}»</p>
     <button class="carta-jugar" type="button" data-bn="ok">¡Vamos!</button></div>`)
 }

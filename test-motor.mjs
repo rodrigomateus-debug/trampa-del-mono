@@ -1944,7 +1944,7 @@ ok('🦅 el pase de Fito: Fito (5) es del Equipo 5 (no Dicky), con la habilidad 
   assert.ok(M.fraseVuelve(rng, 'Taiu (Đ)', fito5).length > 5)
 })
 
-ok('⚔️ el Clásico de la semana: las mismas cuentas que la base (lunes a domingo en hora argentina, 5 por día, 1 + bajo par)', () => {
+ok('⚔️ el Clásico de la semana: las mismas cuentas que la base (lunes a domingo en hora argentina, 5 por día, solo bajo par: un punto por golpe)', () => {
   const equipoDe = (a) => (PLANTEL.find((j) => j.apodo === a)?.dicky ? 'dicky' : M.esEquipo5(PLANTEL.find((j) => j.apodo === a)) ? 'e5' : null)
   const ahora = Date.parse('2026-10-09T15:00:00Z')
   const lunes = M.lunesDe(ahora, 1) // la semana pasada: lunes 28/9 00:00 hora argentina
@@ -1952,7 +1952,7 @@ ok('⚔️ el Clásico de la semana: las mismas cuentas que la base (lunes a dom
   const en = (d, hhmm) => new Date(lunes + d * 864e5 + (+hhmm.slice(0, 2) * 60 + +hhmm.slice(3)) * 60e3).toISOString()
   const A = '00000000-0000-0000-0000-000000000001', B = A.replace(/1$/, '2'), C = A.replace(/1$/, '3')
   const m = (uid, apodo, vsPar, d, h) => ({ uid, usuario: uid.slice(-1), apodo, vsPar, fecha: en(d, h) })
-  // el mismo escenario que se probó en la base (trampa_clasico_puntos): Dicky 16, Equipo 5 19
+  // el mismo escenario que se probó en la base (trampa_clasico_puntos): Dicky 7, Equipo 5 12 (par, sobre par y LP no suman)
   const marcas = [
     m(A, 'Fito (Đ)', -2, 1, '10:00'), m(A, 'Taiu (Đ)', 0, 1, '11:00'), m(A, 'El Ninja (Đ)', 3, 1, '12:00'),
     ...Array.from({ length: 7 }, (_, i) => m(A, 'Mike Queboni (Đ)', -1, 2, `09:${String(i * 7).padStart(2, '0')}`)),
@@ -1961,11 +1961,13 @@ ok('⚔️ el Clásico de la semana: las mismas cuentas que la base (lunes a dom
     ...[0, 1, 2, 3].map((i) => m(C, i % 2 ? 'LG' : 'Lechu', -2, 4, `08:${i}0`)),
     m(C, 'Fito (5)', 0, 6, '23:30'), // el domingo 23:30: cuenta
     m(C, 'Tito', -3, 5, '10:00'), // de ningún equipo
+    m(C, 'Lechu', null, 5, '11:00'), m(B, 'Taiu (Đ)', null, 5, '12:00'), // LP: no suman
   ]
   const c = M.clasico(marcas, lunes, equipoDe)
-  assert.equal(c.dicky, 16); assert.equal(c.e5, 19); assert.equal(c.ganador, 'e5')
-  assert.deepEqual(c.aportes.dicky.map((x) => [x.quien.slice(-1), x.pts]), [['1', 15], ['2', 1]])
-  assert.deepEqual(c.aportes.e5.map((x) => [x.quien.slice(-1), x.pts]), [['3', 13], ['2', 6]])
+  assert.equal(c.dicky, 7); assert.equal(c.e5, 12); assert.equal(c.ganador, 'e5')
+  // B solo jugó sobre par y LP con los Dicky: no aparece (no jugó para los Dicky, no cobraría si ganaban)
+  assert.deepEqual(c.aportes.dicky.map((x) => [x.quien.slice(-1), x.pts]), [['1', 7]])
+  assert.deepEqual(c.aportes.e5.map((x) => [x.quien.slice(-1), x.pts]), [['3', 8], ['2', 4]])
   // sin vueltas: empate en cero, nadie gana
   assert.equal(M.clasico([], lunes, equipoDe).ganador, null)
 })
