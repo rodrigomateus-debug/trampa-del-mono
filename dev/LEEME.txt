@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy es igual al juego publicado (la raíz), con las bananas. Sin Google (la SDGApp de dev en modo DEV) se juega el MATCH DE PRUEBA, con rivales y bananas de mentira; suelto: dev/?probar=match. La fiesta sola: dev/?probar=fiesta o ?probar=pozo.
+Hoy: el juego publicado (con las bananas) + el Equipo 5, los rivales de los Dicky: con un Dicky, a veces se cuela Joaco o Lucas a chicanearlo y el Dicky que viene le contesta con amor; con Lechu o LG aparece el compañero; LG relata de hincha; y la Mejor pelota (una por vuelta, con Lechu o LG: pegan los dos y queda la mejor). Sin Google (la SDGApp de dev en modo DEV) se juega el MATCH DE PRUEBA; suelto: dev/?probar=match.
