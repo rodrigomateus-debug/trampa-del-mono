@@ -1044,12 +1044,50 @@ input { -webkit-user-select: text; user-select: text; }
 .bn-vistas button[aria-pressed="true"] { background: var(--green-900); color: var(--cream); }
 .bn-fila { grid-template-columns: 30px minmax(0, 1fr) auto; }
 .bn-pozo { list-style: none; margin: 4px 0 6px; padding: 10px 12px; border-radius: 14px; background: rgba(232, 195, 74, .24); font-size: 13px; line-height: 1.35; text-align: left; }
-.bn-res { display: block; margin-top: 4px; font-weight: 800; }
 .t-bananas { margin: 0; font-weight: 800; font-size: 14px; }
 .t-bananas[hidden] { display: none; }
 .mt-estado { font: 700 12px var(--font-body); color: var(--text-muted); text-align: right; }
 .mt-sec { padding: 12px 4px 4px; font: 800 11px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); text-align: left; list-style: none; }
 .t-match { margin: 0; padding: 10px 12px; border-radius: 12px; background: rgba(20, 64, 42, .08); font-size: 14px; line-height: 1.4; }
+/* el resultado del match (2026-10-09, rediseño): el veredicto en una banda, el hoyo a hoyo, las bananas en su bloque y
+   dos botones; el desafío enviado, en tres datos. Sin el párrafo que repetía lo de la tabla. */
+.t-match.res { display: grid; gap: 12px; padding: 14px 12px 12px; background: rgba(20, 64, 42, .06); }
+.t-match.res > * { margin: 0; }
+.tm-veredicto { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 14px; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--green-500); color: var(--cream); box-shadow: 3px 4px 0 var(--game-ink); font: 36px/1 var(--font-display); letter-spacing: .04em; text-transform: uppercase; transform: rotate(-1.5deg); animation: rp-gana 450ms var(--ease-snap) both; }
+.tm-veredicto.pierde { background: var(--red); }
+.tm-veredicto.empate { background: var(--cream-dark); color: var(--green-900); }
+.tm-veredicto.enviado { background: var(--gold); color: var(--green-900); font-size: 26px; }
+.tm-veredicto span { display: grid; justify-items: center; }
+.tm-veredicto small { margin-top: 4px; font: 800 11px/1.2 var(--font-body); letter-spacing: .14em; text-transform: uppercase; opacity: .92; }
+.tm-veredicto .gi { flex: none; width: 34px; height: 34px; --gi-s: var(--cream); --gi-f: transparent; --gi-a: var(--gold); }
+.tm-veredicto.empate .gi, .tm-veredicto.enviado .gi { --gi-s: var(--green-900); --gi-f: var(--cream); --gi-a: var(--cream); }
+.tm-bananas { display: grid; grid-template-columns: 78px minmax(0, 1fr); align-items: center; gap: 12px; padding: 10px 14px 10px 10px; border: var(--game-stroke) solid var(--game-ink); border-radius: 16px; background: var(--gold); color: var(--green-900); box-shadow: 3px 4px 0 var(--game-ink); text-align: left; }
+.tm-bananas.pierde { background: var(--cream); }
+.tm-bananas.empate { background: var(--cream-dark); }
+.tmb-sticker { position: relative; width: 78px; height: 78px; }
+.tmb-sticker .bn-sticker { width: 100%; height: 100%; animation: tmb-pop .55s cubic-bezier(.2, .9, .3, 1.4) .15s both; }
+.tm-bananas.pierde .tmb-sticker .bn-sticker { filter: saturate(.2) drop-shadow(3px 4px 0 var(--game-ink)); transform: rotate(16deg); animation: tmb-cae .6s ease-out .15s both; }
+.tmb-sticker i { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; animation: tmb-chispa .9s ease-out var(--del) both; }
+.tmb-sticker i svg { width: 100%; height: 100%; }
+.tmb-txt { display: grid; gap: 3px; min-width: 0; }
+.tmb-txt b { font: 54px/.9 var(--font-display); font-weight: 400; letter-spacing: .01em; }
+.tm-bananas.pierde .tmb-txt b { color: var(--red); }
+.tmb-txt span { font-weight: 800; font-size: 14px; line-height: 1.25; }
+.tmb-txt small { min-height: 1.2em; font-weight: 700; font-size: 12px; color: rgba(12, 43, 28, .72); }
+@keyframes tmb-pop { 0% { scale: 0; rotate: -40deg; } 70% { scale: 1.15; } 100% { scale: 1; rotate: 0deg; } }
+@keyframes tmb-cae { 0% { opacity: 0; translate: 0 -16px; } 100% { opacity: 1; translate: 0 0; } }
+@keyframes tmb-chispa { 0% { opacity: 0; transform: translate(0, 0) scale(.3); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--r)); } }
+.tm-datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tm-datos > div { display: grid; justify-items: center; align-content: start; gap: 3px; padding: 9px 4px; border-radius: 12px; background: var(--cream); border: 2px solid rgba(12, 43, 28, .14); }
+.tm-datos > div.bn { background: var(--gold); border-color: var(--game-ink); }
+.tm-datos small { font: 800 10px/1.1 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: rgba(12, 43, 28, .7); }
+.tm-datos b { font: 30px/1 var(--font-display); font-weight: 400; white-space: nowrap; }
+.tm-datos em { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: normal; font-weight: 700; font-size: 12px; }
+.tm-nota { font-size: 12.5px; color: var(--text-muted); text-align: center; }
+.tm-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tm-acciones.uno { grid-template-columns: 1fr; }
+.tm-acciones button { width: 100%; margin: 0; padding: 0 10px; }
+@media (prefers-reduced-motion: reduce) { .tm-veredicto, .tmb-sticker .bn-sticker, .tmb-sticker i { animation: none; } .tmb-sticker i { display: none; } }
 .t-match[hidden] { display: none; }
 .t-match .gran { display: block; font-family: var(--font-display); font-size: 24px; line-height: 1.1; letter-spacing: .02em; }
 .t-match.gana { background: var(--gold); }
@@ -7626,6 +7664,27 @@ async function compartirMatch(d, boton) {
   compartirImagen(img, textoResultadoMatch(yo, el, d.id, d.apuesta ?? 0), 'match-trampa-del-mono.png')
 }
 /** Terminó la vuelta de un match: si desafiaste, se manda; si respondías, se anota y se ve quién ganó. */
+/** El veredicto del match, en una banda: GANASTE / PERDISTE / EMPATE y, abajo, por cuánto. */
+function veredictoMatch(yo, el, g) {
+  const lpYo = yo.lp || yo.golpes == null, lpEl = el.lp || el.golpes == null
+  const dif = !lpYo && !lpEl ? Math.abs(yo.golpes - el.golpes) : 0
+  const por = lpYo && lpEl ? 'los dos levantaron' : lpEl ? `${el.alias ?? 'el otro'} levantó` : lpYo ? 'levantaste'
+    : M.porTiempo(yo, el) ? `por tiempo · ${(Math.abs(yo.ms - el.ms) / 1000).toFixed(1).replace('.', ',')} s`
+    : dif ? `por ${dif} ${dif === 1 ? 'golpe' : 'golpes'}` : 'mismos golpes y mismo tiempo'
+  return `<p class="tm-veredicto ${g > 0 ? 'gana' : g < 0 ? 'pierde' : 'empate'}">${gi(g > 0 ? 'trophy' : g < 0 ? 'close' : 'friends')}<span>${g > 0 ? 'Ganaste' : g < 0 ? 'Perdiste' : 'Empate'}<small>${esc(por)}</small></span></p>`
+}
+/** Las bananas del match: el sticker, cuánto ganaste o perdiste (grande) y cuántas te quedan (se completa al llegar el saldo). */
+function bloqueBananasMatch(g, n) {
+  const x = netoBananas(g, n)
+  const chispas = g > 0 ? Array.from({ length: 7 }, (_, k) => {
+    const a = (k / 7) * 2 * Math.PI - Math.PI / 2
+    return `<i style="--dx: ${Math.round(Math.cos(a) * 54)}px; --dy: ${Math.round(Math.sin(a) * 54)}px; --r: ${Math.round(a * 57)}deg; --del: ${(0.35 + k * 0.04).toFixed(2)}s">${gi('banana')}</i>`
+  }).join('') : ''
+  return `<div class="tm-bananas ${g > 0 ? 'gana' : g < 0 ? 'pierde' : 'empate'}">
+    <span class="tmb-sticker" aria-hidden="true">${stickerBanana()}${chispas}</span>
+    <span class="tmb-txt"><b>${x > 0 ? '+' : x < 0 ? '−' : ''}${Math.abs(x)}</b><span>${g > 0 ? `Te llevás ${2 * n - 1} · 1 es del mono` : g < 0 ? `Perdiste tus ${n} ${n === 1 ? 'banana' : 'bananas'}` : `Empate: te vuelven tus ${n}`}</span><small class="tmb-saldo"></small></span>
+  </div>`
+}
 async function cerrarMatch(r) {
   const d = r.duelo
   if (d.enviado) return
@@ -7649,7 +7708,15 @@ async function cerrarMatch(r) {
       try {
         if (d.apuesta > 0) await R.enviarApuesta(d.desafioId, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
         else await R.crearDesafio({ rival: d.rival, semilla: d.semilla, ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
-        el.innerHTML = `<span class="gran">${gi('match')}DESAFÍO ENVIADO</span>Le llegó a <b>${esc(d.rival.nombre)}</b>${d.apuesta > 0 ? ` por <b>${d.apuesta}</b>${BN} (si no lo acepta o lo deja vencer, te vuelven)` : ''}. Va a jugar con ${esc(r.carta.emoji)} ${esc(r.carta.apodo)}, como vos, y va a ver tu pelota en vivo. El resultado te aparece en MATCH.<br><button class="btn-wa" type="button">${ICONO_WA}MANDÁSELO POR WHATSAPP</button>`
+        el.className = 't-match res'
+        el.innerHTML = `<p class="tm-veredicto enviado">${gi('match')}<span>Desafío enviado<small>a ${esc(d.rival.nombre)}</small></span></p>
+          <div class="tm-datos">
+            <div><small>Tu vuelta</small><b>${lp ? 'LP' : mia.golpes}</b><em>${lp ? 'levantaste' : `${M.formatoPar(mia.vsPar)} · ${M.formatoTiempo(mia.ms)}`}</em></div>
+            <div><small>Juega con</small><b>${esc(r.carta.emoji)}</b><em>${esc(apodoLimpio(r.carta.apodo))}</em></div>
+            ${d.apuesta > 0 ? `<div class="bn"><small>En juego</small><b>${d.apuesta}${BN}</b><em>vence en 48 h</em></div>` : '<div><small>Va por</small><b>🤝</b><em>el honor</em></div>'}
+          </div>
+          <p class="tm-nota">Va a ver tu pelota en vivo 👻 · el resultado te llega a MATCH${d.apuesta > 0 ? ' · si no lo acepta, te vuelven' : ''}</p>
+          <div class="tm-acciones uno"><button class="btn-wa" type="button">${ICONO_WA}AVISALE POR WHATSAPP</button></div>`
         el.querySelector('.btn-wa').addEventListener('click', async (e) => {
           const b = e.currentTarget
           b.disabled = true
@@ -7686,10 +7753,10 @@ async function cerrarMatch(r) {
       else await R.responderDesafio(des.id, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
       const g = M.ganadorMatch(mia, des.retador)
       const n = des.apuesta
-      const bn = n > 0 ? `<span class="bn-res">${g > 0 ? `${BN} Te llevás ${2 * n - 1} (${netoTxt(g, n)})` : g < 0 ? `${BN} Perdiste ${n}` : `${BN} Empate: te vuelven las ${n}`}</span>` : ''
-      if (n > 0) cargarBananas()
-      el.className = `t-match ${g > 0 ? 'gana' : g < 0 ? 'pierde' : ''}`
-      el.innerHTML = `<span class="gran">${g > 0 ? `${gi('trophy')}GANASTE EL MATCH` : g < 0 ? `${gi('close', 'pierde')}PERDISTE EL MATCH` : `${gi('friends')}EMPATE`}</span>${tablaResultado(g)}Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}${bn}<br><span class="t-match-botones"><button class="btn-wa" type="button">${ICONO_WA}MANDAR EL RESULTADO</button><button class="btn-replay" type="button">${ICONO_REPLAY}VER EL REPLAY</button></span>`
+      el.className = 't-match res'
+      el.innerHTML = `${veredictoMatch(mia, des.retador, g)}${tablaResultado(g)}${n > 0 ? bloqueBananasMatch(g, n) : ''}<div class="tm-acciones"><button class="btn-wa" type="button">${ICONO_WA}COMPARTIR</button><button class="btn-replay" type="button">${ICONO_REPLAY}REPLAY</button></div>`
+      // cuántas te quedan: cuando llega el saldo
+      if (n > 0) cargarBananas().then(() => { const sal = el.querySelector('.tmb-saldo'); if (sal && bananas) sal.textContent = `Ahora tenés ${bananas.saldo}` })
       el.querySelector('.btn-wa').addEventListener('click', (e) => compartirMatch({ ...des, rival: { ...des.rival, uid: yoUid(), alias: datos.usuario || des.rival.alias, ...mia } }, e.currentTarget))
       // el replay de este match, con las dos grabaciones que ya están acá (no hace falta pedirlas)
       el.querySelector('.btn-replay').addEventListener('click', () => abrirReplay({ ...des, estado: 'jugado', rival: { ...des.rival, ...mia } }, { retador: d.fantasma, rival: d.grabacion }))

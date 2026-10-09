@@ -76,10 +76,11 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
     return 1
   }
 
-  // la pelota grabada de un rival de mentira: hoyo por hoyo, de la salida a la bandera, golpe a golpe
+  // la pelota grabada de un rival de mentira: hoyo por hoyo, de la salida a la bandera, golpe a golpe (cada muestra
+  // lleva los golpes ACUMULADOS de la vuelta, como la del juego: de ahí sale el hoyo a hoyo)
   function grabar(porHoyo) {
     const g = []
-    let ms = 0
+    let ms = 0, antes = 0
     porHoyo.forEach((golpes, idx) => {
       const h = hoyos[idx]
       for (let k = 0; k < golpes; k++) {
@@ -88,11 +89,12 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
         const lado = (k % 2 ? 1 : -1) * Math.min(6, golpes - k)
         for (let s = 0; s <= 12; s++) {
           const u = s / 12
-          g.push([ms, idx, Math.round((a[0] + (b[0] - a[0]) * u + lado * Math.sin(Math.PI * u) * 0.4) * 10) / 10, Math.round((a[1] + (b[1] - a[1]) * u) * 10) / 10, Math.round(Math.sin(Math.PI * u) * 8 * 10) / 10, k + 1])
+          g.push([ms, idx, Math.round((a[0] + (b[0] - a[0]) * u + lado * Math.sin(Math.PI * u) * 0.4) * 10) / 10, Math.round((a[1] + (b[1] - a[1]) * u) * 10) / 10, Math.round(Math.sin(Math.PI * u) * 8 * 10) / 10, antes + k + 1])
           ms += muestraMs * 2
         }
         ms += 2500
       }
+      antes += golpes
     })
     return { fantasma: g, ms }
   }
