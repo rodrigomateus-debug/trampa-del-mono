@@ -335,11 +335,22 @@ export const DEMETRIO = {
 export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp": null, "foto": null, "misterio": true }
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['Tito', 'Mapache', 'El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
+export const EN_PRUEBA = ['Tito', 'Mapache', 'El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'Fito (5)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta']
 
 // 🔒 Taiu se desbloquea (2026-10-06): con una tarjeta firmada de −1 o mejor con cada uno de estos Dicky
 // (vale el récord del teléfono y, con tu usuario, tus vueltas del ranking). Hasta entonces, su carta va con candado.
 export const DESBLOQUEO_TAIU = { apodo: 'Taiu (Đ)', con: ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'], vsPar: -1 }
+
+// 🦅 El pase de Fito (2026-10-09; del chat: "por un par de días Fito deja de ser Dicky", "salimos del mismo vientre"): una
+// carta de Fito en el Equipo 5, con el escudo del 5, la misma foto, handicap y habilidad (`pase`: de quién es), y la Mejor
+// pelota con Lucas, su hermano (`compa`), en vez de la Dickyllamada. Se desbloquea con −1 o mejor (firmado) con Joaco y
+// con Lucas. No sale en la Ruleta (es Fito dos veces).
+const FITO = PLANTEL.find((j) => j.apodo === 'Fito (Đ)')
+export const FITO_PASE = { ...FITO, apodo: 'Fito (5)', dicky: false, equipo: 5, pase: FITO.apodo, compa: 'LG', frase: 'Por un par de días Fito deja de ser Dicky' }
+PLANTEL.splice(PLANTEL.indexOf(FITO) + 1, 0, FITO_PASE)
+export const DESBLOQUEO_FITO = { apodo: 'Fito (5)', con: ['Lechu', 'LG'], vsPar: -1 }
+/** Los que arrancan con candado. */
+export const DESBLOQUEOS = [DESBLOQUEO_TAIU, DESBLOQUEO_FITO]
 
 // 🎰 La Ruleta (2026-10-05): no es un player, es una carta del mazo. Cada tiro lo pega uno del mazo al azar, con su
 // handicap y su habilidad, y nunca el mismo dos veces seguidas (`turnoRuleta` en motor.js). `pool`: los que pueden salir
@@ -353,7 +364,7 @@ export const RULETA = {
   "foto": null,
   "stats": null,
   "ruleta": true,
-  "pool": PLANTEL.filter((j) => EN_PRUEBA.includes(j.apodo))
+  "pool": PLANTEL.filter((j) => EN_PRUEBA.includes(j.apodo) && !j.pase)
 }
 PLANTEL.push(RULETA)
 
@@ -378,6 +389,7 @@ export const DIFICULTAD_REAL = {
   Mugre: { prom: 2.32, lp: 3 },
   // Trampa total a mano (dicen los que juegan que es el más difícil: el embudo de la línea que se sacude)
   'Fito (Đ)': { prom: 2.35, lp: 4, nivel: 5 },
+  'Fito (5)': { prom: 2.35, lp: 4, nivel: 5 }, // el mismo Fito (el bot no usa la Mejor pelota)
   // el bot no sufre el cambio (apunta perfecto con cualquiera); la gente sí: cada tiro es otra habilidad y otro handicap
   'La Ruleta': { prom: 0.29, lp: 3, nivel: 4 },
   // Taiu: el bot no sufre los controles al revés (juega bárbaro: bombas y approach perfectos); la gente sí

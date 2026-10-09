@@ -493,6 +493,15 @@ async function rpc(fn, args = {}) {
   if (!res.ok) throw new Error(cuerpo?.code === 'P0001' && cuerpo?.message ? cuerpo.message : `HTTP ${res.status}`)
   return cuerpo
 }
+/**
+ * ⚔️ El Clásico de la semana pasada (Dicky contra el Equipo 5) y, si jugaste para el que ganó y todavía no cobraste, tus
+ * 2 bananas: { semana, dicky, e5, ganador: 'dicky' | 'e5' | null, cobraste }. Sin la base nueva (o sin la app nueva), error.
+ */
+export async function cobrarClasico() {
+  const r = puente.enApp ? await porApp('clasico') : await rpc('trampa_clasico_cobrar')
+  if (!r || typeof r !== 'object') throw new Error('sin clásico')
+  return { semana: r.semana ?? null, dicky: Math.floor(+r.dicky || 0), e5: Math.floor(+r.e5 || 0), ganador: r.ganador === 'dicky' || r.ganador === 'e5' ? r.ganador : null, cobraste: Math.floor(+r.cobraste || 0) }
+}
 /** Tus bananas: { saldo, reservadas, pozo, premiosHoy, movimientos: [{ monto, motivo, desafio, detalle, fecha }] }. */
 export async function leerBananas() {
   const b = puente.enApp ? await porApp('bananas') : await rpc('trampa_bananas_estado')

@@ -137,6 +137,8 @@ export const HABILIDADES = {
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
+// 🦅 Fito de pase en el Equipo 5 (2026-10-09): la misma habilidad que Fito
+HABILIDADES['Fito (5)'] = HABILIDADES['Fito (Đ)']
 export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
 /** Taiu (la Rana): los controles al revés (lo resuelve la página al leer el arrastre; el motor recibe el tiro que sale). */
 export const alReves = (jugador) => habilidadDe(jugador)?.id === 'reves'
@@ -910,14 +912,14 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
   if (furioso) precision = 0
   if (enModoPutt(campo, r)) {
     const puttMax = puttMaxDe(dist(b, hoyoActual(r).pin))
-    const carry = potencia * puttMax
+    const carry = potencia * puttMax * (r.blando ? MUFA.blando : 1) // ablandado por un Dicky: corto
     // el putt del Mago: con draw dobla a la izquierda (ángulo menor), con fade a la derecha
     const pin = hoyoActual(r).pin
     const giro = hab?.id === 'comba' ? puttMagoDe(r).lado * PUTT_MAGO.giro : 0
     // los 15 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
-    const noLaFalla = hab?.id === 'dadas' && dist(b, pin) * hoyoActual(r).escala <= DADA
+    const noLaFalla = hab?.id === 'dadas' && !r.ofendido && dist(b, pin) * hoyoActual(r).escala <= DADA
     const retro = hab?.id === 'retro'
-    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso }
+    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1) * (r.mufa ? MUFA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso, mufa: !!r.mufa, blando: !!r.blando }
   }
   const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
@@ -1006,6 +1008,9 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     const e = Math.max(dif.error, CORTO.minimo) * Math.min(1, (CORTO.hasta - cy) / CORTO.transicion) // solo de cerca
     plan.disp = { ...plan.disp, carry: Math.max(plan.disp.carry, (CORTO.largo * e) / cy), ang: Math.max(plan.disp.ang, Math.atan((CORTO.ancho * e) / cy)) }
   }
+  // 😈 mufado por el Equipo 5: más error (y el latido más rápido: ver la página). 🥺 Ablandado por un Dicky: sale corto
+  if (r.mufa) { plan.disp = { ...plan.disp, ang: plan.disp.ang * MUFA.error, carry: plan.disp.carry * MUFA.error }; plan.mufa = true }
+  if (r.blando) { plan.carry *= MUFA.blando; plan.blando = true }
   plan.destino = [b[0] + Math.cos(plan.cuerda) * plan.carry, b[1] + Math.sin(plan.cuerda) * plan.carry]
   return plan
 }
@@ -1850,6 +1855,11 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada
   tiro.calma = !!r.calma
   r.calma = false
+  // la mufa y el ablandado son de un tiro
+  tiro.mufa = !!r.mufa
+  tiro.blando = !!r.blando
+  r.mufa = false
+  r.blando = false
   if (r.prestado) tiro.prestado = r.jugador.apodo // la Dickyllamada: este lo pegó el Dicky que atendió
   // Joaco: de 15 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola)
   if (plan.noLaFalla) tiro.iman = { meter: true, lechu: true }
@@ -1947,7 +1957,8 @@ export function dropMono(campo, p, pin) {
 export function resolverReposo(campo, r, tiro, rng) {
   const res = resolver(campo, r, tiro, rng)
   // LG: si fue un mal tiro, el próximo sale sin error
-  if (habilidadDe(r.jugador)?.id === 'calma') r.calma = esMalo(res, tiro)
+  // (si LG pegó prestado —atendió la Dickyllamada—, su calma no queda para el que juega; ofendido —la interna—, sin calma)
+  if (habilidadDe(r.jugador)?.id === 'calma') r.calma = !r.prestado && !r.ofendido && esMalo(res, tiro)
   r.ultimoMalo = esMalo(res, tiro) // (para LG cuando pega de compañero en la Mejor pelota)
   cargarFuria(campo, r, tiro, res)
   devolverDicky(r) // la Dickyllamada: el Dicky que te pegó el tiro te devuelve el palo
@@ -2465,11 +2476,12 @@ export function momentoDicky(res) {
 // (con el handicap y la habilidad del que atiende: la bomba de Miguelón, el embudo de Fito, el revés de Taiu…)
 export const puedeDickyllamar = (r) => !!r.jugador?.dicky && !r.dickyllamada && !r.prestado && !r.terminada
 /** Llama a `dicky`: el próximo golpe lo pega él. Devuelve false si no se puede (ya la usó, no es Dicky, es él mismo). */
-export function dickyllamar(r, dicky) {
+export function dickyllamar(r, dicky, atiende = dicky) {
   if (!puedeDickyllamar(r) || !dicky?.dicky || dicky.apodo === r.jugador.apodo) return false
-  r.dickyllamada = { apodo: dicky.apodo, n: hoyoActual(r).n }
+  // `atiende`: el que atiende de verdad (la interna: a veces te atiende el Equipo 5 y pega él)
+  r.dickyllamada = { apodo: dicky.apodo, atendio: atiende.apodo, n: hoyoActual(r).n }
   r.prestado = { antes: r.jugador, golpeMago: r.golpeMago }
-  r.jugador = dicky
+  r.jugador = atiende
   r.golpeMago = null
   return true
 }
@@ -2485,12 +2497,16 @@ function devolverDicky(r) {
 // Los Dicky son amor; el Equipo 5, chicana y competencia. Las frases salen del chat del SDGA (2023–2026).
 export const esEquipo5 = (j) => j?.equipo === 5
 /** Cómo se llaman en las frases: las cartas son Lechu y LG, pero se dicen Joaco y Lucas. */
-export const NOMBRE_E5 = { Lechu: 'Joaco', LG: 'Lucas' }
+export const NOMBRE_E5 = { Lechu: 'Joaco', LG: 'Lucas', 'Fito (5)': 'Fito' }
 const nombreDe = (j) => NOMBRE_E5[j?.apodo] ?? String(j?.apodo ?? '').replace(/ \(Đ\)$/, '')
 /** Cada cuánto: el Equipo 5 se cuela a chicanear (en vez del Dicky de siempre) y el compañero aparece en el Equipo 5. */
-export const E5 = { chicana: 0.28, vestuario: 0.6 }
-/** El compañero del Equipo 5 de `j` (Lechu ↔ LG), de la lista `todos`. */
-export const compaE5 = (j, todos) => (esEquipo5(j) ? todos.find((x) => esEquipo5(x) && x.apodo !== j.apodo) ?? null : null)
+export const E5 = { chicana: 0.28, vestuario: 0.6, vuelve: 0.3 }
+/** El compañero del Equipo 5 de `j` (Lechu ↔ LG; Fito de pase → LG, su hermano: `compa`), de la lista `todos`. */
+export function compaE5(j, todos) {
+  if (!esEquipo5(j)) return null
+  if (j.compa) return todos.find((x) => x.apodo === j.compa) ?? null
+  return todos.find((x) => esEquipo5(x) && x.apodo !== j.apodo && !x.pase) ?? null
+}
 // la chicana al Dicky que juega (n = su nombre), según cómo le salió el tiro
 export const CHICANA = {
   todos: [
@@ -2580,6 +2596,17 @@ export const VESTUARIO = {
   compa: [(n) => `Buena elección, ${n}: la mía. #Equipo5`, () => 'Para eso está el compañero. Fourball del Equipo 5', () => 'Mejor pelota: la mía. De nada 😌'],
   tuya: [(n) => `Quedate con la tuya, ${n}. Así juega el Equipo 5`, () => 'Mejor tarjeta Guarino/Castelli 🏆', (n) => `La tuya era mejor, ${n}. Yo te cuidaba la espalda`],
 }
+// Lucas con Fito de pase: los hermanos en el mismo equipo
+export const VESTUARIO_HERMANOS = [() => 'Fourball Guarino-Guarino 🦅📺', () => 'Salimos del mismo vientre, hermano. Ahora del mismo equipo', () => 'Mamá estaría orgullosa: los dos en el #Equipo5', () => 'Bienvenido al #Equipo5, ex Dicky 🫶']
+// los Dicky a Fito de pase: que vuelva (con amor, como siempre). n = Fito
+export const VUELVE = [(n) => `Volvé, ${n}. Te extrañamos 💛`, (n) => `Esa remera no te queda, ${n}. Volvé a casa 🤗`, () => 'Los Dicky te esperamos con los brazos abiertos 💚', (n) => `¿Te pidieron el pase, ${n}? Nosotros no te cobramos nada 💛`]
+export const VUELVE_PROPIA = {
+  'Mike Queboni (Đ)': [() => 'Pero qué bonito eras de Dicky, ehh 🍯'],
+  'El Ninja (Đ)': [() => 'Te sigo cuidando desde las sombras… traidor 🥷'],
+  'Taiu (Đ)': [() => 'Croac. Hasta la rana te extraña 🐸'],
+}
+/** Lo que le dice el Dicky `quien` a Fito de pase en el Equipo 5. */
+export const fraseVuelve = (rng, quien, j) => deLaLista(rng, VUELVE, VUELVE_PROPIA[quien], 0.4)(nombreDe(j))
 // las de cada uno (el que habla): Lucas le habla a Joaco y Joaco a Lucas
 export const VESTUARIO_PROPIA = {
   LG: [() => 'GORRA DEL LECHUZA INVITATIONAL, SÍ O SÍ 🦉', () => 'Todo de Joaco, yo no hice nada 📺', () => 'Lo que diga el capitán 🦉'],
@@ -2600,7 +2627,111 @@ export function contestaDicky(rng, quien, e5) {
 /** Lo que le dice `quien` (el compañero del Equipo 5) al que juega (`para`). `momento`: bien / mal / todos, o arma / segunda / armaCalma / compa / tuya (la Mejor pelota). */
 export function fraseVestuario(rng, quien, para, momento = 'todos') {
   if (['arma', 'segunda', 'armaCalma', 'compa', 'tuya'].includes(momento)) return elegir(rng, VESTUARIO[momento])(nombreDe(para))
-  return deLaLista(rng, VESTUARIO[momento] ?? VESTUARIO.todos, VESTUARIO_PROPIA[quien])(nombreDe(para))
+  const propias = para?.pase || quien?.pase ? VESTUARIO_HERMANOS : VESTUARIO_PROPIA[quien]
+  return deLaLista(rng, VESTUARIO[momento] ?? VESTUARIO.todos, propias)(nombreDe(para))
+}
+
+// ── 🤝 la interna: a veces te atiende el equipo equivocado. En la Dickyllamada atiende Joaco o Lucas ("Equivocado, habla
+// el #Equipo5") y te pega él; en la Mejor pelota se cuela un Dicky y tira una tercera pelota "por amor": si te quedás con
+// esa, el Equipo 5 se ofende y perdés tu habilidad el resto de la vuelta ──
+export const INTERNA = { atiende: 0.2, tercera: 0.2 }
+export const INTERNA_DICE = {
+  // el del Equipo 5 que atiende la Dickyllamada (n = el Dicky que llamó)
+  atiende: [() => 'Equivocado, habla el #Equipo5 🦉', (n) => `¿Dicky? No, ${n}: acá Equipo 5. Igual te la pego 😏`, () => 'Me desviaron la llamada. Dejá, te la pego yo 📺'],
+  ayuda: [(n) => `De nada, ${n}. Ahora le debés una al #Equipo5 😏`, () => 'Contale a los Dicky quién te salvó', () => 'Para que veas cómo pega el Equipo 5'],
+  // el Dicky que se cuela en la Mejor pelota (n = el que juega) y, si elegiste la suya, lo que dice
+  tercera: [(n) => `¿Y si te quedás con la mía, ${n}? Te la tiré con amor 💛`, () => 'Yo también quiero jugar el fourball 🤗', (n) => `${n}, una pelota de regalo. Sin rencor 💚`],
+  elegida: [() => '¡Elegiste el amor! 💛', (n) => `Sabía que en el fondo eras Dicky, ${n} 🤗`],
+  // el compañero del Equipo 5, ofendido (n = el que juega)
+  ofendido: [(n) => `¿La de un Dicky, ${n}? Me ofendiste. Sin habilidad hasta el final 😤`, () => 'Traición al #Equipo5. Arreglátelas solo 😤', (n) => `${n}, eso no se hace. El Equipo 5 no perdona 😤`],
+}
+/** Lo que dice cada uno en la interna: `que` = atiende / ayuda / tercera / elegida / ofendido; `j` = a quién le habla. */
+export const fraseInterna = (rng, que, j) => elegir(rng, INTERNA_DICE[que])(nombreDe(j))
+
+// ── 😈 la mufa y el abrazo: cuando el Equipo 5 chicanea a un Dicky, le mufa el próximo tiro (más error, el latido más
+// rápido), salvo que toques ABRAZO a tiempo (`ventana` ms): entra un Dicky y la corta. Al revés, jugando con el Equipo 5 a
+// veces se cuela un Dicky a ablandarte con amor: el próximo tiro sale corto, salvo que toques ¡FUERA, DICKY! a tiempo ──
+export const MUFA = { ventana: 4000, error: 1.7, latido: 0.75, blando: 0.85, ablandar: 0.22 }
+// el Dicky que te abraza a tiempo (e = Joaco o Lucas, el que mufó)
+export const ABRAZO = [(e) => `¡Abrazo grupal! La mufa de ${e} no entra acá 💛`, () => 'Vení que te abrazo. Mufa cancelada 🤗', (e) => `${e}, con amor no hay mufa que valga 💚`, () => 'El amor vence a la mufa 💛']
+// después de un tiro mufado (no llegaste al abrazo): el Dicky que viene
+export const CONSUELO_MUFA = [(e) => `Esa fue la mufa de ${e}, no vos 💛`, () => 'Mufa del Equipo 5. Vos jugás bárbaro igual 💚', (e) => `No le hagas caso a ${e}. Te quiero igual 🤗`]
+// el Dicky que se cuela a ablandar al que juega con el Equipo 5 (n = el que juega)
+export const ABLANDA = [(n) => `Pegale suavecito, ${n}. Con amor 💛`, () => '¿Para qué tanta fuerza? Abrazame 🤗', () => 'Respirá. No hace falta ganarle a nadie 💚', (n) => `${n}, ¿y si dejamos la rivalidad y nos damos un abrazo? 🤗`]
+export const ABLANDA_PROPIA = {
+  'Fito (Đ)': { Lucas: [() => 'Hermano, aflojá. Te quiero 💛'] },
+  'Taiu (Đ)': { todos: [() => 'Croac… despacito, que el hoyo no se va 🐸'] },
+  'El Ninja (Đ)': { todos: [() => 'Shh… suavecito. Nadie te apura 🥷'] },
+  'Mike Queboni (Đ)': { todos: [() => 'Tranquilo, bonito. Despacito y con miel 🍯'] },
+}
+// el compañero, cuando lo espantás a tiempo (n = el que juega) y cuando no llegaste (te ablandaron)
+export const ESPANTA = [(n) => `¡No te ablandes, ${n}! #Equipo5`, () => '¡Fuera, Dicky! Guarida lejos de los Dicky 🦉', () => '#BastaDeDickyTontos 🔥', (n) => `Ni un abrazo, ${n}. Somos Equipo 5`]
+export const ABLANDADO = [(n) => `Te ablandaron, ${n}. Tenía que ser un Dicky`, (n) => `¿Un abrazo de un Dicky? Así no, ${n}`, () => 'Mucho amor, poca distancia. Dicky tenía que ser']
+/** El Dicky `quien` le dice algo a `e5` o al que juega: `que` = 'abrazo' | 'consuelo' (e = el que mufó) o 'ablanda' (al que juega). */
+export function fraseDickyE5(rng, quien, que, j) {
+  const n = nombreDe(j)
+  if (que === 'abrazo') return elegir(rng, ABRAZO)(n)
+  if (que === 'consuelo') return elegir(rng, CONSUELO_MUFA)(n)
+  const suyas = ABLANDA_PROPIA[quien] ?? {}
+  return deLaLista(rng, ABLANDA, [...(suyas[n] ?? []), ...(suyas.todos ?? [])], 0.4)(n)
+}
+/** El compañero del Equipo 5: 'espanta' (lo espantaste a tiempo) o 'ablandado' (te ablandaron). n = el que juega. */
+export const fraseCompaE5 = (rng, que, j) => elegir(rng, que === 'espanta' ? ESPANTA : ABLANDADO)(nombreDe(j))
+
+// ── ⚔️ el Clásico de la semana: los Dicky contra el Equipo 5, entre todos. Cada vuelta firmada con una carta Dicky suma
+// para los Dicky y con una del Equipo 5 para el Equipo 5: 1 punto, más 1 por cada golpe bajo par; de cada uno, hasta 5
+// vueltas por día para cada equipo. La semana, de lunes a domingo en hora argentina. Las mismas reglas que la base
+// (`trampa_clasico_puntos`), que con eso le paga 2 bananas a los que jugaron para el que ganó ──
+export const CLASICO = { porDia: 5, premio: 2, tz: -3 } // la hora argentina: UTC−3 (sin horario de verano)
+const DIA = 864e5
+/** El lunes 00:00 (hora argentina) de la semana de `t` (ms); con `atras`, de tantas semanas antes. En ms. */
+export function lunesDe(t, atras = 0) {
+  const off = CLASICO.tz * 3600e3
+  const local = new Date(t + off) // sus campos UTC son la hora argentina
+  const dow = (local.getUTCDay() + 6) % 7 // 0 = lunes
+  return Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - dow - 7 * atras) - off
+}
+/**
+ * El marcador de la semana que arranca el lunes `desde` (ms), con las vueltas firmadas `marcas` ({ uid, usuario, apodo,
+ * vsPar, fecha }). `equipoDe(apodo)` → 'dicky' | 'e5' | null. Devuelve { desde, hasta, dicky, e5, ganador, aportes:
+ * { dicky: [{ quien, nombre, pts }], e5: [...] } } (los aportes, de mayor a menor).
+ */
+export function clasico(marcas, desde, equipoDe) {
+  const hasta = desde + 7 * DIA
+  const off = CLASICO.tz * 3600e3
+  const grupos = new Map() // quien → equipo → día → [puntos]
+  const nombres = new Map()
+  for (const m of marcas ?? []) {
+    const t = Date.parse(m.fecha)
+    if (!(t >= desde && t < hasta) || m.vsPar == null) continue
+    const eq = equipoDe(m.apodo)
+    if (eq !== 'dicky' && eq !== 'e5') continue
+    const quien = m.uid ?? `u:${String(m.usuario ?? '').trim().toLowerCase()}`
+    if (!nombres.has(quien)) nombres.set(quien, m.usuario)
+    const dia = Math.floor((t + off) / DIA)
+    const porEq = grupos.get(quien) ?? new Map()
+    grupos.set(quien, porEq)
+    const porDia = porEq.get(eq) ?? new Map()
+    porEq.set(eq, porDia)
+    porDia.set(dia, [...(porDia.get(dia) ?? []), 1 + Math.max(0, -m.vsPar)])
+  }
+  const aportes = { dicky: [], e5: [] }
+  for (const [quien, porEq] of grupos) {
+    for (const [eq, porDia] of porEq) {
+      let pts = 0
+      for (const lista of porDia.values()) pts += lista.sort((a, b) => b - a).slice(0, CLASICO.porDia).reduce((a, b) => a + b, 0)
+      aportes[eq].push({ quien, nombre: nombres.get(quien), pts })
+    }
+  }
+  for (const eq of ['dicky', 'e5']) aportes[eq].sort((a, b) => b.pts - a.pts)
+  const dicky = aportes.dicky.reduce((a, x) => a + x.pts, 0), e5 = aportes.e5.reduce((a, x) => a + x.pts, 0)
+  return { desde, hasta, dicky, e5, ganador: dicky > e5 ? 'dicky' : e5 > dicky ? 'e5' : null, aportes }
+}
+// LG relata el resultado (de hincha del Equipo 5, como siempre)
+export const LG_CLASICO = {
+  dicky: ['Ganaron los Dicky. Suerte de principiante', 'Tenía que ser… ganaron los Dicky', 'Los Dicky ganaron. Que no se acostumbren'],
+  e5: ['¡EQUIPO 5, SEÑORES! #BastaDeDickyTontos', 'El #Equipo5 cumple sus promesas 🏆', 'Ganó el Equipo 5. El único equipo con título 🏆'],
+  empate: ['Empate. Nadie cobra: el mono se ríe', 'Empate. Quieren desestabilizar al #Equipo5'],
 }
 
 // ── 🦉📺 la Mejor pelota del Equipo 5 (una por vuelta, "fourball: Guarino-Castelli, mejor tarjeta"): pegás vos, después
@@ -2627,13 +2758,18 @@ export const compaSinError = (r) => habilidadDe(r.mejorPelota?.compa)?.id === 'c
  * dadas de Joaco y, si el tiro anterior salió mal, LG sin error. Gasta la Mejor pelota.
  */
 export function golpeCompa(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, soltada = null) {
-  const compa = r.mejorPelota.compa
-  const copia = { ...r, jugador: compa, monos: [], golpeMago: null, deme: null, furia: null, calma: compaSinError(r), barro: false, proxSorpresa: undefined, ruleta: null, ruletaToca: false, prestado: null, carro: null }
-  const t = golpear(campo, copia, angulo, potencia, rng, precision, tiempo, null, soltada)
-  t.monos = null
-  t.compa = compa.apodo
+  const t = golpeDe(campo, r, r.mejorPelota.compa, angulo, potencia, rng, precision, tiempo, soltada, compaSinError(r))
+  t.compa = t.de
   r.mejorPelota.armada = false
   r.mejorPelota.usada = true
+  return t
+}
+/** Un tiro de `jugador` desde donde está la pelota de la ronda, sobre una copia (no cuenta golpe, no toca los monos). */
+export function golpeDe(campo, r, jugador, angulo, potencia, rng, precision = 0, tiempo = 0, soltada = null, calma = false) {
+  const copia = { ...r, jugador, monos: [], golpeMago: null, deme: null, furia: null, calma, mufa: false, blando: false, barro: false, proxSorpresa: undefined, ruleta: null, ruletaToca: false, prestado: null, carro: null }
+  const t = golpear(campo, copia, angulo, potencia, rng, precision, tiempo, null, soltada)
+  t.monos = null
+  t.de = jugador.apodo
   return t
 }
 /** Cuánto cuesta dónde quedó una pelota (para elegir la mejor): por las yardas al hoyo, peor fuera de la calle; con multa, mucho más. */

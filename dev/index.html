@@ -195,6 +195,8 @@ body {
 #voz.alerta { background: var(--red); }
 #voz.alerta .dice, #voz.alerta .extra { color: var(--cream); }
 #voz.alerta .quien { background: var(--cream); color: var(--red); }
+#voz.contra { background: #1d1a5c; }
+#voz.contra .dice, #voz.contra .extra { color: var(--cream); }
 /* debajo del marcador: dónde estás (izq.), reloj (centro) y LP (der.); la parte de abajo queda libre para la cancha */
 #lie { justify-self: start; display: block; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 30px; }
 /* LP: un botón de verdad (crema, con sombra), abajo del reloj y el viento */
@@ -1341,6 +1343,48 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 #e5-btn[disabled] { animation: none; }
 @keyframes e5-late { from { transform: rotate(-5deg) scale(1); } to { transform: rotate(-5deg) scale(1.07); } }
 @media (prefers-reduced-motion: reduce) { #e5-btn, #e5-btn.armada { animation: none; } }
+/* ⚔️ el Clásico de la semana (arriba del ranking general): los dos escudos, el marcador, la barra y los que más suman */
+.clasico { margin: 0 0 14px; padding: 12px 14px 10px; background: var(--green-900); color: var(--cream); border: var(--game-stroke) solid var(--game-ink); border-radius: 16px; box-shadow: 4px 5px 0 var(--game-ink); }
+.clasico[hidden] { display: none; }
+.clasico .cl-kicker { margin: 0 0 8px; text-align: center; font: 15px/1 var(--font-display); letter-spacing: .08em; color: var(--gold); text-transform: uppercase; }
+.clasico .cl-marcador { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; }
+.clasico .cl-eq { display: flex; align-items: center; gap: 8px; }
+.clasico .cl-eq.e5 { justify-content: flex-end; text-align: right; }
+.clasico .cl-eq img { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--game-ink); background: #1d1a5c; flex: none; }
+.clasico .cl-eq.e5 img { background: var(--green-900); }
+.clasico .cl-eq b { display: block; font: 36px/0.95 var(--font-display); }
+.clasico .cl-eq small { display: block; font: 11px/1 var(--font-display); letter-spacing: .08em; opacity: .75; }
+.clasico .cl-eq.gana b { color: var(--gold); }
+.clasico .cl-vs { font: 16px/1 var(--font-display); color: var(--gold); }
+.clasico .cl-barra { height: 8px; margin: 10px 0 6px; border-radius: 99px; background: #3e8f5a; overflow: hidden; border: 1.5px solid var(--game-ink); }
+.clasico .cl-barra i { display: block; height: 100%; background: #6b67d8; }
+.clasico p { margin: 4px 0 0; font-size: 12.5px; line-height: 1.3; }
+.clasico .cl-va { text-align: center; }
+.clasico .cl-top { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.clasico .cl-top small { display: block; font: 10px/1.2 var(--font-display); letter-spacing: .08em; color: var(--gold); }
+.clasico .cl-top span:last-child { text-align: right; }
+.clasico .cl-antes { color: var(--gold); }
+.clasico .cl-como { opacity: .7; font-size: 11.5px; }
+.clasico .cl-como .bn { width: 15px; height: 15px; vertical-align: -3px; }
+.cl-cobro { text-align: center; }
+.cl-cobro > .bn-sticker { width: 92px; height: 92px; margin: 2px auto 6px; filter: drop-shadow(5px 6px 0 var(--game-ink)); animation: cl-salta .6s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes cl-salta { from { transform: rotate(-30deg) scale(.3); } to { transform: rotate(-8deg) scale(1); } }
+.cl-cobro .cl-lg { font-style: italic; color: var(--text-muted); }
+/* 😈 ABRAZO / 🔥 ¡FUERA, DICKY!: unos segundos para defenderte (la barrita de abajo es el tiempo que queda) */
+#contra-btn { position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 150px); z-index: 33; display: flex; align-items: center; gap: 8px; padding: 10px 16px 13px 12px; overflow: hidden; color: var(--cream); background: #1d1a5c; border: var(--game-stroke) solid var(--game-ink); border-radius: 999px; box-shadow: 4px 5px 0 var(--game-ink); font: 19px/1 var(--font-display); letter-spacing: .04em; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#contra-btn[hidden] { display: none; }
+#contra-btn[data-tipo="espantar"] { background: var(--green-900); color: var(--gold); }
+#contra-btn .emo { font-size: 26px; }
+#contra-btn .txt { max-width: 5.6em; text-align: left; line-height: 1; } /* el largo, en dos renglones: no tapa el globo del Dicky */
+#contra-btn .tiempo { position: absolute; left: 0; bottom: 0; height: 5px; width: 100%; background: var(--gold); transform-origin: 0 50%; }
+#contra-btn[data-tipo="espantar"] .tiempo { background: var(--red); }
+#contra-btn.va { animation: contra-late .45s ease-in-out infinite alternate; }
+#contra-btn.va .tiempo { animation: contra-tiempo var(--ventana, 4s) linear forwards; }
+#contra-btn:active { translate: 3px 4px; box-shadow: 0 0 0 var(--game-ink); }
+body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
+@keyframes contra-late { from { transform: rotate(-3deg) scale(1); } to { transform: rotate(-3deg) scale(1.06); } }
+@keyframes contra-tiempo { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { #contra-btn.va { animation: none; } }
 /* la Mejor pelota: pararon las dos; abajo, con cuál te quedás (arriba se ven las dos pelotas con su cartel) */
 #mp-sel { position: fixed; left: 12px; right: 12px; bottom: calc(var(--safe-bot) + 12px); z-index: 32; max-width: 460px; margin: 0 auto; box-sizing: border-box; padding: 10px 12px 12px; background: var(--cream); color: var(--green-900); border: var(--game-stroke) solid var(--game-ink); border-radius: 18px; box-shadow: 5px 6px 0 var(--game-ink); animation: mp-sube .32s cubic-bezier(.2, 1.3, .4, 1); }
 #mp-sel[hidden] { display: none; }
@@ -1348,6 +1392,9 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 #mp-sel .mp-tit img { width: 36px; height: 36px; border-radius: 50%; }
 #mp-sel .mp-tit small { display: block; margin-top: 2px; font: 800 12px/1.1 system-ui, sans-serif; letter-spacing: .02em; color: var(--text-muted); }
 #mp-ops { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+#mp-ops.tres .mp-op.dicky { grid-column: 1 / -1; } /* la del Dicky que se coló, abajo y a lo ancho */
+.mp-op.dicky { background: #ffe7ef; }
+.mp-op .mp-ojo { display: block; margin-top: 2px; font-size: 11px; font-style: normal; font-weight: 800; line-height: 1.2; color: var(--red); }
 .mp-op { position: relative; display: grid; grid-template-columns: 46px 1fr; gap: 8px; align-items: center; min-width: 0; padding: 8px; text-align: left; font: inherit; color: var(--green-900); background: #fff8e6; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; box-shadow: 4px 5px 0 var(--game-ink); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .mp-op.es-mejor { background: #fff1c2; }
 .mp-op:active { translate: 3px 4px; box-shadow: 0 0 0 var(--game-ink); }
@@ -1693,6 +1740,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <div id="mago-golpes" role="group" aria-label="Golpes del Mago: elegí con cuál pegás" hidden></div>
 <button id="ninja-btn" type="button" hidden aria-label="Reset ninja: el hoyo de nuevo desde el tee, sin multa"><span class="emo" aria-hidden="true">🥷</span><span class="txt">RESET</span><b aria-hidden="true">1</b></button>
 <div id="mp-sel" hidden role="dialog" aria-label="Mejor pelota: elegí con cuál te quedás"><p class="mp-tit"><img src="equipo-5.svg" alt="" draggable="false"><span>MEJOR PELOTA<small>¿Con cuál te quedás?</small></span></p><div id="mp-ops"></div></div>
+<button id="contra-btn" type="button" hidden><span class="emo" aria-hidden="true"></span><span class="txt"></span><i class="tiempo" aria-hidden="true"></i></button>
 <button id="e5-btn" type="button" hidden aria-label="Mejor pelota: el próximo tiro lo pegan los dos y queda la mejor"><img src="equipo-5.svg" alt="" draggable="false"><span class="cinta">MEJOR PELOTA</span><b aria-hidden="true"></b></button>
 <button id="dicky-btn" type="button" hidden aria-label="Dickyllamada: llamá a otro Dicky"><img src="dicky-toons.svg" alt="" draggable="false"><span class="cinta">DICKYLLAMADA</span><b aria-hidden="true">📞</b></button>
 <button id="logro" type="button" hidden aria-live="assertive" aria-label="Logro desbloqueado: Taiu. Tocá para verlo">
@@ -1768,7 +1816,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 984268d · 9/10, 01:49 a. m.</span>
+  <span class="version" id="version">v 85a9493 · 9/10, 02:12 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1970,6 +2018,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <span class="teja" id="rk-teja"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4"/><path d="M16 17.5v4"/><path d="M11 26.5h10l-1-5h-8z" style="fill:var(--gi-f)"/><path d="M10 5.5h12v6a6 6 0 0 1-12 0z" style="fill:var(--gi-a)"/></g></svg></span>
       <div><span class="kicker" style="color: var(--text-muted)">Ranking · golpes, después tiempo</span><div class="quien" id="rk-tit">GENERAL</div></div>
     </header>
+    <div class="clasico" id="rk-clasico" hidden></div>
     <div class="rk-modo" id="rk-modo" role="tablist" aria-label="Normal o PRO">
       <button type="button" role="tab" data-modo="normal" aria-selected="true">NORMAL</button>
       <button type="button" role="tab" data-modo="pro" aria-selected="false"><span data-ico="pro" aria-hidden="true"></span>PRO</button>
@@ -1987,11 +2036,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=2d6dd0a1cd'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=2d6dd0a1cd'
+import * as M from './motor.js?v=30f63602c5'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEOS } from './plantel.js?v=30f63602c5'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=2d6dd0a1cd'
-import * as S from './sonido.js?v=2d6dd0a1cd'
+import * as R from './ranking.js?v=30f63602c5'
+import * as S from './sonido.js?v=30f63602c5'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"banana": "<path d=\"M21 6C28.6 9.4 30 20 22.8 25.4C17.4 29.4 9.4 29 3.8 24.6C10.2 24.4 14.8 21.4 16.9 17.4C18.9 13.6 18.8 9.8 16.8 6.6Z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.2 8.2C21.6 13.8 19.9 20.4 12.2 24.8\" stroke-width=\"1.5\"/><path d=\"M24.4 11.6C25.8 16 24.3 20.8 20.3 23.8\" style=\"stroke:var(--gi-f)\" stroke-width=\"2.4\"/><path d=\"M16.8 6.6L17.3 2.8L21.1 2.4L21 6\" style=\"fill:var(--gi-s)\"/><path d=\"M3.8 24.6L2.6 26.5\" stroke-width=\"3\"/>", "match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2011,7 +2060,7 @@ function aplicarHandicaps() {
   if (!hcps) return
   let cambio = false
   for (const j of TODOS) {
-    const h = hcps.get(R.claveNombre(j.apodo))
+    const h = hcps.get(R.claveNombre(j.pase ?? j.apodo)) // Fito de pase: el handicap de Fito
     if (h == null || (j.hcp === h && !j.aprox)) continue
     j.hcp = h
     j.aprox = false
@@ -2077,24 +2126,47 @@ function recuperarSecreto(marcas, conteo) {
 const candado = (abierto = false, clase = '') => `<svg class="gi candado-gi ${clase}" viewBox="0 0 32 32" aria-hidden="true"><g>${abierto
   ? '<path d="M10.5 14.5V9.5a5.5 5.5 0 0 1 10.7-1.8"/>'
   : '<path d="M10.5 14.5V10a5.5 5.5 0 0 1 11 0v4.5"/>'}<rect x="6" y="14.5" width="20" height="13.5" rx="3.2" style="fill:var(--gi-a)"/><path d="M9.5 18v6" style="stroke:var(--gi-f);stroke-width:1.6;opacity:.7"/><circle cx="16" cy="20" r="1.9" style="fill:var(--gi-s);stroke:none"/><path d="M16 21v3.2" style="stroke-width:2.2"/></g></svg>`
-// ── 🔒 Taiu: se desbloquea con una tarjeta firmada de −1 o mejor con cada uno de los otros Dicky ──
-const progresoTaiu = () => M.progresoDesbloqueo(DESBLOQUEO_TAIU, datos.records)
-// para probar (solo en la copia dev/): ?taiu=1 lo desbloquea en este teléfono; ?taiu=0 lo vuelve a bloquear
+// ── 🔒 los que arrancan con candado: Taiu (−1 firmado con cada uno de los otros Dicky) y Fito de pase en el Equipo 5 (−1
+// con Joaco y con Lucas). Lo de cada uno: cómo se llama, con quiénes, dónde queda guardado y lo que dicen el logro y el anuncio ──
+const DESBLOQUEO_UI = {
+  'Taiu (Đ)': {
+    nombre: 'Taiu', de: 'con cada uno de estos Dicky', dato: 'taiu', torso: 'jugadores/la-rana-torso.webp', logo: 'dicky-toons.svg',
+    logro: 'Taiu (Đ) se suma al mazo 🐸', logroExtra: '+ 📞 la Dickyllamada para todos los Dicky',
+    titulo: '🐸 Taiu se suma al mazo', sub: 'Hiciste −1 con Fito, Miguelón y el Ninja. Bombas desde el tee, approach perfectos… y los controles al revés.',
+    plus: 'DICKYLLAMADA DESBLOQUEADA', plusTexto: 'Con los cuatro Dicky juntos, Fito, Miguelón, el Ninja y Taiu ya pueden llamar a otro Dicky para que les pegue un tiro (una por vuelta).',
+    jugar: 'Jugar con Taiu', lluvia: ['🐸', '💚'],
+  },
+  'Fito (5)': {
+    nombre: 'Fito del Equipo 5', de: 'con Joaco y con Lucas (el Equipo 5)', dato: 'fito5', torso: 'jugadores/fito-guarino-torso.webp', logo: 'equipo-5.svg',
+    logro: 'Fito pidió el pase al Equipo 5 🦅', logroExtra: '−1 con Joaco y con Lucas',
+    titulo: '🦅 Fito pidió el pase al Equipo 5', sub: 'Hiciste −1 con Joaco y con Lucas. "Por un par de días Fito deja de ser Dicky": el mismo Fito, con el escudo del 5.',
+    plus: 'FOURBALL GUARINO-GUARINO', plusTexto: 'La Mejor pelota con Lucas, su hermano, en vez de la Dickyllamada. Y los Dicky le van a pedir que vuelva.',
+    jugar: 'Jugar con Fito del 5', lluvia: ['🦅', '📺', '🫶'],
+  },
+}
+const desbloqueoDe = (j) => DESBLOQUEOS.find((d) => d.apodo === j?.apodo) ?? null
+const progresoDe = (d) => M.progresoDesbloqueo(d, datos.records)
+const progresoTaiu = () => progresoDe(DESBLOQUEO_TAIU)
+// para probar (solo en la copia dev/): ?taiu=1 / ?fito5=1 lo desbloquean en este teléfono; =0 lo vuelven a bloquear
 // (si tus récords ya alcanzan, se desbloquea igual, como siempre)
-if (/\/dev\//.test(location.pathname) && PARAMS.has('taiu')) {
-  if (PARAMS.get('taiu') === '0') delete datos.taiu
-  else datos.taiu = { fecha: new Date().toISOString(), prueba: true }
+for (const d of DESBLOQUEOS) {
+  const k = DESBLOQUEO_UI[d.apodo].dato
+  if (!/\/dev\//.test(location.pathname) || !PARAMS.has(k)) continue
+  if (PARAMS.get(k) === '0') delete datos[k]
+  else datos[k] = { fecha: new Date().toISOString(), prueba: true }
   guardar(datos)
 }
-/** ¿Ya lo tenés? Apenas los récords alcanzan, queda guardado en el teléfono (`datos.taiu`). */
-function tieneTaiu() {
-  if (datos.taiu) return true
-  if (!progresoTaiu().listo) return false
-  datos.taiu = { fecha: new Date().toISOString() }
+/** ¿Ya lo tenés? Apenas los récords alcanzan, queda guardado en el teléfono (`datos.taiu`, `datos.fito5`). */
+function tiene(d) {
+  const k = DESBLOQUEO_UI[d.apodo].dato
+  if (datos[k]) return true
+  if (!progresoDe(d).listo) return false
+  datos[k] = { fecha: new Date().toISOString() }
   guardar(datos)
   return true
 }
-const bloqueado = (j) => j?.apodo === DESBLOQUEO_TAIU.apodo && !tieneTaiu()
+const tieneTaiu = () => tiene(DESBLOQUEO_TAIU)
+const bloqueado = (j) => { const d = desbloqueoDe(j); return !!d && !tiene(d) }
 /** Tus vueltas firmadas del ranking (con tu usuario) también son récord: así el desbloqueo no se pierde al reinstalar. */
 function recuperarRecords(marcas) {
   const uid = R.puente.identidad?.uid
@@ -2107,18 +2179,19 @@ function recuperarRecords(marcas) {
   }
   if (cambio) guardar(datos)
 }
-/** Lo que te falta para Taiu, con cada Dicky: lo que dice la carta con candado. */
-function requisitosTaiu() {
-  const p = progresoTaiu()
-  const meta = DESBLOQUEO_TAIU.vsPar
+/** Lo que te falta para desbloquear `d`, con cada uno: lo que dice la carta con candado. */
+function requisitos(d) {
+  const p = progresoDe(d)
+  const meta = d.vsPar
+  const ui = DESBLOQUEO_UI[d.apodo]
   const filas = p.items.map((it) => {
     const d = TODOS.find((x) => x.apodo === it.apodo)
     const falta = it.mejor == null ? 'Todavía no firmaste una vuelta con él' : it.ok ? `¡Hecho! Tu mejor: ${M.formatoPar(it.mejor)}` : `Tu mejor: ${M.formatoPar(it.mejor)} · te ${it.mejor - meta === 1 ? 'falta 1 golpe' : `faltan ${it.mejor - meta} golpes`}`
     return `<li class="${it.ok ? 'ok' : ''}"><img src="${d?.foto ?? ''}" alt="" draggable="false"><span><b>${d?.emoji ?? ''} ${esc(it.apodo.replace(/ \(Đ\)$/, ''))}</b><small>${falta}</small></span><i aria-hidden="true">${it.ok ? '✅' : candado()}</i></li>`
   }).join('')
   return `<div class="req">
-    <p class="req-tit">${candado()} Cómo desbloquear a Taiu</p>
-    <p class="req-txt">Firmá una tarjeta de <b>${M.formatoPar(meta)} o mejor</b> (un golpe bajo par) jugando con cada uno de estos Dicky:</p>
+    <p class="req-tit">${candado()} Cómo desbloquear a ${ui.nombre}</p>
+    <p class="req-txt">Firmá una tarjeta de <b>${M.formatoPar(meta)} o mejor</b> (un golpe bajo par) jugando ${ui.de}:</p>
     <ul>${filas}</ul>
     <p class="req-cuenta"><b>${p.hechos} de ${p.items.length}</b> · vale cualquier vuelta firmada con ellos, no hace falta que sea seguida</p>
   </div>`
@@ -2375,7 +2448,7 @@ lienzo.addEventListener('pointerup', (e) => {
   if (a?.latido) {
     const ya = performance.now()
     const t = e.timeStamp > ya - 1000 && e.timeStamp <= ya + 5 ? e.timeStamp : ya
-    const f = (drag.fase ?? 0) + (t - ATRASO_PANTALLA - (drag.tFase ?? ya)) / 1000 / (drag.periodo ?? M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1))
+    const f = (drag.fase ?? 0) + (t - ATRASO_PANTALLA - (drag.tFase ?? ya)) / 1000 / (drag.periodo ?? M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1) * (a.plan.mufa ? M.MUFA.latido : 1))
     a = { ...a, soltada: M.soltadaLatido(f, a.ventana) }
     destello = { t0: ya, nivel: a.soltada.nivel, pos: [...ronda.pelota] }
   }
@@ -2439,9 +2512,10 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
+  cerrarContra() // si no llegaste al ABRAZO / ¡FUERA, DICKY!, este tiro sale mufado / blando
   // 🦉📺 la Mejor pelota: el primero lo pegás vos (cuenta el golpe); el segundo, el compañero desde el mismo lugar (no cuenta)
   const mp = ronda.mejorPelota
-  if (mp?.fase === 'segunda') { tiro = M.golpeCompa(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.soltada ?? null); mp.fase = 'vuela' }
+  if (mp?.fase === 'segunda') { tiro = M.golpeCompa(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.soltada ?? null); mp.fase = 'vuela'; mp.golpe2 = { ang: a.ang, p: a.p, q: a.q, tiempo: a.tiempo } }
   else {
     if (M.mejorPelotaArmada(ronda)) mp.fase = 'primera'
     tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, a.soltada ?? null)
@@ -2705,7 +2779,7 @@ function actualizar(dt) {
     // el latido de la potencia: más rápido cuanto más fuerte, pero el ritmo cambia de a poco (si no, mientras ajustás el
     // dedo tartamudea). Dos tics que suben mientras el aro se acerca y la campanita (y el tic del celu) cuando llega
     if (a?.latido) {
-      const objetivo = M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1)
+      const objetivo = M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1) * (a.plan.mufa ? M.MUFA.latido : 1) // mufado: más rápido
       drag.periodo = drag.periodo == null ? objetivo : drag.periodo + (objetivo - drag.periodo) * Math.min(1, dt / 0.3)
       const antes = drag.fase ?? 0
       drag.fase = antes + dt / drag.periodo
@@ -2797,7 +2871,14 @@ function alReposo() {
     if (!tiro.embocada) { segundaPelota(); return }
     ronda.mejorPelota = { compa: mp.compa, armada: false, usada: true }
     tiro.mejorPelota = true
-  } else if (mp?.fase === 'vuela') { mp.segunda = tiro; tiro = null; elegirPelota(); return }
+  } else if (mp?.fase === 'vuela') {
+    mp.segunda = tiro
+    // 🤝 la interna: a veces se cuela un Dicky y tira una tercera "por amor"
+    if (!tiro.embocada && dickysLibres().length && rng() < M.INTERNA.tercera) { terceraPelota(); return }
+    tiro = null
+    elegirPelota()
+    return
+  } else if (mp?.fase === 'intruso') { mp.tercera = tiro; tiro = null; elegirPelota(); return }
   sorpresaQueQueda(tiro) // Juanpa: el árbol o el carrito quedan un ratito en pantalla
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
@@ -2855,7 +2936,7 @@ function alReposo() {
   siguienteTiro()
 }
 // ── 🦉📺 la Mejor pelota: pegás vos, después el compañero desde el mismo lugar (lo apuntás vos) y elegís con cuál te quedás ──
-let descartada = null // la que no elegiste: se apaga donde quedó
+let descartadas = [] // las que no elegiste: se apagan donde quedaron
 /** Paró la tuya: queda ahí (con su cartel) y la ronda vuelve a donde pegaste; ahora pega el compañero. */
 function segundaPelota() {
   const mp = ronda.mejorPelota
@@ -2877,23 +2958,40 @@ function segundaPelota() {
   cara.classList.add('nuevo')
   aApuntar()
 }
-/** Pararon las dos: abajo, con cuál te quedás (la mejor, marcada); arriba se ven las dos. Si la del compañero entró, esa. */
+/** La interna: se cuela un Dicky en el fourball y tira una tercera pelota, desde el mismo lugar y para el mismo lado. */
+function terceraPelota() {
+  const mp = ronda.mejorPelota
+  const d = M.elegir(rng, dickysLibres())
+  const g = mp.golpe2
+  mp.dicky = d
+  mp.fase = 'intruso'
+  tiro = M.golpeDe(campo, ronda, d, g.ang, g.p, rng, g.q, g.tiempo, { nivel: 'bueno', lado: rng() < 0.5 ? -1 : 1 })
+  estela = []
+  S.golpe(g.p, tiro.modo === 'putt')
+  dickyVisita(d, M.fraseInterna(rng, 'tercera', mp.antes))
+  voz = { lg: `💛 ¡SE COLÓ ${sinD(d.apodo).toUpperCase()} EN EL FOURBALL!`, extra: 'Tira una tercera pelota "por amor"', hasta: performance.now() + 4500 }
+  hud()
+}
+/** Pararon todas: abajo, con cuál te quedás (la mejor, marcada); arriba se ven todas. Si la del compañero entró, esa. */
 function elegirPelota() {
   const mp = ronda.mejorPelota
-  const A = mp.primera, B = mp.segunda
+  const A = mp.primera, B = mp.segunda, C = mp.tercera ?? null
   if (B.embocada) { quedarseCon(B); return }
   mp.fase = 'elegir'
   estado = 'mejor'
   drag = null
   ronda.jugador = mp.antes // arriba vuelve el que juega (el compañero ya pegó)
-  const mejor = M.mejorDeLasDos(campo, ronda, A, B)
+  const todas = [A, B, C].filter(Boolean)
+  const mejor = todas.reduce((m, t) => (M.valorPelota(campo, ronda, t) < M.valorPelota(campo, ronda, m) ? t : m))
   const op = (t, j, i) => {
     const q = M.dondeQuedo(campo, ronda, t)
-    return `<button class="mp-op${t === mejor ? ' es-mejor' : ''}" type="button" data-cual="${i}">${t === mejor ? '<i class="mp-mejor">LA MEJOR</i>' : ''}<span class="cara"><img src="${j.torso ?? j.foto}" alt="" draggable="false"></span><span><b>${j.emoji} ${esc(j.apodo)}</b><small${q.multa ? ' class="multa"' : ''}>${esc(textoDonde(q))}</small></span></button>`
+    const del = i === 2 ? '<em class="mp-ojo">😤 el Equipo 5 se ofende: sin tu habilidad hasta el final</em>' : ''
+    return `<button class="mp-op${t === mejor ? ' es-mejor' : ''}${i === 2 ? ' dicky' : ''}" type="button" data-cual="${i}">${t === mejor ? '<i class="mp-mejor">LA MEJOR</i>' : ''}<span class="cara"><img src="${j.torso ?? j.foto}" alt="" draggable="false"></span><span><b>${j.emoji} ${esc(sinD(j.apodo))}</b><small${q.multa ? ' class="multa"' : ''}>${esc(textoDonde(q))}</small>${del}</span></button>`
   }
-  $('#mp-ops').innerHTML = op(A, mp.antes, 0) + op(B, mp.compa, 1)
+  $('#mp-ops').innerHTML = op(A, mp.antes, 0) + op(B, mp.compa, 1) + (C ? op(C, mp.dicky, 2) : '')
+  $('#mp-ops').classList.toggle('tres', !!C)
   $('#mp-sel').hidden = false
-  obj = encuadreDos(A.pos, B.pos, $('#mp-sel').getBoundingClientRect().top)
+  obj = encuadrePelotas(todas.map((t) => t.pos), $('#mp-sel').getBoundingClientRect().top)
   velCam = 3
   S.ruletaCae()
   hud()
@@ -2910,28 +3008,31 @@ function textoDonde(q) {
   const dada = q.lie === 'green' && M.habilidadDe(ronda.mejorPelota?.antes)?.id === 'dadas' && q.yd <= M.DADA ? ' · DADA 🦉' : ''
   return `${yd} del hoyo · ${q.lie}${dada}`
 }
-/** La cámara con las dos pelotas, arriba del panel de elegir (la bandera para arriba, como al apuntar). */
-function encuadreDos(a, b, panel) {
+/** La cámara con las pelotas, arriba del panel de elegir (la bandera para arriba, como al apuntar). */
+function encuadrePelotas(ps, panel) {
   const { top } = zona()
   const abajo = Math.min(zona().bot, (panel || H) - 24)
   const pin = M.hoyoActual(ronda).pin
-  const d = Math.max(M.dist(a, b), 1)
+  let d = 1
+  for (const a of ps) for (const b of ps) d = Math.max(d, M.dist(a, b))
+  const xs = ps.map((p) => p[0]), ys = ps.map((p) => p[1])
   const esc = Math.min(4.5, Math.max(0.6, (Math.min(abajo - top, W) - 110) / d)) // no tan de cerca: que se vea alrededor
-  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, esc, rot: -Math.PI / 2 - Math.atan2(pin[1] - ronda.pelota[1], pin[0] - ronda.pelota[0]), sy: (top + abajo) / 2 }
+  return { cx: (Math.min(...xs) + Math.max(...xs)) / 2, cy: (Math.min(...ys) + Math.max(...ys)) / 2, esc, rot: -Math.PI / 2 - Math.atan2(pin[1] - ronda.pelota[1], pin[0] - ronda.pelota[0]), sy: (top + abajo) / 2 }
 }
 /** Te quedás con `t`: vuelve el que juega y se sigue desde ahí (con la multa, si la tiene); la otra se apaga. */
 function quedarseCon(t) {
   const mp = ronda.mejorPelota
   $('#mp-sel').hidden = true
-  const otra = t === mp.primera ? mp.segunda : mp.primera
   ronda.jugador = mp.antes
   ronda.calma = false
   if (mp.ruletaToca) ronda.ruletaToca = true
   ronda.mejorPelota = { compa: mp.compa, armada: false, usada: true }
   tiro = t
   tiro.mejorPelota = true
-  if (!otra.embocada) descartada = { pos: [...otra.pos], t0: performance.now() }
-  marcarTiro(t === mp.segunda ? `QUEDA LA DE ${mp.compa.apodo.toUpperCase()}` : 'QUEDA LA TUYA', t.pos)
+  // la del Dicky que se coló: el Equipo 5 se ofende (sin tu habilidad hasta el final de la vuelta)
+  if (t === mp.tercera) { tiro.tercera = true; ronda.ofendido = true }
+  descartadas = [mp.primera, mp.segunda, mp.tercera].filter((x) => x && x !== t && !x.embocada).map((x) => ({ pos: [...x.pos], t0: performance.now() }))
+  marcarTiro(t === mp.tercera ? `QUEDA LA DE ${sinD(mp.dicky.apodo).toUpperCase()}` : t === mp.segunda ? `QUEDA LA DE ${mp.compa.apodo.toUpperCase()}` : 'QUEDA LA TUYA', t.pos)
   S.tap()
   estado = 'tiro'
   hud()
@@ -2941,7 +3042,7 @@ $('#mp-sel').addEventListener('click', (e) => {
   const b = e.target.closest('[data-cual]')
   const mp = ronda?.mejorPelota
   if (!b || estado !== 'mejor' || mp?.fase !== 'elegir') return
-  quedarseCon(b.dataset.cual === '1' ? mp.segunda : mp.primera)
+  quedarseCon([mp.primera, mp.segunda, mp.tercera][+b.dataset.cual] ?? mp.primera)
 })
 function siguienteTiro() {
   tiro = null
@@ -3320,8 +3421,8 @@ function empezar(jugador) {
   else M.ponerClima(campo, ronda, M.CLIMAS[climaUrl] ? climaUrl : M.sortearClima(rng), Math.floor(rng() * 4294967296))
   climaPorAnunciar = true
   fxClima = []
-  chicanaDe = null; chicanaVino = false; clearTimeout(chicanaTimer)
-  descartada = null; $('#mp-sel').hidden = true
+  chicanaDe = null; chicanaVino = false; ablandoVino = false; cerrarContra()
+  descartadas = []; $('#mp-sel').hidden = true
   fondoDelClima(ronda.clima?.id)
   datos.ultimo = jugador.apodo
   guardar(datos)
@@ -3691,16 +3792,18 @@ function dickyVisita(d, texto, e5 = false) {
  */
 function dickyDespues(res, tiro) {
   const yo = ronda.jugador
-  clearTimeout(chicanaTimer)
   if (tiro.prestado) {
     const d = DICKYS.find((x) => x.apodo === tiro.prestado)
     if (d) dickyVisita(d, M.fraseDicky(rng, d.apodo, yo, 'ayuda'))
+    // la interna: te pegó el del Equipo 5 que atendió
+    const e = !d && EQUIPO5.find((x) => x.apodo === tiro.prestado)
+    if (e) dickyVisita(e, M.fraseInterna(rng, 'ayuda', yo), true)
     return
   }
   if (M.esEquipo5(yo)) { compaDespues(res, tiro); return }
   if (!hayOtroDicky(yo)) return
-  // el Equipo 5 chicaneó y no le contestaron (pegaste antes): le contesta este
-  if (chicanaDe) { contestarChicana(); return }
+  // el Equipo 5 chicaneó: le contesta este Dicky (y si el tiro salió mufado, te consuela)
+  if (chicanaDe) { contestarChicana(tiro.mufa ? 'consuelo' : null); return }
   const chicana = EQUIPO5.length && !chicanaVino && rng() < M.E5.chicana
   chicanaVino = chicana // nunca dos chicanas seguidas
   if (chicana) { chicanear(M.elegir(rng, EQUIPO5), yo, M.momentoDicky(res)); return }
@@ -3716,29 +3819,92 @@ function otroDicky(yo) {
 }
 // ── 🦉📺 el Equipo 5 (Lechu y LG): los rivales de siempre de los Dicky ──
 const EQUIPO5 = TODOS.filter((j) => M.esEquipo5(j) && j.torso)
-let chicanaDe = null, chicanaVino = false, chicanaTimer = 0
-/** Se cuela `e` (Lechu o LG) a chicanear al Dicky que juega; cuando se va, entra un Dicky a contestarle con amor. */
+const E5_RIVALES = EQUIPO5.filter((j) => !j.pase) // Joaco y Lucas (los que chicanean y se meten en la interna; no Fito de pase)
+let chicanaDe = null, chicanaVino = false, ablandoVino = false
+/**
+ * Se cuela `e` (Lechu o LG) a chicanear al Dicky que juega, y te mufa el próximo tiro (más error, el latido más rápido)…
+ * salvo que toques ABRAZO a tiempo: entra un Dicky y la corta. Si no, el Dicky de después del tiro te consuela.
+ */
 function chicanear(e, yo, momento) {
-  const texto = M.fraseChicana(rng, e.apodo, yo, momento)
-  dickyVisita(e, texto, true)
+  dickyVisita(e, M.fraseChicana(rng, e.apodo, yo, momento), true)
   chicanaDe = e
-  // si seguís apuntando sin tocar nada, el Dicky le contesta enseguida; si ya pegaste, le contesta el de después del tiro
-  chicanaTimer = setTimeout(() => {
-    if (chicanaDe && ronda && !ronda.terminada && estado === 'apuntar' && !drag && hayOtroDicky(ronda.jugador)) contestarChicana()
-  }, 2300 + 40 * texto.length + 600)
+  ronda.mufa = true
+  ofrecerContra('abrazo', e)
 }
-function contestarChicana() {
+/** El Dicky que le contesta al Equipo 5: `que` = 'abrazo' (llegaste a tiempo), 'consuelo' (el tiro salió mufado) o nada. */
+function contestarChicana(que = null) {
   const d = otroDicky(ronda.jugador)
-  dickyVisita(d, M.contestaDicky(rng, d.apodo, chicanaDe))
+  dickyVisita(d, que ? M.fraseDickyE5(rng, d.apodo, que, chicanaDe) : M.contestaDicky(rng, d.apodo, chicanaDe))
   chicanaDe = null
 }
+/** Jugando con el Equipo 5, a veces se cuela un Dicky a ablandarte con amor: el próximo tiro sale corto, salvo que lo espantes. */
+function ablandar(d, yo) {
+  dickyUltimo = d.apodo
+  dickyVisita(d, M.fraseDickyE5(rng, d.apodo, 'ablanda', yo))
+  ronda.blando = true
+  ofrecerContra('espantar', d)
+}
+// ── el botón para defenderte (unos segundos): ABRAZO (te mufan) o ¡FUERA, DICKY! (te ablandan) ──
+let contra = null, contraTimer = 0
+function ofrecerContra(tipo, de) {
+  clearTimeout(contraTimer)
+  contra = { tipo, de }
+  const b = $('#contra-btn')
+  b.dataset.tipo = tipo
+  b.querySelector('.emo').textContent = tipo === 'abrazo' ? '🤗' : '🔥'
+  b.querySelector('.txt').textContent = tipo === 'abrazo' ? '¡ABRAZO!' : '¡FUERA, DICKY!'
+  b.style.setProperty('--ventana', `${M.MUFA.ventana}ms`)
+  b.hidden = false
+  b.classList.remove('va')
+  void b.offsetWidth
+  b.classList.add('va')
+  contraTimer = setTimeout(() => cerrarContra(), M.MUFA.ventana)
+  hud()
+}
+function cerrarContra() {
+  clearTimeout(contraTimer)
+  contra = null
+  $('#contra-btn').hidden = true
+}
+$('#contra-btn').addEventListener('click', () => {
+  if (!contra || !ronda || ronda.terminada) return
+  const { tipo } = contra
+  cerrarContra()
+  S.monoBueno()
+  if (tipo === 'abrazo') {
+    // un Dicky te abraza: la mufa no entra
+    ronda.mufa = false
+    if (chicanaDe && hayOtroDicky(ronda.jugador)) contestarChicana('abrazo')
+    voz = { lg: '💛 ABRAZO DICKY', extra: 'La mufa del Equipo 5 no entra: el tiro sale como siempre', hasta: performance.now() + 4000 }
+  } else {
+    // el compañero lo espanta: no te ablandás
+    ronda.blando = false
+    const compa = M.compaE5(ronda.jugador, EQUIPO5)
+    if (compa) dickyVisita(compa, M.fraseCompaE5(rng, 'espanta', ronda.jugador), true)
+    voz = { lg: '🔥 NO TE ABLANDASTE', extra: 'El tiro sale con toda la fuerza', hasta: performance.now() + 4000 }
+  }
+  hud()
+})
 /** Jugando con Lechu o LG, después del tiro aparece el compañero (no siempre): aliento de vestuario, o cuál quedó en la Mejor pelota. */
 function compaDespues(res, tiro) {
   const yo = ronda.jugador
   const compa = M.compaE5(yo, EQUIPO5)
   if (!compa) return
   const m = M.momentoDicky(res)
+  if (tiro.tercera) { dickyVisita(compa, M.fraseInterna(rng, 'ofendido', yo), true); return }
+  if (tiro.blando) { dickyVisita(compa, M.fraseCompaE5(rng, 'ablandado', yo), true); return }
   if (tiro.mejorPelota && m !== 'mal') { dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, tiro.compa ? 'compa' : 'tuya'), true); return }
+  // Fito de pase: a veces se cuela un Dicky a pedirle que vuelva (con amor)
+  if (yo.pase && dickysLibres().length && rng() < M.E5.vuelve) {
+    const d = M.elegir(rng, dickysLibres().filter((x) => x.apodo !== dickyUltimo))
+    dickyUltimo = d.apodo
+    dickyVisita(d, M.fraseVuelve(rng, d.apodo, yo))
+    return
+  }
+  // a veces (nunca dos seguidas) se cuela un Dicky a ablandarte
+  const blando = !ablandoVino && dickysLibres().length && res.tipo !== 'embocada' && rng() < M.MUFA.ablandar
+  ablandoVino = blando
+  if (blando) { ablandar(M.elegir(rng, dickysLibres().filter((x) => x.apodo !== dickyUltimo)), yo); return }
   if (res.tipo !== 'embocada' && m !== 'mal' && rng() > M.E5.vestuario) return
   dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, m), true)
 }
@@ -3779,13 +3945,18 @@ $('#dicky-sel').addEventListener('click', (e) => {
   if (!b) return
   const d = DICKYS.find((x) => x.apodo === b.dataset.apodo)
   const yo = ronda.jugador
-  if (!d || !M.dickyllamar(ronda, d)) return
+  // 🤝 la interna: a veces atiende el Equipo 5 ("Equivocado, habla el #Equipo5") y te pega él
+  const intruso = d && E5_RIVALES.length && rng() < M.INTERNA.atiende ? M.elegir(rng, E5_RIVALES) : null
+  const quien = intruso ?? d
+  if (!d || !M.dickyllamar(ronda, d, quien)) return
   $('#dicky-sel').hidden = true
   estado = 'apuntar'
   apuntarDesde = performance.now()
-  const hab = M.habilidadDe(d)
-  voz = { lg: `📞 Atendió ${d.emoji} ${sinD(d.apodo)}: te pega este tiro`, extra: hab ? `✨ ${hab.nombre}: ${hab.texto}` : hcpEtiqueta(d), hasta: performance.now() + 5500 }
-  dickyVisita(d, M.fraseDicky(rng, d.apodo, yo, 'atiende'))
+  const hab = M.habilidadDe(quien)
+  voz = intruso
+    ? { lg: `📞 ¡Atendió ${intruso.emoji} ${M.NOMBRE_E5[intruso.apodo] ?? intruso.apodo}! Equivocado: te pega el #Equipo5`, extra: hab ? `✨ ${hab.nombre}: ${hab.texto}` : hcpEtiqueta(intruso), hasta: performance.now() + 6000 }
+    : { lg: `📞 Atendió ${d.emoji} ${sinD(d.apodo)}: te pega este tiro`, extra: hab ? `✨ ${hab.nombre}: ${hab.texto}` : hcpEtiqueta(d), hasta: performance.now() + 5500 }
+  dickyVisita(quien, intruso ? M.fraseInterna(rng, 'atiende', d) : M.fraseDicky(rng, d.apodo, yo, 'atiende'), !!intruso)
   S.ruletaCae()
   hud()
   const cara = $('#hud-top .cara')
@@ -3796,7 +3967,7 @@ $('#dicky-sel').addEventListener('click', (e) => {
 function relatar({ lg, excusa, verso }) {
   if (!lg) return
   // la excusa es del que pegó (si te pegó el tiro un Dicky de la Dickyllamada, la pone él)
-  const quien = (tiro?.prestado && DICKYS.find((d) => d.apodo === tiro.prestado)) || ronda.jugador
+  const quien = (tiro?.prestado && TODOS.find((d) => d.apodo === tiro.prestado)) || ronda.jugador
   const extra = excusa ? `${quien.emoji} «${excusa}»` : verso ? `“${verso}”` : ''
   voz = { lg, extra, hasta: performance.now() + 4200 }
 }
@@ -3808,10 +3979,19 @@ function pintarVoz() {
   } else if (estado === 'manejar' && ronda?.carro) {
     const yd = Math.round(M.aYardas(ronda, M.dist(ronda.carro.pos, ronda.pelota)))
     clase = ''; dice = manejo?.a === 'tee' ? `🛺 Al tee: ${yd} yd` : `🛺 A la pelota: ${yd} yd`; extra = 'Mantené el acelerador para el turbo; rápido y doblando, colea'
+  } else if (estado === 'apuntar' && contra) {
+    // te mufan / te ablandan: esto va antes que el relato del tiro (dura lo mismo que la ventana para defenderte)
+    clase = 'contra'
+    if (contra.tipo === 'abrazo') { dice = `😈 ¡TE MUFA ${M.NOMBRE_E5[contra.de.apodo]?.toUpperCase() ?? ''}!`; extra = 'Tocá ABRAZO y un Dicky te cuida' }
+    else { dice = `🥺 ¡TE ABLANDA ${contra.de.apodo.replace(/ \(Đ\)$/, '').toUpperCase()}!`; extra = 'Tocá ¡FUERA, DICKY! o el tiro sale corto' }
   } else if (voz && performance.now() < voz.hasta) {
     clase = ''; dice = voz.lg; extra = voz.extra
   } else if (estado === 'apuntar' && !datos.vistoTip) {
     clase = ''; dice = '👆 Arrastrá para atrás y soltá'; extra = 'El óvalo es donde puede caer'
+  } else if (estado === 'apuntar' && ronda?.mufa) {
+    clase = ''; dice = '😈 MUFADO POR EL EQUIPO 5'; extra = 'Este tiro: más error y el latido más rápido'
+  } else if (estado === 'apuntar' && ronda?.blando) {
+    clase = ''; dice = '🥺 TE ABLANDARON'; extra = 'Este tiro sale más corto'
   } else if (estado === 'mejor') {
     clase = ''; dice = '🦉📺 ¿CON CUÁL TE QUEDÁS?'; extra = 'Tocá la que querés: desde ahí se sigue'
   } else if (estado === 'apuntar' && ronda?.mejorPelota?.fase === 'segunda') {
@@ -3835,28 +4015,30 @@ function pintarVoz() {
   $('#r-extra').textContent = extra
 }
 
-/** La Mejor pelota: la tuya (quieta, con tu cartel) mientras pega el compañero, su cartel mientras vuela y las dos mientras elegís. */
+/** La Mejor pelota: la tuya (quieta, con tu cartel) mientras pega el compañero, y cada una con su cartel (la del compañero
+ *  dorada; la del Dicky que se coló, rosa). La que vuela la dibuja el tiro; acá, su cartel. Cerca, los carteles escalonados. */
 function pelotasFourball() {
   const mp = ronda.mejorPelota
   if (!mp?.primera) return
-  const A = mp.primera, B = estado === 'mejor' ? mp.segunda : mp.fase === 'vuela' ? tiro : null
-  const donde = (t) => { const [x, y0] = w2s(t.pos); return [x, y0 - t.alt * levante(), radioPelota() * (1 + t.alt / 50)] }
-  const pa = donde(A)
-  if (!A.embocada) { pelota(A.pos, A.alt); cartelPelota(pa[0], pa[1], pa[2], mp.antes.emoji, mp.antes.apodo, false, 0, H - 90, '#f4eeda', 0.9) }
-  if (!B || B.embocada) return
-  if (estado === 'mejor') pelota(B.pos, B.alt) // mientras vuela la dibuja el tiro
-  const pb = donde(B)
-  // si están juntas, el cartel del compañero va arriba del tuyo (apilado, como en el replay)
-  const juntas = !A.embocada && Math.abs(pa[0] - pb[0]) < 90 && Math.abs(pa[1] - pb[1]) < 26
-  const [x, y, r] = juntas ? pa : pb
-  cartelPelota(x, y, r, mp.compa.emoji, mp.compa.apodo, false, 0, H - 90, '#e8c34a', 0.9, juntas ? 23 : 0)
+  const lista = [[mp.primera, mp.antes, '#f4eeda', true]]
+  if (mp.segunda || mp.fase === 'vuela') lista.push([mp.segunda ?? tiro, mp.compa, '#e8c34a', !!mp.segunda])
+  if (mp.dicky) lista.push([mp.tercera ?? tiro, mp.dicky, '#ffd3e2', !!mp.tercera])
+  const puestos = []
+  for (const [t, j, fondo, quieta] of lista) {
+    if (!t || t.embocada) continue
+    if (quieta) pelota(t.pos, t.alt)
+    const [x, y0] = w2s(t.pos)
+    const p = [x, y0 - t.alt * levante(), radioPelota() * (1 + t.alt / 50)]
+    // cada cartel arriba de su pelota; si se pisaría con otro, un escalón más arriba (sin la puntita)
+    const sube = 23 * puestos.filter((q) => Math.abs(q[0] - p[0]) < 80 && Math.abs(q[1] - p[1]) < 24).length
+    puestos.push(p)
+    cartelPelota(p[0], p[1], p[2], j.emoji, j.apodo.replace(/ \(Đ\)$/, ''), false, 0, H - 90, fondo, 0.9, sube)
+  }
 }
-/** La pelota que no quedó (la Mejor pelota): se apaga de a poco donde paró. */
+/** Las pelotas que no quedaron (la Mejor pelota): se apagan de a poco donde pararon. */
 function pelotaDescartada() {
-  if (!descartada) return
-  const u = (performance.now() - descartada.t0) / 1500
-  if (u >= 1) { descartada = null; return }
-  pelota(descartada.pos, 0, 0.8 * (1 - u))
+  descartadas = descartadas.filter((d) => performance.now() - d.t0 < 1500)
+  for (const d of descartadas) pelota(d.pos, 0, 0.8 * (1 - (performance.now() - d.t0) / 1500))
 }
 
 // ── HUD ──
@@ -6193,6 +6375,7 @@ function tarjetaFinal() {
   $('#dicky-btn').hidden = true
   $('#e5-btn').hidden = true
   $('#mp-sel').hidden = true
+  cerrarContra()
   $('#ninja-btn').hidden = true
   $('#mago-golpes').hidden = true
   document.body.classList.remove('con-mago')
@@ -6244,20 +6427,27 @@ $('#firmar').addEventListener('click', () => {
   const { vsPar } = M.totales(ronda.tarjeta)
   const apodo = ronda.carta.apodo
   const antes = datos.records[apodo]
-  const sinTaiu = !tieneTaiu()
+  const faltaban = DESBLOQUEOS.filter((d) => !tiene(d))
   const record = vsPar != null && (antes === undefined || vsPar < antes)
   if (record) { datos.records[apodo] = vsPar; guardar(datos) }
-  if (sinTaiu && tieneTaiu()) setTimeout(logroTaiu, 700) // con esta vuelta completaste los tres: ¡logro!
+  const nuevo = faltaban.find((d) => tiene(d)) // con esta vuelta completaste lo que faltaba: ¡logro!
+  if (nuevo) setTimeout(() => logro(nuevo), 700)
   $('#t-firma').hidden = true
   $('#t-firmada').hidden = false
   anotarVuelta()
   $('#t-firmada').textContent = vsPar == null ? 'Firmada ✍️ · Vuelta LP: no cuenta para el récord' : record ? `Firmada ✍️ · ¡Récord personal! (${antes === undefined ? 'primera vuelta' : `antes ${M.formatoPar(antes)}`})` : `Firmada ✍️ · Tu récord: ${M.formatoPar(antes)}`
   acciones()
 })
-/** 🏆 El logro: la banda baja desde arriba (como en las consolas). Tocándola, el anuncio con "Jugar con Taiu". */
-let logroTimer = 0
-function logroTaiu() {
+/** 🏆 El logro: la banda baja desde arriba (como en las consolas). Tocándola, el anuncio con "Jugar con …". */
+let logroTimer = 0, logroDe = DESBLOQUEO_TAIU
+function logro(d) {
+  logroDe = d
+  const ui = DESBLOQUEO_UI[d.apodo]
   const el = $('#logro')
+  el.querySelector('.lg-ico img').src = ui.torso
+  el.querySelector('.lg-txt b').textContent = ui.logro
+  el.querySelector('.lg-txt em').textContent = ui.logroExtra
+  el.setAttribute('aria-label', `Logro desbloqueado: ${ui.nombre}. Tocá para verlo`)
   el.hidden = false
   el.classList.remove('sale')
   void el.offsetWidth
@@ -6272,15 +6462,25 @@ function cerrarLogro() {
   el.classList.replace('entra', 'sale')
   setTimeout(() => { el.hidden = true; el.classList.remove('sale') }, 450)
 }
-$('#logro').addEventListener('click', () => { clearTimeout(logroTimer); cerrarLogro(); mostrarTaiuDesbloqueado() })
-/** 🔓 Desbloqueaste a Taiu: el anuncio, con su foto y para jugarlo ya. */
-function mostrarTaiuDesbloqueado() {
+$('#logro').addEventListener('click', () => { clearTimeout(logroTimer); cerrarLogro(); mostrarDesbloqueado(logroDe) })
+/** 🔓 Desbloqueaste a `d` (Taiu o Fito del 5): el anuncio, con su foto y para jugarlo ya. */
+function mostrarDesbloqueado(d) {
+  logroDe = d
+  const ui = DESBLOQUEO_UI[d.apodo]
   const el = $('#taiu-ok')
+  el.querySelector('.dk-logo').src = ui.logo
+  el.querySelector('.tu-foto').src = ui.torso
+  el.querySelector('.tu-foto').alt = ui.nombre
+  el.querySelector('#tu-tit').textContent = ui.titulo
+  el.querySelector('.dk-sub').textContent = ui.sub
+  el.querySelector('.tu-extra img').src = ui.logo
+  el.querySelector('.tu-extra > span').innerHTML = `<b><span class="cand-abierto">${candado(true)}</span> ${esc(ui.plus)}</b>${esc(ui.plusTexto)}`
+  $('#tu-jugar').textContent = ui.jugar
   const cor = el.querySelector('.tu-ranas')
   cor.innerHTML = ''
   for (let i = 0; i < 18; i++) {
     const c = document.createElement('span')
-    c.textContent = i % 3 ? '🐸' : '💚'
+    c.textContent = ui.lluvia[i % ui.lluvia.length]
     c.style.left = `${Math.random() * 100}%`
     c.style.animationDuration = `${1.8 + Math.random() * 1.6}s`
     c.style.animationDelay = `${Math.random() * 0.8}s`
@@ -6294,7 +6494,7 @@ for (const el of document.querySelectorAll('.cand-abierto, #logro .lg-ico i')) e
 $('#taiu-ok').addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) $('#taiu-ok').hidden = true })
 $('#tu-jugar').addEventListener('click', () => {
   $('#taiu-ok').hidden = true
-  const t = TODOS.find((x) => x.apodo === DESBLOQUEO_TAIU.apodo)
+  const t = TODOS.find((x) => x.apodo === logroDe.apodo)
   if (t) empezar(t)
 })
 function sinFirma() {
@@ -6762,7 +6962,7 @@ async function cargarDesafios() {
 let bananas = null // { saldo, reservadas, pozo, premiosHoy, movimientos }
 let bananasRk = null // [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]
 let hayBananas = false
-const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío' }
+const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío', clasico: '⚔️ Ganó tu equipo en el Clásico' }
 const POR_BANANA = { birdie: 'birdie', aguila: 'águila', bajo_par: 'bajo par' }
 // la banana del set SDGA: chiquita, en el texto (BN); grande, troquelada como sticker (stickerBanana)
 const BN = gi('banana', 'bn')
@@ -6981,7 +7181,7 @@ $('#bn-barra').addEventListener('click', verBananas)
 /** El MATCH de prueba (prueba.js): rivales y bananas de mentira, en el teléfono. `entrar`: suelto, entra con esa identidad. */
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
-  const { crearPrueba } = await import('./prueba.js?v=2d6dd0a1cd')
+  const { crearPrueba } = await import('./prueba.js?v=30f63602c5')
   pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs })
   R.usarPrueba(pruebaApp, entrar ? yo : null)
   $('#mt-prueba').hidden = false
@@ -8402,6 +8602,49 @@ $('#st-ambito').addEventListener('click', (e) => {
   stUsuario = null
   pintarStats()
 })
+// ── ⚔️ el Clásico de la semana: los Dicky contra el Equipo 5, entre todos (mismas cuentas que la base: M.clasico) ──
+const equipoDe = (apodo) => { const j = TODOS.find((x) => x.apodo === apodo); return j?.dicky ? 'dicky' : M.esEquipo5(j) ? 'e5' : null }
+/** LG relata cómo salió (la frase depende de la semana: no cambia cada vez que se pinta). */
+const lgClasico = (c) => { const l = M.LG_CLASICO[c.ganador ?? 'empate']; return l[Math.floor(c.desde / 864e5 / 7) % l.length] }
+function pintarClasico() {
+  const el = $('#rk-clasico')
+  const ahora = Date.now()
+  const c = M.clasico(rkMarcas, M.lunesDe(ahora), equipoDe)
+  const antes = M.clasico(rkMarcas, M.lunesDe(ahora, 1), equipoDe)
+  const tot = c.dicky + c.e5
+  const quedan = Math.ceil((c.hasta - ahora) / 864e5)
+  const va = c.ganador === 'dicky' ? 'Van ganando los Dicky' : c.ganador === 'e5' ? 'Va ganando el Equipo 5' : tot ? 'Van empatados' : 'Todavía no sumó nadie'
+  const top = (l) => l.slice(0, 3).map((x) => `${esc(x.nombre ?? '—')} <b>${x.pts}</b>`).join(' · ') || 'nadie todavía'
+  const salio = antes.ganador === 'dicky' ? 'ganaron los Dicky' : antes.ganador === 'e5' ? 'ganó el Equipo 5' : 'empataron'
+  el.innerHTML = `<p class="cl-kicker">⚔️ El Clásico de la semana</p>
+    <div class="cl-marcador">
+      <span class="cl-eq dicky${c.ganador === 'dicky' ? ' gana' : ''}"><img src="dicky-toons.svg" alt="" draggable="false"><span><b>${c.dicky}</b><small>DICKY</small></span></span>
+      <span class="cl-vs">VS</span>
+      <span class="cl-eq e5${c.ganador === 'e5' ? ' gana' : ''}"><span><b>${c.e5}</b><small>EQUIPO 5</small></span><img src="equipo-5.svg" alt="" draggable="false"></span>
+    </div>
+    <div class="cl-barra" aria-hidden="true"><i style="width:${tot ? Math.round((100 * c.dicky) / tot) : 50}%"></i></div>
+    <p class="cl-va"><b>${va}</b> · ${quedan > 1 ? `faltan ${quedan} días` : 'termina hoy'}</p>
+    <p class="cl-top"><span><small>DICKY</small>${top(c.aportes.dicky)}</span><span><small>EQUIPO 5</small>${top(c.aportes.e5)}</span></p>
+    ${antes.dicky + antes.e5 ? `<p class="cl-antes">La semana pasada ${salio}, ${antes.dicky} a ${antes.e5} · 📺 LG: «${esc(lgClasico(antes))}»</p>` : ''}
+    <p class="cl-como">Cada vuelta firmada con un Dicky o con el Equipo 5 suma para su equipo: 1 punto, más 1 por cada golpe bajo par (hasta 5 vueltas por día). Termina el domingo a la noche${hayBananas ? `; los que jugaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}.</p>`
+  el.hidden = false
+}
+/** Al entrar: si el Clásico de la semana pasada lo ganó tu equipo (y jugaste), el mono te tira las bananas. Una vez por semana (lo cuida la base). */
+async function cobrarClasico() {
+  if (cobrarClasico.hecho) return
+  cobrarClasico.hecho = true
+  let r
+  try { r = await R.cobrarClasico() } catch { return } // sin la base o la app nueva: sin premio
+  if (!r?.cobraste) return
+  cargarBananas()
+  const quien = r.ganador === 'dicky' ? 'los Dicky' : 'el Equipo 5'
+  S.monoBueno()
+  await hojaBananas(`<div class="cl-cobro">${stickerBanana()}<p class="bn-tit" id="bn-tit">¡${r.ganador === 'dicky' ? 'GANARON LOS DICKY' : 'GANÓ EL EQUIPO 5'}!</p>
+    <p>El Clásico de la semana pasada: <b>Dicky ${r.dicky} · Equipo 5 ${r.e5}</b>. Jugaste para ${quien}: el mono te tira <b>+${r.cobraste}</b>${BN}</p>
+    <p class="cl-lg">📺 LG: «${esc(lgClasico({ ganador: r.ganador, desde: Date.parse(r.semana ?? 0) || 0 }))}»</p>
+    <button class="carta-jugar" type="button" data-bn="ok">¡Vamos!</button></div>`)
+}
+
 async function mostrarRanking(tab = 'general') {
   rkTab = tab
   rkMarcas = null
@@ -8431,6 +8674,9 @@ function pintarRanking(error = false) {
     $('#rk-fuente').textContent = ''
     return
   }
+  // ⚔️ el Clásico de la semana: arriba del general (con todas las vueltas firmadas, normales y PRO)
+  if (!j) pintarClasico()
+  else $('#rk-clasico').hidden = true
   const app = rkApp
   $('#rk-ambito').hidden = !app
   for (const b of $('#rk-ambito').children) b.setAttribute('aria-selected', String(b.dataset.ambito === rkAmbito))
@@ -8608,7 +8854,7 @@ function cartaDe(j) {
       <div class="carta-nombre"><h3>${esc(j.apodo)}</h3><span class="teja" aria-hidden="true">${j.emoji}</span></div>
     </div>
     <div class="carta-cuerpo">
-      ${lock ? requisitosTaiu() : `${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
+      ${lock ? requisitos(desbloqueoDe(j)) : `${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
       ${hab ? `<button class="carta-prev" type="button" aria-label="Ver la habilidad ${esc(hab.nombre)} entera">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p><span class="mas" aria-hidden="true">›</span></button>` : ''}
       <dl>
         <div><dt>HCP</dt><dd>${j.ruleta ? 'C/U<span class="sub">el suyo</span>' : dif.cargado ? hcpTxt(j) : `—<span class="sub">juega ${dif.hcp}</span>`}</dd></div>
@@ -8804,6 +9050,7 @@ function mostrarElegir() {
   $('#dicky-btn').hidden = true
   $('#e5-btn').hidden = true
   $('#mp-sel').hidden = true
+  cerrarContra()
   $('#ninja-btn').hidden = true
   $('#mago-golpes').hidden = true
   document.body.classList.remove('con-mago')
@@ -8847,7 +9094,7 @@ R.alEntrar(async (yo) => {
   if (R.hayMatch()) {
     $('#ver-match').hidden = false
     cargarDesafios()
-    cargarBananas()
+    cargarBananas().then((hay) => { if (hay) cobrarClasico() })
     // ?match=1 (el aviso de la SDGApp, el link de WhatsApp); con &replay=<id>, directo al replay de ese match
     const q = new URLSearchParams(location.search)
     if (q.has('match')) entrarPorAviso({ replayId: q.get('replay') || null, desdeLink: true })
@@ -8912,7 +9159,7 @@ function mostrarTodos() {
     const cara = j.foto ? `<img class="foto" src="${j.foto}" alt="" draggable="false">` : `<span class="foto sin-foto">${j.emoji}</span>`
     const lock = bloqueado(j)
     if (lock) {
-      const p = progresoTaiu()
+      const p = progresoDe(desbloqueoDe(j))
       return `<li class="todo bloqueado">
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${candado()}</span></div>
@@ -8920,7 +9167,7 @@ function mostrarTodos() {
         ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}${j.equipo === 5 ? '<img class="todo-dicky" src="equipo-5.svg" alt="Equipo 5" title="Equipo 5" draggable="false">' : ''}
         <button class="carta-jugar" type="button" disabled aria-label="Bloqueado">${candado(false, 'en-boton')}</button>
       </div>
-      ${requisitosTaiu()}
+      ${requisitos(desbloqueoDe(j))}
     </li>`
     }
     return `<li class="todo${j.retro ? ' dorado' : ''}">
