@@ -1371,6 +1371,57 @@ ok('Lechu: de 15 metros o menos no la falla, le pegue como le pegue', () => {
   assert.notEqual(M.simular(plano, M.golpear(plano, o, Math.PI / 2, 0.3, fijo(0.9)), h15.pin).embocada, true)
 })
 
+ok('🦉 la lechuza: el próximo putt de 15 metros o menos entra (uno solo, de cualquiera; el de Joaco no la gasta)', () => {
+  const o = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [], lie: 'green', lechuza: true }
+  // de lejos (16 yd del dibujo: más de 15 metros) no se gasta y es un putt normal
+  o.pelota = [h15.pin[0], h15.pin[1] + 16]
+  assert.equal(M.planTiro(plano, o, Math.PI / 2, 0.3).lechuza, false)
+  assert.notEqual(M.simular(plano, M.golpear(plano, o, Math.PI / 2, 0.3, fijo(0.9)), h15.pin).embocada, true)
+  assert.equal(o.lechuza, true)
+  // a 3 yd, tirado para atrás: entra igual, con su relato, y se gasta
+  o.pelota = [h15.pin[0], h15.pin[1] + 3]
+  const t = M.golpear(plano, o, Math.PI / 2, 0.3, fijo(0.9))
+  assert.equal(t.iman?.lechuza, true)
+  assert.equal(M.simular(plano, t, h15.pin).embocada, true)
+  assert.equal(o.lechuza, false)
+  // el siguiente, ya normal
+  o.pelota = [h15.pin[0], h15.pin[1] + 3]
+  assert.notEqual(M.simular(plano, M.golpear(plano, o, Math.PI / 2, 0.3, fijo(0.9)), h15.pin).embocada, true)
+  // Joaco ya tiene sus dadas: la lechuza le queda para cuando no las tenga (ofendido)
+  const j = { ...M.nuevaRonda({ apodo: 'Lechu', emoji: '🦉' }, fijo(0.5)), monos: [], lie: 'green', lechuza: true, pelota: [h15.pin[0], h15.pin[1] + 3] }
+  assert.equal(M.planTiro(plano, j, Math.PI / 2, 0.3).lechuza, false)
+  M.golpear(plano, j, Math.PI / 2, 0.3, fijo(0.9))
+  assert.equal(j.lechuza, true)
+  j.ofendido = true
+  j.pelota = [h15.pin[0], h15.pin[1] + 3]
+  assert.equal(M.planTiro(plano, j, Math.PI / 2, 0.3).lechuza, true)
+})
+
+ok('⛳ Sábado 9 AM: la hora (argentina), la lista (cada uno una vez, en orden) y doble en el Clásico', () => {
+  const ar = (s) => Date.parse(s + '-03:00')
+  assert.equal(M.esSabado9(ar('2026-10-10T09:00:00')), true)
+  assert.equal(M.esSabado9(ar('2026-10-10T09:59:59')), true)
+  assert.equal(M.esSabado9(ar('2026-10-10T10:00:00')), false)
+  assert.equal(M.esSabado9(ar('2026-10-10T08:59:59')), false)
+  assert.equal(M.esSabado9(ar('2026-10-09T09:30:00')), false) // viernes
+  assert.equal(M.esSabado9(ar('2026-10-11T09:30:00')), false) // domingo
+  // la ventana: la de ese sábado, o la del sábado anterior
+  const iso = (w) => w.map((x) => new Date(x).toISOString())
+  assert.deepEqual(iso(M.ventanaSabado(ar('2026-10-10T09:30:00'))), ['2026-10-10T12:00:00.000Z', '2026-10-10T13:00:00.000Z'])
+  assert.deepEqual(iso(M.ventanaSabado(ar('2026-10-10T08:00:00'))), ['2026-10-03T12:00:00.000Z', '2026-10-03T13:00:00.000Z'])
+  assert.deepEqual(iso(M.ventanaSabado(ar('2026-10-14T18:00:00'))), ['2026-10-10T12:00:00.000Z', '2026-10-10T13:00:00.000Z'])
+  // la lista: cada uno una vez, en el orden en que se anotó; fuera de hora no
+  const m = (uid, usuario, hhmm, apodo = 'Fito (Đ)') => ({ uid, usuario, apodo, emoji: '🦅', vsPar: -1, fecha: new Date(ar(`2026-10-10T${hhmm}:00`)).toISOString() })
+  const marcas = [m('b', 'Patmig', '09:10'), m('a', 'Rorro', '09:05'), m('a', 'Rorro', '09:20'), m('c', 'Miguel', '10:01'), m('d', 'Ninja', '08:59'), m('e', 'Lucas', '09:59', 'LG')]
+  assert.deepEqual(M.listaSabado(marcas, ar('2026-10-10T09:40:00')).map((x) => x.usuario), ['Rorro', 'Patmig', 'Lucas'])
+  assert.deepEqual(M.listaSabado([], ar('2026-10-10T09:40:00')), [])
+  // el Clásico: lo firmado el sábado entre las 9 y las 10 suma doble (Rorro: −1 a las 9:05 y a las 9:20 = 4; Miguel a las 10:01, 1)
+  const equipoDe = (a) => (a === 'LG' ? 'e5' : 'dicky')
+  const c = M.clasico(marcas, M.lunesDe(ar('2026-10-10T09:40:00')), equipoDe)
+  assert.deepEqual(c.aportes.dicky.map((x) => [x.nombre, x.pts]), [['Rorro', 4], ['Patmig', 2], ['Miguel', 1], ['Ninja', 1]])
+  assert.deepEqual(c.aportes.e5.map((x) => [x.nombre, x.pts]), [['Lucas', 2]])
+})
+
 ok('El Ninja: reset del hoyo (uno por vuelta): al tee con cero golpes, sin multa', () => {
   const r = { ...M.nuevaRonda({ apodo: 'El Ninja (Đ)', emoji: '🥷' }, fijo(0.5)), monos: [] }
   // desde el tee, sin haber pegado, no hay nada que resetear
@@ -1952,7 +2003,7 @@ ok('⚔️ el Clásico de la semana: las mismas cuentas que la base (lunes a dom
   const en = (d, hhmm) => new Date(lunes + d * 864e5 + (+hhmm.slice(0, 2) * 60 + +hhmm.slice(3)) * 60e3).toISOString()
   const A = '00000000-0000-0000-0000-000000000001', B = A.replace(/1$/, '2'), C = A.replace(/1$/, '3')
   const m = (uid, apodo, vsPar, d, h) => ({ uid, usuario: uid.slice(-1), apodo, vsPar, fecha: en(d, h) })
-  // el mismo escenario que se probó en la base (trampa_clasico_puntos): Dicky 7, Equipo 5 12 (par, sobre par y LP no suman)
+  // el mismo escenario que se probó en la base (trampa_clasico_puntos): Dicky 7, Equipo 5 16 (par, sobre par y LP no suman)
   const marcas = [
     m(A, 'Fito (Đ)', -2, 1, '10:00'), m(A, 'Taiu (Đ)', 0, 1, '11:00'), m(A, 'El Ninja (Đ)', 3, 1, '12:00'),
     ...Array.from({ length: 7 }, (_, i) => m(A, 'Mike Queboni (Đ)', -1, 2, `09:${String(i * 7).padStart(2, '0')}`)),
@@ -1962,12 +2013,13 @@ ok('⚔️ el Clásico de la semana: las mismas cuentas que la base (lunes a dom
     m(C, 'Fito (5)', 0, 6, '23:30'), // el domingo 23:30: cuenta
     m(C, 'Tito', -3, 5, '10:00'), // de ningún equipo
     m(C, 'Lechu', null, 5, '11:00'), m(B, 'Taiu (Đ)', null, 5, '12:00'), // LP: no suman
+    m(C, 'LG', -1, 5, '09:30'), m(C, 'LG', -1, 5, '10:00'), m(B, 'LG', -1, 5, '08:59'), // ⛳ el sábado a las 9:30 vale doble
   ]
   const c = M.clasico(marcas, lunes, equipoDe)
-  assert.equal(c.dicky, 7); assert.equal(c.e5, 12); assert.equal(c.ganador, 'e5')
+  assert.equal(c.dicky, 7); assert.equal(c.e5, 16); assert.equal(c.ganador, 'e5')
   // B solo jugó sobre par y LP con los Dicky: no aparece (no jugó para los Dicky, no cobraría si ganaban)
   assert.deepEqual(c.aportes.dicky.map((x) => [x.quien.slice(-1), x.pts]), [['1', 7]])
-  assert.deepEqual(c.aportes.e5.map((x) => [x.quien.slice(-1), x.pts]), [['3', 8], ['2', 4]])
+  assert.deepEqual(c.aportes.e5.map((x) => [x.quien.slice(-1), x.pts]), [['3', 11], ['2', 5]])
   // sin vueltas: empate en cero, nadie gana
   assert.equal(M.clasico([], lunes, equipoDe).ganador, null)
 })

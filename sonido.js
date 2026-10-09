@@ -232,6 +232,12 @@ export function logro() {
   campana(1567.98, 0.42, 0.1)
   ruido(0.5, { f: 6000, q: 0.6, vol: 0.03, at: 0.36 })
 }
+// 🦉 la lechuza que se asoma: "uh… uh-uh", bajito (que se escuche si estás atento)
+export function ulula() {
+  tono(470, 0.32, { vol: 0.07, f2: 430, ataque: 0.06 })
+  tono(500, 0.18, { vol: 0.06, f2: 460, ataque: 0.04, at: 0.46 })
+  tono(470, 0.34, { vol: 0.06, f2: 420, ataque: 0.05, at: 0.68 })
+}
 export const swipe = () => ruido(0.22, { f: 600, f2: 2400, q: 0.8, vol: 0.2, ataque: 0.06 })
 /** Cuenta regresiva: 3, 2, 1 graves y el ¡YA! agudo, con acorde. */
 export function cuenta(n) {
