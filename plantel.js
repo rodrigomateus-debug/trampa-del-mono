@@ -1,4 +1,4 @@
-// El plantel del SDGA para elegir nivel (dicky: es de los Dicky Toons, lleva el logo en la carta; equipo: su equipo, con su logo (el 5: equipo-5.svg); torso: su foto recortada, para cuando aparece en pantalla: la Dickyllamada y el Equipo 5): de la base de la FedE Cup (handicap, frase, emoji) y del
+// El plantel del SDGA para elegir nivel (jugador: cómo se llama en la SDGApp, si no es igual al apodo — para EL ORIGINAL del ranking; dicky: es de los Dicky Toons, lleva el logo en la carta; equipo: su equipo, con su logo (el 5: equipo-5.svg); torso: su foto recortada, para cuando aparece en pantalla: la Dickyllamada y el Equipo 5): de la base de la FedE Cup (handicap, frase, emoji) y del
 // design system (fotos, stats 2024–2026). Foto del 2026-10-03.
 // Ordenado por handicap, de menor a mayor. aprox: handicap aproximado que pasó Rorro (no está en la base).
 // En la app esto sale de la tabla players (usePlayers) y de photoForPlayer, no de este archivo.
@@ -78,6 +78,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "Taiu (Đ)",
+    "jugador": "La Rana (Đ)",
     "torso": "jugadores/la-rana-torso.webp",
     "dicky": true,
     "emoji": "🐸",
@@ -147,6 +148,7 @@ export const PLANTEL = [
   },
   {
     "apodo": "El Flaco Ordoñez",
+    "jugador": "Marcos",
     "emoji": "🏎️",
     "hcp": 7.2,
     "frase": "Entrá Boliviana hija de puta!!!!",
