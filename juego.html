@@ -180,6 +180,8 @@ body {
 #voz.alerta { background: var(--red); }
 #voz.alerta .dice, #voz.alerta .extra { color: var(--cream); }
 #voz.alerta .quien { background: var(--cream); color: var(--red); }
+#voz.contra { background: #1d1a5c; }
+#voz.contra .dice, #voz.contra .extra { color: var(--cream); }
 /* debajo del marcador: dónde estás (izq.), reloj (centro) y LP (der.); la parte de abajo queda libre para la cancha */
 #lie { justify-self: start; display: block; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 30px; }
 /* LP: un botón de verdad (crema, con sombra), abajo del reloj y el viento */
@@ -1326,6 +1328,21 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 #e5-btn[disabled] { animation: none; }
 @keyframes e5-late { from { transform: rotate(-5deg) scale(1); } to { transform: rotate(-5deg) scale(1.07); } }
 @media (prefers-reduced-motion: reduce) { #e5-btn, #e5-btn.armada { animation: none; } }
+/* 😈 ABRAZO / 🔥 ¡FUERA, DICKY!: unos segundos para defenderte (la barrita de abajo es el tiempo que queda) */
+#contra-btn { position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 150px); z-index: 33; display: flex; align-items: center; gap: 8px; padding: 10px 16px 13px 12px; overflow: hidden; color: var(--cream); background: #1d1a5c; border: var(--game-stroke) solid var(--game-ink); border-radius: 999px; box-shadow: 4px 5px 0 var(--game-ink); font: 19px/1 var(--font-display); letter-spacing: .04em; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#contra-btn[hidden] { display: none; }
+#contra-btn[data-tipo="espantar"] { background: var(--green-900); color: var(--gold); }
+#contra-btn .emo { font-size: 26px; }
+#contra-btn .txt { max-width: 5.6em; text-align: left; line-height: 1; } /* el largo, en dos renglones: no tapa el globo del Dicky */
+#contra-btn .tiempo { position: absolute; left: 0; bottom: 0; height: 5px; width: 100%; background: var(--gold); transform-origin: 0 50%; }
+#contra-btn[data-tipo="espantar"] .tiempo { background: var(--red); }
+#contra-btn.va { animation: contra-late .45s ease-in-out infinite alternate; }
+#contra-btn.va .tiempo { animation: contra-tiempo var(--ventana, 4s) linear forwards; }
+#contra-btn:active { translate: 3px 4px; box-shadow: 0 0 0 var(--game-ink); }
+body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
+@keyframes contra-late { from { transform: rotate(-3deg) scale(1); } to { transform: rotate(-3deg) scale(1.06); } }
+@keyframes contra-tiempo { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { #contra-btn.va { animation: none; } }
 /* la Mejor pelota: pararon las dos; abajo, con cuál te quedás (arriba se ven las dos pelotas con su cartel) */
 #mp-sel { position: fixed; left: 12px; right: 12px; bottom: calc(var(--safe-bot) + 12px); z-index: 32; max-width: 460px; margin: 0 auto; box-sizing: border-box; padding: 10px 12px 12px; background: var(--cream); color: var(--green-900); border: var(--game-stroke) solid var(--game-ink); border-radius: 18px; box-shadow: 5px 6px 0 var(--game-ink); animation: mp-sube .32s cubic-bezier(.2, 1.3, .4, 1); }
 #mp-sel[hidden] { display: none; }
@@ -1676,6 +1693,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <div id="mago-golpes" role="group" aria-label="Golpes del Mago: elegí con cuál pegás" hidden></div>
 <button id="ninja-btn" type="button" hidden aria-label="Reset ninja: el hoyo de nuevo desde el tee, sin multa"><span class="emo" aria-hidden="true">🥷</span><span class="txt">RESET</span><b aria-hidden="true">1</b></button>
 <div id="mp-sel" hidden role="dialog" aria-label="Mejor pelota: elegí con cuál te quedás"><p class="mp-tit"><img src="equipo-5.svg" alt="" draggable="false"><span>MEJOR PELOTA<small>¿Con cuál te quedás?</small></span></p><div id="mp-ops"></div></div>
+<button id="contra-btn" type="button" hidden><span class="emo" aria-hidden="true"></span><span class="txt"></span><i class="tiempo" aria-hidden="true"></i></button>
 <button id="e5-btn" type="button" hidden aria-label="Mejor pelota: el próximo tiro lo pegan los dos y queda la mejor"><img src="equipo-5.svg" alt="" draggable="false"><span class="cinta">MEJOR PELOTA</span><b aria-hidden="true"></b></button>
 <button id="dicky-btn" type="button" hidden aria-label="Dickyllamada: llamá a otro Dicky"><img src="dicky-toons.svg" alt="" draggable="false"><span class="cinta">DICKYLLAMADA</span><b aria-hidden="true">📞</b></button>
 <button id="logro" type="button" hidden aria-live="assertive" aria-label="Logro desbloqueado: Taiu. Tocá para verlo">
@@ -2358,7 +2376,7 @@ lienzo.addEventListener('pointerup', (e) => {
   if (a?.latido) {
     const ya = performance.now()
     const t = e.timeStamp > ya - 1000 && e.timeStamp <= ya + 5 ? e.timeStamp : ya
-    const f = (drag.fase ?? 0) + (t - ATRASO_PANTALLA - (drag.tFase ?? ya)) / 1000 / (drag.periodo ?? M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1))
+    const f = (drag.fase ?? 0) + (t - ATRASO_PANTALLA - (drag.tFase ?? ya)) / 1000 / (drag.periodo ?? M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1) * (a.plan.mufa ? M.MUFA.latido : 1))
     a = { ...a, soltada: M.soltadaLatido(f, a.ventana) }
     destello = { t0: ya, nivel: a.soltada.nivel, pos: [...ronda.pelota] }
   }
@@ -2422,6 +2440,7 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
+  cerrarContra() // si no llegaste al ABRAZO / ¡FUERA, DICKY!, este tiro sale mufado / blando
   // 🦉📺 la Mejor pelota: el primero lo pegás vos (cuenta el golpe); el segundo, el compañero desde el mismo lugar (no cuenta)
   const mp = ronda.mejorPelota
   if (mp?.fase === 'segunda') { tiro = M.golpeCompa(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.soltada ?? null); mp.fase = 'vuela' }
@@ -2688,7 +2707,7 @@ function actualizar(dt) {
     // el latido de la potencia: más rápido cuanto más fuerte, pero el ritmo cambia de a poco (si no, mientras ajustás el
     // dedo tartamudea). Dos tics que suben mientras el aro se acerca y la campanita (y el tic del celu) cuando llega
     if (a?.latido) {
-      const objetivo = M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1)
+      const objetivo = M.periodoLatido(a.p) * (a.plan.furia ? M.FURIA.latido : 1) * (a.plan.mufa ? M.MUFA.latido : 1) // mufado: más rápido
       drag.periodo = drag.periodo == null ? objetivo : drag.periodo + (objetivo - drag.periodo) * Math.min(1, dt / 0.3)
       const antes = drag.fase ?? 0
       drag.fase = antes + dt / drag.periodo
@@ -3303,7 +3322,7 @@ function empezar(jugador) {
   else M.ponerClima(campo, ronda, M.CLIMAS[climaUrl] ? climaUrl : M.sortearClima(rng), Math.floor(rng() * 4294967296))
   climaPorAnunciar = true
   fxClima = []
-  chicanaDe = null; chicanaVino = false; clearTimeout(chicanaTimer)
+  chicanaDe = null; chicanaVino = false; ablandoVino = false; cerrarContra()
   descartada = null; $('#mp-sel').hidden = true
   fondoDelClima(ronda.clima?.id)
   datos.ultimo = jugador.apodo
@@ -3674,7 +3693,6 @@ function dickyVisita(d, texto, e5 = false) {
  */
 function dickyDespues(res, tiro) {
   const yo = ronda.jugador
-  clearTimeout(chicanaTimer)
   if (tiro.prestado) {
     const d = DICKYS.find((x) => x.apodo === tiro.prestado)
     if (d) dickyVisita(d, M.fraseDicky(rng, d.apodo, yo, 'ayuda'))
@@ -3682,8 +3700,8 @@ function dickyDespues(res, tiro) {
   }
   if (M.esEquipo5(yo)) { compaDespues(res, tiro); return }
   if (!hayOtroDicky(yo)) return
-  // el Equipo 5 chicaneó y no le contestaron (pegaste antes): le contesta este
-  if (chicanaDe) { contestarChicana(); return }
+  // el Equipo 5 chicaneó: le contesta este Dicky (y si el tiro salió mufado, te consuela)
+  if (chicanaDe) { contestarChicana(tiro.mufa ? 'consuelo' : null); return }
   const chicana = EQUIPO5.length && !chicanaVino && rng() < M.E5.chicana
   chicanaVino = chicana // nunca dos chicanas seguidas
   if (chicana) { chicanear(M.elegir(rng, EQUIPO5), yo, M.momentoDicky(res)); return }
@@ -3699,29 +3717,83 @@ function otroDicky(yo) {
 }
 // ── 🦉📺 el Equipo 5 (Lechu y LG): los rivales de siempre de los Dicky ──
 const EQUIPO5 = TODOS.filter((j) => M.esEquipo5(j) && j.torso)
-let chicanaDe = null, chicanaVino = false, chicanaTimer = 0
-/** Se cuela `e` (Lechu o LG) a chicanear al Dicky que juega; cuando se va, entra un Dicky a contestarle con amor. */
+let chicanaDe = null, chicanaVino = false, ablandoVino = false
+/**
+ * Se cuela `e` (Lechu o LG) a chicanear al Dicky que juega, y te mufa el próximo tiro (más error, el latido más rápido)…
+ * salvo que toques ABRAZO a tiempo: entra un Dicky y la corta. Si no, el Dicky de después del tiro te consuela.
+ */
 function chicanear(e, yo, momento) {
-  const texto = M.fraseChicana(rng, e.apodo, yo, momento)
-  dickyVisita(e, texto, true)
+  dickyVisita(e, M.fraseChicana(rng, e.apodo, yo, momento), true)
   chicanaDe = e
-  // si seguís apuntando sin tocar nada, el Dicky le contesta enseguida; si ya pegaste, le contesta el de después del tiro
-  chicanaTimer = setTimeout(() => {
-    if (chicanaDe && ronda && !ronda.terminada && estado === 'apuntar' && !drag && hayOtroDicky(ronda.jugador)) contestarChicana()
-  }, 2300 + 40 * texto.length + 600)
+  ronda.mufa = true
+  ofrecerContra('abrazo', e)
 }
-function contestarChicana() {
+/** El Dicky que le contesta al Equipo 5: `que` = 'abrazo' (llegaste a tiempo), 'consuelo' (el tiro salió mufado) o nada. */
+function contestarChicana(que = null) {
   const d = otroDicky(ronda.jugador)
-  dickyVisita(d, M.contestaDicky(rng, d.apodo, chicanaDe))
+  dickyVisita(d, que ? M.fraseDickyE5(rng, d.apodo, que, chicanaDe) : M.contestaDicky(rng, d.apodo, chicanaDe))
   chicanaDe = null
 }
+/** Jugando con el Equipo 5, a veces se cuela un Dicky a ablandarte con amor: el próximo tiro sale corto, salvo que lo espantes. */
+function ablandar(d, yo) {
+  dickyUltimo = d.apodo
+  dickyVisita(d, M.fraseDickyE5(rng, d.apodo, 'ablanda', yo))
+  ronda.blando = true
+  ofrecerContra('espantar', d)
+}
+// ── el botón para defenderte (unos segundos): ABRAZO (te mufan) o ¡FUERA, DICKY! (te ablandan) ──
+let contra = null, contraTimer = 0
+function ofrecerContra(tipo, de) {
+  clearTimeout(contraTimer)
+  contra = { tipo, de }
+  const b = $('#contra-btn')
+  b.dataset.tipo = tipo
+  b.querySelector('.emo').textContent = tipo === 'abrazo' ? '🤗' : '🔥'
+  b.querySelector('.txt').textContent = tipo === 'abrazo' ? '¡ABRAZO!' : '¡FUERA, DICKY!'
+  b.style.setProperty('--ventana', `${M.MUFA.ventana}ms`)
+  b.hidden = false
+  b.classList.remove('va')
+  void b.offsetWidth
+  b.classList.add('va')
+  contraTimer = setTimeout(() => cerrarContra(), M.MUFA.ventana)
+  hud()
+}
+function cerrarContra() {
+  clearTimeout(contraTimer)
+  contra = null
+  $('#contra-btn').hidden = true
+}
+$('#contra-btn').addEventListener('click', () => {
+  if (!contra || !ronda || ronda.terminada) return
+  const { tipo } = contra
+  cerrarContra()
+  S.monoBueno()
+  if (tipo === 'abrazo') {
+    // un Dicky te abraza: la mufa no entra
+    ronda.mufa = false
+    if (chicanaDe && hayOtroDicky(ronda.jugador)) contestarChicana('abrazo')
+    voz = { lg: '💛 ABRAZO DICKY', extra: 'La mufa del Equipo 5 no entra: el tiro sale como siempre', hasta: performance.now() + 4000 }
+  } else {
+    // el compañero lo espanta: no te ablandás
+    ronda.blando = false
+    const compa = M.compaE5(ronda.jugador, EQUIPO5)
+    if (compa) dickyVisita(compa, M.fraseCompaE5(rng, 'espanta', ronda.jugador), true)
+    voz = { lg: '🔥 NO TE ABLANDASTE', extra: 'El tiro sale con toda la fuerza', hasta: performance.now() + 4000 }
+  }
+  hud()
+})
 /** Jugando con Lechu o LG, después del tiro aparece el compañero (no siempre): aliento de vestuario, o cuál quedó en la Mejor pelota. */
 function compaDespues(res, tiro) {
   const yo = ronda.jugador
   const compa = M.compaE5(yo, EQUIPO5)
   if (!compa) return
   const m = M.momentoDicky(res)
+  if (tiro.blando) { dickyVisita(compa, M.fraseCompaE5(rng, 'ablandado', yo), true); return }
   if (tiro.mejorPelota && m !== 'mal') { dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, tiro.compa ? 'compa' : 'tuya'), true); return }
+  // a veces (nunca dos seguidas) se cuela un Dicky a ablandarte
+  const blando = !ablandoVino && dickysLibres().length && res.tipo !== 'embocada' && rng() < M.MUFA.ablandar
+  ablandoVino = blando
+  if (blando) { ablandar(M.elegir(rng, dickysLibres().filter((x) => x.apodo !== dickyUltimo)), yo); return }
   if (res.tipo !== 'embocada' && m !== 'mal' && rng() > M.E5.vestuario) return
   dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, m), true)
 }
@@ -3791,10 +3863,19 @@ function pintarVoz() {
   } else if (estado === 'manejar' && ronda?.carro) {
     const yd = Math.round(M.aYardas(ronda, M.dist(ronda.carro.pos, ronda.pelota)))
     clase = ''; dice = manejo?.a === 'tee' ? `🛺 Al tee: ${yd} yd` : `🛺 A la pelota: ${yd} yd`; extra = 'Mantené el acelerador para el turbo; rápido y doblando, colea'
+  } else if (estado === 'apuntar' && contra) {
+    // te mufan / te ablandan: esto va antes que el relato del tiro (dura lo mismo que la ventana para defenderte)
+    clase = 'contra'
+    if (contra.tipo === 'abrazo') { dice = `😈 ¡TE MUFA ${M.NOMBRE_E5[contra.de.apodo]?.toUpperCase() ?? ''}!`; extra = 'Tocá ABRAZO y un Dicky te cuida' }
+    else { dice = `🥺 ¡TE ABLANDA ${contra.de.apodo.replace(/ \(Đ\)$/, '').toUpperCase()}!`; extra = 'Tocá ¡FUERA, DICKY! o el tiro sale corto' }
   } else if (voz && performance.now() < voz.hasta) {
     clase = ''; dice = voz.lg; extra = voz.extra
   } else if (estado === 'apuntar' && !datos.vistoTip) {
     clase = ''; dice = '👆 Arrastrá para atrás y soltá'; extra = 'El óvalo es donde puede caer'
+  } else if (estado === 'apuntar' && ronda?.mufa) {
+    clase = ''; dice = '😈 MUFADO POR EL EQUIPO 5'; extra = 'Este tiro: más error y el latido más rápido'
+  } else if (estado === 'apuntar' && ronda?.blando) {
+    clase = ''; dice = '🥺 TE ABLANDARON'; extra = 'Este tiro sale más corto'
   } else if (estado === 'mejor') {
     clase = ''; dice = '🦉📺 ¿CON CUÁL TE QUEDÁS?'; extra = 'Tocá la que querés: desde ahí se sigue'
   } else if (estado === 'apuntar' && ronda?.mejorPelota?.fase === 'segunda') {
@@ -6176,6 +6257,7 @@ function tarjetaFinal() {
   $('#dicky-btn').hidden = true
   $('#e5-btn').hidden = true
   $('#mp-sel').hidden = true
+  cerrarContra()
   $('#ninja-btn').hidden = true
   $('#mago-golpes').hidden = true
   document.body.classList.remove('con-mago')
@@ -8787,6 +8869,7 @@ function mostrarElegir() {
   $('#dicky-btn').hidden = true
   $('#e5-btn').hidden = true
   $('#mp-sel').hidden = true
+  cerrarContra()
   $('#ninja-btn').hidden = true
   $('#mago-golpes').hidden = true
   document.body.classList.remove('con-mago')

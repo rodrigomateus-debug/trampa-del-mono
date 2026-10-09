@@ -910,14 +910,14 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
   if (furioso) precision = 0
   if (enModoPutt(campo, r)) {
     const puttMax = puttMaxDe(dist(b, hoyoActual(r).pin))
-    const carry = potencia * puttMax
+    const carry = potencia * puttMax * (r.blando ? MUFA.blando : 1) // ablandado por un Dicky: corto
     // el putt del Mago: con draw dobla a la izquierda (ángulo menor), con fade a la derecha
     const pin = hoyoActual(r).pin
     const giro = hab?.id === 'comba' ? puttMagoDe(r).lado * PUTT_MAGO.giro : 0
     // los 15 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
     const noLaFalla = hab?.id === 'dadas' && dist(b, pin) * hoyoActual(r).escala <= DADA
     const retro = hab?.id === 'retro'
-    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso }
+    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1) * (r.mufa ? MUFA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso, mufa: !!r.mufa, blando: !!r.blando }
   }
   const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
@@ -1006,6 +1006,9 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     const e = Math.max(dif.error, CORTO.minimo) * Math.min(1, (CORTO.hasta - cy) / CORTO.transicion) // solo de cerca
     plan.disp = { ...plan.disp, carry: Math.max(plan.disp.carry, (CORTO.largo * e) / cy), ang: Math.max(plan.disp.ang, Math.atan((CORTO.ancho * e) / cy)) }
   }
+  // 😈 mufado por el Equipo 5: más error (y el latido más rápido: ver la página). 🥺 Ablandado por un Dicky: sale corto
+  if (r.mufa) { plan.disp = { ...plan.disp, ang: plan.disp.ang * MUFA.error, carry: plan.disp.carry * MUFA.error }; plan.mufa = true }
+  if (r.blando) { plan.carry *= MUFA.blando; plan.blando = true }
   plan.destino = [b[0] + Math.cos(plan.cuerda) * plan.carry, b[1] + Math.sin(plan.cuerda) * plan.carry]
   return plan
 }
@@ -1850,6 +1853,11 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada
   tiro.calma = !!r.calma
   r.calma = false
+  // la mufa y el ablandado son de un tiro
+  tiro.mufa = !!r.mufa
+  tiro.blando = !!r.blando
+  r.mufa = false
+  r.blando = false
   if (r.prestado) tiro.prestado = r.jugador.apodo // la Dickyllamada: este lo pegó el Dicky que atendió
   // Joaco: de 15 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola)
   if (plan.noLaFalla) tiro.iman = { meter: true, lechu: true }
@@ -2603,6 +2611,36 @@ export function fraseVestuario(rng, quien, para, momento = 'todos') {
   return deLaLista(rng, VESTUARIO[momento] ?? VESTUARIO.todos, VESTUARIO_PROPIA[quien])(nombreDe(para))
 }
 
+// ── 😈 la mufa y el abrazo: cuando el Equipo 5 chicanea a un Dicky, le mufa el próximo tiro (más error, el latido más
+// rápido), salvo que toques ABRAZO a tiempo (`ventana` ms): entra un Dicky y la corta. Al revés, jugando con el Equipo 5 a
+// veces se cuela un Dicky a ablandarte con amor: el próximo tiro sale corto, salvo que toques ¡FUERA, DICKY! a tiempo ──
+export const MUFA = { ventana: 4000, error: 1.7, latido: 0.75, blando: 0.85, ablandar: 0.22 }
+// el Dicky que te abraza a tiempo (e = Joaco o Lucas, el que mufó)
+export const ABRAZO = [(e) => `¡Abrazo grupal! La mufa de ${e} no entra acá 💛`, () => 'Vení que te abrazo. Mufa cancelada 🤗', (e) => `${e}, con amor no hay mufa que valga 💚`, () => 'El amor vence a la mufa 💛']
+// después de un tiro mufado (no llegaste al abrazo): el Dicky que viene
+export const CONSUELO_MUFA = [(e) => `Esa fue la mufa de ${e}, no vos 💛`, () => 'Mufa del Equipo 5. Vos jugás bárbaro igual 💚', (e) => `No le hagas caso a ${e}. Te quiero igual 🤗`]
+// el Dicky que se cuela a ablandar al que juega con el Equipo 5 (n = el que juega)
+export const ABLANDA = [(n) => `Pegale suavecito, ${n}. Con amor 💛`, () => '¿Para qué tanta fuerza? Abrazame 🤗', () => 'Respirá. No hace falta ganarle a nadie 💚', (n) => `${n}, ¿y si dejamos la rivalidad y nos damos un abrazo? 🤗`]
+export const ABLANDA_PROPIA = {
+  'Fito (Đ)': { Lucas: [() => 'Hermano, aflojá. Te quiero 💛'] },
+  'Taiu (Đ)': { todos: [() => 'Croac… despacito, que el hoyo no se va 🐸'] },
+  'El Ninja (Đ)': { todos: [() => 'Shh… suavecito. Nadie te apura 🥷'] },
+  'Mike Queboni (Đ)': { todos: [() => 'Tranquilo, bonito. Despacito y con miel 🍯'] },
+}
+// el compañero, cuando lo espantás a tiempo (n = el que juega) y cuando no llegaste (te ablandaron)
+export const ESPANTA = [(n) => `¡No te ablandes, ${n}! #Equipo5`, () => '¡Fuera, Dicky! Guarida lejos de los Dicky 🦉', () => '#BastaDeDickyTontos 🔥', (n) => `Ni un abrazo, ${n}. Somos Equipo 5`]
+export const ABLANDADO = [(n) => `Te ablandaron, ${n}. Tenía que ser un Dicky`, (n) => `¿Un abrazo de un Dicky? Así no, ${n}`, () => 'Mucho amor, poca distancia. Dicky tenía que ser']
+/** El Dicky `quien` le dice algo a `e5` o al que juega: `que` = 'abrazo' | 'consuelo' (e = el que mufó) o 'ablanda' (al que juega). */
+export function fraseDickyE5(rng, quien, que, j) {
+  const n = nombreDe(j)
+  if (que === 'abrazo') return elegir(rng, ABRAZO)(n)
+  if (que === 'consuelo') return elegir(rng, CONSUELO_MUFA)(n)
+  const suyas = ABLANDA_PROPIA[quien] ?? {}
+  return deLaLista(rng, ABLANDA, [...(suyas[n] ?? []), ...(suyas.todos ?? [])], 0.4)(n)
+}
+/** El compañero del Equipo 5: 'espanta' (lo espantaste a tiempo) o 'ablandado' (te ablandaron). n = el que juega. */
+export const fraseCompaE5 = (rng, que, j) => elegir(rng, que === 'espanta' ? ESPANTA : ABLANDADO)(nombreDe(j))
+
 // ── 🦉📺 la Mejor pelota del Equipo 5 (una por vuelta, "fourball: Guarino-Castelli, mejor tarjeta"): pegás vos, después
 // el compañero desde el mismo lugar (también lo apuntás vos), cada uno con su handicap y su habilidad, y elegís con cuál
 // te quedás. Cuenta un golpe ──
@@ -2628,7 +2666,7 @@ export const compaSinError = (r) => habilidadDe(r.mejorPelota?.compa)?.id === 'c
  */
 export function golpeCompa(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0, soltada = null) {
   const compa = r.mejorPelota.compa
-  const copia = { ...r, jugador: compa, monos: [], golpeMago: null, deme: null, furia: null, calma: compaSinError(r), barro: false, proxSorpresa: undefined, ruleta: null, ruletaToca: false, prestado: null, carro: null }
+  const copia = { ...r, jugador: compa, monos: [], golpeMago: null, deme: null, furia: null, calma: compaSinError(r), mufa: false, blando: false, barro: false, proxSorpresa: undefined, ruleta: null, ruletaToca: false, prestado: null, carro: null }
   const t = golpear(campo, copia, angulo, potencia, rng, precision, tiempo, null, soltada)
   t.monos = null
   t.compa = compa.apodo

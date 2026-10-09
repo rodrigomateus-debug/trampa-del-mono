@@ -1890,6 +1890,39 @@ ok('🦉📺 Mejor pelota: LG de compañero después de un mal tiro va con su ha
   assert.ok(!M.compaSinError(r3))
 })
 
+ok('😈 la mufa (más error) y 🥺 el ablandado (más corto): son de un tiro y se gastan al pegar', () => {
+  const por = (a) => RULETA.pool.find((j) => j.apodo === a)
+  const fito = por('Fito (Đ)'), lg = por('LG')
+  const r = { ...M.nuevaRonda(fito, fijo(0.5)), monos: [], pelota: [h15.pin[0], h15.pin[1] + 120], lie: 'fairway' }
+  const normal = M.planTiro(quieto, r, -Math.PI / 2, 0.6)
+  r.mufa = true
+  const mufado = M.planTiro(quieto, r, -Math.PI / 2, 0.6)
+  assert.equal(mufado.mufa, true)
+  assert.ok(Math.abs(mufado.disp.ang - normal.disp.ang * M.MUFA.error) < 1e-9 && Math.abs(mufado.disp.carry - normal.disp.carry * M.MUFA.error) < 1e-9)
+  assert.equal(mufado.carry, normal.carry)
+  const t = M.golpear(quieto, r, -Math.PI / 2, 0.6, sinRuido())
+  assert.equal(t.mufa, true)
+  assert.equal(r.mufa, false) // se gastó
+  r.blando = true
+  const blando = M.planTiro(quieto, r, -Math.PI / 2, 0.6)
+  assert.ok(Math.abs(blando.carry - normal.carry * M.MUFA.blando) < 1e-9 && blando.blando)
+  M.golpear(quieto, r, -Math.PI / 2, 0.6, sinRuido())
+  assert.equal(r.blando, false)
+  // en el green: el putt mufado con más error; el blando, más corto
+  const g = { ...M.nuevaRonda(lg, fijo(0.5)), monos: [], lie: 'green', pelota: [h15.pin[0], h15.pin[1] + 8] }
+  const p0 = M.planTiro(plano, g, -Math.PI / 2, 0.5)
+  g.mufa = true; g.blando = true
+  const p1 = M.planTiro(plano, g, -Math.PI / 2, 0.5)
+  assert.ok(Math.abs(p1.error - p0.error * M.MUFA.error) < 1e-9 && Math.abs(p1.carry - p0.carry * M.MUFA.blando) < 1e-9)
+  // las frases
+  const rng = M.rngDesde(4)
+  for (let i = 0; i < 40; i++) {
+    for (const q of ['abrazo', 'consuelo', 'ablanda']) { const f = M.fraseDickyE5(rng, 'Fito (Đ)', q, lg); assert.ok(f.length > 5 && !f.includes('undefined') && !f.includes('(Đ)')) }
+    for (const q of ['espanta', 'ablandado']) assert.ok(!M.fraseCompaE5(rng, q, lg).includes('undefined'))
+  }
+  assert.ok(Array.from({ length: 60 }, () => M.fraseDickyE5(rng, 'Fito (Đ)', 'ablanda', lg)).some((f) => f.includes('Hermano')))
+})
+
 ok('🔒 Taiu: se desbloquea con −1 o mejor (firmado) con Fito, Miguelón y el Ninja', () => {
   const req = DESBLOQUEO_TAIU
   assert.deepEqual(req.con, ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'])
