@@ -1765,6 +1765,94 @@ ok('📞 Dickyllamada: un Dicky te pega el próximo tiro (con su habilidad) y te
   assert.equal(M.momentoDicky({ tipo: 'normal', terreno: 'fairway' }), 'bien')
 })
 
+ok('🦉📺 el Equipo 5: chicanas a los Dicky, la respuesta con amor y el aliento entre ellos (Joaco y Lucas, sin "(Đ)")', () => {
+  const por = (a) => RULETA.pool.find((j) => j.apodo === a)
+  const lechu = por('Lechu'), lg = por('LG'), fito = por('Fito (Đ)')
+  assert.ok(M.esEquipo5(lechu) && M.esEquipo5(lg) && !M.esEquipo5(fito))
+  assert.ok(lechu.torso && lg.torso)
+  assert.equal(M.compaE5(lechu, RULETA.pool), lg)
+  assert.equal(M.compaE5(lg, RULETA.pool), lechu)
+  assert.equal(M.compaE5(fito, RULETA.pool), null)
+  const rng = M.rngDesde(11)
+  const limpia = (f) => typeof f === 'string' && f.length > 5 && !f.includes('(Đ)') && !f.includes('undefined')
+  for (let i = 0; i < 60; i++) {
+    for (const m of ['bien', 'mal', 'todos']) {
+      assert.ok(limpia(M.fraseChicana(rng, 'LG', fito, m)))
+      assert.ok(limpia(M.fraseVestuario(rng, 'Lechu', lg, m)))
+    }
+    assert.ok(limpia(M.contestaDicky(rng, 'Mike Queboni (Đ)', lechu)))
+    for (const m of ['arma', 'compa', 'tuya']) assert.ok(limpia(M.fraseVestuario(rng, 'LG', lechu, m)))
+  }
+  // se dicen Joaco y Lucas (las cartas son Lechu y LG); Lucas y Fito son hermanos
+  const fitoALucas = new Set(Array.from({ length: 80 }, () => M.contestaDicky(rng, 'Fito (Đ)', lg)))
+  assert.ok([...fitoALucas].some((f) => f.includes('hermano')))
+  assert.ok([...fitoALucas].every((f) => !f.includes('LG')))
+  const aJoaco = new Set(Array.from({ length: 80 }, () => M.fraseVestuario(rng, 'LG', lechu, 'tuya')))
+  assert.ok([...aJoaco].some((f) => f.includes('Joaco')))
+})
+
+ok('📺 LG relata de hincha: a los Dicky les festeja los errores; al Equipo 5, de gol; lo de las habilidades no lo pisa', () => {
+  const por = (a) => RULETA.pool.find((j) => j.apodo === a)
+  const rough = { tipo: 'normal', terreno: 'rough' }, full = { eventos: [], modo: 'full', carry: 100, pos: [0, 0] }
+  const veces = (j, res, n = 200) => {
+    const rng = M.rngDesde(5)
+    return Array.from({ length: n }, () => M.comentar(rng, res, full, h15, j).lg)
+  }
+  const contra = veces(por('Fito (Đ)'), rough)
+  assert.ok(contra.some((l) => M.RELATO.contraDicky.includes(l)) && contra.some((l) => M.RELATO.rough.includes(l)))
+  const e5 = veces(por('Lechu'), rough)
+  assert.ok(e5.some((l) => M.RELATO.e5Mal.includes(l)))
+  // LG con su calma: después de un mal tiro dice lo suyo, no de hincha
+  assert.ok(veces(por('LG'), rough).every((l) => M.RELATO.calma.includes(l)))
+  // los demás, como siempre
+  assert.ok(veces(por('Mugre'), rough).every((l) => M.RELATO.rough.includes(l)))
+  // y el resultado del hoyo, a veces
+  const rng = M.rngDesde(3)
+  const res = Array.from({ length: 100 }, () => M.fraseResultado(rng, 'BIRDIE', por('LG')))
+  assert.ok(res.some((f) => M.HINCHA_RESULTADO.e5.BIRDIE.includes(f)) && res.some((f) => M.POR_RESULTADO.BIRDIE.includes(f)))
+})
+
+ok('🦉📺 Mejor pelota: una por vuelta, solo el Equipo 5; el compañero pega sobre una copia y queda la mejor de las dos', () => {
+  const por = (a) => RULETA.pool.find((j) => j.apodo === a)
+  const lechu = por('Lechu'), lg = por('LG'), fito = por('Fito (Đ)')
+  assert.ok(!M.puedeMejorPelota(M.nuevaRonda(fito, fijo(0.5))))
+  const r = { ...M.nuevaRonda(lg, fijo(0.5)), monos: [] }
+  assert.ok(M.puedeMejorPelota(r))
+  assert.equal(M.armarMejorPelota(r, lg), false) // con uno mismo no
+  assert.equal(M.armarMejorPelota(r, fito), false) // solo con el compañero del Equipo 5
+  assert.equal(M.armarMejorPelota(r, lechu), true)
+  assert.ok(M.mejorPelotaArmada(r))
+  M.desarmarMejorPelota(r) // guardarla no la gasta
+  assert.ok(!M.mejorPelotaArmada(r) && M.puedeMejorPelota(r))
+  assert.equal(M.armarMejorPelota(r, lechu), true)
+  // el compañero pega primero, sobre una copia: no cuenta golpe ni mueve nada de la ronda
+  const monos = [{ pos: [1, 1] }]
+  r.monos = monos
+  const suya = M.golpeCompa(quieto, r, -Math.PI / 2, 1, sinRuido())
+  assert.equal(suya.compa, 'Lechu')
+  assert.equal(suya.monos, null)
+  assert.equal(r.golpes, 0)
+  assert.equal(r.monos, monos)
+  assert.equal(r.jugador, lg)
+  assert.ok(!M.mejorPelotaArmada(r) && !M.puedeMejorPelota(r)) // gastada: una por vuelta
+  r.monos = []
+  const mia = M.golpear(quieto, r, -Math.PI / 2, 1, sinRuido())
+  assert.equal(r.golpes, 1)
+  M.simular(quieto, suya, h15.pin); M.simular(quieto, mia, h15.pin)
+  // queda la que está más cerca (o en mejor lugar); si empatan, la tuya
+  const q = M.mejorDeLasDos(quieto, r, mia, suya)
+  const [vm, vs] = [M.valorPelota(quieto, r, mia), M.valorPelota(quieto, r, suya)]
+  assert.equal(q, vs < vm ? suya : mia)
+  assert.equal(M.mejorDeLasDos(quieto, r, mia, mia), mia)
+  // embocada gana siempre; afuera pierde contra cualquiera en la cancha
+  const en = (pos, extra = {}) => ({ pos, ...extra })
+  const pin = h15.pin
+  assert.equal(M.valorPelota(quieto, r, en(pin, { embocada: true })), -1)
+  const verde = en([pin[0] + 3, pin[1]])
+  assert.ok(M.valorPelota(quieto, r, verde) < M.valorPelota(quieto, r, en(buscar('x', [0, 0, 400, 400]))))
+  assert.ok(M.valorPelota(quieto, r, verde) < M.valorPelota(quieto, r, en(enArbol)))
+})
+
 ok('🔒 Taiu: se desbloquea con −1 o mejor (firmado) con Fito, Miguelón y el Ninja', () => {
   const req = DESBLOQUEO_TAIU
   assert.deepEqual(req.con, ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'])

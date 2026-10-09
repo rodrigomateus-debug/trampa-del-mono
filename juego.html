@@ -78,7 +78,7 @@ body {
    Cada botón define su sombra (--sh) y cuánto se corre (--dx/--dy); --rot es la inclinación de afiche del CTA principal.
    Colores: oro = la acción principal (una por pantalla) · crema = secundaria sobre verde · verde = sobre superficies crema
    · rojo = salir/borrar · ghost = terciaria sobre verde (borde crema, sin sombra). */
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #ninja-btn, #sonido, .volver-app) {
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, #sonido, .volver-app) {
   --sh: var(--game-shadow-md); --dx: 4px; --dy: 5px; --rot: rotate(0deg);
   box-sizing: border-box;
   border: var(--game-stroke) solid var(--game-ink);
@@ -89,14 +89,14 @@ body {
   translate: 0 0;
   transition: translate var(--game-release-dur) var(--game-ease-bounce), box-shadow var(--game-release-dur) var(--game-ease-bounce), background-color var(--game-press-dur), opacity 150ms;
 }
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #ninja-btn, #sonido, .volver-app):active:not([disabled]) {
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, #sonido, .volver-app):active:not([disabled]) {
   translate: var(--dx) var(--dy); /* translate, no transform: así se suma a la inclinación y a las animaciones */
   box-shadow: 0 0 0 var(--game-ink);
   transition-duration: var(--game-press-dur);
   transition-timing-function: ease-out;
 }
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #ninja-btn, #sonido, .volver-app)[disabled] { opacity: .45; cursor: not-allowed; }
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #ninja-btn, #sonido, .volver-app):focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, #sonido, .volver-app)[disabled] { opacity: .45; cursor: not-allowed; }
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, #sonido, .volver-app):focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 /* los íconos del set SDGA (GameIcon): trazo tinta 2,5px, papel crema y acento dorado; cada botón cambia los tres */
 .gi { display: block; flex: none; width: 24px; height: 24px; overflow: visible; --gi-s: var(--game-ink); --gi-f: var(--cream); --gi-a: var(--gold); }
 .gi g { fill: none; stroke: var(--gi-s); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -189,7 +189,7 @@ body {
 body.apuntando #hud-top .card { opacity: .18; }
 body.apuntando #crono, body.apuntando #viento, body.apuntando #efecto, body.apuntando #golpes { opacity: .45; }
 #hud-chips > * { transition: opacity 150ms; }
-body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando #deme-btn, body.apuntando #dicky-btn, body.apuntando #ninja-btn { opacity: .25; pointer-events: none; }
+body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando #deme-btn, body.apuntando #dicky-btn, body.apuntando #e5-btn, body.apuntando #ninja-btn { opacity: .25; pointer-events: none; }
 
 /* ── banda central (intro de hoyo y resultado) ── */
 #banda {
@@ -1312,6 +1312,22 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 #dicky .corazones span { position: absolute; bottom: 30%; font-size: 22px; opacity: 0; animation: corazon-sube 2.6s ease-out forwards; }
 @keyframes corazon-sube { 0% { opacity: 0; transform: translateY(0) scale(.5); } 15% { opacity: 1; transform: translateY(-20px) scale(1.1); } 100% { opacity: 0; transform: translateY(-190px) translateX(var(--dx, 0)) scale(.8) rotate(var(--giro, 0deg)); } }
 @media (prefers-reduced-motion: reduce) { #dicky-btn, #dicky-btn b { animation: none; } #dicky .corazones { display: none; } }
+/* 🦉📺 el Equipo 5 en pantalla (la chicana a los Dicky o el compañero que alienta): el escudo, el nombre en verde con
+   su #Equipo5 y, en vez de corazones, búhos, teles y copas */
+#dicky .escudo { display: none; position: absolute; left: 4%; top: 2%; width: 27%; height: auto; transform: rotate(-12deg); filter: drop-shadow(2px 3px 0 rgba(12, 43, 28, .55)); }
+#dicky.e5 .escudo { display: block; }
+#dicky.e5 .globo b { color: var(--green-900); }
+#dicky.e5 .globo b::after { content: '#EQUIPO5'; display: inline-block; margin-left: 6px; padding: 2px 5px 1px; background: var(--gold); color: var(--game-ink); border: 1.5px solid var(--game-ink); font-size: 11px; letter-spacing: .06em; vertical-align: 2px; transform: rotate(-3deg); }
+/* la Mejor pelota (una por vuelta): el escudo del Equipo 5 en un botón redondo, como la Dickyllamada; armada, late dorada */
+#e5-btn { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; --rot: rotate(-5deg); position: fixed; right: 32px; bottom: calc(var(--safe-bot) + 34px); width: 92px; height: 92px; border-radius: 50%; padding: 0; background: var(--green-900); animation: g-wiggle 3.6s ease-in-out 1.2s infinite; }
+#e5-btn img { display: block; width: 100%; height: 100%; border-radius: 50%; pointer-events: none; }
+#e5-btn .cinta { position: absolute; left: 50%; bottom: -12px; width: max-content; transform: translateX(-50%) rotate(-7deg); background: var(--gold); color: var(--game-ink); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); font: 13px/1 var(--font-display); letter-spacing: .05em; padding: 5px 7px 4px; text-align: center; white-space: nowrap; }
+#e5-btn b { position: absolute; top: -9px; right: -9px; width: 34px; height: 34px; box-sizing: border-box; border-radius: 50%; background: var(--cream); border: 2.5px solid var(--game-ink); display: grid; place-items: center; font-size: 17px; line-height: 1; }
+#e5-btn.armada { animation: e5-late .5s ease-in-out infinite alternate; box-shadow: 0 0 0 5px var(--gold), 5px 6px 0 5px var(--game-ink); }
+#e5-btn.armada .cinta { background: var(--cream); }
+#e5-btn[disabled] { animation: none; }
+@keyframes e5-late { from { transform: rotate(-5deg) scale(1); } to { transform: rotate(-5deg) scale(1.07); } }
+@media (prefers-reduced-motion: reduce) { #e5-btn, #e5-btn.armada { animation: none; } }
 
 /* el Ninja: el botón RESET (el mismo diseño que Deme y el pancho: redondo, borde tinta, sombra dura) */
 #ninja-btn { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); width: 88px; height: 88px; border-radius: 50%; background: var(--game-ink); color: var(--cream); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; font-family: var(--font-display); animation: g-wiggle 3.6s ease-in-out 1.2s infinite; }
@@ -1323,7 +1339,7 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 #ninja-btn[disabled] { animation: none; }
 /* con dos botones (el Ninja es Dicky): la Dickyllamada va arriba del RESET */
 body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
-#dicky-btn, #ninja-btn { z-index: 31; } /* arriba del Dicky que aparece (que no se toca: pointer-events none) */
+#dicky-btn, #e5-btn, #ninja-btn { z-index: 31; } /* arriba del Dicky que aparece (que no se toca: pointer-events none) */
 
 /* 🪄 los golpes del Mago (Rodal): antes de cada tiro elegís cuál (en el green, el putt) */
 #mago-golpes { --mago: #3b2a74; position: fixed; left: 12px; right: 12px; bottom: calc(var(--safe-bot) + 14px); z-index: 30; display: flex; justify-content: center; align-items: flex-end; gap: 8px; pointer-events: none; transition: opacity .15s; }
@@ -1630,6 +1646,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
 <div id="mago-golpes" role="group" aria-label="Golpes del Mago: elegí con cuál pegás" hidden></div>
 <button id="ninja-btn" type="button" hidden aria-label="Reset ninja: el hoyo de nuevo desde el tee, sin multa"><span class="emo" aria-hidden="true">🥷</span><span class="txt">RESET</span><b aria-hidden="true">1</b></button>
+<button id="e5-btn" type="button" hidden aria-label="Mejor pelota: el próximo tiro lo pegan los dos y queda la mejor"><img src="equipo-5.svg" alt="" draggable="false"><span class="cinta">MEJOR PELOTA</span><b aria-hidden="true"></b></button>
 <button id="dicky-btn" type="button" hidden aria-label="Dickyllamada: llamá a otro Dicky"><img src="dicky-toons.svg" alt="" draggable="false"><span class="cinta">DICKYLLAMADA</span><b aria-hidden="true">📞</b></button>
 <button id="logro" type="button" hidden aria-live="assertive" aria-label="Logro desbloqueado: Taiu. Tocá para verlo">
   <span class="lg-ico"><img src="jugadores/la-rana-torso.webp" alt="" draggable="false"><i aria-hidden="true"></i></span>
@@ -1661,7 +1678,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <div class="dk-lista" id="dk-lista"></div>
   </div>
 </div>
-<div id="dicky" hidden aria-live="polite"><div class="corazones" aria-hidden="true"></div><div class="cuerpo"><img alt="" width="480" height="480" draggable="false"><p class="globo"><b class="quien"></b><span class="dice"></span></p></div></div>
+<div id="dicky" hidden aria-live="polite"><div class="corazones" aria-hidden="true"></div><div class="cuerpo"><img alt="" width="480" height="480" draggable="false"><img class="escudo" src="equipo-5.svg" alt="" draggable="false"><p class="globo"><b class="quien"></b><span class="dice"></span></p></div></div>
 <div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
 <div id="banda" aria-live="polite">
@@ -2375,6 +2392,9 @@ function pegarYa(a, base = null) {
   escVuelo = a.putt ? null : Math.min(9, (base?.esc ?? obj.esc) * 1.15)
   datos.tiros = (datos.tiros ?? 0) + 1
   guardar(datos)
+  // 🦉📺 la Mejor pelota: el compañero le pega antes que vos (desde el mismo lugar y para el mismo lado) y vuelan las dos
+  tiroCompa = M.mejorPelotaArmada(ronda) ? M.golpeCompa(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo) : null
+  estelaCompa = []
   tiro = M.golpear(campo, ronda, a.ang, a.p, rng, a.q, a.tiempo, a.ruta ?? null, a.soltada ?? null)
   if (tiro.flecha) S.flecha() // El Sueco: la cuerda del arco, no el palo
   else S.golpe(a.p, a.putt)
@@ -2609,16 +2629,28 @@ function actualizar(dt) {
   if (estado === 'tiro' && tiro) {
     const h = M.hoyoActual(ronda)
     acc += dt
-    while (acc >= PASO && tiro.fase !== 'quieta') { M.avanzar(campo, tiro, PASO, h.pin); acc -= PASO }
+    // con la Mejor pelota vuelan dos: se espera a que paren las dos
+    const anda = () => tiro.fase !== 'quieta' || (tiroCompa && tiroCompa.fase !== 'quieta')
+    while (acc >= PASO && anda()) {
+      if (tiro.fase !== 'quieta') M.avanzar(campo, tiro, PASO, h.pin)
+      if (tiroCompa && tiroCompa.fase !== 'quieta') M.avanzar(campo, tiroCompa, PASO, h.pin)
+      acc -= PASO
+    }
     sonarEventos(tiro)
     estela.push([tiro.pos[0], tiro.pos[1], tiro.alt])
     if (estela.length > 70) estela.shift()
+    if (tiroCompa) {
+      sonarEventos(tiroCompa)
+      estelaCompa.push([tiroCompa.pos[0], tiroCompa.pos[1], tiroCompa.alt])
+      if (estelaCompa.length > 70) estelaCompa.shift()
+    }
+    const t = tiro.fase === 'quieta' && tiroCompa && tiroCompa.fase !== 'quieta' ? tiroCompa : tiro // la que sigue la cámara
     // la corbata: la cámara se acerca al hoyo para que se vea la vuelta
-    if (tiro.vuelta && !tiro.vuelta.hecha) { obj = { ...obj, cx: h.pin[0], cy: h.pin[1], esc: Math.max(obj.esc, 30) }; velCam = 4 }
+    if (t.vuelta && !t.vuelta.hecha) { obj = { ...obj, cx: h.pin[0], cy: h.pin[1], esc: Math.max(obj.esc, 30) }; velCam = 4 }
     // tiro completo: la cámara se vuelve a acercar y acompaña a la pelota (de cerca, no con la cancha entera)
-    else if (escVuelo && tiro.modo === 'full') { obj = { ...obj, cx: tiro.pos[0], cy: tiro.pos[1], esc: escVuelo }; velCam = 6 }
-    else seguir(tiro.pos)
-    if (tiro.fase === 'quieta') { acc = 0; alReposo() }
+    else if (escVuelo && t.modo === 'full') { obj = { ...obj, cx: t.pos[0], cy: t.pos[1], esc: escVuelo }; velCam = 6 }
+    else seguir(t.pos)
+    if (!anda()) { acc = 0; alReposo() }
   }
   if (estado === 'manejar' && ronda?.carro) manejarCuadro(dt)
   if (ronda && estado !== 'tiro') {
@@ -2721,6 +2753,7 @@ function sonarEventos(t) {
   }
 }
 function alReposo() {
+  if (tiroCompa) elegirMejorPelota()
   sorpresaQueQueda(tiro) // Juanpa: el árbol o el carrito quedan un ratito en pantalla
   const h = M.hoyoActual(ronda)
   const donde = [...tiro.pos]
@@ -2776,6 +2809,20 @@ function alReposo() {
     return
   }
   siguienteTiro()
+}
+/** La Mejor pelota: pararon las dos; queda la mejor (desde ahí se sigue, con la multa si la tiene) y la otra se apaga. */
+let tiroCompa = null, estelaCompa = [], descartada = null
+function elegirMejorPelota() {
+  const mia = tiro, suya = tiroCompa
+  const compa = ronda.mejorPelota?.compa
+  tiroCompa = null
+  estelaCompa = []
+  tiro = M.mejorDeLasDos(campo, ronda, mia, suya)
+  tiro.mejorPelota = true
+  const otra = tiro === mia ? suya : mia
+  if (!otra.embocada) descartada = { pos: [...otra.pos], t0: performance.now() }
+  marcarTiro(tiro === suya ? `QUEDA LA DE ${(compa?.apodo ?? '').toUpperCase()}` : 'QUEDA LA TUYA', tiro.pos)
+  S.ruletaCae()
 }
 function siguienteTiro() {
   tiro = null
@@ -3154,6 +3201,8 @@ function empezar(jugador) {
   else M.ponerClima(campo, ronda, M.CLIMAS[climaUrl] ? climaUrl : M.sortearClima(rng), Math.floor(rng() * 4294967296))
   climaPorAnunciar = true
   fxClima = []
+  chicanaDe = null; chicanaVino = false; clearTimeout(chicanaTimer)
+  tiroCompa = null; estelaCompa = []; descartada = null
   fondoDelClima(ronda.clima?.id)
   datos.ultimo = jugador.apodo
   guardar(datos)
@@ -3480,13 +3529,17 @@ const dickysLibres = () => DICKYS.filter((d) => !bloqueado(d)) // Taiu, bloquead
 const hayOtroDicky = (j) => !!j?.dicky && dickysLibres().some((d) => d.apodo !== j.apodo)
 const sinD = (apodo) => apodo.replace(/ \(Đ\)$/, '')
 let dickyTimer = 0, dickyUltimo = null
-/** Entra el Dicky `d` abajo a la izquierda, con su foto recortada, su nombre, lo que dice y corazones. */
-function dickyVisita(d, texto) {
+/**
+ * Entra el Dicky `d` abajo a la izquierda, con su foto recortada, su nombre, lo que dice y corazones. Con `e5`, es uno
+ * del Equipo 5 (Joaco o Lucas): con el escudo y su #Equipo5, y búhos, teles y copas en vez de corazones.
+ */
+function dickyVisita(d, texto, e5 = false) {
   // si Miguelón está revoleando el palo (abajo a la izquierda), el Dicky espera a que termine
   const falta = (revolearPalo.hasta ?? 0) - performance.now()
-  if (falta > 0) { clearTimeout(dickyTimer); dickyTimer = setTimeout(() => dickyVisita(d, texto), falta + 50); return }
-  dickyVisita.ultima = [d, texto]
+  if (falta > 0) { clearTimeout(dickyTimer); dickyTimer = setTimeout(() => dickyVisita(d, texto, e5), falta + 50); return }
+  dickyVisita.ultima = [d, texto, e5]
   const el = $('#dicky')
+  el.classList.toggle('e5', e5)
   el.querySelector('img').src = d.torso
   el.querySelector('img').alt = d.apodo
   el.querySelector('.quien').textContent = `${d.emoji} ${sinD(d.apodo).toUpperCase()}`
@@ -3495,7 +3548,7 @@ function dickyVisita(d, texto) {
   cor.innerHTML = ''
   for (let i = 0; i < 7; i++) {
     const c = document.createElement('span')
-    c.textContent = ['💛', '💚', '❤️', '🩷'][i % 4]
+    c.textContent = (e5 ? ['🦉', '📺', '🏆', '🔥'] : ['💛', '💚', '❤️', '🩷'])[i % 4]
     c.style.left = `${10 + Math.random() * 70}%`
     c.style.animationDelay = `${0.3 + i * 0.22}s`
     c.style.setProperty('--dx', `${Math.round((Math.random() - 0.5) * 60)}px`)
@@ -3512,19 +3565,63 @@ function dickyVisita(d, texto) {
     dickyTimer = setTimeout(() => { el.hidden = true; el.classList.remove('sale') }, 540)
   }, 2300 + 40 * texto.length)
 }
-/** Después de cada tiro: si jugás con un Dicky, aparece otro (no el mismo dos veces seguidas); si te pegó el tiro uno de la Dickyllamada, es él. */
+/**
+ * Después de cada tiro: si jugás con un Dicky, aparece otro (no el mismo dos veces seguidas); si te pegó el tiro uno
+ * de la Dickyllamada, es él. A veces, en vez del Dicky, se cuela uno del Equipo 5 a chicanear (y el Dicky que viene le
+ * contesta). Si jugás con uno del Equipo 5, aparece su compañero.
+ */
 function dickyDespues(res, tiro) {
   const yo = ronda.jugador
+  clearTimeout(chicanaTimer)
   if (tiro.prestado) {
     const d = DICKYS.find((x) => x.apodo === tiro.prestado)
     if (d) dickyVisita(d, M.fraseDicky(rng, d.apodo, yo, 'ayuda'))
     return
   }
+  if (M.esEquipo5(yo)) { compaDespues(res, tiro); return }
   if (!hayOtroDicky(yo)) return
+  // el Equipo 5 chicaneó y no le contestaron (pegaste antes): le contesta este
+  if (chicanaDe) { contestarChicana(); return }
+  const chicana = EQUIPO5.length && !chicanaVino && rng() < M.E5.chicana
+  chicanaVino = chicana // nunca dos chicanas seguidas
+  if (chicana) { chicanear(M.elegir(rng, EQUIPO5), yo, M.momentoDicky(res)); return }
+  const d = otroDicky(yo)
+  dickyVisita(d, M.fraseDicky(rng, d.apodo, yo, M.momentoDicky(res)))
+}
+/** Un Dicky que no sea el que juega (y no el mismo dos veces seguidas). */
+function otroDicky(yo) {
   const otros = dickysLibres().filter((d) => d.apodo !== yo.apodo)
   const d = M.elegir(rng, otros.length > 1 ? otros.filter((x) => x.apodo !== dickyUltimo) : otros)
   dickyUltimo = d.apodo
-  dickyVisita(d, M.fraseDicky(rng, d.apodo, yo, M.momentoDicky(res)))
+  return d
+}
+// ── 🦉📺 el Equipo 5 (Lechu y LG): los rivales de siempre de los Dicky ──
+const EQUIPO5 = TODOS.filter((j) => M.esEquipo5(j) && j.torso)
+let chicanaDe = null, chicanaVino = false, chicanaTimer = 0
+/** Se cuela `e` (Lechu o LG) a chicanear al Dicky que juega; cuando se va, entra un Dicky a contestarle con amor. */
+function chicanear(e, yo, momento) {
+  const texto = M.fraseChicana(rng, e.apodo, yo, momento)
+  dickyVisita(e, texto, true)
+  chicanaDe = e
+  // si seguís apuntando sin tocar nada, el Dicky le contesta enseguida; si ya pegaste, le contesta el de después del tiro
+  chicanaTimer = setTimeout(() => {
+    if (chicanaDe && ronda && !ronda.terminada && estado === 'apuntar' && !drag && hayOtroDicky(ronda.jugador)) contestarChicana()
+  }, 2300 + 40 * texto.length + 600)
+}
+function contestarChicana() {
+  const d = otroDicky(ronda.jugador)
+  dickyVisita(d, M.contestaDicky(rng, d.apodo, chicanaDe))
+  chicanaDe = null
+}
+/** Jugando con Lechu o LG, después del tiro aparece el compañero (no siempre): aliento de vestuario, o cuál quedó en la Mejor pelota. */
+function compaDespues(res, tiro) {
+  const yo = ronda.jugador
+  const compa = M.compaE5(yo, EQUIPO5)
+  if (!compa) return
+  const m = M.momentoDicky(res)
+  if (tiro.mejorPelota && m !== 'mal') { dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, tiro.compa ? 'compa' : 'tuya'), true); return }
+  if (res.tipo !== 'embocada' && m !== 'mal' && rng() > M.E5.vestuario) return
+  dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, m), true)
 }
 /** La Dickyllamada: el selector con los otros Dicky (el reloj corre; los monos no te alcanzan mientras elegís). */
 function abrirDickyllamada() {
@@ -3596,6 +3693,9 @@ function pintarVoz() {
     clase = ''; dice = voz.lg; extra = voz.extra
   } else if (estado === 'apuntar' && !datos.vistoTip) {
     clase = ''; dice = '👆 Arrastrá para atrás y soltá'; extra = 'El óvalo es donde puede caer'
+  } else if (estado === 'apuntar' && ronda && M.mejorPelotaArmada(ronda)) {
+    const c = ronda.mejorPelota.compa
+    clase = ''; dice = '🦉📺 MEJOR PELOTA: PEGAN LOS DOS'; extra = `Vos y ${c.emoji} ${c.apodo}: queda la mejor de las dos`
   } else if (estado === 'apuntar' && ronda?.calma) {
     clase = ''; dice = '📺 LG no se enoja'; extra = 'El que se enoja pierde: este golpe sale sin error'
   } else if (estado === 'apuntar' && golpeMago()) {
@@ -3609,6 +3709,33 @@ function pintarVoz() {
   $('#voz').className = clase
   $('#r-dice').textContent = dice
   $('#r-extra').textContent = extra
+}
+
+/** La Mejor pelota en el aire: la del compañero, con su estela dorada, y un cartelito arriba de cada una (quién es quién). */
+function dosPelotas() {
+  const c = ronda.mejorPelota?.compa
+  for (let i = 0; i < estelaCompa.length; i += 2) {
+    const [x, y, alt] = estelaCompa[i]
+    const [sx, sy] = w2s([x, y])
+    ctx.fillStyle = `rgba(232,195,74,${(0.55 * i) / estelaCompa.length})`
+    ctx.beginPath(); ctx.arc(sx, sy - alt * levante(), 1.8, 0, 7); ctx.fill()
+  }
+  const donde = (t) => { const [x, y0] = w2s(t.pos); return [x, y0 - t.alt * levante(), radioPelota() * (1 + t.alt / 50)] }
+  const [xm, ym, rm] = donde(tiro), [xc, yc, rc] = donde(tiroCompa)
+  // si van juntas, el cartel del compañero va arriba del tuyo (apilado, como en el replay)
+  const juntas = !tiro.embocada && Math.abs(xm - xc) < 90 && Math.abs(ym - yc) < 26
+  if (!tiro.embocada) cartelPelota(xm, ym, rm, ronda.jugador.emoji, 'VOS', false, 0, H - 90, '#f4eeda', 0.9)
+  if (!tiroCompa.embocada) {
+    pelota(tiroCompa.pos, tiroCompa.alt)
+    if (c) cartelPelota(juntas ? xm : xc, juntas ? ym : yc, juntas ? rm : rc, c.emoji, c.apodo, false, 0, H - 90, '#e8c34a', 0.9, juntas ? 23 : 0)
+  }
+}
+/** La pelota que no quedó (la Mejor pelota): se apaga de a poco donde paró. */
+function pelotaDescartada() {
+  if (!descartada) return
+  const u = (performance.now() - descartada.t0) / 1500
+  if (u >= 1) { descartada = null; return }
+  pelota(descartada.pos, 0, 0.8 * (1 - u))
 }
 
 // ── HUD ──
@@ -3667,6 +3794,16 @@ function hud() {
   if (ninja) $('#ninja-btn').disabled = !M.puedeResetNinja(ronda) || estado !== 'apuntar'
   if (!ninja || $('#ninja-btn').disabled) { ninjaArmado = 0; $('#ninja-btn').classList.remove('armado'); $('#ninja-btn .txt').textContent = 'RESET' }
   document.body.classList.toggle('dos-botones', dicky && ninja && !$('#hud-top').hidden)
+  // el Equipo 5: la Mejor pelota (una por vuelta: el próximo tiro lo pegan los dos y queda la mejor)
+  const compa = !oculto && M.puedeMejorPelota(ronda) ? M.compaE5(ronda.jugador, EQUIPO5) : null
+  $('#e5-btn').hidden = !compa || $('#hud-top').hidden
+  if (compa) {
+    const armada = M.mejorPelotaArmada(ronda)
+    $('#e5-btn').disabled = estado !== 'apuntar'
+    $('#e5-btn').classList.toggle('armada', armada)
+    $('#e5-btn .cinta').textContent = armada ? 'PEGAN LOS DOS' : 'MEJOR PELOTA'
+    $('#e5-btn b').textContent = compa.emoji
+  }
   const maxi = M.habilidadDe(j)?.id === 'deme'
   $('#deme-btn').hidden = !maxi || $('#hud-top').hidden || !ronda.deme || ronda.deme.usado
   if (maxi && ronda.deme) $('#deme-btn').disabled = !M.puedeInvocarDeme(ronda) || estado !== 'apuntar'
@@ -3831,6 +3968,16 @@ function golpeMago() {
 let lpArmado = 0
 $('#pancho').addEventListener('click', tirarPancho)
 $('#dicky-btn').addEventListener('click', abrirDickyllamada)
+$('#e5-btn').addEventListener('click', () => {
+  if (!ronda || estado !== 'apuntar') return
+  const yo = ronda.jugador
+  if (M.mejorPelotaArmada(ronda)) { M.desarmarMejorPelota(ronda); S.tap(); hud(); return } // guardada: no se gasta
+  const compa = M.compaE5(yo, EQUIPO5)
+  if (!compa || !M.armarMejorPelota(ronda, compa)) return
+  S.ruletaCae()
+  dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, 'arma'), true)
+  hud()
+})
 $('#ninja-btn').addEventListener('click', resetDelNinja)
 $('#deme-btn').addEventListener('click', llamarADeme)
 $('#lp').addEventListener('click', () => {
@@ -3978,8 +4125,9 @@ function dibujar() {
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
-    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro); if (!tiro.embocada) pelota(tiro.pos, tiro.alt) }
+    else if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro); if (!tiro.embocada) pelota(tiro.pos, tiro.alt); if (tiroCompa) dosPelotas() }
     else { if (ronda.deme?.listo) auraDeme(ronda.pelota); pelotaQuieta() }
+    pelotaDescartada()
   }
   const a = estado === 'apuntar' ? apunte() : null
   if (drag) drag.visto = a // lo que se ve es lo que sale al soltar
@@ -5921,6 +6069,7 @@ function tarjetaFinal() {
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
   $('#dicky-btn').hidden = true
+  $('#e5-btn').hidden = true
   $('#ninja-btn').hidden = true
   $('#mago-golpes').hidden = true
   document.body.classList.remove('con-mago')
@@ -6369,7 +6518,7 @@ function irAlInicio() {
   clearTimeout(firmaTimer)
   firmaHasta = 0
   for (const id of ['fin', 'comunicado', 'ranking', 'stats', 'resumen', 'match', 'elegir', 'todos']) $('#' + id).hidden = true
-  for (const id of ['hud-top', 'hud-bot', 'pancho', 'marcador', 'deme-btn', 'dicky-btn', 'ninja-btn']) $('#' + id).hidden = true
+  for (const id of ['hud-top', 'hud-bot', 'pancho', 'marcador', 'deme-btn', 'dicky-btn', 'e5-btn', 'ninja-btn']) $('#' + id).hidden = true
   ronda = null
   tiro = null
   anim = null
@@ -8530,6 +8679,7 @@ function mostrarElegir() {
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
   $('#dicky-btn').hidden = true
+  $('#e5-btn').hidden = true
   $('#ninja-btn').hidden = true
   $('#mago-golpes').hidden = true
   document.body.classList.remove('con-mago')

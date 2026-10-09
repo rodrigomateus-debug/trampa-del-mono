@@ -2245,6 +2245,17 @@ export const RELATO = {
   lgSolo: ['LG la pega como LG', 'Con el ESDIGIA esto no pasa', 'LG relata a LG: Tremendo', 'QUE HOMBRE LG'],
   mugre: ['Lurrrrrrpin', 'Lurrrrpin. Hermoso'],
   pancho: ['¡Pancho! Los monos van a comer', 'Pagamos los terceros tiempos', 'Panchito para el mono. Lurrrrpin'],
+  // LG relata de hincha del Equipo 5 (del chat del SDGA): a los Dicky les festeja los errores y les cuesta reconocerles
+  // los buenos; al Equipo 5, relato de gol
+  contraDicky: ['Tenía que ser un Dicky', 'Dicky Toontos', '#BastaDeDickyTontos', 'Mucho Dicky, la verdad', 'Otra pérdida para los Dicky', 'Los Dicky están empezando a desaparecer'],
+  dickyBien: ['Bien… para ser Dicky', 'Lástima que es Dicky', 'Hasta un Dicky la pega a veces', 'Ese tiro no parece de un Dicky'],
+  e5Bien: ['¡EQUIPO 5 EN LLAMAS!', '#EQUIPO5 🏆', 'QUE HOMBRE. Siempre Equipo 5', 'Así juega el Equipo 5. Tremendo'],
+  e5Mal: ['No está muy bien el #Equipo5, pero ya va a mejorar', 'Quieren desestabilizar al #Equipo5', 'Culpa de un Dicky, seguro'],
+}
+// y el resultado del hoyo, también de hincha (a veces)
+export const HINCHA_RESULTADO = {
+  dicky: { BIRDIE: ['Birdie… de un Dicky. Que no se acostumbre'], BOGEY: ['Bogey. Tenía que ser un Dicky'], 'DOBLE BOGEY': ['Doble de Dicky. Clásico'], 'TRIPLE BOGEY': ['Triple. Dicky Toontos'] },
+  e5: { EAGLE: ['EAGLE. EL EQUIPO 5 EN LLAMAS 🔥'], BIRDIE: ['BIRDIE DEL #EQUIPO5 🏆'], PAR: ['Par del Equipo 5. Como corresponde'], BOGEY: ['Bogey. Ya va a mejorar el #Equipo5'] },
 }
 export const VERSOS_BOSQUE = [
   'Los árboles te miran, te rodean en silencio',
@@ -2469,6 +2480,173 @@ function devolverDicky(r) {
   r.prestado = null
 }
 
+// ── 🦉📺 el Equipo 5 (Joaco "Lechu" Castelli y Lucas "LG" Guarino): los rivales de siempre de los Dicky ──
+// Los Dicky son amor; el Equipo 5, chicana y competencia. Las frases salen del chat del SDGA (2023–2026).
+export const esEquipo5 = (j) => j?.equipo === 5
+/** Cómo se llaman en las frases: las cartas son Lechu y LG, pero se dicen Joaco y Lucas. */
+export const NOMBRE_E5 = { Lechu: 'Joaco', LG: 'Lucas' }
+const nombreDe = (j) => NOMBRE_E5[j?.apodo] ?? String(j?.apodo ?? '').replace(/ \(Đ\)$/, '')
+/** Cada cuánto: el Equipo 5 se cuela a chicanear (en vez del Dicky de siempre) y el compañero aparece en el Equipo 5. */
+export const E5 = { chicana: 0.28, vestuario: 0.6 }
+/** El compañero del Equipo 5 de `j` (Lechu ↔ LG), de la lista `todos`. */
+export const compaE5 = (j, todos) => (esEquipo5(j) ? todos.find((x) => esEquipo5(x) && x.apodo !== j.apodo) ?? null : null)
+// la chicana al Dicky que juega (n = su nombre), según cómo le salió el tiro
+export const CHICANA = {
+  todos: [
+    () => 'Dicky? ¿Qué es eso? ¿Se come? 🤔',
+    () => 'Perdón, no les sigo el hilo… ¿qué son los Dicky?',
+    () => 'Los veo muy divididos a los Dicky',
+    () => 'Siempre peleándose entre ellos los Dicky',
+    () => 'Desde ayer hay olor a Dicky en la cancha… ESTÁN DE VUELTA',
+    () => '#BastaDeDickyTontos',
+    (n) => `Mucho Dicky, ${n}. Lo voy a meditar`,
+  ],
+  mal: [
+    () => 'Tenía que ser un Dicky',
+    () => 'Jajaja, tenía que ser un Dicky tonto',
+    () => 'LOS ODIO, DICKY TONTOS',
+    () => '¿Qué esperabas de un Dicky tonto?',
+    (n) => `No esperaba menos de un Dicky cebollita, ${n}`,
+    () => 'Eternos cebollitas los Dicky',
+    () => 'Los perdedores de los Dicky Toontos, che',
+    () => 'Otra pérdida para los Dicky',
+  ],
+  bien: [
+    () => 'Ese no lo pegó un Dicky. Un Dicky no pudo haber sido',
+    (n) => `Qué lástima que sos Dicky, ${n}`,
+    (n) => `Bien, ${n}… para ser Dicky`,
+    (n) => `Ese tiro es muy Equipo 5. Venite, ${n}: te haría muy bien`,
+    () => 'Pero tenemos algo que nunca van a tener los Dicky… 🏆🏆🏆',
+  ],
+}
+// las de cada uno, y las que le tiran a un Dicky en especial (Lucas y Fito son hermanos)
+export const CHICANA_PROPIA = {
+  Lechu: [() => 'El cazador de Dicky. Preguntale al Ninja y a Taiu si me conocen 🦉', () => 'Guarida lejos de los Dicky 🦉', () => 'Droi droi droi 🦉'],
+  LG: [() => 'Yo podría ser marker del dúo Dicky. Escucho ofertas por privado 📺', () => 'Hago la pregunta boluda: ¿qué es un Dicky? 📺', () => 'LOS ODIO, DICKY TONTOS 📺'],
+}
+export const CHICANA_A = {
+  'Fito (Đ)': { LG: [() => 'Fito, salimos del mismo vientre… pero sos Dicky 📺', () => 'Mi hermano, el más Dicky de los Dicky 📺'], Lechu: [() => 'Los Dicky se prenden en la lucha: Fito está para el PGA 🦉', () => '¿Cómo sigue el cancherito de Fito? 🦉'] },
+  'Mike Queboni (Đ)': { Lechu: [() => '¿El Dicky cobarde de Miguelón juega hoy? 🦉'], LG: [() => 'Más Dicky que Miguelón no hay 📺'] },
+  'El Ninja (Đ)': { LG: [() => 'El Ninja es el Dicky menos tonto de todos 📺'], Lechu: [() => 'El Ninja, mi abogado personal. El único Dicky que vale la pena 🦉'] },
+  'Taiu (Đ)': { Lechu: [() => 'Taiu pasó a la lista de deudores del #Equipo5 🦉'], LG: [() => '¿Taiu? Lástima que es Dicky 📺'] },
+}
+// lo que le contesta el Dicky que aparece después (e = Joaco o Lucas): con amor, y su toque
+export const DICKY_CONTESTA = [
+  (e) => `A vos también te quiero, ${e} 💛`,
+  (e) => `Te quiero igual, ${e}. Aunque seas Equipo 5 💚`,
+  (e) => `Tanto odio es amor, ${e}. Vení que te abrazo 🤗`,
+  (e) => `Algún día vas a ser Dicky, ${e}. Te esperamos 💛`,
+  () => 'Lo celosos que están los del Equipo 5… 💚',
+  () => 'Equipo 5 tenía que ser. Igual los queremos 💛',
+]
+export const DICKY_CONTESTA_PROPIA = {
+  'Fito (Đ)': { todos: [(e) => `Cheee, qué tontos son los Equipo 5… te quiero igual, ${e} 🦅`], Lucas: [() => 'Te quiero, hermano. Salimos del mismo vientre 💛'] },
+  'Mike Queboni (Đ)': { todos: [(e) => `Pero qué bonito que sos cuando te enojás, ${e}, ehh 🍯`], Joaco: [() => 'Que Joaco nos odie me da energía 🍯'] },
+  'El Ninja (Đ)': { todos: [() => 'Contra el Equipo 5 no podemos perder 🥷', (e) => `Te cuido desde las sombras… a vos también, ${e} 🥷`] },
+  'Taiu (Đ)': { todos: [(e) => `Croac, ${e}. En rana quiere decir te quiero igual 🐸`], Joaco: [() => 'Te voy a meter un drivazo, Joaco 🐸'] },
+}
+// jugando con uno del Equipo 5, el compañero: aliento de vestuario (no ternura). n = el que juega
+export const VESTUARIO = {
+  todos: [
+    (n) => `Si es con vos le juego a cualquiera, ${n}`,
+    () => 'La pareja revelación: 🦉-📺',
+    () => 'El #Equipo5 sale a la cancha con 📺 y 🦉',
+    () => 'Somos una familia ya. #Equipo5',
+    () => '¡Siempre Equipo 5!',
+    (n) => `Que lo miren los Dicky por TV, ${n} 📺`,
+    () => 'El Equipo 5 está listo para seguir ganando',
+  ],
+  bien: [
+    () => '¡EQUIPO 5 EN LLAMAS! 🔥',
+    () => 'El #Equipo5 es el ÚNICO equipo que tiene un título 🏆🏆',
+    (n) => `Repite título, ${n}, ¿no? 🏆`,
+    () => 'Así juega el Equipo 5. Que aprendan los Dicky',
+    () => 'El Equipo 5 cumple sus promesas',
+  ],
+  mal: [
+    () => 'No está muy bien el #Equipo5, pero ya va a mejorar',
+    () => 'Quieren desestabilizar al #Equipo5 a toda costa',
+    (n) => `Tranqui, ${n}: el #Equipo5 agarra la punta mañana`,
+    () => 'Eso fue culpa de un Dicky. Seguro',
+    (n) => `El que se enoja pierde, ${n}. Respirá`,
+  ],
+  // la Mejor pelota: cuando la armás, y después, si quedó la del compañero (el que habla) o la tuya
+  arma: [() => 'El #Equipo5 utiliza su excepción: fourball 🦉📺', (n) => `Dale, ${n}: pegamos los dos y queda la mejor`, () => 'Fourball del Equipo 5. Que miren los Dicky'],
+  compa: [(n) => `Tranqui, ${n}: quedó la mía. #Equipo5`, () => 'Para eso está el compañero. Fourball del Equipo 5', () => 'Mejor pelota: la mía. De nada 😌'],
+  tuya: [(n) => `Quedó la tuya, ${n}. Así juega el Equipo 5`, () => 'Mejor tarjeta Guarino/Castelli 🏆', (n) => `La tuya era mejor, ${n}. Yo te cuidaba la espalda`],
+}
+// las de cada uno (el que habla): Lucas le habla a Joaco y Joaco a Lucas
+export const VESTUARIO_PROPIA = {
+  LG: [() => 'GORRA DEL LECHUZA INVITATIONAL, SÍ O SÍ 🦉', () => 'Todo de Joaco, yo no hice nada 📺', () => 'Lo que diga el capitán 🦉'],
+  Lechu: [() => '📺📺📺📺📺📺', () => 'Tamo en el driving con 📺📺', () => 'Droi droi droi 🦉'],
+}
+const deLaLista = (rng, base, propias, p = 0.34) => elegir(rng, propias?.length && rng() < p ? propias : base)
+/** Lo que le tira `quien` (Lechu o LG) al Dicky que juega (`para`), según cómo salió el tiro (`momentoDicky`). */
+export function fraseChicana(rng, quien, para, momento = 'todos') {
+  const propias = [...(CHICANA_PROPIA[quien] ?? []), ...(CHICANA_A[para?.apodo]?.[quien] ?? [])]
+  return deLaLista(rng, CHICANA[momento] ?? CHICANA.todos, propias)(nombreDe(para))
+}
+/** Lo que le contesta el Dicky `quien` a `e5` (Lechu o LG) después de su chicana. */
+export function contestaDicky(rng, quien, e5) {
+  const e = nombreDe(e5)
+  const suyas = DICKY_CONTESTA_PROPIA[quien] ?? {}
+  return deLaLista(rng, DICKY_CONTESTA, [...(suyas[e] ?? []), ...(suyas.todos ?? [])], 0.5)(e)
+}
+/** Lo que le dice `quien` (el compañero del Equipo 5) al que juega (`para`). `momento`: bien / mal / todos, o arma / compa / tuya (la Mejor pelota). */
+export function fraseVestuario(rng, quien, para, momento = 'todos') {
+  if (['arma', 'compa', 'tuya'].includes(momento)) return elegir(rng, VESTUARIO[momento])(nombreDe(para))
+  return deLaLista(rng, VESTUARIO[momento] ?? VESTUARIO.todos, VESTUARIO_PROPIA[quien])(nombreDe(para))
+}
+
+// ── 🦉📺 la Mejor pelota del Equipo 5 (una por vuelta): el próximo tiro lo pegan los dos, desde el mismo lugar y para
+// el mismo lado, cada uno con su handicap y su habilidad; vuelan las dos y queda la mejor ("fourball: Guarino-Castelli,
+// mejor tarjeta") ──
+// cómo suelta el compañero (eso no lo manejás vos): perfecto, bueno o normal
+export const MEJOR_PELOTA = { perfecto: 0.25, bueno: 0.45 }
+export const puedeMejorPelota = (r) => esEquipo5(r.jugador) && !r.mejorPelota?.usada && !r.prestado && !r.terminada
+/** Arma la Mejor pelota con `compa`: el próximo tiro lo pegan los dos. Devuelve false si no se puede. */
+export function armarMejorPelota(r, compa) {
+  if (!puedeMejorPelota(r) || !esEquipo5(compa) || compa.apodo === r.jugador.apodo) return false
+  r.mejorPelota = { compa, armada: true, usada: false }
+  return true
+}
+/** La desarma (antes de pegar no se gasta). */
+export function desarmarMejorPelota(r) {
+  if (r.mejorPelota && !r.mejorPelota.usada) r.mejorPelota = null
+}
+export const mejorPelotaArmada = (r) => !!r.mejorPelota?.armada && !r.mejorPelota.usada && puedeMejorPelota(r)
+/**
+ * El tiro del compañero: llamar ANTES del `golpear` del que juega (sale del mismo lugar, con el mismo golpe). Le pega
+ * sobre una copia de la ronda (no cuenta golpe, no toca los monos ni el barro) y su pelota no la roban en el aire.
+ * Gasta la Mejor pelota.
+ */
+export function golpeCompa(campo, r, angulo, potencia, rng, precision = 0, tiempo = 0) {
+  const compa = r.mejorPelota.compa
+  const u = rng()
+  const soltada = u < MEJOR_PELOTA.perfecto ? true : { nivel: u < MEJOR_PELOTA.perfecto + MEJOR_PELOTA.bueno ? 'bueno' : null, lado: rng() < 0.5 ? -1 : 1 }
+  const copia = { ...r, jugador: compa, monos: [], golpeMago: null, deme: null, furia: null, calma: false, barro: false, proxSorpresa: undefined, ruleta: null, ruletaToca: false, prestado: null, carro: null }
+  const t = golpear(campo, copia, angulo, potencia, rng, precision, tiempo, null, soltada)
+  t.monos = null
+  t.compa = compa.apodo
+  r.mejorPelota = { ...r.mejorPelota, armada: false, usada: true }
+  return t
+}
+/** Cuánto cuesta dónde quedó una pelota (para elegir la mejor): por las yardas al hoyo, peor fuera de la calle; con multa, mucho más. */
+export const LIE_MEJOR = { green: 1, fairway: 1.1, tee: 1.1, rough: 1.35, bunker: 1.7 }
+export function valorPelota(campo, r, t) {
+  if (t.embocada) return -1
+  const h = hoyoActual(r)
+  const yd = dist(t.pos, h.pin) * (h.escala ?? 1)
+  if (t.robada) return 1000 + yd
+  const ter = terreno(campo, t.pos)
+  if (ter.tipo === 'afuera') return 2000 + yd
+  if (ter.tipo === 'bosque') return 600 + yd
+  if (t.ajena) return 30 + yd * LIE_MEJOR.rough
+  return yd * (LIE_MEJOR[ter.tipo] ?? LIE_MEJOR.rough)
+}
+/** De las dos, la que queda: la que cuesta menos (si empatan, la tuya). */
+export const mejorDeLasDos = (campo, r, mia, delCompa) => (valorPelota(campo, r, delCompa) < valorPelota(campo, r, mia) ? delCompa : mia)
+
 export const FRASES_CARGA = [
   'Buscando tu pelota en el rough…',
   'Calculando handicaps… y excusas',
@@ -2490,36 +2668,51 @@ export function comentar(rng, res, tiro, hoyo, jugador, ctx = {}) {
   // LG no pone excusas: el que se enoja pierde
   const excusa = malo && res.tipo !== 'perro' && hab?.id !== 'calma' && rng() < 0.6 ? elegir(rng, EXCUSAS) : null
   const palo = tiro.eventos.some((e) => e.tipo === 'palo')
+  let usada = null // de qué lista salió (las de siempre dejan que LG relate de hincha; las de una habilidad, no)
+  const de = (k) => { usada = k; return elegir(rng, RELATO[k]) }
   let lg
-  if (res.tipo === 'afuera') lg = elegir(rng, RELATO.afuera)
-  else if (res.tipo === 'mono-malo') lg = elegir(rng, RELATO.monoMalo)
-  else if (res.tipo === 'mono-bueno') lg = elegir(rng, RELATO.monoBueno)
-  else if (res.tipo === 'mono-ladron') lg = elegir(rng, RELATO.monoLadron)
-  else if (res.tipo === 'perro') lg = elegir(rng, RELATO.perro)
-  else if (hab?.id === 'calma' && malo) lg = elegir(rng, RELATO.calma)
-  else if (tiro.approach && ['rough', 'bunker'].includes(res.terreno)) lg = elegir(rng, RELATO.approach)
-  else if (hab?.id === 'approach' && tiro.liberty && res.terreno === 'fairway') lg = elegir(rng, RELATO.liberty)
-  else if (hab?.id === 'calma' && ['fairway', 'green'].includes(res.terreno) && rng() < 0.5) lg = elegir(rng, RELATO.lgSolo)
+  if (res.tipo === 'afuera') lg = de('afuera')
+  else if (res.tipo === 'mono-malo') lg = de('monoMalo')
+  else if (res.tipo === 'mono-bueno') lg = de('monoBueno')
+  else if (res.tipo === 'mono-ladron') lg = de('monoLadron')
+  else if (res.tipo === 'perro') lg = de('perro')
+  else if (hab?.id === 'calma' && malo) lg = de('calma')
+  else if (tiro.approach && ['rough', 'bunker'].includes(res.terreno)) lg = de('approach')
+  else if (hab?.id === 'approach' && tiro.liberty && res.terreno === 'fairway') lg = de('liberty')
+  else if (hab?.id === 'calma' && ['fairway', 'green'].includes(res.terreno) && rng() < 0.5) lg = de('lgSolo')
   else if (res.tipo === 'embocada') lg = null // lo dice el resultado del hoyo
-  else if (palo) lg = elegir(rng, RELATO.palo)
-  else if (tiro.vuelta) lg = elegir(rng, RELATO.corbata)
-  else if (tiro.labio) lg = elegir(rng, RELATO.labio)
-  else if (res.ajeno) lg = elegir(rng, RELATO.ajeno).replace('{n}', res.ajeno)
-  else if (tiro.modo === 'putt') lg = elegir(rng, RELATO.putt)
-  else if (tiro.iman?.aplicado) lg = elegir(rng, RELATO.iman)
-  else if (tiro.perfecta && ['green', 'fairway'].includes(res.terreno)) lg = elegir(rng, RELATO.bombaPerfecta)
-  else if (tiro.comba && res.terreno === 'fairway') lg = elegir(rng, RELATO.combaMago)
-  else if (res.terreno === 'bunker') lg = elegir(rng, hoyo.n === 16 && tiro.pos[1] < 300 ? RELATO.bunkerDicky : RELATO.bunker)
-  else if (res.terreno === 'rough') lg = elegir(rng, RELATO.rough)
-  else if (res.terreno === 'green') lg = elegir(rng, RELATO.green)
-  else lg = elegir(rng, tiro.carry > 200 ? RELATO.bomba : RELATO.fairway)
+  else if (palo) lg = de('palo')
+  else if (tiro.vuelta) lg = de('corbata')
+  else if (tiro.labio) lg = de('labio')
+  else if (res.ajeno) lg = de('ajeno').replace('{n}', res.ajeno)
+  else if (tiro.modo === 'putt') lg = de('putt')
+  else if (tiro.iman?.aplicado) lg = de('iman')
+  else if (tiro.perfecta && ['green', 'fairway'].includes(res.terreno)) lg = de('bombaPerfecta')
+  else if (tiro.comba && res.terreno === 'fairway') lg = de('combaMago')
+  else if (res.terreno === 'bunker') lg = de(hoyo.n === 16 && tiro.pos[1] < 300 ? 'bunkerDicky' : 'bunker')
+  else if (res.terreno === 'rough') lg = de('rough')
+  else if (res.terreno === 'green') lg = de('green')
+  else lg = de(tiro.carry > 200 ? 'bomba' : 'fairway')
+  // LG, hincha del Equipo 5: a los Dicky les festeja los errores (y les cuesta reconocer los buenos); al Equipo 5, de gol
+  if (lg && RELATO_COMUN.has(usada)) lg = hinchada(rng, jugador, malo, !malo && tiro.modo !== 'putt' && ['fairway', 'green'].includes(res.terreno)) ?? lg
   const verso = res.tipo.startsWith('mono') || res.tipo === 'perro' ? elegir(rng, VERSOS_BOSQUE) : null
   return { lg, excusa, verso }
 }
 
-/** La frase del resultado del hoyo (con Rodal, adulación). */
+// las listas de siempre (no las de una habilidad ni las de algo raro: el labio, la corbata, el green ajeno)
+const RELATO_COMUN = new Set(['afuera', 'monoMalo', 'monoBueno', 'monoLadron', 'palo', 'putt', 'bunker', 'bunkerDicky', 'rough', 'green', 'bomba', 'fairway'])
+/** LG de hincha (o null: relata como siempre). */
+function hinchada(rng, jugador, malo, bien) {
+  if (jugador?.dicky) return malo && rng() < 0.45 ? elegir(rng, RELATO.contraDicky) : bien && rng() < 0.3 ? elegir(rng, RELATO.dickyBien) : null
+  if (esEquipo5(jugador)) return malo && rng() < 0.4 ? elegir(rng, RELATO.e5Mal) : bien && rng() < 0.35 ? elegir(rng, RELATO.e5Bien) : null
+  return null
+}
+
+/** La frase del resultado del hoyo (con Rodal, adulación; con un Dicky o el Equipo 5, a veces de hincha). */
 export function fraseResultado(rng, nombre, jugador) {
   const tabla = habilidadDe(jugador)?.adulado ? ADULACION.resultado : POR_RESULTADO
+  const hincha = (jugador?.dicky ? HINCHA_RESULTADO.dicky : esEquipo5(jugador) ? HINCHA_RESULTADO.e5 : null)?.[nombre]
+  if (hincha && rng() < 0.4) return elegir(rng, hincha)
   return elegir(rng, tabla[nombre] ?? tabla.otro)
 }
 
