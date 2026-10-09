@@ -137,6 +137,8 @@ export const HABILIDADES = {
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
+// 🦅 Fito de pase en el Equipo 5 (2026-10-09): la misma habilidad que Fito
+HABILIDADES['Fito (5)'] = HABILIDADES['Fito (Đ)']
 export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
 /** Taiu (la Rana): los controles al revés (lo resuelve la página al leer el arrastre; el motor recibe el tiro que sale). */
 export const alReves = (jugador) => habilidadDe(jugador)?.id === 'reves'
@@ -2495,12 +2497,16 @@ function devolverDicky(r) {
 // Los Dicky son amor; el Equipo 5, chicana y competencia. Las frases salen del chat del SDGA (2023–2026).
 export const esEquipo5 = (j) => j?.equipo === 5
 /** Cómo se llaman en las frases: las cartas son Lechu y LG, pero se dicen Joaco y Lucas. */
-export const NOMBRE_E5 = { Lechu: 'Joaco', LG: 'Lucas' }
+export const NOMBRE_E5 = { Lechu: 'Joaco', LG: 'Lucas', 'Fito (5)': 'Fito' }
 const nombreDe = (j) => NOMBRE_E5[j?.apodo] ?? String(j?.apodo ?? '').replace(/ \(Đ\)$/, '')
 /** Cada cuánto: el Equipo 5 se cuela a chicanear (en vez del Dicky de siempre) y el compañero aparece en el Equipo 5. */
-export const E5 = { chicana: 0.28, vestuario: 0.6 }
-/** El compañero del Equipo 5 de `j` (Lechu ↔ LG), de la lista `todos`. */
-export const compaE5 = (j, todos) => (esEquipo5(j) ? todos.find((x) => esEquipo5(x) && x.apodo !== j.apodo) ?? null : null)
+export const E5 = { chicana: 0.28, vestuario: 0.6, vuelve: 0.3 }
+/** El compañero del Equipo 5 de `j` (Lechu ↔ LG; Fito de pase → LG, su hermano: `compa`), de la lista `todos`. */
+export function compaE5(j, todos) {
+  if (!esEquipo5(j)) return null
+  if (j.compa) return todos.find((x) => x.apodo === j.compa) ?? null
+  return todos.find((x) => esEquipo5(x) && x.apodo !== j.apodo && !x.pase) ?? null
+}
 // la chicana al Dicky que juega (n = su nombre), según cómo le salió el tiro
 export const CHICANA = {
   todos: [
@@ -2590,6 +2596,17 @@ export const VESTUARIO = {
   compa: [(n) => `Buena elección, ${n}: la mía. #Equipo5`, () => 'Para eso está el compañero. Fourball del Equipo 5', () => 'Mejor pelota: la mía. De nada 😌'],
   tuya: [(n) => `Quedate con la tuya, ${n}. Así juega el Equipo 5`, () => 'Mejor tarjeta Guarino/Castelli 🏆', (n) => `La tuya era mejor, ${n}. Yo te cuidaba la espalda`],
 }
+// Lucas con Fito de pase: los hermanos en el mismo equipo
+export const VESTUARIO_HERMANOS = [() => 'Fourball Guarino-Guarino 🦅📺', () => 'Salimos del mismo vientre, hermano. Ahora del mismo equipo', () => 'Mamá estaría orgullosa: los dos en el #Equipo5', () => 'Bienvenido al #Equipo5, ex Dicky 🫶']
+// los Dicky a Fito de pase: que vuelva (con amor, como siempre). n = Fito
+export const VUELVE = [(n) => `Volvé, ${n}. Te extrañamos 💛`, (n) => `Esa remera no te queda, ${n}. Volvé a casa 🤗`, () => 'Los Dicky te esperamos con los brazos abiertos 💚', (n) => `¿Te pidieron el pase, ${n}? Nosotros no te cobramos nada 💛`]
+export const VUELVE_PROPIA = {
+  'Mike Queboni (Đ)': [() => 'Pero qué bonito eras de Dicky, ehh 🍯'],
+  'El Ninja (Đ)': [() => 'Te sigo cuidando desde las sombras… traidor 🥷'],
+  'Taiu (Đ)': [() => 'Croac. Hasta la rana te extraña 🐸'],
+}
+/** Lo que le dice el Dicky `quien` a Fito de pase en el Equipo 5. */
+export const fraseVuelve = (rng, quien, j) => deLaLista(rng, VUELVE, VUELVE_PROPIA[quien], 0.4)(nombreDe(j))
 // las de cada uno (el que habla): Lucas le habla a Joaco y Joaco a Lucas
 export const VESTUARIO_PROPIA = {
   LG: [() => 'GORRA DEL LECHUZA INVITATIONAL, SÍ O SÍ 🦉', () => 'Todo de Joaco, yo no hice nada 📺', () => 'Lo que diga el capitán 🦉'],
@@ -2610,7 +2627,8 @@ export function contestaDicky(rng, quien, e5) {
 /** Lo que le dice `quien` (el compañero del Equipo 5) al que juega (`para`). `momento`: bien / mal / todos, o arma / segunda / armaCalma / compa / tuya (la Mejor pelota). */
 export function fraseVestuario(rng, quien, para, momento = 'todos') {
   if (['arma', 'segunda', 'armaCalma', 'compa', 'tuya'].includes(momento)) return elegir(rng, VESTUARIO[momento])(nombreDe(para))
-  return deLaLista(rng, VESTUARIO[momento] ?? VESTUARIO.todos, VESTUARIO_PROPIA[quien])(nombreDe(para))
+  const propias = para?.pase || quien?.pase ? VESTUARIO_HERMANOS : VESTUARIO_PROPIA[quien]
+  return deLaLista(rng, VESTUARIO[momento] ?? VESTUARIO.todos, propias)(nombreDe(para))
 }
 
 // ── 🤝 la interna: a veces te atiende el equipo equivocado. En la Dickyllamada atiende Joaco o Lucas ("Equivocado, habla

@@ -1992,7 +1992,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <script type="module">
 import * as M from './motor.js'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEOS } from './plantel.js'
 import { CANCHA } from './cancha-grid.js'
 import * as R from './ranking.js'
 import * as S from './sonido.js'
@@ -2015,7 +2015,7 @@ function aplicarHandicaps() {
   if (!hcps) return
   let cambio = false
   for (const j of TODOS) {
-    const h = hcps.get(R.claveNombre(j.apodo))
+    const h = hcps.get(R.claveNombre(j.pase ?? j.apodo)) // Fito de pase: el handicap de Fito
     if (h == null || (j.hcp === h && !j.aprox)) continue
     j.hcp = h
     j.aprox = false
@@ -2081,24 +2081,47 @@ function recuperarSecreto(marcas, conteo) {
 const candado = (abierto = false, clase = '') => `<svg class="gi candado-gi ${clase}" viewBox="0 0 32 32" aria-hidden="true"><g>${abierto
   ? '<path d="M10.5 14.5V9.5a5.5 5.5 0 0 1 10.7-1.8"/>'
   : '<path d="M10.5 14.5V10a5.5 5.5 0 0 1 11 0v4.5"/>'}<rect x="6" y="14.5" width="20" height="13.5" rx="3.2" style="fill:var(--gi-a)"/><path d="M9.5 18v6" style="stroke:var(--gi-f);stroke-width:1.6;opacity:.7"/><circle cx="16" cy="20" r="1.9" style="fill:var(--gi-s);stroke:none"/><path d="M16 21v3.2" style="stroke-width:2.2"/></g></svg>`
-// ── 🔒 Taiu: se desbloquea con una tarjeta firmada de −1 o mejor con cada uno de los otros Dicky ──
-const progresoTaiu = () => M.progresoDesbloqueo(DESBLOQUEO_TAIU, datos.records)
-// para probar (solo en la copia dev/): ?taiu=1 lo desbloquea en este teléfono; ?taiu=0 lo vuelve a bloquear
+// ── 🔒 los que arrancan con candado: Taiu (−1 firmado con cada uno de los otros Dicky) y Fito de pase en el Equipo 5 (−1
+// con Joaco y con Lucas). Lo de cada uno: cómo se llama, con quiénes, dónde queda guardado y lo que dicen el logro y el anuncio ──
+const DESBLOQUEO_UI = {
+  'Taiu (Đ)': {
+    nombre: 'Taiu', de: 'con cada uno de estos Dicky', dato: 'taiu', torso: 'jugadores/la-rana-torso.webp', logo: 'dicky-toons.svg',
+    logro: 'Taiu (Đ) se suma al mazo 🐸', logroExtra: '+ 📞 la Dickyllamada para todos los Dicky',
+    titulo: '🐸 Taiu se suma al mazo', sub: 'Hiciste −1 con Fito, Miguelón y el Ninja. Bombas desde el tee, approach perfectos… y los controles al revés.',
+    plus: 'DICKYLLAMADA DESBLOQUEADA', plusTexto: 'Con los cuatro Dicky juntos, Fito, Miguelón, el Ninja y Taiu ya pueden llamar a otro Dicky para que les pegue un tiro (una por vuelta).',
+    jugar: 'Jugar con Taiu', lluvia: ['🐸', '💚'],
+  },
+  'Fito (5)': {
+    nombre: 'Fito del Equipo 5', de: 'con Joaco y con Lucas (el Equipo 5)', dato: 'fito5', torso: 'jugadores/fito-guarino-torso.webp', logo: 'equipo-5.svg',
+    logro: 'Fito pidió el pase al Equipo 5 🦅', logroExtra: '−1 con Joaco y con Lucas',
+    titulo: '🦅 Fito pidió el pase al Equipo 5', sub: 'Hiciste −1 con Joaco y con Lucas. "Por un par de días Fito deja de ser Dicky": el mismo Fito, con el escudo del 5.',
+    plus: 'FOURBALL GUARINO-GUARINO', plusTexto: 'La Mejor pelota con Lucas, su hermano, en vez de la Dickyllamada. Y los Dicky le van a pedir que vuelva.',
+    jugar: 'Jugar con Fito del 5', lluvia: ['🦅', '📺', '🫶'],
+  },
+}
+const desbloqueoDe = (j) => DESBLOQUEOS.find((d) => d.apodo === j?.apodo) ?? null
+const progresoDe = (d) => M.progresoDesbloqueo(d, datos.records)
+const progresoTaiu = () => progresoDe(DESBLOQUEO_TAIU)
+// para probar (solo en la copia dev/): ?taiu=1 / ?fito5=1 lo desbloquean en este teléfono; =0 lo vuelven a bloquear
 // (si tus récords ya alcanzan, se desbloquea igual, como siempre)
-if (/\/dev\//.test(location.pathname) && PARAMS.has('taiu')) {
-  if (PARAMS.get('taiu') === '0') delete datos.taiu
-  else datos.taiu = { fecha: new Date().toISOString(), prueba: true }
+for (const d of DESBLOQUEOS) {
+  const k = DESBLOQUEO_UI[d.apodo].dato
+  if (!/\/dev\//.test(location.pathname) || !PARAMS.has(k)) continue
+  if (PARAMS.get(k) === '0') delete datos[k]
+  else datos[k] = { fecha: new Date().toISOString(), prueba: true }
   guardar(datos)
 }
-/** ¿Ya lo tenés? Apenas los récords alcanzan, queda guardado en el teléfono (`datos.taiu`). */
-function tieneTaiu() {
-  if (datos.taiu) return true
-  if (!progresoTaiu().listo) return false
-  datos.taiu = { fecha: new Date().toISOString() }
+/** ¿Ya lo tenés? Apenas los récords alcanzan, queda guardado en el teléfono (`datos.taiu`, `datos.fito5`). */
+function tiene(d) {
+  const k = DESBLOQUEO_UI[d.apodo].dato
+  if (datos[k]) return true
+  if (!progresoDe(d).listo) return false
+  datos[k] = { fecha: new Date().toISOString() }
   guardar(datos)
   return true
 }
-const bloqueado = (j) => j?.apodo === DESBLOQUEO_TAIU.apodo && !tieneTaiu()
+const tieneTaiu = () => tiene(DESBLOQUEO_TAIU)
+const bloqueado = (j) => { const d = desbloqueoDe(j); return !!d && !tiene(d) }
 /** Tus vueltas firmadas del ranking (con tu usuario) también son récord: así el desbloqueo no se pierde al reinstalar. */
 function recuperarRecords(marcas) {
   const uid = R.puente.identidad?.uid
@@ -2111,18 +2134,19 @@ function recuperarRecords(marcas) {
   }
   if (cambio) guardar(datos)
 }
-/** Lo que te falta para Taiu, con cada Dicky: lo que dice la carta con candado. */
-function requisitosTaiu() {
-  const p = progresoTaiu()
-  const meta = DESBLOQUEO_TAIU.vsPar
+/** Lo que te falta para desbloquear `d`, con cada uno: lo que dice la carta con candado. */
+function requisitos(d) {
+  const p = progresoDe(d)
+  const meta = d.vsPar
+  const ui = DESBLOQUEO_UI[d.apodo]
   const filas = p.items.map((it) => {
     const d = TODOS.find((x) => x.apodo === it.apodo)
     const falta = it.mejor == null ? 'Todavía no firmaste una vuelta con él' : it.ok ? `¡Hecho! Tu mejor: ${M.formatoPar(it.mejor)}` : `Tu mejor: ${M.formatoPar(it.mejor)} · te ${it.mejor - meta === 1 ? 'falta 1 golpe' : `faltan ${it.mejor - meta} golpes`}`
     return `<li class="${it.ok ? 'ok' : ''}"><img src="${d?.foto ?? ''}" alt="" draggable="false"><span><b>${d?.emoji ?? ''} ${esc(it.apodo.replace(/ \(Đ\)$/, ''))}</b><small>${falta}</small></span><i aria-hidden="true">${it.ok ? '✅' : candado()}</i></li>`
   }).join('')
   return `<div class="req">
-    <p class="req-tit">${candado()} Cómo desbloquear a Taiu</p>
-    <p class="req-txt">Firmá una tarjeta de <b>${M.formatoPar(meta)} o mejor</b> (un golpe bajo par) jugando con cada uno de estos Dicky:</p>
+    <p class="req-tit">${candado()} Cómo desbloquear a ${ui.nombre}</p>
+    <p class="req-txt">Firmá una tarjeta de <b>${M.formatoPar(meta)} o mejor</b> (un golpe bajo par) jugando ${ui.de}:</p>
     <ul>${filas}</ul>
     <p class="req-cuenta"><b>${p.hechos} de ${p.items.length}</b> · vale cualquier vuelta firmada con ellos, no hace falta que sea seguida</p>
   </div>`
@@ -3825,6 +3849,13 @@ function compaDespues(res, tiro) {
   if (tiro.tercera) { dickyVisita(compa, M.fraseInterna(rng, 'ofendido', yo), true); return }
   if (tiro.blando) { dickyVisita(compa, M.fraseCompaE5(rng, 'ablandado', yo), true); return }
   if (tiro.mejorPelota && m !== 'mal') { dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, tiro.compa ? 'compa' : 'tuya'), true); return }
+  // Fito de pase: a veces se cuela un Dicky a pedirle que vuelva (con amor)
+  if (yo.pase && dickysLibres().length && rng() < M.E5.vuelve) {
+    const d = M.elegir(rng, dickysLibres().filter((x) => x.apodo !== dickyUltimo))
+    dickyUltimo = d.apodo
+    dickyVisita(d, M.fraseVuelve(rng, d.apodo, yo))
+    return
+  }
   // a veces (nunca dos seguidas) se cuela un Dicky a ablandarte
   const blando = !ablandoVino && dickysLibres().length && res.tipo !== 'embocada' && rng() < M.MUFA.ablandar
   ablandoVino = blando
@@ -6351,20 +6382,27 @@ $('#firmar').addEventListener('click', () => {
   const { vsPar } = M.totales(ronda.tarjeta)
   const apodo = ronda.carta.apodo
   const antes = datos.records[apodo]
-  const sinTaiu = !tieneTaiu()
+  const faltaban = DESBLOQUEOS.filter((d) => !tiene(d))
   const record = vsPar != null && (antes === undefined || vsPar < antes)
   if (record) { datos.records[apodo] = vsPar; guardar(datos) }
-  if (sinTaiu && tieneTaiu()) setTimeout(logroTaiu, 700) // con esta vuelta completaste los tres: ¡logro!
+  const nuevo = faltaban.find((d) => tiene(d)) // con esta vuelta completaste lo que faltaba: ¡logro!
+  if (nuevo) setTimeout(() => logro(nuevo), 700)
   $('#t-firma').hidden = true
   $('#t-firmada').hidden = false
   anotarVuelta()
   $('#t-firmada').textContent = vsPar == null ? 'Firmada ✍️ · Vuelta LP: no cuenta para el récord' : record ? `Firmada ✍️ · ¡Récord personal! (${antes === undefined ? 'primera vuelta' : `antes ${M.formatoPar(antes)}`})` : `Firmada ✍️ · Tu récord: ${M.formatoPar(antes)}`
   acciones()
 })
-/** 🏆 El logro: la banda baja desde arriba (como en las consolas). Tocándola, el anuncio con "Jugar con Taiu". */
-let logroTimer = 0
-function logroTaiu() {
+/** 🏆 El logro: la banda baja desde arriba (como en las consolas). Tocándola, el anuncio con "Jugar con …". */
+let logroTimer = 0, logroDe = DESBLOQUEO_TAIU
+function logro(d) {
+  logroDe = d
+  const ui = DESBLOQUEO_UI[d.apodo]
   const el = $('#logro')
+  el.querySelector('.lg-ico img').src = ui.torso
+  el.querySelector('.lg-txt b').textContent = ui.logro
+  el.querySelector('.lg-txt em').textContent = ui.logroExtra
+  el.setAttribute('aria-label', `Logro desbloqueado: ${ui.nombre}. Tocá para verlo`)
   el.hidden = false
   el.classList.remove('sale')
   void el.offsetWidth
@@ -6379,15 +6417,25 @@ function cerrarLogro() {
   el.classList.replace('entra', 'sale')
   setTimeout(() => { el.hidden = true; el.classList.remove('sale') }, 450)
 }
-$('#logro').addEventListener('click', () => { clearTimeout(logroTimer); cerrarLogro(); mostrarTaiuDesbloqueado() })
-/** 🔓 Desbloqueaste a Taiu: el anuncio, con su foto y para jugarlo ya. */
-function mostrarTaiuDesbloqueado() {
+$('#logro').addEventListener('click', () => { clearTimeout(logroTimer); cerrarLogro(); mostrarDesbloqueado(logroDe) })
+/** 🔓 Desbloqueaste a `d` (Taiu o Fito del 5): el anuncio, con su foto y para jugarlo ya. */
+function mostrarDesbloqueado(d) {
+  logroDe = d
+  const ui = DESBLOQUEO_UI[d.apodo]
   const el = $('#taiu-ok')
+  el.querySelector('.dk-logo').src = ui.logo
+  el.querySelector('.tu-foto').src = ui.torso
+  el.querySelector('.tu-foto').alt = ui.nombre
+  el.querySelector('#tu-tit').textContent = ui.titulo
+  el.querySelector('.dk-sub').textContent = ui.sub
+  el.querySelector('.tu-extra img').src = ui.logo
+  el.querySelector('.tu-extra > span').innerHTML = `<b><span class="cand-abierto">${candado(true)}</span> ${esc(ui.plus)}</b>${esc(ui.plusTexto)}`
+  $('#tu-jugar').textContent = ui.jugar
   const cor = el.querySelector('.tu-ranas')
   cor.innerHTML = ''
   for (let i = 0; i < 18; i++) {
     const c = document.createElement('span')
-    c.textContent = i % 3 ? '🐸' : '💚'
+    c.textContent = ui.lluvia[i % ui.lluvia.length]
     c.style.left = `${Math.random() * 100}%`
     c.style.animationDuration = `${1.8 + Math.random() * 1.6}s`
     c.style.animationDelay = `${Math.random() * 0.8}s`
@@ -6401,7 +6449,7 @@ for (const el of document.querySelectorAll('.cand-abierto, #logro .lg-ico i')) e
 $('#taiu-ok').addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) $('#taiu-ok').hidden = true })
 $('#tu-jugar').addEventListener('click', () => {
   $('#taiu-ok').hidden = true
-  const t = TODOS.find((x) => x.apodo === DESBLOQUEO_TAIU.apodo)
+  const t = TODOS.find((x) => x.apodo === logroDe.apodo)
   if (t) empezar(t)
 })
 function sinFirma() {
@@ -8715,7 +8763,7 @@ function cartaDe(j) {
       <div class="carta-nombre"><h3>${esc(j.apodo)}</h3><span class="teja" aria-hidden="true">${j.emoji}</span></div>
     </div>
     <div class="carta-cuerpo">
-      ${lock ? requisitosTaiu() : `${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
+      ${lock ? requisitos(desbloqueoDe(j)) : `${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
       ${hab ? `<button class="carta-prev" type="button" aria-label="Ver la habilidad ${esc(hab.nombre)} entera">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p><span class="mas" aria-hidden="true">›</span></button>` : ''}
       <dl>
         <div><dt>HCP</dt><dd>${j.ruleta ? 'C/U<span class="sub">el suyo</span>' : dif.cargado ? hcpTxt(j) : `—<span class="sub">juega ${dif.hcp}</span>`}</dd></div>
@@ -9020,7 +9068,7 @@ function mostrarTodos() {
     const cara = j.foto ? `<img class="foto" src="${j.foto}" alt="" draggable="false">` : `<span class="foto sin-foto">${j.emoji}</span>`
     const lock = bloqueado(j)
     if (lock) {
-      const p = progresoTaiu()
+      const p = progresoDe(desbloqueoDe(j))
       return `<li class="todo bloqueado">
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${candado()}</span></div>
@@ -9028,7 +9076,7 @@ function mostrarTodos() {
         ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}${j.equipo === 5 ? '<img class="todo-dicky" src="equipo-5.svg" alt="Equipo 5" title="Equipo 5" draggable="false">' : ''}
         <button class="carta-jugar" type="button" disabled aria-label="Bloqueado">${candado(false, 'en-boton')}</button>
       </div>
-      ${requisitosTaiu()}
+      ${requisitos(desbloqueoDe(j))}
     </li>`
     }
     return `<li class="todo${j.retro ? ' dorado' : ''}">

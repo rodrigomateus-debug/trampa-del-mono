@@ -1,7 +1,7 @@
 // node test-motor.mjs — chequeos del motor de La Trampa del Mono.
 import assert from 'node:assert/strict'
 import * as M from './motor.js'
-import { RULETA, DESBLOQUEO_TAIU } from './plantel.js'
+import { RULETA, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEOS, PLANTEL } from './plantel.js'
 
 const campo = M.crearCampo()
 // para probar la física sola: sin monos cruzando y con greens planos
@@ -1921,6 +1921,27 @@ ok('😈 la mufa (más error) y 🥺 el ablandado (más corto): son de un tiro y
     for (const q of ['espanta', 'ablandado']) assert.ok(!M.fraseCompaE5(rng, q, lg).includes('undefined'))
   }
   assert.ok(Array.from({ length: 60 }, () => M.fraseDickyE5(rng, 'Fito (Đ)', 'ablanda', lg)).some((f) => f.includes('Hermano')))
+})
+
+ok('🦅 el pase de Fito: Fito (5) es del Equipo 5 (no Dicky), con la habilidad de Fito, Lucas de compañero y candado', () => {
+  const fito5 = PLANTEL.find((j) => j.apodo === 'Fito (5)'), fito = PLANTEL.find((j) => j.apodo === 'Fito (Đ)')
+  const lechu = PLANTEL.find((j) => j.apodo === 'Lechu'), lg = PLANTEL.find((j) => j.apodo === 'LG')
+  assert.ok(M.esEquipo5(fito5) && !fito5.dicky && fito5.pase === 'Fito (Đ)')
+  assert.equal(M.habilidadDe(fito5), M.habilidadDe(fito))
+  assert.equal(fito5.hcp, fito.hcp); assert.equal(fito5.foto, fito.foto); assert.equal(fito5.torso, fito.torso)
+  assert.equal(M.compaE5(fito5, PLANTEL), lg) // su hermano
+  assert.equal(M.compaE5(lechu, PLANTEL), lg) // Joaco y Lucas, como siempre (no Fito de pase)
+  assert.equal(M.compaE5(lg, PLANTEL), lechu)
+  assert.ok(!RULETA.pool.some((j) => j.pase)) // no sale en la Ruleta
+  assert.ok(DESBLOQUEOS.some((d) => d.apodo === 'Fito (5)'))
+  assert.equal(M.progresoDesbloqueo(DESBLOQUEO_FITO, { Lechu: -1, LG: 0 }).listo, false)
+  assert.equal(M.progresoDesbloqueo(DESBLOQUEO_FITO, { Lechu: -1, LG: -2 }).listo, true)
+  const rng = M.rngDesde(9)
+  const dichos = Array.from({ length: 60 }, () => M.fraseVestuario(rng, 'LG', fito5, 'todos'))
+  assert.ok(dichos.some((f) => /Guarino-Guarino|hermano|Mamá|ex Dicky/.test(f)))
+  assert.ok(dichos.every((f) => !f.includes('Joaco')))
+  for (let i = 0; i < 30; i++) assert.ok(!M.fraseVuelve(rng, 'El Ninja (Đ)', fito5).includes('undefined'))
+  assert.ok(M.fraseVuelve(rng, 'Taiu (Đ)', fito5).length > 5)
 })
 
 ok('🔒 Taiu: se desbloquea con −1 o mejor (firmado) con Fito, Miguelón y el Ninja', () => {
