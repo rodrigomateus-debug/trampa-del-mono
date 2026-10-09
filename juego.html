@@ -2032,7 +2032,7 @@ for (const el of document.querySelectorAll('[data-ico]')) el.innerHTML = gi(el.d
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
 // el nivel fijado a mano manda (Fito, Trampa total, va al final)
 const promReal = (j) => (DIFICULTAD_REAL[j.apodo]?.nivel ? 9 : 0) + (DIFICULTAD_REAL[j.apodo]?.prom ?? 10 + (j.hcp ?? M.HCP_SIN_CARGAR) / 10)
-const PLANTEL = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo)).sort((a, b) => promReal(a) - promReal(b))
+const PLANTEL = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo) && !j.pase).sort((a, b) => promReal(a) - promReal(b)) // Fito de pase, secreto: ver sincronizarSecreto
 // Los handicaps reales: adentro de la SDGApp, la app manda el HCP index de cada uno en la FedE Cup (sdga:plantel)
 // y pisa el de plantel.js (también en la Ruleta: es el mismo objeto). Nunca en medio de una vuelta: si llega
 // jugando, se aplica al empezar la próxima. El orden del mazo no cambia (es el de la dificultad medida).
@@ -2087,6 +2087,20 @@ function sincronizarSecreto() {
   const va = !!datos.demetrio && !matchModo
   if (va && !tiene) PLANTEL.unshift(DEMETRIO) // el que lo desbloqueó lo ve primero, sin buscarlo
   if (!va && tiene) PLANTEL.splice(PLANTEL.indexOf(DEMETRIO), 1)
+  // 🥚 Fito de pase en el Equipo 5 (otro secreto): ni en el mazo, ni en "Ver todos", ni en el ranking hasta que lo
+  // encontrás; ahí aparece al lado de Fito
+  const pase = TODOS.find((x) => x.apodo === DESBLOQUEO_FITO.apodo)
+  const esta = PLANTEL.includes(pase), lo = tieneSecreto(DESBLOQUEO_FITO)
+  if (lo && !esta) PLANTEL.splice(PLANTEL.findIndex((x) => x.apodo === pase.pase) + 1, 0, pase)
+  if (!lo && esta) PLANTEL.splice(PLANTEL.indexOf(pase), 1)
+}
+/** ¿Ya encontraste a Fito de pase? (como `tiene`, sin depender de lo que se arma más abajo en la página) */
+function tieneSecreto(d) {
+  if (datos.fito5) return true
+  if (!M.progresoDesbloqueo(d, datos.records).listo) return false
+  datos.fito5 = { fecha: new Date().toISOString() }
+  guardar(datos)
+  return true
 }
 /**
  * El desbloqueo vive en el teléfono (`datos.demetrio`), así que al borrar la app se perdía. Se recupera de la base:
@@ -2124,7 +2138,7 @@ const DESBLOQUEO_UI = {
     logro: 'Fito pidió el pase al Equipo 5 🦅', logroExtra: '−1 con Joaco y con Lucas',
     titulo: '🦅 Fito pidió el pase al Equipo 5', sub: 'Hiciste −1 con Joaco y con Lucas. "Por un par de días Fito deja de ser Dicky": el mismo Fito, con el escudo del 5.',
     plus: 'FOURBALL GUARINO-GUARINO', plusTexto: 'La Mejor pelota con Lucas, su hermano, en vez de la Dickyllamada. Y los Dicky le van a pedir que vuelva.',
-    jugar: 'Jugar con Fito del 5', lluvia: ['🦅', '📺', '🫶'],
+    jugar: 'Jugar con Fito del 5', lluvia: ['🦅', '📺', '🫶'], secreto: true,
   },
 }
 const desbloqueoDe = (j) => DESBLOQUEOS.find((d) => d.apodo === j?.apodo) ?? null
@@ -2180,7 +2194,7 @@ function requisitos(d) {
   </div>`
 }
 /** Cómo ve a un player alguien que todavía no desbloqueó a Demetrio (ranking, lo que se comparte). */
-const publico = (j) => (j?.apodo === DEMETRIO.apodo && !datos.demetrio ? { ...j, ...MISTERIOSO } : j)
+const publico = (j) => ((j?.apodo === DEMETRIO.apodo && !datos.demetrio) || (j?.apodo === DESBLOQUEO_FITO.apodo && !tieneSecreto(DESBLOQUEO_FITO)) ? { ...j, ...MISTERIOSO } : j)
 
 // ── cancha ──
 const campo = M.crearCampo()
@@ -3877,6 +3891,11 @@ function compaDespues(res, tiro) {
   if (tiro.tercera) { dickyVisita(compa, M.fraseInterna(rng, 'ofendido', yo), true); return }
   if (tiro.blando) { dickyVisita(compa, M.fraseCompaE5(rng, 'ablandado', yo), true); return }
   if (tiro.mejorPelota && m !== 'mal') { dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, tiro.compa ? 'compa' : 'tuya'), true); return }
+  // 🥚 una pista del secreto, muy de vez en cuando (mientras no lo encontraste)
+  if (!yo.pase && !tieneSecreto(DESBLOQUEO_FITO) && rng() < 0.05) {
+    dickyVisita(compa, M.elegir(rng, ['Dicen que hay un Dicky que quiere pedir el pase… hacete querer por los dos y vas a ver 🤫', '¿Sabías que en el #Equipo5 hay lugar para uno más? Bajo par con los dos y aparece 🤫']), true)
+    return
+  }
   // Fito de pase: a veces se cuela un Dicky a pedirle que vuelva (con amor)
   if (yo.pase && dickysLibres().length && rng() < M.E5.vuelve) {
     const d = M.elegir(rng, dickysLibres().filter((x) => x.apodo !== dickyUltimo))
@@ -6428,6 +6447,7 @@ function logro(d) {
   const ui = DESBLOQUEO_UI[d.apodo]
   const el = $('#logro')
   el.querySelector('.lg-ico img').src = ui.torso
+  el.querySelector('.lg-txt small').textContent = ui.secreto ? '🥚 ¡ENCONTRASTE UN SECRETO!' : '🏆 LOGRO DESBLOQUEADO'
   el.querySelector('.lg-txt b').textContent = ui.logro
   el.querySelector('.lg-txt em').textContent = ui.logroExtra
   el.setAttribute('aria-label', `Logro desbloqueado: ${ui.nombre}. Tocá para verlo`)
@@ -6452,6 +6472,7 @@ function mostrarDesbloqueado(d) {
   const ui = DESBLOQUEO_UI[d.apodo]
   const el = $('#taiu-ok')
   el.querySelector('.dk-logo').src = ui.logo
+  el.querySelector('.dk-kicker').innerHTML = ui.secreto ? '🥚 ¡ERA UN SECRETO!' : `<span class="cand-abierto">${candado(true)}</span> ¡DESBLOQUEADO!`
   el.querySelector('.tu-foto').src = ui.torso
   el.querySelector('.tu-foto').alt = ui.nombre
   el.querySelector('#tu-tit').textContent = ui.titulo
@@ -6478,6 +6499,7 @@ $('#taiu-ok').addEventListener('click', (e) => { if (e.target.closest('[data-cer
 $('#tu-jugar').addEventListener('click', () => {
   $('#taiu-ok').hidden = true
   const t = TODOS.find((x) => x.apodo === logroDe.apodo)
+  sincronizarSecreto() // si era secreto, ya está en el mazo
   if (t) empezar(t)
 })
 function sinFirma() {
@@ -8343,7 +8365,7 @@ function abrirBloqueado(m) {
       <li>¿Cómo juega?<b>? ? ?</b></li>
       <li>¿Cómo se consigue?<b>ESO ES COSA TUYA</b></li>
     </ul>
-    <p class="rb-pista">Pista: el que juega derechito nunca lo encuentra. 🐒</p>
+    <p class="rb-pista">${m.apodo === DESBLOQUEO_FITO.apodo ? 'Pista: en el #Equipo5 son una familia. Hacete querer por los dos. 🦉📺' : 'Pista: el que juega derechito nunca lo encuentra. 🐒'}</p>
     <button class="rb-ir" type="button">SALIR A BUSCARLO ⛳</button>`
   $('#rs-cuerpo .rb-ir').addEventListener('click', () => { cerrarResumen(); $('#ranking').hidden = true; mostrarElegir() })
   $('#rk-resumen').hidden = false
