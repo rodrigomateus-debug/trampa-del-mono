@@ -3695,7 +3695,7 @@ function pintarVoz() {
     clase = ''; dice = '👆 Arrastrá para atrás y soltá'; extra = 'El óvalo es donde puede caer'
   } else if (estado === 'apuntar' && ronda && M.mejorPelotaArmada(ronda)) {
     const c = ronda.mejorPelota.compa
-    clase = ''; dice = '🦉📺 MEJOR PELOTA: PEGAN LOS DOS'; extra = `Vos y ${c.emoji} ${c.apodo}: queda la mejor de las dos`
+    clase = ''; dice = '🦉📺 MEJOR PELOTA: PEGAN LOS DOS'; extra = M.compaSinError(ronda) ? `${c.emoji} ${c.apodo} no se enoja: el suyo sale sin error` : `Vos y ${c.emoji} ${c.apodo}: queda la mejor de las dos`
   } else if (estado === 'apuntar' && ronda?.calma) {
     clase = ''; dice = '📺 LG no se enoja'; extra = 'El que se enoja pierde: este golpe sale sin error'
   } else if (estado === 'apuntar' && golpeMago()) {
@@ -3975,7 +3975,7 @@ $('#e5-btn').addEventListener('click', () => {
   const compa = M.compaE5(yo, EQUIPO5)
   if (!compa || !M.armarMejorPelota(ronda, compa)) return
   S.ruletaCae()
-  dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, 'arma'), true)
+  dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, M.compaSinError(ronda) ? 'armaCalma' : 'arma'), true)
   hud()
 })
 $('#ninja-btn').addEventListener('click', resetDelNinja)

@@ -373,7 +373,7 @@ export const DIFICULTAD_REAL = {
   LG: { prom: 0.68, lp: 1 },
   'El Mago Rodal': { prom: -0.17, lp: 0, nivel: 2 }, // elige el golpe. Normal a mano: el bot dibuja el vuelo perfecto, la gente no
   'El Flaco Ordoñez': { prom: 1.4, lp: 0 }, // el bot no maneja: el carrito le cuesta tiempo, no golpes
-  Lechu: { prom: 1.43, lp: 1 },
+  Lechu: { prom: 1.4, lp: 2 }, // 2026-10-09: las dadas de 6 metros (con las de 3: +1,53 en las mismas 200 vueltas; el bot patea bien, a mano se nota más)
   Liberty: { prom: 2.51, lp: 8 },
   Mugre: { prom: 2.32, lp: 3 },
   // Trampa total a mano (dicen los que juegan que es el más difícil: el embudo de la línea que se sacude)
