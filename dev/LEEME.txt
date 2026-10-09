@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy: el juego publicado + EL ORIGINAL en el ranking (la vuelta de un socio con su propio player: reborde dorado y sello). Sin Google (la SDGApp de dev en modo DEV) se juega el MATCH DE PRUEBA; suelto: dev/?probar=match.
+Hoy es igual al juego publicado (la raíz), con la camiseta, el carrito nuevo de Marcos y EL ORIGINAL en el ranking. Sin Google (la SDGApp de dev en modo DEV) se juega el MATCH DE PRUEBA; suelto: dev/?probar=match.
