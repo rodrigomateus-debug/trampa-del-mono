@@ -624,13 +624,20 @@ export function marcadorFantasma(g, ms) {
 /** Quién gana el match: 1 gana `a`, −1 gana `b`, 0 empate. Menos golpes; a igual golpes, el más rápido; LP (golpes null) pierde. */
 export function ganadorMatch(a, b) {
   const ga = a?.golpes ?? null, gb = b?.golpes ?? null
-  if (ga == null && gb == null) return 0
+  // los dos levantaron: gana el que aguantó más (el tiempo hasta que levantó; el que abandonó sin jugar no tiene).
+  // Sin tiempo los dos (los matches de antes del 9/10/2026), empate. Igual en la base: trampa_bananas_ganador
+  if (ga == null && gb == null) {
+    const ta = a?.ms ?? 0, tb = b?.ms ?? 0
+    return ta === tb ? 0 : ta > tb ? 1 : -1
+  }
   if (ga == null) return -1
   if (gb == null) return 1
   if (ga !== gb) return ga < gb ? 1 : -1
   if ((a.ms ?? Infinity) !== (b.ms ?? Infinity)) return (a.ms ?? Infinity) < (b.ms ?? Infinity) ? 1 : -1
   return 0
 }
+/** Si el match lo definió el aguante: los dos levantaron y uno aguantó más. */
+export const porAguante = (a, b) => (a?.golpes ?? null) == null && (b?.golpes ?? null) == null && (a?.ms ?? 0) !== (b?.ms ?? 0)
 /** Si el match lo definió el tiempo: los dos con los mismos golpes (ninguno LP) y distinto tiempo. */
 export function porTiempo(a, b) {
   const ga = a?.golpes ?? null

@@ -837,6 +837,15 @@ ok('match: gana el de menos golpes; a igual golpes, el más rápido; LP pierde',
   assert.equal(M.ganadorMatch({ golpes: 12, ms: 70000 }, { golpes: 12, ms: 60000 }), -1)
   assert.equal(M.ganadorMatch({ golpes: null }, { golpes: 20, ms: 1 }), -1)
   assert.equal(M.ganadorMatch({ golpes: null }, { golpes: null }), 0)
+  // los dos levantaron: gana el que aguantó más; el que abandonó (sin tiempo) pierde; sin tiempo los dos, empate
+  assert.equal(M.ganadorMatch({ golpes: null, lp: true, ms: 95000 }, { golpes: null, lp: true, ms: 40000 }), 1)
+  assert.equal(M.ganadorMatch({ golpes: null, lp: true, ms: 40000 }, { golpes: null, lp: true, ms: 95000 }), -1)
+  assert.equal(M.ganadorMatch({ golpes: null, lp: true, ms: 40000 }, { golpes: null, lp: true, ms: null }), 1)
+  assert.equal(M.ganadorMatch({ golpes: null, lp: true, ms: null }, { golpes: null, lp: true, ms: null }), 0)
+  assert.equal(M.porAguante({ golpes: null, lp: true, ms: 95000 }, { golpes: null, lp: true, ms: 40000 }), true)
+  assert.equal(M.porAguante({ golpes: 12, ms: 95000 }, { golpes: null, lp: true, ms: 40000 }), false)
+  // terminar siempre le gana a levantar, aunque haya tardado más
+  assert.equal(M.ganadorMatch({ golpes: 30, ms: 999999 }, { golpes: null, lp: true, ms: 1000000 }), 1)
   assert.equal(M.ganadorMatch({ golpes: 12, ms: 5 }, { golpes: 12, ms: 5 }), 0)
 })
 

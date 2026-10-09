@@ -3579,6 +3579,8 @@ function levantarVuelta() {
   estado = 'resultado'
   drag = null
   const n = M.levantar(ronda)
+  // en un match, si los dos levantan, gana el que aguantó más: el tiempo hasta acá
+  if (ronda.t0 != null) ronda.msLP = Math.max(1, Math.round(performance.now() - ronda.t0))
   S.lamento()
   banda({ kicker: `Levantaste en el ${n}`, grande: 'LP 💅', banda: 'VUELTA PERDIDA', verso: 'Entraste en la lista LP 💅' }, 2600, tarjetaFinal)
 }
@@ -7898,7 +7900,7 @@ function pintarRankingMatch(lista) {
   if (hayBananas && mtRkVista === 'bananas') { pintarRankingBananas(lista, vistas); return }
   if (mtRkVista === 'equipos') {
     // ⚔️ el ranking por equipo: el Clásico de la semana, con los matches clásicos
-    $('#mt-nota').textContent = 'Cada match que le ganás a uno de la otra camiseta vale 3 para tu equipo en el Clásico de la semana (uno por pareja por día, sin LP). Tu escudo, en el home: tocándolo, el pase.'
+    $('#mt-nota').textContent = 'Cada match que le ganás a uno de la otra camiseta vale 3 para tu equipo en el Clásico de la semana: con bananas, siempre; por el honor, sin LP y uno por pareja por día. Tu escudo, en el home: tocándolo, el pase.'
     lista.innerHTML = `${vistas}<li class="mt-clasico-li"><div class="clasico" id="mt-clasico"></div></li>`
     pintarClasico($('#mt-clasico'))
     return
@@ -8638,7 +8640,7 @@ function pintarReplay(todo = false) {
     el.hidden = gana === -2
     if (gana === -2) return
     const x = gana === 1 ? r.d.rival : r.d.retador
-    el.textContent = gana === -1 ? '🤝 EMPATE' : `🏆 GANÓ ${String(x.alias).toUpperCase()}${M.porTiempo(r.d.retador, r.d.rival) ? ' POR TIEMPO' : ''}`
+    el.textContent = gana === -1 ? '🤝 EMPATE' : `🏆 GANÓ ${String(x.alias).toUpperCase()}${M.porTiempo(r.d.retador, r.d.rival) ? ' POR TIEMPO' : M.porAguante(r.d.retador, r.d.rival) ? ' · AGUANTÓ MÁS' : ''}`
   })
   poner('sigue', null, r.sigue, () => { for (const b of $('#rp-jugadores').children) b.setAttribute('aria-pressed', String(+b.dataset.sigue === r.sigue)) })
 }
@@ -8803,7 +8805,7 @@ async function compartirMatch(d, boton) {
 function veredictoMatch(yo, el, g) {
   const lpYo = yo.lp || yo.golpes == null, lpEl = el.lp || el.golpes == null
   const dif = !lpYo && !lpEl ? Math.abs(yo.golpes - el.golpes) : 0
-  const por = lpYo && lpEl ? 'los dos levantaron' : lpEl ? `${el.alias ?? 'el otro'} levantó` : lpYo ? 'levantaste'
+  const por = lpYo && lpEl ? (M.porAguante(yo, el) ? `los dos levantaron · ${g > 0 ? 'aguantaste' : 'aguantó'} más` : 'los dos levantaron') : lpEl ? `${el.alias ?? 'el otro'} levantó` : lpYo ? 'levantaste'
     : M.porTiempo(yo, el) ? `por tiempo · ${(Math.abs(yo.ms - el.ms) / 1000).toFixed(1).replace('.', ',')} s`
     : dif ? `por ${dif} ${dif === 1 ? 'golpe' : 'golpes'}` : 'mismos golpes y mismo tiempo'
   return `<p class="tm-veredicto ${g > 0 ? 'gana' : g < 0 ? 'pierde' : 'empate'}">${gi(g > 0 ? 'trophy' : g < 0 ? 'close' : 'friends')}<span>${g > 0 ? 'Ganaste' : g < 0 ? 'Perdiste' : 'Empate'}<small>${esc(por)}</small></span></p>`
@@ -8826,7 +8828,8 @@ async function cerrarMatch(r) {
   d.enviado = true
   const t = M.totales(r.tarjeta)
   const lp = !!r.lp
-  const mia = { apodo: r.carta.apodo, emoji: r.carta.emoji, golpes: lp ? null : t.golpes, vsPar: lp ? null : t.vsPar, ms: lp || r.ms == null ? null : Math.round(r.ms), lp }
+  // si levantó, el tiempo hasta que levantó (si los dos levantan, gana el que aguantó más)
+  const mia = { apodo: r.carta.apodo, emoji: r.carta.emoji, golpes: lp ? null : t.golpes, vsPar: lp ? null : t.vsPar, ms: lp ? (r.msLP ?? null) : r.ms == null ? null : Math.round(r.ms), lp }
   const el = $('#t-match')
   el.className = 't-match'
   el.hidden = false
@@ -9250,7 +9253,7 @@ function pintarClasico(el = $('#rk-clasico')) {
     ${clasicos}
     ${antes.dicky + antes.e5 ? `<p class="cl-antes">La semana pasada ${salio}, ${antes.dicky} a ${antes.e5} · 📺 LG: «${esc(lgClasico(antes))}»</p>` : ''}
     <p class="cl-como">${base
-      ? 'Suman las vueltas bajo par, un punto por golpe (con camiseta, solo con cartas de tu equipo; doble el sábado de 9 a 10; hasta 5 por día), y cada match clásico que le ganás a uno de la otra camiseta: 3 (uno por pareja por día, sin LP).'
+      ? 'Suman las vueltas bajo par, un punto por golpe (con camiseta, solo con cartas de tu equipo; doble el sábado de 9 a 10; hasta 5 por día), y cada match clásico que le ganás a uno de la otra camiseta: 3 (por el honor, sin LP y uno por pareja por día; con bananas, siempre).'
       : 'Solo suman las vueltas bajo par: cada vuelta firmada con un Dicky o con el Equipo 5, un punto por cada golpe bajo par para su equipo (hasta 5 vueltas por día).'} Termina el domingo a la noche${hayBananas ? `; los que sumaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}.</p>`
   el.hidden = false
 }
