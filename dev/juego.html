@@ -1058,6 +1058,18 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-lista { list-style: none; margin: 0; padding: 0; display: grid; }
 .rk-fila { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 4px; border-top: 1px solid var(--border-subtle); }
 .rk-fila.yo { background: rgba(232, 195, 74, .3); border-radius: 10px; }
+/* 🪞 EL ORIGINAL: jugó con su propio player. Reborde dorado a la izquierda (en tu fila, que ya es dorada, verde), la carita
+   con aro dorado y el sello: dorado, borde tinta, apenas torcido como un sello de goma */
+.rk-fila.propio { border-radius: 10px; box-shadow: inset 4px 0 0 var(--gold), inset 0 0 0 1.5px rgba(232, 195, 74, .55); background: linear-gradient(90deg, rgba(232, 195, 74, .16), transparent 70%); }
+.rk-fila.yo.propio { background: rgba(232, 195, 74, .3); box-shadow: inset 4px 0 0 var(--green-700), inset 0 0 0 1.5px rgba(28, 86, 56, .45); }
+.mini.propio { border-color: var(--gold); box-shadow: 0 0 0 2px var(--green-900); }
+.rk-nombre small.rk-sub { display: flex; align-items: center; min-width: 0; overflow: visible; }
+.rs-player.original { box-shadow: inset 0 0 0 2.5px var(--gold); }
+.rs-player .rk-original.grande { display: inline-flex; margin: 0 0 0 8px; color: var(--green-900); font: 13px/1 var(--font-display); letter-spacing: .07em; }
+.rk-original { flex: none; display: inline-flex; align-items: center; gap: 3px; height: 16px; padding: 0 6px 0 4px; border-radius: 5px; border: 1.5px solid var(--game-ink); background: var(--gold); color: var(--green-900); font: 10.5px/1 var(--font-display); letter-spacing: .07em; white-space: nowrap; transform: rotate(-2deg); box-shadow: 1px 1.5px 0 var(--game-ink); }
+.rk-original svg { width: 9px; height: 9px; fill: var(--green-900); }
+.rk-original.grande { height: 22px; padding: 0 9px 0 6px; margin-left: 6px; font-size: 13px; vertical-align: middle; position: relative; top: -2px; }
+.rk-original.grande svg { width: 12px; height: 12px; }
 .rk-fila.salto { border-top: 2px dashed var(--border-subtle); }
 .rk-pos { font-family: var(--font-display); font-size: 20px; text-align: center; }
 .rk-fila:first-child .rk-pos { background: var(--gold); border-radius: 6px; }
@@ -9404,6 +9416,18 @@ function pintarRkConteo(j) {
 // ── ranking: uno general (tu mejor vuelta, con el jugador que la hiciste) y uno por jugador ──
 /** ¿Es mía esta marca? En la SDGApp, por el usuario de la app; suelto, por el nombre que puse. */
 const esYo = (m) => (R.puente.activo ? m.uid === R.puente.identidad.uid : m.usuario.trim().toLowerCase() === datos.usuario.trim().toLowerCase())
+/**
+ * 🪞 EL ORIGINAL: la vuelta la jugó un socio con SU propio player (el nombre de su jugador en la SDGApp es el del player,
+ * el de quien es la carta —Fito (5) es de Fito— o el `jugador` del plantel: Marcos es El Flaco Ordoñez, La Rana es Taiu).
+ * Solo socios (el nombre viene de la base, no de un alias escrito).
+ */
+const claveOriginal = (s) => R.claveNombre(String(s ?? '').replace(/ \((Đ|5)\)$/, ''))
+const esPropio = (m) => {
+  if (!m?.sdga || !m.usuario || !m.apodo || publico(m).misterio) return false // (con un player secreto que no ves, no se dice)
+  const j = TODOS.find((x) => x.apodo === m.apodo)
+  return claveOriginal(m.usuario) === claveOriginal(j?.jugador ?? j?.pase ?? m.apodo) // (Marcos juega con El Flaco Ordoñez)
+}
+const selloOriginal = (grande = false) => `<span class="rk-original${grande ? ' grande' : ''}" title="Jugó con su propio player" aria-label="el original: jugó con su propio player"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.2l1.4 2.9 3.2.4-2.3 2.2.6 3.2L6 8.4 3.1 9.9l.6-3.2L1.4 4.5l3.2-.4z"/></svg>EL ORIGINAL</span>`
 // en la SDGApp: Mundial (todos los que juegan) o SDGA (solo los socios)
 let rkAmbito = 'mundial'
 let rkPro = false // el ranking PRO (las vueltas en MODO PRO) o el normal
@@ -9480,7 +9504,7 @@ function abrirResumen(m) {
   $('#rs-cuerpo').innerHTML = `
     <p class="rs-kicker">Ranking ${ambito}${posG ? ` · ${posG}° puesto` : ''}</p>
     <h3 class="rs-quien" id="rs-quien">${esc(m.usuario)}${m.sdga ? selloSdga() : ''}</h3>
-    <div class="rs-player">${cara}<div><small>Jugó con</small><b>${esc(nombreJ)}</b>${hab ? `<span>✦ ${esc(hab.nombre)}</span>` : j.misterio ? '<span>Un player secreto</span>' : ''}</div></div>
+    <div class="rs-player${esPropio(m) ? ' original' : ''}">${cara}<div><small>${esPropio(m) ? 'Jugó con su propio player' : 'Jugó con'}</small><b>${esc(nombreJ)}${esPropio(m) ? selloOriginal(true) : ''}</b>${hab ? `<span>✦ ${esc(hab.nombre)}</span>` : j.misterio ? '<span>Un player secreto</span>' : ''}</div></div>
     <div class="rs-score"><div class="grande ${clase}">${M.formatoPar(m.vsPar)}</div><p><b>${m.golpes} golpes</b>par ${M.PAR_TOTAL} · hoyos 15, 16 y 17</p></div>
     <dl class="rs-datos">
       <div><dt>Tiempo</dt><dd>${M.formatoTiempo(m.ms)}</dd></div>
@@ -9785,18 +9809,19 @@ function pintarRanking(error = false) {
   // el sello del SDGA: en el Mundial, al lado del nombre de los socios
   // ⛳ y el del sábado 9 AM, en las firmadas a esa hora
   const sello = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '') + camisetaMini(m.uid) + (M.esSabado9(Date.parse(m.fecha)) ? '<span class="s9" title="Sábado 9 AM" aria-label="firmada un sábado a las 9">🌅</span>' : '')
-  const fila = (m, salto) => `<li class="rk-fila tocable${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}" data-k="${lista.indexOf(m)}" tabindex="0" role="button" aria-label="Ver la vuelta de ${esc(m.usuario)}">
+  // 🪞 el que juega con su propio player: reborde dorado, la carita con aro y el sello EL ORIGINAL
+  const fila = (m, salto) => { const pr = esPropio(m); return `<li class="rk-fila tocable${esYo(m) ? ' yo' : ''}${pr ? ' propio' : ''}${salto ? ' salto' : ''}" data-k="${lista.indexOf(m)}" tabindex="0" role="button" aria-label="Ver la vuelta de ${esc(m.usuario)}${pr ? ', con su propio player' : ''}">
       <span class="rk-pos">${m.pos}</span>
-      <span class="rk-quien">${j ? `<span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span></span>` : `<span class="mini${publico(m).misterio ? ' misterio' : ''}" aria-hidden="true">${publico(m).emoji}</span><span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span><small>con ${esc(publico(m).apodo.replace(/ \(Đ\)$/, ''))}</small></span>`}</span>
+      <span class="rk-quien">${j ? `<span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span>${pr ? `<small class="rk-sub">${selloOriginal()}</small>` : ''}</span>` : `<span class="mini${publico(m).misterio ? ' misterio' : ''}${pr ? ' propio' : ''}" aria-hidden="true">${publico(m).emoji}</span><span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span><small class="rk-sub">${pr ? selloOriginal() : `con ${esc(publico(m).apodo.replace(/ \(Đ\)$/, ''))}`}</small></span>`}</span>
       <span class="rk-score">${M.formatoPar(m.vsPar)}<small>${m.golpes} golpes</small></span>
       <span class="rk-tiempo">${M.formatoTiempo(m.ms)}</span>
-    </li>`
+    </li>` }
   const top = lista.slice(0, 50)
   const mio = lista.find(esYo)
   const filas = top.map((m) => fila(m, false))
   if (mio && mio.pos > top.length) filas.push(fila(mio, true))
   $('#rk-lista').innerHTML = filas.length ? filas.join('') : `<li class="rk-vacio">Todavía nadie firmó una vuelta${rkPro ? ' PRO' : ''}${j ? ` con ${esc(j.apodo)}` : ''}. Sé el primero.</li>`
-  $('#rk-fuente').textContent = (rkPro ? 'Ranking PRO: solo las vueltas en MODO PRO (sin líneas punteadas). ' : '') + (app && rkCompartido
+  $('#rk-fuente').textContent = (top.some(esPropio) ? 'EL ORIGINAL: jugó con su propio player. ' : '') + (rkPro ? 'Ranking PRO: solo las vueltas en MODO PRO (sin líneas punteadas). ' : '') + (app && rkCompartido
     ? `${rkAmbito === 'sdga' ? 'Ranking SDGA: solo los socios del club.' : 'Ranking mundial: todos los que juegan, en la SDGApp o acá.'} Entra cada tarjeta firmada (LP y sin firmar no cuentan).`
     : rkCompartido
     ? 'Ranking del grupo. Entra cada tarjeta firmada (LP y sin firmar no cuentan).'
