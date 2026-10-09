@@ -707,8 +707,13 @@ body.manejando #mandos { display: flex; }
 #mandos #m-reversa.on { background: var(--gold); transform: translate(3px, 4px); box-shadow: 0 0 0 var(--game-ink); }
 /* el velocímetro: se llena de dorado y en el turbo se pone al rojo */
 #m-velo { position: absolute; left: 50%; bottom: calc(100% + 12px); transform: translateX(-50%); width: 132px; padding: 6px 9px 7px; border-radius: 12px; background: rgba(12, 43, 28, .82); border: 2px solid rgba(244, 238, 218, .5); color: var(--cream); font: 13px var(--font-display); letter-spacing: .08em; text-align: center; pointer-events: none; }
-#m-reset { position: absolute; left: 50%; bottom: calc(100% + 66px); transform: translateX(-50%); padding: 7px 14px 6px; font: 15px/1 var(--font-display); letter-spacing: .06em; color: var(--game-ink); background: var(--cream); border: var(--game-stroke) solid var(--game-ink); border-radius: 999px; box-shadow: 3px 4px 0 var(--game-ink); pointer-events: auto; }
-#m-reset:active { transform: translateX(-50%) translate(3px, 4px); box-shadow: 0 0 0 var(--game-ink); }
+/* RESET (el carrito trabado): la pastilla de los mandos (como REVERSA), centrada arriba del velocímetro. Con #mandos
+   adelante, así le gana a la regla de todos los botones de los mandos (display, padding) */
+#mandos #m-reset { position: absolute; left: 50%; bottom: calc(100% + 68px); display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 40px; padding: 0 16px 0 7px; border: var(--game-stroke) solid var(--game-ink); border-radius: 999px; background: var(--cream); color: var(--green-900); font-size: 16px; line-height: 1; letter-spacing: .07em; white-space: nowrap; box-shadow: var(--game-shadow-sm); transform: translateX(-50%); pointer-events: auto; --gi-s: var(--game-ink); --gi-a: var(--gold); }
+#mandos #m-reset .gi { width: 26px; height: 26px; transition: transform .35s var(--game-ease-bounce); }
+#mandos #m-reset span { padding-top: 1px; }
+#mandos #m-reset:active { transform: translateX(-50%) translate(3px, 4px); box-shadow: 0 0 0 var(--game-ink); background: var(--gold); --gi-a: var(--cream); }
+#mandos #m-reset:active .gi { transform: rotate(-120deg); }
 /* 📣 Marcos festeja a los gritos */
 #grito { position: fixed; left: 50%; top: 46%; z-index: 40; display: flex; flex-direction: column; align-items: center; gap: 6px; width: max-content; max-width: calc(100vw - 32px); pointer-events: none; text-align: center; transform: translate(-50%, -50%); }
 #grito[hidden] { display: none; }
@@ -1879,7 +1884,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <button class="dir" id="m-der" type="button" aria-label="Derecha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 4 8 8-8 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>
   <div id="m-velo" aria-hidden="true"><span>VELOCIDAD</span><div class="barra"><i></i></div></div>
-  <button id="m-reset" type="button" aria-label="Reset: el carrito vuelve al medio del fairway más cercano">🔄 RESET</button>
+  <button id="m-reset" type="button" aria-label="Reset: el carrito vuelve al medio del fairway más cercano"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="16" cy="16" r="11.5" style="fill:var(--gi-a)"/><path d="M22.6 12.2A7.4 7.4 0 1 0 23.2 18.6"/><path d="M23.4 7.6v5.1h-5.1"/></g></svg><span>RESET</span></button>
   <div class="grupo">
     <div class="col"><button id="m-reversa" type="button" aria-label="Reversa">REVERSA</button><button class="pedal" id="m-freno" type="button" aria-label="Freno"><span><b>■</b>FRENO</span></button></div>
     <button class="pedal" id="m-acel" type="button" aria-label="Acelerar"><span><b>▲</b>ACELE<br>RAR</span></button>
@@ -2023,7 +2028,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 45bff6a · 9/10, 02:53 p. m.</span>
+  <span class="version" id="version">v 5b62834 · 9/10, 04:56 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
