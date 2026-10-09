@@ -111,6 +111,8 @@ if (enMarco) {
   window.parent.postMessage({ tipo: 'trampa:hola', v: 1 }, '*')
 }
 function pedirApp(tipo, datos = {}) {
+  // el match de prueba (ver usarPrueba): el match y las firmas los contesta la app de mentira; el resto, la app de verdad
+  if (prueba && (tipo === 'trampa:match' || tipo === 'trampa:anotar' || !origenApp)) return prueba.pedir(tipo, datos)
   const id = `p${++pedidos}`
   return new Promise((ok) => {
     const t = setTimeout(() => { esperando.delete(id); ok(null) }, 10000)
@@ -118,6 +120,19 @@ function pedirApp(tipo, datos = {}) {
     window.parent.postMessage({ tipo, id, ...datos }, origenApp)
   })
 }
+/**
+ * El MATCH de prueba (prueba.js): sin cuenta (la SDGApp de dev en modo DEV, "dev:…") o suelto con ?probar=match, una
+ * app de mentira contesta acá mismo, con rivales y bananas simulados que quedan en el teléfono. Con `identidad`, entra
+ * con ella (suelto no hay app que la mande). Nunca en producción.
+ */
+let prueba = null
+export function usarPrueba(p, identidad = null) {
+  prueba = p
+  if (identidad) entro(identidad, true)
+}
+export const enPrueba = () => !!prueba
+/** Suelto, en prueba: no hay app de verdad atrás (sin "volver a la SDGApp"). */
+export const pruebaSuelta = () => !!prueba && !origenApp
 /** Un aviso suelto a la app (p. ej. el color de arriba de la pantalla, para teñir la barra de estado). */
 export const avisarApp = (d) => { if (origenApp) window.parent.postMessage(d, origenApp) }
 

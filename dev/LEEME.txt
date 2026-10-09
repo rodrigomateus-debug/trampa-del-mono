@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy: el juego publicado + las bananas 🍌 en el MATCH (apostar antes de jugar, aceptar o rechazar, el pozo del mono, los más ricos y los premios al firmar), para probar. Necesitan el SQL de las bananas en la base de staging (lo corre Miguel): sin eso, el match es el de siempre.
+Hoy: el juego publicado + las bananas en el MATCH (la banana como sticker SDGA, la fiesta del hoyo en uno, apostar antes de jugar, aceptar o rechazar, el pozo del mono, los más ricos y los premios al firmar), para probar. Sin Google (la SDGApp de dev en modo DEV) se juega el MATCH DE PRUEBA, con rivales y bananas de mentira; suelto: dev/?probar=match. La fiesta sola: dev/?probar=fiesta o ?probar=pozo.
