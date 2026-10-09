@@ -17,6 +17,8 @@ const RIVALES = [
   { user_id: 'prueba:patmig', nombre: 'Patmig (prueba)', sdga: true, nivel: 12.5 },
   { user_id: 'prueba:lechu', nombre: 'Lechu (prueba)', sdga: true, nivel: 13.5 },
 ]
+// 👕 las camisetas de los rivales de mentira (la tuya, la que elijas)
+const CAMISETAS = { 'prueba:mono': 'dicky', 'prueba:patmig': 'e5', 'prueba:lechu': 'e5' }
 const PARES = [4, 4, 3]
 const H = 3600e3
 const MONO = 'mono'
@@ -219,6 +221,39 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
         if (!x || x.estado !== 'pendiente') throw new No('el desafío ya no está pendiente')
         x.estado = 'rechazado'
         return { costo: rechazo(x) }
+      }
+      // ── 👕 la camiseta: la primera vez gratis; cambiarla, 5 bananas para el mono (como la base) ──
+      case 'camiseta': return { equipo: st.camiseta ?? null, desde: null, cambios: st.cambios ?? 0, costo: 5 }
+      case 'camisetaElegir': {
+        const e = d.equipo
+        if (e !== 'dicky' && e !== 'e5') throw new No('camiseta inválida')
+        let costo = 0
+        if (st.camiseta && st.camiseta !== e) {
+          costo = 5
+          if (saldo(yo.uid) < costo) throw new No('no te alcanzan las bananas')
+          mover(yo.uid, -costo, 'camiseta', null, { de: st.camiseta, a: e })
+          mover(MONO, costo, 'camiseta', null, { de: st.camiseta, a: e })
+          st.cambios = (st.cambios ?? 0) + 1
+        }
+        st.camiseta = e
+        return { equipo: e, costo, saldo: saldo(yo.uid) }
+      }
+      case 'camisetas': return [...RIVALES.map((r) => ({ user_id: r.user_id, equipo: CAMISETAS[r.user_id] })), ...(st.camiseta ? [{ user_id: yo.uid, equipo: st.camiseta }] : [])]
+      case 'clasicoSemana': {
+        // de mentira: esta semana va 9 a 8 (con vos, si tenés camiseta, sumando 4: 3 de un match clásico); la pasada, 11 a 14
+        const atras = Math.max(0, Math.floor(+d.atras || 0))
+        const lunes = new Date(Date.parse(lunesAR()) - atras * 7 * 24 * H).toISOString().slice(0, 10)
+        const vos = st.camiseta && !atras ? [{ uid: yo.uid, nombre: yo.alias, pts: 4, matches: 3 }] : []
+        const dicky = [{ uid: 'prueba:mono', nombre: 'El Mono (prueba)', pts: atras ? 11 : 6, matches: 3 }, ...(st.camiseta === 'dicky' ? vos : [])]
+        const e5 = [{ uid: 'prueba:lechu', nombre: 'Lechu (prueba)', pts: atras ? 9 : 5, matches: 0 }, { uid: 'prueba:patmig', nombre: 'Patmig (prueba)', pts: atras ? 5 : 3, matches: 3 }, ...(st.camiseta === 'e5' ? vos : [])].sort((a, b) => b.pts - a.pts)
+        const suma = (l) => l.reduce((a, x) => a + x.pts, 0)
+        const clasicos = atras ? [] : [
+          { equipo: 'dicky', gano: 'El Mono (prueba)', perdio: 'Lechu (prueba)', fecha: iso(ahora() - 26 * H) },
+          { equipo: 'e5', gano: 'Patmig (prueba)', perdio: 'El Mono (prueba)', fecha: iso(ahora() - 5 * H) },
+          ...(vos.length ? [{ equipo: st.camiseta, gano: yo.alias, perdio: st.camiseta === 'dicky' ? 'Patmig (prueba)' : 'El Mono (prueba)', fecha: iso(ahora() - H) }] : []),
+        ].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha))
+        const [cd, ce] = [suma(dicky), suma(e5)]
+        return { semana: lunes, dicky: cd, e5: ce, ganador: cd > ce ? 'dicky' : ce > cd ? 'e5' : null, aportes: { dicky, e5 }, clasicos }
       }
       case 'clasico': {
         // ⚔️ el Clásico de mentira: la semana pasada ganó el Equipo 5 14 a 11 y "jugaste para él": 2 bananas, una vez por semana
