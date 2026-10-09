@@ -701,7 +701,6 @@ body.retro #retro::after { content: ''; position: absolute; inset: 0; background
 #deme svg { display: block; width: 100%; height: auto; overflow: visible; }
 #deme .globo { position: absolute; left: 40%; bottom: 76%; width: max-content; max-width: min(58vw, 215px); padding: 10px 14px; background: var(--cream); color: var(--green-900); font: 800 15px/1.25 var(--font-body); border: 2.5px solid var(--green-900); border-radius: 22px 26px 24px 18px; box-shadow: 0 6px 16px rgba(8, 26, 16, .4); transform-origin: 0% 100%; opacity: 0; }
 #deme .globo b { display: block; font: 19px/1.1 var(--font-display); letter-spacing: .02em; margin-bottom: 4px; }
-#deme .globo::after { content: ''; position: absolute; left: 6px; bottom: -14px; width: 22px; height: 18px; background: var(--cream); border-left: 2.5px solid var(--green-900); border-bottom: 2.5px solid var(--green-900); border-bottom-left-radius: 18px 14px; transform: skewX(-28deg); }
 #deme .globo.ve { animation: globo-sale 520ms cubic-bezier(.2, 1.5, .4, 1) forwards, globo-respira 2.2s 520ms ease-in-out infinite; }
 /* Lucas (LG) en persona: con Rodal aparece abajo a la izquierda y lo adula con un globo de diálogo */
 #lucas, #dicky { position: fixed; left: 0; bottom: 0; z-index: 30; width: min(46vw, 230px); pointer-events: none; opacity: 0; transform: translateY(70%) rotate(-7deg); transform-origin: 30% 100%; }
@@ -710,7 +709,6 @@ body.retro #retro::after { content: ''; position: absolute; inset: 0; background
 #lucas .cuerpo, #dicky .cuerpo { animation: lucas-flota 2.6s ease-in-out infinite; transform-origin: 40% 100%; }
 #lucas img, #dicky img { display: block; width: 100%; height: auto; filter: drop-shadow(0 8px 18px rgba(8, 26, 16, .55)); }
 #lucas .globo, #dicky .globo { position: absolute; left: 62%; bottom: 74%; width: max-content; max-width: min(58vw, 250px); padding: 10px 14px; background: var(--cream); color: var(--green-900); font: 800 16px/1.2 var(--font-body); border: 2.5px solid var(--green-900); border-radius: 22px 26px 24px 18px; box-shadow: 0 6px 16px rgba(8, 26, 16, .4); transform-origin: 0% 100%; opacity: 0; }
-#lucas .globo::after, #dicky .globo::after { content: ''; position: absolute; left: 4px; bottom: -14px; width: 22px; height: 18px; background: var(--cream); border-left: 2.5px solid var(--green-900); border-bottom: 2.5px solid var(--green-900); border-bottom-left-radius: 18px 14px; transform: skewX(-28deg); }
 #lucas.entra .globo, #dicky.entra .globo { animation: globo-sale 520ms 260ms cubic-bezier(.2, 1.5, .4, 1) forwards, globo-respira 2.2s 780ms ease-in-out infinite; }
 @keyframes lucas-entra { 0% { opacity: 0; transform: translateY(70%) rotate(-7deg); } 60% { opacity: 1; } 100% { opacity: 1; transform: translateY(0) rotate(0); } }
 @keyframes lucas-sale { from { opacity: 1; transform: translateY(0) rotate(0); } to { opacity: 0; transform: translateY(45%) rotate(-4deg); } }
@@ -1482,7 +1480,6 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 /* Lucas y los Dicky, del otro lado si tapan la pelota (la foto a la derecha, el globo hacia la izquierda) */
 #lucas.derecha, #dicky.derecha { left: auto; right: 0; transform-origin: 70% 100%; }
 #lucas.derecha .globo, #dicky.derecha .globo { left: auto; right: 62%; transform-origin: 100% 100%; }
-#lucas.derecha .globo::after, #dicky.derecha .globo::after { left: auto; right: 4px; border-left: 0; border-right: 2.5px solid var(--green-900); border-bottom-left-radius: 0; border-bottom-right-radius: 18px 14px; transform: skewX(28deg); }
 /* tenue: casi transparentes (si igual tapan la pelota, o apenas tocás para tirar) */
 #lucas.tenue, #dicky.tenue { opacity: .12 !important; transition: opacity 220ms ease; }
 
@@ -1491,7 +1488,21 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 #dicky { width: min(34vw, 170px); }
 #dicky .globo { box-sizing: border-box; left: 6px; bottom: 100%; margin-bottom: 10px; max-width: min(calc(50vw - 22px), 240px); font-size: 14px; padding: 8px 12px; transform-origin: 20% 100%; }
 #dicky .globo b { font-size: 15px; }
-#dicky .globo::after { left: 26px; bottom: -14px; }
+/* la colita de los globos (Lucas, los Dicky y el Equipo 5, Deme): dos triángulos, el contorno tinta (::before) y adentro
+   el relleno crema (::after), que tapa el borde del globo en la base y deja el contorno del mismo grosor (2,5 px); la
+   punta apunta a la boca del que habla. Contorno: base de 22 px y 17 de alto; relleno: el mismo, 2,5 px adentro.
+   (Antes era una caja con dos bordes torcida: asomaba una rayita adentro del globo y quedaba abierta de un lado.) */
+#lucas .globo::before, #lucas .globo::after, #dicky .globo::before, #dicky .globo::after, #deme .globo::before, #deme .globo::after { content: ''; position: absolute; width: 0; height: 0; border-style: solid; border-color: var(--green-900) transparent transparent; }
+#lucas .globo::after, #dicky .globo::after, #deme .globo::after { border-top-color: var(--cream); }
+/* Lucas (con Rodal) y Deme: el globo está arriba a la derecha de la cabeza → la punta, abajo a la izquierda */
+#lucas .globo::before, #deme .globo::before { top: 100%; left: 24px; border-width: 17px 18px 0 4px; }
+#lucas .globo::after, #deme .globo::after { top: calc(100% - 2.5px); left: 25.98px; border-width: 14.71px 15.57px 0 3.46px; }
+/* el Dicky / Equipo 5: el globo arriba de la cabeza, que queda abajo a la derecha de la colita → la punta, para allá */
+#dicky .globo::before { top: 100%; left: 30px; border-width: 17px 4px 0 18px; }
+#dicky .globo::after { top: calc(100% - 2.5px); left: 30.99px; border-width: 14.71px 3.46px 0 15.57px; }
+/* del otro lado de la pantalla (si tapaban la pelota): el globo a la izquierda de la cabeza → la punta, abajo a la derecha */
+#lucas.derecha .globo::before, #dicky.derecha .globo::before { left: auto; right: 24px; border-width: 17px 4px 0 18px; }
+#lucas.derecha .globo::after, #dicky.derecha .globo::after { left: auto; right: 25.98px; border-width: 14.71px 3.46px 0 15.57px; }
 
 /* 📊 stats */
 .st-resumen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 2px; }
@@ -1757,7 +1768,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 048f4bb · 9/10, 01:30 a. m.</span>
+  <span class="version" id="version">v 984268d · 9/10, 01:49 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
