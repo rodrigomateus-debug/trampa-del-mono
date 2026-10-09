@@ -10,6 +10,12 @@ import * as THREE from './assets/vendor/three.module.min.js'
 import { crearEscena } from './escena-core.js'
 import { MARKUP, CSS, CSS_VERTICAL } from './app-overlay.js'
 
+// ---------- los íconos de los botones (dibujados, con la pinta del SDGA; nada de emojis que en cada celu se ven distinto) ----------
+// el play: un disco con el triángulo redondeado (los colores salen del botón: --ia-disco y --ia-tri)
+const PLAY = `<svg class="ia-play" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13.5" style="fill:var(--ia-disco)" stroke="#0c2b1c" stroke-width="2.5"/><path d="M13 10.2 22.2 16 13 21.8Z" style="fill:var(--ia-tri);stroke:var(--ia-tri)" stroke-width="2.6" stroke-linejoin="round"/></svg>`
+const PARLANTE = `<svg viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="#0c2b1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" fill="#e8c34a"/><path d="M20 12a5.5 5.5 0 0 1 0 8M23.5 8.5a10 10 0 0 1 0 15"/></g></svg>`
+const PARLANTE_MUDO = `<svg viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="#0c2b1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" fill="#e8c34a"/><path d="M20.5 12.5l7 7M27.5 12.5l-7 7"/></g></svg>`
+
 const BASE = new URL('./', import.meta.url).href
 const VISTA = 'sdga-trampa-intro-v1' // ya vio la intro en este teléfono
 const FRASES = [
@@ -55,18 +61,18 @@ async function iniciar() {
     <div class="ia-ojos"></div>
     <div class="ia-escenario">${MARKUP.replaceAll('assets/', BASE + 'assets/')}</div>
     <div class="ia-ui">
-      <button class="ia-sonido" type="button" aria-label="Sonido" hidden>🔊</button>
+      <button class="ia-sonido" type="button" aria-label="Sonido" hidden></button>
       <button class="ia-saltar" type="button" hidden>SALTAR ›</button>
       <div class="ia-inicio" hidden>
         <button class="ia-btn ia-empezar" type="button">EMPEZAR</button>
-        <button class="ia-link ia-reintro" type="button">VER INTRO ▶</button>
+        <button class="ia-link ia-reintro" type="button">${PLAY}<span>VER INTRO</span></button>
       </div>
       <div class="ia-puerta">
         <img src="${BASE}assets/sdga-logo.svg" alt="SDGA" width="200" height="46">
         <span class="ia-presenta">PRESENTA</span>
         <span class="ia-frase">${FRASES[Math.floor(Math.random() * FRASES.length)]}</span>
         <div class="ia-botones">
-          <button class="ia-btn ia-ir" type="button" disabled>▶ EMPEZAR</button>
+          <button class="ia-btn ia-ir" type="button" disabled>${PLAY}<span>EMPEZAR</span></button>
           <button class="ia-btn ia-ghost ia-saltar-puerta" type="button" disabled>SALTAR</button>
         </div>
         <span class="ia-tip">Subí el volumen 🔊</span>
@@ -178,7 +184,7 @@ async function iniciar() {
   const inicio = $('.ia-inicio')
   const empezar = $('.ia-empezar')
   const btnSonido = $('.ia-sonido')
-  const pintarSonido = () => (btnSonido.textContent = sonido ? '🔊' : '🔇')
+  const pintarSonido = () => { btnSonido.innerHTML = sonido ? PARLANTE : PARLANTE_MUDO; btnSonido.setAttribute('aria-pressed', String(sonido)) }
 
   function correr() {
     cancelAnimationFrame(raf)
@@ -441,11 +447,17 @@ const CSS_APP = `
 #intro-app .ia-ui { position: absolute; inset: 0; pointer-events: none; }
 #intro-app .ia-ui > * { pointer-events: auto; }
 #intro-app .ia-ui [hidden] { display: none !important; }
-#intro-app .ia-btn { font: 400 30px/1 var(--display); letter-spacing: .06em; padding: 18px 46px 16px; border: 0; border-radius: 999px;
-  background: var(--gold); color: var(--green-900); box-shadow: 0 6px 20px rgba(12, 43, 28, .35); cursor: pointer; }
+/* los botones con la pinta del SDGA: borde tinta, sombra dura que se hunde al tocar, Anton */
+#intro-app .ia-btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; font: 400 30px/1 var(--display); letter-spacing: .06em;
+  padding: 16px 44px 14px; border: 3px solid #0c2b1c; border-radius: 999px; background: var(--gold); color: var(--green-900);
+  box-shadow: 5px 6px 0 #0c2b1c; cursor: pointer; transition: transform 90ms ease-out, box-shadow 90ms ease-out; -webkit-tap-highlight-color: transparent;
+  --ia-disco: var(--green-900); --ia-tri: var(--gold); }
+#intro-app .ia-btn span { padding-top: 2px; }
+#intro-app .ia-btn .ia-play { width: 34px; height: 34px; flex: none; margin-left: -18px; }
 #intro-app .ia-btn:disabled { opacity: .45; cursor: default; }
-#intro-app .ia-btn:active:not(:disabled) { scale: .97; }
-#intro-app .ia-ghost { background: transparent; color: var(--cream); box-shadow: inset 0 0 0 2px rgba(244, 238, 218, .55); font-size: 22px; padding: 14px 34px 12px; }
+#intro-app .ia-btn:active:not(:disabled) { transform: translate(5px, 6px); box-shadow: 0 0 0 #0c2b1c; }
+#intro-app .ia-ghost { background: transparent; color: var(--cream); border-color: rgba(244, 238, 218, .6); box-shadow: none; font-size: 22px; padding: 13px 34px 11px; }
+#intro-app .ia-ghost:active:not(:disabled) { transform: translate(0, 2px); }
 #intro-app .ia-puerta { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 18px; padding: 24px; text-align: center;
   background: radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, .06), transparent 60%), linear-gradient(160deg, #1F5F3E, #17492F); }
@@ -456,6 +468,9 @@ const CSS_APP = `
 #intro-app .ia-tip { font: 600 13px/1.3 var(--body); letter-spacing: .08em; opacity: .85; }
 #intro-app .ia-saltar, #intro-app .ia-sonido { position: absolute; border: 0; cursor: pointer;
   background: var(--green-900); color: var(--cream); box-shadow: 0 2px 0 rgba(12, 43, 28, .25); }
+#intro-app .ia-sonido { display: grid; place-items: center; background: var(--cream); border: 3px solid #0c2b1c; box-shadow: 3px 4px 0 #0c2b1c; }
+#intro-app .ia-sonido svg { width: 26px; height: 26px; }
+#intro-app .ia-sonido:active { transform: translate(3px, 4px); box-shadow: 0 0 0 #0c2b1c; }
 #intro-app .ia-saltar { right: 16px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); font: 800 15px/1 var(--body); letter-spacing: .18em; padding: 13px 18px 12px 20px; border-radius: 999px; }
 #intro-app.en-app .ia-botones, #intro-app.en-app .ia-tip { display: none; }
 #intro-app .ia-sonido.pide { animation: ia-pide 1.1s ease-in-out infinite; }
@@ -471,8 +486,13 @@ const CSS_APP = `
 #intro-app .ia-par { position: absolute; display: flex; gap: .1em; transform-origin: 50% 50%; opacity: 0;
   filter: drop-shadow(0 0 .3em rgba(232, 195, 74, .28)); will-change: transform; }
 #intro-app .ia-par svg { display: block; width: .465em; height: .735em; }
-#intro-app .ia-link { border: 0; background: var(--green-900); color: var(--cream); font: 800 13px/1 var(--body); letter-spacing: .2em;
-  padding: 10px 16px 9px; border-radius: 6px; cursor: pointer; }
+/* VER INTRO: la pastilla crema de los botones chicos del juego, con el play dorado */
+#intro-app .ia-link { display: inline-flex; align-items: center; gap: 9px; height: 46px; padding: 0 20px 0 6px; border: 3px solid #0c2b1c; border-radius: 999px;
+  background: var(--cream); color: var(--green-900); font: 400 19px/1 var(--display); letter-spacing: .08em; box-shadow: 3px 4px 0 #0c2b1c; cursor: pointer;
+  transition: transform 90ms ease-out, box-shadow 90ms ease-out; -webkit-tap-highlight-color: transparent; --ia-disco: var(--gold); --ia-tri: var(--green-900); }
+#intro-app .ia-link span { padding-top: 2px; }
+#intro-app .ia-link .ia-play { width: 32px; height: 32px; flex: none; }
+#intro-app .ia-link:active { transform: translate(3px, 4px); box-shadow: 0 0 0 #0c2b1c; }
 `
 
 // ---------- ojos de mono que se abren y se cierran en los huecos de la pantalla de inicio ----------
