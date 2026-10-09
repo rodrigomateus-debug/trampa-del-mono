@@ -208,6 +208,50 @@ body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando 
 #b-banda { font-size: 22px; }
 #b-verso { font-style: italic; font-size: 16px; max-width: 30ch; line-height: 1.4; text-wrap: balance; }
 
+/* ⛳ Sábado 9 AM: la lista del grupo (un mensaje de WhatsApp de sticker) y, con un Dicky, la foto del Sabadiki */
+#sabado { position: fixed; inset: 0; z-index: 66; display: grid; place-content: center; justify-items: center; gap: 18px; padding: 16px; background: radial-gradient(closest-side, rgba(12, 43, 28, .82), rgba(12, 43, 28, .35)); animation: sb-fondo .25s ease-out both; }
+#sabado.sale { animation: sb-sale .3s ease-in both; }
+@keyframes sb-fondo { from { opacity: 0 } }
+@keyframes sb-sale { to { opacity: 0 } }
+#sabado .sb-msg { position: relative; width: min(300px, calc(100vw - 48px)); padding: 10px 16px 24px; color: var(--game-ink); background: #fffdf4; border: var(--game-stroke) solid var(--game-ink); border-radius: 4px 18px 18px 18px; box-shadow: var(--game-shadow-md); transform: rotate(-1.5deg); animation: sb-entra .42s var(--game-ease-bounce) both; }
+#sabado .sb-msg::before { content: ''; position: absolute; top: calc(-1 * var(--game-stroke)); left: -14px; border-top: 14px solid var(--game-ink); border-left: 14px solid transparent; }
+#sabado .sb-msg::after { content: ''; position: absolute; top: 0; left: -7.5px; border-top: 9px solid #fffdf4; border-left: 9px solid transparent; }
+@keyframes sb-entra { from { transform: rotate(-1.5deg) translateY(30px) scale(.8); opacity: 0 } }
+#sabado .sb-de { margin: 0; font: 800 12.5px/1.2 var(--font-body); color: var(--green-500); }
+#sabado .sb-tit { margin: 3px 0 4px; font: 800 19px/1.2 var(--font-body); }
+#sabado .sb-lista { margin: 0; padding: 0; list-style: none; font: 600 16px/1.42 var(--font-body); }
+#sabado .sb-lista li { opacity: 0; animation: sb-linea .25s ease-out both; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#sabado .sb-lista li.yo { margin: 2px -6px 0; padding: 1px 6px; font-weight: 800; background: var(--gold); border-radius: 6px; }
+#sabado .sb-lista li.yo small { margin-left: 6px; font: 12px/1 var(--font-display); letter-spacing: .06em; color: var(--green-900); }
+#sabado .sb-lista li.mas { color: var(--text-muted); }
+@keyframes sb-linea { from { opacity: 0; transform: translateX(-8px) } to { opacity: 1; transform: none } }
+#sabado .sb-lg { margin: 8px 0 0; font: italic 600 13.5px/1.35 var(--font-body); color: var(--green-700); opacity: 0; animation: sb-linea .3s ease-out both; }
+#sabado .sb-lg b { font-style: normal; }
+#sabado .sb-hora { position: absolute; right: 10px; bottom: 6px; font: 600 11px/1 var(--font-body); color: var(--text-muted); }
+#sabado .sb-hora i { font-style: normal; color: #4fa3e0; letter-spacing: -.2em; margin-left: 3px; }
+#sabado .sb-foto { display: grid; justify-items: center; gap: 8px; animation: sb-entra .5s var(--game-ease-bounce) .5s both; }
+#sabado .sb-foto[hidden] { display: none; }
+#sabado .sb-caras { display: flex; }
+#sabado .sb-caras img { width: clamp(70px, 21vw, 96px); height: clamp(70px, 21vw, 96px); margin-left: -14px; object-fit: cover; object-position: top; border-radius: 50%; background: #1d1a5c; border: var(--game-stroke) solid var(--game-ink); box-shadow: var(--game-shadow-sm); }
+#sabado .sb-caras img:first-child { margin-left: 0; }
+#sabado .sb-caras img:nth-child(odd) { transform: rotate(-5deg) translateY(4px); }
+#sabado .sb-caras img:nth-child(even) { transform: rotate(5deg); }
+#sabado .sb-dicen { margin: 0; padding: 6px 12px 5px; font: 15px/1.2 var(--font-display); letter-spacing: .04em; color: var(--game-ink); background: var(--cream); border: 2.5px solid var(--game-ink); border-radius: 12px; box-shadow: var(--game-shadow-xs); transform: rotate(1.5deg); text-align: center; max-width: min(320px, calc(100vw - 48px)); }
+@media (prefers-reduced-motion: reduce) { #sabado, #sabado *, #sabado .sb-lista li { animation: none !important; opacity: 1 } }
+/* 🦉 la lechuza escondida: se asoma en un árbol, mira para los dos lados y se va volando (o la cazás) */
+#lechuza { position: fixed; left: 0; top: 0; z-index: 25; width: 52px; height: 52px; margin: -42px 0 0 -26px; padding: 0; border: 0; background: none; font-size: 31px; line-height: 52px; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; will-change: transform; }
+#lechuza[hidden] { display: none; }
+#lechuza span { display: block; filter: drop-shadow(0 2px 0 rgba(12, 43, 28, .7)); transform-origin: 50% 90%; animation: lz-asoma .45s var(--game-ease-bounce) both, lz-mira 1.6s ease-in-out .45s infinite; }
+@keyframes lz-asoma { from { transform: translateY(14px) scale(.2); opacity: 0 } }
+@keyframes lz-mira { 0%, 100% { transform: rotate(0) } 25% { transform: rotate(-12deg) } 60% { transform: rotate(10deg) scaleX(-1) } }
+#lechuza.vuela span { animation: lz-vuela .9s ease-in both; }
+@keyframes lz-vuela { 0% { transform: none } 25% { transform: translate(4px, -12px) scale(1.15) rotate(8deg) } 100% { transform: translate(90px, -220px) scale(.5) rotate(25deg); opacity: 0 } }
+#lechuza.cazada span { animation: lz-cazada 1s var(--game-ease-bounce) both; }
+@keyframes lz-cazada { 0% { transform: none } 30% { transform: scale(1.9) rotate(-12deg) } 55% { transform: scale(1.6) rotate(360deg) } 100% { transform: translate(-50px, -240px) scale(.6) rotate(380deg); opacity: 0 } }
+@media (prefers-reduced-motion: reduce) { #lechuza span { animation: none !important } }
+/* el sello en el ranking: firmada un sábado entre las 9 y las 10 */
+.s9 { margin-left: 4px; font-size: .9em; }
+
 /* ── pantallas ── */
 .pantalla {
   position: fixed; inset: 0;
@@ -361,6 +405,7 @@ td.res i.sobre { background: var(--red); }
 tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 .num { text-align: right; }
 .extras { font-size: 13px; color: var(--text-muted); margin: 0; }
+#t-extras { white-space: pre-line; } /* el sábado 9 AM va en su renglón */
 .firma { display: grid; gap: 8px; }
 .firma .btn { width: 100%; }
 .reloj { height: 6px; border-radius: 3px; background: var(--cream-dark); overflow: hidden; }
@@ -1759,6 +1804,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <div id="dicky" hidden aria-live="polite"><div class="corazones" aria-hidden="true"></div><div class="cuerpo"><img alt="" width="480" height="480" draggable="false"><img class="escudo" src="equipo-5.svg" alt="" draggable="false"><p class="globo"><b class="quien"></b><span class="dice"></span></p></div></div>
 <div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
+<button id="lechuza" type="button" hidden aria-label="¡Una lechuza! Tocala"><span aria-hidden="true">🦉</span></button>
+<div id="sabado" hidden aria-live="polite">
+  <div class="sb-msg"><p class="sb-de">SDGA ⛳</p><p class="sb-tit"></p><ol class="sb-lista"></ol><p class="sb-lg"></p><span class="sb-hora"></span></div>
+  <div class="sb-foto" hidden><div class="sb-caras"></div><p class="sb-dicen"></p></div>
+</div>
 <div id="banda" aria-live="polite">
   <div class="caja">
     <span class="kicker" id="b-kicker"></span>
@@ -2080,6 +2130,7 @@ datos.usuario ??= ''
 // 🤫 Demetrio López: solo lo tiene en el mazo (primero) el que lo desbloqueó; en el match no va (el rival lo vería)
 // Para probar: ?olvidar-secreto lo vuelve a bloquear; ?probar-secreto arranca con la pelota en el green del 16, al lado del hoyo.
 const PARAMS = new URLSearchParams(location.search)
+const PRUEBA = /\/dev\//.test(location.pathname) || ['localhost', '127.0.0.1'].includes(location.hostname) // los atajos para probar (?sabado, ?lechuza): no en el juego publicado
 let matchModo = null // lo que sigue al elegir player: { tipo: 'reto', rival, semilla } | { tipo: 'respuesta', desafio, fantasma }
 if (PARAMS.has('olvidar-secreto')) { delete datos.demetrio; guardar(datos) }
 function sincronizarSecreto() {
@@ -2740,6 +2791,7 @@ function cuadro(t) {
   hudCuadro = medirHud() // antes de escribir el DOM en este cuadro
   actualizar(dt)
   if (!tapada()) dibujar()
+  lechuzaCuadro()
   noTapenLaPelota(t)
   vientoTito()
   hudCuadro = null
@@ -2892,7 +2944,7 @@ function alReposo() {
   dickyDespues(res, tiro) // con un Dicky: otro Dicky con palabras tiernas
   if (res.tipo === 'embocada') {
     const hab = M.habilidadDe(ronda.jugador)
-    const frase = tiro.deme ? '¡LO DIJO DEME! 🧙' : tiro.retro ? M.elegir(rng, ['Par de Demetrio. Como en el 60 🏌️', 'Ni el viento se animó. Par.', 'Así se jugaba antes: par y a casa', 'Par. Más que eso, Demetrio no hace']) : hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
+    const frase = tiro.deme ? '¡LO DIJO DEME! 🧙' : tiro.retro ? M.elegir(rng, ['Par de Demetrio. Como en el 60 🏌️', 'Ni el viento se animó. Par.', 'Así se jugaba antes: par y a casa', 'Par. Más que eso, Demetrio no hace']) : tiro.iman?.lechuza ? '🦉 ¡LA DADA DE LA LECHUZA!' : hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
     embocar(frase)
     return
   }
@@ -3417,6 +3469,14 @@ function empezar(jugador) {
   if (ronda.match) M.ponerClima(campo, ronda, ronda.match.clima, ronda.match.semillaClima)
   else M.ponerClima(campo, ronda, M.CLIMAS[climaUrl] ? climaUrl : M.sortearClima(rng), Math.floor(rng() * 4294967296))
   climaPorAnunciar = true
+  // 🦉 la lechuza (un easter egg): en algunas vueltas, en uno de los primeros tiros; en un MATCH y en MODO PRO, no
+  const forzada = PRUEBA && PARAMS.has('lechuza')
+  ronda.lechuzaEn = ronda.duelo || ronda.match || ronda.pro ? null : forzada ? 1 : Math.random() < M.LECHUZA.prob ? 1 + Math.floor(Math.random() * M.LECHUZA.tiros) : null
+  ronda.apuntadas = 0
+  lechuzaFuera()
+  // ⛳ el sábado 9 AM (un easter egg): la lista sale antes del primer hoyo; pide ya las vueltas del ranking
+  ronda.sabado = M.esSabado9(Date.now()) || (PRUEBA && PARAMS.has('sabado'))
+  sabadoMarcas = ronda.sabado ? R.leerMarcas().catch(() => null) : null
   fxClima = []
   chicanaDe = null; chicanaVino = false; ablandoVino = false; cerrarContra()
   descartadas = []; $('#mp-sel').hidden = true
@@ -3464,6 +3524,8 @@ function introHoyo() {
   }
   const cl = M.climaDe(ronda)
   const hoy = (cl ? ` · ${cl.nombre.toLowerCase().replace(/[¡!]/g, '')}` : '') + (ronda.pro ? ' · modo pro' : '')
+  // ⛳ un sábado entre las 9 y las 10: antes de todo, la lista (el reloj todavía no corre)
+  if (ronda.sabado && !ronda.sabadoVisto && ronda.t0 == null) { ronda.sabadoVisto = true; mostrarSabado(introHoyo); return }
   banda({ kicker: ronda.carta.retro ? `San Diego · 1960 · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}` : `La Trampa del Mono · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}`, grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${h.yardas[ronda.tee]} YD`, verso: h.verso }, 2800, () => {
     // la primera vez: 3, 2, 1 y arranca el reloj, que corre hasta el último putt
     if (ronda.t0 == null) {
@@ -3478,6 +3540,151 @@ function introHoyo() {
     else arrancar()
   })
 }
+
+// ── ⛳ Sábado 9 AM: la lista del grupo ──
+// "Sabado 9 am" y la lista, como en el grupo todas las semanas: los que ya firmaron una vuelta este sábado entre las 9 y
+// las 10 (del ranking, cada uno con el emoji de su carta) y vos al final. Con un Dicky es el "Sabadiki - 9AM" y los
+// cuatro Dicky salen juntos. Un toque la cierra. Antes del primer hoyo (el reloj todavía no corre)
+let sabadoMarcas = null, sabadoLuego = null, sabadoTimer = 0
+function mostrarSabado(luego) {
+  const r = ronda
+  sabadoLuego = () => { if (ronda === r && estado === 'intro') luego() }
+  const el = $('#sabado')
+  const dicky = !!r.carta?.dicky
+  el.querySelector('.sb-tit').textContent = M.elegir(rng, dicky ? M.SABADO_DICE.sabadiki : M.SABADO_DICE.lista)
+  el.querySelector('.sb-lista').innerHTML = '<li class="mas" style="animation-delay:0s">escribiendo…</li>'
+  el.querySelector('.sb-lg').innerHTML = ''
+  const ahora = new Date(Date.now() - 3 * 3600e3) // la hora argentina (en sus campos UTC)
+  el.querySelector('.sb-hora').innerHTML = `${ahora.getUTCHours()}:${String(ahora.getUTCMinutes()).padStart(2, '0')}<i aria-hidden="true">✓✓</i>`
+  const foto = el.querySelector('.sb-foto')
+  foto.hidden = !dicky
+  if (dicky) {
+    el.querySelector('.sb-caras').innerHTML = DICKYS.map((d) => `<img src="${d.torso}" alt="${esc(sinD(d.apodo))}" draggable="false">`).join('')
+    el.querySelector('.sb-dicen').textContent = M.elegir(rng, M.SABADO_DICE.dicky)
+  }
+  el.classList.remove('sale')
+  el.hidden = false
+  S.tap()
+  clearTimeout(sabadoTimer)
+  sabadoTimer = setTimeout(cerrarSabado, 6000) // por si no llegan las vueltas
+  // las vueltas del ranking (las pidió `empezar`): si tardan más de un segundo, sin esperar
+  Promise.race([sabadoMarcas, new Promise((ok) => setTimeout(() => ok(null), 1200))]).then((res) => {
+    if (el.hidden || ronda !== r) return
+    pintarSabado(M.listaSabado(res?.marcas ?? rkMarcas ?? [], Date.now()), r)
+  })
+}
+function pintarSabado(lista, r) {
+  const el = $('#sabado')
+  const yo = lista.findIndex((x) => esYo({ uid: x.uid, usuario: x.usuario ?? '' }))
+  const filas = lista.map((x, i) => ({ n: i + 1, emoji: publico(x).emoji, nombre: x.usuario, yo: i === yo }))
+  if (yo < 0) filas.push({ n: lista.length + 1, emoji: r.carta.emoji, nombre: datos.usuario || 'Vos', yo: true, nuevo: true })
+  // muy larga: los primeros y, al final, vos
+  const max = M.SABADO.lista
+  const mia = filas.find((f) => f.yo)
+  const vistas = filas.length <= max ? filas : [...filas.slice(0, max - 2).filter((f) => !f.yo), { mas: true }, mia]
+  el.querySelector('.sb-lista').innerHTML = vistas.map((f, i) => f.mas
+    ? `<li class="mas" style="animation-delay:${i * 0.12}s">…</li>`
+    : `<li class="${f.yo ? 'yo' : ''}" style="animation-delay:${(f.nuevo ? i + 2 : i) * 0.12}s">${f.n} ${esc(f.emoji)} ${esc(f.nombre)}${f.yo ? `<small>${f.nuevo ? (f.n === 1 ? '← VOS · PRIMERA SALIDA' : '← VOS') : '← YA ESTÁS'}</small>` : ''}</li>`).join('')
+  // LG y, si jugás con un Dicky o con el Equipo 5, el Clásico
+  const equipo = equipoDe(r.carta.apodo)
+  const lg = el.querySelector('.sb-lg')
+  lg.innerHTML = `📺 LG: «${esc(M.elegir(rng, M.SABADO_DICE.lg))}»${equipo ? '<br><b>⚔️ Firmada antes de las 10, vale doble en el Clásico</b>' : ''}`
+  lg.style.animationDelay = `${(vistas.length + 3) * 0.12}s`
+  clearTimeout(sabadoTimer)
+  sabadoTimer = setTimeout(cerrarSabado, 2600 + vistas.length * 120 + (r.carta.dicky ? 600 : 0))
+}
+function cerrarSabado() {
+  clearTimeout(sabadoTimer)
+  const el = $('#sabado')
+  if (el.hidden) return
+  el.classList.add('sale')
+  sabadoTimer = setTimeout(() => { el.hidden = true; el.classList.remove('sale') }, 280)
+  const f = sabadoLuego
+  sabadoLuego = null
+  f?.()
+}
+$('#sabado').addEventListener('click', cerrarSabado)
+
+// ── 🦉 la lechuza escondida ──
+// En las vueltas que la sortearon (`ronda.lechuzaEn`: en qué vez que te toca apuntar), con la cámara quieta, se asoma
+// en la copa de un árbol que se vea (lejos de la pelota, del hoyo y del marcador) y a los 3 segundos se va volando. Si
+// la tocás antes: tu próximo putt de 15 metros o menos entra (`ronda.lechuza`) y Joaco te lo dice. Las que cazaste,
+// en `datos.lechuzas`. Para probar: ?lechuza (en dev/, en el primer tiro de la vuelta)
+let copas = null // las copas de los árboles por adentro (no el borde), en el mundo
+let lechuza = null // { pos, hasta, fase: 'asoma' | 'cazada' | 'vuela' }
+let lechuzaTimer = 0, estadoAntes = ''
+function copasDeArboles() {
+  if (copas) return copas
+  copas = []
+  const f = CANCHA.filas, t = (x, y) => f[y]?.[x] === 't'
+  for (let y = 3; y < f.length - 3; y += 2) for (let x = 3; x < f[y].length - 3; x += 2) {
+    if (t(x, y) && t(x - 3, y) && t(x + 3, y) && t(x, y - 3) && t(x, y + 3)) copas.push([x + 0.5, y + 0.5])
+  }
+  return copas
+}
+const camQuieta = () => Math.hypot(cam.cx - obj.cx, cam.cy - obj.cy) * cam.esc < 3 && Math.abs(cam.esc - obj.esc) < 0.08 && Math.abs(difAng(cam.rot, obj.rot ?? cam.rot)) < 0.02
+function lechuzaCuadro() {
+  // cada vez que te toca apuntar (con el reloj andando) es un tiro más
+  if (estado !== estadoAntes) {
+    if (estado === 'apuntar' && ronda?.t0 != null) ronda.apuntadas = (ronda.apuntadas ?? 0) + 1
+    estadoAntes = estado
+  }
+  if (!lechuza) {
+    if (estado === 'apuntar' && ronda?.lechuzaEn != null && ronda.apuntadas >= ronda.lechuzaEn && !replay && !contra && performance.now() - apuntarDesde > 900 && camQuieta()) asomarLechuza()
+    return
+  }
+  // si pegaste (o se te pasó el tiempo), se va volando
+  if (lechuza.fase === 'asoma' && (estado !== 'apuntar' || performance.now() > lechuza.hasta)) irseLechuza()
+  const [x, y] = w2s(lechuza.pos)
+  $('#lechuza').style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`
+}
+function asomarLechuza() {
+  const m = medirHud()
+  const arriba = Math.max(m.top ?? 0, m.card ?? 0) + 40, abajo = (m.bot ?? H) - 70
+  const bola = w2s(ronda.pelota), pin = w2s(M.hoyoActual(ronda).pin)
+  const lugares = copasDeArboles().filter((c) => {
+    const [x, y] = w2s(c)
+    return x > 34 && x < W - 34 && y > arriba && y < abajo && Math.hypot(x - bola[0], y - bola[1]) > 120 && Math.hypot(x - pin[0], y - pin[1]) > 70
+  })
+  if (!lugares.length) { ronda.lechuzaEn += 1; return } // ningún árbol a la vista: en el próximo tiro
+  ronda.lechuzaEn = null // una por vuelta
+  lechuza = { pos: lugares[Math.floor(Math.random() * lugares.length)], hasta: performance.now() + M.LECHUZA.ms, fase: 'asoma' }
+  const el = $('#lechuza')
+  el.className = ''
+  el.innerHTML = '<span aria-hidden="true">🦉</span>'
+  el.hidden = false
+  S.ulula()
+}
+function irseLechuza() {
+  lechuza.fase = 'vuela'
+  $('#lechuza').className = 'vuela'
+  clearTimeout(lechuzaTimer)
+  lechuzaTimer = setTimeout(lechuzaFuera, 900)
+}
+function lechuzaFuera() {
+  clearTimeout(lechuzaTimer)
+  lechuza = null
+  $('#lechuza').hidden = true
+  $('#lechuza').className = ''
+}
+$('#lechuza').addEventListener('pointerdown', (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+  if (lechuza?.fase !== 'asoma' || !ronda) return
+  lechuza.fase = 'cazada'
+  $('#lechuza').className = 'cazada'
+  clearTimeout(lechuzaTimer)
+  lechuzaTimer = setTimeout(lechuzaFuera, 1000)
+  ronda.lechuza = true
+  datos.lechuzas = (datos.lechuzas ?? 0) + 1
+  guardar(datos)
+  S.logro()
+  navigator.vibrate?.(40)
+  relatar({ lg: '🦉 ¡CAZADOR DE LECHUZAS!', verso: `Tu próximo putt de 15 metros o menos, adentro${datos.lechuzas > 1 ? ` · ya van ${datos.lechuzas} 🦉` : ''}` })
+  const joaco = TODOS.find((j) => j.apodo === 'Lechu')
+  if (joaco?.torso) dickyVisita(joaco, M.fraseLechuza(rng, ronda.jugador), true)
+  hud()
+})
 
 // ── cuenta regresiva y cronómetro ──
 let cuentaTimer = 0
@@ -3994,6 +4201,10 @@ function pintarVoz() {
     clase = ''; dice = '😈 MUFADO POR EL EQUIPO 5'; extra = 'Este tiro: más error y el latido más rápido'
   } else if (estado === 'apuntar' && ronda?.blando) {
     clase = ''; dice = '🥺 TE ABLANDARON'; extra = 'Este tiro sale más corto'
+  } else if (estado === 'apuntar' && ronda?.lechuza && M.enModoPutt(campo, ronda) && !ronda.mejorPelota?.fase) {
+    const h = M.hoyoActual(ronda)
+    const cerca = M.dist(ronda.pelota, h.pin) * h.escala <= M.DADA
+    clase = ''; dice = cerca ? '🦉 DADA DE LA LECHUZA' : '🦉 TENÉS LA DADA DE LA LECHUZA'; extra = cerca ? 'De acá entra, le pegues como le pegues' : 'Acercala a 15 metros y entra'
   } else if (estado === 'mejor') {
     clase = ''; dice = '🦉📺 ¿CON CUÁL TE QUEDÁS?'; extra = 'Tocá la que querés: desde ahí se sigue'
   } else if (estado === 'apuntar' && ronda?.mejorPelota?.fase === 'segunda') {
@@ -6371,6 +6582,7 @@ function tarjetaFinal() {
   S.viento(0)
   S.lluvia(0)
   S.musica('final')
+  lechuzaFuera()
   estado = 'fin'
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
@@ -6411,7 +6623,9 @@ function tarjetaFinal() {
   posRanking = null
   resumenListo = null
   soltarResumenes()
-  $('#t-extras').textContent = `🐒 Monos: ${ronda.monosMalos} malos · ${ronda.monosBuenos} buenos · ${ronda.robos} robos${ronda.lp ? ` · LP en el ${ronda.lp}: no cuenta para el récord` : ''}`
+  // ⛳ el sábado 9 AM: si la firmás antes de las 10 (y es de un equipo y bajo par), en el Clásico vale doble
+  const sabado = M.esSabado9(Date.now()) ? `🌅 Sábado 9 AM${equipoDe(j.apodo) && !ronda.lp && t.vsPar < 0 ? ' · firmala antes de las 10: en el Clásico vale doble ⚔️' : ''}\n` : ''
+  $('#t-extras').textContent = sabado + `🐒 Monos: ${ronda.monosMalos} malos · ${ronda.monosBuenos} buenos · ${ronda.robos} robos${ronda.lp ? ` · LP en el ${ronda.lp}: no cuenta para el récord` : ''}`
   $('#t-firma').hidden = false
   $('#t-firmada').hidden = true
   $('#t-acciones').hidden = true
@@ -8689,7 +8903,8 @@ function pintarRanking(error = false) {
   const lista = M.armarRanking(base, j ? j.apodo : null)
   rkVista = lista
   // el sello del SDGA: en el Mundial, al lado del nombre de los socios
-  const sello = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '')
+  // ⛳ y el del sábado 9 AM, en las firmadas a esa hora
+  const sello = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '') + (M.esSabado9(Date.parse(m.fecha)) ? '<span class="s9" title="Sábado 9 AM" aria-label="firmada un sábado a las 9">🌅</span>' : '')
   const fila = (m, salto) => `<li class="rk-fila tocable${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}" data-k="${lista.indexOf(m)}" tabindex="0" role="button" aria-label="Ver la vuelta de ${esc(m.usuario)}">
       <span class="rk-pos">${m.pos}</span>
       <span class="rk-quien">${j ? `<span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span></span>` : `<span class="mini${publico(m).misterio ? ' misterio' : ''}" aria-hidden="true">${publico(m).emoji}</span><span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span><small>con ${esc(publico(m).apodo.replace(/ \(Đ\)$/, ''))}</small></span>`}</span>

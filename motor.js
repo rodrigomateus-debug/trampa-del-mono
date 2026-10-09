@@ -916,10 +916,14 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     // el putt del Mago: con draw dobla a la izquierda (ángulo menor), con fade a la derecha
     const pin = hoyoActual(r).pin
     const giro = hab?.id === 'comba' ? puttMagoDe(r).lado * PUTT_MAGO.giro : 0
-    // los 15 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo
-    const noLaFalla = hab?.id === 'dadas' && !r.ofendido && dist(b, pin) * hoyoActual(r).escala <= DADA
+    // los 15 metros son reales (los que muestra el marcador): la distancia del dibujo pasa por la escala del hoyo. Las
+    // dadas son de Joaco; con la lechuza (el easter egg), una para cualquiera
+    const enDada = dist(b, pin) * hoyoActual(r).escala <= DADA
+    const propia = hab?.id === 'dadas' && !r.ofendido
+    const noLaFalla = enDada && (propia || !!r.lechuza)
+    const lechuza = enDada && !propia && !!r.lechuza
     const retro = hab?.id === 'retro'
-    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1) * (r.mufa ? MUFA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, furia: furioso, mufa: !!r.mufa, blando: !!r.blando }
+    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1) * (r.mufa ? MUFA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, lechuza, furia: furioso, mufa: !!r.mufa, blando: !!r.blando }
   }
   const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
@@ -1861,8 +1865,10 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
   r.mufa = false
   r.blando = false
   if (r.prestado) tiro.prestado = r.jugador.apodo // la Dickyllamada: este lo pegó el Dicky que atendió
-  // Joaco: de 15 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola)
-  if (plan.noLaFalla) tiro.iman = { meter: true, lechu: true }
+  // Joaco: de 15 metros no la falla. Le pegue como le pegue, la pelota va al hoyo (el imán, metiéndola). La dada de la
+  // lechuza es una sola: se gasta acá
+  if (plan.noLaFalla) tiro.iman = { meter: true, lechu: true, lechuza: !!plan.lechuza }
+  if (plan.lechuza) r.lechuza = false
   return tiro
 }
 
@@ -2680,7 +2686,8 @@ export const fraseCompaE5 = (rng, que, j) => elegir(rng, que === 'espanta' ? ESP
 
 // ── ⚔️ el Clásico de la semana: los Dicky contra el Equipo 5, entre todos. Cada vuelta firmada con una carta Dicky suma
 // para los Dicky y con una del Equipo 5 para el Equipo 5, pero solo si es bajo par (pedido de Rorro: que nadie sume
-// firmando tarjetas con LP): un punto por cada golpe bajo par; de cada uno, hasta 5 vueltas por día para cada equipo. La
+// firmando tarjetas con LP): un punto por cada golpe bajo par (doble si la firmaste un sábado entre las 9 y las 10: ver
+// SABADO); de cada uno, hasta 5 vueltas por día para cada equipo. La
 // semana, de lunes a domingo en hora argentina. Las mismas reglas que la base
 // (`trampa_clasico_puntos`), que con eso le paga 2 bananas a los que jugaron para el que ganó ──
 export const CLASICO = { porDia: 5, premio: 2, tz: -3 } // la hora argentina: UTC−3 (sin horario de verano)
@@ -2714,7 +2721,7 @@ export function clasico(marcas, desde, equipoDe) {
     grupos.set(quien, porEq)
     const porDia = porEq.get(eq) ?? new Map()
     porEq.set(eq, porDia)
-    porDia.set(dia, [...(porDia.get(dia) ?? []), -m.vsPar])
+    porDia.set(dia, [...(porDia.get(dia) ?? []), -m.vsPar * (esSabado9(t) ? SABADO.clasico : 1)])
   }
   const aportes = { dicky: [], e5: [] }
   for (const [quien, porEq] of grupos) {
@@ -2733,6 +2740,65 @@ export const LG_CLASICO = {
   dicky: ['Ganaron los Dicky. Suerte de principiante', 'Tenía que ser… ganaron los Dicky', 'Los Dicky ganaron. Que no se acostumbren'],
   e5: ['¡EQUIPO 5, SEÑORES! #BastaDeDickyTontos', 'El #Equipo5 cumple sus promesas 🏆', 'Ganó el Equipo 5. El único equipo con título 🏆'],
   empate: ['Empate. Nadie cobra: el mono se ríe', 'Empate. Quieren desestabilizar al #Equipo5'],
+}
+
+// ── ⛳ Sábado 9 AM (un easter egg): la hora sagrada del SDGA. En el grupo, todas las semanas, "Sabado 9 am" y la lista
+// (cada uno la copia y se anota con su número y su emoji); "Sabadiki - 9AM", la de los Dicky. Un sábado entre las 9 y
+// las 10 (hora argentina): la vuelta arranca con la lista de los que ya jugaron a esa hora y vos al final; con un Dicky,
+// el Sabadiki, con los cuatro en el tee. Las vueltas firmadas a esa hora suman doble en el Clásico (y la base, igual) ──
+export const SABADO = { dia: 6, hora: 9, clasico: 2, lista: 9 }
+/** ¿`t` (ms) es un sábado entre las 9 y las 10, hora argentina? */
+export function esSabado9(t) {
+  const local = new Date(t + CLASICO.tz * 3600e3) // sus campos UTC son la hora argentina
+  return local.getUTCDay() === SABADO.dia && local.getUTCHours() === SABADO.hora
+}
+/** El sábado 9 AM de `t` o, si no es sábado 9 AM, el último que hubo: [desde, hasta) en ms. */
+export function ventanaSabado(t) {
+  const off = CLASICO.tz * 3600e3
+  const local = new Date(t + off)
+  const atras = (local.getUTCDay() - SABADO.dia + 7) % 7
+  let desde = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - atras, SABADO.hora) - off
+  if (desde > t) desde -= 7 * DIA
+  return [desde, desde + 3600e3]
+}
+/**
+ * La lista del sábado 9 AM de `t`: los que firmaron una vuelta a esa hora, cada uno una vez, en el orden en que se
+ * anotaron (la primera vuelta de cada uno). [{ quien, uid, usuario, apodo, emoji, fecha }].
+ */
+export function listaSabado(marcas, t) {
+  const [desde, hasta] = ventanaSabado(t)
+  const vistos = new Map()
+  for (const m of [...(marcas ?? [])].sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha))) {
+    const f = Date.parse(m.fecha)
+    if (!(f >= desde && f < hasta)) continue
+    const quien = duenoDe(m)
+    if (!vistos.has(quien)) vistos.set(quien, { quien, uid: m.uid, usuario: m.usuario, apodo: m.apodo, emoji: m.emoji, fecha: m.fecha })
+  }
+  return [...vistos.values()]
+}
+export const SABADO_DICE = {
+  lista: ['Sabado 9 am', 'SABADO 9:00 am ⛳', 'Sabado 9 am (vuelve la magia)', 'Sabado 9 am en algún lado', 'Sabado 9 am adonde sea'],
+  sabadiki: ['Sabadiki - 9AM'],
+  // LG, en el relato
+  lg: ['Sábado 9 AM. Los de siempre', 'Sábado 9 AM: vuelve la magia', 'Primera salida 9:06', 'Sábado 9 AM. Mañana llevo bochas'],
+  // los cuatro Dicky, en el tee
+  dicky: ['¡Sabadiki! Los cuatro, como siempre 💛', 'Sabadiki - 9AM. Nos anotamos todos 💛', 'Sábado, 9 AM y los cuatro Dicky. No hay plan mejor 💛'],
+}
+
+// ── 🦉 la lechuza escondida (un easter egg; del chat: "¿Temporada de lechuzas?", "cazador de lechuzas", "MINI LECHUZITA
+// GOLFISTA"). En algunas vueltas (no en un MATCH ni en MODO PRO), en uno de los primeros tiros, se asoma un búho en un
+// árbol, un ratito, y se va volando. Si lo tocás a tiempo, tu próximo putt de 15 metros o menos entra: la dada de Joaco
+// (`r.lechuza`, ver planTiro), y Joaco te lo dice ──
+export const LECHUZA = { prob: 0.18, tiros: 8, ms: 3200 }
+export const LECHUZA_DICE = {
+  todos: ['¿Temporada de lechuzas? 🦉 Te dejo una dada', 'Cazador de lechuzas 🦉 La próxima de 15 metros, adentro', 'MINI LECHUZITA GOLFISTA 🦉 Te presto una dada', 'La lechuza te banca: una dada, cortesía del #Equipo5 🦉'],
+  dicky: ['¿Un Dicky cazando lechuzas? Por esta vez te dejo una dada 🦉', 'Una dada para un Dicky… que no se haga costumbre 🦉'],
+  lechu: ['Una lechuza ayudando a otra 🦉', 'Ya tengo mis dadas… igual me la guardo 🦉'],
+}
+/** Lo que dice Joaco cuando cazás la lechuza (jugando con `jugador`). */
+export function fraseLechuza(rng, jugador) {
+  if (jugador?.apodo === 'Lechu') return elegir(rng, LECHUZA_DICE.lechu)
+  return elegir(rng, jugador?.dicky ? LECHUZA_DICE.dicky : LECHUZA_DICE.todos)
 }
 
 // ── 🦉📺 la Mejor pelota del Equipo 5 (una por vuelta, "fourball: Guarino-Castelli, mejor tarjeta"): pegás vos, después
@@ -2767,7 +2833,7 @@ export function golpeCompa(campo, r, angulo, potencia, rng, precision = 0, tiemp
 }
 /** Un tiro de `jugador` desde donde está la pelota de la ronda, sobre una copia (no cuenta golpe, no toca los monos). */
 export function golpeDe(campo, r, jugador, angulo, potencia, rng, precision = 0, tiempo = 0, soltada = null, calma = false) {
-  const copia = { ...r, jugador, monos: [], golpeMago: null, deme: null, furia: null, calma, mufa: false, blando: false, barro: false, proxSorpresa: undefined, ruleta: null, ruletaToca: false, prestado: null, carro: null }
+  const copia = { ...r, jugador, monos: [], golpeMago: null, deme: null, furia: null, calma, mufa: false, blando: false, lechuza: false, barro: false, proxSorpresa: undefined, ruleta: null, ruletaToca: false, prestado: null, carro: null }
   const t = golpear(campo, copia, angulo, potencia, rng, precision, tiempo, null, soltada)
   t.monos = null
   t.de = jugador.apodo
