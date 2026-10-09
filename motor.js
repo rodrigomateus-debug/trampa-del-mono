@@ -2679,8 +2679,9 @@ export function fraseDickyE5(rng, quien, que, j) {
 export const fraseCompaE5 = (rng, que, j) => elegir(rng, que === 'espanta' ? ESPANTA : ABLANDADO)(nombreDe(j))
 
 // ── ⚔️ el Clásico de la semana: los Dicky contra el Equipo 5, entre todos. Cada vuelta firmada con una carta Dicky suma
-// para los Dicky y con una del Equipo 5 para el Equipo 5: 1 punto, más 1 por cada golpe bajo par; de cada uno, hasta 5
-// vueltas por día para cada equipo. La semana, de lunes a domingo en hora argentina. Las mismas reglas que la base
+// para los Dicky y con una del Equipo 5 para el Equipo 5, pero solo si es bajo par (pedido de Rorro: que nadie sume
+// firmando tarjetas con LP): un punto por cada golpe bajo par; de cada uno, hasta 5 vueltas por día para cada equipo. La
+// semana, de lunes a domingo en hora argentina. Las mismas reglas que la base
 // (`trampa_clasico_puntos`), que con eso le paga 2 bananas a los que jugaron para el que ganó ──
 export const CLASICO = { porDia: 5, premio: 2, tz: -3 } // la hora argentina: UTC−3 (sin horario de verano)
 const DIA = 864e5
@@ -2703,7 +2704,7 @@ export function clasico(marcas, desde, equipoDe) {
   const nombres = new Map()
   for (const m of marcas ?? []) {
     const t = Date.parse(m.fecha)
-    if (!(t >= desde && t < hasta) || m.vsPar == null) continue
+    if (!(t >= desde && t < hasta) || !(m.vsPar < 0)) continue // solo las bajo par (par, sobre par y LP no suman)
     const eq = equipoDe(m.apodo)
     if (eq !== 'dicky' && eq !== 'e5') continue
     const quien = m.uid ?? `u:${String(m.usuario ?? '').trim().toLowerCase()}`
@@ -2713,7 +2714,7 @@ export function clasico(marcas, desde, equipoDe) {
     grupos.set(quien, porEq)
     const porDia = porEq.get(eq) ?? new Map()
     porEq.set(eq, porDia)
-    porDia.set(dia, [...(porDia.get(dia) ?? []), 1 + Math.max(0, -m.vsPar)])
+    porDia.set(dia, [...(porDia.get(dia) ?? []), -m.vsPar])
   }
   const aportes = { dicky: [], e5: [] }
   for (const [quien, porEq] of grupos) {

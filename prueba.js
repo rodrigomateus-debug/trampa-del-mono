@@ -221,14 +221,14 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
         return { costo: rechazo(x) }
       }
       case 'clasico': {
-        // ⚔️ el Clásico de mentira: la semana pasada ganó el Equipo 5 31 a 27 y "jugaste para él": 2 bananas, una vez por semana
+        // ⚔️ el Clásico de mentira: la semana pasada ganó el Equipo 5 14 a 11 y "jugaste para él": 2 bananas, una vez por semana
         const lunes = new Date(Date.now() - 3 * 3600e3)
         lunes.setUTCDate(lunes.getUTCDate() - ((lunes.getUTCDay() + 6) % 7) - 7)
         const semana = lunes.toISOString().slice(0, 10)
         st.clasico ??= {}
         const cobraste = st.clasico[semana] ? 0 : 2
         if (cobraste) { st.clasico[semana] = true; alDia(yo.uid); mover(yo.uid, 2, 'clasico') }
-        return { semana, dicky: 27, e5: 31, ganador: 'e5', cobraste }
+        return { semana, dicky: 11, e5: 14, ganador: 'e5', cobraste }
       }
       default: throw new No('acción desconocida')
     }
