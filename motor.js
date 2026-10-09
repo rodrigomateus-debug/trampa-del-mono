@@ -131,7 +131,7 @@ export const HABILIDADES = {
   Mugre: { id: 'panchitos', nombre: 'Tirar panchos', texto: 'A la Mugre los monos la huelen de lejos y vienen más. Pero tiene 3 panchos por hoyo: se los tirás, van, comen un segundo y vuelven.' },
   Liberty: { id: 'approach', nombre: 'Si no era por el approach', texto: 'El drive sale derecho siempre. Los approach (de 30 a 100 yd del hoyo) tienen el triple de error.' },
   Grandpa: { id: 'deme', nombre: 'Invocar a Deme', texto: 'Maxi, una vez por vuelta (no desde el tee): llama a Deme, el mentor. Te enseña a agarrar el palo y el próximo tiro entra de una, le pegues como le pegues.' },
-  'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro (y de tee a tee) lo manejás vos hasta la pelota. Los árboles no se atraviesan. El reloj corre.' },
+  'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito y la racha de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro lo manejás vos hasta la pelota (al green va caminando, y al próximo tee lo lleva solo). Los árboles no se atraviesan; si se traba, RESET: vuelve al medio del fairway más cercano. El reloj corre. Y la racha: cada tiro bueno lo festeja a los gritos y el próximo sale con menos error (cada vez menos, hasta la mitad y un poco más); uno malo la corta.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
   'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (la goma llega más lejos; en el sweet spot, perfecta) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
@@ -455,13 +455,23 @@ export function crearCampo() {
 // Se maneja con acelerar, freno, reversa e izquierda/derecha. Velocidades en yardas del dibujo por segundo:
 // acelera fuerte hasta `vmax` y, si seguís apretando, de menos a más hasta el `turbo` (el triple). Rápido y doblando
 // (o frenando y doblando) pierde agarre y COLEA: la cola se va para afuera y la velocidad no sigue a la trompa.
-// Los árboles y el afuera no se atraviesan (rebota); en el rough y el bunker anda más lento. `llegar` = a cuántas
-// yardas de la pelota se baja (en el bosque, `llegarBosque`: el último tramo lo hace a pie).
+// Los árboles y el afuera no se atraviesan: de costado el carrito RASPA y sigue por el borde (pierde un poco), de
+// frente CHOCA (rebota). En el rough y el bunker anda más lento; por el SENDERO de carritos, más rápido. `llegar` = a
+// cuántas yardas de la pelota se baja (en el bosque, `llegarBosque`: el último tramo lo hace a pie); a `estacionar`
+// yardas, si la ve, estaciona solo.
+// El DERRAPE carga un mini turbo: coleando y doblando `carga[0]` s (o `carga[1]`, el fuerte), al soltar sale disparado
+// (`turbito` yd/s más, por `turbitoSeg[n]` s). Una CÁSCARA de banana lo hace dar un trompo (`trompo` s, sin agarre).
 export const CARRITO = {
   vmax: 16, turbo: 48, acel: 10, acelTurbo: 18, atras: 6, freno: 30, frenoMotor: 16, roce: 5, giro: 2.3, largo: 2.6,
   agarre: 12, agarreColea: 1.6, colea: 20, coleaFreno: 8, // agarre lateral (por segundo) y desde qué velocidad colea
   terreno: { rough: 0.7, bunker: 0.45 },
-  llegar: 4, llegarBosque: 10,
+  sendero: 1.3, // por el sendero de carritos
+  raspa: 1.6, // raspando un árbol de costado pierde velocidad (por segundo)
+  deFrente: 0.35, // si lo que queda para seguir por el borde es menos que esto del paso, es de frente: choque
+  llegar: 4, llegarBosque: 10, estacionar: 14,
+  facil: 24, // manejo fácil: acelera solo hasta acá
+  carga: [0.5, 1.1], turbito: [7, 13], turbitoSeg: [0.6, 1],
+  trompo: 1, giroTrompo: 11,
 }
 const NO_SE_PASA = new Set(['t', 'x'])
 /** El carrito donde Marcos se baja: al lado de la pelota, mirando para donde va. */
@@ -469,48 +479,91 @@ export function crearCarro(pos, ang = -Math.PI / 2) {
   return { pos: [...pos], ang, v: 0, vl: 0, colea: false }
 }
 /**
- * Un paso del carrito. `mando` = { acelerar, frenar, reversa, izq, der } (true/false). Muta el carro (`v` = velocidad
- * hacia adelante, `vl` = de costado, `colea` = si está derrapando); devuelve 'choque' si se pegó contra un árbol o el afuera.
+ * Un paso del carrito. `mando` = { acelerar, frenar, reversa, izq, der } (true/false) y, opcional, `tope` (hasta dónde
+ * acelera: el manejo fácil). Muta el carro (`v` = velocidad hacia adelante, `vl` = de costado, `colea` = si está
+ * derrapando, `carga` = el mini turbo que junta, `turbito`/`trompo` = los segundos que le quedan, `ev` = lo que pasó en
+ * este paso: 'turbito1'/'turbito2'); devuelve 'choque' (de frente contra un árbol o el afuera, con `impacto` = la
+ * velocidad), 'roce' (de costado: sigue por el borde) o null.
  */
 export function manejar(campo, carro, mando, dt) {
   const c = CARRITO
-  const piso = c.terreno[terreno(campo, carro.pos).tipo] ?? 1
-  const base = c.vmax * piso, tope = c.turbo * piso
+  carro.ev = null
+  const trompo = (carro.trompo ?? 0) > 0
+  if (trompo) { carro.trompo = Math.max(0, carro.trompo - dt); mando = {} }
+  if ((carro.turbito ?? 0) > 0) carro.turbito = Math.max(0, carro.turbito - dt)
+  const piso = enSendero(campo, carro.pos) ? c.sendero : c.terreno[terreno(campo, carro.pos).tipo] ?? 1
+  const base = c.vmax * piso
+  const extra = carro.turbito > 0 ? carro.turboExtra ?? c.turbito[0] : 0
+  const tope = (mando.tope != null ? Math.max(mando.tope * piso, base) : c.turbo * piso) + extra
   let v = carro.v
   if (mando.frenar) v -= Math.sign(v) * Math.min(Math.abs(v), c.freno * dt)
   else if (mando.acelerar && !mando.reversa) {
     if (v < 0) v += c.frenoMotor * dt
     else if (v < base) v = Math.min(base + 0.01, v + c.acel * dt)
-    else v = Math.min(tope, v + c.acelTurbo * Math.max(0.5, 1 - (v - base) / (tope - base)) * dt) // turbo: de menos a más
+    else if (v < tope) v = Math.min(tope, v + c.acelTurbo * Math.max(0.5, 1 - (v - base) / Math.max(1, tope - base)) * dt) // turbo: de menos a más
   } else if (mando.reversa && !mando.acelerar) v = Math.max(-c.atras, v - (v > 0 ? c.frenoMotor : c.acel) * dt)
-  else v -= Math.sign(v) * Math.min(Math.abs(v), (c.roce + Math.abs(v) * 0.08) * dt) // suelta: se frena solo
-  if (v > tope) v = Math.max(tope, v - c.freno * dt) // entró al rough rápido: frena
+  else v -= Math.sign(v) * Math.min(Math.abs(v), (c.roce + Math.abs(v) * 0.08 + (trompo ? 6 : 0)) * dt) // suelta: se frena solo
+  if (v > tope) v = Math.max(tope, v - c.freno * dt) // entró al rough rápido (o se acabó el turbito): frena
   // dobla según la velocidad (quieto no dobla; en reversa, al revés). La velocidad de antes queda: si no agarra, colea
   const giro = (mando.der ? 1 : 0) - (mando.izq ? 1 : 0)
   const wx = Math.cos(carro.ang) * v - Math.sin(carro.ang) * (carro.vl ?? 0)
   const wy = Math.sin(carro.ang) * v + Math.cos(carro.ang) * (carro.vl ?? 0)
-  carro.ang += giro * c.giro * dt * Math.max(-1, Math.min(1, v / 4))
+  if (trompo) carro.ang += (carro.trompoDir ?? 1) * c.giroTrompo * dt * Math.min(1, carro.trompo / 0.3 + 0.2) // gira como un trompo
+  else carro.ang += giro * c.giro * dt * Math.max(-1, Math.min(1, v / 4))
   const f = [Math.cos(carro.ang), Math.sin(carro.ang)], l = [-f[1], f[0]]
   v = wx * f[0] + wy * f[1]
   let vl = wx * l[0] + wy * l[1]
   const suelta = giro !== 0 && (Math.abs(v) > c.colea || (mando.frenar && Math.abs(v) > c.coleaFreno))
-  vl *= Math.exp(-(suelta ? c.agarreColea : c.agarre) * dt)
+  vl *= Math.exp(-(trompo ? 0.4 : suelta ? c.agarreColea : c.agarre) * dt)
   v -= Math.sign(v) * Math.min(Math.abs(v), Math.abs(vl) * 0.25 * dt) // de costado, la goma frena un poco
   carro.v = v
   carro.vl = vl
   carro.colea = Math.abs(vl) > 2.5
+  // el derrape carga el mini turbo; al soltar (o al dejar de colear), si llegó, sale disparado
+  if (carro.colea && giro !== 0 && v > 0 && !trompo) carro.carga = (carro.carga ?? 0) + dt
+  else if (carro.carga) {
+    const n = carro.carga >= c.carga[1] ? 2 : carro.carga >= c.carga[0] ? 1 : 0
+    carro.carga = 0
+    if (n && v > 0) {
+      carro.turboExtra = c.turbito[n - 1]
+      carro.turbito = c.turbitoSeg[n - 1]
+      carro.v = v = v + c.turbito[n - 1]
+      carro.ev = `turbito${n}`
+    }
+  }
   const nueva = [carro.pos[0] + (f[0] * v + l[0] * vl) * dt, carro.pos[1] + (f[1] * v + l[1] * vl) * dt]
   // la trompa (o la cola, en reversa) y el centro no pueden entrar a un árbol
   const punta = Math.sign(v || 1) * c.largo * 0.5
-  const frente = [nueva[0] + f[0] * punta, nueva[1] + f[1] * punta]
-  if (NO_SE_PASA.has(celda(campo, nueva)) || NO_SE_PASA.has(celda(campo, frente))) {
-    carro.v = -v * 0.25 // rebota un poquito
+  const pasa = (p, k = 1) => !NO_SE_PASA.has(celda(campo, p)) && !NO_SE_PASA.has(celda(campo, [p[0] + f[0] * punta * k, p[1] + f[1] * punta * k]))
+  if (pasa(nueva)) { carro.pos = nueva; return null }
+  // de costado: sigue por el borde (en x o en y, lo que quede libre), raspando y con la trompa que se acomoda
+  const dx = nueva[0] - carro.pos[0], dy = nueva[1] - carro.pos[1], paso = Math.hypot(dx, dy)
+  let borde = null
+  for (const [ex, ey] of [[dx, 0], [0, dy]]) {
+    const m = Math.hypot(ex, ey)
+    if (paso > 1e-4 && m > paso * c.deFrente && (!borde || m > borde.m)) {
+      const p = [carro.pos[0] + ex, carro.pos[1] + ey]
+      if (pasa(p, 0.6)) borde = { p, m, ex, ey }
+    }
+  }
+  if (borde && !trompo) {
+    const k = Math.exp(-c.raspa * dt) / dt
+    const sx = borde.ex * k, sy = borde.ey * k
+    carro.pos = borde.p
+    // sigue con la velocidad que le queda por el borde, y la trompa se acomoda para ese lado
+    const dir = Math.atan2(sy, sx) + (v < 0 ? Math.PI : 0)
+    carro.ang += difAng(dir, carro.ang) * Math.min(1, 10 * dt)
+    carro.v = Math.sign(v) * Math.hypot(sx, sy)
     carro.vl = 0
     carro.colea = false
-    return 'choque'
+    return 'roce'
   }
-  carro.pos = nueva
-  return null
+  carro.impacto = Math.abs(v)
+  carro.v = -v * 0.25 // rebota un poquito
+  carro.vl = 0
+  carro.colea = false
+  carro.carga = 0
+  return 'choque'
 }
 // Los monos persiguen el carrito; si lo pisás andando, queda aplastado ahí (el resto de la ronda) y es un golpe de multa.
 export const ATROPELLO = { radio: 2, vel: 2 }
@@ -536,12 +589,469 @@ export const perseguirCarro = (r) => despertarMonos(r.monos, r.carro.pos, alerta
 /** El carrito estacionado al lado de una salida (al empezar, o al volver al tee porque los monos se la llevaron). */
 export const carroAlLado = (p) => crearCarro([p[0] + 2.5, p[1] + 2])
 
+/**
+ * RESET (el carrito trabado): al medio del fairway más cercano (en la fila de esa celda, el centro del tramo de fairway),
+ * quieto y mirando a `hacia` (la pelota). Devuelve la posición nueva (o null si no hay fairway cerca).
+ */
+export function rescatarCarro(campo, carro, hacia = null) {
+  const f = campo.cancha.filas
+  const [cx, cy] = carro.pos
+  let mejor = null
+  for (let rad = 0; rad <= 80 && !mejor; rad += 1) {
+    for (let y = Math.max(0, Math.floor(cy - rad)); y <= Math.min(f.length - 1, Math.floor(cy + rad)); y++) {
+      for (let x = Math.max(0, Math.floor(cx - rad)); x <= Math.min(f[y].length - 1, Math.floor(cx + rad)); x++) {
+        if (f[y][x] !== 'f') continue
+        const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy)
+        if (d <= rad + 0.5 && (!mejor || d < mejor.d)) mejor = { x, y, d }
+      }
+    }
+  }
+  if (!mejor) return null
+  let x0 = mejor.x, x1 = mejor.x
+  while (f[mejor.y][x0 - 1] === 'f') x0--
+  while (f[mejor.y][x1 + 1] === 'f') x1++
+  const pos = [(x0 + x1 + 1) / 2, mejor.y + 0.5]
+  Object.assign(carro, { pos, v: 0, vl: 0, colea: false, ang: hacia ? Math.atan2(hacia[1] - pos[1], hacia[0] - pos[0]) : carro.ang })
+  return pos
+}
 /** ¿Llegó a la pelota? (en el bosque alcanza con acercarse: el último tramo, a pie) */
 export function carroLlego(campo, carro, pelota) {
   const lejos = NO_SE_PASA.has(celda(campo, pelota)) ? CARRITO.llegarBosque : CARRITO.llegar
   return dist(carro.pos, pelota) <= lejos
 }
 export const usaCarrito = (r) => habilidadDe(r.jugador)?.id === 'carrito'
+
+// ── el carrito: el mapa para manejar, el sendero, la ruta (el GPS), el piloto y estacionar ──
+// El mapa de una cancha: qué celdas no se pasan y a cuántas yardas (hasta 4) está el árbol más cercano de cada una.
+const MAPAS = new WeakMap()
+function mapaDe(campo) {
+  const filas = campo.cancha.filas
+  let m = MAPAS.get(filas)
+  if (m) return m
+  const AL = filas.length, AN = Math.max(...filas.map((f) => f.length))
+  const bloq = new Uint8Array(AN * AL), cerca = new Uint8Array(AN * AL).fill(9)
+  let borde = []
+  for (let y = 0; y < AL; y++) for (let x = 0; x < AN; x++) {
+    if (NO_SE_PASA.has(filas[y][x] ?? 'x')) { bloq[y * AN + x] = 1; cerca[y * AN + x] = 0; borde.push(y * AN + x) }
+  }
+  for (let d = 1; d <= 4 && borde.length; d++) {
+    const otro = []
+    for (const i of borde) {
+      const x = i % AN, y = (i - x) / AN
+      for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
+        const nx = x + ox, ny = y + oy
+        if (nx < 0 || ny < 0 || nx >= AN || ny >= AL) continue
+        const j = ny * AN + nx
+        if (cerca[j] > d) { cerca[j] = d; otro.push(j) }
+      }
+    }
+    borde = otro
+  }
+  m = { filas, AN, AL, bloq, cerca }
+  MAPAS.set(filas, m)
+  return m
+}
+/** El montículo de A* (de menor a mayor `f`). */
+function monticulo() {
+  const a = []
+  return {
+    get n() { return a.length },
+    push(e) { a.push(e); let i = a.length - 1; while (i) { const p = (i - 1) >> 1; if (a[p][0] <= a[i][0]) break; [a[p], a[i]] = [a[i], a[p]]; i = p } },
+    pop() {
+      const top = a[0], ult = a.pop()
+      if (a.length) {
+        a[0] = ult
+        let i = 0
+        for (;;) {
+          const l = 2 * i + 1, r = l + 1
+          let m = i
+          if (l < a.length && a[l][0] < a[m][0]) m = l
+          if (r < a.length && a[r][0] < a[m][0]) m = r
+          if (m === i) break
+          ;[a[m], a[i]] = [a[i], a[m]]
+          i = m
+        }
+      }
+      return top
+    },
+  }
+}
+/**
+ * A* en la grilla (8 vecinos, sin cortar esquinas de árbol): de `desde` hasta la primera celda que cumpla `meta`.
+ * `costo(i, j, paso)` = lo que cuesta pisar la celda j (Infinity = no se pasa). Devuelve los centros de celda, o null.
+ */
+function aEstrella(m, desde, hasta, meta, costo, minimo = 1) {
+  const { AN, AL } = m
+  const cl = (v, n) => Math.max(0, Math.min(n - 1, Math.floor(v)))
+  const s = cl(desde[1], AL) * AN + cl(desde[0], AN)
+  const tx = hasta[0], ty = hasta[1]
+  const g = new Float32Array(AN * AL).fill(Infinity), de = new Int32Array(AN * AL).fill(-1)
+  const cerrado = new Uint8Array(AN * AL)
+  const h = (x, y) => Math.hypot(x + 0.5 - tx, y + 0.5 - ty) * minimo
+  const abiertos = monticulo()
+  g[s] = 0
+  abiertos.push([h(s % AN, (s / AN) | 0), s])
+  while (abiertos.n) {
+    const [, i] = abiertos.pop()
+    if (cerrado[i]) continue
+    cerrado[i] = 1
+    const x = i % AN, y = (i - x) / AN
+    if (meta(x, y, i)) {
+      const pts = []
+      for (let k = i; k !== -1; k = de[k]) pts.push([(k % AN) + 0.5, Math.floor(k / AN) + 0.5])
+      return pts.reverse()
+    }
+    for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
+      if (!ox && !oy) continue
+      const nx = x + ox, ny = y + oy
+      if (nx < 0 || ny < 0 || nx >= AN || ny >= AL) continue
+      const j = ny * AN + nx
+      if (cerrado[j]) continue
+      if (ox && oy && (m.bloq[y * AN + nx] || m.bloq[ny * AN + x])) continue
+      const paso = ox && oy ? Math.SQRT2 : 1
+      const c = costo(i, j, paso)
+      if (!(c < Infinity)) continue
+      const ng = g[i] + c
+      if (ng < g[j]) { g[j] = ng; de[j] = i; abiertos.push([ng + h(nx, ny), j]) }
+    }
+  }
+  return null
+}
+/** ¿Se ve derecho de `a` a `b`? (ninguna celda que no se pasa; con `margen`, además lejos de los árboles) */
+function seVe(m, a, b, margen = 0, prohibida = null) {
+  const n = Math.max(1, Math.ceil(dist(a, b) * 2.5))
+  for (let k = 0; k <= n; k++) {
+    const x = Math.floor(a[0] + ((b[0] - a[0]) * k) / n), y = Math.floor(a[1] + ((b[1] - a[1]) * k) / n)
+    if (x < 0 || y < 0 || x >= m.AN || y >= m.AL) return false
+    const i = y * m.AN + x
+    if (m.bloq[i] || m.cerca[i] < margen || (prohibida && prohibida.has(m.filas[y][x]))) return false
+  }
+  return true
+}
+/** Tira de la cuerda: de cada punto, derecho al más lejano que se ve (lejos de los árboles si se puede). */
+function estirar(m, pts, margen = 2, prohibida = null) {
+  if (!pts || pts.length < 3) return pts
+  const out = [pts[0]]
+  let i = 0
+  while (i < pts.length - 1) {
+    let j = i + 1
+    for (let k = pts.length - 1; k > i + 1; k--) if (seVe(m, pts[i], pts[k], margen, prohibida)) { j = k; break }
+    out.push(pts[j])
+    i = j
+  }
+  return out
+}
+/** Chaikin: redondea las esquinas (para dibujar y para que el sendero sea una curva). */
+function redondear(pts, veces = 2) {
+  let p = pts
+  for (let v = 0; v < veces && p.length > 2; v++) {
+    const q = [p[0]]
+    for (let i = 0; i < p.length - 1; i++) {
+      const [a, b] = [p[i], p[i + 1]]
+      q.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75])
+    }
+    q.push(p.at(-1))
+    p = q
+  }
+  return p
+}
+const largoDe = (pts) => pts.reduce((s, p, i) => (i ? s + dist(p, pts[i - 1]) : 0), 0)
+
+// El SENDERO de carritos (como en las canchas de verdad): uno por hoyo, del costado del tee al costado del green, por el
+// rough al lado del fairway (a ~`lado` yd del borde), lejos de los árboles, sin pisar bunkers ni greens. Solo en la
+// cancha de verdad (cancha-grid.js). Por el sendero el carrito anda `CARRITO.sendero` veces más rápido.
+export const SENDERO = { ancho: 1.3, lado: 3 }
+const SENDEROS = new WeakMap()
+export function senderos(campo) {
+  const filas = campo.cancha.filas
+  if (filas !== CANCHA.filas) return null
+  let s = SENDEROS.get(filas)
+  if (s) return s
+  const m = mapaDe(campo), { AN, AL } = m
+  // a cuántas celdas del fairway está cada celda (hasta 12)
+  const aCalle = new Uint8Array(AN * AL).fill(99)
+  let borde = []
+  for (let i = 0; i < AN * AL; i++) if (filas[(i / AN) | 0][i % AN] === 'f') { aCalle[i] = 0; borde.push(i) }
+  for (let d = 1; d <= 12 && borde.length; d++) {
+    const otro = []
+    for (const i of borde) {
+      const x = i % AN, y = (i - x) / AN
+      for (const [ox, oy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + ox, ny = y + oy
+        if (nx < 0 || ny < 0 || nx >= AN || ny >= AL) continue
+        const j = ny * AN + nx
+        if (aCalle[j] > d) { aCalle[j] = d; otro.push(j) }
+      }
+    }
+    borde = otro
+  }
+  const letra = (i) => filas[(i / AN) | 0][i % AN]
+  const costo = (i, j, paso) => {
+    const t = letra(j)
+    if (m.bloq[j] || t === 'b' || t === 'g') return Infinity
+    const lejos = m.cerca[j] <= 1 ? 8 : m.cerca[j] === 2 ? 2.5 : 0
+    const base = t === 'f' ? 3 : 1 + Math.abs(Math.min(12, aCalle[j]) - SENDERO.lado) * 0.3
+    return paso * (base + lejos)
+  }
+  const lineas = []
+  for (const h of HOYOS) {
+    // sale del costado del tee (el de adelante) y llega al costado del green (antes de entrar)
+    const ida = Math.atan2(h.pin[1] - h.tees.amarilla[1], h.pin[0] - h.tees.amarilla[0])
+    const ini = [h.tees.amarilla[0] + Math.cos(ida) * 6, h.tees.amarilla[1] + Math.sin(ida) * 6]
+    const gr = h.calle.at(-1)
+    const pts = aEstrella(m, ini, h.pin, (x, y, i) => Math.hypot(x + 0.5 - h.pin[0], y + 0.5 - h.pin[1]) < dist(gr, h.pin) * 0.55 + 6 && letra(i) !== 'g', costo, 1)
+    if (!pts) continue
+    const curva = redondear(estirar(m, pts, 3, new Set(['f', 'b', 'g'])), 3)
+    lineas.push({ hoyo: h.n, pts: curva })
+  }
+  // la máscara: las celdas a menos de `ancho` yd de la línea
+  const mascara = new Uint8Array(AN * AL)
+  for (const { pts } of lineas) for (let i = 1; i < pts.length; i++) {
+    const [a, b] = [pts[i - 1], pts[i]]
+    const n = Math.ceil(dist(a, b) * 3)
+    for (let k = 0; k <= n; k++) {
+      const px = a[0] + ((b[0] - a[0]) * k) / n, py = a[1] + ((b[1] - a[1]) * k) / n
+      for (let y = Math.floor(py - SENDERO.ancho); y <= Math.floor(py + SENDERO.ancho); y++) for (let x = Math.floor(px - SENDERO.ancho); x <= Math.floor(px + SENDERO.ancho); x++) {
+        if (x < 0 || y < 0 || x >= AN || y >= AL || m.bloq[y * AN + x]) continue
+        if (Math.hypot(x + 0.5 - px, y + 0.5 - py) <= SENDERO.ancho) mascara[y * AN + x] = 1
+      }
+    }
+  }
+  s = { lineas, mascara, AN }
+  SENDEROS.set(filas, s)
+  return s
+}
+/** ¿Está arriba del sendero de carritos? */
+export function enSendero(campo, p) {
+  const s = senderos(campo)
+  if (!s) return false
+  const x = Math.floor(p[0]), y = Math.floor(p[1])
+  return x >= 0 && y >= 0 && x < s.AN && !!s.mascara[y * s.AN + x]
+}
+
+/**
+ * La RUTA del carrito (el GPS): el camino más corto de `desde` a la pelota que esquiva los árboles (con aire: cerca de
+ * una copa cuesta más), prefiere el sendero y el fairway y evita el bunker y el green. Termina al lado de la pelota (en
+ * el bosque, donde se baja). Devuelve los puntos (estirados en rectas, el primero es `desde`), o null.
+ */
+export function rutaCarrito(campo, desde, pelota) {
+  const m = mapaDe(campo), sen = senderos(campo)
+  const enBosque = NO_SE_PASA.has(celda(campo, pelota))
+  const llega = enBosque ? CARRITO.llegarBosque - 1.5 : CARRITO.llegar - 1
+  const PISO = { f: 1, e: 1, '.': 1.25, b: 2.2, g: 2.5 }
+  const ini = Math.floor(desde[1]) * m.AN + Math.floor(desde[0])
+  const costo = (i, j, paso) => {
+    if (m.bloq[j] && j !== ini) return Infinity
+    const t = m.filas[(j / m.AN) | 0][j % m.AN]
+    const lejos = m.cerca[j] <= 1 ? 12 : m.cerca[j] === 2 ? 2.5 : m.cerca[j] === 3 ? 0.5 : 0
+    return paso * ((sen?.mascara[j] ? 0.75 : PISO[t] ?? 1.25) + lejos)
+  }
+  const pts = aEstrella(m, desde, pelota, (x, y, i) => !m.bloq[i] && Math.hypot(x + 0.5 - pelota[0], y + 0.5 - pelota[1]) <= llega, costo, 0.75)
+  if (!pts) return null
+  pts[0] = [...desde]
+  const ruta = estirar(m, pts, 2)
+  // el último punto, la pelota (o donde se baja en el bosque)
+  if (!enBosque) ruta[ruta.length - 1] = [...pelota]
+  return ruta
+}
+/**
+ * Dónde está el carrito sobre la ruta: `lejos` = a cuántas yd de la línea, `seg` = el tramo, y `punto` = el que está
+ * `adelante` yd más adelante sobre la ruta (al que hay que apuntar).
+ */
+export function sobreRuta(ruta, pos, adelante = 6) {
+  let mejor = { lejos: Infinity, seg: 0, u: 0 }
+  for (let i = 1; i < ruta.length; i++) {
+    const q = cercanoEnSegmento(pos, ruta[i - 1], ruta[i])
+    const d = dist(q, pos)
+    if (d < mejor.lejos - 1e-6 || (Math.abs(d - mejor.lejos) < 1e-6 && i > mejor.seg)) mejor = { lejos: d, seg: i, q }
+  }
+  if (!mejor.q) return { lejos: dist(pos, ruta[0]), seg: 0, punto: ruta[0], resta: 0 }
+  let falta = adelante, p = mejor.q, i = mejor.seg
+  while (i < ruta.length) {
+    const d = dist(p, ruta[i])
+    if (d >= falta) { p = [p[0] + ((ruta[i][0] - p[0]) * falta) / d, p[1] + ((ruta[i][1] - p[1]) * falta) / d]; falta = 0; break }
+    falta -= d
+    p = ruta[i]
+    i++
+  }
+  // lo que falta por la ruta hasta el final, y la próxima esquina (a cuántas yd y cuánto dobla)
+  let resta = dist(mejor.q, ruta[mejor.seg])
+  for (let k = mejor.seg + 1; k < ruta.length; k++) resta += dist(ruta[k - 1], ruta[k])
+  const sg = mejor.seg, esquina = sg < ruta.length - 1
+    ? { dist: dist(mejor.q, ruta[sg]), giro: Math.abs(difAng(Math.atan2(ruta[sg + 1][1] - ruta[sg][1], ruta[sg + 1][0] - ruta[sg][0]), Math.atan2(ruta[sg][1] - ruta[sg - 1][1], ruta[sg][0] - ruta[sg - 1][0]))) }
+    : null
+  return { lejos: mejor.lejos, seg: mejor.seg, punto: p, resta, esquina }
+}
+/** ¿Hay que recalcular la ruta? (se fue lejos de la línea) */
+export const fueraDeRuta = (ruta, pos) => !ruta || sobreRuta(ruta, pos, 0).lejos > 7
+
+/** ¿Hay árbol (o afuera) derecho adelante, a menos de `d` yd? Devuelve a cuántas, o null. */
+function arbolAdelante(campo, pos, ang, d) {
+  for (let k = 1.5; k <= d; k += 0.5) if (NO_SE_PASA.has(celda(campo, [pos[0] + Math.cos(ang) * k, pos[1] + Math.sin(ang) * k]))) return k
+  return null
+}
+/**
+ * El PILOTO: arma el `mando` para seguir la ruta. `volante`: null = maneja solo (LLEVAME); -1/0/1 = dobla el que
+ * juega (manejo fácil), y con 0 la AYUDA lo corrige si va derecho a un árbol. Acelera solo hasta `tope`, frena para
+ * doblar cerrado (manejando solo) y, si se traba contra algo, sale marcha atrás un ratito. Esquiva las cáscaras de
+ * `cascaras` (manejando solo). Guarda lo suyo en `carro.piloto`.
+ */
+export function conducir(campo, carro, { ruta, pelota, volante = null, tope = CARRITO.vmax, frenar = false, cascaras = [] }, dt) {
+  const p = (carro.piloto ??= { atras: 0, quieto: 0 })
+  const mando = { acelerar: false, frenar: false, reversa: false, izq: false, der: false, tope }
+  const v = carro.v
+  // el punto a seguir: unos metros más adelante sobre la ruta, pero que se vea derecho (en las esquinas, más cerca)
+  const m = mapaDe(campo)
+  let sr = null
+  if (ruta) for (let adelante = 5 + Math.max(0, v) * 0.35; ; adelante -= 1.5) {
+    sr = sobreRuta(ruta, carro.pos, Math.max(1.5, adelante))
+    if (adelante <= 1.5 || seVe(m, carro.pos, sr.punto, 2)) break
+  }
+  let obj = sr ? sr.punto : pelota
+  // manejando solo: si hay una cáscara cerca de la línea, apunta al costado
+  if (volante == null) for (const k of cascaras) {
+    if (!k.viva || dist(k.pos, carro.pos) > 16) continue
+    const q = cercanoEnSegmento(k.pos, carro.pos, obj)
+    if (dist(q, k.pos) < 2.4) {
+      const d = [obj[0] - carro.pos[0], obj[1] - carro.pos[1]], n = Math.hypot(d[0], d[1]) || 1
+      const lado = (k.pos[0] - carro.pos[0]) * -d[1] + (k.pos[1] - carro.pos[1]) * d[0] > 0 ? -1 : 1
+      obj = [k.pos[0] + (-d[1] / n) * 3.2 * lado, k.pos[1] + (d[0] / n) * 3.2 * lado]
+    }
+  }
+  const e = difAng(Math.atan2(obj[1] - carro.pos[1], obj[0] - carro.pos[0]), carro.ang)
+  // trabado: marcha atrás, con la trompa que gira hacia donde hay que ir
+  if (p.atras > 0) {
+    p.atras -= dt
+    mando.reversa = true
+    mando[e > 0 ? 'izq' : 'der'] = Math.abs(e) > 0.1
+    return mando
+  }
+  if (frenar) { mando.frenar = true; return mando }
+  // la velocidad: derecho, a fondo (hasta el tope); doblando cerrado, despacio (manejando solo); cerca, frena
+  const dPel = pelota ? dist(carro.pos, pelota) : Infinity
+  let quiere = tope
+  if (volante == null) {
+    quiere = Math.abs(e) > 0.9 ? 6 : Math.abs(e) > 0.45 ? 10 : tope
+    // se viene una esquina cerrada: frena antes
+    if (sr?.esquina && sr.esquina.giro > 0.5 && sr.esquina.dist < 4 + v * 0.9) quiere = Math.min(quiere, sr.esquina.giro > 1.2 ? 6 : 9)
+  }
+  quiere = Math.min(quiere, 7 + dPel * 0.6)
+  if (v < quiere) mando.acelerar = true
+  else if (v > quiere + 4) mando.frenar = true
+  // el volante
+  if (volante == null) { mando.der = e > 0.06; mando.izq = e < -0.06 }
+  else if (volante) { mando.der = volante > 0; mando.izq = volante < 0 }
+  else {
+    // la ayuda: si va derecho a un árbol, dobla para el lado de la ruta (o para el que esté más libre)
+    const choca = v > 3 && arbolAdelante(campo, carro.pos, carro.ang, 3 + v * 0.55)
+    if (choca) {
+      let lado = Math.sign(e)
+      if (Math.abs(e) < 0.08) {
+        const iz = arbolAdelante(campo, carro.pos, carro.ang - 0.5, 12) ?? 99, de = arbolAdelante(campo, carro.pos, carro.ang + 0.5, 12) ?? 99
+        lado = de >= iz ? 1 : -1
+      }
+      mando.der = lado > 0
+      mando.izq = lado < 0
+      p.ayuda = true
+    } else p.ayuda = false
+  }
+  // ¿se trabó? (quiere andar y no anda)
+  if (mando.acelerar && Math.abs(v) < 1) p.quieto += dt
+  else p.quieto = 0
+  if (p.quieto > 0.45) { p.quieto = 0; p.atras = 0.75 }
+  return mando
+}
+
+/**
+ * ESTACIONAR: a `CARRITO.estacionar` yd de la pelota, si la ve derecho, el lugar donde se baja: a 3,6 yd de la pelota,
+ * del lado de donde viene (en el bosque, lo más cerca que se pueda sin entrar), mirando al hoyo. O null.
+ */
+export function puntoEstacionar(campo, carro, pelota, pin) {
+  const d = dist(carro.pos, pelota)
+  if (d > CARRITO.estacionar) return null
+  const m = mapaDe(campo)
+  const enBosque = NO_SE_PASA.has(celda(campo, pelota))
+  const u = d > 0.01 ? [(carro.pos[0] - pelota[0]) / d, (carro.pos[1] - pelota[1]) / d] : [1, 0]
+  const cabe = (p) => [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].every(([ox, oy]) => !NO_SE_PASA.has(celda(campo, [p[0] + ox, p[1] + oy])))
+  for (const giro of [0, 0.5, -0.5, 1, -1, 1.6, -1.6, 2.4, -2.4]) {
+    const ux = u[0] * Math.cos(giro) - u[1] * Math.sin(giro), uy = u[0] * Math.sin(giro) + u[1] * Math.cos(giro)
+    for (let k = enBosque ? 1.5 : 3.6; k <= (enBosque ? CARRITO.llegarBosque - 0.5 : 3.9); k += 0.3) {
+      const p = [pelota[0] + ux * k, pelota[1] + uy * k]
+      if (!cabe(p) || !seVe(m, carro.pos, p)) continue
+      return { pos: p, ang: Math.atan2(pin[1] - p[1], pin[0] - p[0]) }
+    }
+  }
+  return null
+}
+
+// ── las CÁSCARAS: al subirte al carrito, los monos que andan cerca tiran cáscaras de banana sobre la ruta. Si pisás una
+// andando, el carrito da un trompo (sin multa: el susto y la velocidad que perdés). Los que manejan solos las esquivan.
+export const CASCARA = { chance: 0.4, max: 2, radio: 1.5, vel: 3, alcance: 70 }
+/** Tira las cáscaras de este tramo (en `r.cascaras`): { pos, desde (el mono que la tiró), viva }. Devuelve cuántas. */
+export function tirarCascaras(r, ruta, rng) {
+  r.cascaras = []
+  if (!ruta || rng() > CASCARA.chance) return 0
+  const largo = largoDe(ruta)
+  if (largo < 50) return 0
+  const n = 1 + Math.floor(rng() * CASCARA.max)
+  for (let i = 0; i < n; i++) {
+    // en algún lugar del medio del camino (ni pegada al carrito ni a la pelota)
+    let falta = largo * (0.3 + rng() * 0.5), pos = null
+    for (let k = 1; k < ruta.length && !pos; k++) {
+      const d = dist(ruta[k - 1], ruta[k])
+      if (d >= falta) pos = [ruta[k - 1][0] + ((ruta[k][0] - ruta[k - 1][0]) * falta) / d, ruta[k - 1][1] + ((ruta[k][1] - ruta[k - 1][1]) * falta) / d]
+      else falta -= d
+    }
+    if (!pos) continue
+    // la tira el mono más cercano que anda por ahí (si no hay ninguno, no hay cáscara)
+    let mono = null
+    for (const s of r.monos ?? []) if (s.modo !== 'aplastado' && dist(s.pos, pos) < CASCARA.alcance && (!mono || dist(s.pos, pos) < dist(mono.pos, pos))) mono = s
+    if (!mono) continue
+    if (r.cascaras.some((k) => dist(k.pos, pos) < 12)) continue
+    r.cascaras.push({ pos, desde: [...mono.pos], viva: true })
+  }
+  return r.cascaras.length
+}
+/** El carrito pisó una cáscara (andando): trompo. Devuelve la cáscara, o null. */
+export function pisarCascara(r) {
+  const c = r.carro
+  if (!c || !r.cascaras?.length || Math.abs(c.v) < CASCARA.vel || c.trompo > 0) return null
+  for (const k of r.cascaras) {
+    if (!k.viva || dist(k.pos, c.pos) > CASCARA.radio) continue
+    k.viva = false
+    c.trompo = CARRITO.trompo
+    c.trompoDir = (c.vl ?? 0) >= 0 ? 1 : -1
+    c.carga = 0
+    return k
+  }
+  return null
+}
+
+// ── la BOCINA: los monos cerca del carrito se asustan y salen corriendo para el otro lado un rato ──
+export const BOCINA = { radio: 40, susto: 3.5, vel: 20, espera: 2.5 }
+/** ¡Bocinazo! Devuelve cuántos monos se espantaron. */
+export function bocina(r) {
+  if (!r.carro) return 0
+  let n = 0
+  for (const s of r.monos) {
+    if (s.modo === 'aplastado' || !monoActivo(s) || dist(s.pos, r.carro.pos) > BOCINA.radio) continue
+    s.modo = 'huye'
+    s.susto = BOCINA.susto
+    s.huyeDe = [...r.carro.pos]
+    s.pancho = null
+    s.espera = 0
+    n++
+  }
+  return n
+}
+
+// ── la racha y el volante: un choque de frente fuerte (a `vel` yd/s o más) le baja un escalón a la racha de Marcos ──
+export const CHOQUE_RACHA = { vel: 7 }
+export function chocarRacha(r, impacto) {
+  if (!usaCarrito(r) || r.prestado || !(r.racha > 0) || !(impacto >= CHOQUE_RACHA.vel)) return false
+  r.racha -= 1
+  return true
+}
 
 // ── el match (desafíos) ──
 // El que desafía juega una vez y su vuelta queda grabada; el desafiado juega después con el fantasma al lado.
@@ -624,13 +1134,20 @@ export function marcadorFantasma(g, ms) {
 /** Quién gana el match: 1 gana `a`, −1 gana `b`, 0 empate. Menos golpes; a igual golpes, el más rápido; LP (golpes null) pierde. */
 export function ganadorMatch(a, b) {
   const ga = a?.golpes ?? null, gb = b?.golpes ?? null
-  if (ga == null && gb == null) return 0
+  // los dos levantaron: gana el que aguantó más (el tiempo hasta que levantó; el que abandonó sin jugar no tiene).
+  // Sin tiempo los dos (los matches de antes del 9/10/2026), empate. Igual en la base: trampa_bananas_ganador
+  if (ga == null && gb == null) {
+    const ta = a?.ms ?? 0, tb = b?.ms ?? 0
+    return ta === tb ? 0 : ta > tb ? 1 : -1
+  }
   if (ga == null) return -1
   if (gb == null) return 1
   if (ga !== gb) return ga < gb ? 1 : -1
   if ((a.ms ?? Infinity) !== (b.ms ?? Infinity)) return (a.ms ?? Infinity) < (b.ms ?? Infinity) ? 1 : -1
   return 0
 }
+/** Si el match lo definió el aguante: los dos levantaron y uno aguantó más. */
+export const porAguante = (a, b) => (a?.golpes ?? null) == null && (b?.golpes ?? null) == null && (a?.ms ?? 0) !== (b?.ms ?? 0)
 /** Si el match lo definió el tiempo: los dos con los mismos golpes (ninguno LP) y distinto tiempo. */
 export function porTiempo(a, b) {
   const ga = a?.golpes ?? null
@@ -802,6 +1319,14 @@ export function moverMonos(monos, dt, pelota) {
   let llego = null
   for (const s of monos) {
     if (s.modo === 'aplastado') continue // el que pisó el carrito de Marcos queda ahí
+    if (s.modo === 'huye') {
+      // la bocina de Marcos: corre para el otro lado y, pasado el susto, vuelve a su recorrido
+      s.susto -= dt
+      const d = dist(s.pos, s.huyeDe) || 1
+      s.pos = [s.pos[0] + ((s.pos[0] - s.huyeDe[0]) / d) * BOCINA.vel * dt, s.pos[1] + ((s.pos[1] - s.huyeDe[1]) / d) * BOCINA.vel * dt]
+      if (s.susto <= 0) { s.modo = 'ronda'; s.espera = 0; s.huyeDe = null }
+      continue
+    }
     if (s.modo === 'caza') {
       if (s.pancho) {
         // la Mugre le tiró un pancho: va, se lo come y después vuelve a la pelota (más rápido)
@@ -829,7 +1354,7 @@ export function moverMonos(monos, dt, pelota) {
 export function despertarMonos(monos, pelota, alerta = MONO.alerta) {
   let n = 0
   for (const s of monos) {
-    if (s.modo === 'aplastado' || dist(s.pos, pelota) > alerta) continue
+    if (s.modo === 'aplastado' || s.modo === 'huye' || dist(s.pos, pelota) > alerta) continue
     if (s.modo !== 'caza') {
       s.modo = 'caza'
       s.reaccion = MONO.reaccion / (s.siesta ?? 1) // el clima: con sol (o nieve) salen tarde y lentos
@@ -923,7 +1448,7 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     const noLaFalla = enDada && (propia || !!r.lechuza)
     const lechuza = enDada && !propia && !!r.lechuza
     const retro = hab?.id === 'retro'
-    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1) * (r.mufa ? MUFA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, lechuza, furia: furioso, mufa: !!r.mufa, blando: !!r.blando }
+    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1) * (r.mufa ? MUFA.error : 1) * (hab?.id === 'carrito' ? factorRacha(r) : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, lechuza, furia: furioso, mufa: !!r.mufa, blando: !!r.blando }
   }
   const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
@@ -962,6 +1487,8 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     plan.calma = true
   }
   if (hab?.id === 'caos') plan.disp = { ...plan.disp, ang: plan.disp.ang * SORPRESA.error, carry: plan.disp.carry * SORPRESA.error }
+  // Marcos: con racha, menos error (cada tiro bueno seguido, un poco menos)
+  if (hab?.id === 'carrito' && r.racha) { const k = factorRacha(r); plan.disp = { ...plan.disp, ang: plan.disp.ang * k, carry: plan.disp.carry * k }; plan.racha = r.racha }
   if (hab?.id === 'derecho' && !tee) {
     // El Sueco, desde el segundo tiro: una flecha. Derecho (sin error de dirección), bajo y rápido, y atraviesa
     // todo: los pinos y los monos que se cruzan en el vuelo (2026-10-07, antes era "siempre derecho" también el drive)
@@ -1966,6 +2493,12 @@ export function resolverReposo(campo, r, tiro, rng) {
   // (si LG pegó prestado —atendió la Dickyllamada—, su calma no queda para el que juega; ofendido —la interna—, sin calma)
   if (habilidadDe(r.jugador)?.id === 'calma') r.calma = !r.prestado && !r.ofendido && esMalo(res, tiro)
   r.ultimoMalo = esMalo(res, tiro) // (para LG cuando pega de compañero en la Mejor pelota)
+  // Marcos: la racha (lo prestado de la Dickyllamada no la toca: ese tiro no es de él)
+  if (habilidadDe(r.jugador)?.id === 'carrito' && !r.prestado) {
+    const antes = r.racha ?? 0
+    r.racha = esMalo(res, tiro) ? 0 : esBueno(res) ? Math.min(RACHA.max, antes + 1) : antes
+    res.racha = { antes, ahora: r.racha, bueno: esBueno(res) && !esMalo(res, tiro) }
+  }
   cargarFuria(campo, r, tiro, res)
   devolverDicky(r) // la Dickyllamada: el Dicky que te pegó el tiro te devuelve el palo
   return res
@@ -1992,6 +2525,14 @@ export function sumarFuria(r, motivo) {
   return r.furia
 }
 const esMalo = (res, tiro) => ['afuera', 'mono-malo', 'mono-ladron'].includes(res.tipo) || ['rough', 'bunker'].includes(res.terreno) || tiro.eventos.some((e) => e.tipo === 'palo')
+const esBueno = (res) => res.tipo === 'embocada' || ['fairway', 'green'].includes(res.terreno)
+// ── 📣 Marcos: la racha (buildup). Cada tiro bueno (a la calle, al green o adentro) lo festeja a los gritos y el
+// próximo sale con menos error: −15% por cada uno seguido, hasta 4 (−60%). Uno malo (rough, bunker, afuera, al palo,
+// los monos) la corta; los del medio la dejan como está ──
+export const RACHA = { paso: 0.15, max: 4 }
+export const factorRacha = (r) => 1 - RACHA.paso * Math.min(RACHA.max, r?.racha ?? 0)
+// lo que grita (del chat: "Bien papá!!!!", "Que grande!!", "Crack!!", "Que batacazo!!"; y su frase de la carta)
+export const GRITOS_MARCOS = ['¡ENTRÁ, BOLIVIANA!!!', '¡BIEN PAPÁ!!!!', '¡QUÉ GRANDE!!', '¡CRACK!!', '¡QUÉ BATACAZO!!', '¡VAMOOOOS!!', '¡NO PODÍA SER OTRO!!', '¡ESAAAA!!!']
 
 function resolver(campo, r, tiro, rng) {
   const hoyo = hoyoActual(r)
@@ -2116,6 +2657,8 @@ export function cerrarHoyo(r, rng) {
     r.viento = r.match ? { ...r.match.vientos[r.idx] } : vientoAleatorio(rng) // en un match, el mismo viento para los dos
     vientoDelClima(r)
     if (r.panchos || habilidadDe(r.jugador)?.id === 'panchitos') r.panchos = MUGRE.panchos
+    // Marcos: el carrito lo espera en el próximo tee (no hace falta manejar de green a tee)
+    if (r.carro) r.carro = carroAlLado(r.pelota)
   }
   return fila
 }

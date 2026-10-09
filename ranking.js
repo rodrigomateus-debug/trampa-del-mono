@@ -502,6 +502,42 @@ export async function cobrarClasico() {
   if (!r || typeof r !== 'object') throw new Error('sin clásico')
   return { semana: r.semana ?? null, dicky: Math.floor(+r.dicky || 0), e5: Math.floor(+r.e5 || 0), ganador: r.ganador === 'dicky' || r.ganador === 'e5' ? r.ganador : null, cobraste: Math.floor(+r.cobraste || 0) }
 }
+// ── 👕 la camiseta (9/10/2026): a quién bancás en el Clásico, los Dicky o el Equipo 5. Elegirla, la primera vez, es
+// gratis; cambiarla ("pedir el pase") cuesta bananas: las reglas y el precio, en la base. Sin la base nueva (o la app
+// nueva), error: el juego la guarda en el teléfono ──
+const equipoOk = (e) => (e === 'dicky' || e === 'e5' ? e : null)
+/** La tuya: { equipo: 'dicky' | 'e5' | null (todavía no elegiste), costo (de cambiarla), cambios }. */
+export async function leerCamiseta() {
+  const c = puente.enApp ? await porApp('camiseta') : await rpc('trampa_camiseta_estado')
+  if (!c || typeof c !== 'object') throw new Error('sin camiseta')
+  return { equipo: equipoOk(c.equipo), costo: Math.floor(+c.costo || 0), cambios: Math.floor(+c.cambios || 0) }
+}
+/** Elegirla o cambiarla: { equipo, costo (lo que pagaste), saldo }. Si no te alcanzan, el "no" de la base. */
+export async function elegirCamiseta(equipo) {
+  const r = puente.enApp ? await porApp('camisetaElegir', { equipo }) : await rpc('trampa_camiseta_elegir', { p_equipo: equipo })
+  if (!r || !equipoOk(r.equipo)) throw new Error('sin camiseta')
+  return { equipo: r.equipo, costo: Math.floor(+r.costo || 0), saldo: Math.floor(+r.saldo || 0) }
+}
+/** Las camisetas de todos: Map uid → 'dicky' | 'e5'. */
+export async function leerCamisetas() {
+  const filas = puente.enApp ? await porApp('camisetas') : await rpc('trampa_camisetas_todas')
+  return new Map((Array.isArray(filas) ? filas : []).filter((f) => equipoOk(f?.equipo) && (f.user_id ?? f.uid)).map((f) => [f.user_id ?? f.uid, f.equipo]))
+}
+/**
+ * ⚔️ El Clásico de una semana según la base (las vueltas y los matches clásicos): { semana, dicky, e5, ganador,
+ * aportes: { dicky: [{ quien, nombre, pts, matches }], e5 }, clasicos: [{ equipo, gano, perdio, fecha }] }.
+ */
+export async function leerClasicoSemana(atras = 0) {
+  const r = puente.enApp ? await porApp('clasicoSemana', { atras }) : await rpc('trampa_clasico_semana', { p_atras: atras })
+  if (!r || typeof r !== 'object') throw new Error('sin clásico')
+  const n = (x) => Math.floor(+x || 0)
+  const ap = (l) => (Array.isArray(l) ? l : []).map((x) => ({ quien: x.uid ?? null, nombre: x.nombre ?? '—', pts: n(x.pts), matches: n(x.matches) }))
+  return {
+    semana: r.semana ?? null, dicky: n(r.dicky), e5: n(r.e5), ganador: equipoOk(r.ganador),
+    aportes: { dicky: ap(r.aportes?.dicky), e5: ap(r.aportes?.e5) },
+    clasicos: (Array.isArray(r.clasicos) ? r.clasicos : []).filter((c) => equipoOk(c?.equipo)),
+  }
+}
 /** Tus bananas: { saldo, reservadas, pozo, premiosHoy, movimientos: [{ monto, motivo, desafio, detalle, fecha }] }. */
 export async function leerBananas() {
   const b = puente.enApp ? await porApp('bananas') : await rpc('trampa_bananas_estado')

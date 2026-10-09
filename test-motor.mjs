@@ -837,6 +837,15 @@ ok('match: gana el de menos golpes; a igual golpes, el más rápido; LP pierde',
   assert.equal(M.ganadorMatch({ golpes: 12, ms: 70000 }, { golpes: 12, ms: 60000 }), -1)
   assert.equal(M.ganadorMatch({ golpes: null }, { golpes: 20, ms: 1 }), -1)
   assert.equal(M.ganadorMatch({ golpes: null }, { golpes: null }), 0)
+  // los dos levantaron: gana el que aguantó más; el que abandonó (sin tiempo) pierde; sin tiempo los dos, empate
+  assert.equal(M.ganadorMatch({ golpes: null, lp: true, ms: 95000 }, { golpes: null, lp: true, ms: 40000 }), 1)
+  assert.equal(M.ganadorMatch({ golpes: null, lp: true, ms: 40000 }, { golpes: null, lp: true, ms: 95000 }), -1)
+  assert.equal(M.ganadorMatch({ golpes: null, lp: true, ms: 40000 }, { golpes: null, lp: true, ms: null }), 1)
+  assert.equal(M.ganadorMatch({ golpes: null, lp: true, ms: null }, { golpes: null, lp: true, ms: null }), 0)
+  assert.equal(M.porAguante({ golpes: null, lp: true, ms: 95000 }, { golpes: null, lp: true, ms: 40000 }), true)
+  assert.equal(M.porAguante({ golpes: 12, ms: 95000 }, { golpes: null, lp: true, ms: 40000 }), false)
+  // terminar siempre le gana a levantar, aunque haya tardado más
+  assert.equal(M.ganadorMatch({ golpes: 30, ms: 999999 }, { golpes: null, lp: true, ms: 1000000 }), 1)
   assert.equal(M.ganadorMatch({ golpes: 12, ms: 5 }, { golpes: 12, ms: 5 }), 0)
 })
 
@@ -1420,6 +1429,59 @@ ok('⛳ Sábado 9 AM: la hora (argentina), la lista (cada uno una vez, en orden)
   const c = M.clasico(marcas, M.lunesDe(ar('2026-10-10T09:40:00')), equipoDe)
   assert.deepEqual(c.aportes.dicky.map((x) => [x.nombre, x.pts]), [['Rorro', 4], ['Patmig', 2], ['Miguel', 1], ['Ninja', 1]])
   assert.deepEqual(c.aportes.e5.map((x) => [x.nombre, x.pts]), [['Lucas', 2]])
+})
+
+ok('📣 Marcos: la racha (cada tiro bueno, el próximo con menos error; uno malo la corta) y el RESET del carrito', () => {
+  const nueva = () => ({ ...M.nuevaRonda({ apodo: 'El Flaco Ordoñez', emoji: '🏎️', hcp: 7.2 }, fijo(0.5)), monos: [], viento: calma })
+  const tirar = (r, destino) => {
+    const t = M.golpear(quieto, r, angulo(r.pelota, destino), 0.3, sinRuido())
+    M.simular(quieto, t, M.hoyoActual(r).pin)
+    t.pos = [...destino]
+    t.alt = 0
+    t.eventos = [] // (sin el palo del vuelo de mentira: lo que cuenta es dónde quedó)
+    return M.resolverReposo(quieto, r, t, fijo(0.99))
+  }
+  const calle = h15.calle[2], rough = [h15.calle[2][0] + 16, h15.calle[2][1]]
+  const r = nueva()
+  // sin racha: el error de siempre
+  const base = M.planTiro(quieto, r, 0, 0.7).disp
+  // dos buenos seguidos: racha 2, el próximo −30%
+  assert.deepEqual(tirar(r, calle).racha, { antes: 0, ahora: 1, bueno: true })
+  r.pelota = [...calle]; r.lie = 'fairway'
+  assert.equal(tirar(r, calle).racha.ahora, 2)
+  r.pelota = [...h15.calle[0]]; r.lie = 'tee'
+  const con = M.planTiro(quieto, { ...r, lie: 'fairway', pelota: [...calle] }, 0, 0.7).disp
+  const sin = M.planTiro(quieto, { ...r, racha: 0, lie: 'fairway', pelota: [...calle] }, 0, 0.7).disp
+  assert.ok(Math.abs(con.ang - sin.ang * 0.7) < 1e-9 && Math.abs(con.carry - sin.carry * 0.7) < 1e-9, `${con.ang} vs ${sin.ang}`)
+  assert.ok(base.ang > 0)
+  // hasta 4, no más (−60%)
+  r.racha = 4
+  r.pelota = [...calle]; r.lie = 'fairway'
+  assert.equal(tirar(r, calle).racha.ahora, 4)
+  assert.ok(Math.abs(M.factorRacha(r) - 0.4) < 1e-9)
+  // uno malo (al rough) la corta
+  r.pelota = [...calle]; r.lie = 'fairway'
+  assert.deepEqual(tirar(r, rough).racha, { antes: 4, ahora: 0, bueno: false })
+  // otro jugador no tiene racha
+  const o = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [], viento: calma }
+  assert.equal(tirar(o, calle).racha, undefined)
+  // RESET: trabado contra los árboles, vuelve al medio del fairway más cercano (quieto, mirando a la pelota)
+  const carro = M.crearCarro([...enArbol])
+  carro.v = 9
+  const pos = M.rescatarCarro(quieto, carro, h15.pin)
+  assert.equal(M.celda(quieto, pos), 'f')
+  assert.equal(carro.v, 0)
+  const fila = quieto.cancha.filas[Math.floor(pos[1])]
+  let x0 = Math.floor(pos[0]), x1 = x0
+  while (fila[x0 - 1] === 'f') x0--
+  while (fila[x1 + 1] === 'f') x1++
+  assert.ok(Math.abs(pos[0] - (x0 + x1 + 1) / 2) < 1, 'al medio del fairway')
+  // el carrito lo espera en el próximo tee
+  const t = nueva()
+  t.carro = M.crearCarro([10, 10])
+  t.golpes = 4
+  M.cerrarHoyo(t, fijo(0.5))
+  assert.ok(M.carroLlego(quieto, t.carro, t.pelota), 'el carrito, al lado del tee')
 })
 
 ok('El Ninja: reset del hoyo (uno por vuelta): al tee con cero golpes, sin multa', () => {
@@ -2211,6 +2273,153 @@ ok('el juego corto: el error no baja de un mínimo en yardas (también un scratc
   const putt = { modo: 'putt', fase: 'rodando', pos: [h15.pin[0] + 0.45, h15.pin[1]], alt: 0, v: [0.0001, 0], eventos: [], ajenos: [] }
   M.avanzar(campo, putt, 1 / 60, h15.pin)
   assert.equal(putt.embocada, true)
+})
+
+ok('🛺 el carrito nuevo: ruta GPS que esquiva árboles, raspa de costado y choca de frente, estaciona solo, piloto que se destraba', () => {
+  const bloq = (p) => ['t', 'x'].includes(M.celda(campo, p))
+  const cruza = (a, b) => { for (let k = 0; k <= 200; k++) if (bloq([a[0] + ((b[0] - a[0]) * k) / 200, a[1] + ((b[1] - a[1]) * k) / 200])) return true; return false }
+  // la ruta: derecho hay árboles, por la ruta no; empieza en el carrito y termina en la pelota
+  const a = [82.5, 200.5], b = [50, 100]
+  assert.ok(cruza(a, b), 'derecho, hay árboles en el medio')
+  const ruta = M.rutaCarrito(campo, a, b)
+  assert.ok(ruta && ruta.length >= 3)
+  assert.deepEqual(ruta[0], a)
+  assert.deepEqual(ruta.at(-1), b)
+  for (let i = 1; i < ruta.length; i++) assert.ok(!cruza(ruta[i - 1], ruta[i]), `tramo ${i} sin árboles`)
+  // dónde está el carrito sobre la ruta y a qué punto apuntar
+  const sr = M.sobreRuta(ruta, a, 6)
+  assert.ok(sr.lejos < 1e-6 && Math.abs(M.dist(sr.punto, a) - 6) < 1e-6 && sr.resta > M.dist(a, b) * 0.99)
+  assert.ok(!M.fueraDeRuta(ruta, a) && M.fueraDeRuta(ruta, [a[0] + 20, a[1]]))
+  // el sendero de carritos: uno por hoyo, más rápido arriba
+  const sen = M.senderos(campo)
+  assert.equal(sen.lineas.length, 3)
+  const p0 = sen.lineas[0].pts[Math.floor(sen.lineas[0].pts.length / 2)]
+  assert.ok(M.enSendero(campo, p0))
+  const enS = M.crearCarro(p0, 0), afuera = M.crearCarro(p0, 0)
+  enS.v = afuera.v = 30
+  M.manejar(campo, enS, { acelerar: true, tope: 30 }, 1 / 60)
+  // (afuera del sendero, en el mismo lugar pero en una cancha sin sendero: la de prueba de abajo)
+  // una pared de árboles en x = 100 (todo lo demás, fairway)
+  const pared = { ...campo, cancha: { ...campo.cancha, filas: campo.cancha.filas.map((f) => [...f].map((_, x) => (x === 100 ? 't' : 'f')).join('')) } }
+  assert.ok(!M.enSendero(pared, p0), 'en otra cancha no hay sendero')
+  // de costado (45°): raspa y sigue para arriba, sin entrar nunca
+  const ra = M.crearCarro([97, 300], -Math.PI / 4)
+  ra.v = 12
+  let roces = 0, choques = 0
+  for (let i = 0; i < 90; i++) { const r = M.manejar(pared, ra, { acelerar: true }, 1 / 60); if (r === 'roce') roces++; if (r === 'choque') choques++; assert.ok(M.celda(pared, ra.pos) !== 't') }
+  assert.ok(roces > 0 && choques === 0, `roces ${roces}, choques ${choques}`)
+  assert.ok(ra.pos[1] < 290, `siguió por el borde: ${ra.pos}`)
+  assert.ok(Math.abs(Math.sin(ra.ang + Math.PI / 2)) < 0.25, 'la trompa se acomodó para arriba')
+  // de frente: choca (con el impacto) y rebota
+  const fr = M.crearCarro([95, 300], 0)
+  fr.v = 12
+  let res = null
+  for (let i = 0; i < 60 && res !== 'choque'; i++) res = M.manejar(pared, fr, { acelerar: true }, 1 / 60)
+  assert.equal(res, 'choque')
+  assert.ok(fr.impacto > 10 && fr.v < 0)
+  // estacionar: a 14 yd, si la ve, se baja a 3 yd de la pelota, del lado de donde viene, mirando al hoyo
+  const pel = [60, 300], pin = [60, 200]
+  const e = M.puntoEstacionar(pared, M.crearCarro([60, 310]), pel, pin)
+  assert.ok(e && Math.abs(M.dist(e.pos, pel) - 3.6) < 1e-6 && e.pos[1] > pel[1])
+  assert.ok(Math.abs(e.ang + Math.PI / 2) < 1e-6)
+  assert.ok(M.carroLlego(pared, M.crearCarro(e.pos), pel))
+  assert.equal(M.puntoEstacionar(pared, M.crearCarro([60, 320]), pel, pin), null, 'lejos, no')
+  assert.equal(M.puntoEstacionar(pared, M.crearCarro([105, 300]), [94, 300], pin), null, 'con la pared en el medio, no')
+  // el piloto: maneja solo hasta la pelota (y se destraba: arranca con la trompa contra la pared)
+  const pil = M.crearCarro([98.5, 300], 0)
+  const meta = [70, 260]
+  const rp = M.rutaCarrito(pared, pil.pos, meta)
+  let llego = false
+  for (let i = 0; i < 60 * 20 && !llego; i++) {
+    M.manejar(pared, pil, M.conducir(pared, pil, { ruta: rp, pelota: meta, volante: null, tope: M.CARRITO.vmax }, 1 / 60), 1 / 60)
+    llego = !!M.puntoEstacionar(pared, pil, meta, pin)
+  }
+  assert.ok(llego, `llegó solo: ${pil.pos}`)
+  // manejo fácil: acelera solo hasta el tope; con el volante en 0 y un árbol adelante, la ayuda dobla
+  const fa = M.crearCarro([60, 420], -Math.PI / 2)
+  for (let i = 0; i < 60 * 3; i++) M.manejar(pared, fa, M.conducir(pared, fa, { ruta: null, pelota: [60, 0], volante: 0, tope: M.CARRITO.facil }, 1 / 60), 1 / 60)
+  assert.ok(fa.v > M.CARRITO.vmax + 2 && fa.v <= M.CARRITO.facil + 0.01, `fácil: ${fa.v}`)
+  const ay = M.crearCarro([90, 300], 0)
+  ay.v = 16
+  const m1 = M.conducir(pared, ay, { ruta: null, pelota: [200, 300], volante: 0, tope: M.CARRITO.facil }, 1 / 60)
+  assert.ok(m1.izq || m1.der, 'la ayuda dobla antes del árbol')
+  const m2 = M.conducir(pared, ay, { ruta: null, pelota: [200, 300], volante: 1, tope: M.CARRITO.facil }, 1 / 60)
+  assert.ok(m2.der && !m2.izq, 'si dobla el que juega, manda él')
+})
+
+ok('🛺 el carrito divertido: mini turbo del derrape, cáscaras (trompo), bocina que espanta monos y el choque que baja la racha', () => {
+  const liso = { ...campo, cancha: { ...campo.cancha, filas: campo.cancha.filas.map((f) => 'f'.repeat(f.length)) } }
+  // derrape: rápido y doblando colea y carga; al soltar, sale disparado (más rápido que antes)
+  const c = M.crearCarro([110, 300], -Math.PI / 2)
+  c.v = 30
+  let ev = null
+  for (let i = 0; i < 80; i++) M.manejar(liso, c, { acelerar: true, der: true, tope: 30 }, 1 / 60)
+  assert.ok(c.carga >= M.CARRITO.carga[1], `cargó ${c.carga}`)
+  const antes = c.v
+  M.manejar(liso, c, { acelerar: true, tope: 30 }, 1 / 60)
+  ev = c.ev
+  assert.equal(ev, 'turbito2')
+  assert.ok(c.v > antes + 8 && c.turbito > 0, `turbito: ${antes} → ${c.v}`)
+  for (let i = 0; i < 120; i++) M.manejar(liso, c, { acelerar: true, tope: 30 }, 1 / 60)
+  assert.ok(c.v <= 30.01, 'se acaba y vuelve al tope')
+  // poquito derrape: no carga nada
+  const p = M.crearCarro([110, 300], -Math.PI / 2)
+  p.v = 30
+  for (let i = 0; i < 10; i++) M.manejar(liso, p, { acelerar: true, der: true, tope: 30 }, 1 / 60)
+  M.manejar(liso, p, { acelerar: true, tope: 30 }, 1 / 60)
+  assert.equal(p.ev, null)
+  // cáscaras: las tiran los monos cerca de la ruta; pisarla andando = trompo (sin mando, gira y frena)
+  const r = M.nuevaRonda({ apodo: 'El Flaco Ordoñez', emoji: '🏎️', hcp: 7.2 }, fijo(0.5))
+  const ruta = [[60, 380], [60, 200]]
+  r.monos = [{ m: { a: [70, 290], b: [70, 290], fase: 0 }, pos: [70, 290], modo: 'ronda', espera: 0, hacia: 'b', reaccion: 0 }]
+  assert.ok(M.tirarCascaras(r, ruta, fijo(0.01)) >= 1)
+  const k = r.cascaras[0]
+  assert.equal(k.pos[0], 60)
+  assert.ok(k.pos[1] < 380 - 30 && k.pos[1] > 200 + 30 && k.viva)
+  assert.deepEqual(k.desde, [70, 290])
+  r.monos = []
+  assert.equal(M.tirarCascaras(r, ruta, fijo(0.01)), 0, 'sin monos cerca, no hay cáscaras')
+  r.cascaras = [k]
+  k.viva = true
+  r.carro = M.crearCarro([k.pos[0], k.pos[1] + 1], -Math.PI / 2)
+  r.carro.v = 2
+  assert.equal(M.pisarCascara(r), null, 'despacito, no')
+  r.carro.v = 14
+  assert.equal(M.pisarCascara(r), k)
+  assert.ok(!k.viva && r.carro.trompo > 0)
+  const a0 = r.carro.ang, y0 = r.carro.pos[1]
+  for (let i = 0; i < 20; i++) M.manejar(liso, r.carro, { acelerar: true, izq: true }, 1 / 60)
+  assert.ok(Math.abs(r.carro.ang - a0) > 2, 'gira como un trompo')
+  assert.ok(r.carro.pos[1] < y0 - 2, 'y sigue de largo (resbala)')
+  assert.ok(Math.hypot(r.carro.v, r.carro.vl) < 14, 'frenando')
+  // el piloto (LLEVAME) esquiva la cáscara
+  const q = M.crearCarro([60, 340], -Math.PI / 2)
+  const cas = [{ pos: [60, 320], viva: true }]
+  let minD = 99
+  for (let i = 0; i < 60 * 4; i++) { M.manejar(liso, q, M.conducir(liso, q, { ruta, pelota: [60, 200], volante: null, tope: 16, cascaras: cas }, 1 / 60), 1 / 60); minD = Math.min(minD, M.dist(q.pos, cas[0].pos)) }
+  assert.ok(minD > M.CASCARA.radio, `la esquivó (${minD.toFixed(2)})`)
+  // la bocina: los monos cerca salen corriendo para el otro lado y un rato no persiguen; después vuelven a su recorrido
+  r.carro = M.crearCarro([60, 300])
+  r.monos = [
+    { m: { a: [80, 300], b: [90, 300], fase: 0 }, pos: [80, 300], modo: 'caza', espera: 0, hacia: 'b', reaccion: 0, velCaza: 12 },
+    { m: { a: [150, 300], b: [160, 300], fase: 0 }, pos: [150, 300], modo: 'ronda', espera: 0, hacia: 'b', reaccion: 0 },
+  ]
+  assert.equal(M.bocina(r), 1)
+  assert.equal(r.monos[0].modo, 'huye')
+  M.perseguirCarro(r)
+  assert.equal(r.monos[0].modo, 'huye', 'asustado, no persigue')
+  M.moverMonos(r.monos, 1, r.carro.pos)
+  assert.ok(r.monos[0].pos[0] > 95, 'se alejó')
+  for (let i = 0; i < 4; i++) M.moverMonos(r.monos, 1, r.carro.pos)
+  assert.equal(r.monos[0].modo, 'ronda')
+  // la racha: un choque de frente fuerte le baja un escalón; uno suave, no; otro jugador, nada
+  r.racha = 3
+  assert.ok(!M.chocarRacha(r, 4) && r.racha === 3)
+  assert.ok(M.chocarRacha(r, 12) && r.racha === 2)
+  r.racha = 0
+  assert.ok(!M.chocarRacha(r, 12) && r.racha === 0)
+  const otro = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), racha: 2 }
+  assert.ok(!M.chocarRacha(otro, 12))
 })
 
 console.log('\nTodo verde.')

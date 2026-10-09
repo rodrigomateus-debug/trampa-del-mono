@@ -232,6 +232,13 @@ export function logro() {
   campana(1567.98, 0.42, 0.1)
   ruido(0.5, { f: 6000, q: 0.6, vol: 0.03, at: 0.36 })
 }
+// 📣 Marcos festeja: un grito (ruido con forma de voz que sube) y un golpecito de aplauso
+export function grito() {
+  ruido(0.55, { filtro: 'bandpass', f: 700, f2: 1300, q: 3, vol: 0.32, ataque: 0.03 })
+  tono(330, 0.5, { tipo: 'sawtooth', vol: 0.06, f2: 520, ataque: 0.03 })
+  ruido(0.08, { f: 2600, vol: 0.12, at: 0.5 })
+  ruido(0.08, { f: 2400, vol: 0.1, at: 0.62 })
+}
 // 🦉 la lechuza que se asoma: "uh… uh-uh", bajito (que se escuche si estás atento)
 export function ulula() {
   tono(470, 0.32, { vol: 0.07, f2: 430, ataque: 0.06 })
@@ -385,6 +392,69 @@ export function carrito() {
   tono(300, 0.9, { vol: 0.06, f2: 520, tipo: 'sawtooth', ataque: 0.15 })
   ruido(0.9, { filtro: 'lowpass', f: 600, vol: 0.06, ataque: 0.15 })
   for (const at of [0.25, 0.42]) { tono(440, 0.12, { vol: 0.12, tipo: 'square', at }); tono(554, 0.12, { vol: 0.08, tipo: 'square', at }) }
+}
+// ── 🛺 el carrito de Marcos: el motor (eléctrico, que sube con la velocidad), el pi-pi de la marcha atrás, la bocina,
+// el raspón contra un árbol, el derrape que carga, el mini turbo, la cáscara (trompo) y el freno de mano al estacionar
+let motorOsc = null, motorOsc2 = null, motorGain = null, motorFl = null
+/** El motor: `vel` en yd/s (0 lo apaga); `turbo` lo pone más agudo y fuerte. */
+export function motor(vel, turbo = false) {
+  if (!ctx) return
+  const v = Math.abs(vel || 0)
+  if (!motorOsc) {
+    if (!v) return
+    motorOsc = ctx.createOscillator(); motorOsc.type = 'sawtooth'
+    motorOsc2 = ctx.createOscillator(); motorOsc2.type = 'square'
+    motorFl = ctx.createBiquadFilter(); motorFl.type = 'lowpass'; motorFl.Q.value = 2
+    motorGain = ctx.createGain(); motorGain.gain.value = 0
+    const g2 = ctx.createGain(); g2.gain.value = 0.35
+    motorOsc.connect(motorFl); motorOsc2.connect(g2).connect(motorFl)
+    motorFl.connect(motorGain).connect(sfx)
+    motorOsc.start(); motorOsc2.start()
+  }
+  const t = ctx.currentTime
+  const f = 55 + Math.min(v, 50) * 5.5
+  motorOsc.frequency.setTargetAtTime(f, t, 0.08)
+  motorOsc2.frequency.setTargetAtTime(f * 0.5 + 3, t, 0.08)
+  motorFl.frequency.setTargetAtTime(300 + Math.min(v, 50) * 40 + (turbo ? 900 : 0), t, 0.08)
+  motorGain.gain.setTargetAtTime(v ? 0.035 + Math.min(1, v / 30) * 0.04 + (turbo ? 0.02 : 0) : 0, t, v ? 0.06 : 0.12)
+}
+/** Apaga el motor del todo (te bajaste del carrito). */
+export function motorApagar() {
+  if (!motorOsc || !ctx) return
+  const t = ctx.currentTime
+  motorGain.gain.setTargetAtTime(0, t, 0.08)
+  const [o1, o2] = [motorOsc, motorOsc2]
+  setTimeout(() => { try { o1.stop(); o2.stop() } catch {} }, 400)
+  motorOsc = motorOsc2 = motorGain = motorFl = null
+}
+export const pip = () => tono(1180, 0.12, { vol: 0.07, tipo: 'square', ataque: 0.004 })
+export function bocina() {
+  for (const at of [0, 0.22]) { tono(392, 0.18, { vol: 0.13, tipo: 'square', at }); tono(494, 0.18, { vol: 0.09, tipo: 'square', at }) }
+}
+let proxRaspa = 0
+export function raspa() {
+  if (!ctx || ctx.currentTime < proxRaspa) return
+  proxRaspa = ctx.currentTime + 0.18
+  ruido(0.16, { f: 1700, f2: 900, q: 1.5, vol: 0.14, ataque: 0.01 })
+}
+let proxChispa = 0
+export function chispa(nivel = 1) {
+  if (!ctx || ctx.currentTime < proxChispa) return
+  proxChispa = ctx.currentTime + 0.07
+  ruido(0.04, { f: nivel > 1 ? 5200 : 3800, q: 3, vol: 0.05, ataque: 0.002 })
+}
+export function turbito(n = 1) {
+  ruido(0.5 + n * 0.15, { f: 500, f2: 4200, q: 1.2, vol: 0.18 + n * 0.05, ataque: 0.02 })
+  tono(220, 0.45, { tipo: 'sawtooth', vol: 0.07, f2: 880, ataque: 0.01 })
+}
+export function cascara() {
+  tono(1500, 0.9, { tipo: 'triangle', vol: 0.12, f2: 260, ataque: 0.02 }) // el silbato que baja
+  ruido(0.6, { f: 2200, f2: 700, q: 2, vol: 0.12, ataque: 0.02, at: 0.05 })
+  chillido(0.5, 3, 1.4) // y el mono se ríe
+}
+export function estaciona() {
+  ruido(0.35, { f: 2600, f2: 1600, q: 6, vol: 0.1, ataque: 0.01 }) // la goma
+  tono(160, 0.12, { vol: 0.12, f2: 90, at: 0.3 }) // y el clac del freno de mano
 }
 /** Tito, un swipe: el soplido, más fuerte cuanto más largo el swipe (k de 0 a 1). */
 export const soplo = (k = 0.6) => ruido(0.25 + k * 0.25, { f: 500, f2: 1800 + k * 1400, q: 0.8, vol: 0.14 + k * 0.2, ataque: 0.05 })

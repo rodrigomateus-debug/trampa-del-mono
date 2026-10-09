@@ -238,6 +238,117 @@ body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando 
 #sabado .sb-caras img:nth-child(even) { transform: rotate(5deg); }
 #sabado .sb-dicen { margin: 0; padding: 6px 12px 5px; font: 15px/1.2 var(--font-display); letter-spacing: .04em; color: var(--game-ink); background: var(--cream); border: 2.5px solid var(--game-ink); border-radius: 12px; box-shadow: var(--game-shadow-xs); transform: rotate(1.5deg); text-align: center; max-width: min(320px, calc(100vw - 48px)); }
 @media (prefers-reduced-motion: reduce) { #sabado, #sabado *, #sabado .sb-lista li { animation: none !important; opacity: 1 } }
+/* ── 👕 la camiseta: ¿a quién bancás? Como la presentación de un clásico: la cancha se parte en dos, el rayo, el título
+   que cae, los escudos que llegan girando y aterrizan levantando polvo, el VS. Después flotan, les pasa el brillo y les
+   orbitan sus cosas (corazones; lechuzas, teles y fuego). Al elegir: late, explota en lo suyo y el fondo se tiñe. Al
+   confirmar: el sello y el escudo vuela a su lugar en el home ── */
+#cam { position: fixed; inset: 0; z-index: 85; display: grid; place-items: center; padding: calc(var(--safe-top) + 14px) 16px calc(var(--safe-bot) + 14px); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; color: var(--cream); }
+#cam[hidden] { display: none; }
+#cam.sale { animation: cam-se-va .45s ease-in both; }
+@keyframes cam-se-va { to { opacity: 0 } }
+.cam-fondo { position: fixed; inset: 0; overflow: hidden; background: var(--game-ink); }
+.cam-mitad { position: absolute; inset: 0; }
+.cam-mitad.d { background: repeating-linear-gradient(-58deg, rgba(255, 255, 255, .05) 0 26px, transparent 26px 52px), radial-gradient(120% 80% at 0% 30%, #3a35a0, #1d1a5c 62%); clip-path: polygon(0 0, 61% 0, 39% 100%, 0 100%); animation: cam-izq .6s cubic-bezier(.2, .9, .2, 1) both; }
+.cam-mitad.e { background: repeating-linear-gradient(-58deg, rgba(255, 255, 255, .05) 0 26px, transparent 26px 52px), radial-gradient(120% 80% at 100% 70%, #2e7d4f, #14402a 62%); clip-path: polygon(61% 0, 100% 0, 100% 100%, 39% 100%); animation: cam-der .6s cubic-bezier(.2, .9, .2, 1) both; }
+@keyframes cam-izq { from { transform: translateX(-100%) } }
+@keyframes cam-der { from { transform: translateX(100%) } }
+.cam-rayo { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 6px rgba(232, 195, 74, .8)); }
+.cam-rayo path { fill: none; stroke: var(--gold); stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: cam-dibuja .45s .4s ease-out forwards, cam-titila 3.2s 1.4s infinite; }
+@keyframes cam-dibuja { to { stroke-dashoffset: 0 } }
+@keyframes cam-titila { 0%, 86%, 100% { opacity: 1 } 88% { opacity: .35 } 90% { opacity: 1 } 92% { opacity: .5 } }
+.cam-ola { position: absolute; inset: 0; background: var(--c, transparent); opacity: .5; clip-path: circle(0 at var(--x, 50%) var(--y, 50%)); transition: clip-path .65s cubic-bezier(.3, .8, .3, 1); }
+#cam.elegido .cam-ola { clip-path: circle(150% at var(--x, 50%) var(--y, 50%)); }
+.cam-caja { position: relative; width: min(100%, 420px); display: grid; justify-items: center; gap: 10px; text-align: center; }
+.cam-kicker { margin: 0; font: 13px/1 var(--font-display); letter-spacing: .14em; color: var(--gold); text-transform: uppercase; animation: cam-sube .4s .3s ease-out both; }
+.cam-tit { margin: 0; font: clamp(40px, 12vw, 58px)/.95 var(--font-display); letter-spacing: .01em; color: var(--cream); text-shadow: 4px 5px 0 var(--game-ink); transform-origin: 50% 100%; animation: cam-cae .75s .42s cubic-bezier(.3, 1.4, .5, 1) both; }
+@keyframes cam-cae { 0% { transform: translateY(-90px) scale(1.5); opacity: 0 } 55% { transform: translateY(6px) scale(1.07, .88); opacity: 1 } 75% { transform: translateY(-4px) scale(.97, 1.04) } 100% { transform: none } }
+@keyframes cam-sube { from { transform: translateY(12px); opacity: 0 } }
+.cam-txt { margin: 0; max-width: 36ch; font: 600 14px/1.42 var(--font-body); color: rgba(244, 238, 218, .9); animation: cam-sube .45s .6s ease-out both; }
+.cam-txt b { color: var(--gold); }
+.cam-equipos { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; margin-top: 6px; perspective: 700px; }
+.cam-vs { font: 34px/1 var(--font-display); color: var(--gold); text-shadow: 3px 3px 0 var(--game-ink); animation: cam-vs .5s 1.6s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes cam-vs { 0% { transform: scale(3.6) rotate(-25deg); opacity: 0 } 100% { transform: rotate(-8deg); opacity: 1 } }
+.cam-eq { --c: #6b67d8; --fondo: #1d1a5c; position: relative; padding: 6px 2px 10px; border: 0; background: none; color: var(--cream); cursor: pointer; -webkit-tap-highlight-color: transparent; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .18s ease-out, opacity .35s, filter .35s; }
+.cam-eq[data-eq="e5"] { --c: #3e8f5a; --fondo: #14402a; }
+.cam-eq:disabled { cursor: default; }
+.cam-in { position: relative; display: grid; justify-items: center; gap: 5px; animation: cam-llega-d .95s .72s cubic-bezier(.34, 1.56, .64, 1) both; }
+.cam-eq[data-eq="e5"] .cam-in { animation-name: cam-llega-e; animation-delay: .86s; }
+@keyframes cam-llega-d { 0% { transform: translateX(-62vw) rotate(-280deg) scale(.3); opacity: 0 } 60% { opacity: 1 } 100% { transform: none } }
+@keyframes cam-llega-e { 0% { transform: translateX(62vw) rotate(280deg) scale(.3); opacity: 0 } 60% { opacity: 1 } 100% { transform: none } }
+/* el polvo del aterrizaje */
+.cam-in::before { content: ''; position: absolute; left: 50%; top: calc(var(--tam) / 2); width: 40px; height: 40px; margin: -20px; border-radius: 50%; border: 3px solid var(--c); opacity: 0; pointer-events: none; animation: cam-onda .75s 1.5s ease-out both; }
+.cam-eq[data-eq="e5"] .cam-in::before { animation-delay: 1.64s; }
+@keyframes cam-onda { 0% { transform: scale(.5); opacity: .9 } 100% { transform: scale(4.4); opacity: 0 } }
+.cam-in { --tam: clamp(104px, 31vw, 138px); }
+.cam-escudo { position: relative; display: block; width: var(--tam); aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: var(--fondo); border: var(--game-stroke) solid var(--game-ink); box-shadow: 0 0 0 4px rgba(244, 238, 218, .14), 5px 6px 0 var(--game-ink); transition: box-shadow .3s; animation: cam-flota 3.4s ease-in-out 1.7s infinite alternate; }
+.cam-eq[data-eq="e5"] .cam-escudo { animation-delay: 2.4s; }
+.cam-escudo img { display: block; width: 100%; height: 100%; }
+@keyframes cam-flota { 0% { transform: translateY(0) rotate(-2deg) } 100% { transform: translateY(-8px) rotate(2.5deg) } }
+.cam-brillo { position: absolute; inset: -20%; pointer-events: none; background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .6) 48%, rgba(255, 255, 255, .12) 54%, transparent 62%); transform: translateX(-130%); animation: cam-brilla 3.8s ease-in-out 1.9s infinite; }
+.cam-eq[data-eq="e5"] .cam-brillo { animation-delay: 2.7s; }
+@keyframes cam-brilla { 0%, 55% { transform: translateX(-130%) } 85%, 100% { transform: translateX(130%) } }
+.cam-eq:hover .cam-escudo, .cam-eq:focus-visible .cam-escudo { box-shadow: 0 0 0 4px var(--c), 0 0 26px 2px var(--c), 5px 6px 0 var(--game-ink); }
+.cam-nombre { margin-top: 10px; font: 22px/1 var(--font-display); letter-spacing: .03em; text-shadow: 2px 3px 0 var(--game-ink); }
+.cam-lema { font: 700 12px/1.1 var(--font-body); color: rgba(244, 238, 218, .8); }
+.cam-cinta { position: absolute; top: -4px; left: 50%; z-index: 2; padding: 4px 8px 3px; font: 12px/1 var(--font-display); letter-spacing: .08em; white-space: nowrap; color: var(--game-ink); background: var(--gold); border: 2px solid var(--game-ink); box-shadow: 2px 3px 0 var(--game-ink); transform: translateX(-50%) rotate(-5deg); }
+.cam-cinta[hidden] { display: none; }
+/* lo que les orbita (cada cosa, derecha: gira al revés) */
+.cam-orbita { position: absolute; left: 50%; top: calc(var(--tam) / 2); width: 0; height: 0; pointer-events: none; animation: cam-gira 10s linear infinite, cam-aparece .5s 1.8s ease-out both; }
+.cam-eq[data-eq="e5"] .cam-orbita { animation-direction: reverse, normal; animation-delay: 0s, 1.95s; }
+.cam-orbita i { position: absolute; left: -11px; top: -11px; width: 22px; height: 22px; font: normal 17px/22px sans-serif; text-align: center; transform: rotate(calc(var(--k) * 72deg)) translateY(calc(var(--tam) * -.62)); }
+.cam-orbita i span { display: block; transform: rotate(calc(var(--k) * -72deg)); animation: cam-gira 10s linear infinite reverse, cam-titila-emoji 1.8s ease-in-out infinite; animation-delay: 0s, calc(var(--k) * .3s); }
+.cam-eq[data-eq="e5"] .cam-orbita i span { animation-direction: normal, normal; }
+@keyframes cam-gira { to { rotate: 360deg } }
+@keyframes cam-aparece { from { opacity: 0 } }
+@keyframes cam-titila-emoji { 0%, 100% { scale: 1 } 50% { scale: 1.25 } }
+/* elegido: late; el otro, se apaga */
+#cam.elegido .cam-eq { opacity: .4; filter: grayscale(.75); transform: scale(.86); }
+#cam.elegido .cam-eq.si { opacity: 1; filter: none; transform: scale(1.1); }
+.cam-eq.si .cam-escudo { box-shadow: 0 0 0 5px var(--c), 0 0 40px 8px var(--c), 5px 6px 0 var(--game-ink); }
+.cam-eq.si .cam-in { animation: cam-late .5s cubic-bezier(.3, 1.8, .5, 1); }
+@keyframes cam-late { 0% { transform: scale(.82) } 100% { transform: none } }
+.cam-chispa { position: fixed; left: 0; top: 0; z-index: 90; font-size: 22px; line-height: 1; pointer-events: none; will-change: transform, opacity; }
+.cam-anillo { position: fixed; z-index: 89; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 4px solid var(--c); pointer-events: none; }
+.cam-error { margin: 0; font: 700 13px/1.3 var(--font-body); color: #ffb3a6; }
+.cam-error[hidden] { display: none; }
+.cam-ok { width: min(100%, 340px); margin-top: 4px; padding: 0 16px; font-size: clamp(19px, 5.8vw, 25px); animation: cam-sube .45s 1.9s ease-out both; }
+.cam-ok:disabled { background: rgba(12, 43, 28, .55); color: rgba(244, 238, 218, .55); border-color: rgba(244, 238, 218, .3); box-shadow: none; }
+#cam.elegido .cam-ok:not(:disabled) { animation: cam-pop .45s cubic-bezier(.3, 1.7, .5, 1) both; }
+@keyframes cam-pop { 0% { transform: scale(.7) } 100% { transform: none } }
+.cam-quedo { padding: 6px 12px; border: 0; background: none; font: 700 14px/1.2 var(--font-body); color: rgba(244, 238, 218, .8); text-decoration: underline; cursor: pointer; }
+.cam-quedo[hidden] { display: none; }
+.cam-pie { margin: 0; max-width: 36ch; font: 600 12px/1.35 var(--font-body); color: rgba(244, 238, 218, .65); animation: cam-sube .45s 2s ease-out both; }
+.cam-pie .bn { width: 14px; height: 14px; vertical-align: -2px; }
+/* el sello al confirmar */
+.cam-sello { position: fixed; left: 50%; top: 38%; z-index: 92; width: max-content; max-width: calc(100vw - 32px); padding: 14px 18px 12px; pointer-events: none; text-align: center; white-space: nowrap; font: clamp(26px, 8.4vw, 46px)/.95 var(--font-display); color: var(--gold); -webkit-text-stroke: 2px var(--game-ink); paint-order: stroke fill; text-shadow: 3px 4px 0 var(--game-ink); background: var(--game-ink); border: 4px solid var(--gold); border-radius: 18px; box-shadow: 0 0 0 4px var(--game-ink), 8px 10px 0 rgba(0, 0, 0, .35); opacity: 0; transform: translate(-50%, -50%); }
+#cam.sellado .cam-kicker, #cam.sellado .cam-tit, #cam.sellado .cam-txt, #cam.sellado .cam-pie, #cam.sellado .cam-ok, #cam.sellado .cam-vs { opacity: .12; transition: opacity .25s; }
+.cam-sello small { display: block; margin-top: 8px; font: 700 15px/1.2 var(--font-body); -webkit-text-stroke: 0; color: var(--cream); text-shadow: 0 2px 0 var(--game-ink); }
+.cam-sello.ver { animation: cam-sella .55s cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes cam-sella { 0% { transform: translate(-50%, -50%) scale(2.8) rotate(-16deg); opacity: 0 } 60% { opacity: 1 } 100% { transform: translate(-50%, -50%) scale(1) rotate(-6deg); opacity: 1 } }
+#cam.sellado .cam-caja { animation: cam-tiembla .4s .25s both; }
+@keyframes cam-tiembla { 20% { transform: translate(-6px, 3px) } 40% { transform: translate(5px, -4px) } 60% { transform: translate(-4px, 2px) } 80% { transform: translate(3px, -1px) } }
+/* el escudo en el home: flota, le pasa el brillo; tocándolo, el pase */
+.cam-home { position: absolute; top: calc(var(--safe-top) + 12px); right: 12px; z-index: 3; display: grid; justify-items: center; gap: 4px; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cam-home[hidden] { display: none; }
+.cam-home-escudo { --fondo: #1d1a5c; position: relative; display: block; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: var(--fondo); border: var(--game-stroke) solid var(--game-ink); box-shadow: 3px 4px 0 var(--game-ink); animation: cam-flota 3s ease-in-out infinite alternate; }
+.cam-home.e5 .cam-home-escudo { --fondo: #14402a; }
+.cam-home-escudo img { display: block; width: 100%; height: 100%; }
+.cam-home .cam-brillo { animation-delay: .6s; }
+.cam-home-txt { padding: 3px 6px 2px; font: 10px/1 var(--font-display); letter-spacing: .1em; color: var(--gold); background: var(--game-ink); border-radius: 6px; transform: rotate(-3deg); }
+.cam-home:active .cam-home-escudo { transform: scale(.92); }
+.cam-home.aterriza .cam-home-escudo { animation: cam-aterriza .7s cubic-bezier(.3, 1.8, .5, 1) both; }
+@keyframes cam-aterriza { 0% { transform: scale(1.45); box-shadow: 0 0 0 6px var(--gold), 0 0 30px var(--gold) } 100% { transform: none } }
+.cam-vuela { position: fixed; z-index: 93; left: 0; top: 0; margin: 0; pointer-events: none; }
+/* el escudito al lado de los nombres (ranking, MATCH) y la marca del match clásico */
+.cam-mini { display: inline-block; width: 16px; height: 16px; margin-left: 4px; border-radius: 50%; border: 1.5px solid var(--game-ink); background: #1d1a5c; vertical-align: -3px; }
+.cam-mini.e5 { background: var(--green-900); }
+.mt-fila .mini.cam { padding: 0; overflow: hidden; background: #1d1a5c; }
+.mt-fila .mini.cam.e5 { background: var(--green-900); }
+.mt-fila .mini.cam img { display: block; width: 100%; height: 100%; }
+.mt-clasico { display: inline-block; margin-left: 2px; padding: 2px 5px 1px; font: 10px/1 var(--font-display); letter-spacing: .06em; color: var(--game-ink); background: var(--gold); border-radius: 5px; transform: rotate(-2deg); }
+@media (prefers-reduced-motion: reduce) {
+  #cam, #cam *, #cam *::before, .cam-home *, .cam-sello { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
 /* 🦉 la lechuza escondida: se asoma en un árbol, mira para los dos lados y se va volando (o la cazás) */
 #lechuza { position: fixed; left: 0; top: 0; z-index: 25; width: 52px; height: 52px; margin: -42px 0 0 -26px; padding: 0; border: 0; background: none; font-size: 31px; line-height: 52px; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; will-change: transform; }
 #lechuza[hidden] { display: none; }
@@ -581,6 +692,77 @@ body.manejando #mandos { display: flex; }
 #mandos #m-reversa.on { background: var(--gold); transform: translate(3px, 4px); box-shadow: 0 0 0 var(--game-ink); }
 /* el velocímetro: se llena de dorado y en el turbo se pone al rojo */
 #m-velo { position: absolute; left: 50%; bottom: calc(100% + 12px); transform: translateX(-50%); width: 132px; padding: 6px 9px 7px; border-radius: 12px; background: rgba(12, 43, 28, .82); border: 2px solid rgba(244, 238, 218, .5); color: var(--cream); font: 13px var(--font-display); letter-spacing: .08em; text-align: center; pointer-events: none; }
+/* arriba de los mandos, centrada sobre el velocímetro: RESET, LLEVAME y la bocina (pastillas como REVERSA). Con #mandos
+   adelante, así le ganan a la regla de todos los botones de los mandos (display, padding) */
+#mandos .m-barra { position: absolute; left: 50%; bottom: calc(100% + 66px); transform: translateX(-50%); display: flex; gap: 8px; align-items: center; pointer-events: auto; }
+#mandos .m-barra > button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 40px; border: var(--game-stroke) solid var(--game-ink); border-radius: 999px; background: var(--cream); color: var(--green-900); font-size: 15px; line-height: 1; letter-spacing: .06em; white-space: nowrap; box-shadow: var(--game-shadow-sm); --gi-s: var(--game-ink); --gi-a: var(--gold); }
+#mandos .m-barra > button:active { transform: translate(3px, 4px); box-shadow: 0 0 0 var(--game-ink); }
+#mandos .m-barra span { padding-top: 1px; }
+#mandos .m-barra .gi { width: 26px; height: 26px; transition: transform .35s var(--game-ease-bounce); }
+#mandos #m-reset { padding: 0 14px 0 6px; }
+#mandos #m-reset:active { background: var(--gold); --gi-a: var(--cream); }
+#mandos #m-reset:active .gi { transform: rotate(-120deg); }
+/* trabado: el RESET late y se ofrece */
+#mandos #m-reset.late { background: var(--gold); animation: m-late 0.9s ease-in-out infinite; --gi-a: var(--cream); }
+#mandos #m-reset.late span::after { content: ' ¿TRABADO?'; }
+@keyframes m-late { 50% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(232, 195, 74, .35), var(--game-shadow-sm); } }
+#mandos #m-llevame { padding: 0 14px 0 4px; }
+#mandos #m-llevame img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid var(--game-ink); }
+#mandos #m-llevame[aria-pressed="true"] { background: var(--gold); }
+#mandos #m-llevame[aria-pressed="true"] img { animation: m-volante 1.2s ease-in-out infinite; }
+#mandos #m-llevame[aria-pressed="true"] span { font-size: 0; }
+#mandos #m-llevame[aria-pressed="true"] span::before { content: 'MANEJA MARCOS'; font-size: 15px; }
+@keyframes m-volante { 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
+#mandos #m-bocina { width: 44px; padding: 0; }
+#mandos #m-bocina.toca .gi { animation: m-bocina .4s var(--game-ease-bounce); }
+@keyframes m-bocina { 30% { transform: scale(1.3) rotate(-10deg); } }
+/* el manejo: FÁCIL (dos almohadones para doblar) o PRO (volante y pedales) */
+body.manejo-facil #mandos .pro, body:not(.manejo-facil) #mandos .facil { display: none; }
+#mandos .pad { flex: 0 1 172px; height: 104px; border: var(--game-stroke) solid var(--game-ink); border-radius: 28px; background: rgba(244, 238, 218, .9); color: var(--green-900); box-shadow: var(--game-shadow-lg); pointer-events: auto; }
+#mandos .pad svg { width: 44px; height: 44px; }
+#mandos .pad.on { transform: translate(5px, 6px); box-shadow: 0 0 0 var(--game-ink); background: var(--gold); }
+/* celus angostos: los mandos PRO un poco más chicos (si no, el acelerador se sale de la pantalla) */
+@media (max-width: 384px) {
+  #mandos { padding: 0 10px; gap: 6px; }
+  #mandos .grupo { gap: 8px; }
+  #mandos .dir { width: 60px; height: 60px; }
+  #mandos #m-reversa { font-size: 13px; padding: 0 10px; height: 36px; }
+  #mandos #m-acel { width: 78px; height: 112px; }
+  #mandos #m-freno { width: 66px; height: 86px; }
+}
+@media (max-width: 340px) {
+  #mandos .dir { width: 54px; height: 54px; }
+  #mandos #m-acel { width: 72px; }
+}
+/* pantallas bajas: el minimapa no entra entre las fichas y los mandos */
+@media (max-height: 690px) { body.manejando #minimapa { display: none; } }
+/* los ajustes del carrito (arriba a la derecha, en lugar del viento y el clima mientras manejás) */
+#m-ajustes { display: none; gap: 6px; justify-items: end; pointer-events: auto; }
+body.manejando #m-ajustes { display: grid; }
+body.manejando #viento, body.manejando #clima-chip, body.manejando #barro-chip, body.manejando #pro-chip, body.manejando #pronostico { display: none !important; }
+#m-ajustes .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); }
+#m-ajustes button { height: 26px; padding: 0 10px; border: 0; border-radius: 999px; background: none; color: var(--cream); font: 13px/1 var(--font-display); letter-spacing: .06em; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#m-ajustes button[aria-pressed="true"] { background: var(--gold); color: var(--green-900); }
+/* el reloj, parado mientras manejás */
+body.manejando #crono { opacity: .7; }
+body.manejando #crono::after { content: '⏸'; font-size: 12px; margin-left: 2px; }
+/* el minimapa del hoyo (mientras manejás) */
+#minimapa { display: none; width: 78px; height: 124px; border-radius: 12px; border: 2px solid rgba(244, 238, 218, .7); box-shadow: 2px 3px 0 rgba(12, 43, 28, .6); background: #1d4a2c; }
+body.manejando #minimapa { display: block; }
+/* 📣 Marcos festeja a los gritos */
+#grito { position: fixed; left: 50%; top: 46%; z-index: 40; display: flex; flex-direction: column; align-items: center; gap: 6px; width: max-content; max-width: calc(100vw - 32px); pointer-events: none; text-align: center; transform: translate(-50%, -50%); }
+#grito[hidden] { display: none; }
+#grito img { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; border: var(--game-stroke) solid var(--game-ink); box-shadow: 3px 4px 0 var(--game-ink); animation: grito-cara .5s var(--game-ease-bounce) both; }
+#grito .g-txt { display: grid; justify-items: center; gap: 6px; }
+#grito b { font: clamp(26px, 8vw, 40px)/.95 var(--font-display); color: var(--gold); -webkit-text-stroke: 2px var(--game-ink); paint-order: stroke fill; text-shadow: 3px 4px 0 var(--game-ink); white-space: nowrap; transform-origin: 50% 50%; animation: grito-sale .55s var(--game-ease-bounce) both, grito-tiembla .09s linear .55s 6; }
+#grito small { white-space: nowrap; padding: 3px 7px 2px; font: 12px/1 var(--font-display); letter-spacing: .06em; color: var(--game-ink); background: var(--gold); border: 2px solid var(--game-ink); border-radius: 6px; transform: rotate(-3deg); animation: cam-sube .4s .3s ease-out both; }
+#grito.corta b { color: var(--cream); font-size: clamp(20px, 6vw, 28px); animation: grito-sale .45s ease-out both; }
+#grito.corta img { filter: grayscale(1); }
+#grito.sale { animation: cam-se-va .4s ease-in both; }
+@keyframes grito-sale { 0% { transform: scale(.2) rotate(-14deg); opacity: 0 } 100% { transform: rotate(-4deg); opacity: 1 } }
+@keyframes grito-tiembla { 0%, 100% { translate: 0 0 } 50% { translate: 2px -2px } }
+@keyframes grito-cara { 0% { transform: scale(.3) rotate(-20deg) } 100% { transform: none } }
+@media (prefers-reduced-motion: reduce) { #grito *, #grito { animation: none !important } }
 #m-velo .barra { height: 7px; margin-top: 4px; border-radius: 4px; background: rgba(244, 238, 218, .2); overflow: hidden; }
 #m-velo .barra i { display: block; height: 100%; width: 0; background: var(--gold); border-radius: 4px; transition: width 80ms linear; }
 #m-velo.turbo { border-color: var(--gold); }
@@ -1396,6 +1578,15 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 .clasico .cl-antes { color: var(--gold); }
 .clasico .cl-como { opacity: .7; font-size: 11.5px; }
 .clasico .cl-como .bn { width: 15px; height: 15px; vertical-align: -3px; }
+.clasico .cl-mia { text-align: center; color: var(--gold); font: 13px/1.2 var(--font-display); letter-spacing: .06em; }
+.clasico .cl-mia img { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--game-ink); vertical-align: -4px; margin-right: 4px; }
+.clasico .cl-clasicos { margin: 6px 0 0; padding: 0; list-style: none; font-size: 12px; line-height: 1.35; }
+.clasico .cl-clasicos li::before { content: '⚔️ '; }
+.clasico .cl-clasicos b { color: var(--gold); }
+.clasico .cl-m { font: 10px/1 var(--font-display); color: var(--gold); }
+.clasico .cl-ap { font-style: normal; white-space: nowrap; }
+.mt-clasico-li { list-style: none; }
+.mt-clasico-li .clasico { margin: 4px 0 0; }
 .cl-cobro { text-align: center; }
 .cl-cobro > .bn-sticker { width: 92px; height: 92px; margin: 2px auto 6px; filter: drop-shadow(5px 6px 0 var(--game-ink)); animation: cl-salta .6s cubic-bezier(.2, 1.6, .4, 1) both; }
 @keyframes cl-salta { from { transform: rotate(-30deg) scale(.3); } to { transform: rotate(-8deg) scale(1); } }
@@ -1686,6 +1877,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <button id="sonido" type="button" aria-label="Sonido"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5 12.5h4.5L16 7v18l-6.5-5.5H5z" style="fill:var(--gi-f)"/><path d="M20 12a5.5 5.5 0 0 1 0 8M23.5 8.5a10 10 0 0 1 0 15"/></g></svg></button>
       <div id="golpes" aria-live="polite"><small>GOLPES</small><b id="g-num">0</b><span id="g-par">PAR 4</span><div id="g-mas" aria-hidden="true"></div></div>
       <div id="pronostico" hidden aria-live="polite"><small>SE VIENE</small><span class="pr-ico"></span><b></b><i></i></div>
+      <canvas id="minimapa" aria-hidden="true"></canvas>
       <div id="furia" hidden aria-live="polite"><small>FURIA</small><div class="fu-barra"><i></i><i></i></div><img class="fu-cara" src="jugadores/mike-queboni-cara.webp" alt="" aria-hidden="true" draggable="false"></div>
     </div>
     <div class="der">
@@ -1695,6 +1887,10 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <span class="clima-chip barro" id="barro-chip" hidden><span class="cc-ico" aria-hidden="true" data-ico="barro"></span>CON BARRO</span>
       <span class="clima-chip pro" id="pro-chip" hidden><span class="cc-ico" aria-hidden="true" data-ico="pro"></span>MODO PRO</span>
       <button class="btn crema chico" id="lp" type="button">LP 💅</button>
+      <div id="m-ajustes" aria-label="Cómo manejar el carrito">
+        <div class="seg" role="group" aria-label="Manejo"><button type="button" data-manejo="facil">FÁCIL</button><button type="button" data-manejo="pro">PRO</button></div>
+        <div class="seg" role="group" aria-label="Cámara"><button type="button" data-camara="atras" aria-label="Cámara atrás del carrito">🎥 ATRÁS</button><button type="button" data-camara="fija" aria-label="Cámara fija, la pelota arriba">FIJA</button></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1721,15 +1917,25 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <div id="hud-bot" hidden></div>
 <div id="mandos" aria-label="Manejar el carrito">
-  <div class="grupo">
+  <!-- arriba de los mandos: RESET, LLEVAME (maneja Marcos solo) y la bocina -->
+  <div class="m-barra">
+    <button id="m-reset" type="button" aria-label="Reset: el carrito vuelve al medio del fairway más cercano"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="16" cy="16" r="11.5" style="fill:var(--gi-a)"/><path d="M22.6 12.2A7.4 7.4 0 1 0 23.2 18.6"/><path d="M23.4 7.6v5.1h-5.1"/></g></svg><span>RESET</span></button>
+    <button id="m-llevame" type="button" aria-pressed="false" aria-label="Llevame: el carrito va solo hasta la pelota"><img src="jugadores/marcos.jpeg" alt="" draggable="false"><span>LLEVAME</span></button>
+    <button id="m-bocina" type="button" aria-label="Bocina: espanta a los monos"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5 13h4l11-6v18l-11-6H5z" style="fill:var(--gi-a)"/><path d="M9 19l2 7h3l-1.5-6"/><path d="M24 12.5a5 5 0 0 1 0 7M27 9.5a9 9 0 0 1 0 13"/></g></svg></button>
+  </div>
+  <div id="m-velo" aria-hidden="true"><span>VELOCIDAD</span><div class="barra"><i></i></div></div>
+  <!-- manejo PRO: volante y pedales -->
+  <div class="grupo pro">
     <button class="dir" id="m-izq" type="button" aria-label="Izquierda"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <button class="dir" id="m-der" type="button" aria-label="Derecha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 4 8 8-8 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>
-  <div id="m-velo" aria-hidden="true"><span>VELOCIDAD</span><div class="barra"><i></i></div></div>
-  <div class="grupo">
+  <div class="grupo pro">
     <div class="col"><button id="m-reversa" type="button" aria-label="Reversa">REVERSA</button><button class="pedal" id="m-freno" type="button" aria-label="Freno"><span><b>■</b>FRENO</span></button></div>
     <button class="pedal" id="m-acel" type="button" aria-label="Acelerar"><span><b>▲</b>ACELE<br>RAR</span></button>
   </div>
+  <!-- manejo FÁCIL: acelera solo; dos almohadones grandes para doblar (los dos juntos, freno) -->
+  <button class="pad facil" id="m-pad-izq" type="button" aria-label="Doblar a la izquierda"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <button class="pad facil" id="m-pad-der" type="button" aria-label="Doblar a la derecha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 4 8 8-8 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 </div>
 <div id="rorro" hidden role="dialog" aria-modal="true" aria-labelledby="rorro-titulo">
   <div class="carta-rorro">
@@ -1805,6 +2011,25 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
 <button id="lechuza" type="button" hidden aria-label="¡Una lechuza! Tocala"><span aria-hidden="true">🦉</span></button>
+<div id="cam" hidden role="dialog" aria-modal="true" aria-labelledby="cam-tit">
+  <div class="cam-fondo" aria-hidden="true">
+    <i class="cam-mitad d"></i><i class="cam-mitad e"></i>
+    <svg class="cam-rayo" viewBox="0 0 100 100" preserveAspectRatio="none"><path pathLength="1" d="M61 -2 L52 41 L57 40 L46 70 L50 69 L39 102"/></svg>
+    <i class="cam-ola"></i>
+  </div>
+  <div class="cam-caja">
+    <p class="cam-kicker" id="cam-kicker"></p>
+    <h2 class="cam-tit" id="cam-tit"></h2>
+    <p class="cam-txt" id="cam-txt"></p>
+    <div class="cam-equipos" id="cam-equipos"></div>
+    <p class="cam-error" id="cam-error" hidden></p>
+    <button class="btn grande cam-ok" id="cam-ok" type="button" disabled></button>
+    <button class="cam-quedo" id="cam-quedo" type="button" hidden>Me quedo con la mía</button>
+    <p class="cam-pie" id="cam-pie"></p>
+  </div>
+  <div class="cam-sello" id="cam-sello" aria-hidden="true"></div>
+</div>
+<div id="grito" hidden aria-live="polite"><img src="jugadores/marcos.jpeg" alt="" draggable="false"><span class="g-txt"><b></b><small></small></span></div>
 <div id="sabado" hidden aria-live="polite">
   <div class="sb-msg"><p class="sb-de">SDGA ⛳</p><p class="sb-tit"></p><ol class="sb-lista"></ol><p class="sb-lg"></p><span class="sb-hora"></span></div>
   <div class="sb-foto" hidden><div class="sb-caras"></div><p class="sb-dicen"></p></div>
@@ -1825,6 +2050,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   <path d="M66.85,39.51c-1.47-.53-6.02-1.95-13.65-4.26-.31-.12-1.12-.38-2.41-.78-1.3-.4-2.38-.76-3.25-1.08-.87-.32-1.69-.82-2.46-1.5-.77-.67-1.13-1.4-1.1-2.18.03-.64.36-1.18.98-1.63s1.36-.77,2.2-.96c.84-.19,1.58-.32,2.2-.4.62-.08,1.08-.11,1.36-.1,1.03.05,1.85.21,2.46.49.61.28,1,.61,1.18,1.01.18.4.37.82.58,1.25.21.44.42.86.63,1.26.21.4.66.74,1.34,1.02.68.28,1.59.45,2.72.5,9.04.42,17.19.66,24.47.71l2-1.82c-.04-2.1-.22-3.87-.52-5.33-.3-1.45-.89-2.94-1.76-4.48-.87-1.53-1.78-2.88-2.74-4.04-.96-1.16-2.47-2.88-4.53-5.14-5.75-3.96-13.6-6.17-23.55-6.64-3.75-.18-7.4-.05-10.94.37-3.54.42-7.05,1.27-10.56,2.54-3.5,1.27-6.56,2.93-9.18,4.95-2.62,2.03-4.78,4.69-6.5,8.01-1.72,3.31-2.67,7.09-2.87,11.35-.28,6.02,1.38,10.86,5,14.51,3.61,3.65,9.67,6.84,18.17,9.58.28.08,1.3.32,3.06.7,1.76.39,3.47.82,5.13,1.31,1.67.48,3.41,1.06,5.25,1.74,1.83.67,3.29,1.49,4.39,2.47,1.09.97,1.61,2.01,1.56,3.11-.08,1.67-.8,2.95-2.18,3.87-1.38.91-2.93,1.33-4.67,1.25-1.42-.07-2.57-.36-3.45-.88-.88-.52-1.49-1.13-1.83-1.84-.34-.71-.63-1.42-.86-2.12-.23-.7-.55-1.31-.95-1.8-.4-.5-.98-.77-1.72-.8-2.94-.14-7.41-.27-13.4-.41-5.99-.14-10.46-.28-13.4-.41-.5-.02-.85-.07-1.06-.16-.71.07-1.09.45-1.12,1.12.14,3.84.84,7.25,2.11,10.22,1.26,2.97,2.91,5.44,4.93,7.4,2.02,1.96,4.55,3.62,7.6,4.99,3.04,1.37,6.22,2.4,9.52,3.11,3.3.71,7.04,1.24,11.22,1.62,2.74-.01,5.27-.1,7.6-.26,2.33-.16,4.89-.47,7.69-.95,2.79-.47,5.3-1.1,7.52-1.89,2.22-.78,4.43-1.87,6.63-3.26,2.19-1.39,4.05-3.01,5.55-4.85,1.5-1.85,2.76-4.13,3.75-6.86,1-2.72,1.57-5.77,1.73-9.13.26-5.56-1.01-10.26-3.82-14.08-3.04-4.12-8.38-7.58-16.03-10.39Z"></path>
   <path d="M193.07,29.64c-.86-2.21-1.84-4.27-2.94-6.18-1.1-1.91-2.03-3.33-2.8-4.28-.76-.95-1.45-1.72-2.07-2.31l-1.97-1.79c-7.47-6.11-19.98-9.25-37.51-9.43-1.03,0-2.64.01-4.83.06-2.19.05-3.89.07-5.1.06l-6.18-.06c-.18,0-.8-.02-1.85-.05-1.05-.03-1.98-.05-2.78-.06-.81,0-1.83,0-3.06.02-1.23.02-2.29.09-3.18.19-.88.1-1.77.23-2.65.39-.88.16-1.56.39-2.02.7-.46.31-.7.66-.7,1.07l-.81,77.87c-.02,1.47.41,3.09,1.27,4.87,7.47-.22,15.81-.28,25.04-.18,1.58.02,3.93.08,7.06.18,3.12.11,5.48.17,7.06.18l1.76.02c4.26.04,8.41-.53,12.43-1.72,4.02-1.19,7.76-3.01,11.23-5.45,3.46-2.45,6.49-5.36,9.08-8.76,2.59-3.39,4.65-7.41,6.16-12.07,1.52-4.65,2.31-9.66,2.36-15.03.03-3.46-.24-6.8-.83-10.05-.59-3.24-1.32-5.97-2.18-8.19ZM166.01,79.62c-1.03.8-2.24,1.9-3.46,1.21-1.63-.92-.14-2.28.17-3.38.61-2.24.58-4.47.51-6.75-.06-2.07,1.02-2.09,2.48-1.15,3.41,2.2,3.57,7.35.31,10.08ZM165.75,63.01c-1.15.49-3.3.72-2.51-1.11,1.56-3.63.67-7.23.71-11.09,3.92.77,5.54,3.14,5.6,6.52.05,2.62-1.34,4.63-3.8,5.67ZM168.97,44.1c-.97,1.16-2.44,2.13-3.87,1.45-1.81-.86-.3-2.28.07-3.35.58-1.67.33-3.17-.23-4.76-.44-1.26-1.88-2.85.05-3.82,1.67-.84,3.02.63,4.25,1.42,2.41,3.21,2.13,6.21-.25,9.06ZM170.15,26.39c-1.08.99-2.39,2.32-3.86,1.53-1.8-.97-.45-2.59-.02-3.84.51-1.5.38-2.8-.18-4.26-.46-1.21-2.02-2.83-.14-3.86,1.65-.9,3.05.51,4.4,1.62,1.58,2.94,2.95,5.92-.2,8.81ZM179.28,69.83c-1.09.71-2.31,1.83-3.55,1.13-1.69-.96-.2-2.33.17-3.41.71-2.11.75-4.16.13-6.27-.24-.81-.4-1.86.42-2.18.61-.24,1.61.1,2.27.48,3.38,1.95,3.65,7.56.56,10.25ZM180.18,54.12c-1.05.81-2.31,1.85-3.52,1.16-1.67-.94-.19-2.31.19-3.4.78-2.23.07-4.15-.81-6.13-.38-.86-.72-2.05.48-2.53.65-.26,1.63-.13,2.32.17,4.12,1.8,4.84,7.76,1.34,10.72ZM182.43,37.24c-1.06,1.57-2.66,2.97-4.42,2.18-2.03-.91-.04-2.51.24-3.73.42-1.84.19-3.51-.42-5.22-.32-.9-.64-1.84-.1-2.79.96-.59,1.85-.26,2.75.2,3.01,1.53,4.03,6.29,1.96,9.37Z"></path>
 </svg></div>
+  <button class="cam-home" id="cam-home" type="button" hidden aria-label="Tu camiseta. Tocá para cambiarla"><span class="cam-home-escudo"><img alt="" draggable="false"><i class="cam-brillo"></i></span><span class="cam-home-txt">TU CAMISETA</span></button>
   <span class="kicker">SDGA Tour · hoyos 15 · 16 · 17</span>
   <h1 class="logo-trampa" aria-label="La Trampa del Mono"><span class="l1" aria-hidden="true">LA TRAMPA</span><span class="l2" aria-hidden="true">DEL<i class="esp"></i>M<svg class="ojo" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda"/><g fill="#e7dfc2"><circle cx="22" cy="40" r="6"/><circle cx="48" cy="22" r="6"/><circle cx="76" cy="38" r="6"/><circle cx="16" cy="78" r="6"/><circle cx="84" cy="80" r="6"/><circle cx="24" cy="118" r="6"/><circle cx="50" cy="136" r="6"/><circle cx="77" cy="118" r="6"/></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a"/><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c"/><circle cx="58" cy="74" r="6" fill="#fff"/></g></g></svg>N<svg class="ojo" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda"/><g fill="#e7dfc2"><circle cx="22" cy="40" r="6"/><circle cx="48" cy="22" r="6"/><circle cx="76" cy="38" r="6"/><circle cx="16" cy="78" r="6"/><circle cx="84" cy="80" r="6"/><circle cx="24" cy="118" r="6"/><circle cx="50" cy="136" r="6"/><circle cx="77" cy="118" r="6"/></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a"/><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c"/><circle cx="58" cy="74" r="6" fill="#fff"/></g></g></svg></span></h1>
   <span class="band">DONDE TODO SE VA</span>
@@ -2942,6 +3168,7 @@ function alReposo() {
   const dicho = M.comentar(rng, res, tiro, h, ronda.jugador, { desde, lieDesde })
   lucasDice(dicho.lucas) // con Rodal: Lucas en persona
   dickyDespues(res, tiro) // con un Dicky: otro Dicky con palabras tiernas
+  rachaMarcos(res) // Marcos: festeja a los gritos (y arma la racha)
   if (res.tipo === 'embocada') {
     const hab = M.habilidadDe(ronda.jugador)
     const frase = tiro.deme ? '¡LO DIJO DEME! 🧙' : tiro.retro ? M.elegir(rng, ['Par de Demetrio. Como en el 60 🏌️', 'Ni el viento se animó. Par.', 'Así se jugaba antes: par y a casa', 'Par. Más que eso, Demetrio no hace']) : tiro.iman?.lechuza ? '🦉 ¡LA DADA DE LA LECHUZA!' : hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
@@ -3099,8 +3326,8 @@ function siguienteTiro() {
   if (M.necesitaLP(ronda)) { levantarVuelta(); return }
   // la Ruleta: si pegaste, gira y sale otro (antes del carrito: si sale Marcos, maneja él)
   girarRuleta(() => {
-    // Marcos: antes de pegar, maneja el carrito hasta la pelota
-    if (M.usaCarrito(ronda) && ronda.carro && !M.carroLlego(campo, ronda.carro, ronda.pelota)) { empezarManejo(aApuntar, 'pelota'); return }
+    // Marcos: antes de pegar, maneja el carrito hasta la pelota (al green va caminando: el carrito queda donde estaba)
+    if (M.usaCarrito(ronda) && ronda.carro && ronda.lie !== 'green' && !M.carroLlego(campo, ronda.carro, ronda.pelota)) { empezarManejo(aApuntar, 'pelota'); return }
     aApuntar()
   })
 }
@@ -3185,62 +3412,189 @@ function aApuntar() {
   hud()
 }
 // ── el carrito de Marcos ──
+// ── 🛺 el carrito de Marcos ──
+// Dos manejos: FÁCIL (el de entrada: acelera solo, doblás con los dos almohadones y los dos juntos frenan; la ayuda te
+// corrige si vas derecho a un árbol y, si te trabás, sale marcha atrás solo) y PRO (volante y pedales, con turbo).
+// LLEVAME: maneja Marcos solo por la ruta (tranquilo, sin turbo); tocás algo y manejás vos. La ruta (el GPS, la línea
+// dorada) esquiva los árboles; a 14 yd de la pelota, si la ve, estaciona solo. El reloj no corre mientras manejás.
 const mando = { acelerar: false, frenar: false, reversa: false, izq: false, der: false }
-let manejo = null // { luego, a: 'pelota' | 'tee', choque: 0 }
-function empezarManejo(luego, a) {
-  manejo = { luego, a, choque: 0 }
-  estado = 'manejar'
+let manejo = null // { luego, a, ruta, llevame, estaciona, choques, ... } (ver empezarManejo)
+let bocinaFx = null // el aro de la bocina: { p, t }
+const manejoFacil = () => (datos.manejo ?? 'facil') === 'facil'
+const vibrar = (p) => { try { navigator.vibrate?.(p) } catch {} }
+function soltarMandos() {
   for (const k in mando) mando[k] = false
+  for (const b of document.querySelectorAll('#mandos button')) b.classList.remove('on')
+}
+function pintarAjustesCarro() {
+  document.body.classList.toggle('manejo-facil', manejoFacil())
+  for (const b of document.querySelectorAll('#m-ajustes [data-manejo]')) b.setAttribute('aria-pressed', String(b.dataset.manejo === (datos.manejo ?? 'facil')))
+  for (const b of document.querySelectorAll('#m-ajustes [data-camara]')) b.setAttribute('aria-pressed', String(b.dataset.camara === (datos.camara ?? 'atras')))
+}
+const pintarLlevame = () => $('#m-llevame').setAttribute('aria-pressed', String(!!manejo?.llevame))
+for (const b of document.querySelectorAll('#m-ajustes button')) b.addEventListener('click', () => {
+  if (b.dataset.manejo) datos.manejo = b.dataset.manejo
+  if (b.dataset.camara) datos.camara = b.dataset.camara
+  guardar(datos)
+  soltarMandos()
+  pintarAjustesCarro()
+  S.tap()
+  if (estado === 'manejar' && b.dataset.manejo) relatar(b.dataset.manejo === 'facil'
+    ? { lg: '🛺 Manejo FÁCIL', verso: 'Acelera solo: doblá con ◀ ▶; los dos juntos, freno' }
+    : { lg: '🏎️ Manejo PRO', verso: 'Pedales y volante. Mantené el acelerador para el turbo' })
+})
+function empezarManejo(luego, a) {
+  const c = ronda.carro
+  const ahora = performance.now()
+  const ruta = M.rutaCarrito(campo, c.pos, ronda.pelota)
+  manejo = {
+    luego, a, ruta, rutaT: ahora, t0: ahora, ultimo: ahora, choque: 0, choques: 0, llevame: false, ayudado: false, estaciona: null,
+    rotFija: -Math.PI / 2 - Math.atan2(ronda.pelota[1] - c.pos[1], ronda.pelota[0] - c.pos[0]), rotUlt: null,
+    avance: { resta: Infinity, t: ahora }, desde: [...c.pos], bocinaT: 0, pipT: 0,
+  }
+  Object.assign(c, { piloto: null, carga: 0, turbito: 0, trompo: 0, vl: 0 })
+  // los monos que andan cerca tiran cáscaras sobre la ruta (vuelan de cada mono a su lugar)
+  if (M.tirarCascaras(ronda, ruta, Math.random)) for (const k of ronda.cascaras) k.t0 = ahora
+  estado = 'manejar'
+  soltarMandos()
   document.body.classList.add('manejando')
-  obj = vistaManejo(ronda.carro)
+  pintarAjustesCarro()
+  pintarLlevame()
+  $('#m-reset').classList.remove('late')
+  obj = vistaManejo(c)
   velCam = 2.5
   ruedasAntes = null
-  relatar({ lg: a === 'tee' ? '🛺 Al tee del próximo hoyo' : '🛺 Arriba del carrito', verso: 'Manejá hasta la pelota: los árboles no se atraviesan' })
+  if (ronda.cascaras?.length) relatar({ lg: '🍌 ¡Los monos tiraron cáscaras!', verso: 'Esquivalas o das un trompo. LLEVAME las esquiva solo' })
+  else if (!datos.vistoCarro) relatar({ lg: '🛺 Arriba del carrito', verso: manejoFacil() ? 'Acelera solo: doblá con ◀ ▶ y seguí la línea dorada' : 'Seguí la línea dorada: esquiva los árboles' })
+  else relatar({ lg: '🛺 Arriba del carrito', verso: 'Seguí la línea dorada hasta la pelota' })
+  if (!datos.vistoCarro) { datos.vistoCarro = true; guardar(datos) }
   hud()
 }
 function terminarManejo() {
-  const luego = manejo?.luego
+  const fin = manejo
   manejo = null
+  S.motorApagar()
   M.calmarMonos(ronda.monos) // te bajás: los que te perseguían vuelven; la pelota la buscan desde cero
+  ronda.cascaras = []
   if (M.necesitaLP(ronda)) { document.body.classList.remove('manejando'); levantarVuelta(); return } // con las multas llegó a 10
-  ronda.carro.v = 0
-  for (const k in mando) mando[k] = false
+  Object.assign(ronda.carro, { v: 0, vl: 0, turbito: 0, trompo: 0, carga: 0 })
+  soltarMandos()
   document.body.classList.remove('manejando')
-  for (const b of document.querySelectorAll('#mandos button')) b.classList.remove('on')
-  luego?.()
+  if (fin) tramoLimpio(fin)
+  fin?.luego?.()
 }
-/** La cámara del carrito: lo sigue de cerca, con la trompa para arriba y lugar adelante para ver a dónde va. */
+/**
+ * 🏁 Llegaste sin chocar (manejando vos): LIMPITO, con el tiempo y el promedio en km/h. El mejor promedio limpio queda
+ * como el récord del carrito.
+ */
+function tramoLimpio(fin) {
+  if (fin.choques || fin.ayudado || fin.reset) return
+  const seg = (performance.now() - fin.t0) / 1000
+  const yd = M.aYardas(ronda, M.dist(fin.desde, ronda.carro.pos))
+  if (seg < 1.5 || yd < 25) return
+  const kmh = Math.round(((yd * 0.9144) / seg) * 3.6)
+  const antes = datos.carroRecord ?? 0
+  marcarTiro(`🏁 LIMPITO · ${seg.toFixed(1).replace('.', ',')} s · ${kmh} KM/H`, ronda.pelota)
+  if (kmh > antes) {
+    datos.carroRecord = kmh
+    guardar(datos)
+    if (antes) { S.perfecto(); relatar({ lg: `🏁 ¡RÉCORD DEL CARRITO! ${kmh} km/h`, verso: `Promedio, sin chocar. El anterior: ${antes} km/h` }) }
+  }
+}
+/** La cámara del carrito: ATRÁS (lo sigue con la trompa para arriba) o FIJA (la pelota arriba, el carrito gira). */
 function vistaManejo(c) {
-  const adelante = 9 + Math.max(0, c.v) * 0.55
+  const fija = datos.camara === 'fija'
+  let rot
+  if (fija) rot = manejo?.rotFija ?? -Math.PI / 2 - c.ang
+  // en marcha atrás, en el trompo o estacionando, la cámara no gira (marea)
+  else if (manejo && manejo.rotUlt != null && (c.v < -0.5 || c.trompo > 0 || manejo.estaciona)) rot = manejo.rotUlt
+  else { rot = -Math.PI / 2 - c.ang; if (manejo) manejo.rotUlt = rot }
+  const hacia = fija ? -Math.PI / 2 - rot : c.ang
+  const adelante = (fija ? 5 : 9) + Math.max(0, c.v) * (fija ? 0.3 : 0.55)
   // más rápido, la cámara se abre: se ve más lejos
-  return { cx: c.pos[0] + Math.cos(c.ang) * adelante, cy: c.pos[1] + Math.sin(c.ang) * adelante, esc: Math.max(2.6, 6.5 - Math.max(0, c.v) * 0.085), rot: -Math.PI / 2 - c.ang, sy: H * 0.5, techo: obj?.techo ?? 120 }
+  return { cx: c.pos[0] + Math.cos(hacia) * adelante, cy: c.pos[1] + Math.sin(hacia) * adelante, esc: Math.max(2.6, 6.5 - Math.max(0, c.v) * 0.085), rot, sy: H * 0.5, techo: obj?.techo ?? 120 }
 }
 let huellas = [] // las marcas de goma cuando colea: { a, b, t } (las dos ruedas de atrás)
 let humo = [] // { p, t }
+let chispasCarro = [] // las chispas del derrape: { p, v, t, c }
 let ruedasAntes = null
 function manejarCuadro(dt) {
   const c = ronda.carro
-  if (M.manejar(campo, c, mando, dt) === 'choque' && performance.now() - manejo.choque > 400) { manejo.choque = performance.now(); S.palo() }
-  // coleando: marcas de goma de las ruedas de atrás y humito
+  const ahora = performance.now()
+  // el reloj no corre mientras manejás
+  if (ronda.t0 != null && ronda.ms == null) ronda.t0 += ahora - manejo.ultimo
+  manejo.ultimo = ahora
+  if (manejo.estaciona) { estacionarCuadro(c, ahora); return }
+  // la ruta: si te fuiste lejos de la línea, se recalcula
+  if (M.fueraDeRuta(manejo.ruta, c.pos) && ahora - manejo.rutaT > 700) { manejo.ruta = M.rutaCarrito(campo, c.pos, ronda.pelota) ?? manejo.ruta; manejo.rutaT = ahora }
+  // el mando: LLEVAME (maneja solo), FÁCIL (acelera solo, doblás vos) o PRO (los pedales)
+  if (manejo.llevame && (mando.izq || mando.der || mando.acelerar || mando.frenar || mando.reversa)) { manejo.llevame = false; pintarLlevame() }
+  let m = mando
+  const cascaras = ronda.cascaras ?? []
+  if (manejo.llevame) m = M.conducir(campo, c, { ruta: manejo.ruta, pelota: ronda.pelota, volante: null, tope: M.CARRITO.vmax, cascaras }, dt)
+  else if (manejoFacil()) {
+    const dos = mando.izq && mando.der
+    m = dos && c.v <= 0.5 ? { reversa: true } : M.conducir(campo, c, { ruta: manejo.ruta, pelota: ronda.pelota, volante: dos ? 0 : (mando.der ? 1 : 0) - (mando.izq ? 1 : 0), tope: M.CARRITO.facil, frenar: dos }, dt)
+  }
+  const res = M.manejar(campo, c, m, dt)
+  if (res === 'choque' && ahora - manejo.choque > 400) {
+    manejo.choque = ahora
+    S.palo()
+    if (c.impacto >= 4) { manejo.choques++; vibrar(40) }
+    // 📣 un choque de frente, fuerte, le baja un escalón a la racha
+    if (M.chocarRacha(ronda, c.impacto)) {
+      marcarTiro(`📣 RACHA −1 · QUEDA x${ronda.racha}`, c.pos, 'malo')
+      relatar({ lg: '💥 ¡De frente contra el árbol!', verso: ronda.racha ? `La racha baja a x${ronda.racha}` : 'Se cortó la racha' })
+    }
+  } else if (res === 'roce') {
+    S.raspa()
+    if (Math.random() < 0.3) humo.push({ p: [...c.pos], t: ahora })
+  }
+  // el mini turbo del derrape
+  if (c.ev) {
+    const n = c.ev === 'turbito2' ? 2 : 1
+    S.turbito(n)
+    vibrar(n > 1 ? [20, 30, 20] : 20)
+    marcarTiro(n > 1 ? '🔥 ¡SÚPER TURBITO!' : '⚡ TURBITO', c.pos)
+  }
+  if (c.carga >= M.CARRITO.carga[0]) S.chispa(c.carga >= M.CARRITO.carga[1] ? 2 : 1)
+  // 🍌 la cáscara: trompo
+  if (M.pisarCascara(ronda)) {
+    S.cascara()
+    vibrar([60, 40, 60])
+    relatar({ lg: '🍌 ¡CÁSCARA! Trompo', verso: M.elegir(Math.random, ['Te la dejó un mono, obvio', 'La trampa del mono, literal', 'Mirá por dónde andás']) })
+  }
+  // coleando: marcas de goma de las ruedas de atrás, humito y (cargando el turbito) chispas
   const f = [Math.cos(c.ang), Math.sin(c.ang)], l = [-f[1], f[0]]
   const atras = M.CARRITO.largo * 0.32, ancho = M.CARRITO.largo * 0.3
   const ruedas = [-1, 1].map((sg) => [c.pos[0] - f[0] * atras + l[0] * ancho * sg, c.pos[1] - f[1] * atras + l[1] * ancho * sg])
-  const ahora = performance.now()
   if (c.colea && ruedasAntes) {
     for (let k = 0; k < 2; k++) huellas.push({ a: ruedasAntes[k], b: ruedas[k], t: ahora })
     if (Math.random() < 0.5) humo.push({ p: ruedas[Math.random() < 0.5 ? 0 : 1], t: ahora })
   }
+  if (c.carga >= M.CARRITO.carga[0]) {
+    const color = c.carga >= M.CARRITO.carga[1] ? '#ff9d2e' : '#7cc7ff'
+    for (let k = 0; k < 2; k++) chispasCarro.push({ p: [...ruedas[k]], v: [(-f[0] + (Math.random() - 0.5) * 1.6) * 7, (-f[1] + (Math.random() - 0.5) * 1.6) * 7], t: ahora, c: color })
+  }
+  if (chispasCarro.length > 120) chispasCarro.splice(0, chispasCarro.length - 120)
   ruedasAntes = ruedas
   if (huellas.length > 600) huellas.splice(0, huellas.length - 600)
   // el velocímetro
   const vel = Math.abs(c.v), velo = $('#m-velo')
   velo.querySelector('i').style.width = `${Math.min(100, (vel / M.CARRITO.turbo) * 100)}%`
-  const turbo = vel > M.CARRITO.vmax + 0.5
+  const turbo = vel > M.CARRITO.vmax + 0.5 || c.turbito > 0
   velo.classList.toggle('turbo', turbo)
   velo.classList.toggle('colea', c.colea)
-  velo.querySelector('span').textContent = c.colea ? '¡COLEANDO!' : turbo ? '🔥 TURBO' : 'VELOCIDAD'
+  velo.querySelector('span').textContent = c.trompo > 0 ? '🍌 ¡TROMPO!' : c.carga >= M.CARRITO.carga[0] ? '✨ CARGANDO' : c.turbito > 0 ? '⚡ TURBITO' : c.colea ? '¡COLEANDO!' : turbo ? '🔥 TURBO' : manejo.llevame ? '🛺 MANEJA MARCOS' : 'VELOCIDAD'
   obj = vistaManejo(c)
   velCam = 3.2
+  // el sonido: el motor y el pi-pi de la marcha atrás
+  S.motor(c.v, turbo)
+  if (c.v < -0.5 && ahora - manejo.pipT > 450) { manejo.pipT = ahora; S.pip() }
+  // si en 3 s no avanzaste 3 yd por la ruta, el RESET late
+  const resta = manejo.ruta ? M.sobreRuta(manejo.ruta, c.pos, 0).resta : M.dist(c.pos, ronda.pelota)
+  if (resta < manejo.avance.resta - 3) manejo.avance = { resta, t: ahora }
+  $('#m-reset').classList.toggle('late', ahora - manejo.avance.t > 3000)
   // los monos lo persiguen; el que pisás queda aplastado y es un golpe de multa
   if (M.perseguirCarro(ronda) && !manejo.avisado) { manejo.avisado = true; S.monosVienen() }
   for (const s of M.atropellar(ronda)) {
@@ -3252,12 +3606,82 @@ function manejarCuadro(dt) {
     // la sacudida y el sello de la multa
     lienzo.classList.remove('sacudida'); void lienzo.offsetWidth; lienzo.classList.add('sacudida')
     multaSello()
+    vibrar([30, 30, 80])
     motivoGolpe = '🛺 MONO PISADO'
     hud()
     relatar({ lg: '🐒 +1 golpe de multa por tortura animal', verso: ronda.aplastados > 1 ? `Ya van ${ronda.aplastados} monos aplastados` : 'Queda ahí, de recuerdo' })
     hud()
   }
+  pintarMinimapa()
+  // cerca de la pelota y viéndola, estaciona solo (con freno de mano); en el bosque, se baja a pie
+  const est = M.puntoEstacionar(campo, c, ronda.pelota, M.hoyoActual(ronda).pin)
+  if (est) { manejo.estaciona = { de: [...c.pos], angDe: c.ang, a: est.pos, angA: est.ang, t0: ahora }; S.estaciona(); S.motor(0); return }
   if (M.carroLlego(campo, c, ronda.pelota)) terminarManejo()
+}
+/** Estacionando: se desliza al lugar y gira para el hoyo (medio segundo), con polvo. */
+function estacionarCuadro(c, ahora) {
+  const e = manejo.estaciona
+  const u = Math.min(1, (ahora - e.t0) / 550), k = 1 - (1 - u) ** 3
+  c.pos = [e.de[0] + (e.a[0] - e.de[0]) * k, e.de[1] + (e.a[1] - e.de[1]) * k]
+  c.ang = e.angDe + difAng(e.angA, e.angDe) * k
+  c.v = 0
+  c.vl = 0
+  if (Math.random() < 0.6) humo.push({ p: [c.pos[0] + (Math.random() - 0.5) * 2, c.pos[1] + (Math.random() - 0.5) * 2], t: ahora })
+  obj = vistaManejo(c)
+  if (u >= 1) terminarManejo()
+}
+// 🗺️ el minimapa del hoyo: la cancha (dibujada una vez), la ruta, la pelota y el carrito, con el hoyo para arriba
+let miniFondo = null
+function pintarMinimapa() {
+  const cv = $('#minimapa')
+  if (!cv || !ronda?.carro) return
+  const W0 = cv.clientWidth, H0 = cv.clientHeight
+  if (!W0) return
+  const k = Math.min(2, devicePixelRatio || 1)
+  if (cv.width !== Math.round(W0 * k)) { cv.width = Math.round(W0 * k); cv.height = Math.round(H0 * k) }
+  if (!miniFondo) {
+    const { filas, ancho, alto } = campo.cancha
+    miniFondo = document.createElement('canvas')
+    miniFondo.width = ancho; miniFondo.height = alto
+    const g = miniFondo.getContext('2d'), img = g.createImageData(ancho, alto)
+    const COL = { t: [22, 61, 34], x: [12, 33, 20], '.': [52, 110, 56], f: [104, 168, 84], g: [146, 208, 110], b: [226, 211, 160], e: [92, 150, 74] }
+    const sen = M.senderos(campo)
+    for (let y = 0; y < alto; y++) for (let x = 0; x < ancho; x++) {
+      const col = sen?.mascara[y * sen.AN + x] ? [214, 196, 150] : COL[filas[y][x]] ?? COL['.']
+      img.data.set([...col, 255], (y * ancho + x) * 4)
+    }
+    g.putImageData(img, 0, 0)
+  }
+  const h = M.hoyoActual(ronda)
+  const g = cv.getContext('2d')
+  const pts = [h.tee, h.pin, ...h.calle, ronda.carro.pos, ronda.pelota]
+  const cx = (Math.min(...pts.map((p) => p[0])) + Math.max(...pts.map((p) => p[0]))) / 2, cy = (Math.min(...pts.map((p) => p[1])) + Math.max(...pts.map((p) => p[1]))) / 2
+  const rot = -Math.PI / 2 - Math.atan2(h.pin[1] - h.tee[1], h.pin[0] - h.tee[0])
+  // el largo del hoyo entra en el alto; el ancho, lo que dé
+  const u = [Math.cos(-rot - Math.PI / 2), Math.sin(-rot - Math.PI / 2)]
+  const largo = Math.max(...pts.map((p) => Math.abs((p[0] - cx) * u[0] + (p[1] - cy) * u[1]))) * 2 + 30
+  const e = Math.min((H0 * k) / largo, (W0 * k) / 70)
+  g.setTransform(1, 0, 0, 1, 0, 0)
+  g.fillStyle = '#123321'
+  g.fillRect(0, 0, cv.width, cv.height)
+  g.setTransform(e * Math.cos(rot), e * Math.sin(rot), -e * Math.sin(rot), e * Math.cos(rot), cv.width / 2 - e * (Math.cos(rot) * cx - Math.sin(rot) * cy), cv.height / 2 - e * (Math.sin(rot) * cx + Math.cos(rot) * cy))
+  g.imageSmoothingEnabled = false
+  g.drawImage(miniFondo, 0, 0)
+  const lw = 1 / e
+  if (manejo?.ruta) {
+    g.strokeStyle = C.gold; g.lineWidth = 2.2 * lw; g.lineJoin = 'round'
+    g.beginPath(); g.moveTo(...ronda.carro.pos); for (const p of manejo.ruta.slice(M.sobreRuta(manejo.ruta, ronda.carro.pos, 0).seg)) g.lineTo(...p); g.stroke()
+  }
+  for (const s of ronda.cascaras ?? []) if (s.viva) { g.fillStyle = '#f2d335'; g.beginPath(); g.arc(s.pos[0], s.pos[1], 2.2 * lw, 0, 7); g.fill() }
+  for (const s of ronda.monos) if (s.modo !== 'aplastado' && M.monoActivo(s)) { g.fillStyle = s.modo === 'caza' ? '#d9573f' : '#8a5a2b'; g.beginPath(); g.arc(s.pos[0], s.pos[1], 2 * lw, 0, 7); g.fill() }
+  g.fillStyle = '#fff'; g.strokeStyle = '#0c2b1c'; g.lineWidth = 1 * lw
+  g.beginPath(); g.arc(ronda.pelota[0], ronda.pelota[1], 2.6 * lw, 0, 7); g.fill(); g.stroke()
+  // el carrito: un triangulito que apunta para donde va
+  const c = ronda.carro
+  g.save(); g.translate(c.pos[0], c.pos[1]); g.rotate(c.ang); g.scale(lw, lw)
+  g.fillStyle = '#e8c34a'; g.strokeStyle = '#0c2b1c'; g.lineWidth = 1.2
+  g.beginPath(); g.moveTo(6, 0); g.lineTo(-4, -4); g.lineTo(-2, 0); g.lineTo(-4, 4); g.closePath(); g.fill(); g.stroke()
+  g.restore()
 }
 let pisados = [] // el estallido y el "+1" donde pisaste un mono
 let multaTimer = 0
@@ -3268,8 +3692,9 @@ function multaSello() {
   sello.style.animation = 'none'; void sello.offsetWidth; sello.style.animation = ''
   multaTimer = setTimeout(() => { el.hidden = true }, 2300)
 }
-// los mandos en pantalla (multitáctil: cada botón con su dedo) y las flechas / WASD
-for (const [id, k] of [['m-izq', 'izq'], ['m-der', 'der'], ['m-acel', 'acelerar'], ['m-freno', 'frenar'], ['m-reversa', 'reversa']]) {
+// los mandos en pantalla (multitáctil: cada botón con su dedo) y las flechas / WASD. En FÁCIL, los almohadones son
+// izquierda y derecha (los dos juntos, freno)
+for (const [id, k] of [['m-izq', 'izq'], ['m-der', 'der'], ['m-acel', 'acelerar'], ['m-freno', 'frenar'], ['m-reversa', 'reversa'], ['m-pad-izq', 'izq'], ['m-pad-der', 'der']]) {
   const b = document.getElementById(id)
   const on = (e) => { e.preventDefault(); if (estado !== 'manejar') return; mando[k] = true; b.classList.add('on'); try { b.setPointerCapture(e.pointerId) } catch {} }
   const off = () => { mando[k] = false; b.classList.remove('on') }
@@ -3277,8 +3702,60 @@ for (const [id, k] of [['m-izq', 'izq'], ['m-der', 'der'], ['m-acel', 'acelerar'
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, off)
   b.addEventListener('contextmenu', (e) => e.preventDefault())
 }
+// RESET: si el carrito se trabó, al medio del fairway más cercano (mirando a la pelota)
+$('#m-reset').addEventListener('click', () => {
+  if (estado !== 'manejar' || !ronda?.carro || manejo?.estaciona || performance.now() - (manejo?.resetT ?? 0) < 800) return
+  manejo.resetT = performance.now()
+  const antes = [...ronda.carro.pos]
+  if (!M.rescatarCarro(campo, ronda.carro, ronda.pelota)) return
+  manejo.reset = true
+  manejo.ruta = M.rutaCarrito(campo, ronda.carro.pos, ronda.pelota) ?? manejo.ruta
+  manejo.avance = { resta: Infinity, t: performance.now() }
+  ronda.carro.piloto = null
+  $('#m-reset').classList.remove('late')
+  humo.push({ p: antes, t: performance.now() }, { p: [...ronda.carro.pos], t: performance.now() })
+  huellas = []
+  ruedasAntes = null
+  manejo.rotUlt = null
+  obj = vistaManejo(ronda.carro)
+  Object.assign(cam, obj)
+  S.tap()
+  relatar({ lg: '🔄 RESET', verso: 'El carrito, al medio del fairway más cercano' })
+})
+// LLEVAME: maneja Marcos solo, por la ruta (tocás cualquier mando y manejás vos)
+$('#m-llevame').addEventListener('click', () => {
+  if (estado !== 'manejar' || !manejo || manejo.estaciona) return
+  soltarMandos()
+  manejo.llevame = !manejo.llevame
+  if (manejo.llevame) {
+    manejo.ayudado = true
+    ronda.carro.piloto = null
+    relatar({ lg: '🛺 Maneja Marcos', verso: 'Tranquilo, por la ruta. Tocá un mando y manejás vos' })
+  }
+  pintarLlevame()
+  S.tap()
+})
+// 📯 la bocina: los monos cerca salen corriendo
+function tocarBocina() {
+  if (estado !== 'manejar' || !ronda?.carro || performance.now() - (manejo?.bocinaT ?? 0) < M.BOCINA.espera * 1000) return
+  manejo.bocinaT = performance.now()
+  const n = M.bocina(ronda)
+  S.bocina()
+  vibrar(30)
+  bocinaFx = { p: [...ronda.carro.pos], t: performance.now() }
+  const b = $('#m-bocina')
+  b.classList.remove('toca'); void b.offsetWidth; b.classList.add('toca')
+  if (n) { setTimeout(() => S.grito(), 250); relatar({ lg: '📯 ¡CORRÉ, MONO!', verso: n > 1 ? `Se espantaron ${n} monos` : 'Se espantó y salió rajando' }) }
+  else relatar({ lg: '📯 ¡PIII PIII!', verso: 'No había monos cerca' })
+}
+$('#m-bocina').addEventListener('click', tocarBocina)
 const TECLAS = { ArrowUp: 'acelerar', w: 'acelerar', ' ': 'frenar', ArrowDown: 'reversa', s: 'reversa', ArrowLeft: 'izq', a: 'izq', ArrowRight: 'der', d: 'der' }
-window.addEventListener('keydown', (e) => { const k = TECLAS[e.key]; if (k && estado === 'manejar') { mando[k] = true; e.preventDefault() } })
+window.addEventListener('keydown', (e) => {
+  if (estado !== 'manejar') return
+  if (e.key === 'b' || e.key === 'h') { tocarBocina(); return }
+  const k = TECLAS[e.key]
+  if (k) { mando[k] = true; e.preventDefault() }
+})
 window.addEventListener('keyup', (e) => { const k = TECLAS[e.key]; if (k) mando[k] = false })
 
 /** Pelota quieta: los monos cercanos salen a buscarla (a la Mugre la huelen de más lejos). */
@@ -3440,6 +3917,8 @@ function levantarVuelta() {
   estado = 'resultado'
   drag = null
   const n = M.levantar(ronda)
+  // en un match, si los dos levantan, gana el que aguantó más: el tiempo hasta acá
+  if (ronda.t0 != null) ronda.msLP = Math.max(1, Math.round(performance.now() - ronda.t0))
   S.lamento()
   banda({ kicker: `Levantaste en el ${n}`, grande: 'LP 💅', banda: 'VUELTA PERDIDA', verso: 'Entraste en la lista LP 💅' }, 2600, tarjetaFinal)
 }
@@ -3605,6 +4084,241 @@ function cerrarSabado() {
 }
 $('#sabado').addEventListener('click', cerrarSabado)
 
+// ── 👕 la camiseta: a quién bancás en el Clásico ──
+// Los Dicky o el Equipo 5. La primera vez que tocás un botón del home (JUGAR, MATCH, RANKING, STATS o INTRO) te la pide:
+// obligatorio y gratis. Después queda tu escudo en el home y, tocándolo, la cambiás ("pedir el pase"), por bananas.
+// La guarda la base (por la app, o con tu cuenta suelto: `R.leerCamiseta`, `R.elegirCamiseta`); sin la base nueva, el
+// teléfono (`datos.camiseta`) y, cuando llega la base, la sube (la primera vez es gratis). En el Clásico, con camiseta,
+// tus vueltas bajo par suman para tu equipo solo con cartas de tu equipo, y cada match clásico que ganás (contra uno de
+// la otra camiseta) vale 3: eso lo cuenta la base (`trampa_clasico_semana`).
+const EQUIPOS = {
+  dicky: { nombre: 'LOS DICKY', corto: 'los Dicky', a: 'a los Dicky', logo: 'dicky-toons.svg', lema: 'Son amor 💛', chispas: ['💛', '💚', '❤️', '🩷', '✨'], color: '#6b67d8', grito: '¡SOS DE LOS DICKY!' },
+  e5: { nombre: 'EL EQUIPO 5', corto: 'el Equipo 5', a: 'al Equipo 5', logo: 'equipo-5.svg', lema: 'Chicana y fuego 🔥', chispas: ['🦉', '📺', '🔥', '🏆', '✨'], color: '#3e8f5a', grito: '¡SOS DEL EQUIPO 5!' },
+}
+const otroEquipo = (e) => (e === 'dicky' ? 'e5' : 'dicky')
+const equipoValido = (e) => (e === 'dicky' || e === 'e5' ? e : null)
+const enMarco = window.parent !== window
+let camiseta = { equipo: equipoValido(datos.camiseta), costo: 5, base: false, cargada: false }
+let camisetasDe = new Map() // uid → equipo (los escuditos)
+let listaCamiseta = null
+const camisetaLista = new Promise((ok) => { listaCamiseta = ok })
+/** La tuya, de la base (si está). Si la elegiste en este teléfono antes de que llegara la base, la sube. */
+async function cargarCamiseta() {
+  try {
+    const c = await R.leerCamiseta()
+    camiseta.base = true
+    camiseta.costo = c.costo || camiseta.costo
+    if (c.equipo) camiseta.equipo = c.equipo
+    else if (camiseta.equipo) camiseta.equipo = (await R.elegirCamiseta(camiseta.equipo).catch(() => null))?.equipo ?? camiseta.equipo
+    else camiseta.equipo = null
+    if (camiseta.equipo !== datos.camiseta) { datos.camiseta = camiseta.equipo; guardar(datos) }
+  } catch {
+    camiseta.base = false // sin la base (o la app) nueva: la del teléfono
+  }
+  camiseta.cargada = true
+  listaCamiseta()
+  pintarCamisetaHome()
+  R.leerCamisetas().then((m) => { camisetasDe = m }).catch(() => {})
+}
+/** ¿Ya sabemos si tiene camiseta? Adentro de la app, lo que diga la base (si tarda, lo del teléfono). */
+const camisetaSabida = () => (camiseta.cargada ? Promise.resolve() : Promise.race([camisetaLista, new Promise((ok) => setTimeout(ok, enMarco || R.puente.activo ? 3500 : 400))]))
+function pintarCamisetaHome() {
+  const b = $('#cam-home')
+  const e = camiseta.equipo
+  b.hidden = !e
+  if (!e) return
+  b.classList.toggle('e5', e === 'e5')
+  b.querySelector('img').src = EQUIPOS[e].logo
+  b.setAttribute('aria-label', `Tu camiseta: ${EQUIPOS[e].corto}. Tocá para cambiarla`)
+}
+// la primera vez: cualquier botón del home pide la camiseta antes de seguir (captura: antes que el botón)
+const PIDEN_CAMISETA = ['jugar', 'ver-match', 'ver-ranking', 'ver-stats', 'ver-intro']
+$('#portada').addEventListener('click', async (e) => {
+  const b = e.target.closest('button')
+  if (!b || !PIDEN_CAMISETA.includes(b.id) || camiseta.equipo || b.dataset.camisetaOk) return
+  e.preventDefault()
+  e.stopImmediatePropagation()
+  await camisetaSabida()
+  const seguir = () => { b.dataset.camisetaOk = '1'; b.click(); delete b.dataset.camisetaOk }
+  if (camiseta.equipo) seguir()
+  else abrirCamiseta({ luego: seguir })
+}, true)
+$('#cam-home').addEventListener('click', () => { if (camiseta.equipo) abrirCamiseta({ pase: true }) })
+
+let camModo = null // { pase, luego, elegido, ocupado }
+function abrirCamiseta({ pase = false, luego = null } = {}) {
+  camModo = { pase, luego, elegido: null, ocupado: false }
+  const el = $('#cam')
+  const mia = camiseta.equipo
+  const saldo = hayBananas && bananas ? bananas.saldo : null
+  $('#cam-kicker').textContent = pase ? '👕 El pase' : '⚔️ El Clásico · Dicky vs Equipo 5'
+  $('#cam-tit').textContent = pase ? '¿PEDIR EL PASE?' : '¿A QUIÉN BANCÁS?'
+  $('#cam-txt').innerHTML = pase
+    ? `Sos de <b>${EQUIPOS[mia].corto}</b>. Pasarte ${EQUIPOS[otroEquipo(mia)].a} ${camiseta.base ? `cuesta <b>${camiseta.costo}</b>${BN}, que se queda el mono${saldo != null ? ` (tenés ${saldo})` : ''}` : 'es gratis acá (sin la SDGApp no hay bananas)'}. Lo que ya sumaste queda donde lo sumaste.`
+    : `Elegí tu camiseta. En el <b>Clásico de la semana</b> suman para tu equipo tus vueltas bajo par con sus cartas, y cada <b>match clásico</b> que le ganes a uno de la otra camiseta vale <b>3</b>. El lunes, los que sumaron para el que ganó cobran ${M.CLASICO.premio}${BN}.`
+  $('#cam-equipos').innerHTML = ['dicky', 'e5'].map((k, i) => {
+    const q = EQUIPOS[k]
+    const soy = pase && k === mia
+    return `${i ? '<span class="cam-vs" aria-hidden="true">VS</span>' : ''}<button class="cam-eq" type="button" data-eq="${k}"${soy ? ' disabled aria-disabled="true"' : ''} aria-label="${q.nombre}${soy ? ', tu camiseta' : ''}">
+      <span class="cam-in">
+        <span class="cam-orbita" aria-hidden="true">${q.chispas.map((c, n) => `<i style="--k:${n}"><span>${c}</span></i>`).join('')}</span>
+        <span class="cam-escudo"><img src="${q.logo}" alt="" draggable="false"><i class="cam-brillo"></i></span>
+        <b class="cam-nombre">${q.nombre}</b><small class="cam-lema">${q.lema}</small>
+        ${soy ? '<span class="cam-cinta">TU CAMISETA</span>' : ''}
+      </span></button>`
+  }).join('')
+  $('#cam-error').hidden = true
+  $('#cam-ok').disabled = true
+  $('#cam-ok').textContent = pase ? 'ELEGÍ EL OTRO' : 'ELEGÍ UN EQUIPO'
+  $('#cam-quedo').hidden = !pase
+  $('#cam-pie').innerHTML = pase ? '' : `Después la podés cambiar tocando tu escudo en el home: el pase cuesta ${camiseta.costo}${BN}.`
+  $('#cam-sello').className = 'cam-sello'
+  el.classList.remove('elegido', 'sellado', 'sale')
+  el.hidden = false
+  S.swipe()
+  // en el pase, el otro ya queda marcado
+  if (pase) setTimeout(() => elegirEnCamiseta(otroEquipo(mia), false), reducido() ? 0 : 1700)
+}
+function elegirEnCamiseta(k, ruido = true) {
+  if (!camModo || camModo.ocupado || (camModo.pase && k === camiseta.equipo)) return
+  const el = $('#cam')
+  const b = el.querySelector(`.cam-eq[data-eq="${k}"]`)
+  camModo.elegido = k
+  for (const x of el.querySelectorAll('.cam-eq')) x.classList.toggle('si', x === b)
+  el.classList.add('elegido')
+  // el fondo se tiñe desde el escudo
+  const r = b.querySelector('.cam-escudo').getBoundingClientRect()
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2
+  el.style.setProperty('--c', EQUIPOS[k].color)
+  el.style.setProperty('--x', `${cx}px`)
+  el.style.setProperty('--y', `${cy}px`)
+  const ok = $('#cam-ok')
+  ok.disabled = false
+  ok.textContent = camModo.pase ? (camiseta.base ? `PEDIR EL PASE · ${camiseta.costo} 🍌` : 'PEDIR EL PASE') : `¡ME PONGO LA CAMISETA!`
+  $('#cam-error').hidden = true
+  if (ruido) { S.tap(); navigator.vibrate?.(15) }
+  if (!reducido()) explotar(cx, cy, k, 16)
+}
+/** Una explosión de las cosas del equipo desde (x, y), con su onda. */
+function explotar(x, y, k, n = 16) {
+  const q = EQUIPOS[k]
+  const anillo = document.createElement('i')
+  anillo.className = 'cam-anillo'
+  anillo.style.cssText = `left:${x}px;top:${y}px;--c:${q.color}`
+  document.body.append(anillo)
+  anillo.animate([{ transform: 'scale(.4)', opacity: 1 }, { transform: 'scale(9)', opacity: 0 }], { duration: 650, easing: 'cubic-bezier(.2,.8,.3,1)' }).onfinish = () => anillo.remove()
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('i')
+    c.className = 'cam-chispa'
+    c.textContent = q.chispas[i % q.chispas.length]
+    document.body.append(c)
+    const ang = (i / n) * Math.PI * 2 + Math.random() * 0.4
+    const d = 90 + Math.random() * 110
+    const dx = Math.cos(ang) * d, dy = Math.sin(ang) * d
+    const giro = (Math.random() - 0.5) * 540
+    c.animate([
+      { transform: `translate(${x - 11}px, ${y - 11}px) scale(.3) rotate(0deg)`, opacity: 1 },
+      { transform: `translate(${x - 11 + dx * 0.75}px, ${y - 11 + dy * 0.75}px) scale(1.3) rotate(${giro * 0.7}deg)`, opacity: 1, offset: 0.55 },
+      { transform: `translate(${x - 11 + dx}px, ${y - 11 + dy + 40}px) scale(.6) rotate(${giro}deg)`, opacity: 0 },
+    ], { duration: 900 + Math.random() * 400, easing: 'cubic-bezier(.15,.7,.3,1)' }).onfinish = () => c.remove()
+  }
+}
+$('#cam-equipos').addEventListener('click', (e) => {
+  const b = e.target.closest('.cam-eq')
+  if (b && !b.disabled) elegirEnCamiseta(b.dataset.eq)
+})
+// el escudo se inclina para donde está el dedo
+$('#cam-equipos').addEventListener('pointermove', (e) => {
+  const b = e.target.closest('.cam-eq')
+  for (const x of $('#cam-equipos').querySelectorAll('.cam-eq')) if (x !== b) { x.style.removeProperty('--rx'); x.style.removeProperty('--ry') }
+  if (!b || reducido()) return
+  const r = b.getBoundingClientRect()
+  const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5
+  b.style.setProperty('--ry', `${(px * 22).toFixed(1)}deg`)
+  b.style.setProperty('--rx', `${(-py * 22).toFixed(1)}deg`)
+})
+$('#cam-equipos').addEventListener('pointerleave', () => { for (const x of $('#cam-equipos').querySelectorAll('.cam-eq')) { x.style.removeProperty('--rx'); x.style.removeProperty('--ry') } })
+$('#cam-quedo').addEventListener('click', () => { if (camModo?.pase && !camModo.ocupado) cerrarCamiseta() })
+$('#cam-ok').addEventListener('click', async () => {
+  const m = camModo
+  if (!m?.elegido || m.ocupado) return
+  m.ocupado = true
+  $('#cam-ok').disabled = true
+  const k = m.elegido
+  let costo = 0
+  if (camiseta.base) {
+    try {
+      const r = await R.elegirCamiseta(k)
+      costo = r.costo
+      if (bananas) bananas.saldo = r.saldo
+      if (costo) cargarBananas()
+    } catch (err) {
+      m.ocupado = false
+      $('#cam-ok').disabled = false
+      const e = $('#cam-error')
+      e.textContent = /alcanzan/.test(err?.message ?? '') ? `No te alcanzan las bananas: el pase cuesta ${camiseta.costo}.` : 'No se pudo guardar. Probá de nuevo.'
+      e.hidden = false
+      return
+    }
+  }
+  camiseta.equipo = k
+  datos.camiseta = k
+  guardar(datos)
+  if (yoUid()) camisetasDe.set(yoUid(), k)
+  // el sello…
+  const el = $('#cam')
+  const sello = $('#cam-sello')
+  sello.innerHTML = `${m.pase ? EQUIPOS[k].grito.replace('¡SOS', '¡AHORA<br>SOS') : EQUIPOS[k].grito}${costo ? `<small>El mono se quedó ${costo} 🍌</small>` : ''}`
+  sello.className = 'cam-sello ver'
+  el.classList.add('sellado')
+  S.logro()
+  navigator.vibrate?.([20, 40, 30])
+  const esc = el.querySelector('.cam-eq.si .cam-escudo')
+  const r0 = esc.getBoundingClientRect()
+  if (!reducido()) explotar(r0.left + r0.width / 2, r0.top + r0.height / 2, k, 22)
+  await new Promise((ok) => setTimeout(ok, reducido() ? 400 : 1100))
+  // …y el escudo vuela a su lugar en el home
+  pintarCamisetaHome()
+  const casa = $('#cam-home')
+  const portadaVisible = !$('#portada').hidden
+  if (!reducido() && portadaVisible) {
+    casa.style.visibility = 'hidden'
+    const r1 = casa.querySelector('.cam-home-escudo').getBoundingClientRect()
+    const v = esc.cloneNode(true)
+    v.classList.add('cam-vuela')
+    v.style.width = `${r0.width}px`
+    v.style.animation = 'none'
+    document.body.append(v)
+    const s1 = r1.width / r0.width
+    const dx = r1.left - r0.left + (r1.width - r0.width) / 2, dy = r1.top - r0.top + (r1.height - r0.height) / 2
+    el.classList.add('sale')
+    sello.className = 'cam-sello'
+    await v.animate([
+      { transform: `translate(${r0.left}px, ${r0.top}px) perspective(500px) scale(1) rotateY(0deg)` },
+      { transform: `translate(${r0.left + dx * 0.45}px, ${r0.top + dy * 0.45 - 90}px) perspective(500px) scale(${(1 + s1) / 2 + 0.15}) rotateY(400deg)`, offset: 0.5 },
+      { transform: `translate(${r0.left + dx}px, ${r0.top + dy}px) perspective(500px) scale(${s1}) rotateY(720deg)` },
+    ], { duration: 820, easing: 'cubic-bezier(.45,0,.2,1)', fill: 'forwards' }).finished.catch(() => {})
+    v.remove()
+    casa.style.visibility = ''
+    casa.classList.remove('aterriza')
+    void casa.offsetWidth
+    casa.classList.add('aterriza')
+    S.tap()
+  }
+  cerrarCamiseta()
+  m.luego?.()
+})
+function cerrarCamiseta() {
+  const el = $('#cam')
+  el.hidden = true
+  el.classList.remove('elegido', 'sellado', 'sale')
+  $('#cam-sello').className = 'cam-sello'
+  camModo = null
+}
+// sin identidad (suelto, sin cuenta): la del teléfono
+R.listo.then(() => setTimeout(() => { if (!R.puente.activo && !enMarco) { camiseta.cargada = true; listaCamiseta() } }, 300))
+pintarCamisetaHome()
+
 // ── 🦉 la lechuza escondida ──
 // En las vueltas que la sortearon (`ronda.lechuzaEn`: en qué vez que te toca apuntar), con la cámara quieta, se asoma
 // en la copa de un árbol que se vea (lejos de la pelota, del hoyo y del marcador) y a los 3 segundos se va volando. Si
@@ -3735,9 +4449,7 @@ function cerrar(frase) {
   const { vsPar } = M.totales(ronda.tarjeta)
   banda({ kicker: `Hoyo ${fila.n} · ${fila.golpes} golpes`, grande: nombre, banda: `VAS ${M.formatoPar(vsPar)}`, verso: linea }, 2600, () => {
     if (ronda.terminada) tarjetaFinal()
-    // Marcos: del green al tee del próximo hoyo, manejando
-    else if (M.usaCarrito(ronda) && !ronda.ruleta && ronda.carro && !M.carroLlego(campo, ronda.carro, ronda.pelota)) empezarManejo(introHoyo, 'tee')
-    else introHoyo()
+    else introHoyo() // Marcos: el carrito ya lo espera en el próximo tee (M.cerrarHoyo)
   })
 }
 
@@ -3994,6 +4706,28 @@ function dickyVisita(d, texto, e5 = false) {
  * de la Dickyllamada, es él. A veces, en vez del Dicky, se cuela uno del Equipo 5 a chicanear (y el Dicky que viene le
  * contesta). Si jugás con uno del Equipo 5, aparece su compañero.
  */
+/** 📣 Marcos: cada tiro bueno lo festeja a los gritos (con la racha que lleva); si un malo la corta, se calla. */
+let gritoTimer = 0
+function rachaMarcos(res) {
+  const rc = res.racha
+  if (!rc || replay) return
+  const el = $('#grito')
+  if (rc.bueno) {
+    el.querySelector('b').textContent = M.elegir(rng, M.GRITOS_MARCOS)
+    el.querySelector('small').textContent = `🔥 RACHA x${rc.ahora} · ${rc.ahora >= M.RACHA.max ? 'AL MÁXIMO' : `−${Math.round(M.RACHA.paso * rc.ahora * 100)}% EL PRÓXIMO`}`
+    el.className = ''
+    S.grito()
+    navigator.vibrate?.([30, 30, 30])
+  } else if (rc.antes > 0 && rc.ahora === 0) {
+    el.querySelector('b').textContent = 'Se cortó la racha…'
+    el.querySelector('small').textContent = 'A EMPEZAR DE NUEVO'
+    el.className = 'corta'
+  } else return
+  el.hidden = false
+  void el.offsetWidth
+  clearTimeout(gritoTimer)
+  gritoTimer = setTimeout(() => { el.classList.add('sale'); gritoTimer = setTimeout(() => { el.hidden = true }, 400) }, rc.bueno ? 1700 : 1300)
+}
 function dickyDespues(res, tiro) {
   const yo = ronda.jugador
   if (tiro.prestado) {
@@ -4185,9 +4919,14 @@ function pintarVoz() {
   if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza')) {
     clase = 'alerta'; dice = '🐒 ¡VIENEN LOS MONOS! PEGALE'
     extra = ronda.panchos ? `…o tirales un pancho 🌭 (te quedan ${ronda.panchos})` : 'Si llegan, se la llevan: al tee con un golpe de multa'
-  } else if (estado === 'manejar' && ronda?.carro) {
-    const yd = Math.round(M.aYardas(ronda, M.dist(ronda.carro.pos, ronda.pelota)))
-    clase = ''; dice = manejo?.a === 'tee' ? `🛺 Al tee: ${yd} yd` : `🛺 A la pelota: ${yd} yd`; extra = 'Mantené el acelerador para el turbo; rápido y doblando, colea'
+  } else if (estado === 'manejar' && ronda?.carro && !(voz && performance.now() < voz.hasta)) {
+    // (lo que pasa manejando —choques, cáscaras, bocina— lo dice el relato; si no, cuánto falta y un consejo)
+    const sr = manejo?.ruta ? M.sobreRuta(manejo.ruta, ronda.carro.pos, 0) : null
+    const yd = Math.round(M.aYardas(ronda, sr ? sr.resta : M.dist(ronda.carro.pos, ronda.pelota)))
+    clase = ''; dice = `🛺 A la pelota: ${yd} yd`
+    extra = manejo?.llevame ? 'Maneja Marcos. Tocá un mando y manejás vos'
+      : manejoFacil() ? (ronda.carro.carga ? 'Soltá y sale el turbito' : 'Seguí la línea dorada · doblá rápido y fuerte: derrape con turbito')
+      : 'Mantené el acelerador para el turbo; rápido y doblando, colea (y carga el turbito)'
   } else if (estado === 'apuntar' && contra) {
     // te mufan / te ablandan: esto va antes que el relato del tiro (dura lo mismo que la ventana para defenderte)
     clase = 'contra'
@@ -4201,6 +4940,8 @@ function pintarVoz() {
     clase = ''; dice = '😈 MUFADO POR EL EQUIPO 5'; extra = 'Este tiro: más error y el latido más rápido'
   } else if (estado === 'apuntar' && ronda?.blando) {
     clase = ''; dice = '🥺 TE ABLANDARON'; extra = 'Este tiro sale más corto'
+  } else if (estado === 'apuntar' && ronda?.racha && M.usaCarrito(ronda) && !ronda.prestado) {
+    clase = ''; dice = `📣 RACHA x${ronda.racha}`; extra = `Este tiro, ${Math.round((1 - M.factorRacha(ronda)) * 100)}% menos error. Uno malo la corta`
   } else if (estado === 'apuntar' && ronda?.lechuza && M.enModoPutt(campo, ronda) && !ronda.mejorPelota?.fase) {
     const h = M.hoyoActual(ronda)
     const cerca = M.dist(ronda.pelota, h.pin) * h.escala <= M.DADA
@@ -4554,6 +5295,7 @@ function dibujar() {
 
   if (vf) dibujarFondo(vf)
   climaSobreCancha()
+  dibujarSenderos()
   for (const h of M.HOYOS) cajonTee(h)
   dibujarCharcos()
 
@@ -5143,6 +5885,12 @@ function dibujarMonos() {
     ctx.font = `${tam}px ${EMOJI}`
     ctx.fillText('🐒', x, y - salta)
     ctx.globalAlpha = 1
+    if (s.modo === 'huye' && s.huyeDe) {
+      // se espantó con la bocina: polvareda atrás (del lado del carrito)
+      const [hx, hy] = w2s(s.huyeDe), d = Math.hypot(x - hx, y - hy) || 1
+      ctx.font = `${Math.round(tam * 0.6)}px ${EMOJI}`
+      ctx.fillText('💨', x - ((x - hx) / d) * tam * 0.7, y - ((y - hy) / d) * tam * 0.7)
+    }
     if (s.modo === 'caza' && s.reaccion > 0) {
       // se dio cuenta
       ctx.fillStyle = C.red
@@ -5159,6 +5907,24 @@ function dibujarMonos() {
 
 // ── los tees: un cajón de salida dibujado encima (de la marca azul a la amarilla) con las tres marcas ──
 const COLOR_TEE = { azul: '#2f5fd0', blanca: '#ffffff', amarilla: '#f2d335' }
+// 🛺 los senderos de carritos (como en las canchas de verdad): una cinta de tierra clara con borde, en coordenadas de la
+// cancha. Por ahí el carrito de Marcos anda más rápido
+let senderosPath = null
+function dibujarSenderos() {
+  const sen = M.senderos(campo)
+  if (!sen) return
+  senderosPath ??= sen.lineas.map(({ pts }) => { const p = new Path2D(); pts.forEach((q, i) => p[i ? 'lineTo' : 'moveTo'](q[0], q[1])); return p })
+  ctx.save()
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'
+  const ancho = M.SENDERO.ancho * 2
+  ctx.strokeStyle = 'rgba(78,62,34,.42)'; ctx.lineWidth = ancho + 0.55
+  for (const p of senderosPath) ctx.stroke(p)
+  ctx.strokeStyle = 'rgba(214,196,150,.78)'; ctx.lineWidth = ancho
+  for (const p of senderosPath) ctx.stroke(p)
+  ctx.strokeStyle = 'rgba(255,248,226,.32)'; ctx.lineWidth = 0.18; ctx.setLineDash([1.2, 1.6])
+  for (const p of senderosPath) ctx.stroke(p)
+  ctx.restore()
+}
 /** Un punto detrás del tee azul (para el cartel "TEE n"). */
 function atrasDelTee(h, d) {
   const u = Math.hypot(h.azul[0] - h.pin[0], h.azul[1] - h.pin[1])
@@ -5423,9 +6189,24 @@ function dibujarCarro(c) {
   const [x, y] = w2s(c.pos)
   const L = Math.max(44, M.CARRITO.largo * cam.esc * 1.5), A = L * 0.58
   if (estado === 'manejar') {
-    // a dónde ir: un aro que late en la pelota (o el tee)
+    // la ruta (el GPS): una línea dorada de puntos que avanza, del carrito a la pelota, esquivando los árboles
+    const ruta = manejo?.ruta
+    let haciaP = ronda.pelota
+    if (ruta) {
+      const sr = M.sobreRuta(ruta, c.pos, 0)
+      const pts = [c.pos, ...ruta.slice(sr.seg)].map((q) => w2s(q))
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round'
+      ctx.strokeStyle = 'rgba(12,43,28,.45)'; ctx.lineWidth = 8
+      ctx.beginPath(); pts.forEach(([px, py], i) => ctx[i ? 'lineTo' : 'moveTo'](px, py)); ctx.stroke()
+      ctx.strokeStyle = C.gold; ctx.lineWidth = 4
+      ctx.setLineDash([2, 10]); ctx.lineDashOffset = -ahora / 25
+      ctx.beginPath(); pts.forEach(([px, py], i) => ctx[i ? 'lineTo' : 'moveTo'](px, py)); ctx.stroke()
+      ctx.setLineDash([]); ctx.lineDashOffset = 0
+      haciaP = M.sobreRuta(ruta, c.pos, 9).punto
+    }
+    // a dónde ir: un aro que late en la pelota
     const [bx, by] = w2s(ronda.pelota)
-    const pulso = 1 + 0.12 * Math.sin(performance.now() / 180)
+    const pulso = 1 + 0.12 * Math.sin(ahora / 180)
     ctx.strokeStyle = C.gold
     ctx.lineWidth = 3
     ctx.setLineDash([6, 6])
@@ -5433,9 +6214,10 @@ function dibujarCarro(c) {
     ctx.arc(bx, by, Math.max(14, M.CARRITO.llegar * cam.esc) * pulso, 0, 7)
     ctx.stroke()
     ctx.setLineDash([])
-    // la flecha, alrededor del carrito, apuntando a la pelota
-    const ang = Math.atan2(by - y, bx - x)
-    if (Math.hypot(bx - x, by - y) > L * 1.4) {
+    // la flecha, alrededor del carrito, apuntando para donde sigue la ruta
+    const [hx, hy] = w2s(haciaP)
+    const ang = Math.atan2(hy - y, hx - x)
+    if (Math.hypot(bx - x, by - y) > L * 1.4 && !manejo?.estaciona) {
       const r0 = L * 0.95
       ctx.save()
       ctx.translate(x + Math.cos(ang) * r0, y + Math.sin(ang) * r0)
@@ -5448,8 +6230,67 @@ function dibujarCarro(c) {
       ctx.fill(); ctx.stroke()
       ctx.restore()
     }
+    dibujarCascaras(ahora)
+    // 📯 el aro de la bocina
+    if (bocinaFx && ahora - bocinaFx.t < 650) {
+      const u = (ahora - bocinaFx.t) / 650, [qx, qy] = w2s(bocinaFx.p)
+      ctx.strokeStyle = `rgba(244,238,218,${0.8 * (1 - u)})`
+      ctx.lineWidth = 4 * (1 - u) + 1
+      for (const k of [1, 0.6]) { ctx.beginPath(); ctx.arc(qx, qy, M.BOCINA.radio * cam.esc * u * k, 0, 7); ctx.stroke() }
+    }
+    // ✨ las chispas del derrape (celestes; naranjas cuando ya está el súper turbito)
+    chispasCarro = chispasCarro.filter((k) => ahora - k.t < 320)
+    for (const k of chispasCarro) {
+      const sg = (ahora - k.t) / 1000
+      const [qx, qy] = w2s([k.p[0] + k.v[0] * sg, k.p[1] + k.v[1] * sg])
+      ctx.fillStyle = k.c
+      ctx.globalAlpha = 1 - sg / 0.32
+      ctx.beginPath(); ctx.arc(qx, qy, 2.4, 0, 7); ctx.fill()
+    }
+    ctx.globalAlpha = 1
+    // ⚡ el turbito: fuego atrás
+    if (c.turbito > 0) {
+      const f = [Math.cos(c.ang), Math.sin(c.ang)]
+      const [qx, qy] = w2s([c.pos[0] - f[0] * M.CARRITO.largo * 0.5, c.pos[1] - f[1] * M.CARRITO.largo * 0.5])
+      ctx.save()
+      ctx.translate(qx, qy)
+      ctx.rotate(c.ang + cam.rot + Math.PI)
+      for (const [col, k] of [['#e8712e', 1], ['#ffd34a', 0.6]]) {
+        const lf = L * (0.35 + Math.random() * 0.25) * k
+        ctx.fillStyle = col
+        ctx.beginPath(); ctx.moveTo(0, -A * 0.28 * k); ctx.lineTo(lf, 0); ctx.lineTo(0, A * 0.28 * k); ctx.closePath(); ctx.fill()
+      }
+      ctx.restore()
+    }
   }
   cuerpoCarrito(x, y, c.ang + cam.rot, L)
+}
+/** 🍌 Las cáscaras que tiraron los monos: vuelan del mono a su lugar y quedan en el piso (la pisada desaparece). */
+function dibujarCascaras(ahora) {
+  for (const k of ronda?.cascaras ?? []) {
+    if (!k.viva) continue
+    const u = k.t0 ? Math.min(1, (ahora - k.t0) / 700) : 1
+    const w = [k.desde[0] + (k.pos[0] - k.desde[0]) * u, k.desde[1] + (k.pos[1] - k.desde[1]) * u]
+    const [px, py0] = w2s(w)
+    const py = py0 - Math.sin(Math.PI * u) * 46
+    const t = Math.max(9, cam.esc * 1.3)
+    ctx.save()
+    ctx.translate(px, py)
+    ctx.rotate(u < 1 ? u * 9 : 0.4)
+    // tres gajos amarillos abiertos y la puntita marrón
+    ctx.fillStyle = 'rgba(8,26,16,.28)'
+    ctx.beginPath(); ctx.ellipse(2, 3, t * 0.9, t * 0.55, 0, 0, 7); ctx.fill()
+    ctx.strokeStyle = '#7a5a12'; ctx.lineWidth = 1.2
+    for (const a of [-2.3, -0.8, 0.8, 2.3].slice(0, 4)) {
+      ctx.save(); ctx.rotate(a)
+      ctx.fillStyle = '#f2d335'
+      ctx.beginPath(); ctx.ellipse(t * 0.45, 0, t * 0.5, t * 0.2, 0, 0, 7); ctx.fill(); ctx.stroke()
+      ctx.restore()
+    }
+    ctx.fillStyle = '#6b4a1a'
+    ctx.beginPath(); ctx.arc(0, 0, t * 0.17, 0, 7); ctx.fill()
+    ctx.restore()
+  }
 }
 /** El carrito (el de Marcos y el que se le cruza a Juanpa): la trompa mira a `ang` (en pantalla). */
 function cuerpoCarrito(x, y, ang, L, carroceria = ['#1f7a45', '#2f9b5d']) {
@@ -6884,7 +7725,7 @@ function bananaEnCanvas(g, x, y, tam, rot = -0.14) {
  * dos en el medio, y abajo el score de cada uno y quién ganó. Con `ganador` null es el desafío: sin scores (que el
  * otro no sepa cómo te fue). Con `apuesta`, las bananas en juego arriba y, abajo, cuántas se lleva el que gana.
  */
-async function imagenMatch({ izq, der, jugador, ganador, apuesta = 0 }) {
+async function imagenMatch({ izq, der, jugador, ganador, apuesta = 0, clasico = false }) {
   try { await Promise.all(['56px Anton', '600 30px Archivo', '800 30px Archivo'].map((f) => document.fonts.load(f))) } catch {}
   const W2 = 1080, H2 = 1350
   const c = document.createElement('canvas')
@@ -6906,7 +7747,7 @@ async function imagenMatch({ izq, der, jugador, ganador, apuesta = 0 }) {
   // cabecera
   g.textAlign = 'center'
   g.fillStyle = '#e8c34a'; g.font = B(26, 800); g.fillText('SDGA TOUR  ·  LA TRAMPA DEL MONO', W2 / 2, 78)
-  g.fillStyle = '#f4eeda'; g.font = D(130); g.fillText(desafio ? 'DESAFÍO' : 'MATCH', W2 / 2, 210)
+  g.fillStyle = '#f4eeda'; g.font = D(130); g.fillText(clasico ? 'CLÁSICO' : desafio ? 'DESAFÍO' : 'MATCH', W2 / 2, 210)
   // las bananas en juego: una pastilla dorada de sticker, con la banana que se sale por la izquierda
   const conBananas = apuesta > 0
   const pastillaBananas = () => {
@@ -7181,7 +8022,7 @@ async function cargarDesafios() {
 let bananas = null // { saldo, reservadas, pozo, premiosHoy, movimientos }
 let bananasRk = null // [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]
 let hayBananas = false
-const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío', clasico: '⚔️ Ganó tu equipo en el Clásico' }
+const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío', clasico: '⚔️ Ganó tu equipo en el Clásico', camiseta: '👕 El pase de camiseta' }
 const POR_BANANA = { birdie: 'birdie', aguila: 'águila', bajo_par: 'bajo par' }
 // la banana del set SDGA: chiquita, en el texto (BN); grande, troquelada como sticker (stickerBanana)
 const BN = gi('banana', 'bn')
@@ -7434,7 +8275,7 @@ async function mostrarMatch(tab = mtTab) {
   mtRankingError = null
   $('#match').hidden = false
   pintarMatch()
-  const [rv] = await Promise.allSettled([mtRivales ? Promise.resolve(mtRivales) : R.leerRivales(), cargarDesafios(), cargarBananas()])
+  const [rv] = await Promise.allSettled([mtRivales ? Promise.resolve(mtRivales) : R.leerRivales(), cargarDesafios(), cargarBananas(), R.leerCamisetas().then((m) => { camisetasDe = m })])
   if (rv.status === 'fulfilled') mtRivales = rv.value
   else mtError = rv.reason
   pintarMatch()
@@ -7460,11 +8301,17 @@ function pintarMatch() {
     if (!mtRivales) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudo cargar la lista. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; return }
     const q = $('#mt-buscar').value.trim().toLowerCase()
     const rs = mtRivales.filter((r) => !q || r.nombre.toLowerCase().includes(q))
-    lista.innerHTML = rs.length ? rs.map((r) => `<li class="rk-fila mt-fila">
-        <span class="mini" aria-hidden="true">${esc(r.nombre.charAt(0).toUpperCase())}</span>
-        <span class="rk-nombre"><b>${esc(r.nombre)}</b>${r.sdga || (hayBananas && bananasDe(r.uid)) ? `<small>${[r.sdga ? '⛳ SDGA' : '', hayBananas && bananasDe(r.uid) ? `${BN}${bananasDe(r.uid).saldo}` : ''].filter(Boolean).join(' · ')}</small>` : ''}</span>
+    lista.innerHTML = rs.length ? rs.map((r) => {
+      // 👕 su camiseta y, si es la otra, el match es un CLÁSICO (vale 3 para tu equipo)
+      const ce = camisetasDe.get(r.uid)
+      const clasico = ce && camiseta.equipo && ce !== camiseta.equipo
+      const datosFila = [clasico ? '<span class="mt-clasico">⚔️ CLÁSICO</span>' : '', r.sdga ? '⛳ SDGA' : '', hayBananas && bananasDe(r.uid) ? `${BN}${bananasDe(r.uid).saldo}` : ''].filter(Boolean)
+      return `<li class="rk-fila mt-fila">
+        ${ce ? `<span class="mini cam${ce === 'e5' ? ' e5' : ''}" aria-hidden="true"><img src="${EQUIPOS[ce].logo}" alt="" draggable="false"></span>` : `<span class="mini" aria-hidden="true">${esc(r.nombre.charAt(0).toUpperCase())}</span>`}
+        <span class="rk-nombre"><b>${esc(r.nombre)}</b>${datosFila.length ? `<small>${datosFila.join(' · ')}</small>` : ''}</span>
         <button class="mt-btn${mtPro ? ' pro' : ''}" type="button" data-desafiar="${esc(r.uid)}">${mtPro ? `${gi('pro')}Desafiar` : 'Desafiar'}</button>
-      </li>`).join('') : `<li class="rk-vacio">${q ? 'Nadie con ese nombre.' : 'Todavía no hay a quién desafiar.'}</li>`
+      </li>`
+    }).join('') : `<li class="rk-vacio">${q ? 'Nadie con ese nombre.' : 'Todavía no hay a quién desafiar.'}</li>`
     return
   }
   $('#mt-nota').textContent = 'Gana el que hace menos golpes; si empatan, el más rápido. LP pierde. Los dos juegan con el mismo player.'
@@ -7514,8 +8361,15 @@ const pctGanados = (x) => (x.jugados ? Math.round((100 * x.ganados) / x.jugados)
 // la pestaña Ranking: el de matches o, con bananas, el de los más ricos 🍌
 let mtRkVista = 'matches'
 function pintarRankingMatch(lista) {
-  const vistas = hayBananas ? `<li class="bn-vistas"><button type="button" data-rkv="matches" aria-pressed="${mtRkVista === 'matches'}">Matches</button><button type="button" data-rkv="bananas" aria-pressed="${mtRkVista === 'bananas'}">${BN} Bananas</button></li>` : ''
+  const vistas = `<li class="bn-vistas"><button type="button" data-rkv="matches" aria-pressed="${mtRkVista === 'matches'}">Matches</button>${hayBananas ? `<button type="button" data-rkv="bananas" aria-pressed="${mtRkVista === 'bananas'}">${BN} Bananas</button>` : ''}<button type="button" data-rkv="equipos" aria-pressed="${mtRkVista === 'equipos'}">⚔️ Equipos</button></li>`
   if (hayBananas && mtRkVista === 'bananas') { pintarRankingBananas(lista, vistas); return }
+  if (mtRkVista === 'equipos') {
+    // ⚔️ el ranking por equipo: el Clásico de la semana, con los matches clásicos
+    $('#mt-nota').textContent = 'Cada match que le ganás a uno de la otra camiseta vale 3 para tu equipo en el Clásico de la semana: con bananas, siempre; por el honor, sin LP y uno por pareja por día. Tu escudo, en el home: tocándolo, el pase.'
+    lista.innerHTML = `${vistas}<li class="mt-clasico-li"><div class="clasico" id="mt-clasico"></div></li>`
+    pintarClasico($('#mt-clasico'))
+    return
+  }
   pintarRankingMatchLista(lista)
   if (vistas) lista.insertAdjacentHTML('afterbegin', vistas)
 }
@@ -7540,6 +8394,7 @@ $('#mt-lista').addEventListener('click', (e) => {
   if (!b) return
   mtRkVista = b.dataset.rkv
   if (mtRkVista === 'bananas') cargarBananas().then(() => mtTab === 'ranking' && pintarMatch())
+  if (mtRkVista === 'equipos') cargarClasicoBase().then(() => mtTab === 'ranking' && mtRkVista === 'equipos' && pintarMatch())
   pintarMatch()
 })
 function pintarRankingMatchLista(lista) {
@@ -8250,7 +9105,7 @@ function pintarReplay(todo = false) {
     el.hidden = gana === -2
     if (gana === -2) return
     const x = gana === 1 ? r.d.rival : r.d.retador
-    el.textContent = gana === -1 ? '🤝 EMPATE' : `🏆 GANÓ ${String(x.alias).toUpperCase()}${M.porTiempo(r.d.retador, r.d.rival) ? ' POR TIEMPO' : ''}`
+    el.textContent = gana === -1 ? '🤝 EMPATE' : `🏆 GANÓ ${String(x.alias).toUpperCase()}${M.porTiempo(r.d.retador, r.d.rival) ? ' POR TIEMPO' : M.porAguante(r.d.retador, r.d.rival) ? ' · AGUANTÓ MÁS' : ''}`
   })
   poner('sigue', null, r.sigue, () => { for (const b of $('#rp-jugadores').children) b.setAttribute('aria-pressed', String(+b.dataset.sigue === r.sigue)) })
 }
@@ -8405,7 +9260,8 @@ async function compartirMatch(d, boton) {
   const { yo, el } = resultadoPara(d)
   const jugador = TODOS.find((x) => x.apodo === d.retador.apodo) ?? { apodo: d.retador.apodo ?? '', emoji: d.retador.emoji ?? '⛳' }
   if (boton) boton.disabled = true
-  const img = await imagenMatch({ izq: d.retador, der: d.rival, jugador, ganador: M.ganadorMatch(d.retador, d.rival), apuesta: d.apuesta ?? 0 })
+  const [ci, cd] = [camisetasDe.get(d.retador.uid), camisetasDe.get(d.rival.uid)]
+  const img = await imagenMatch({ izq: d.retador, der: d.rival, jugador, ganador: M.ganadorMatch(d.retador, d.rival), apuesta: d.apuesta ?? 0, clasico: !!(ci && cd && ci !== cd) })
   if (boton) boton.disabled = false
   compartirImagen(img, textoResultadoMatch(yo, el, d.id, d.apuesta ?? 0), 'match-trampa-del-mono.png')
 }
@@ -8414,7 +9270,7 @@ async function compartirMatch(d, boton) {
 function veredictoMatch(yo, el, g) {
   const lpYo = yo.lp || yo.golpes == null, lpEl = el.lp || el.golpes == null
   const dif = !lpYo && !lpEl ? Math.abs(yo.golpes - el.golpes) : 0
-  const por = lpYo && lpEl ? 'los dos levantaron' : lpEl ? `${el.alias ?? 'el otro'} levantó` : lpYo ? 'levantaste'
+  const por = lpYo && lpEl ? (M.porAguante(yo, el) ? `los dos levantaron · ${g > 0 ? 'aguantaste' : 'aguantó'} más` : 'los dos levantaron') : lpEl ? `${el.alias ?? 'el otro'} levantó` : lpYo ? 'levantaste'
     : M.porTiempo(yo, el) ? `por tiempo · ${(Math.abs(yo.ms - el.ms) / 1000).toFixed(1).replace('.', ',')} s`
     : dif ? `por ${dif} ${dif === 1 ? 'golpe' : 'golpes'}` : 'mismos golpes y mismo tiempo'
   return `<p class="tm-veredicto ${g > 0 ? 'gana' : g < 0 ? 'pierde' : 'empate'}">${gi(g > 0 ? 'trophy' : g < 0 ? 'close' : 'friends')}<span>${g > 0 ? 'Ganaste' : g < 0 ? 'Perdiste' : 'Empate'}<small>${esc(por)}</small></span></p>`
@@ -8437,7 +9293,8 @@ async function cerrarMatch(r) {
   d.enviado = true
   const t = M.totales(r.tarjeta)
   const lp = !!r.lp
-  const mia = { apodo: r.carta.apodo, emoji: r.carta.emoji, golpes: lp ? null : t.golpes, vsPar: lp ? null : t.vsPar, ms: lp || r.ms == null ? null : Math.round(r.ms), lp }
+  // si levantó, el tiempo hasta que levantó (si los dos levantan, gana el que aguantó más)
+  const mia = { apodo: r.carta.apodo, emoji: r.carta.emoji, golpes: lp ? null : t.golpes, vsPar: lp ? null : t.vsPar, ms: lp ? (r.msLP ?? null) : r.ms == null ? null : Math.round(r.ms), lp }
   const el = $('#t-match')
   el.className = 't-match'
   el.hidden = false
@@ -8466,7 +9323,8 @@ async function cerrarMatch(r) {
         el.querySelector('.btn-wa').addEventListener('click', async (e) => {
           const b = e.currentTarget
           b.disabled = true
-          const img = await imagenMatch({ izq: { alias: datos.usuario || 'Yo', oculto: true }, der: { alias: d.rival.nombre, pendiente: true }, jugador: r.carta, ganador: null, apuesta: d.apuesta ?? 0 })
+          const cr = camisetasDe.get(d.rival.uid)
+          const img = await imagenMatch({ izq: { alias: datos.usuario || 'Yo', oculto: true }, der: { alias: d.rival.nombre, pendiente: true }, jugador: r.carta, ganador: null, apuesta: d.apuesta ?? 0, clasico: !!(cr && camiseta.equipo && cr !== camiseta.equipo) })
           b.disabled = false
           compartirImagen(img, mensajeDesafio(r, d.rival, mia), 'desafio-trampa-del-mono.png')
         })
@@ -8825,15 +9683,27 @@ $('#st-ambito').addEventListener('click', (e) => {
 const equipoDe = (apodo) => { const j = TODOS.find((x) => x.apodo === apodo); return j?.dicky ? 'dicky' : M.esEquipo5(j) ? 'e5' : null }
 /** LG relata cómo salió (la frase depende de la semana: no cambia cada vez que se pinta). */
 const lgClasico = (c) => { const l = M.LG_CLASICO[c.ganador ?? 'empate']; return l[Math.floor(c.desde / 864e5 / 7) % l.length] }
-function pintarClasico() {
-  const el = $('#rk-clasico')
+// la base (con la camiseta): esta semana y la pasada, con los matches clásicos; sin ella, `null` (la cuenta el juego)
+let clasicoBase = null
+async function cargarClasicoBase() {
+  if (!R.hayMatch()) return null
+  try {
+    const [ahora, antes] = await Promise.all([R.leerClasicoSemana(0), R.leerClasicoSemana(1)])
+    clasicoBase = { ahora, antes }
+  } catch { clasicoBase = null }
+  return clasicoBase
+}
+function pintarClasico(el = $('#rk-clasico')) {
   const ahora = Date.now()
-  const c = M.clasico(rkMarcas, M.lunesDe(ahora), equipoDe)
-  const antes = M.clasico(rkMarcas, M.lunesDe(ahora, 1), equipoDe)
+  const base = clasicoBase
+  const c = base?.ahora ?? M.clasico(rkMarcas ?? [], M.lunesDe(ahora), equipoDe)
+  const antes = base ? { ...base.antes, desde: Date.parse(base.antes.semana ?? 0) || 0 } : M.clasico(rkMarcas ?? [], M.lunesDe(ahora, 1), equipoDe)
   const tot = c.dicky + c.e5
-  const quedan = Math.ceil((c.hasta - ahora) / 864e5)
+  const quedan = Math.ceil((M.lunesDe(ahora) + 7 * 864e5 - ahora) / 864e5)
   const va = c.ganador === 'dicky' ? 'Van ganando los Dicky' : c.ganador === 'e5' ? 'Va ganando el Equipo 5' : tot ? 'Van empatados' : 'Todavía no sumó nadie'
-  const top = (l) => l.slice(0, 3).map((x) => `${esc(x.nombre ?? '—')} <b>${x.pts}</b>`).join(' · ') || 'nadie todavía'
+  const top = (l) => l.slice(0, 3).map((x) => `<i class="cl-ap">${esc(x.nombre ?? '—')} <b>${x.pts}</b>${x.matches ? ` <small class="cl-m">⚔️${x.matches}</small>` : ''}</i>`).join(' · ') || 'nadie todavía'
+  const mia = camiseta.equipo ? `<p class="cl-mia"><img src="${EQUIPOS[camiseta.equipo].logo}" alt="">TU CAMISETA: ${EQUIPOS[camiseta.equipo].nombre}</p>` : ''
+  const clasicos = base?.ahora?.clasicos?.length ? `<ul class="cl-clasicos">${base.ahora.clasicos.slice(0, 3).map((x) => `<li><b>${esc(x.gano)}</b> le ganó a ${esc(x.perdio)} · +3 ${x.equipo === 'dicky' ? 'Dicky' : 'Equipo 5'}</li>`).join('')}</ul>` : ''
   const salio = antes.ganador === 'dicky' ? 'ganaron los Dicky' : antes.ganador === 'e5' ? 'ganó el Equipo 5' : 'empataron'
   el.innerHTML = `<p class="cl-kicker">⚔️ El Clásico de la semana</p>
     <div class="cl-marcador">
@@ -8843,11 +9713,17 @@ function pintarClasico() {
     </div>
     <div class="cl-barra" aria-hidden="true"><i style="width:${tot ? Math.round((100 * c.dicky) / tot) : 50}%"></i></div>
     <p class="cl-va"><b>${va}</b> · ${quedan > 1 ? `faltan ${quedan} días` : 'termina hoy'}</p>
+    ${mia}
     <p class="cl-top"><span><small>DICKY</small>${top(c.aportes.dicky)}</span><span><small>EQUIPO 5</small>${top(c.aportes.e5)}</span></p>
+    ${clasicos}
     ${antes.dicky + antes.e5 ? `<p class="cl-antes">La semana pasada ${salio}, ${antes.dicky} a ${antes.e5} · 📺 LG: «${esc(lgClasico(antes))}»</p>` : ''}
-    <p class="cl-como">Solo suman las vueltas bajo par: cada vuelta firmada con un Dicky o con el Equipo 5, un punto por cada golpe bajo par para su equipo (hasta 5 vueltas por día). Termina el domingo a la noche${hayBananas ? `; los que sumaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}.</p>`
+    <p class="cl-como">${base
+      ? 'Suman las vueltas bajo par, un punto por golpe (con camiseta, solo con cartas de tu equipo; doble el sábado de 9 a 10; hasta 5 por día), y cada match clásico que le ganás a uno de la otra camiseta: 3 (por el honor, sin LP y uno por pareja por día; con bananas, siempre).'
+      : 'Solo suman las vueltas bajo par: cada vuelta firmada con un Dicky o con el Equipo 5, un punto por cada golpe bajo par para su equipo (hasta 5 vueltas por día).'} Termina el domingo a la noche${hayBananas ? `; los que sumaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}.</p>`
   el.hidden = false
 }
+/** El escudito de la camiseta de `uid` (si tiene), para poner al lado del nombre. */
+const camisetaMini = (uid) => { const e = uid && camisetasDe.get(uid); return e ? `<img class="cam-mini${e === 'e5' ? ' e5' : ''}" src="${EQUIPOS[e].logo}" alt="" title="Banca a ${EQUIPOS[e].corto}" draggable="false">` : '' }
 /** Al entrar: si el Clásico de la semana pasada lo ganó tu equipo (y sumaste), el mono te tira las bananas. Una vez por semana (lo cuida la base). */
 async function cobrarClasico() {
   if (cobrarClasico.hecho) return
@@ -8877,6 +9753,10 @@ async function mostrarRanking(tab = 'general') {
   rkMarcas = marcas
   rkCompartido = compartido
   pintarRanking(error)
+  // 👕 las camisetas (los escuditos) y el Clásico de la base (con los matches clásicos)
+  if (R.hayMatch()) {
+    Promise.allSettled([R.leerCamisetas().then((m) => { camisetasDe = m }), cargarClasicoBase()]).then(() => { if (!$('#ranking').hidden && rkMarcas) pintarRanking(error) })
+  }
   $('#rk-volver').focus()
 }
 function pintarRanking(error = false) {
@@ -8904,7 +9784,7 @@ function pintarRanking(error = false) {
   rkVista = lista
   // el sello del SDGA: en el Mundial, al lado del nombre de los socios
   // ⛳ y el del sábado 9 AM, en las firmadas a esa hora
-  const sello = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '') + (M.esSabado9(Date.parse(m.fecha)) ? '<span class="s9" title="Sábado 9 AM" aria-label="firmada un sábado a las 9">🌅</span>' : '')
+  const sello = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '') + camisetaMini(m.uid) + (M.esSabado9(Date.parse(m.fecha)) ? '<span class="s9" title="Sábado 9 AM" aria-label="firmada un sábado a las 9">🌅</span>' : '')
   const fila = (m, salto) => `<li class="rk-fila tocable${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}" data-k="${lista.indexOf(m)}" tabindex="0" role="button" aria-label="Ver la vuelta de ${esc(m.usuario)}">
       <span class="rk-pos">${m.pos}</span>
       <span class="rk-quien">${j ? `<span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span></span>` : `<span class="mini${publico(m).misterio ? ' misterio' : ''}" aria-hidden="true">${publico(m).emoji}</span><span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span><small>con ${esc(publico(m).apodo.replace(/ \(Đ\)$/, ''))}</small></span>`}</span>
@@ -9311,6 +10191,8 @@ R.alEntrar(async (yo) => {
   rkAmbito = yo.sdga ? 'sdga' : 'mundial'
   // la SDGApp de dev sin Google (modo DEV): la app no deja jugar matches; se juega el de prueba (prueba.js)
   if (String(yo.uid).startsWith('dev:') && !R.enPrueba()) await activarPrueba(yo)
+  if (R.hayMatch()) cargarCamiseta()
+  else { camiseta.cargada = true; listaCamiseta() }
   if (R.hayMatch()) {
     $('#ver-match').hidden = false
     cargarDesafios()
