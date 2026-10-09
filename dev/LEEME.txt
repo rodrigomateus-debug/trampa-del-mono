@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy es igual al juego publicado (la raíz).
+Hoy: el juego publicado + las bananas 🍌 en el MATCH (apostar antes de jugar, aceptar o rechazar, el pozo del mono, los más ricos y los premios al firmar), para probar. Necesitan el SQL de las bananas en la base de staging (lo corre Miguel): sin eso, el match es el de siempre.
