@@ -383,7 +383,7 @@ export const DIFICULTAD_REAL = {
   'El Ninja (Đ)': { prom: 0.83, lp: 3 },
   LG: { prom: 0.68, lp: 1 },
   'El Mago Rodal': { prom: -0.17, lp: 0, nivel: 2 }, // elige el golpe. Normal a mano: el bot dibuja el vuelo perfecto, la gente no
-  'El Flaco Ordoñez': { prom: 1.4, lp: 0 }, // el bot no maneja: el carrito le cuesta tiempo, no golpes
+  'El Flaco Ordoñez': { prom: 1.39, lp: 1 }, // el bot no maneja: el carrito le cuesta tiempo, no golpes. Con la racha (2026-10-09; sin ella, +1,65 en las mismas 200 vueltas)
   Lechu: { prom: 0.98, lp: 1 }, // 2026-10-09: las dadas de 15 metros (200 vueltas; con las de 3: +1,53, con las de 6: +1,40; el bot patea bien, a mano se nota más)
   Liberty: { prom: 2.51, lp: 8 },
   Mugre: { prom: 2.32, lp: 3 },

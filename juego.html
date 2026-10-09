@@ -692,6 +692,22 @@ body.manejando #mandos { display: flex; }
 #mandos #m-reversa.on { background: var(--gold); transform: translate(3px, 4px); box-shadow: 0 0 0 var(--game-ink); }
 /* el velocímetro: se llena de dorado y en el turbo se pone al rojo */
 #m-velo { position: absolute; left: 50%; bottom: calc(100% + 12px); transform: translateX(-50%); width: 132px; padding: 6px 9px 7px; border-radius: 12px; background: rgba(12, 43, 28, .82); border: 2px solid rgba(244, 238, 218, .5); color: var(--cream); font: 13px var(--font-display); letter-spacing: .08em; text-align: center; pointer-events: none; }
+#m-reset { position: absolute; left: 50%; bottom: calc(100% + 66px); transform: translateX(-50%); padding: 7px 14px 6px; font: 15px/1 var(--font-display); letter-spacing: .06em; color: var(--game-ink); background: var(--cream); border: var(--game-stroke) solid var(--game-ink); border-radius: 999px; box-shadow: 3px 4px 0 var(--game-ink); pointer-events: auto; }
+#m-reset:active { transform: translateX(-50%) translate(3px, 4px); box-shadow: 0 0 0 var(--game-ink); }
+/* 📣 Marcos festeja a los gritos */
+#grito { position: fixed; left: 50%; top: 46%; z-index: 40; display: flex; flex-direction: column; align-items: center; gap: 6px; width: max-content; max-width: calc(100vw - 32px); pointer-events: none; text-align: center; transform: translate(-50%, -50%); }
+#grito[hidden] { display: none; }
+#grito img { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; border: var(--game-stroke) solid var(--game-ink); box-shadow: 3px 4px 0 var(--game-ink); animation: grito-cara .5s var(--game-ease-bounce) both; }
+#grito .g-txt { display: grid; justify-items: center; gap: 6px; }
+#grito b { font: clamp(26px, 8vw, 40px)/.95 var(--font-display); color: var(--gold); -webkit-text-stroke: 2px var(--game-ink); paint-order: stroke fill; text-shadow: 3px 4px 0 var(--game-ink); white-space: nowrap; transform-origin: 50% 50%; animation: grito-sale .55s var(--game-ease-bounce) both, grito-tiembla .09s linear .55s 6; }
+#grito small { white-space: nowrap; padding: 3px 7px 2px; font: 12px/1 var(--font-display); letter-spacing: .06em; color: var(--game-ink); background: var(--gold); border: 2px solid var(--game-ink); border-radius: 6px; transform: rotate(-3deg); animation: cam-sube .4s .3s ease-out both; }
+#grito.corta b { color: var(--cream); font-size: clamp(20px, 6vw, 28px); animation: grito-sale .45s ease-out both; }
+#grito.corta img { filter: grayscale(1); }
+#grito.sale { animation: cam-se-va .4s ease-in both; }
+@keyframes grito-sale { 0% { transform: scale(.2) rotate(-14deg); opacity: 0 } 100% { transform: rotate(-4deg); opacity: 1 } }
+@keyframes grito-tiembla { 0%, 100% { translate: 0 0 } 50% { translate: 2px -2px } }
+@keyframes grito-cara { 0% { transform: scale(.3) rotate(-20deg) } 100% { transform: none } }
+@media (prefers-reduced-motion: reduce) { #grito *, #grito { animation: none !important } }
 #m-velo .barra { height: 7px; margin-top: 4px; border-radius: 4px; background: rgba(244, 238, 218, .2); overflow: hidden; }
 #m-velo .barra i { display: block; height: 100%; width: 0; background: var(--gold); border-radius: 4px; transition: width 80ms linear; }
 #m-velo.turbo { border-color: var(--gold); }
@@ -1846,6 +1862,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <button class="dir" id="m-der" type="button" aria-label="Derecha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 4 8 8-8 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>
   <div id="m-velo" aria-hidden="true"><span>VELOCIDAD</span><div class="barra"><i></i></div></div>
+  <button id="m-reset" type="button" aria-label="Reset: el carrito vuelve al medio del fairway más cercano">🔄 RESET</button>
   <div class="grupo">
     <div class="col"><button id="m-reversa" type="button" aria-label="Reversa">REVERSA</button><button class="pedal" id="m-freno" type="button" aria-label="Freno"><span><b>■</b>FRENO</span></button></div>
     <button class="pedal" id="m-acel" type="button" aria-label="Acelerar"><span><b>▲</b>ACELE<br>RAR</span></button>
@@ -1943,6 +1960,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <div class="cam-sello" id="cam-sello" aria-hidden="true"></div>
 </div>
+<div id="grito" hidden aria-live="polite"><img src="jugadores/marcos.jpeg" alt="" draggable="false"><span class="g-txt"><b></b><small></small></span></div>
 <div id="sabado" hidden aria-live="polite">
   <div class="sb-msg"><p class="sb-de">SDGA ⛳</p><p class="sb-tit"></p><ol class="sb-lista"></ol><p class="sb-lg"></p><span class="sb-hora"></span></div>
   <div class="sb-foto" hidden><div class="sb-caras"></div><p class="sb-dicen"></p></div>
@@ -3081,6 +3099,7 @@ function alReposo() {
   const dicho = M.comentar(rng, res, tiro, h, ronda.jugador, { desde, lieDesde })
   lucasDice(dicho.lucas) // con Rodal: Lucas en persona
   dickyDespues(res, tiro) // con un Dicky: otro Dicky con palabras tiernas
+  rachaMarcos(res) // Marcos: festeja a los gritos (y arma la racha)
   if (res.tipo === 'embocada') {
     const hab = M.habilidadDe(ronda.jugador)
     const frase = tiro.deme ? '¡LO DIJO DEME! 🧙' : tiro.retro ? M.elegir(rng, ['Par de Demetrio. Como en el 60 🏌️', 'Ni el viento se animó. Par.', 'Así se jugaba antes: par y a casa', 'Par. Más que eso, Demetrio no hace']) : tiro.iman?.lechuza ? '🦉 ¡LA DADA DE LA LECHUZA!' : hab?.adulado ? null : tiro.iman?.lechu ? M.elegir(rng, M.RELATO.dada) : tiro.iman?.meter ? M.elegir(rng, M.RELATO.chipIn) : hab?.id === 'panchitos' ? M.elegir(rng, M.RELATO.mugre) : tiro.modo === 'putt' && largo > 8 ? '¡ADENTRO! Tremendo' : null
@@ -3238,8 +3257,8 @@ function siguienteTiro() {
   if (M.necesitaLP(ronda)) { levantarVuelta(); return }
   // la Ruleta: si pegaste, gira y sale otro (antes del carrito: si sale Marcos, maneja él)
   girarRuleta(() => {
-    // Marcos: antes de pegar, maneja el carrito hasta la pelota
-    if (M.usaCarrito(ronda) && ronda.carro && !M.carroLlego(campo, ronda.carro, ronda.pelota)) { empezarManejo(aApuntar, 'pelota'); return }
+    // Marcos: antes de pegar, maneja el carrito hasta la pelota (al green va caminando: el carrito queda donde estaba)
+    if (M.usaCarrito(ronda) && ronda.carro && ronda.lie !== 'green' && !M.carroLlego(campo, ronda.carro, ronda.pelota)) { empezarManejo(aApuntar, 'pelota'); return }
     aApuntar()
   })
 }
@@ -3416,6 +3435,20 @@ for (const [id, k] of [['m-izq', 'izq'], ['m-der', 'der'], ['m-acel', 'acelerar'
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, off)
   b.addEventListener('contextmenu', (e) => e.preventDefault())
 }
+// RESET: si el carrito se trabó, al medio del fairway más cercano (mirando a la pelota)
+$('#m-reset').addEventListener('click', () => {
+  if (estado !== 'manejar' || !ronda?.carro || performance.now() - (manejo?.reset ?? 0) < 800) return
+  manejo.reset = performance.now()
+  const antes = [...ronda.carro.pos]
+  if (!M.rescatarCarro(campo, ronda.carro, ronda.pelota)) return
+  humo.push({ p: antes, t: performance.now() }, { p: [...ronda.carro.pos], t: performance.now() })
+  huellas = []
+  ruedasAntes = null
+  obj = vistaManejo(ronda.carro)
+  Object.assign(cam, obj)
+  S.tap()
+  relatar({ lg: '🔄 RESET', verso: 'El carrito, al medio del fairway más cercano' })
+})
 const TECLAS = { ArrowUp: 'acelerar', w: 'acelerar', ' ': 'frenar', ArrowDown: 'reversa', s: 'reversa', ArrowLeft: 'izq', a: 'izq', ArrowRight: 'der', d: 'der' }
 window.addEventListener('keydown', (e) => { const k = TECLAS[e.key]; if (k && estado === 'manejar') { mando[k] = true; e.preventDefault() } })
 window.addEventListener('keyup', (e) => { const k = TECLAS[e.key]; if (k) mando[k] = false })
@@ -4111,9 +4144,7 @@ function cerrar(frase) {
   const { vsPar } = M.totales(ronda.tarjeta)
   banda({ kicker: `Hoyo ${fila.n} · ${fila.golpes} golpes`, grande: nombre, banda: `VAS ${M.formatoPar(vsPar)}`, verso: linea }, 2600, () => {
     if (ronda.terminada) tarjetaFinal()
-    // Marcos: del green al tee del próximo hoyo, manejando
-    else if (M.usaCarrito(ronda) && !ronda.ruleta && ronda.carro && !M.carroLlego(campo, ronda.carro, ronda.pelota)) empezarManejo(introHoyo, 'tee')
-    else introHoyo()
+    else introHoyo() // Marcos: el carrito ya lo espera en el próximo tee (M.cerrarHoyo)
   })
 }
 
@@ -4370,6 +4401,28 @@ function dickyVisita(d, texto, e5 = false) {
  * de la Dickyllamada, es él. A veces, en vez del Dicky, se cuela uno del Equipo 5 a chicanear (y el Dicky que viene le
  * contesta). Si jugás con uno del Equipo 5, aparece su compañero.
  */
+/** 📣 Marcos: cada tiro bueno lo festeja a los gritos (con la racha que lleva); si un malo la corta, se calla. */
+let gritoTimer = 0
+function rachaMarcos(res) {
+  const rc = res.racha
+  if (!rc || replay) return
+  const el = $('#grito')
+  if (rc.bueno) {
+    el.querySelector('b').textContent = M.elegir(rng, M.GRITOS_MARCOS)
+    el.querySelector('small').textContent = `🔥 RACHA x${rc.ahora} · ${rc.ahora >= M.RACHA.max ? 'AL MÁXIMO' : `−${Math.round(M.RACHA.paso * rc.ahora * 100)}% EL PRÓXIMO`}`
+    el.className = ''
+    S.grito()
+    navigator.vibrate?.([30, 30, 30])
+  } else if (rc.antes > 0 && rc.ahora === 0) {
+    el.querySelector('b').textContent = 'Se cortó la racha…'
+    el.querySelector('small').textContent = 'A EMPEZAR DE NUEVO'
+    el.className = 'corta'
+  } else return
+  el.hidden = false
+  void el.offsetWidth
+  clearTimeout(gritoTimer)
+  gritoTimer = setTimeout(() => { el.classList.add('sale'); gritoTimer = setTimeout(() => { el.hidden = true }, 400) }, rc.bueno ? 1700 : 1300)
+}
 function dickyDespues(res, tiro) {
   const yo = ronda.jugador
   if (tiro.prestado) {
@@ -4577,6 +4630,8 @@ function pintarVoz() {
     clase = ''; dice = '😈 MUFADO POR EL EQUIPO 5'; extra = 'Este tiro: más error y el latido más rápido'
   } else if (estado === 'apuntar' && ronda?.blando) {
     clase = ''; dice = '🥺 TE ABLANDARON'; extra = 'Este tiro sale más corto'
+  } else if (estado === 'apuntar' && ronda?.racha && M.usaCarrito(ronda) && !ronda.prestado) {
+    clase = ''; dice = `📣 RACHA x${ronda.racha}`; extra = `Este tiro, ${Math.round((1 - M.factorRacha(ronda)) * 100)}% menos error. Uno malo la corta`
   } else if (estado === 'apuntar' && ronda?.lechuza && M.enModoPutt(campo, ronda) && !ronda.mejorPelota?.fase) {
     const h = M.hoyoActual(ronda)
     const cerca = M.dist(ronda.pelota, h.pin) * h.escala <= M.DADA

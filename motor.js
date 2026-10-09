@@ -131,7 +131,7 @@ export const HABILIDADES = {
   Mugre: { id: 'panchitos', nombre: 'Tirar panchos', texto: 'A la Mugre los monos la huelen de lejos y vienen más. Pero tiene 3 panchos por hoyo: se los tirás, van, comen un segundo y vuelven.' },
   Liberty: { id: 'approach', nombre: 'Si no era por el approach', texto: 'El drive sale derecho siempre. Los approach (de 30 a 100 yd del hoyo) tienen el triple de error.' },
   Grandpa: { id: 'deme', nombre: 'Invocar a Deme', texto: 'Maxi, una vez por vuelta (no desde el tee): llama a Deme, el mentor. Te enseña a agarrar el palo y el próximo tiro entra de una, le pegues como le pegues.' },
-  'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro (y de tee a tee) lo manejás vos hasta la pelota. Los árboles no se atraviesan. El reloj corre.' },
+  'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito y la racha de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro lo manejás vos hasta la pelota (al green va caminando, y al próximo tee lo lleva solo). Los árboles no se atraviesan; si se traba, RESET: vuelve al medio del fairway más cercano. El reloj corre. Y la racha: cada tiro bueno lo festeja a los gritos y el próximo sale con menos error (cada vez menos, hasta la mitad y un poco más); uno malo la corta.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
   'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (la goma llega más lejos; en el sweet spot, perfecta) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
@@ -536,6 +536,31 @@ export const perseguirCarro = (r) => despertarMonos(r.monos, r.carro.pos, alerta
 /** El carrito estacionado al lado de una salida (al empezar, o al volver al tee porque los monos se la llevaron). */
 export const carroAlLado = (p) => crearCarro([p[0] + 2.5, p[1] + 2])
 
+/**
+ * RESET (el carrito trabado): al medio del fairway más cercano (en la fila de esa celda, el centro del tramo de fairway),
+ * quieto y mirando a `hacia` (la pelota). Devuelve la posición nueva (o null si no hay fairway cerca).
+ */
+export function rescatarCarro(campo, carro, hacia = null) {
+  const f = campo.cancha.filas
+  const [cx, cy] = carro.pos
+  let mejor = null
+  for (let rad = 0; rad <= 80 && !mejor; rad += 1) {
+    for (let y = Math.max(0, Math.floor(cy - rad)); y <= Math.min(f.length - 1, Math.floor(cy + rad)); y++) {
+      for (let x = Math.max(0, Math.floor(cx - rad)); x <= Math.min(f[y].length - 1, Math.floor(cx + rad)); x++) {
+        if (f[y][x] !== 'f') continue
+        const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy)
+        if (d <= rad + 0.5 && (!mejor || d < mejor.d)) mejor = { x, y, d }
+      }
+    }
+  }
+  if (!mejor) return null
+  let x0 = mejor.x, x1 = mejor.x
+  while (f[mejor.y][x0 - 1] === 'f') x0--
+  while (f[mejor.y][x1 + 1] === 'f') x1++
+  const pos = [(x0 + x1 + 1) / 2, mejor.y + 0.5]
+  Object.assign(carro, { pos, v: 0, vl: 0, colea: false, ang: hacia ? Math.atan2(hacia[1] - pos[1], hacia[0] - pos[0]) : carro.ang })
+  return pos
+}
 /** ¿Llegó a la pelota? (en el bosque alcanza con acercarse: el último tramo, a pie) */
 export function carroLlego(campo, carro, pelota) {
   const lejos = NO_SE_PASA.has(celda(campo, pelota)) ? CARRITO.llegarBosque : CARRITO.llegar
@@ -930,7 +955,7 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     const noLaFalla = enDada && (propia || !!r.lechuza)
     const lechuza = enDada && !propia && !!r.lechuza
     const retro = hab?.id === 'retro'
-    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1) * (r.mufa ? MUFA.error : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, lechuza, furia: furioso, mufa: !!r.mufa, blando: !!r.blando }
+    return { putt: true, puttMax, cuerda: angulo, carry, destino: [b[0] + Math.cos(angulo) * carry, b[1] + Math.sin(angulo) * carry], control: null, disp: null, error: retro ? 0 : dif.error * (hab?.id === 'caos' ? SORPRESA.error : 1) * (r.mufa ? MUFA.error : 1) * (hab?.id === 'carrito' ? factorRacha(r) : 1), recto: retro || hab?.id === 'derecho' || !!r.calma, giro, noLaFalla, lechuza, furia: furioso, mufa: !!r.mufa, blando: !!r.blando }
   }
   const tee = desdeLaSalida(campo, r)
   const plan = planBase(angulo, potencia, r.lie)
@@ -969,6 +994,8 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     plan.calma = true
   }
   if (hab?.id === 'caos') plan.disp = { ...plan.disp, ang: plan.disp.ang * SORPRESA.error, carry: plan.disp.carry * SORPRESA.error }
+  // Marcos: con racha, menos error (cada tiro bueno seguido, un poco menos)
+  if (hab?.id === 'carrito' && r.racha) { const k = factorRacha(r); plan.disp = { ...plan.disp, ang: plan.disp.ang * k, carry: plan.disp.carry * k }; plan.racha = r.racha }
   if (hab?.id === 'derecho' && !tee) {
     // El Sueco, desde el segundo tiro: una flecha. Derecho (sin error de dirección), bajo y rápido, y atraviesa
     // todo: los pinos y los monos que se cruzan en el vuelo (2026-10-07, antes era "siempre derecho" también el drive)
@@ -1973,6 +2000,12 @@ export function resolverReposo(campo, r, tiro, rng) {
   // (si LG pegó prestado —atendió la Dickyllamada—, su calma no queda para el que juega; ofendido —la interna—, sin calma)
   if (habilidadDe(r.jugador)?.id === 'calma') r.calma = !r.prestado && !r.ofendido && esMalo(res, tiro)
   r.ultimoMalo = esMalo(res, tiro) // (para LG cuando pega de compañero en la Mejor pelota)
+  // Marcos: la racha (lo prestado de la Dickyllamada no la toca: ese tiro no es de él)
+  if (habilidadDe(r.jugador)?.id === 'carrito' && !r.prestado) {
+    const antes = r.racha ?? 0
+    r.racha = esMalo(res, tiro) ? 0 : esBueno(res) ? Math.min(RACHA.max, antes + 1) : antes
+    res.racha = { antes, ahora: r.racha, bueno: esBueno(res) && !esMalo(res, tiro) }
+  }
   cargarFuria(campo, r, tiro, res)
   devolverDicky(r) // la Dickyllamada: el Dicky que te pegó el tiro te devuelve el palo
   return res
@@ -1999,6 +2032,14 @@ export function sumarFuria(r, motivo) {
   return r.furia
 }
 const esMalo = (res, tiro) => ['afuera', 'mono-malo', 'mono-ladron'].includes(res.tipo) || ['rough', 'bunker'].includes(res.terreno) || tiro.eventos.some((e) => e.tipo === 'palo')
+const esBueno = (res) => res.tipo === 'embocada' || ['fairway', 'green'].includes(res.terreno)
+// ── 📣 Marcos: la racha (buildup). Cada tiro bueno (a la calle, al green o adentro) lo festeja a los gritos y el
+// próximo sale con menos error: −15% por cada uno seguido, hasta 4 (−60%). Uno malo (rough, bunker, afuera, al palo,
+// los monos) la corta; los del medio la dejan como está ──
+export const RACHA = { paso: 0.15, max: 4 }
+export const factorRacha = (r) => 1 - RACHA.paso * Math.min(RACHA.max, r?.racha ?? 0)
+// lo que grita (del chat: "Bien papá!!!!", "Que grande!!", "Crack!!", "Que batacazo!!"; y su frase de la carta)
+export const GRITOS_MARCOS = ['¡ENTRÁ, BOLIVIANA!!!', '¡BIEN PAPÁ!!!!', '¡QUÉ GRANDE!!', '¡CRACK!!', '¡QUÉ BATACAZO!!', '¡VAMOOOOS!!', '¡NO PODÍA SER OTRO!!', '¡ESAAAA!!!']
 
 function resolver(campo, r, tiro, rng) {
   const hoyo = hoyoActual(r)
@@ -2123,6 +2164,8 @@ export function cerrarHoyo(r, rng) {
     r.viento = r.match ? { ...r.match.vientos[r.idx] } : vientoAleatorio(rng) // en un match, el mismo viento para los dos
     vientoDelClima(r)
     if (r.panchos || habilidadDe(r.jugador)?.id === 'panchitos') r.panchos = MUGRE.panchos
+    // Marcos: el carrito lo espera en el próximo tee (no hace falta manejar de green a tee)
+    if (r.carro) r.carro = carroAlLado(r.pelota)
   }
   return fila
 }

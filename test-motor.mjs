@@ -1431,6 +1431,59 @@ ok('⛳ Sábado 9 AM: la hora (argentina), la lista (cada uno una vez, en orden)
   assert.deepEqual(c.aportes.e5.map((x) => [x.nombre, x.pts]), [['Lucas', 2]])
 })
 
+ok('📣 Marcos: la racha (cada tiro bueno, el próximo con menos error; uno malo la corta) y el RESET del carrito', () => {
+  const nueva = () => ({ ...M.nuevaRonda({ apodo: 'El Flaco Ordoñez', emoji: '🏎️', hcp: 7.2 }, fijo(0.5)), monos: [], viento: calma })
+  const tirar = (r, destino) => {
+    const t = M.golpear(quieto, r, angulo(r.pelota, destino), 0.3, sinRuido())
+    M.simular(quieto, t, M.hoyoActual(r).pin)
+    t.pos = [...destino]
+    t.alt = 0
+    t.eventos = [] // (sin el palo del vuelo de mentira: lo que cuenta es dónde quedó)
+    return M.resolverReposo(quieto, r, t, fijo(0.99))
+  }
+  const calle = h15.calle[2], rough = [h15.calle[2][0] + 16, h15.calle[2][1]]
+  const r = nueva()
+  // sin racha: el error de siempre
+  const base = M.planTiro(quieto, r, 0, 0.7).disp
+  // dos buenos seguidos: racha 2, el próximo −30%
+  assert.deepEqual(tirar(r, calle).racha, { antes: 0, ahora: 1, bueno: true })
+  r.pelota = [...calle]; r.lie = 'fairway'
+  assert.equal(tirar(r, calle).racha.ahora, 2)
+  r.pelota = [...h15.calle[0]]; r.lie = 'tee'
+  const con = M.planTiro(quieto, { ...r, lie: 'fairway', pelota: [...calle] }, 0, 0.7).disp
+  const sin = M.planTiro(quieto, { ...r, racha: 0, lie: 'fairway', pelota: [...calle] }, 0, 0.7).disp
+  assert.ok(Math.abs(con.ang - sin.ang * 0.7) < 1e-9 && Math.abs(con.carry - sin.carry * 0.7) < 1e-9, `${con.ang} vs ${sin.ang}`)
+  assert.ok(base.ang > 0)
+  // hasta 4, no más (−60%)
+  r.racha = 4
+  r.pelota = [...calle]; r.lie = 'fairway'
+  assert.equal(tirar(r, calle).racha.ahora, 4)
+  assert.ok(Math.abs(M.factorRacha(r) - 0.4) < 1e-9)
+  // uno malo (al rough) la corta
+  r.pelota = [...calle]; r.lie = 'fairway'
+  assert.deepEqual(tirar(r, rough).racha, { antes: 4, ahora: 0, bueno: false })
+  // otro jugador no tiene racha
+  const o = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [], viento: calma }
+  assert.equal(tirar(o, calle).racha, undefined)
+  // RESET: trabado contra los árboles, vuelve al medio del fairway más cercano (quieto, mirando a la pelota)
+  const carro = M.crearCarro([...enArbol])
+  carro.v = 9
+  const pos = M.rescatarCarro(quieto, carro, h15.pin)
+  assert.equal(M.celda(quieto, pos), 'f')
+  assert.equal(carro.v, 0)
+  const fila = quieto.cancha.filas[Math.floor(pos[1])]
+  let x0 = Math.floor(pos[0]), x1 = x0
+  while (fila[x0 - 1] === 'f') x0--
+  while (fila[x1 + 1] === 'f') x1++
+  assert.ok(Math.abs(pos[0] - (x0 + x1 + 1) / 2) < 1, 'al medio del fairway')
+  // el carrito lo espera en el próximo tee
+  const t = nueva()
+  t.carro = M.crearCarro([10, 10])
+  t.golpes = 4
+  M.cerrarHoyo(t, fijo(0.5))
+  assert.ok(M.carroLlego(quieto, t.carro, t.pelota), 'el carrito, al lado del tee')
+})
+
 ok('El Ninja: reset del hoyo (uno por vuelta): al tee con cero golpes, sin multa', () => {
   const r = { ...M.nuevaRonda({ apodo: 'El Ninja (Đ)', emoji: '🥷' }, fijo(0.5)), monos: [] }
   // desde el tee, sin haber pegado, no hay nada que resetear

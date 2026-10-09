@@ -232,6 +232,13 @@ export function logro() {
   campana(1567.98, 0.42, 0.1)
   ruido(0.5, { f: 6000, q: 0.6, vol: 0.03, at: 0.36 })
 }
+// 📣 Marcos festeja: un grito (ruido con forma de voz que sube) y un golpecito de aplauso
+export function grito() {
+  ruido(0.55, { filtro: 'bandpass', f: 700, f2: 1300, q: 3, vol: 0.32, ataque: 0.03 })
+  tono(330, 0.5, { tipo: 'sawtooth', vol: 0.06, f2: 520, ataque: 0.03 })
+  ruido(0.08, { f: 2600, vol: 0.12, at: 0.5 })
+  ruido(0.08, { f: 2400, vol: 0.1, at: 0.62 })
+}
 // 🦉 la lechuza que se asoma: "uh… uh-uh", bajito (que se escuche si estás atento)
 export function ulula() {
   tono(470, 0.32, { vol: 0.07, f2: 430, ataque: 0.06 })
