@@ -976,9 +976,133 @@ input { -webkit-user-select: text; user-select: text; }
 /* Desafiar / Jugar en las filas del match: chicos (38px) para que entren en la fila; verde sobre la tarjeta crema, oro el que te toca jugar */
 .mt-btn { --sh: var(--game-shadow-xs); --dx: 2px; --dy: 3px; height: 38px; padding: 0 14px; border-width: 2.5px; border-radius: 999px; background: var(--green-500); color: var(--cream); font: 16px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; }
 .mt-btn.oro { background: var(--gold); color: var(--green-900); }
+/* las bananas 🍌 (8/10/2026): el saldo arriba del match, la etiqueta de la apuesta, la hojita para elegir/aceptar */
+.gi.bn { display: inline-block; width: 1.18em; height: 1.18em; vertical-align: -.24em; margin: 0 .04em; }
+/* el sticker: la misma banana, troquelada en crema, con la sombra dura del afiche y un poco torcida */
+.bn-sticker { display: block; overflow: visible; filter: drop-shadow(3px 4px 0 var(--game-ink)); transform: rotate(-8deg); }
+.bn-sticker g { stroke-width: 1.7; }
+.bn-sticker .borde * { fill: #fffaf0; stroke: #fffaf0; stroke-width: 5.5; }
+.bn-caja .bn-tit .bn-sticker { display: inline-block; width: 1.25em; height: 1.25em; vertical-align: -.28em; margin-right: .12em; filter: drop-shadow(2px 2px 0 var(--game-ink)); }
+/* la fiesta de las bananas (hoyo en uno; en MODO PRO, el pozo): rayos que giran, el sticker que cae y rebota, el número
+   que cuenta y una lluvia de bananas. Un toque la cierra; sola, a los 5 s. Con "menos movimiento", sin lluvia ni giros. */
+.bn-fiesta { position: fixed; inset: 0; z-index: 85; display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 50% 42%, rgba(20, 64, 42, .9), rgba(8, 26, 16, .97) 70%); animation: bnf-entra .35s ease-out both; cursor: pointer; }
+.bn-fiesta[hidden] { display: none; }
+.bn-fiesta.sale { animation: bnf-sale .4s ease-in both; }
+.bnf-rayos { position: absolute; left: 50%; top: 42%; width: 160vmax; height: 160vmax; margin: -80vmax 0 0 -80vmax; background: repeating-conic-gradient(rgba(232, 195, 74, .2) 0 9deg, transparent 9deg 18deg); -webkit-mask: radial-gradient(circle, #000 0, transparent 55%); mask: radial-gradient(circle, #000 0, transparent 55%); animation: bnf-gira 14s linear infinite; }
+.bnf-centro { position: relative; display: grid; justify-items: center; gap: 6px; padding: 0 16px; text-align: center; }
+.bnf-sticker { width: min(46vw, 200px); height: min(46vw, 200px); animation: bnf-cae .9s cubic-bezier(.2, .9, .3, 1.25) both, bnf-flota 2.4s ease-in-out .9s infinite; }
+.bnf-sticker .bn-sticker { width: 100%; height: 100%; filter: drop-shadow(6px 8px 0 var(--game-ink)); }
+.bnf-tit { margin: 4px 0 0; padding: .12em .5em .06em; background: var(--gold); color: var(--green-900); border: var(--game-stroke) solid var(--game-ink); box-shadow: var(--game-shadow-md); font: clamp(28px, 9vw, 46px)/1.05 var(--font-display); letter-spacing: .03em; text-transform: uppercase; transform: rotate(-3deg); animation: bnf-pop .45s cubic-bezier(.2, .9, .3, 1.4) .55s both; }
+.bnf-num { margin: 0; color: var(--cream); font: clamp(76px, 26vw, 128px)/1 var(--font-display); letter-spacing: .01em; text-shadow: 4px 5px 0 var(--game-ink); animation: bnf-pop .45s cubic-bezier(.2, .9, .3, 1.4) .8s both; }
+.bnf-num .bn-sticker { display: inline-block; width: .68em; height: .68em; vertical-align: -.02em; margin-left: .08em; }
+.bnf-sub { margin: 0; color: rgba(244, 238, 218, .9); font: 700 15px var(--font-body); animation: bnf-pop .4s ease-out 1s both; }
+.bnf-lluvia { position: absolute; inset: 0; pointer-events: none; }
+.bnf-lluvia i { position: absolute; top: -70px; left: var(--x); width: var(--t); height: var(--t); animation: bnf-llueve var(--d) linear var(--del) both; }
+.bnf-lluvia i svg { width: 100%; height: 100%; }
+@keyframes bnf-entra { from { opacity: 0; } }
+@keyframes bnf-sale { to { opacity: 0; transform: scale(1.04); } }
+@keyframes bnf-gira { to { transform: rotate(360deg); } }
+@keyframes bnf-cae { 0% { transform: translateY(-80vh) rotate(-40deg) scale(.5); } 65% { transform: translateY(14px) rotate(6deg) scale(1.06); } 82% { transform: translateY(-8px) rotate(-3deg) scale(.98); } 100% { transform: none; } }
+@keyframes bnf-flota { 50% { transform: translateY(-8px) rotate(3deg); } }
+@keyframes bnf-pop { 0% { opacity: 0; scale: .4; } 70% { opacity: 1; scale: 1.12; } 100% { opacity: 1; scale: 1; } }
+@keyframes bnf-llueve { 0% { transform: translateY(0) rotate(var(--r0)); opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(calc(100vh + 120px)) rotate(var(--r1)); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .bnf-rayos, .bnf-lluvia { display: none; } .bnf-sticker, .bnf-tit, .bnf-num, .bnf-sub { animation: bnf-entra .3s ease-out both; } }
+.mt-prueba { margin: 0; padding: 8px 10px; border: 2px dashed var(--green-500); border-radius: 12px; font-size: 12px; line-height: 1.35; text-align: left; }
+.mt-prueba[hidden] { display: none; }
+.mt-prueba button { margin-left: 4px; padding: 2px 8px; border: 1.5px solid var(--green-900); border-radius: 999px; background: var(--cream); color: var(--green-900); font: 700 11px var(--font-body); }
+.bn-barra { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; padding: 6px 12px 6px 6px; border: 2.5px solid var(--game-ink); border-radius: 16px; background: var(--gold); color: var(--green-900); box-shadow: 3px 4px 0 var(--game-ink); font: 700 14px var(--font-body); text-align: left; cursor: pointer; translate: 0 0; transition: translate var(--game-release-dur) var(--game-ease-bounce), box-shadow var(--game-release-dur) var(--game-ease-bounce); }
+.bn-barra:active { translate: 3px 4px; box-shadow: 0 0 0 var(--game-ink); transition-duration: var(--game-press-dur); }
+.bn-barra[hidden] { display: none; }
+.bnb-yo { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.bnb-yo .bn-sticker { flex: none; width: 46px; height: 46px; filter: drop-shadow(2px 3px 0 var(--game-ink)); }
+.bnb-txt { display: grid; line-height: 1; }
+.bnb-txt small, .bnb-pozo small { font: 800 10px/1.2 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: rgba(12, 43, 28, .72); }
+.bnb-txt b { font: 32px/1 var(--font-display); font-weight: 400; }
+.bnb-txt em { font-style: normal; font-size: 11px; font-weight: 700; color: rgba(12, 43, 28, .78); }
+.bnb-pozo { display: grid; justify-items: end; gap: 2px; padding-left: 12px; border-left: 2px dashed rgba(12, 43, 28, .4); text-align: right; white-space: nowrap; }
+.bnb-pozo b { font: 24px/1 var(--font-display); font-weight: 400; }
+/* la apuesta: − y + grandes, el número en el medio, TODO; arranca en 2 */
+.bn-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bn-vs div { display: grid; justify-items: center; gap: 2px; padding: 8px 6px; border-radius: 12px; background: rgba(20, 64, 42, .07); }
+.bn-vs small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 800 10px var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+.bn-vs span { font: 26px/1 var(--font-display); }
+.bn-paso { display: grid; grid-template-columns: 68px minmax(0, 1fr) 68px; align-items: center; gap: 10px; }
+.bn-paso button { width: 68px; height: 68px; border: var(--game-stroke) solid var(--game-ink); border-radius: 50%; background: var(--gold); color: var(--green-900); box-shadow: 4px 5px 0 var(--game-ink); font: 46px/1 var(--font-display); cursor: pointer; touch-action: manipulation; -webkit-user-select: none; user-select: none; translate: 0 0; transition: translate 160ms var(--game-ease-bounce), box-shadow 160ms var(--game-ease-bounce), opacity 150ms; }
+.bn-paso button.bn-menos { background: var(--cream); }
+.bn-paso button:active:not([disabled]) { translate: 4px 5px; box-shadow: 0 0 0 var(--game-ink); transition-duration: 90ms; }
+.bn-paso button[disabled] { opacity: .3; cursor: not-allowed; }
+.bn-cuanto { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 0; }
+.bn-cuanto b { font: 64px/1 var(--font-display); font-weight: 400; font-variant-numeric: tabular-nums; }
+.bn-cuanto .bn-sticker { width: 40px; height: 40px; filter: drop-shadow(2px 3px 0 var(--game-ink)); }
+.bn-cuanto.pop b { animation: bn-pop .18s ease-out; }
+@keyframes bn-pop { 50% { transform: scale(1.14); } }
+.bn-todo { justify-self: center; height: 34px; padding: 0 18px; border: 2.5px solid var(--game-ink); border-radius: 999px; background: var(--cream); color: var(--green-900); box-shadow: 2px 3px 0 var(--game-ink); font: 15px/1 var(--font-display); letter-spacing: .05em; cursor: pointer; }
+.bn-todo[aria-pressed="true"] { background: var(--green-900); color: var(--cream); }
+.bn-premio { text-align: center; }
+.bn-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--gold); color: var(--green-900); font: 800 11px var(--font-body); vertical-align: 2px; white-space: nowrap; }
+.mt-acc { display: grid; gap: 5px; justify-items: end; }
+.mt-btn.chico { --dx: 1px; --dy: 2px; height: 26px; padding: 0 10px; border-width: 2px; background: var(--cream-dark); color: var(--green-900); font-size: 12px; }
+.bn-caja .bn-tit { margin: 0; padding-right: 40px; font: 28px/1.05 var(--font-display); letter-spacing: .02em; }
+.bn-caja p { margin: 0; font-size: 14px; line-height: 1.4; }
+.bn-caja .extras { font-size: 12px; color: var(--text-muted); }
+.bn-caja .carta-jugar.oro { background: var(--gold); color: var(--green-900); }
+.bn-caja .carta-jugar.rojo { background: var(--red); color: var(--cream); }
+.bn-caja .carta-jugar.crema { background: var(--cream-dark); color: var(--green-900); }
+.bn-mov { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 40dvh; overflow-y: auto; }
+.bn-mov li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 9px; border-radius: 10px; background: rgba(20, 64, 42, .06); font-size: 13px; }
+.bn-mov li small { display: block; font-size: 11px; color: var(--text-muted); }
+.bn-mov b { font: 18px/1 var(--font-display); font-weight: 400; }
+.bn-mov b.mas { color: #2e7d4f; }
+.bn-mov b.menos { color: var(--red); }
+.bn-vistas { display: flex; gap: 6px; padding: 4px 0 6px; list-style: none; }
+.bn-vistas button { flex: 1; height: 32px; border: 2px solid var(--green-900); border-radius: 999px; background: var(--cream); color: var(--green-900); font: 800 12px var(--font-body); letter-spacing: .06em; text-transform: uppercase; }
+.bn-vistas button[aria-pressed="true"] { background: var(--green-900); color: var(--cream); }
+.bn-fila { grid-template-columns: 30px minmax(0, 1fr) auto; }
+.bn-pozo { list-style: none; margin: 4px 0 6px; padding: 10px 12px; border-radius: 14px; background: rgba(232, 195, 74, .24); font-size: 13px; line-height: 1.35; text-align: left; }
+.t-bananas { margin: 0; font-weight: 800; font-size: 14px; }
+.t-bananas[hidden] { display: none; }
 .mt-estado { font: 700 12px var(--font-body); color: var(--text-muted); text-align: right; }
 .mt-sec { padding: 12px 4px 4px; font: 800 11px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); text-align: left; list-style: none; }
 .t-match { margin: 0; padding: 10px 12px; border-radius: 12px; background: rgba(20, 64, 42, .08); font-size: 14px; line-height: 1.4; }
+/* el resultado del match (2026-10-09, rediseño): el veredicto en una banda, el hoyo a hoyo, las bananas en su bloque y
+   dos botones; el desafío enviado, en tres datos. Sin el párrafo que repetía lo de la tabla. */
+.t-match.res { display: grid; gap: 12px; padding: 14px 12px 12px; background: rgba(20, 64, 42, .06); }
+.t-match.res > * { margin: 0; }
+.tm-veredicto { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 14px; border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; background: var(--green-500); color: var(--cream); box-shadow: 3px 4px 0 var(--game-ink); font: 36px/1 var(--font-display); letter-spacing: .04em; text-transform: uppercase; transform: rotate(-1.5deg); animation: rp-gana 450ms var(--ease-snap) both; }
+.tm-veredicto.pierde { background: var(--red); }
+.tm-veredicto.empate { background: var(--cream-dark); color: var(--green-900); }
+.tm-veredicto.enviado { background: var(--gold); color: var(--green-900); font-size: 26px; }
+.tm-veredicto span { display: grid; justify-items: center; }
+.tm-veredicto small { margin-top: 4px; font: 800 11px/1.2 var(--font-body); letter-spacing: .14em; text-transform: uppercase; opacity: .92; }
+.tm-veredicto .gi { flex: none; width: 34px; height: 34px; --gi-s: var(--cream); --gi-f: transparent; --gi-a: var(--gold); }
+.tm-veredicto.empate .gi, .tm-veredicto.enviado .gi { --gi-s: var(--green-900); --gi-f: var(--cream); --gi-a: var(--cream); }
+.tm-bananas { display: grid; grid-template-columns: 78px minmax(0, 1fr); align-items: center; gap: 12px; padding: 10px 14px 10px 10px; border: var(--game-stroke) solid var(--game-ink); border-radius: 16px; background: var(--gold); color: var(--green-900); box-shadow: 3px 4px 0 var(--game-ink); text-align: left; }
+.tm-bananas.pierde { background: var(--cream); }
+.tm-bananas.empate { background: var(--cream-dark); }
+.tmb-sticker { position: relative; width: 78px; height: 78px; }
+.tmb-sticker .bn-sticker { width: 100%; height: 100%; animation: tmb-pop .55s cubic-bezier(.2, .9, .3, 1.4) .15s both; }
+.tm-bananas.pierde .tmb-sticker .bn-sticker { filter: saturate(.2) drop-shadow(3px 4px 0 var(--game-ink)); transform: rotate(16deg); animation: tmb-cae .6s ease-out .15s both; }
+.tmb-sticker i { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; animation: tmb-chispa .9s ease-out var(--del) both; }
+.tmb-sticker i svg { width: 100%; height: 100%; }
+.tmb-txt { display: grid; gap: 3px; min-width: 0; }
+.tmb-txt b { font: 54px/.9 var(--font-display); font-weight: 400; letter-spacing: .01em; }
+.tm-bananas.pierde .tmb-txt b { color: var(--red); }
+.tmb-txt span { font-weight: 800; font-size: 14px; line-height: 1.25; }
+.tmb-txt small { min-height: 1.2em; font-weight: 700; font-size: 12px; color: rgba(12, 43, 28, .72); }
+@keyframes tmb-pop { 0% { scale: 0; rotate: -40deg; } 70% { scale: 1.15; } 100% { scale: 1; rotate: 0deg; } }
+@keyframes tmb-cae { 0% { opacity: 0; translate: 0 -16px; } 100% { opacity: 1; translate: 0 0; } }
+@keyframes tmb-chispa { 0% { opacity: 0; transform: translate(0, 0) scale(.3); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--r)); } }
+.tm-datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tm-datos > div { display: grid; justify-items: center; align-content: start; gap: 3px; padding: 9px 4px; border-radius: 12px; background: var(--cream); border: 2px solid rgba(12, 43, 28, .14); }
+.tm-datos > div.bn { background: var(--gold); border-color: var(--game-ink); }
+.tm-datos small { font: 800 10px/1.1 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: rgba(12, 43, 28, .7); }
+.tm-datos b { font: 30px/1 var(--font-display); font-weight: 400; white-space: nowrap; }
+.tm-datos em { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: normal; font-weight: 700; font-size: 12px; }
+.tm-nota { font-size: 12.5px; color: var(--text-muted); text-align: center; }
+.tm-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tm-acciones.uno { grid-template-columns: 1fr; }
+.tm-acciones button { width: 100%; margin: 0; padding: 0 10px; }
+@media (prefers-reduced-motion: reduce) { .tm-veredicto, .tmb-sticker .bn-sticker, .tmb-sticker i { animation: none; } .tmb-sticker i { display: none; } }
 .t-match[hidden] { display: none; }
 .t-match .gran { display: block; font-family: var(--font-display); font-size: 24px; line-height: 1.1; letter-spacing: .02em; }
 .t-match.gana { background: var(--gold); }
@@ -1597,7 +1721,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v e0d7b70 · 8/10, 08:12 p. m.</span>
+  <span class="version" id="version">v 0c6503d · 8/10, 10:33 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -1634,6 +1758,23 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <button class="carta-jugar" type="button" data-cerrar>Cerrar</button>
   </div>
 </div>
+<div class="bn-fiesta" id="bn-fiesta" hidden role="status" aria-live="assertive">
+  <div class="bnf-rayos" aria-hidden="true"></div>
+  <div class="bnf-lluvia" aria-hidden="true"></div>
+  <div class="bnf-centro">
+    <div class="bnf-sticker" aria-hidden="true"></div>
+    <p class="bnf-tit" id="bnf-tit">¡HOYO EN UNO!</p>
+    <p class="bnf-num"><span id="bnf-num">+10</span></p>
+    <p class="bnf-sub" id="bnf-sub">bananas para vos</p>
+  </div>
+</div>
+<div class="hab-modal" id="bananas-modal" hidden style="z-index: 53">
+  <div class="hab-fondo" data-cerrar></div>
+  <div class="rs-caja bn-caja" role="dialog" aria-modal="true" aria-labelledby="bn-tit">
+    <button class="hab-x" type="button" data-cerrar aria-label="Cerrar"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M9 9l14 14M23 9L9 23" stroke-width="3.5"/></g></svg></button>
+    <div id="bn-cuerpo" style="display: grid; gap: 12px"></div>
+  </div>
+</div>
 <div class="hab-modal" id="hab-modal" hidden>
   <div class="hab-fondo" data-cerrar></div>
   <div class="hab-caja" role="dialog" aria-modal="true" aria-labelledby="hab-tit">
@@ -1667,6 +1808,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     </div>
     <p class="firmada" id="t-firmada" hidden></p>
     <p class="rk-pos-final" id="t-ranking" hidden></p>
+    <p class="t-bananas" id="t-bananas" hidden></p>
     <div class="t-match" id="t-match" hidden></div>
     <div class="acciones" id="t-acciones" hidden>
       <button class="btn ancho entra" id="compartir-img" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M11.5 13H9.5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V15a2 2 0 0 0-2-2h-2" style="fill:var(--gi-f)"/><path d="M16 19.5V4.5M11 9.5l5-5 5 5" stroke-width="2.8"/></g></svg>COMPARTIR MI VUELTA</button>
@@ -1716,6 +1858,8 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <button type="button" role="tab" data-mt="historial" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="5" y="7" width="22" height="20" rx="3" style="fill:var(--gi-f)"/><path d="M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z" style="fill:var(--gi-a)"/><path d="M11 4.5v5M21 4.5v5"/><rect x="9.5" y="17" width="4.5" height="4" rx="1" style="fill:var(--gi-s)" stroke="none"/></g></svg>Historial</button>
       <button type="button" role="tab" data-mt="ranking" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="4.5" y="15.5" width="7.5" height="11.5" rx="1" style="fill:var(--gi-f)"/><rect x="20" y="18.5" width="7.5" height="8.5" rx="1" style="fill:var(--gi-f)"/><rect x="12" y="9.5" width="8" height="17.5" rx="1" style="fill:var(--gi-a)"/><path d="M14.8 14l1.7-1.2v6" stroke-width="2.2"/></g></svg>Ranking</button>
     </div>
+    <p class="mt-prueba" id="mt-prueba" hidden>🧪 <b>MATCH DE PRUEBA</b> · rivales y bananas de mentira, en este teléfono. Los rivales contestan solos al ratito. <button type="button" id="mt-prueba-borrar">Empezar de cero</button></p>
+    <button class="bn-barra" id="bn-barra" type="button" hidden></button>
     <button class="mt-pro" id="mt-pro" type="button" aria-pressed="false"><span class="mp-sw" aria-hidden="true"><i></i></span><span class="mp-ico" aria-hidden="true" data-ico="pro"></span><span class="mp-txt"><b>MODO PRO</b><small>Sin líneas punteadas: no ves dónde cae la bocha</small></span></button>
     <input class="mt-buscar" id="mt-buscar" type="search" placeholder="Buscar rival…" autocomplete="off" spellcheck="false">
     <ol class="rk-lista" id="mt-lista"></ol>
@@ -1796,13 +1940,13 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=56875cef8f'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=56875cef8f'
+import * as M from './motor.js?v=0d5df89bff'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU } from './plantel.js?v=0d5df89bff'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=56875cef8f'
-import * as S from './sonido.js?v=56875cef8f'
+import * as R from './ranking.js?v=0d5df89bff'
+import * as S from './sonido.js?v=0d5df89bff'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
-const GI = {"match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
+const GI = {"banana": "<path d=\"M21 6C28.6 9.4 30 20 22.8 25.4C17.4 29.4 9.4 29 3.8 24.6C10.2 24.4 14.8 21.4 16.9 17.4C18.9 13.6 18.8 9.8 16.8 6.6Z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.2 8.2C21.6 13.8 19.9 20.4 12.2 24.8\" stroke-width=\"1.5\"/><path d=\"M24.4 11.6C25.8 16 24.3 20.8 20.3 23.8\" style=\"stroke:var(--gi-f)\" stroke-width=\"2.4\"/><path d=\"M16.8 6.6L17.3 2.8L21.1 2.4L21 6\" style=\"fill:var(--gi-s)\"/><path d=\"M3.8 24.6L2.6 26.5\" stroke-width=\"3\"/>", "match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
 for (const el of document.querySelectorAll('[data-ico]')) el.innerHTML = gi(el.dataset.ico) // los íconos fijos del HTML
 // por ahora, para probar, solo los de EN_PRUEBA
@@ -5821,6 +5965,7 @@ function tarjetaFinal() {
   $('#t-ruleta').hidden = !porHoyo.length
   $('#t-ruleta').innerHTML = htmlRuleta(porHoyo.map((h) => h.tiros.map((t) => t.apodo)), 'Quién pegó cada tiro', porHoyo.map((h) => h.n))
   $('#t-ranking').hidden = true
+  $('#t-bananas').hidden = true
   $('#t-match').hidden = true
   if (ronda.duelo) cerrarMatch(ronda)
   posRanking = null
@@ -6033,11 +6178,39 @@ async function imagenVuelta() {
   return { blob, url }
 }
 /**
+ * La banana sticker dibujada en un canvas (para las imágenes de WhatsApp): los mismos trazos que `GI.banana`, con el
+ * troquel crema y la sombra dura. Con Path2D (no una imagen SVG), así anda igual en todos los teléfonos.
+ */
+function bananaEnCanvas(g, x, y, tam, rot = -0.14) {
+  const ds = [...GI.banana.matchAll(/d="([^"]+)"/g)].map((m) => new Path2D(m[1]))
+  const [cuerpo, nervio, brillo, cabo, punta] = ds
+  const tinta = '#0c2b1c', crema = '#fffaf0'
+  g.save()
+  g.translate(x, y); g.rotate(rot); g.scale(tam / 36, tam / 36); g.translate(-16, -16)
+  g.lineCap = 'round'; g.lineJoin = 'round'
+  // el troquel crema, con la sombra dura del afiche
+  g.save()
+  g.shadowColor = tinta; g.shadowOffsetX = tam * 0.045; g.shadowOffsetY = tam * 0.06; g.shadowBlur = 0
+  g.fillStyle = crema; g.strokeStyle = crema; g.lineWidth = 5.5
+  for (const d of [cuerpo, cabo]) { g.fill(d); g.stroke(d) }
+  for (const d of [nervio, punta]) g.stroke(d)
+  g.restore()
+  // la banana
+  g.fillStyle = '#e8c34a'; g.fill(cuerpo)
+  g.strokeStyle = tinta; g.lineWidth = 1.7; g.stroke(cuerpo)
+  g.lineWidth = 1.5; g.stroke(nervio)
+  g.strokeStyle = '#f4eeda'; g.lineWidth = 2.4; g.stroke(brillo)
+  g.fillStyle = tinta; g.fill(cabo); g.strokeStyle = tinta; g.lineWidth = 1.7; g.stroke(cabo)
+  g.lineWidth = 3; g.stroke(punta)
+  for (const [cx, cy, r] of [[12.6, 23.2, 0.85], [21.6, 21, 0.7], [10.4, 24.4, 0.55]]) { g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill() }
+  g.restore()
+}
+/**
  * La imagen del match, estilo VS (1080×1350, diseño SDGA): los dos que juegan cara a cara, el player que usaron los
  * dos en el medio, y abajo el score de cada uno y quién ganó. Con `ganador` null es el desafío: sin scores (que el
- * otro no sepa cómo te fue).
+ * otro no sepa cómo te fue). Con `apuesta`, las bananas en juego arriba y, abajo, cuántas se lleva el que gana.
  */
-async function imagenMatch({ izq, der, jugador, ganador }) {
+async function imagenMatch({ izq, der, jugador, ganador, apuesta = 0 }) {
   try { await Promise.all(['56px Anton', '600 30px Archivo', '800 30px Archivo'].map((f) => document.fonts.load(f))) } catch {}
   const W2 = 1080, H2 = 1350
   const c = document.createElement('canvas')
@@ -6060,6 +6233,24 @@ async function imagenMatch({ izq, der, jugador, ganador }) {
   g.textAlign = 'center'
   g.fillStyle = '#e8c34a'; g.font = B(26, 800); g.fillText('SDGA TOUR  ·  LA TRAMPA DEL MONO', W2 / 2, 78)
   g.fillStyle = '#f4eeda'; g.font = D(130); g.fillText(desafio ? 'DESAFÍO' : 'MATCH', W2 / 2, 210)
+  // las bananas en juego: una pastilla dorada de sticker, con la banana que se sale por la izquierda
+  const conBananas = apuesta > 0
+  const pastillaBananas = () => {
+    if (!conBananas) return
+    g.save()
+    g.font = D(66)
+    const nw = g.measureText(String(apuesta)).width
+    const pw = 120 + nw + 150, ph = 86, cy = 282
+    g.translate(W2 / 2, cy); g.rotate(-0.035)
+    g.fillStyle = '#0c2b1c'; g.beginPath(); g.roundRect(-pw / 2 + 7, -ph / 2 + 8, pw, ph, ph / 2); g.fill()
+    g.fillStyle = '#e8c34a'; g.beginPath(); g.roundRect(-pw / 2, -ph / 2, pw, ph, ph / 2); g.fill()
+    g.lineWidth = 6; g.strokeStyle = '#0c2b1c'; g.stroke()
+    g.fillStyle = '#14402a'; g.textAlign = 'left'
+    g.font = D(66); g.fillText(String(apuesta), -pw / 2 + 112, 25)
+    g.font = B(22, 800); g.fillText('BANANAS', -pw / 2 + 112 + nw + 14, -2); g.fillText('EN JUEGO', -pw / 2 + 112 + nw + 14, 24)
+    g.restore()
+    bananaEnCanvas(g, W2 / 2 - pw / 2 + 36, cy - 4, 128, -0.32)
+  }
   // cada lado: su foto si es del plantel (el nombre del jugador en la app = su apodo acá); si no, la inicial (o ? si
   // todavía no jugó), y el nombre
   const fotos = await Promise.all([izq, der].map((p) => cargarImg(fotoDePersona(p.alias))))
@@ -6094,6 +6285,7 @@ async function imagenMatch({ izq, der, jugador, ganador }) {
   g.fillStyle = '#e8c34a'; g.beginPath(); g.arc(W2 / 2, 440, 92, 0, 7); g.fill()
   g.lineWidth = 8; g.strokeStyle = '#0c2b1c'; g.stroke()
   g.fillStyle = '#14402a'; g.font = D(100); g.fillText('VS', W2 / 2, 478)
+  pastillaBananas()
   // el player de los dos, en una pastilla crema
   const foto = await cargarImg(jugador.foto)
   const py = 770, ph = 120
@@ -6127,9 +6319,17 @@ async function imagenMatch({ izq, der, jugador, ganador }) {
   // el veredicto
   const quien = ganador === 1 ? izq.alias : ganador === -1 ? der.alias : null
   g.fillStyle = '#e8c34a'; g.font = D(76)
-  g.fillText(desafio ? '¿TE ANIMÁS?' : quien ? `GANÓ ${quien.toUpperCase()}` : 'EMPATE', W2 / 2, 1268)
-  g.font = B(24, 600); g.fillStyle = 'rgba(244,238,218,.7)'
-  g.fillText(desafio ? 'Mismo player, mismo viento y mismas banderas · su pelota, en vivo como fantasma 👻' : 'Mismo player, mismo viento y mismas banderas', W2 / 2, 1318)
+  g.fillText(desafio ? '¿TE ANIMÁS?' : quien ? `GANÓ ${quien.toUpperCase()}` : 'EMPATE', W2 / 2, conBananas ? 1252 : 1268)
+  if (conBananas) {
+    const linea = desafio ? `EL QUE GANA SE LLEVA ${2 * apuesta - 1}` : quien ? `Y SE LLEVÓ ${2 * apuesta - 1}` : `LAS ${apuesta} BANANAS VUELVEN`
+    g.font = D(46); g.fillStyle = '#f4eeda'
+    const lw = g.measureText(linea).width, tam = 70
+    g.fillText(linea, W2 / 2 - (tam + 10) / 2, 1318)
+    bananaEnCanvas(g, W2 / 2 + lw / 2 - (tam + 10) / 2 + 14 + tam / 2, 1302, tam, -0.18)
+  } else {
+    g.font = B(24, 600); g.fillStyle = 'rgba(244,238,218,.7)'
+    g.fillText(desafio ? 'Mismo player, mismo viento y mismas banderas · su pelota, en vivo como fantasma 👻' : 'Mismo player, mismo viento y mismas banderas', W2 / 2, 1318)
+  }
   const blob = await new Promise((ok) => c.toBlob(ok, 'image/png'))
   const url = URL.createObjectURL(blob)
   urlsResumen.push(url)
@@ -6217,7 +6417,10 @@ async function anotarVuelta() {
   marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}), ...(datos.demetrio ? { secreto: true } : {}), ...(ronda.ruleta ? { ruleta: M.tirosRuleta(ronda).map((h) => h.tiros.map((t) => t.emoji)) } : {}), ...(ronda.pro ? { pro: true } : {}) }
   const jugador = ronda.carta
   const pro = !!ronda.pro
+  // las bananas de la vuelta (birdies, bajo par, hoyo en uno, el pozo): las da la base al anotarla; se ve la diferencia
+  const bnAntes = hayBananas ? await R.leerBananas().catch(() => null) : null
   await R.anotar(marca)
+  if (bnAntes) premiosDeLaVuelta(bnAntes)
   const { marcas: todas } = await R.leerMarcas()
   const marcas = todas.filter((m) => M.esMarcaPro(m) === pro) // la vuelta PRO compite solo en el ranking PRO
   const general = M.armarRanking(marcas).find(esYo)
@@ -6294,13 +6497,270 @@ async function cargarDesafios() {
   try { mtDesafios = await R.leerDesafios(); mtError = null } catch (e) { mtError = e; mtDesafios ??= null }
   pintarAvisoMatch()
 }
+
+// ── las bananas 🍌 (8/10/2026): las monedas del match ──
+// El saldo y las reglas viven en la base de la SDGApp (funciones `trampa_bananas_*` y `trampa_desafio_*`): acá solo se
+// piden y se muestran. Si la app o la base todavía no las tienen, no aparecen y el match es como siempre.
+//   10 al empezar · la mesada del mono: 3 por semana si tenés menos de 10 · jugando (vuelta firmada): birdie +1, águila
+//   +3, bajo par +2, hasta 5 por día · hoyo en uno +10; en MODO PRO, el pozo del mono · el match: los dos ponen lo mismo
+//   (2 o más; 0 = por el honor), el que gana se lleva todo menos 1 (para el mono) · rechazar o dejar vencer (48 h): 1.
+let bananas = null // { saldo, reservadas, pozo, premiosHoy, movimientos }
+let bananasRk = null // [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]
+let hayBananas = false
+const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío' }
+const POR_BANANA = { birdie: 'birdie', aguila: 'águila', bajo_par: 'bajo par' }
+// la banana del set SDGA: chiquita, en el texto (BN); grande, troquelada como sticker (stickerBanana)
+const BN = gi('banana', 'bn')
+function stickerBanana() {
+  const borde = GI.banana.replace(/ style="[^"]*"/g, '').replace(/ stroke-width="[^"]*"/g, '')
+  const pecas = '<circle cx="12.6" cy="23.2" r=".85" style="fill:var(--gi-s)" stroke="none"/><circle cx="21.6" cy="21" r=".7" style="fill:var(--gi-s)" stroke="none"/><circle cx="10.4" cy="24.4" r=".55" style="fill:var(--gi-s)" stroke="none"/>'
+  return `<svg class="gi bn-sticker" viewBox="-2 -2 36 36" aria-hidden="true"><g class="borde">${borde}</g><g>${GI.banana}${pecas}</g></svg>`
+}
+/**
+ * La fiesta: cuando la base te acredita un hoyo en uno (o el pozo del mono, en MODO PRO). Rayos, el sticker que cae y
+ * rebota, el número que cuenta, lluvia de bananas, el sonido de logro y el tic del celu. Un toque la cierra.
+ */
+let fiestaTimer = 0
+function fiestaBananas({ total, pozo = false }) {
+  const el = $('#bn-fiesta')
+  clearTimeout(fiestaTimer)
+  el.classList.remove('sale')
+  el.querySelector('.bnf-sticker').innerHTML = stickerBanana()
+  $('#bnf-tit').textContent = pozo ? '¡EL POZO DEL MONO!' : '¡HOYO EN UNO!'
+  $('#bnf-sub').textContent = pozo ? 'Te llevaste todas las bananas del mono 🐒' : `${total === 1 ? 'banana' : 'bananas'} para vos`
+  const lluvia = el.querySelector('.bnf-lluvia')
+  const n = pozo ? 46 : 30
+  lluvia.innerHTML = Array.from({ length: n }, () => {
+    const t = 26 + Math.random() * 34
+    return `<i style="--x: ${(Math.random() * 104 - 2).toFixed(1)}%; --t: ${t.toFixed(0)}px; --d: ${(1.9 + Math.random() * 1.9).toFixed(2)}s; --del: ${(0.25 + Math.random() * 2.6).toFixed(2)}s; --r0: ${Math.round(Math.random() * 360)}deg; --r1: ${Math.round(Math.random() * 720 - 360)}deg">${gi('banana')}</i>`
+  }).join('')
+  el.hidden = false
+  // el número: cuenta de 0 al total (el pozo, más despacio)
+  const num = $('#bnf-num'), t0 = performance.now(), dur = pozo ? 1600 : 1000
+  const contar = (ahora) => {
+    const k = Math.min(1, (ahora - t0 - 800) / dur)
+    num.innerHTML = `+${Math.max(0, Math.round(total * (1 - Math.pow(1 - Math.max(0, k), 3))))}${stickerBanana()}`
+    if (k < 1 && !el.hidden) requestAnimationFrame(contar)
+  }
+  requestAnimationFrame(contar)
+  S.logro()
+  setTimeout(() => { if (!el.hidden) { S.embocada(); tic() } }, 650)
+  const cerrar = () => {
+    clearTimeout(fiestaTimer)
+    el.classList.add('sale')
+    fiestaTimer = setTimeout(() => { el.hidden = true; el.classList.remove('sale'); lluvia.innerHTML = '' }, 400)
+  }
+  el.onclick = cerrar
+  fiestaTimer = setTimeout(cerrar, pozo ? 6500 : 5200)
+}
+const errTxt = (e) => String(e?.message ?? '').replace(/^Error: /, '') || 'no se pudo conectar'
+const apodoLimpio = (a) => String(a ?? '').replace(/ \(Đ\)$/, '')
+async function cargarBananas() {
+  try {
+    const [b, rk] = await Promise.all([R.leerBananas(), R.leerRankingBananas().catch(() => bananasRk)])
+    bananas = b
+    bananasRk = rk
+    hayBananas = true
+  } catch { hayBananas = false }
+  pintarBananas()
+  return hayBananas
+}
+const bananasDe = (uid) => bananasRk?.find((f) => f.uid === uid) ?? null
+const conBananasAbierto = (uid) => !!mtDesafios?.some((d) => d.apuesta > 0 && ['jugando', 'pendiente', 'respondiendo'].includes(d.estado) && (d.retador.uid === uid || d.rival.uid === uid))
+/** Lo que te queda de un match con bananas (visto por vos): ganaste → todo menos 1; perdiste → lo que pusiste. */
+const netoBananas = (g, n) => (g > 0 ? n - 1 : g < 0 ? -n : 0)
+const netoTxt = (g, n) => { const x = netoBananas(g, n); return `${x > 0 ? '+' : x < 0 ? '−' : ''}${Math.abs(x)}${BN}` }
+function pintarBananas() {
+  const el = $('#bn-barra')
+  el.hidden = !hayBananas || !bananas
+  if (el.hidden) return
+  el.innerHTML = `<span class="bnb-yo">${stickerBanana()}<span class="bnb-txt"><small>Tenés</small><span><b>${bananas.saldo}</b> ${bananas.saldo === 1 ? 'banana' : 'bananas'}</span>${bananas.reservadas ? `<em>y ${bananas.reservadas} apostadas</em>` : ''}</span></span><span class="bnb-pozo"><small>Pozo del mono</small><span>🐒 <b>${bananas.pozo}</b></span></span>`
+  el.setAttribute('aria-label', `Tenés ${bananas.saldo} ${bananas.saldo === 1 ? 'banana' : 'bananas'}${bananas.reservadas ? ` y ${bananas.reservadas} apostadas` : ''}. El pozo del mono: ${bananas.pozo}. Tocá para ver tus movimientos.`)
+}
+/** La hojita de las bananas: muestra el html y espera un botón con `data-bn` (cerrar o Escape = null). */
+function hojaBananas(html) {
+  const m = $('#bananas-modal')
+  $('#bn-cuerpo').innerHTML = html
+  m.hidden = false
+  ;(m.querySelector('[data-bn]') ?? m.querySelector('.hab-x'))?.focus({ preventScroll: true })
+  return new Promise((resolve) => {
+    const fin = (v) => { m.hidden = true; m.removeEventListener('click', clic); window.removeEventListener('keydown', tecla, true); resolve(v) }
+    const clic = (e) => { const b = e.target.closest('[data-bn]'); if (b && !b.disabled) fin(b.dataset.bn); else if (e.target.closest('[data-cerrar]')) fin(null) }
+    const tecla = (e) => { if (e.key === 'Escape') { e.stopPropagation(); fin(null) } }
+    m.addEventListener('click', clic)
+    window.addEventListener('keydown', tecla, true)
+  })
+}
+const avisoBananas = (tit, txt) => hojaBananas(`<p class="bn-tit" id="bn-tit">${tit}</p><p>${txt}</p><button class="carta-jugar" type="button" data-bn="ok">Ok</button>`)
+/** Antes de jugar un desafío: ¿cuánto apostás? (0 = por el honor; null = te arrepentiste). Sin bananas, por el honor. */
+async function elegirApuesta(rival) {
+  if (!(await cargarBananas())) return 0
+  const suyas = bananasDe(rival.uid)?.saldo ?? 10 // el que todavía no abrió las bananas arranca con 10
+  const tope = Math.min(bananas.saldo, suyas)
+  const abierto = conBananasAbierto(rival.uid)
+  const puede = tope >= 2 && !abierto
+  // el nombre corto: sin lo de entre paréntesis y, si la primera palabra es cortita ("El Mono"), con la segunda
+  const pal = rival.nombre.replace(/\s*\(.*\)\s*$/, '').split(' ')
+  const corto = pal[0].length > 3 ? pal[0] : pal.slice(0, 2).join(' ')
+  const nota = abierto ? 'Ya tienen un desafío con bananas abierto: hasta que se juegue, este va por el honor.'
+    : tope < 2 ? `Para apostar hacen falta 2 cada uno${bananas.saldo < 2 ? '' : ` y ${esc(corto)} tiene ${suyas}`}.` : ''
+  let n = 2
+  const espera = hojaBananas(`
+    <p class="bn-tit" id="bn-tit">${stickerBanana()}¿Cuánto apostás?</p>
+    <div class="bn-vs"><div><small>Vos tenés</small><span>${bananas.saldo}${BN}</span></div><div><small>${esc(corto)} tiene</small><span>${suyas}${BN}</span></div></div>
+    ${puede ? `<div class="bn-paso">
+        <button class="bn-menos" type="button" aria-label="Una banana menos">−</button>
+        <output class="bn-cuanto" aria-live="polite"><b id="bn-n">2</b>${stickerBanana()}</output>
+        <button class="bn-mas" type="button" aria-label="Una banana más">+</button>
+      </div>
+      <button class="bn-todo" type="button" aria-pressed="false">TODO · ${tope}</button>
+      <p class="bn-premio">Si ganás, te llevás <b id="bn-gana">3</b>${BN} (1 es del mono 🐒).</p>
+      <button class="carta-jugar oro" type="button" data-bn="apostar" id="bn-apostar">Apostar 2${BN}</button>` : `<p>${nota}</p>`}
+    <button class="carta-jugar crema" type="button" data-bn="0">Por el honor 🤝</button>
+    <p class="extras">Los dos ponen lo mismo y el que gana se lleva todo menos 1, que se queda el mono. Si no lo acepta (o lo deja vencer, 48 h), le cuesta 1. Se elige ahora, antes de jugar tu vuelta.</p>`)
+  if (puede) {
+    const menos = $('#bn-cuerpo .bn-menos'), mas = $('#bn-cuerpo .bn-mas'), todo = $('#bn-cuerpo .bn-todo'), cuanto = $('#bn-cuerpo .bn-cuanto')
+    const poner = (v) => {
+      const antes = n
+      n = Math.max(2, Math.min(tope, v))
+      $('#bn-n').textContent = n
+      $('#bn-gana').textContent = 2 * n - 1
+      $('#bn-apostar').innerHTML = `Apostar ${n}${BN}`
+      menos.disabled = n <= 2
+      mas.disabled = n >= tope
+      todo.setAttribute('aria-pressed', String(n === tope))
+      if (n !== antes) { cuanto.classList.remove('pop'); void cuanto.offsetWidth; cuanto.classList.add('pop'); S.ruletaTic() }
+    }
+    // un toque: de a una; manteniendo apretado, sigue sola cada vez más rápido
+    const mantener = (boton, paso) => {
+      let t = 0, repitio = false
+      const parar = () => { clearTimeout(t); t = 0 }
+      const repetir = (ms) => { t = setTimeout(() => { repitio = true; poner(n + paso); if ((paso > 0 && n < tope) || (paso < 0 && n > 2)) repetir(Math.max(45, ms * 0.85)) }, ms) }
+      boton.addEventListener('pointerdown', () => { repitio = false; parar(); repetir(420) })
+      for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) boton.addEventListener(ev, parar)
+      boton.addEventListener('click', () => { if (repitio) { repitio = false; return } poner(n + paso) })
+    }
+    mantener(menos, -1)
+    mantener(mas, 1)
+    todo.addEventListener('click', () => poner(tope))
+    poner(2)
+  }
+  const v = await espera
+  return v == null ? null : v === 'apostar' ? n : 0
+}
+/** Arrancar con un player. En un desafío con bananas, primero se reservan (si la base dice que no, te dice por qué). */
+async function jugarCon(j, boton = null) {
+  const m = matchModo
+  if (m?.tipo === 'reto' && m.apuesta > 0 && !m.desafioId) {
+    const txt = boton?.innerHTML
+    if (boton) { boton.disabled = true; boton.textContent = 'Apostando…' }
+    try {
+      m.desafioId = await R.empezarApuesta({ rival: m.rival, semilla: m.semilla, apodo: j.apodo, emoji: j.emoji, apuesta: m.apuesta })
+      if (!m.desafioId) throw new Error('no se pudo arrancar el desafío')
+    } catch (e) {
+      if (boton) { boton.disabled = false; boton.innerHTML = txt }
+      await avisoBananas('No se pudo', `${esc(errTxt(e))}. Podés elegir otra apuesta o jugarlo por el honor.`)
+      return
+    }
+    cargarBananas()
+  }
+  empezar(j)
+}
+/** Te desafiaron con bananas: aceptás (ponés lo mismo y jugás) o rechazás. true = aceptó y está reservado. */
+async function aceptarApuesta(d) {
+  await cargarBananas()
+  const n = d.apuesta, tengo = bananas?.saldo ?? 0, alcanza = tengo >= n
+  const v = await hojaBananas(`
+    <p class="bn-tit" id="bn-tit">${stickerBanana()}Te desafió por ${n}</p>
+    <p><b>${esc(d.retador.alias)}</b> ya jugó con ${esc(d.retador.emoji)} ${esc(apodoLimpio(d.retador.apodo))}. Si aceptás, ponés <b>${n}</b>${BN} y el que gana se lleva <b>${2 * n - 1}</b> (1 es del mono 🐒).</p>
+    <p>${alcanza ? `Tenés <b>${tengo}</b>${BN}. Una vez que aceptás, si no terminás la vuelta cuenta como LP.` : `No te alcanzan: tenés <b>${tengo}</b>${BN}.`}</p>
+    ${alcanza ? `<button class="carta-jugar oro" type="button" data-bn="si">Acepto · ${n}${BN}</button>` : ''}
+    <button class="carta-jugar rojo" type="button" data-bn="no">Rechazar · ${tengo >= 1 ? `−1${BN}` : 'gratis'}</button>`)
+  if (v === 'no') { await rechazarDesafio(d, false); return false }
+  if (v !== 'si') return false
+  try {
+    await R.aceptarApuesta(d.id)
+    d.estado = 'respondiendo'
+    cargarBananas()
+    return true
+  } catch (e) {
+    await avisoBananas('No se pudo', esc(errTxt(e)))
+    cargarDesafios().then(pintarMatch)
+    return false
+  }
+}
+/** Rechazar un desafío: con bananas cuesta 1 (al mono; si no tenés ninguna, gratis); por el honor, nada. */
+async function rechazarDesafio(d, confirmar = true) {
+  const cuesta = d.apuesta > 0 && (bananas?.saldo ?? 0) >= 1
+  if (confirmar) {
+    const v = await hojaBananas(`
+      <p class="bn-tit" id="bn-tit">¿Rechazás?</p>
+      <p>El desafío de <b>${esc(d.retador.alias)}</b>${d.apuesta > 0 ? ` por ${d.apuesta}${BN}` : ''}. ${cuesta ? `Te cuesta <b>1</b>${BN}, que va al pozo del mono 🐒.` : d.apuesta > 0 ? 'No tenés bananas: es gratis.' : 'Es por el honor: no cuesta nada.'}</p>
+      <button class="carta-jugar rojo" type="button" data-bn="si">Rechazar${cuesta ? ` · −1${BN}` : ''}</button>`)
+    if (v !== 'si') return
+  }
+  try { await R.rechazarDesafio(d.id) } catch (e) { await avisoBananas('No se pudo', esc(errTxt(e))) }
+  await Promise.all([cargarDesafios(), cargarBananas()])
+  pintarMatch()
+}
+/** Tus movimientos (tocando el saldo). */
+function verBananas() {
+  if (!bananas) return
+  const linea = (m) => {
+    const por = Array.isArray(m.detalle?.por) ? m.detalle.por.map((x) => POR_BANANA[x] ?? x).join(', ') : ''
+    const f = fechaLarga(m.fecha)
+    return `<li><span>${esc(MOTIVO_BANANA[m.motivo] ?? m.motivo)}${por ? ` · ${esc(por)}` : ''}${f ? `<small>${esc(f.dia)}</small>` : ''}</span><b class="${m.monto > 0 ? 'mas' : 'menos'}">${m.monto > 0 ? '+' : '−'}${Math.abs(m.monto)}</b></li>`
+  }
+  hojaBananas(`
+    <p class="bn-tit" id="bn-tit">${stickerBanana()}Tenés ${bananas.saldo}</p>
+    <p>${bananas.reservadas ? `Y ${bananas.reservadas} apostadas en desafíos abiertos. ` : ''}Hoy ganaste ${bananas.premiosHoy} de 5 jugando.</p>
+    ${bananas.movimientos.length ? `<ul class="bn-mov">${bananas.movimientos.map(linea).join('')}</ul>` : ''}
+    <p class="extras">10 al empezar. Si tenés menos de 10, el mono te tira 3 por semana. Jugando (vuelta firmada): birdie +1, águila +3, vuelta bajo par +2, hasta 5 por día; hoyo en uno, +10. El pozo del mono (hoy ${bananas.pozo}${BN}) se lo lleva el próximo hoyo en uno en MODO PRO. Son solo del juego.</p>
+    ${R.enPrueba() ? '<button class="carta-jugar oro" type="button" data-bn="fiesta">Probar la fiesta del hoyo en uno</button><button class="carta-jugar crema" type="button" data-bn="pozo">Probar la del pozo (PRO)</button>' : ''}
+    <button class="carta-jugar" type="button" data-bn="ok">Listo</button>`).then((v) => {
+    if (v === 'fiesta') fiestaBananas({ total: 10 })
+    else if (v === 'pozo') fiestaBananas({ total: Math.max(10, bananas?.pozo ?? 0), pozo: true })
+  })
+}
+$('#bn-barra').addEventListener('click', verBananas)
+/** El MATCH de prueba (prueba.js): rivales y bananas de mentira, en el teléfono. `entrar`: suelto, entra con esa identidad. */
+let pruebaApp = null
+async function activarPrueba(yo, entrar = false) {
+  const { crearPrueba } = await import('./prueba.js?v=0d5df89bff')
+  pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs })
+  R.usarPrueba(pruebaApp, entrar ? yo : null)
+  $('#mt-prueba').hidden = false
+}
+$('#mt-prueba-borrar').addEventListener('click', async () => {
+  if ((await hojaBananas('<p class="bn-tit" id="bn-tit">¿Empezar de cero?</p><p>Se borran los desafíos y las bananas de prueba de este teléfono.</p><button class="carta-jugar rojo" type="button" data-bn="si">Borrar todo</button>')) !== 'si') return
+  pruebaApp?.borrar()
+  mtDesafios = null
+  await Promise.all([cargarDesafios(), cargarBananas()])
+  pintarMatch()
+})
+if (PARAMS.get('probar') === 'match') activarPrueba({ uid: 'prueba:yo', alias: datos.usuario || 'Vos', sdga: true, match: true }, true)
+if (['fiesta', 'pozo'].includes(PARAMS.get('probar'))) setTimeout(() => fiestaBananas(PARAMS.get('probar') === 'pozo' ? { total: 47, pozo: true } : { total: 10 }), 1200)
+/** Después de firmar: lo que ganaste jugando (birdies, bajo par, hoyo en uno, el pozo), al lado del puesto. */
+async function premiosDeLaVuelta(antes) {
+  if (!(await cargarBananas()) || !bananas) return
+  const desde = Math.max(0, ...antes.movimientos.map((m) => Date.parse(m.fecha) || 0))
+  const nuevos = bananas.movimientos.filter((m) => ['premio', 'hoyo_en_uno', 'pozo'].includes(m.motivo) && (Date.parse(m.fecha) || 0) > desde)
+  const total = nuevos.reduce((a, m) => a + m.monto, 0)
+  if (!total || estado !== 'fin') return
+  const pozo = nuevos.find((m) => m.motivo === 'pozo')
+  const por = [...new Set(nuevos.flatMap((m) => (m.motivo === 'hoyo_en_uno' ? ['hoyo en uno'] : m.motivo === 'premio' && Array.isArray(m.detalle?.por) ? m.detalle.por.map((x) => POR_BANANA[x] ?? x) : [])))]
+  $('#t-bananas').innerHTML = pozo ? `🐒 ¡TE LLEVASTE EL POZO DEL MONO! +${total}${BN}` : `${BN} +${total} ${total === 1 ? 'banana' : 'bananas'}${por.length ? ` · ${esc(por.join(', '))}` : ''}`
+  $('#t-bananas').hidden = false
+  const unos = nuevos.filter((m) => m.motivo === 'hoyo_en_uno' || m.motivo === 'pozo').reduce((a, m) => a + m.monto, 0)
+  if (unos > 0) fiestaBananas({ total: unos, pozo: !!pozo })
+}
 async function mostrarMatch(tab = mtTab) {
   mtTab = tab
   mtRanking = null
   mtRankingError = null
   $('#match').hidden = false
   pintarMatch()
-  const [rv] = await Promise.allSettled([mtRivales ? Promise.resolve(mtRivales) : R.leerRivales(), cargarDesafios()])
+  const [rv] = await Promise.allSettled([mtRivales ? Promise.resolve(mtRivales) : R.leerRivales(), cargarDesafios(), cargarBananas()])
   if (rv.status === 'fulfilled') mtRivales = rv.value
   else mtError = rv.reason
   pintarMatch()
@@ -6322,13 +6782,13 @@ function pintarMatch() {
   $('#mt-pro').hidden = mtTab !== 'desafiar'
   $('#mt-pro').setAttribute('aria-pressed', String(mtPro))
   if (mtTab === 'desafiar') {
-    $('#mt-nota').textContent = 'Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma. Mismo clima, viento y banderas para los dos.'
+    $('#mt-nota').textContent = `Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma. Mismo clima, viento y banderas para los dos.${hayBananas ? ' Antes de jugar elegís si va con bananas o por el honor.' : ''}`
     if (!mtRivales) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudo cargar la lista. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; return }
     const q = $('#mt-buscar').value.trim().toLowerCase()
     const rs = mtRivales.filter((r) => !q || r.nombre.toLowerCase().includes(q))
     lista.innerHTML = rs.length ? rs.map((r) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(r.nombre.charAt(0).toUpperCase())}</span>
-        <span class="rk-nombre"><b>${esc(r.nombre)}</b>${r.sdga ? '<small>⛳ SDGA</small>' : ''}</span>
+        <span class="rk-nombre"><b>${esc(r.nombre)}</b>${r.sdga || (hayBananas && bananasDe(r.uid)) ? `<small>${[r.sdga ? '⛳ SDGA' : '', hayBananas && bananasDe(r.uid) ? `${BN}${bananasDe(r.uid).saldo}` : ''].filter(Boolean).join(' · ')}</small>` : ''}</span>
         <button class="mt-btn${mtPro ? ' pro' : ''}" type="button" data-desafiar="${esc(r.uid)}">${mtPro ? `${gi('pro')}Desafiar` : 'Desafiar'}</button>
       </li>`).join('') : `<li class="rk-vacio">${q ? 'Nadie con ese nombre.' : 'Todavía no hay a quién desafiar.'}</li>`
     return
@@ -6338,18 +6798,31 @@ function pintarMatch() {
   if (!mtDesafios) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudieron cargar tus matches.' : 'Cargando…'}</li>`; return }
   if (mtTab === 'historial') { pintarHistorial(lista); return }
   const yo = yoUid()
+  // con bananas, el desafío pasa por `jugando` (el que desafió lo está jugando) y `respondiendo` (el otro aceptó)
   const meToca = mtDesafios.filter((d) => d.estado === 'pendiente' && d.rival.uid === yo)
-  const espero = mtDesafios.filter((d) => d.estado === 'pendiente' && d.retador.uid === yo)
+  const loJuego = mtDesafios.filter((d) => d.estado === 'respondiendo' && d.rival.uid === yo)
+  const espero = mtDesafios.filter((d) => ['jugando', 'pendiente', 'respondiendo'].includes(d.estado) && d.retador.uid === yo)
   const sec = (t, filas) => (filas.length ? `<li class="mt-sec">${t}</li>${filas.join('')}` : '')
+  const pro = (d) => (M.esPro(d.semilla) ? `<span class="pro-tag">${gi('pro')}PRO</span>` : '')
+  const tag = (d) => (d.apuesta > 0 ? `<span class="bn-tag">${d.apuesta}${BN}</span>` : '')
+  const vence = (d) => {
+    if (!(d.apuesta > 0) || !d.enviadoFecha) return ''
+    const h = Math.max(1, Math.ceil((Date.parse(d.enviadoFecha) + 48 * 3600e3 - Date.now()) / 3600e3))
+    return ` · vence en ${h} h`
+  }
   const html = [
     sec('Te desafiaron', meToca.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.retador.alias)}${M.esPro(d.semilla) ? `<span class="pro-tag">${gi('pro')}PRO</span>` : ''}</b><small>Jugás con ${esc(d.retador.emoji)} ${esc(String(d.retador.apodo).replace(/ \(Đ\)$/, ''))} · ya jugó</small></span>
-        <button class="mt-btn oro" type="button" data-responder="${esc(d.id)}">Jugar</button>
-      </li>`)),
+        <span class="rk-nombre"><b>${esc(d.retador.alias)}${pro(d)}${tag(d)}</b><small>Ya jugó${vence(d)} · con ${esc(d.retador.emoji)} ${esc(apodoLimpio(d.retador.apodo))}</small></span>
+        <span class="mt-acc"><button class="mt-btn oro" type="button" data-responder="${esc(d.id)}">Jugar</button>${hayBananas ? `<button class="mt-btn chico" type="button" data-rechazar="${esc(d.id)}">Rechazar</button>` : ''}</span>
+      </li>`).concat(loJuego.map((d) => `<li class="rk-fila mt-fila">
+        <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
+        <span class="rk-nombre"><b>${esc(d.retador.alias)}${pro(d)}${tag(d)}</b><small>Lo aceptaste: si no lo terminás, cuenta como LP</small></span>
+        <span class="mt-estado" title="Lo estás jugando">${gi('calendar')}</span>
+      </li>`))),
     sec('Esperando que jueguen', espero.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.rival.alias)}${M.esPro(d.semilla) ? `<span class="pro-tag">${gi('pro')}PRO</span>` : ''}</b><small>Hiciste ${esc(golpesTxt(d.retador))}</small></span>
+        <span class="rk-nombre"><b>${esc(d.rival.alias)}${pro(d)}${tag(d)}</b><small>${d.estado === 'jugando' ? 'Lo empezaste: si no lo terminás, le llega como LP' : `Hiciste ${esc(golpesTxt(d.retador))}${d.estado === 'respondiendo' ? ' · lo está jugando' : vence(d)}`}</small></span>
         <span class="mt-estado" title="Esperando que juegue">${gi('calendar')}</span>
       </li>`)),
   ].join('')
@@ -6364,7 +6837,38 @@ async function cargarRankingMatch() {
 // orden: más ganados; después menos perdidos; después más jugados
 const ordenMatch = (a, b) => b.ganados - a.ganados || a.perdidos - b.perdidos || b.jugados - a.jugados || a.nombre.localeCompare(b.nombre)
 const pctGanados = (x) => (x.jugados ? Math.round((100 * x.ganados) / x.jugados) : 0)
+// la pestaña Ranking: el de matches o, con bananas, el de los más ricos 🍌
+let mtRkVista = 'matches'
 function pintarRankingMatch(lista) {
+  const vistas = hayBananas ? `<li class="bn-vistas"><button type="button" data-rkv="matches" aria-pressed="${mtRkVista === 'matches'}">Matches</button><button type="button" data-rkv="bananas" aria-pressed="${mtRkVista === 'bananas'}">${BN} Bananas</button></li>` : ''
+  if (hayBananas && mtRkVista === 'bananas') { pintarRankingBananas(lista, vistas); return }
+  pintarRankingMatchLista(lista)
+  if (vistas) lista.insertAdjacentHTML('afterbegin', vistas)
+}
+/** Los más ricos: todas sus bananas (con las apostadas), de los que ya las abrieron. Arriba, el pozo del mono. */
+function pintarRankingBananas(lista, vistas) {
+  $('#mt-nota').textContent = 'Las bananas de cada uno, contando las que tiene apostadas en desafíos abiertos.'
+  const yo = yoUid()
+  const filas = (bananasRk ?? []).filter((f) => f.abrio).sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre))
+  let pos = 0, prev = null
+  lista.innerHTML = `${vistas}<li class="bn-pozo">🐒 El pozo del mono: <b>${bananas?.pozo ?? 0}</b>${BN}. Se lo lleva el próximo hoyo en uno en MODO PRO.</li>${filas.length ? filas.map((f, k) => {
+    if (prev == null || f.total !== prev) pos = k + 1
+    prev = f.total
+    return `<li class="rk-fila bn-fila${f.uid === yo ? ' yo' : ''}">
+      <span class="rk-pos">${pos}</span>
+      <span class="rk-nombre"><span class="linea"><b>${esc(f.nombre)}</b>${f.sdga ? selloSdga() : ''}</span></span>
+      <span class="mtr-pct">${f.total}<small>bananas</small></span>
+    </li>`
+  }).join('') : '<li class="rk-vacio">Todavía nadie abrió las bananas.</li>'}`
+}
+$('#mt-lista').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-rkv]')
+  if (!b) return
+  mtRkVista = b.dataset.rkv
+  if (mtRkVista === 'bananas') cargarBananas().then(() => mtTab === 'ranking' && pintarMatch())
+  pintarMatch()
+})
+function pintarRankingMatchLista(lista) {
   $('#mt-nota').textContent = 'Arriba el que más matches ganó; a igual, el que menos perdió. Tocá una fila para ver su récord y contra quiénes jugó.'
   if (!mtRanking) {
     if (!mtRankingError) { lista.innerHTML = '<li class="rk-vacio">Cargando…</li>'; cargarRankingMatch(); return }
@@ -6485,7 +6989,7 @@ function pintarHistorial(lista) {
     <li class="mt-sec">Match por match</li>
     ${res.map((r) => `<li class="rk-fila mt-fila tocable" data-detalle="${esc(r.d.id)}" tabindex="0" aria-label="Ver el match contra ${esc(r.el.alias)} hoyo a hoyo">
       <span class="mini" aria-hidden="true">${esc(r.yo.emoji ?? '⛳')}</span>
-      <span class="rk-nombre"><b>vs ${esc(r.el.alias)}</b><small class="${r.clase}">${r.txt} · ${esc(golpesTxt(r.yo))} vs ${esc(golpesTxt(r.el))} · con ${esc(String(r.yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}</small></span>
+      <span class="rk-nombre"><b>vs ${esc(r.el.alias)}</b><small class="${r.clase}">${r.txt}${r.d.apuesta > 0 ? ` ${netoTxt(r.g, r.d.apuesta)}` : ''} · ${esc(golpesTxt(r.yo))} vs ${esc(golpesTxt(r.el))} · con ${esc(apodoLimpio(r.yo.apodo))}</small></span>
       <span class="mt-estado">${r.d.retador.uid === yo && !v.has(r.d.id) ? gi('bell', 'nuevo') : r.g > 0 ? gi('trophy') : r.g < 0 ? gi('close', 'pierde') : gi('friends')}</span>
       <button class="rp-mini" type="button" data-replay="${esc(r.d.id)}" aria-label="Ver el replay del match">${ICONO_REPLAY}</button>
       <button class="wa-mini" type="button" data-wa="${esc(r.d.id)}" aria-label="Mandar el resultado por WhatsApp">${ICONO_WA}</button>
@@ -6542,15 +7046,28 @@ $('#mt-lista').addEventListener('click', async (e) => {
   if (reto) {
     const rival = mtRivales?.find((r) => r.uid === reto.dataset.desafiar)
     if (!rival) return
+    // con bananas: cuánto, antes de jugar (por el honor = 0)
+    reto.disabled = true
+    const apuesta = await elegirApuesta(rival)
+    reto.disabled = false
+    if (apuesta == null) return
     const semilla = crypto.getRandomValues(new Uint32Array(1))[0]
-    matchModo = { tipo: 'reto', rival, semilla: mtPro ? M.semillaPro(semilla) : semilla }
+    matchModo = { tipo: 'reto', rival, semilla: mtPro ? M.semillaPro(semilla) : semilla, apuesta }
     mostrarElegir()
+    return
+  }
+  const rechazo = e.target.closest('[data-rechazar]')
+  if (rechazo) {
+    const desafio = mtDesafios?.find((d) => d.id === rechazo.dataset.rechazar)
+    if (desafio) rechazarDesafio(desafio)
     return
   }
   const resp = e.target.closest('[data-responder]')
   if (resp) {
     const desafio = mtDesafios?.find((d) => d.id === resp.dataset.responder)
     if (!desafio) return
+    // con bananas: primero aceptar (ponés lo mismo) o rechazar
+    if (desafio.apuesta > 0 && desafio.estado === 'pendiente' && !(await aceptarApuesta(desafio))) return
     resp.disabled = true
     resp.textContent = '…'
     let fantasma = null
@@ -7181,6 +7698,7 @@ function mensajeDesafio(r, rival, mia) {
     '',
     `Te toca: mismo player (${j.emoji} ${j.apodo}), mismo viento y mismas banderas.${j.ruleta ? ' Y la misma Ruleta: tiro por tiro te salen los mismos players que a mí 🎰.' : ''} Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
     'Menos golpes gana; si empatamos, el más rápido. LP pierde.',
+    ...(r.duelo?.apuesta > 0 ? [`Hay ${r.duelo.apuesta} 🍌 en juego: el que gana se lleva ${2 * r.duelo.apuesta - 1} (una es del mono 🐒).`] : []),
     '',
     `Entrá a la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch()}`,
   ].join('\n')
@@ -7188,7 +7706,7 @@ function mensajeDesafio(r, rival, mia) {
 // ── el resultado de un match, para mandarlo por WhatsApp ──
 const ICONO_WA = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M5.5 8.5a3 3 0 0 1 3-3h15a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H15l-5.5 4.5v-4.5h-1a3 3 0 0 1-3-3z" style="fill:var(--gi-f)"/><g style="fill:var(--gi-s)" stroke="none"><circle cx="11" cy="13.5" r="1.7"/><circle cx="16" cy="13.5" r="1.7"/><circle cx="21" cy="13.5" r="1.7"/></g></g></svg>' // el mensaje del set SDGA, no el logo de WhatsApp
 /** El resumen de un match terminado, visto por mí (yo/el: { alias, golpes, vsPar, ms, lp, apodo, emoji }), con el link a su replay. */
-function textoResultadoMatch(yo, el, id) {
+function textoResultadoMatch(yo, el, id, apuesta = 0) {
   const g = M.ganadorMatch(yo, el)
   const linea = (x, quien) => `${quien}: ${x.golpes == null || x.lp ? 'LP 💅' : `${x.golpes} golpes (${M.formatoPar(x.vsPar)})`}${x.ms != null && !x.lp ? ` · ${M.formatoTiempo(x.ms)}` : ''}`
   const apodo = String(yo.apodo ?? el.apodo ?? '').replace(/ \(Đ\)$/, '')
@@ -7202,6 +7720,7 @@ function textoResultadoMatch(yo, el, id) {
     linea(yo, 'Yo'),
     linea(el, el.alias),
     `Los dos con ${emoji} ${apodo}, mismo viento y mismas banderas${apodo === 'La Ruleta' ? ' (y tiro por tiro, los mismos players)' : ''}.`,
+    ...(apuesta > 0 ? [g > 0 ? `🍌 Me llevé ${2 * apuesta - 1} bananas.` : g < 0 ? `🍌 Me sacó ${apuesta} bananas.` : `🍌 Las ${apuesta} bananas vuelven.`] : []),
     '',
     cierre,
     `Mirá el replay y desafiame en la SDGApp → Juegos → MATCH ⚔️ ${R.linkMatch(id)}`,
@@ -7212,11 +7731,32 @@ async function compartirMatch(d, boton) {
   const { yo, el } = resultadoPara(d)
   const jugador = TODOS.find((x) => x.apodo === d.retador.apodo) ?? { apodo: d.retador.apodo ?? '', emoji: d.retador.emoji ?? '⛳' }
   if (boton) boton.disabled = true
-  const img = await imagenMatch({ izq: d.retador, der: d.rival, jugador, ganador: M.ganadorMatch(d.retador, d.rival) })
+  const img = await imagenMatch({ izq: d.retador, der: d.rival, jugador, ganador: M.ganadorMatch(d.retador, d.rival), apuesta: d.apuesta ?? 0 })
   if (boton) boton.disabled = false
-  compartirImagen(img, textoResultadoMatch(yo, el, d.id), 'match-trampa-del-mono.png')
+  compartirImagen(img, textoResultadoMatch(yo, el, d.id, d.apuesta ?? 0), 'match-trampa-del-mono.png')
 }
 /** Terminó la vuelta de un match: si desafiaste, se manda; si respondías, se anota y se ve quién ganó. */
+/** El veredicto del match, en una banda: GANASTE / PERDISTE / EMPATE y, abajo, por cuánto. */
+function veredictoMatch(yo, el, g) {
+  const lpYo = yo.lp || yo.golpes == null, lpEl = el.lp || el.golpes == null
+  const dif = !lpYo && !lpEl ? Math.abs(yo.golpes - el.golpes) : 0
+  const por = lpYo && lpEl ? 'los dos levantaron' : lpEl ? `${el.alias ?? 'el otro'} levantó` : lpYo ? 'levantaste'
+    : M.porTiempo(yo, el) ? `por tiempo · ${(Math.abs(yo.ms - el.ms) / 1000).toFixed(1).replace('.', ',')} s`
+    : dif ? `por ${dif} ${dif === 1 ? 'golpe' : 'golpes'}` : 'mismos golpes y mismo tiempo'
+  return `<p class="tm-veredicto ${g > 0 ? 'gana' : g < 0 ? 'pierde' : 'empate'}">${gi(g > 0 ? 'trophy' : g < 0 ? 'close' : 'friends')}<span>${g > 0 ? 'Ganaste' : g < 0 ? 'Perdiste' : 'Empate'}<small>${esc(por)}</small></span></p>`
+}
+/** Las bananas del match: el sticker, cuánto ganaste o perdiste (grande) y cuántas te quedan (se completa al llegar el saldo). */
+function bloqueBananasMatch(g, n) {
+  const x = netoBananas(g, n)
+  const chispas = g > 0 ? Array.from({ length: 7 }, (_, k) => {
+    const a = (k / 7) * 2 * Math.PI - Math.PI / 2
+    return `<i style="--dx: ${Math.round(Math.cos(a) * 54)}px; --dy: ${Math.round(Math.sin(a) * 54)}px; --r: ${Math.round(a * 57)}deg; --del: ${(0.35 + k * 0.04).toFixed(2)}s">${gi('banana')}</i>`
+  }).join('') : ''
+  return `<div class="tm-bananas ${g > 0 ? 'gana' : g < 0 ? 'pierde' : 'empate'}">
+    <span class="tmb-sticker" aria-hidden="true">${stickerBanana()}${chispas}</span>
+    <span class="tmb-txt"><b>${x > 0 ? '+' : x < 0 ? '−' : ''}${Math.abs(x)}</b><span>${g > 0 ? `Te llevás ${2 * n - 1} · 1 es del mono` : g < 0 ? `Perdiste tus ${n} ${n === 1 ? 'banana' : 'bananas'}` : `Empate: te vuelven tus ${n}`}</span><small class="tmb-saldo"></small></span>
+  </div>`
+}
 async function cerrarMatch(r) {
   const d = r.duelo
   if (d.enviado) return
@@ -7238,18 +7778,27 @@ async function cerrarMatch(r) {
     const mandar = async () => {
       el.innerHTML = `${gi('match', 'linea')}Mandando el desafío a <b>${esc(d.rival.nombre)}</b>…`
       try {
-        await R.crearDesafio({ rival: d.rival, semilla: d.semilla, ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
-        el.innerHTML = `<span class="gran">${gi('match')}DESAFÍO ENVIADO</span>Le llegó a <b>${esc(d.rival.nombre)}</b>. Va a jugar con ${esc(r.carta.emoji)} ${esc(r.carta.apodo)}, como vos, y va a ver tu pelota en vivo. El resultado te aparece en MATCH.<br><button class="btn-wa" type="button">${ICONO_WA}MANDÁSELO POR WHATSAPP</button>`
+        if (d.apuesta > 0) await R.enviarApuesta(d.desafioId, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
+        else await R.crearDesafio({ rival: d.rival, semilla: d.semilla, ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
+        el.className = 't-match res'
+        el.innerHTML = `<p class="tm-veredicto enviado">${gi('match')}<span>Desafío enviado<small>a ${esc(d.rival.nombre)}</small></span></p>
+          <div class="tm-datos">
+            <div><small>Tu vuelta</small><b>${lp ? 'LP' : mia.golpes}</b><em>${lp ? 'levantaste' : `${M.formatoPar(mia.vsPar)} · ${M.formatoTiempo(mia.ms)}`}</em></div>
+            <div><small>Juega con</small><b>${esc(r.carta.emoji)}</b><em>${esc(apodoLimpio(r.carta.apodo))}</em></div>
+            ${d.apuesta > 0 ? `<div class="bn"><small>En juego</small><b>${d.apuesta}${BN}</b><em>vence en 48 h</em></div>` : '<div><small>Va por</small><b>🤝</b><em>el honor</em></div>'}
+          </div>
+          <p class="tm-nota">Va a ver tu pelota en vivo 👻 · el resultado te llega a MATCH${d.apuesta > 0 ? ' · si no lo acepta, te vuelven' : ''}</p>
+          <div class="tm-acciones uno"><button class="btn-wa" type="button">${ICONO_WA}AVISALE POR WHATSAPP</button></div>`
         el.querySelector('.btn-wa').addEventListener('click', async (e) => {
           const b = e.currentTarget
           b.disabled = true
-          const img = await imagenMatch({ izq: { alias: datos.usuario || 'Yo', oculto: true }, der: { alias: d.rival.nombre, pendiente: true }, jugador: r.carta, ganador: null })
+          const img = await imagenMatch({ izq: { alias: datos.usuario || 'Yo', oculto: true }, der: { alias: d.rival.nombre, pendiente: true }, jugador: r.carta, ganador: null, apuesta: d.apuesta ?? 0 })
           b.disabled = false
           compartirImagen(img, mensajeDesafio(r, d.rival, mia), 'desafio-trampa-del-mono.png')
         })
         mtDesafios = null
-      } catch {
-        el.innerHTML = 'No se pudo mandar el desafío. <br><button class="mt-btn" type="button">Reintentar</button>'
+      } catch (e) {
+        el.innerHTML = `No se pudo mandar el desafío${/ya no está/.test(errTxt(e)) ? `: ${esc(errTxt(e))}` : ''}. <br><button class="mt-btn" type="button">Reintentar</button>`
         el.querySelector('button').addEventListener('click', mandar)
       }
     }
@@ -7272,17 +7821,21 @@ async function cerrarMatch(r) {
   const anotar = async () => {
     el.innerHTML = `${gi('match', 'linea')}Anotando el match con <b>${esc(des.retador.alias)}</b>…`
     try {
-      await R.responderDesafio(des.id, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
+      if (des.apuesta > 0) await R.completarApuesta(des.id, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
+      else await R.responderDesafio(des.id, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
       const g = M.ganadorMatch(mia, des.retador)
-      el.className = `t-match ${g > 0 ? 'gana' : g < 0 ? 'pierde' : ''}`
-      el.innerHTML = `<span class="gran">${g > 0 ? `${gi('trophy')}GANASTE EL MATCH` : g < 0 ? `${gi('close', 'pierde')}PERDISTE EL MATCH` : `${gi('friends')}EMPATE`}</span>${tablaResultado(g)}Vos ${esc(golpesTxt(mia))}${mia.ms != null ? ` en ${M.formatoTiempo(mia.ms)}` : ''} · ${esc(des.retador.alias)} ${esc(golpesTxt(des.retador))}${des.retador.ms != null ? ` en ${M.formatoTiempo(des.retador.ms)}` : ''}<br><span class="t-match-botones"><button class="btn-wa" type="button">${ICONO_WA}MANDAR EL RESULTADO</button><button class="btn-replay" type="button">${ICONO_REPLAY}VER EL REPLAY</button></span>`
+      const n = des.apuesta
+      el.className = 't-match res'
+      el.innerHTML = `${veredictoMatch(mia, des.retador, g)}${tablaResultado(g)}${n > 0 ? bloqueBananasMatch(g, n) : ''}<div class="tm-acciones"><button class="btn-wa" type="button">${ICONO_WA}COMPARTIR</button><button class="btn-replay" type="button">${ICONO_REPLAY}REPLAY</button></div>`
+      // cuántas te quedan: cuando llega el saldo
+      if (n > 0) cargarBananas().then(() => { const sal = el.querySelector('.tmb-saldo'); if (sal && bananas) sal.textContent = `Ahora tenés ${bananas.saldo}` })
       el.querySelector('.btn-wa').addEventListener('click', (e) => compartirMatch({ ...des, rival: { ...des.rival, uid: yoUid(), alias: datos.usuario || des.rival.alias, ...mia } }, e.currentTarget))
       // el replay de este match, con las dos grabaciones que ya están acá (no hace falta pedirlas)
       el.querySelector('.btn-replay').addEventListener('click', () => abrirReplay({ ...des, estado: 'jugado', rival: { ...des.rival, ...mia } }, { retador: d.fantasma, rival: d.grabacion }))
       if (g > 0) S.embocada()
       mtDesafios = null
-    } catch {
-      el.innerHTML = 'No se pudo anotar el match. <br><button class="mt-btn" type="button">Reintentar</button>'
+    } catch (e) {
+      el.innerHTML = `No se pudo anotar el match${/ya no está/.test(errTxt(e)) ? `: ${esc(errTxt(e))} (pasaron más de 2 horas: cuenta como LP)` : ''}. <br><button class="mt-btn" type="button">Reintentar</button>`
       el.querySelector('button').addEventListener('click', anotar)
     }
   }
@@ -7815,7 +8368,7 @@ function cartaDe(j) {
       <button class="carta-jugar" type="button"${lock ? ' disabled' : ''}>${lock ? `${candado(false, 'en-boton')} Bloqueado` : `Jugar con ${esc(j.apodo)}`}</button>
     </div>
   </article>`
-  el.querySelector('.carta-jugar').addEventListener('click', () => empezar(j))
+  el.querySelector('.carta-jugar').addEventListener('click', (e) => jugarCon(j, e.currentTarget))
   if (j.retro) {
     // la carta holográfica: la luz y el arcoíris siguen al dedo (o al mouse); al soltar, vuelven a pasear solos
     const carta = el.querySelector('.carta')
@@ -7989,7 +8542,7 @@ function mostrarElegir() {
   S.viento(0)
   S.lluvia(0)
   for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'stats', 'resumen', 'match']) $('#' + id).hidden = true
-  $('.mazo-tit').innerHTML = matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}` : 'Elegí tu nivel de dificultad'
+  $('.mazo-tit').innerHTML = matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}${(matchModo.tipo === 'reto' ? matchModo.apuesta : matchModo.desafio.apuesta) > 0 ? ` · ${matchModo.tipo === 'reto' ? matchModo.apuesta : matchModo.desafio.apuesta}${BN}` : ''}` : 'Elegí tu nivel de dificultad'
   pintarProMazo()
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
@@ -8018,7 +8571,7 @@ R.alPlantel((hcps) => {
   hcpsPendientes = hcps
   if (['portada', 'elegir', 'fin'].includes(estado)) aplicarHandicaps()
 })
-R.alEntrar((yo) => {
+R.alEntrar(async (yo) => {
   // ¿ya habías desbloqueado a Demetrio? (si borraste la app, se recupera de la base)
   // y tus récords firmados (el desbloqueo de Taiu sale de ahí)
   Promise.all([R.leerMarcas(), R.leerConteo()]).then(([r, c]) => { recuperarSecreto(r?.marcas, c); recuperarRecords(r?.marcas) }).catch(() => {})
@@ -8027,14 +8580,17 @@ R.alEntrar((yo) => {
   $('#quien-juega').hidden = true
   $('#como-alias').textContent = yo.alias
   $('#como-app').hidden = false
-  $('#volver-app').hidden = !R.puente.enApp
+  $('#volver-app').hidden = !R.puente.enApp || R.pruebaSuelta()
   $('#salir').hidden = R.puente.enApp
   $('#entrar-google').hidden = true
   $('#nota-google').hidden = true
   rkAmbito = yo.sdga ? 'sdga' : 'mundial'
+  // la SDGApp de dev sin Google (modo DEV): la app no deja jugar matches; se juega el de prueba (prueba.js)
+  if (String(yo.uid).startsWith('dev:') && !R.enPrueba()) await activarPrueba(yo)
   if (R.hayMatch()) {
     $('#ver-match').hidden = false
     cargarDesafios()
+    cargarBananas()
     // ?match=1 (el aviso de la SDGApp, el link de WhatsApp); con &replay=<id>, directo al replay de ese match
     const q = new URLSearchParams(location.search)
     if (q.has('match')) entrarPorAviso({ replayId: q.get('replay') || null, desdeLink: true })
@@ -8130,7 +8686,7 @@ $('#todos-lista').addEventListener('click', (e) => {
   const b = e.target.closest('[data-jugar]')
   if (!b || bloqueado(PLANTEL[+b.dataset.jugar])) return
   $('#todos').hidden = true
-  empezar(PLANTEL[+b.dataset.jugar])
+  jugarCon(PLANTEL[+b.dataset.jugar])
 })
 
 $('#jugar').addEventListener('click', () => {

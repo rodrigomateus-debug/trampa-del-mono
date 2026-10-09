@@ -111,6 +111,8 @@ if (enMarco) {
   window.parent.postMessage({ tipo: 'trampa:hola', v: 1 }, '*')
 }
 function pedirApp(tipo, datos = {}) {
+  // el match de prueba (ver usarPrueba): el match y las firmas los contesta la app de mentira; el resto, la app de verdad
+  if (prueba && (tipo === 'trampa:match' || tipo === 'trampa:anotar' || !origenApp)) return prueba.pedir(tipo, datos)
   const id = `p${++pedidos}`
   return new Promise((ok) => {
     const t = setTimeout(() => { esperando.delete(id); ok(null) }, 10000)
@@ -118,6 +120,19 @@ function pedirApp(tipo, datos = {}) {
     window.parent.postMessage({ tipo, id, ...datos }, origenApp)
   })
 }
+/**
+ * El MATCH de prueba (prueba.js): sin cuenta (la SDGApp de dev en modo DEV, "dev:…") o suelto con ?probar=match, una
+ * app de mentira contesta acá mismo, con rivales y bananas simulados que quedan en el teléfono. Con `identidad`, entra
+ * con ella (suelto no hay app que la mande). Nunca en producción.
+ */
+let prueba = null
+export function usarPrueba(p, identidad = null) {
+  prueba = p
+  if (identidad) entro(identidad, true)
+}
+export const enPrueba = () => !!prueba
+/** Suelto, en prueba: no hay app de verdad atrás (sin "volver a la SDGApp"). */
+export const pruebaSuelta = () => !!prueba && !origenApp
 /** Un aviso suelto a la app (p. ej. el color de arriba de la pantalla, para teñir la barra de estado). */
 export const avisarApp = (d) => { if (origenApp) window.parent.postMessage(d, origenApp) }
 
@@ -317,6 +332,8 @@ const COLS_DESAFIO = 'id,retador_id,retador_alias,retador_apodo,retador_emoji,re
 /** Una fila de la base → el desafío del juego. */
 export const deFilaDesafio = (f) => ({
   id: f.id, semilla: Number(f.semilla), estado: f.estado, fecha: f.created_at, jugadoFecha: f.jugado_at ?? null,
+  // las bananas (0 = por el honor), cuándo le llegó al otro y cuándo aceptó (sin las columnas en la base: 0 y null)
+  apuesta: Math.max(0, Math.floor(+f.apuesta || 0)), enviadoFecha: f.enviado_at ?? null, aceptadoFecha: f.aceptado_at ?? null,
   retador: { uid: f.retador_id, alias: f.retador_alias, apodo: f.retador_apodo, emoji: f.retador_emoji, golpes: f.retador_golpes, vsPar: f.retador_vs_par, ms: f.retador_ms, lp: !!f.retador_lp, ruleta: ruletaOk(f.retador_ruleta) },
   rival: { uid: f.rival_id, alias: f.rival_alias, apodo: f.rival_apodo ?? null, emoji: f.rival_emoji ?? null, golpes: f.rival_golpes ?? null, vsPar: f.rival_vs_par ?? null, ms: f.rival_ms ?? null, lp: !!f.rival_lp, ruleta: ruletaOk(f.rival_ruleta) },
 })
@@ -375,12 +392,13 @@ export async function leerDesafios() {
   if (puente.enApp) return ((await porApp('desafios')) ?? []).map(deFilaDesafio)
   const uid = puente.identidad?.uid
   const leer = (cols) => rest(`trampa_desafios?select=${cols}&or=(retador_id.eq.${uid},rival_id.eq.${uid})&order=created_at.desc&limit=100`)
-  let filas
-  try {
-    filas = await leer(`${COLS_DESAFIO},retador_ruleta,rival_ruleta`)
-  } catch (e) {
-    if (!/HTTP 400/.test(String(e?.message))) throw e
-    filas = await leer(COLS_DESAFIO) // una base sin las columnas de la Ruleta
+  // con las bananas y la Ruleta; una base sin esas columnas contesta 400 y se lee sin ellas
+  let filas = null
+  const intentos = [`${COLS_DESAFIO},retador_ruleta,rival_ruleta,apuesta,enviado_at,aceptado_at`, `${COLS_DESAFIO},retador_ruleta,rival_ruleta`, COLS_DESAFIO]
+  for (let i = 0; i < intentos.length && !filas; i++) {
+    try { filas = await leer(intentos[i]) } catch (e) {
+      if (i === intentos.length - 1 || !/HTTP 400/.test(String(e?.message))) throw e
+    }
   }
   return (filas ?? []).map(deFilaDesafio)
 }
@@ -461,3 +479,58 @@ export async function leerReplay(id) {
   return { retador: lista(filas?.[0]?.fantasma), rival: lista(filas?.[0]?.rival_fantasma) }
 }
 
+
+// ── las bananas 🍌 (8/10/2026) ──────────────────────────────────────────────────────────────────────
+// Las monedas del match. Todo lo que mueve bananas son funciones de la base de la SDGApp (ver supabase/migration.sql
+// del repo de la app, "las bananas"), que chequean las reglas: el juego solo pide. Adentro de la app, por el puente;
+// suelto, por REST (/rpc). Si la app o la base todavía no las tienen, tiran error y el juego sigue sin bananas.
+async function rpc(fn, args = {}) {
+  const tk = await token()
+  if (!tk) throw new Error('sin sesión')
+  const res = await fetch(`${SUPABASE.url}/rest/v1/rpc/${fn}`, { method: 'POST', headers: cabeceras(tk), body: JSON.stringify(args) })
+  const cuerpo = res.status === 204 ? null : await res.json().catch(() => null)
+  // un "no" de la base (no te alcanzan, ya no está…) viene con su mensaje: se muestra tal cual
+  if (!res.ok) throw new Error(cuerpo?.code === 'P0001' && cuerpo?.message ? cuerpo.message : `HTTP ${res.status}`)
+  return cuerpo
+}
+/** Tus bananas: { saldo, reservadas, pozo, premiosHoy, movimientos: [{ monto, motivo, desafio, detalle, fecha }] }. */
+export async function leerBananas() {
+  const b = puente.enApp ? await porApp('bananas') : await rpc('trampa_bananas_estado')
+  if (!b || typeof b !== 'object') throw new Error('sin bananas')
+  const n = (x) => Math.floor(+x || 0)
+  return { saldo: n(b.saldo), reservadas: n(b.reservadas), pozo: n(b.pozo), premiosHoy: n(b.premiosHoy), movimientos: Array.isArray(b.movimientos) ? b.movimientos : [] }
+}
+/** Las bananas de todos: [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]. */
+export async function leerRankingBananas() {
+  const filas = puente.enApp ? await porApp('bananasRanking') : await rpc('trampa_bananas_ranking')
+  return (Array.isArray(filas) ? filas : []).map((f) => ({ uid: f.user_id, nombre: f.nombre ?? '—', sdga: !!f.sdga, saldo: Math.floor(+f.saldo || 0), total: Math.floor(+f.total || 0), abrio: !!f.abrio })).filter((f) => f.uid)
+}
+/** Arranca un desafío con bananas (antes de jugar tu vuelta): quedan reservadas. Devuelve el id del desafío. */
+export async function empezarApuesta({ rival, semilla, apodo, emoji, apuesta }) {
+  if (puente.enApp) return (await porApp('apostar', { rivalId: rival.uid, rivalAlias: rival.nombre, apodo, emoji, semilla, apuesta }))?.id ?? null
+  return rpc('trampa_desafio_empezar', { p_rival: rival.uid, p_rival_alias: rival.nombre, p_alias: puente.identidad?.alias, p_apodo: apodo, p_emoji: emoji, p_semilla: semilla, p_apuesta: apuesta })
+}
+/** Terminaste la vuelta de un desafío con bananas: le llega al otro (con tu resultado y tu grabación). */
+export async function enviarApuesta(id, { golpes, vsPar, ms, lp, fantasma, ruleta = null, apodo, emoji }) {
+  if (puente.enApp) { await porApp('enviar', { desafioId: id, apodo, emoji, golpes, vsPar, ms, lp: !!lp, fantasma, ...(ruleta ? { ruleta } : {}) }); return true }
+  await rpc('trampa_desafio_enviar', { p_id: id, p_golpes: golpes, p_vs_par: vsPar, p_ms: ms, p_lp: !!lp, p_fantasma: fantasma, p_ruleta: ruleta })
+  return true
+}
+/** Aceptás un desafío con bananas: ponés lo mismo (queda reservado) y jugás. */
+export async function aceptarApuesta(id) {
+  if (puente.enApp) await porApp('aceptar', { desafioId: id })
+  else await rpc('trampa_desafio_aceptar', { p_id: id })
+  return true
+}
+/** Terminaste de responder un desafío con bananas: se anota y se paga. Devuelve { gano (visto por vos), apuesta }. */
+export async function completarApuesta(id, { apodo, emoji, golpes, vsPar, ms, lp, fantasma, ruleta = null }) {
+  const r = puente.enApp
+    ? await porApp('completar', { desafioId: id, apodo, emoji, golpes, vsPar, ms, lp: !!lp, ...(Array.isArray(fantasma) ? { fantasma } : {}), ...(ruleta ? { ruleta } : {}) })
+    : await rpc('trampa_desafio_completar', { p_id: id, p_apodo: apodo, p_emoji: emoji, p_golpes: golpes, p_vs_par: vsPar, p_ms: ms, p_lp: !!lp, p_fantasma: Array.isArray(fantasma) ? fantasma : null, p_ruleta: ruleta })
+  return { gano: Math.sign(+r?.gano || 0), apuesta: Math.floor(+r?.apuesta || 0) }
+}
+/** Rechazás un desafío (con bananas te cuesta 1, que va al mono; por el honor, nada). Devuelve { costo }. */
+export async function rechazarDesafio(id) {
+  const r = puente.enApp ? await porApp('rechazar', { desafioId: id }) : { costo: await rpc('trampa_desafio_rechazar', { p_id: id }) }
+  return { costo: Math.floor(+r?.costo || 0) }
+}
