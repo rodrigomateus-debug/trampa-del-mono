@@ -5920,9 +5920,11 @@ function dibujarMonos() {
 // ── los tees: un cajón de salida dibujado encima (de la marca azul a la amarilla) con las tres marcas ──
 const COLOR_TEE = { azul: '#2f5fd0', blanca: '#ffffff', amarilla: '#f2d335' }
 // 🛺 los senderos de carritos (como en las canchas de verdad): una cinta de tierra clara con borde, en coordenadas de la
-// cancha. Por ahí el carrito de Marcos anda más rápido
+// cancha. Por ahí el carrito de Marcos anda más rápido. Se ven solo cuando juega Marcos (cuando hay carrito: en la Ruleta,
+// en su turno); para los demás la cancha queda como siempre
 let senderosPath = null
 function dibujarSenderos() {
+  if (!ronda?.carro || ronda.terminada) return
   const sen = M.senderos(campo)
   if (!sen) return
   senderosPath ??= sen.lineas.map(({ pts }) => { const p = new Path2D(); pts.forEach((q, i) => p[i ? 'lineTo' : 'moveTo'](q[0], q[1])); return p })

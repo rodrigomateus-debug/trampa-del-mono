@@ -2104,7 +2104,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 19ee4a5 · 9/10, 06:44 p. m.</span>
+  <span class="version" id="version">v e935aaa · 9/10, 08:02 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -5937,9 +5937,11 @@ function dibujarMonos() {
 // ── los tees: un cajón de salida dibujado encima (de la marca azul a la amarilla) con las tres marcas ──
 const COLOR_TEE = { azul: '#2f5fd0', blanca: '#ffffff', amarilla: '#f2d335' }
 // 🛺 los senderos de carritos (como en las canchas de verdad): una cinta de tierra clara con borde, en coordenadas de la
-// cancha. Por ahí el carrito de Marcos anda más rápido
+// cancha. Por ahí el carrito de Marcos anda más rápido. Se ven solo cuando juega Marcos (cuando hay carrito: en la Ruleta,
+// en su turno); para los demás la cancha queda como siempre
 let senderosPath = null
 function dibujarSenderos() {
+  if (!ronda?.carro || ronda.terminada) return
   const sen = M.senderos(campo)
   if (!sen) return
   senderosPath ??= sen.lineas.map(({ pts }) => { const p = new Path2D(); pts.forEach((q, i) => p[i ? 'lineTo' : 'moveTo'](q[0], q[1])); return p })
