@@ -2678,6 +2678,62 @@ export function fraseDickyE5(rng, quien, que, j) {
 /** El compañero del Equipo 5: 'espanta' (lo espantaste a tiempo) o 'ablandado' (te ablandaron). n = el que juega. */
 export const fraseCompaE5 = (rng, que, j) => elegir(rng, que === 'espanta' ? ESPANTA : ABLANDADO)(nombreDe(j))
 
+// ── ⚔️ el Clásico de la semana: los Dicky contra el Equipo 5, entre todos. Cada vuelta firmada con una carta Dicky suma
+// para los Dicky y con una del Equipo 5 para el Equipo 5: 1 punto, más 1 por cada golpe bajo par; de cada uno, hasta 5
+// vueltas por día para cada equipo. La semana, de lunes a domingo en hora argentina. Las mismas reglas que la base
+// (`trampa_clasico_puntos`), que con eso le paga 2 bananas a los que jugaron para el que ganó ──
+export const CLASICO = { porDia: 5, premio: 2, tz: -3 } // la hora argentina: UTC−3 (sin horario de verano)
+const DIA = 864e5
+/** El lunes 00:00 (hora argentina) de la semana de `t` (ms); con `atras`, de tantas semanas antes. En ms. */
+export function lunesDe(t, atras = 0) {
+  const off = CLASICO.tz * 3600e3
+  const local = new Date(t + off) // sus campos UTC son la hora argentina
+  const dow = (local.getUTCDay() + 6) % 7 // 0 = lunes
+  return Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - dow - 7 * atras) - off
+}
+/**
+ * El marcador de la semana que arranca el lunes `desde` (ms), con las vueltas firmadas `marcas` ({ uid, usuario, apodo,
+ * vsPar, fecha }). `equipoDe(apodo)` → 'dicky' | 'e5' | null. Devuelve { desde, hasta, dicky, e5, ganador, aportes:
+ * { dicky: [{ quien, nombre, pts }], e5: [...] } } (los aportes, de mayor a menor).
+ */
+export function clasico(marcas, desde, equipoDe) {
+  const hasta = desde + 7 * DIA
+  const off = CLASICO.tz * 3600e3
+  const grupos = new Map() // quien → equipo → día → [puntos]
+  const nombres = new Map()
+  for (const m of marcas ?? []) {
+    const t = Date.parse(m.fecha)
+    if (!(t >= desde && t < hasta) || m.vsPar == null) continue
+    const eq = equipoDe(m.apodo)
+    if (eq !== 'dicky' && eq !== 'e5') continue
+    const quien = m.uid ?? `u:${String(m.usuario ?? '').trim().toLowerCase()}`
+    if (!nombres.has(quien)) nombres.set(quien, m.usuario)
+    const dia = Math.floor((t + off) / DIA)
+    const porEq = grupos.get(quien) ?? new Map()
+    grupos.set(quien, porEq)
+    const porDia = porEq.get(eq) ?? new Map()
+    porEq.set(eq, porDia)
+    porDia.set(dia, [...(porDia.get(dia) ?? []), 1 + Math.max(0, -m.vsPar)])
+  }
+  const aportes = { dicky: [], e5: [] }
+  for (const [quien, porEq] of grupos) {
+    for (const [eq, porDia] of porEq) {
+      let pts = 0
+      for (const lista of porDia.values()) pts += lista.sort((a, b) => b - a).slice(0, CLASICO.porDia).reduce((a, b) => a + b, 0)
+      aportes[eq].push({ quien, nombre: nombres.get(quien), pts })
+    }
+  }
+  for (const eq of ['dicky', 'e5']) aportes[eq].sort((a, b) => b.pts - a.pts)
+  const dicky = aportes.dicky.reduce((a, x) => a + x.pts, 0), e5 = aportes.e5.reduce((a, x) => a + x.pts, 0)
+  return { desde, hasta, dicky, e5, ganador: dicky > e5 ? 'dicky' : e5 > dicky ? 'e5' : null, aportes }
+}
+// LG relata el resultado (de hincha del Equipo 5, como siempre)
+export const LG_CLASICO = {
+  dicky: ['Ganaron los Dicky. Suerte de principiante', 'Tenía que ser… ganaron los Dicky', 'Los Dicky ganaron. Que no se acostumbren'],
+  e5: ['¡EQUIPO 5, SEÑORES! #BastaDeDickyTontos', 'El #Equipo5 cumple sus promesas 🏆', 'Ganó el Equipo 5. El único equipo con título 🏆'],
+  empate: ['Empate. Nadie cobra: el mono se ríe', 'Empate. Quieren desestabilizar al #Equipo5'],
+}
+
 // ── 🦉📺 la Mejor pelota del Equipo 5 (una por vuelta, "fourball: Guarino-Castelli, mejor tarjeta"): pegás vos, después
 // el compañero desde el mismo lugar (también lo apuntás vos), cada uno con su handicap y su habilidad, y elegís con cuál
 // te quedás. Cuenta un golpe ──

@@ -1328,6 +1328,33 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 #e5-btn[disabled] { animation: none; }
 @keyframes e5-late { from { transform: rotate(-5deg) scale(1); } to { transform: rotate(-5deg) scale(1.07); } }
 @media (prefers-reduced-motion: reduce) { #e5-btn, #e5-btn.armada { animation: none; } }
+/* ⚔️ el Clásico de la semana (arriba del ranking general): los dos escudos, el marcador, la barra y los que más suman */
+.clasico { margin: 0 0 14px; padding: 12px 14px 10px; background: var(--green-900); color: var(--cream); border: var(--game-stroke) solid var(--game-ink); border-radius: 16px; box-shadow: 4px 5px 0 var(--game-ink); }
+.clasico[hidden] { display: none; }
+.clasico .cl-kicker { margin: 0 0 8px; text-align: center; font: 15px/1 var(--font-display); letter-spacing: .08em; color: var(--gold); text-transform: uppercase; }
+.clasico .cl-marcador { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; }
+.clasico .cl-eq { display: flex; align-items: center; gap: 8px; }
+.clasico .cl-eq.e5 { justify-content: flex-end; text-align: right; }
+.clasico .cl-eq img { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--game-ink); background: #1d1a5c; flex: none; }
+.clasico .cl-eq.e5 img { background: var(--green-900); }
+.clasico .cl-eq b { display: block; font: 36px/0.95 var(--font-display); }
+.clasico .cl-eq small { display: block; font: 11px/1 var(--font-display); letter-spacing: .08em; opacity: .75; }
+.clasico .cl-eq.gana b { color: var(--gold); }
+.clasico .cl-vs { font: 16px/1 var(--font-display); color: var(--gold); }
+.clasico .cl-barra { height: 8px; margin: 10px 0 6px; border-radius: 99px; background: #3e8f5a; overflow: hidden; border: 1.5px solid var(--game-ink); }
+.clasico .cl-barra i { display: block; height: 100%; background: #6b67d8; }
+.clasico p { margin: 4px 0 0; font-size: 12.5px; line-height: 1.3; }
+.clasico .cl-va { text-align: center; }
+.clasico .cl-top { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.clasico .cl-top small { display: block; font: 10px/1.2 var(--font-display); letter-spacing: .08em; color: var(--gold); }
+.clasico .cl-top span:last-child { text-align: right; }
+.clasico .cl-antes { color: var(--gold); }
+.clasico .cl-como { opacity: .7; font-size: 11.5px; }
+.clasico .cl-como .bn { width: 15px; height: 15px; vertical-align: -3px; }
+.cl-cobro { text-align: center; }
+.cl-cobro > .bn-sticker { width: 92px; height: 92px; margin: 2px auto 6px; filter: drop-shadow(5px 6px 0 var(--game-ink)); animation: cl-salta .6s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes cl-salta { from { transform: rotate(-30deg) scale(.3); } to { transform: rotate(-8deg) scale(1); } }
+.cl-cobro .cl-lg { font-style: italic; color: var(--text-muted); }
 /* 😈 ABRAZO / 🔥 ¡FUERA, DICKY!: unos segundos para defenderte (la barrita de abajo es el tiempo que queda) */
 #contra-btn { position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 150px); z-index: 33; display: flex; align-items: center; gap: 8px; padding: 10px 16px 13px 12px; overflow: hidden; color: var(--cream); background: #1d1a5c; border: var(--game-stroke) solid var(--game-ink); border-radius: 999px; box-shadow: 4px 5px 0 var(--game-ink); font: 19px/1 var(--font-display); letter-spacing: .04em; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 #contra-btn[hidden] { display: none; }
@@ -1974,6 +2001,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <span class="teja" id="rk-teja"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4"/><path d="M16 17.5v4"/><path d="M11 26.5h10l-1-5h-8z" style="fill:var(--gi-f)"/><path d="M10 5.5h12v6a6 6 0 0 1-12 0z" style="fill:var(--gi-a)"/></g></svg></span>
       <div><span class="kicker" style="color: var(--text-muted)">Ranking · golpes, después tiempo</span><div class="quien" id="rk-tit">GENERAL</div></div>
     </header>
+    <div class="clasico" id="rk-clasico" hidden></div>
     <div class="rk-modo" id="rk-modo" role="tablist" aria-label="Normal o PRO">
       <button type="button" role="tab" data-modo="normal" aria-selected="true">NORMAL</button>
       <button type="button" role="tab" data-modo="pro" aria-selected="false"><span data-ico="pro" aria-hidden="true"></span>PRO</button>
@@ -6917,7 +6945,7 @@ async function cargarDesafios() {
 let bananas = null // { saldo, reservadas, pozo, premiosHoy, movimientos }
 let bananasRk = null // [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]
 let hayBananas = false
-const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío' }
+const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío', clasico: '⚔️ Ganó tu equipo en el Clásico' }
 const POR_BANANA = { birdie: 'birdie', aguila: 'águila', bajo_par: 'bajo par' }
 // la banana del set SDGA: chiquita, en el texto (BN); grande, troquelada como sticker (stickerBanana)
 const BN = gi('banana', 'bn')
@@ -8557,6 +8585,49 @@ $('#st-ambito').addEventListener('click', (e) => {
   stUsuario = null
   pintarStats()
 })
+// ── ⚔️ el Clásico de la semana: los Dicky contra el Equipo 5, entre todos (mismas cuentas que la base: M.clasico) ──
+const equipoDe = (apodo) => { const j = TODOS.find((x) => x.apodo === apodo); return j?.dicky ? 'dicky' : M.esEquipo5(j) ? 'e5' : null }
+/** LG relata cómo salió (la frase depende de la semana: no cambia cada vez que se pinta). */
+const lgClasico = (c) => { const l = M.LG_CLASICO[c.ganador ?? 'empate']; return l[Math.floor(c.desde / 864e5 / 7) % l.length] }
+function pintarClasico() {
+  const el = $('#rk-clasico')
+  const ahora = Date.now()
+  const c = M.clasico(rkMarcas, M.lunesDe(ahora), equipoDe)
+  const antes = M.clasico(rkMarcas, M.lunesDe(ahora, 1), equipoDe)
+  const tot = c.dicky + c.e5
+  const quedan = Math.ceil((c.hasta - ahora) / 864e5)
+  const va = c.ganador === 'dicky' ? 'Van ganando los Dicky' : c.ganador === 'e5' ? 'Va ganando el Equipo 5' : tot ? 'Van empatados' : 'Todavía no sumó nadie'
+  const top = (l) => l.slice(0, 3).map((x) => `${esc(x.nombre ?? '—')} <b>${x.pts}</b>`).join(' · ') || 'nadie todavía'
+  const salio = antes.ganador === 'dicky' ? 'ganaron los Dicky' : antes.ganador === 'e5' ? 'ganó el Equipo 5' : 'empataron'
+  el.innerHTML = `<p class="cl-kicker">⚔️ El Clásico de la semana</p>
+    <div class="cl-marcador">
+      <span class="cl-eq dicky${c.ganador === 'dicky' ? ' gana' : ''}"><img src="dicky-toons.svg" alt="" draggable="false"><span><b>${c.dicky}</b><small>DICKY</small></span></span>
+      <span class="cl-vs">VS</span>
+      <span class="cl-eq e5${c.ganador === 'e5' ? ' gana' : ''}"><span><b>${c.e5}</b><small>EQUIPO 5</small></span><img src="equipo-5.svg" alt="" draggable="false"></span>
+    </div>
+    <div class="cl-barra" aria-hidden="true"><i style="width:${tot ? Math.round((100 * c.dicky) / tot) : 50}%"></i></div>
+    <p class="cl-va"><b>${va}</b> · ${quedan > 1 ? `faltan ${quedan} días` : 'termina hoy'}</p>
+    <p class="cl-top"><span><small>DICKY</small>${top(c.aportes.dicky)}</span><span><small>EQUIPO 5</small>${top(c.aportes.e5)}</span></p>
+    ${antes.dicky + antes.e5 ? `<p class="cl-antes">La semana pasada ${salio}, ${antes.dicky} a ${antes.e5} · 📺 LG: «${esc(lgClasico(antes))}»</p>` : ''}
+    <p class="cl-como">Cada vuelta firmada con un Dicky o con el Equipo 5 suma para su equipo: 1 punto, más 1 por cada golpe bajo par (hasta 5 vueltas por día). Termina el domingo a la noche${hayBananas ? `; los que jugaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}.</p>`
+  el.hidden = false
+}
+/** Al entrar: si el Clásico de la semana pasada lo ganó tu equipo (y jugaste), el mono te tira las bananas. Una vez por semana (lo cuida la base). */
+async function cobrarClasico() {
+  if (cobrarClasico.hecho) return
+  cobrarClasico.hecho = true
+  let r
+  try { r = await R.cobrarClasico() } catch { return } // sin la base o la app nueva: sin premio
+  if (!r?.cobraste) return
+  cargarBananas()
+  const quien = r.ganador === 'dicky' ? 'los Dicky' : 'el Equipo 5'
+  S.monoBueno()
+  await hojaBananas(`<div class="cl-cobro">${stickerBanana()}<p class="bn-tit" id="bn-tit">¡${r.ganador === 'dicky' ? 'GANARON LOS DICKY' : 'GANÓ EL EQUIPO 5'}!</p>
+    <p>El Clásico de la semana pasada: <b>Dicky ${r.dicky} · Equipo 5 ${r.e5}</b>. Jugaste para ${quien}: el mono te tira <b>+${r.cobraste}</b>${BN}</p>
+    <p class="cl-lg">📺 LG: «${esc(lgClasico({ ganador: r.ganador, desde: Date.parse(r.semana ?? 0) || 0 }))}»</p>
+    <button class="carta-jugar" type="button" data-bn="ok">¡Vamos!</button></div>`)
+}
+
 async function mostrarRanking(tab = 'general') {
   rkTab = tab
   rkMarcas = null
@@ -8586,6 +8657,9 @@ function pintarRanking(error = false) {
     $('#rk-fuente').textContent = ''
     return
   }
+  // ⚔️ el Clásico de la semana: arriba del general (con todas las vueltas firmadas, normales y PRO)
+  if (!j) pintarClasico()
+  else $('#rk-clasico').hidden = true
   const app = rkApp
   $('#rk-ambito').hidden = !app
   for (const b of $('#rk-ambito').children) b.setAttribute('aria-selected', String(b.dataset.ambito === rkAmbito))
@@ -9003,7 +9077,7 @@ R.alEntrar(async (yo) => {
   if (R.hayMatch()) {
     $('#ver-match').hidden = false
     cargarDesafios()
-    cargarBananas()
+    cargarBananas().then((hay) => { if (hay) cobrarClasico() })
     // ?match=1 (el aviso de la SDGApp, el link de WhatsApp); con &replay=<id>, directo al replay de ese match
     const q = new URLSearchParams(location.search)
     if (q.has('match')) entrarPorAviso({ replayId: q.get('replay') || null, desdeLink: true })

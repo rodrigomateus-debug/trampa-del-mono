@@ -1944,6 +1944,32 @@ ok('🦅 el pase de Fito: Fito (5) es del Equipo 5 (no Dicky), con la habilidad 
   assert.ok(M.fraseVuelve(rng, 'Taiu (Đ)', fito5).length > 5)
 })
 
+ok('⚔️ el Clásico de la semana: las mismas cuentas que la base (lunes a domingo en hora argentina, 5 por día, 1 + bajo par)', () => {
+  const equipoDe = (a) => (PLANTEL.find((j) => j.apodo === a)?.dicky ? 'dicky' : M.esEquipo5(PLANTEL.find((j) => j.apodo === a)) ? 'e5' : null)
+  const ahora = Date.parse('2026-10-09T15:00:00Z')
+  const lunes = M.lunesDe(ahora, 1) // la semana pasada: lunes 28/9 00:00 hora argentina
+  assert.equal(new Date(lunes).toISOString(), '2026-09-28T03:00:00.000Z')
+  const en = (d, hhmm) => new Date(lunes + d * 864e5 + (+hhmm.slice(0, 2) * 60 + +hhmm.slice(3)) * 60e3).toISOString()
+  const A = '00000000-0000-0000-0000-000000000001', B = A.replace(/1$/, '2'), C = A.replace(/1$/, '3')
+  const m = (uid, apodo, vsPar, d, h) => ({ uid, usuario: uid.slice(-1), apodo, vsPar, fecha: en(d, h) })
+  // el mismo escenario que se probó en la base (trampa_clasico_puntos): Dicky 16, Equipo 5 19
+  const marcas = [
+    m(A, 'Fito (Đ)', -2, 1, '10:00'), m(A, 'Taiu (Đ)', 0, 1, '11:00'), m(A, 'El Ninja (Đ)', 3, 1, '12:00'),
+    ...Array.from({ length: 7 }, (_, i) => m(A, 'Mike Queboni (Đ)', -1, 2, `09:${String(i * 7).padStart(2, '0')}`)),
+    m(A, 'Fito (Đ)', -3, 7, '00:30'), // el lunes de esta semana: no cuenta
+    m(B, 'Lechu', -3, 3, '20:00'), m(B, 'LG', -1, 3, '21:00'), m(B, 'Fito (Đ)', 1, 3, '22:00'),
+    ...[0, 1, 2, 3].map((i) => m(C, i % 2 ? 'LG' : 'Lechu', -2, 4, `08:${i}0`)),
+    m(C, 'Fito (5)', 0, 6, '23:30'), // el domingo 23:30: cuenta
+    m(C, 'Tito', -3, 5, '10:00'), // de ningún equipo
+  ]
+  const c = M.clasico(marcas, lunes, equipoDe)
+  assert.equal(c.dicky, 16); assert.equal(c.e5, 19); assert.equal(c.ganador, 'e5')
+  assert.deepEqual(c.aportes.dicky.map((x) => [x.quien.slice(-1), x.pts]), [['1', 15], ['2', 1]])
+  assert.deepEqual(c.aportes.e5.map((x) => [x.quien.slice(-1), x.pts]), [['3', 13], ['2', 6]])
+  // sin vueltas: empate en cero, nadie gana
+  assert.equal(M.clasico([], lunes, equipoDe).ganador, null)
+})
+
 ok('🔒 Taiu: se desbloquea con −1 o mejor (firmado) con Fito, Miguelón y el Ninja', () => {
   const req = DESBLOQUEO_TAIU
   assert.deepEqual(req.con, ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'])
