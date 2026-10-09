@@ -6161,11 +6161,39 @@ async function imagenVuelta() {
   return { blob, url }
 }
 /**
+ * La banana sticker dibujada en un canvas (para las imágenes de WhatsApp): los mismos trazos que `GI.banana`, con el
+ * troquel crema y la sombra dura. Con Path2D (no una imagen SVG), así anda igual en todos los teléfonos.
+ */
+function bananaEnCanvas(g, x, y, tam, rot = -0.14) {
+  const ds = [...GI.banana.matchAll(/d="([^"]+)"/g)].map((m) => new Path2D(m[1]))
+  const [cuerpo, nervio, brillo, cabo, punta] = ds
+  const tinta = '#0c2b1c', crema = '#fffaf0'
+  g.save()
+  g.translate(x, y); g.rotate(rot); g.scale(tam / 36, tam / 36); g.translate(-16, -16)
+  g.lineCap = 'round'; g.lineJoin = 'round'
+  // el troquel crema, con la sombra dura del afiche
+  g.save()
+  g.shadowColor = tinta; g.shadowOffsetX = tam * 0.045; g.shadowOffsetY = tam * 0.06; g.shadowBlur = 0
+  g.fillStyle = crema; g.strokeStyle = crema; g.lineWidth = 5.5
+  for (const d of [cuerpo, cabo]) { g.fill(d); g.stroke(d) }
+  for (const d of [nervio, punta]) g.stroke(d)
+  g.restore()
+  // la banana
+  g.fillStyle = '#e8c34a'; g.fill(cuerpo)
+  g.strokeStyle = tinta; g.lineWidth = 1.7; g.stroke(cuerpo)
+  g.lineWidth = 1.5; g.stroke(nervio)
+  g.strokeStyle = '#f4eeda'; g.lineWidth = 2.4; g.stroke(brillo)
+  g.fillStyle = tinta; g.fill(cabo); g.strokeStyle = tinta; g.lineWidth = 1.7; g.stroke(cabo)
+  g.lineWidth = 3; g.stroke(punta)
+  for (const [cx, cy, r] of [[12.6, 23.2, 0.85], [21.6, 21, 0.7], [10.4, 24.4, 0.55]]) { g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill() }
+  g.restore()
+}
+/**
  * La imagen del match, estilo VS (1080×1350, diseño SDGA): los dos que juegan cara a cara, el player que usaron los
  * dos en el medio, y abajo el score de cada uno y quién ganó. Con `ganador` null es el desafío: sin scores (que el
- * otro no sepa cómo te fue).
+ * otro no sepa cómo te fue). Con `apuesta`, las bananas en juego arriba y, abajo, cuántas se lleva el que gana.
  */
-async function imagenMatch({ izq, der, jugador, ganador }) {
+async function imagenMatch({ izq, der, jugador, ganador, apuesta = 0 }) {
   try { await Promise.all(['56px Anton', '600 30px Archivo', '800 30px Archivo'].map((f) => document.fonts.load(f))) } catch {}
   const W2 = 1080, H2 = 1350
   const c = document.createElement('canvas')
@@ -6188,6 +6216,24 @@ async function imagenMatch({ izq, der, jugador, ganador }) {
   g.textAlign = 'center'
   g.fillStyle = '#e8c34a'; g.font = B(26, 800); g.fillText('SDGA TOUR  ·  LA TRAMPA DEL MONO', W2 / 2, 78)
   g.fillStyle = '#f4eeda'; g.font = D(130); g.fillText(desafio ? 'DESAFÍO' : 'MATCH', W2 / 2, 210)
+  // las bananas en juego: una pastilla dorada de sticker, con la banana que se sale por la izquierda
+  const conBananas = apuesta > 0
+  const pastillaBananas = () => {
+    if (!conBananas) return
+    g.save()
+    g.font = D(66)
+    const nw = g.measureText(String(apuesta)).width
+    const pw = 120 + nw + 150, ph = 86, cy = 282
+    g.translate(W2 / 2, cy); g.rotate(-0.035)
+    g.fillStyle = '#0c2b1c'; g.beginPath(); g.roundRect(-pw / 2 + 7, -ph / 2 + 8, pw, ph, ph / 2); g.fill()
+    g.fillStyle = '#e8c34a'; g.beginPath(); g.roundRect(-pw / 2, -ph / 2, pw, ph, ph / 2); g.fill()
+    g.lineWidth = 6; g.strokeStyle = '#0c2b1c'; g.stroke()
+    g.fillStyle = '#14402a'; g.textAlign = 'left'
+    g.font = D(66); g.fillText(String(apuesta), -pw / 2 + 112, 25)
+    g.font = B(22, 800); g.fillText('BANANAS', -pw / 2 + 112 + nw + 14, -2); g.fillText('EN JUEGO', -pw / 2 + 112 + nw + 14, 24)
+    g.restore()
+    bananaEnCanvas(g, W2 / 2 - pw / 2 + 36, cy - 4, 128, -0.32)
+  }
   // cada lado: su foto si es del plantel (el nombre del jugador en la app = su apodo acá); si no, la inicial (o ? si
   // todavía no jugó), y el nombre
   const fotos = await Promise.all([izq, der].map((p) => cargarImg(fotoDePersona(p.alias))))
@@ -6222,6 +6268,7 @@ async function imagenMatch({ izq, der, jugador, ganador }) {
   g.fillStyle = '#e8c34a'; g.beginPath(); g.arc(W2 / 2, 440, 92, 0, 7); g.fill()
   g.lineWidth = 8; g.strokeStyle = '#0c2b1c'; g.stroke()
   g.fillStyle = '#14402a'; g.font = D(100); g.fillText('VS', W2 / 2, 478)
+  pastillaBananas()
   // el player de los dos, en una pastilla crema
   const foto = await cargarImg(jugador.foto)
   const py = 770, ph = 120
@@ -6255,9 +6302,17 @@ async function imagenMatch({ izq, der, jugador, ganador }) {
   // el veredicto
   const quien = ganador === 1 ? izq.alias : ganador === -1 ? der.alias : null
   g.fillStyle = '#e8c34a'; g.font = D(76)
-  g.fillText(desafio ? '¿TE ANIMÁS?' : quien ? `GANÓ ${quien.toUpperCase()}` : 'EMPATE', W2 / 2, 1268)
-  g.font = B(24, 600); g.fillStyle = 'rgba(244,238,218,.7)'
-  g.fillText(desafio ? 'Mismo player, mismo viento y mismas banderas · su pelota, en vivo como fantasma 👻' : 'Mismo player, mismo viento y mismas banderas', W2 / 2, 1318)
+  g.fillText(desafio ? '¿TE ANIMÁS?' : quien ? `GANÓ ${quien.toUpperCase()}` : 'EMPATE', W2 / 2, conBananas ? 1252 : 1268)
+  if (conBananas) {
+    const linea = desafio ? `EL QUE GANA SE LLEVA ${2 * apuesta - 1}` : quien ? `Y SE LLEVÓ ${2 * apuesta - 1}` : `LAS ${apuesta} BANANAS VUELVEN`
+    g.font = D(46); g.fillStyle = '#f4eeda'
+    const lw = g.measureText(linea).width, tam = 70
+    g.fillText(linea, W2 / 2 - (tam + 10) / 2, 1318)
+    bananaEnCanvas(g, W2 / 2 + lw / 2 - (tam + 10) / 2 + 14 + tam / 2, 1302, tam, -0.18)
+  } else {
+    g.font = B(24, 600); g.fillStyle = 'rgba(244,238,218,.7)'
+    g.fillText(desafio ? 'Mismo player, mismo viento y mismas banderas · su pelota, en vivo como fantasma 👻' : 'Mismo player, mismo viento y mismas banderas', W2 / 2, 1318)
+  }
   const blob = await new Promise((ok) => c.toBlob(ok, 'image/png'))
   const url = URL.createObjectURL(blob)
   urlsResumen.push(url)
@@ -7659,7 +7714,7 @@ async function compartirMatch(d, boton) {
   const { yo, el } = resultadoPara(d)
   const jugador = TODOS.find((x) => x.apodo === d.retador.apodo) ?? { apodo: d.retador.apodo ?? '', emoji: d.retador.emoji ?? '⛳' }
   if (boton) boton.disabled = true
-  const img = await imagenMatch({ izq: d.retador, der: d.rival, jugador, ganador: M.ganadorMatch(d.retador, d.rival) })
+  const img = await imagenMatch({ izq: d.retador, der: d.rival, jugador, ganador: M.ganadorMatch(d.retador, d.rival), apuesta: d.apuesta ?? 0 })
   if (boton) boton.disabled = false
   compartirImagen(img, textoResultadoMatch(yo, el, d.id, d.apuesta ?? 0), 'match-trampa-del-mono.png')
 }
@@ -7720,7 +7775,7 @@ async function cerrarMatch(r) {
         el.querySelector('.btn-wa').addEventListener('click', async (e) => {
           const b = e.currentTarget
           b.disabled = true
-          const img = await imagenMatch({ izq: { alias: datos.usuario || 'Yo', oculto: true }, der: { alias: d.rival.nombre, pendiente: true }, jugador: r.carta, ganador: null })
+          const img = await imagenMatch({ izq: { alias: datos.usuario || 'Yo', oculto: true }, der: { alias: d.rival.nombre, pendiente: true }, jugador: r.carta, ganador: null, apuesta: d.apuesta ?? 0 })
           b.disabled = false
           compartirImagen(img, mensajeDesafio(r, d.rival, mia), 'desafio-trampa-del-mono.png')
         })
