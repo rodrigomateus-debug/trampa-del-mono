@@ -995,21 +995,41 @@ input { -webkit-user-select: text; user-select: text; }
 .mt-prueba { margin: 0; padding: 8px 10px; border: 2px dashed var(--green-500); border-radius: 12px; font-size: 12px; line-height: 1.35; text-align: left; }
 .mt-prueba[hidden] { display: none; }
 .mt-prueba button { margin-left: 4px; padding: 2px 8px; border: 1.5px solid var(--green-900); border-radius: 999px; background: var(--cream); color: var(--green-900); font: 700 11px var(--font-body); }
-.bn-barra { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 14px; background: rgba(232, 195, 74, .24); color: var(--green-900); font: 700 14px var(--font-body); text-align: left; }
+.bn-barra { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; padding: 6px 12px 6px 6px; border: 2.5px solid var(--game-ink); border-radius: 16px; background: var(--gold); color: var(--green-900); box-shadow: 3px 4px 0 var(--game-ink); font: 700 14px var(--font-body); text-align: left; cursor: pointer; translate: 0 0; transition: translate var(--game-release-dur) var(--game-ease-bounce), box-shadow var(--game-release-dur) var(--game-ease-bounce); }
+.bn-barra:active { translate: 3px 4px; box-shadow: 0 0 0 var(--game-ink); transition-duration: var(--game-press-dur); }
 .bn-barra[hidden] { display: none; }
-.bn-barra b { font: 22px/1 var(--font-display); font-weight: 400; }
-.bn-barra small { font-size: 11px; color: var(--text-muted); }
-.bn-barra .pozo { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-.bn-barra .pozo b { font-size: 17px; color: var(--green-900); }
+.bnb-yo { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.bnb-yo .bn-sticker { flex: none; width: 46px; height: 46px; filter: drop-shadow(2px 3px 0 var(--game-ink)); }
+.bnb-txt { display: grid; line-height: 1; }
+.bnb-txt small, .bnb-pozo small { font: 800 10px/1.2 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: rgba(12, 43, 28, .72); }
+.bnb-txt b { font: 32px/1 var(--font-display); font-weight: 400; }
+.bnb-txt em { font-style: normal; font-size: 11px; font-weight: 700; color: rgba(12, 43, 28, .78); }
+.bnb-pozo { display: grid; justify-items: end; gap: 2px; padding-left: 12px; border-left: 2px dashed rgba(12, 43, 28, .4); text-align: right; white-space: nowrap; }
+.bnb-pozo b { font: 24px/1 var(--font-display); font-weight: 400; }
+/* la apuesta: − y + grandes, el número en el medio, TODO; arranca en 2 */
+.bn-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bn-vs div { display: grid; justify-items: center; gap: 2px; padding: 8px 6px; border-radius: 12px; background: rgba(20, 64, 42, .07); }
+.bn-vs small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 800 10px var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+.bn-vs span { font: 26px/1 var(--font-display); }
+.bn-paso { display: grid; grid-template-columns: 68px minmax(0, 1fr) 68px; align-items: center; gap: 10px; }
+.bn-paso button { width: 68px; height: 68px; border: var(--game-stroke) solid var(--game-ink); border-radius: 50%; background: var(--gold); color: var(--green-900); box-shadow: 4px 5px 0 var(--game-ink); font: 46px/1 var(--font-display); cursor: pointer; touch-action: manipulation; -webkit-user-select: none; user-select: none; translate: 0 0; transition: translate 160ms var(--game-ease-bounce), box-shadow 160ms var(--game-ease-bounce), opacity 150ms; }
+.bn-paso button.bn-menos { background: var(--cream); }
+.bn-paso button:active:not([disabled]) { translate: 4px 5px; box-shadow: 0 0 0 var(--game-ink); transition-duration: 90ms; }
+.bn-paso button[disabled] { opacity: .3; cursor: not-allowed; }
+.bn-cuanto { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 0; }
+.bn-cuanto b { font: 64px/1 var(--font-display); font-weight: 400; font-variant-numeric: tabular-nums; }
+.bn-cuanto .bn-sticker { width: 40px; height: 40px; filter: drop-shadow(2px 3px 0 var(--game-ink)); }
+.bn-cuanto.pop b { animation: bn-pop .18s ease-out; }
+@keyframes bn-pop { 50% { transform: scale(1.14); } }
+.bn-todo { justify-self: center; height: 34px; padding: 0 18px; border: 2.5px solid var(--game-ink); border-radius: 999px; background: var(--cream); color: var(--green-900); box-shadow: 2px 3px 0 var(--game-ink); font: 15px/1 var(--font-display); letter-spacing: .05em; cursor: pointer; }
+.bn-todo[aria-pressed="true"] { background: var(--green-900); color: var(--cream); }
+.bn-premio { text-align: center; }
 .bn-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--gold); color: var(--green-900); font: 800 11px var(--font-body); vertical-align: 2px; white-space: nowrap; }
 .mt-acc { display: grid; gap: 5px; justify-items: end; }
 .mt-btn.chico { --dx: 1px; --dy: 2px; height: 26px; padding: 0 10px; border-width: 2px; background: var(--cream-dark); color: var(--green-900); font-size: 12px; }
 .bn-caja .bn-tit { margin: 0; padding-right: 40px; font: 28px/1.05 var(--font-display); letter-spacing: .02em; }
 .bn-caja p { margin: 0; font-size: 14px; line-height: 1.4; }
 .bn-caja .extras { font-size: 12px; color: var(--text-muted); }
-.bn-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.bn-chips button { min-width: 54px; height: 46px; padding: 0 12px; border: 2.5px solid var(--green-900); border-radius: 12px; background: var(--gold); color: var(--green-900); font: 22px/1 var(--font-display); }
-.bn-chips button small { display: block; font: 800 9px var(--font-body); letter-spacing: .08em; }
 .bn-caja .carta-jugar.oro { background: var(--gold); color: var(--green-900); }
 .bn-caja .carta-jugar.rojo { background: var(--red); color: var(--cream); }
 .bn-caja .carta-jugar.crema { background: var(--cream-dark); color: var(--green-900); }
@@ -6377,7 +6397,6 @@ async function cargarDesafios() {
 let bananas = null // { saldo, reservadas, pozo, premiosHoy, movimientos }
 let bananasRk = null // [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]
 let hayBananas = false
-const APUESTAS = [2, 3, 5, 10, 20, 50, 100]
 const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío' }
 const POR_BANANA = { birdie: 'birdie', aguila: 'águila', bajo_par: 'bajo par' }
 // la banana del set SDGA: chiquita, en el texto (BN); grande, troquelada como sticker (stickerBanana)
@@ -6445,8 +6464,8 @@ function pintarBananas() {
   const el = $('#bn-barra')
   el.hidden = !hayBananas || !bananas
   if (el.hidden) return
-  el.innerHTML = `<span>${BN} <b>${bananas.saldo}</b> ${bananas.saldo === 1 ? 'banana' : 'bananas'}${bananas.reservadas ? ` <small>(+${bananas.reservadas} apostadas)</small>` : ''}</span><span class="pozo">🐒 Pozo <b>${bananas.pozo}</b></span>`
-  el.setAttribute('aria-label', `Tenés ${bananas.saldo} bananas. El pozo del mono: ${bananas.pozo}. Tocá para ver tus movimientos.`)
+  el.innerHTML = `<span class="bnb-yo">${stickerBanana()}<span class="bnb-txt"><small>Tenés</small><span><b>${bananas.saldo}</b> ${bananas.saldo === 1 ? 'banana' : 'bananas'}</span>${bananas.reservadas ? `<em>y ${bananas.reservadas} apostadas</em>` : ''}</span></span><span class="bnb-pozo"><small>Pozo del mono</small><span>🐒 <b>${bananas.pozo}</b></span></span>`
+  el.setAttribute('aria-label', `Tenés ${bananas.saldo} ${bananas.saldo === 1 ? 'banana' : 'bananas'}${bananas.reservadas ? ` y ${bananas.reservadas} apostadas` : ''}. El pozo del mono: ${bananas.pozo}. Tocá para ver tus movimientos.`)
 }
 /** La hojita de las bananas: muestra el html y espera un botón con `data-bn` (cerrar o Escape = null). */
 function hojaBananas(html) {
@@ -6469,17 +6488,55 @@ async function elegirApuesta(rival) {
   const suyas = bananasDe(rival.uid)?.saldo ?? 10 // el que todavía no abrió las bananas arranca con 10
   const tope = Math.min(bananas.saldo, suyas)
   const abierto = conBananasAbierto(rival.uid)
-  const valores = tope >= 2 && !abierto ? [...APUESTAS.filter((v) => v < tope), tope] : []
+  const puede = tope >= 2 && !abierto
+  // el nombre corto: sin lo de entre paréntesis y, si la primera palabra es cortita ("El Mono"), con la segunda
+  const pal = rival.nombre.replace(/\s*\(.*\)\s*$/, '').split(' ')
+  const corto = pal[0].length > 3 ? pal[0] : pal.slice(0, 2).join(' ')
   const nota = abierto ? 'Ya tienen un desafío con bananas abierto: hasta que se juegue, este va por el honor.'
-    : tope < 2 ? `Para apostar hacen falta 2 cada uno${bananas.saldo < 2 ? ' (y vos tenés ' + bananas.saldo + ')' : ` (y ${esc(rival.nombre)} tiene ${suyas})`}.` : ''
-  const v = await hojaBananas(`
+    : tope < 2 ? `Para apostar hacen falta 2 cada uno${bananas.saldo < 2 ? '' : ` y ${esc(corto)} tiene ${suyas}`}.` : ''
+  let n = 2
+  const espera = hojaBananas(`
     <p class="bn-tit" id="bn-tit">${stickerBanana()}¿Cuánto apostás?</p>
-    <p>Contra <b>${esc(rival.nombre)}</b>. Vos tenés <b>${bananas.saldo}</b>${BN}; ${esc(rival.nombre.split(' ')[0].length > 3 ? rival.nombre.split(' ')[0] : rival.nombre)}, <b>${suyas}</b>.</p>
-    ${valores.length ? `<div class="bn-chips">${valores.map((x) => `<button type="button" data-bn="${x}">${x}${x === tope ? '<small>TODO</small>' : ''}</button>`).join('')}</div>` : ''}
-    ${nota ? `<p>${nota}</p>` : ''}
-    <p class="extras">Los dos ponen lo mismo. El que gana se lleva todo menos 1, que se queda el mono 🐒. Si no lo acepta (o lo deja vencer, 48 h), le cuesta 1. Se elige ahora, antes de jugar tu vuelta.</p>
-    <button class="carta-jugar crema" type="button" data-bn="0">Por el honor 🤝</button>`)
-  return v == null ? null : Math.max(0, Math.floor(+v) || 0)
+    <div class="bn-vs"><div><small>Vos tenés</small><span>${bananas.saldo}${BN}</span></div><div><small>${esc(corto)} tiene</small><span>${suyas}${BN}</span></div></div>
+    ${puede ? `<div class="bn-paso">
+        <button class="bn-menos" type="button" aria-label="Una banana menos">−</button>
+        <output class="bn-cuanto" aria-live="polite"><b id="bn-n">2</b>${stickerBanana()}</output>
+        <button class="bn-mas" type="button" aria-label="Una banana más">+</button>
+      </div>
+      <button class="bn-todo" type="button" aria-pressed="false">TODO · ${tope}</button>
+      <p class="bn-premio">Si ganás, te llevás <b id="bn-gana">3</b>${BN} (1 es del mono 🐒).</p>
+      <button class="carta-jugar oro" type="button" data-bn="apostar" id="bn-apostar">Apostar 2${BN}</button>` : `<p>${nota}</p>`}
+    <button class="carta-jugar crema" type="button" data-bn="0">Por el honor 🤝</button>
+    <p class="extras">Los dos ponen lo mismo y el que gana se lleva todo menos 1, que se queda el mono. Si no lo acepta (o lo deja vencer, 48 h), le cuesta 1. Se elige ahora, antes de jugar tu vuelta.</p>`)
+  if (puede) {
+    const menos = $('#bn-cuerpo .bn-menos'), mas = $('#bn-cuerpo .bn-mas'), todo = $('#bn-cuerpo .bn-todo'), cuanto = $('#bn-cuerpo .bn-cuanto')
+    const poner = (v) => {
+      const antes = n
+      n = Math.max(2, Math.min(tope, v))
+      $('#bn-n').textContent = n
+      $('#bn-gana').textContent = 2 * n - 1
+      $('#bn-apostar').innerHTML = `Apostar ${n}${BN}`
+      menos.disabled = n <= 2
+      mas.disabled = n >= tope
+      todo.setAttribute('aria-pressed', String(n === tope))
+      if (n !== antes) { cuanto.classList.remove('pop'); void cuanto.offsetWidth; cuanto.classList.add('pop'); S.ruletaTic() }
+    }
+    // un toque: de a una; manteniendo apretado, sigue sola cada vez más rápido
+    const mantener = (boton, paso) => {
+      let t = 0, repitio = false
+      const parar = () => { clearTimeout(t); t = 0 }
+      const repetir = (ms) => { t = setTimeout(() => { repitio = true; poner(n + paso); if ((paso > 0 && n < tope) || (paso < 0 && n > 2)) repetir(Math.max(45, ms * 0.85)) }, ms) }
+      boton.addEventListener('pointerdown', () => { repitio = false; parar(); repetir(420) })
+      for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) boton.addEventListener(ev, parar)
+      boton.addEventListener('click', () => { if (repitio) { repitio = false; return } poner(n + paso) })
+    }
+    mantener(menos, -1)
+    mantener(mas, 1)
+    todo.addEventListener('click', () => poner(tope))
+    poner(2)
+  }
+  const v = await espera
+  return v == null ? null : v === 'apostar' ? n : 0
 }
 /** Arrancar con un player. En un desafío con bananas, primero se reservan (si la base dice que no, te dice por qué). */
 async function jugarCon(j, boton = null) {

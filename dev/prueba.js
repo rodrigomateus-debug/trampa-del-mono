@@ -221,9 +221,10 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
       default: throw new No('acción desconocida')
     }
   }
-  // los premios de la vuelta firmada, como el trigger de la base
+  // los premios de la vuelta firmada, como el trigger de la base (Demetrio no suma en el modo normal; en PRO, sí)
   function premios(marca) {
     alDia(yo.uid)
+    if (marca?.apodo === 'Demetrio López' && !marca?.detalle?.pro) return
     const hoyosV = marca?.detalle?.hoyos
     let premio = 0, unos = 0
     const por = []
