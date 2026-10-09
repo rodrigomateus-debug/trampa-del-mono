@@ -1349,22 +1349,23 @@ ok('Juanpa: si la iba a meter, con chance 35% sale un mapache del hoyo, la frena
   if (fin.mapache.hecho) { const dc = M.dist(fin.pos, h15.pin); assert.ok(dc > M.FISICA.bocaHoyo && dc < 1, `${dc}`) }
 })
 
-ok('Lechu: de 6 metros o menos no la falla, le pegue como le pegue', () => {
+ok('Lechu: de 15 metros o menos no la falla, le pegue como le pegue', () => {
   const r = { ...M.nuevaRonda({ apodo: 'Lechu', emoji: '🦉' }, fijo(0.5)), monos: [] }
   r.lie = 'green'
   const putt = (desde, ang, p) => {
     r.pelota = desde
     return M.simular(plano, M.golpear(plano, r, ang, p, fijo(0.9)), h15.pin)
   }
-  // a 3 yd y a 6 del dibujo (6,55 reales, en el 15): para cualquier lado y con cualquier fuerza, entra
-  for (const d of [3, 6]) {
+  // a 3, 6 y 14 yd del dibujo (15,3 reales, en el 15): para cualquier lado y con cualquier fuerza, entra
+  for (const d of [3, 6, 14]) {
     for (const [ang, p] of [[-Math.PI / 2, 0.02], [0, 1], [Math.PI / 2, 0.5], [-Math.PI / 2, 1], [Math.PI, 0.3]]) {
       const t = putt([h15.pin[0], h15.pin[1] + d], ang, p)
       assert.equal(t.embocada, true, `${d} yd, ang ${ang} p ${p}`)
     }
   }
-  // a 7,5 yd ya es un putt normal: tirado para atrás, no entra
-  assert.notEqual(putt([h15.pin[0], h15.pin[1] + 7.5], Math.PI / 2, 0.3).embocada, true)
+  // a 16 yd del dibujo (17,5 reales, todavía en el green) ya es un putt normal: tirado para atrás, no entra
+  assert.equal(M.terreno(plano, [h15.pin[0], h15.pin[1] + 16]).tipo, 'green')
+  assert.notEqual(putt([h15.pin[0], h15.pin[1] + 16], Math.PI / 2, 0.3).embocada, true)
   // otro jugador a 3 yd, tirado para atrás, no entra
   const o = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), monos: [], lie: 'green', pelota: [h15.pin[0], h15.pin[1] + 3] }
   assert.notEqual(M.simular(plano, M.golpear(plano, o, Math.PI / 2, 0.3, fijo(0.9)), h15.pin).embocada, true)
@@ -1479,16 +1480,17 @@ ok('yardas reales: cada tee a sus yardas de la tarjeta; el color sale del handic
   assert.deepEqual(r.pelota, h16.tees.amarilla)
 })
 
-ok('umbrales en yardas reales: los 6 metros de Lechu y el chip de Fito se miden como el marcador', () => {
-  // en el 17 (escala 0,75) 8 yd del dibujo son 6 yd reales: dada. 9,2 del dibujo son 6,9 reales: ya no
+ok('umbrales en yardas reales: los 15 metros de Lechu y el chip de Fito se miden como el marcador', () => {
+  // en el 17 (escala 0,75) 21 yd del dibujo son 15,75 yd reales: dada. 23 del dibujo son 17,25 reales: ya no
   const r = { ...M.nuevaRonda({ apodo: 'Lechu', emoji: '🦉' }, fijo(0.5)), monos: [], idx: 2, lie: 'green' }
-  r.pelota = [h17.pin[0], h17.pin[1] + 8]
+  r.pelota = [h17.pin[0], h17.pin[1] - 21]
   assert.equal(M.terreno(plano, r.pelota).tipo, 'green')
-  assert.equal(M.planTiro(plano, r, -Math.PI / 2, 0.2).noLaFalla, true)
-  r.pelota = [h17.pin[0], h17.pin[1] + 9.2]
-  assert.equal(M.planTiro(plano, r, -Math.PI / 2, 0.2).noLaFalla, false)
-  // en el 16 (escala 1,14) 6 yd del dibujo son 6,8 reales: ya no es dada (en el 15 lo sería)
-  const r16 = { ...r, idx: 1, pelota: [h16.pin[0], h16.pin[1] + 6] }
+  assert.equal(M.planTiro(plano, r, Math.PI / 2, 0.2).noLaFalla, true)
+  r.pelota = [h17.pin[0], h17.pin[1] - 23]
+  assert.equal(M.terreno(plano, r.pelota).tipo, 'green')
+  assert.equal(M.planTiro(plano, r, Math.PI / 2, 0.2).noLaFalla, false)
+  // en el 16 (escala 1,14) 14,8 yd del dibujo son 16,9 reales: ya no es dada (en el 15 serían 16,15: dada)
+  const r16 = { ...r, idx: 1, pelota: [h16.pin[0], h16.pin[1] + 14.8] }
   assert.equal(M.terreno(plano, r16.pelota).tipo, 'green')
   assert.equal(M.planTiro(plano, r16, -Math.PI / 2, 0.2).noLaFalla, false)
   // Fito: el imán lo tiene a AGUILA.chip yardas REALES del hoyo (en el 17, 53 yd del dibujo)
