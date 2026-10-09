@@ -1855,6 +1855,13 @@ ok('🦉📺 Mejor pelota: una por vuelta, solo el Equipo 5; el compañero pega 
   const verde = en([pin[0] + 3, pin[1]])
   assert.ok(M.valorPelota(quieto, r, verde) < M.valorPelota(quieto, r, en(buscar('x', [0, 0, 400, 400]))))
   assert.ok(M.valorPelota(quieto, r, verde) < M.valorPelota(quieto, r, en(enArbol)))
+  // y dónde quedó cada una (lo que se muestra para elegir)
+  assert.deepEqual(M.dondeQuedo(quieto, r, en(pin, { embocada: true })), { tipo: 'adentro', yd: 0, multa: 0 })
+  const v = M.dondeQuedo(quieto, r, verde)
+  assert.equal(v.tipo, 'normal'); assert.equal(v.lie, 'green'); assert.ok(Math.abs(v.yd - 3 * h15.escala) < 1e-9); assert.equal(v.multa, 0)
+  assert.equal(M.dondeQuedo(quieto, r, en(enArbol)).tipo, 'bosque')
+  assert.equal(M.dondeQuedo(quieto, r, en(buscar('x', [0, 0, 400, 400]))).multa, 1)
+  assert.equal(M.dondeQuedo(quieto, r, en(verde.pos, { robada: {} })).tipo, 'robada')
 })
 
 ok('🦉📺 Mejor pelota: LG de compañero después de un mal tiro va con su habilidad (el que se enoja pierde: sin error)', () => {
