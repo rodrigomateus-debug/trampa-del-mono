@@ -536,8 +536,32 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 .firma .btn { width: 100%; }
 .reloj { height: 6px; border-radius: 3px; background: var(--cream-dark); overflow: hidden; }
 .reloj div { height: 100%; width: 100%; background: var(--red); }
-.firma p, .firmada { margin: 0; font-size: 13px; color: var(--text-muted); }
-.firmada { font-weight: 800; color: var(--green-500); letter-spacing: .04em; text-transform: uppercase; }
+.firma p { margin: 0; font-size: 13px; color: var(--text-muted); }
+/* ── el resumen de la tarjeta final (entre el tiempo y COMPARTIR): los monos, la firma, el puesto y las bananas ── */
+.t-res { margin: 0; animation: t-entra .4s var(--game-ease-bounce) both; }
+.t-res[hidden] { display: none; }
+@keyframes t-entra { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+@media (prefers-reduced-motion: reduce) { .t-res { animation: none; } }
+/* 🐒 los monos: tres datos en una tira */
+.t-monos { display: grid; gap: 6px; }
+.tm-fila { display: grid; grid-template-columns: 40px repeat(3, 1fr); gap: 6px; align-items: stretch; }
+.tm-ico { display: grid; place-items: center; border-radius: 12px; background: var(--green-900); font-size: 22px; line-height: 1; }
+.tm-dato { display: grid; justify-items: center; align-content: center; gap: 1px; padding: 6px 4px 5px; border-radius: 12px; background: rgba(20, 64, 42, .07); box-shadow: inset 0 0 0 1.5px rgba(20, 64, 42, .12); }
+.tm-dato b { font: 22px/1 var(--font-display); font-weight: 400; color: var(--green-900); opacity: .45; }
+.tm-dato small { font: 800 9.5px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
+.tm-dato.hay b { opacity: 1; color: var(--red); }
+.tm-dato.hay.bueno b { color: var(--green-500); }
+.tm-nota { margin: 0; font-size: 12.5px; line-height: 1.35; color: var(--text-muted); }
+/* ✍️ la firma: un sello de goma y el récord al lado */
+.t-firmada { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tf-sello { flex: none; padding: 5px 10px 4px; border: 2.5px solid var(--green-500); border-radius: 8px; color: var(--green-500); font: 17px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; transform: rotate(-4deg); box-shadow: inset 0 0 0 1.5px rgba(46, 125, 79, .25); background: rgba(46, 125, 79, .06); }
+.tf-sello.rojo { border-color: var(--red); color: var(--red); background: rgba(188, 75, 60, .06); box-shadow: inset 0 0 0 1.5px rgba(188, 75, 60, .25); }
+.tf-rec { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; padding: 6px 12px 5px; border-radius: 999px; background: rgba(20, 64, 42, .07); font: 800 12px/1.1 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--green-900); }
+.tf-rec b { font: 18px/1 var(--font-display); font-weight: 400; letter-spacing: .02em; }
+.tf-rec small { font-weight: 700; letter-spacing: .06em; color: var(--text-muted); text-transform: none; }
+.tf-rec.nuevo { background: var(--gold); box-shadow: 0 0 0 2px var(--game-ink), 2px 3px 0 var(--game-ink); }
+.tf-rec.nuevo small { color: var(--green-900); opacity: .75; }
+.tf-rec .gi { width: 16px; height: 16px; --gi-s: var(--game-ink); --gi-a: var(--cream); }
 .acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px; }
 .acciones .ancho { grid-column: 1 / -1; }
 .acciones .btn { padding: 0 12px; }
@@ -1317,8 +1341,27 @@ input { -webkit-user-select: text; user-select: text; }
 .bn-fila .rk-nombre .linea b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mtr-pct small.bn-disp.apostadas { color: var(--green-700); font-weight: 800; }
 .bn-pozo { list-style: none; margin: 4px 0 6px; padding: 10px 12px; border-radius: 14px; background: rgba(232, 195, 74, .24); font-size: 13px; line-height: 1.35; text-align: left; }
-.t-bananas { margin: 0; font-weight: 800; font-size: 14px; }
-.t-bananas[hidden] { display: none; }
+/* 🏆 el puesto: tarjeta verde con el trofeo y dos cajas */
+.t-rank { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 16px; background: var(--green-900); color: var(--cream); border: var(--game-stroke) solid var(--game-ink); box-shadow: var(--game-shadow-sm); }
+.tr-trofeo { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--gold); border: 2.5px solid var(--game-ink); transform: rotate(-6deg); }
+.tr-trofeo .gi { width: 32px; height: 32px; --gi-s: var(--game-ink); --gi-f: var(--cream); --gi-a: var(--gold); }
+.tr-cuerpo { display: grid; gap: 6px; min-width: 0; }
+.tr-cuerpo > small { font: 800 11px/1.2 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+.tr-cajas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.tr-cajas > div { display: grid; gap: 2px; padding: 6px 8px 5px; border-radius: 10px; background: rgba(244, 238, 218, .1); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .2); min-width: 0; }
+.tr-cajas b { font: 26px/1 var(--font-display); font-weight: 400; color: var(--gold); }
+.tr-cajas span { font: 800 10px/1.15 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: rgba(244, 238, 218, .8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 🍌 las bananas: un ticket dorado (+N y los motivos en chips) */
+.t-bananas { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 12px 8px 8px; border-radius: 14px; background: var(--gold); border: var(--game-stroke) solid var(--game-ink); box-shadow: var(--game-shadow-sm); color: var(--green-900); background-image: radial-gradient(circle at 0 50%, var(--cream) 0 6px, transparent 6.5px), radial-gradient(circle at 100% 50%, var(--cream) 0 6px, transparent 6.5px); }
+.tb-ico { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--cream); border: 2px solid var(--game-ink); }
+.tb-ico .gi { width: 28px; height: 28px; --gi-s: var(--game-ink); --gi-a: var(--gold); --gi-f: var(--green-500); }
+.tb-cuerpo { display: grid; line-height: 1; }
+.tb-cuerpo b { font: 26px/1 var(--font-display); font-weight: 400; }
+.tb-cuerpo small { font: 800 10px/1.2 var(--font-body); letter-spacing: .12em; text-transform: uppercase; }
+.tb-por { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 120px; min-width: 0; }
+.tb-por span { padding: 3px 8px 2px; border-radius: 999px; background: var(--cream); border: 1.5px solid var(--game-ink); font: 800 10.5px/1.2 var(--font-body); letter-spacing: .06em; text-transform: uppercase; }
+.t-bananas.pozo { background-color: var(--green-900); color: var(--gold); }
+.t-bananas.pozo .tb-por span { background: var(--gold); color: var(--green-900); }
 .mt-estado { font: 700 12px var(--font-body); color: var(--text-muted); text-align: right; }
 .mt-sec { padding: 12px 4px 4px; font: 800 11px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); text-align: left; list-style: none; }
 .t-match { margin: 0; padding: 10px 12px; border-radius: 12px; background: rgba(20, 64, 42, .08); font-size: 14px; line-height: 1.4; }
@@ -2121,7 +2164,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 486d2e0 · 9/10, 08:27 p. m.</span>
+  <span class="version" id="version">v fdb91f1 · 9/10, 09:14 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2200,15 +2243,15 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     </table>
     <div class="t-ruleta" id="t-ruleta" hidden></div>
     <p class="tiempo-final"><span class="kicker" style="color: var(--text-muted)">⏱ Tiempo</span><b id="t-tiempo">—</b></p>
-    <p class="extras" id="t-extras"></p>
+    <div class="t-monos t-res" id="t-extras"></div>
     <div class="firma" id="t-firma">
       <button class="btn" id="firmar" type="button">FIRMÁ LA TARJETA ✍️</button>
       <div class="reloj"><div id="reloj"></div></div>
       <p>Tenés 10 segundos. Si no firmás, el Marshall te pone 110.</p>
     </div>
-    <p class="firmada" id="t-firmada" hidden></p>
-    <p class="rk-pos-final" id="t-ranking" hidden></p>
-    <p class="t-bananas" id="t-bananas" hidden></p>
+    <div class="t-firmada t-res" id="t-firmada" hidden></div>
+    <div class="t-rank t-res" id="t-ranking" hidden></div>
+    <div class="t-bananas t-res" id="t-bananas" hidden></div>
     <div class="t-match" id="t-match" hidden></div>
     <div class="acciones" id="t-acciones" hidden>
       <button class="btn ancho entra" id="compartir-img" type="button"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M11.5 13H9.5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V15a2 2 0 0 0-2-2h-2" style="fill:var(--gi-f)"/><path d="M16 19.5V4.5M11 9.5l5-5 5 5" stroke-width="2.8"/></g></svg>COMPARTIR MI VUELTA</button>
@@ -7466,7 +7509,10 @@ function tarjetaFinal() {
   soltarResumenes()
   // ⛳ el sábado 9 AM: si la firmás antes de las 10 (y es de un equipo y bajo par), en el Clásico vale doble
   const sabado = M.esSabado9(Date.now()) ? `🌅 Sábado 9 AM${equipoDe(j.apodo) && !ronda.lp && t.vsPar < 0 ? ' · firmala antes de las 10: en el Clásico vale doble ⚔️' : ''}\n` : ''
-  $('#t-extras').textContent = sabado + `🐒 Monos: ${ronda.monosMalos} malos · ${ronda.monosBuenos} buenos · ${ronda.robos} robos${ronda.lp ? ` · LP en el ${ronda.lp}: no cuenta para el récord` : ''}`
+  // los monos de la vuelta: tres datos (malos, buenos, robos) y, abajo, las notas (el sábado, el LP)
+  const notas = [sabado.trim(), ronda.lp ? `LP en el ${ronda.lp}: no cuenta para el récord` : ''].filter(Boolean)
+  $('#t-extras').setAttribute('aria-label', `Monos: ${ronda.monosMalos} malos, ${ronda.monosBuenos} buenos, ${ronda.robos} robos`)
+  $('#t-extras').innerHTML = `<div class="tm-fila"><span class="tm-ico" aria-hidden="true">🐒</span>${[[ronda.monosMalos, 'malos'], [ronda.monosBuenos, 'buenos'], [ronda.robos, 'robos']].map(([n, t]) => `<span class="tm-dato${n ? ' hay' : ''}${t === 'buenos' ? ' bueno' : ''}"><b>${n}</b><small>${t}</small></span>`).join('')}</div>${notas.map((n) => `<p class="tm-nota">${esc(n)}</p>`).join('')}`
   $('#t-firma').hidden = false
   $('#t-firmada').hidden = true
   $('#t-acciones').hidden = true
@@ -7475,6 +7521,8 @@ function tarjetaFinal() {
   clearTimeout(firmaTimer)
   firmaTimer = setTimeout(sinFirma, M.SEGUNDOS_FIRMA * 1000)
 }
+/** ✍️ La firma de la tarjeta: un sello de goma (verde; sin firmar, rojo) y al lado el récord (dorado si es nuevo). */
+const selloFirma = (sello, rec, nuevo = false, rojo = false) => `<span class="tf-sello${rojo ? ' rojo' : ''}">${sello}</span><span class="tf-rec${nuevo ? ' nuevo' : ''}">${rec}</span>`
 $('#firmar').addEventListener('click', () => {
   if ($('#t-firma').hidden || estado !== 'fin') return // doble toque: se firma (y se anota en el ranking) una sola vez
   S.firma()
@@ -7492,7 +7540,7 @@ $('#firmar').addEventListener('click', () => {
   $('#t-firma').hidden = true
   $('#t-firmada').hidden = false
   anotarVuelta()
-  $('#t-firmada').textContent = vsPar == null ? 'Firmada ✍️ · Vuelta LP: no cuenta para el récord' : record ? `Firmada ✍️ · ¡Récord personal! (${antes === undefined ? 'primera vuelta' : `antes ${M.formatoPar(antes)}`})` : `Firmada ✍️ · Tu récord: ${M.formatoPar(antes)}`
+  $('#t-firmada').innerHTML = selloFirma('Firmada ✍️', vsPar == null ? 'Vuelta LP · no cuenta para el récord' : record ? `${gi('star')}¡Récord personal!<small>${antes === undefined ? 'primera vuelta' : `antes ${M.formatoPar(antes)}`}</small>` : `Tu récord <b>${M.formatoPar(antes)}</b>`, record)
   acciones()
 })
 /** 🏆 El logro: la banda baja desde arriba (como en las consolas). Tocándola, el anuncio con "Jugar con …". */
@@ -7572,7 +7620,7 @@ $('#acatar').addEventListener('click', () => {
   $('#fin').hidden = false
   $('#t-firma').hidden = true
   $('#t-firmada').hidden = false
-  $('#t-firmada').textContent = 'Sin firmar · 110 neto'
+  $('#t-firmada').innerHTML = selloFirma('Sin firmar', 'El Marshall te puso <b>110</b> neto', false, true)
   acciones()
 })
 // ── el resumen con diseño: una imagen 1080×1350 (4:5) con quién sos, con quién jugaste y cómo te fue ──
@@ -7944,7 +7992,8 @@ async function anotarVuelta() {
   const nueva = conEl.golpes === marca.golpes && conEl.ms === marca.ms
   posRanking = { general: general.pos, conEl: conEl.pos, nueva }
   resumenListo = null // se rehace con el puesto
-  $('#t-ranking').innerHTML = `${gi('trophy')}${esc(`${nueva ? '¡Mejor marca con ' + jugador.emoji + '! ' : 'Tu mejor: '}${general.pos}° en el ${pro ? 'PRO ' : ''}${R.compartido() || R.puente.enApp ? 'mundial' : 'general'} · ${conEl.pos}° con ${jugador.emoji}`)}`
+  // 🏆 el puesto: el trofeo y dos cajas (en el ranking general/mundial y con este player)
+  $('#t-ranking').innerHTML = `<span class="tr-trofeo">${gi('trophy')}</span><div class="tr-cuerpo"><small>${esc(nueva ? `¡Mejor marca con ${jugador.emoji}!` : 'Tu mejor vuelta')}</small><div class="tr-cajas"><div><b>${general.pos}°</b><span>${pro ? 'PRO ' : ''}${R.compartido() || R.puente.enApp ? 'mundial' : 'general'}</span></div><div><b>${conEl.pos}°</b><span>con ${esc(jugador.emoji)}</span></div></div></div>`
   $('#t-ranking').hidden = false
 }
 
@@ -8264,7 +8313,9 @@ async function premiosDeLaVuelta(antes) {
   if (!total || estado !== 'fin') return
   const pozo = nuevos.find((m) => m.motivo === 'pozo')
   const por = [...new Set(nuevos.flatMap((m) => (m.motivo === 'hoyo_en_uno' ? ['hoyo en uno'] : m.motivo === 'premio' && Array.isArray(m.detalle?.por) ? m.detalle.por.map((x) => POR_BANANA[x] ?? x) : [])))]
-  $('#t-bananas').innerHTML = pozo ? `🐒 ¡TE LLEVASTE EL POZO DEL MONO! +${total}${BN}` : `${BN} +${total} ${total === 1 ? 'banana' : 'bananas'}${por.length ? ` · ${esc(por.join(', '))}` : ''}`
+  // 🍌 el ticket dorado: +N y por qué (cada motivo, un chip)
+  $('#t-bananas').classList.toggle('pozo', !!pozo)
+  $('#t-bananas').innerHTML = `<span class="tb-ico">${gi('banana')}</span><div class="tb-cuerpo"><b>+${total}</b><small>${pozo ? '¡El pozo del mono!' : total === 1 ? 'banana' : 'bananas'}</small></div>${por.length ? `<div class="tb-por">${por.map((x) => `<span>${esc(x)}</span>`).join('')}</div>` : ''}`
   $('#t-bananas').hidden = false
   const unos = nuevos.filter((m) => m.motivo === 'hoyo_en_uno' || m.motivo === 'pozo').reduce((a, m) => a + m.monto, 0)
   if (unos > 0) fiestaBananas({ total: unos, pozo: !!pozo })

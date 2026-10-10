@@ -585,3 +585,10 @@ El análisis (bot de 120 vueltas con la física de verdad): ~4 tramos por vuelta
 - **El escudito de la camiseta** (Dicky o Equipo 5), como un sticker apenas torcido, en los rankings de **matches** y de **bananas**: abajo del nombre, con el sello SDGA y los matches jugados (el nombre entero arriba, con … si no entra).
 - La hoja del MATCH ya no se sale de la pantalla en celus de 360 (una sola columna que no se estira; las pestañas achican).
 - **El carrito, minimalista** ("hay un MONTÓN de información"): afuera el minimapa. En FÁCIL quedan los dos almohadones y, en el medio, la cara de Marcos (LLEVAME: maneja él; con aro dorado y el volante que se mueve mientras maneja) y la bocina; sin velocímetro. En PRO, el volante y los pedales, con la cara, la bocina y el velocímetro arriba. El RESET aparece solo si te trabaste ("¿TRABADO?", late). FÁCIL/PRO y la cámara, guardados atrás de un engranaje (se abre al tocarlo y se cierra al elegir). Sin la flecha alrededor del carrito: alcanza con la línea dorada. El relato, más corto.
+
+## 🎴 La tarjeta final, más linda entre el tiempo y COMPARTIR (2026-10-10, pedido de Rorro)
+- **Los monos:** una tira con la cara del mono y tres datos (MALOS en rojo si hubo, BUENOS en verde, ROBOS en rojo; en cero, apagados). Abajo, las notas (el Sábado 9 AM, el LP).
+- **La firma:** un sello de goma verde "FIRMADA ✍️" (apenas torcido; "SIN FIRMAR" en rojo) y al lado el récord en una pastilla: "TU RÉCORD −4", o dorada con estrella si es nuevo ("¡RÉCORD PERSONAL! antes −1"; "El Marshall te puso 110 neto" sin firmar).
+- **El puesto:** tarjeta verde con el trofeo dorado y dos cajas: el puesto en el ranking (PRO/mundial/general) y con ese player; arriba, "¡MEJOR MARCA CON 👴!" o "TU MEJOR VUELTA".
+- **Las bananas:** un ticket dorado (con las muescas a los costados): la banana, "+5 BANANAS" y cada motivo en un chip (ÁGUILA, BIRDIE, BAJO PAR); el pozo del mono, en verde.
+- Cada bloque entra con un pop chiquito (sin animación si el teléfono pide menos movimiento).
