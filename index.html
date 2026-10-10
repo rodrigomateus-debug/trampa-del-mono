@@ -2195,7 +2195,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v e5816b1 · 10/10, 12:44 a. m.</span>
+  <span class="version" id="version">v 286d9b7 · 10/10, 12:51 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2598,9 +2598,9 @@ const campo = M.crearCampo()
 // la cancha es el dibujo tal cual: CANCHA.escala píxeles = 1 yarda
 const fondo = new Image()
 fondo.src = 'cancha.webp'
-// la cancha de cada clima (dibujadas encima de la original, mismo encuadre: el terreno del juego no cambia). La lluvia
-// intensa usa la de lluvia (con más tinte encima)
-const CANCHA_CLIMA = { soleado: 'cancha-soleado.webp', nuboso: 'cancha-nuboso.webp', seco: 'cancha-seco.webp', mojado: 'cancha-mojado.webp', lluvia: 'cancha-lluvia.webp', tormenta: 'cancha-lluvia.webp', nieve: 'cancha-nieve.webp' }
+// la cancha de cada clima (dibujadas encima de la original, mismo encuadre: el terreno del juego no cambia), cada una
+// con su dibujo, tal cual
+const CANCHA_CLIMA = { soleado: 'cancha-soleado.webp', nuboso: 'cancha-nuboso.webp', seco: 'cancha-seco.webp', mojado: 'cancha-mojado.webp', lluvia: 'cancha-lluvia.webp', tormenta: 'cancha-tormenta.webp', nieve: 'cancha-nieve.webp' }
 function fondoDelClima(id) {
   const src = CANCHA_CLIMA[id] ?? 'cancha.webp'
   if (fondo.getAttribute('src') === src) return
@@ -5381,8 +5381,8 @@ function dibujar() {
     // todo el green, una marca cada 2 yd con la caída de ese lugar (cambia por zonas, fluida). Animadas: cada una
     // corre para donde cae, aparece y se apaga, y vuelve a empezar; donde cae más, corren más rápido.
     const ahora = performance.now() / 1000
-    // en los greens oscuros (lluvia y lluvia intensa) las flechitas van claras; en los demás, oscuras
-    ctx.strokeStyle = ['lluvia', 'tormenta'].includes(ronda.clima?.id) ? 'rgb(236,242,232)' : 'rgb(16,54,34)'
+    // en el green oscuro (lluvia intensa) las flechitas van claras; en los demás, oscuras
+    ctx.strokeStyle = ronda.clima?.id === 'tormenta' ? 'rgb(236,242,232)' : 'rgb(16,54,34)'
     ctx.lineWidth = 0.13
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
@@ -5497,9 +5497,8 @@ const CLIMA_TXT = {
   viento: ['Cambió el viento', 'Mirá la flecha antes de pegar'],
 }
 // el tinte de la cancha (abajo de la pelota y los monos): cada día con su luz
-// (con las canchas dibujadas para cada clima, el tinte ya casi no hace falta: queda el de la lluvia intensa, que usa la
-// de lluvia)
-const TINTE_CLIMA = { soleado: null, nuboso: null, seco: null, mojado: null, lluvia: 'rgba(24,40,62,.06)', tormenta: 'rgba(10,20,36,.28)', nieve: null }
+// (con un dibujo para cada clima, ninguno lleva tinte: la cancha se ve tal cual la dibujó Rorro)
+const TINTE_CLIMA = { soleado: null, nuboso: null, seco: null, mojado: null, lluvia: null, tormenta: null, nieve: null }
 /**
  * El clima del día, en un banner chico debajo del número de la cuenta regresiva: aparece en el 3 con lo corto de sus
  * mecánicas y se va en el 1, así no te come tiempo de juego (el reloj arranca en el ¡YA!). No se toca ni frena nada.
@@ -5730,9 +5729,13 @@ function dibujarClima() {
       ctx.stroke()
     }
   }
-  // el sol: un brillo cálido arriba, con rayos que giran despacito
+  // el sol: un brillo cálido con rayos que giran despacito, del lado de donde viene la luz del dibujo (arriba a la
+  // izquierda de la cancha: las sombras de los árboles caen abajo a la derecha). Gira con la cámara, así siempre
+  // coincide con las sombras: jugando hacia arriba del dibujo queda arriba a la izquierda; hacia abajo, abajo a la derecha
   if (id === 'soleado') {
-    const sx = W * 0.92, sy = H * 0.04
+    const c = Math.cos(cam.rot), s = Math.sin(cam.rot)
+    const ux = (s - c) / Math.SQRT2, uy = -(s + c) / Math.SQRT2 // el (-1, -1) del dibujo, en la pantalla
+    const sx = W / 2 + ux * W * 0.6, sy = H / 2 + uy * H * 0.6
     const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, Math.max(W, H) * 0.55)
     g.addColorStop(0, 'rgba(255,236,170,.42)')
     g.addColorStop(0.35, 'rgba(255,214,120,.12)')
