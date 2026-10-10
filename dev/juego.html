@@ -63,7 +63,7 @@ body {
 /* 🥃 la cancha de Rorro en 3D (abajo del lienzo del juego, que queda transparente con la goma y los cartelitos) */
 #cancha3d { position: fixed; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; background: #0a2117; }
 #cancha3d[hidden] { display: none; }
-body.cine #hud-top, body.cine #rorro-btn { opacity: 0; pointer-events: none; transition: opacity .5s; }
+body.cine #hud-top, body.cine .rorro-poder { opacity: 0; pointer-events: none; transition: opacity .5s; }
 #carga3d { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: #071a12; color: #cfe3d6; font: 13px/1.6 ui-monospace, Menlo, monospace; }
 #carga3d[hidden] { display: none; }
 #carga3d b { color: #38f2c8; font-weight: 400; }
@@ -92,7 +92,7 @@ body.cine #hud-top, body.cine #rorro-btn { opacity: 0; pointer-events: none; tra
    Cada botón define su sombra (--sh) y cuánto se corre (--dx/--dy); --rot es la inclinación de afiche del CTA principal.
    Colores: oro = la acción principal (una por pantalla) · crema = secundaria sobre verde · verde = sobre superficies crema
    · rojo = salir/borrar · ghost = terciaria sobre verde (borde crema, sin sombra). */
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, #sonido, .volver-app) {
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, .rorro-poder, #sonido, .volver-app) {
   --sh: var(--game-shadow-md); --dx: 4px; --dy: 5px; --rot: rotate(0deg);
   box-sizing: border-box;
   border: var(--game-stroke) solid var(--game-ink);
@@ -103,14 +103,14 @@ body.cine #hud-top, body.cine #rorro-btn { opacity: 0; pointer-events: none; tra
   translate: 0 0;
   transition: translate var(--game-release-dur) var(--game-ease-bounce), box-shadow var(--game-release-dur) var(--game-ease-bounce), background-color var(--game-press-dur), opacity 150ms;
 }
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, #sonido, .volver-app):active:not([disabled]) {
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, .rorro-poder, #sonido, .volver-app):active:not([disabled]) {
   translate: var(--dx) var(--dy); /* translate, no transform: así se suma a la inclinación y a las animaciones */
   box-shadow: 0 0 0 var(--game-ink);
   transition-duration: var(--game-press-dur);
   transition-timing-function: ease-out;
 }
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, #sonido, .volver-app)[disabled] { opacity: .45; cursor: not-allowed; }
-:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, #sonido, .volver-app):focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, .rorro-poder, #sonido, .volver-app)[disabled] { opacity: .45; cursor: not-allowed; }
+:where(.btn, .btn-jugar, .teja-btn, .redondo, .pill, .carta-jugar, .hab-x, .btn-wa, .wa-mini, .btn-replay, .rp-mini, .rp-b, .mt-btn, .btn-google, .rb-ir, .btn-sec, #pancho, #deme-btn, #dicky-btn, #e5-btn, #ninja-btn, .rorro-poder, #sonido, .volver-app):focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 /* los íconos del set SDGA (GameIcon): trazo tinta 2,5px, papel crema y acento dorado; cada botón cambia los tres */
 .gi { display: block; flex: none; width: 24px; height: 24px; overflow: visible; --gi-s: var(--game-ink); --gi-f: var(--cream); --gi-a: var(--gold); }
 .gi g { fill: none; stroke: var(--gi-s); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -205,7 +205,7 @@ body.cine #hud-top, body.cine #rorro-btn { opacity: 0; pointer-events: none; tra
 body.apuntando #hud-top .card { opacity: .18; }
 body.apuntando #crono, body.apuntando #viento, body.apuntando #efecto, body.apuntando #golpes { opacity: .45; }
 #hud-chips > * { transition: opacity 150ms; }
-body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando #deme-btn, body.apuntando #dicky-btn, body.apuntando #e5-btn, body.apuntando #ninja-btn { opacity: .25; pointer-events: none; }
+body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando #deme-btn, body.apuntando #dicky-btn, body.apuntando #e5-btn, body.apuntando #ninja-btn, body.apuntando .rorro-poder { opacity: .25; pointer-events: none; }
 
 /* ── banda central (intro de hoyo y resultado) ── */
 #banda {
@@ -925,6 +925,40 @@ body.manejando #crono::after { content: '⏸'; font-size: 12px; margin-left: 2px
 .carta.dorada .carta-jugar { --sh: 4px 5px 0 #6b4a12; position: relative; z-index: 7; border-color: #2b1d08; background: #2b1d08; color: #ffe69a; }
 .carta.dorada .carta-prev { position: relative; z-index: 7; }
 .carta.dorada .sello-1960 { position: absolute; right: 12px; top: 44px; padding: 5px 9px 4px; font: 15px/1 var(--font-display); letter-spacing: .08em; color: #f3d27a; background: #2b1d08; border: 2px solid #f3d27a; border-radius: 8px; transform: rotate(6deg); }
+/* 🥃 la carta de Rorro: glitcheada (a propósito, que se note). La foto con el RGB corrido y tiras que se corren de a
+   ratos, las líneas de la tele, el nombre que tiembla; la habilidad no se dice: una terminal con pistas que no explican nada */
+.carta.glitch { box-shadow: 0 10px 30px rgba(12, 43, 28, .45), inset 0 0 0 3px #38f2c8; animation: g-carta 5.2s steps(1) infinite; }
+.carta.glitch .carta-foto { background: #000; overflow: hidden; }
+.carta.glitch .carta-foto .g-capa { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; pointer-events: none; }
+.carta.glitch .carta-foto .g-r { filter: url(#g-rojo); }
+.carta.glitch .carta-foto .g-c { filter: url(#g-cian); mix-blend-mode: screen; }
+.carta.glitch .carta-foto .g-r { animation: g-r 3.1s steps(1) infinite; }
+.carta.glitch .carta-foto .g-c { animation: g-c 3.1s steps(1) infinite; }
+.carta.glitch .carta-foto .g-tira { animation: g-tira 2.3s steps(1) infinite; clip-path: inset(100% 0 0 0); }
+.carta.glitch .carta-foto .g-tele { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, .22) 2px 3px); }
+.carta.glitch .carta-foto .g-tele::after { content: ''; position: absolute; left: 0; right: 0; height: 18%; background: linear-gradient(to bottom, transparent, rgba(56, 242, 200, .12), transparent); animation: g-barrido 4.5s linear infinite; }
+.carta.glitch .carta-nombre h3 { position: relative; color: #f4fffb; text-shadow: -2px 0 #ff2a6d, 2px 0 #38f2c8; animation: g-nombre 2.7s steps(1) infinite; }
+.carta.glitch .carta-hab { background: #071a12; color: #38f2c8; font-family: ui-monospace, Menlo, monospace; letter-spacing: .02em; text-transform: none; animation: g-titila 1.9s steps(1) infinite; }
+.carta.glitch .carta-nivel { background: #38f2c8; color: #071a12; }
+.g-term { display: grid; gap: 4px; padding: 9px 12px 10px; border-radius: 12px; background: #071a12; border: 2px solid rgba(56, 242, 200, .45); font: 12px/1.35 ui-monospace, Menlo, monospace; color: #38f2c8; overflow: hidden; }
+.g-term .g-cmd { color: var(--gold); }
+.g-term .g-cmd::before { content: '$ '; color: #38f2c8; }
+.g-term .g-err { color: #ff8a7a; }
+.g-term .g-pistas { position: relative; display: block; height: 1.35em; }
+.g-term .g-pistas i { position: absolute; inset: 0; font-style: normal; color: #f4eeda; white-space: nowrap; overflow: hidden; opacity: 0; animation: g-pista 16s steps(1) infinite; }
+.g-term .g-pistas i::after { content: '▋'; color: #38f2c8; animation: cursor3d 1s steps(1) infinite; }
+.g-term .g-pistas i:nth-child(2) { animation-delay: 4s; }
+.g-term .g-pistas i:nth-child(3) { animation-delay: 8s; }
+.g-term .g-pistas i:nth-child(4) { animation-delay: 12s; }
+@keyframes g-pista { 0% { opacity: 1; } 25% { opacity: 0; } }
+@keyframes g-carta { 0%, 100% { transform: none; } 61% { transform: translate(2px, -1px) skewX(-1.5deg); } 62% { transform: translate(-3px, 0); } 63% { transform: none; } 88% { transform: translateX(1px); } 89% { transform: none; } }
+@keyframes g-r { 0%, 100% { transform: translateX(-3px); } 33% { transform: translate(-9px, 1px); } 35% { transform: translateX(-2px); } 71% { transform: translate(-6px, -2px); } 73% { transform: translateX(-3px); } }
+@keyframes g-c { 0%, 100% { transform: translateX(3px); } 33% { transform: translate(8px, -1px); } 35% { transform: translateX(2px); } 71% { transform: translate(5px, 2px); } 73% { transform: translateX(3px); } }
+@keyframes g-tira { 0%, 100% { clip-path: inset(100% 0 0 0); transform: none; } 20% { clip-path: inset(22% 0 66% 0); transform: translateX(-16px); } 23% { clip-path: inset(58% 0 31% 0); transform: translateX(11px); } 26% { clip-path: inset(100% 0 0 0); } 64% { clip-path: inset(8% 0 84% 0); transform: translateX(20px); } 66% { clip-path: inset(100% 0 0 0); } }
+@keyframes g-barrido { from { top: -20%; } to { top: 110%; } }
+@keyframes g-nombre { 0%, 100% { transform: none; text-shadow: -2px 0 #ff2a6d, 2px 0 #38f2c8; } 40% { transform: translateX(3px) skewX(-8deg); text-shadow: -5px 0 #ff2a6d, 4px 0 #38f2c8; } 42% { transform: none; } 77% { transform: translateX(-2px); text-shadow: 3px 0 #ff2a6d, -3px 0 #38f2c8; clip-path: inset(0 0 45% 0); } 79% { clip-path: none; transform: none; } }
+@keyframes g-titila { 0%, 100% { opacity: 1; } 46% { opacity: .35; } 48% { opacity: 1; } 51% { opacity: .6; } 53% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .carta.glitch, .carta.glitch .carta-foto *, .carta.glitch .carta-foto .g-tele::after, .carta.glitch .carta-nombre h3, .carta.glitch .carta-hab, .g-term .g-pistas i { animation: none; } .g-term .g-pistas i:first-child { opacity: 1; } }
 /* la cancha de Demetrio: 1960, sepia, viñeta y grano de película */
 body.retro #cancha { filter: sepia(.85) saturate(.8) contrast(1.06) brightness(.98); }
 #retro { position: fixed; inset: 0; pointer-events: none; display: none; }
@@ -1757,14 +1791,34 @@ body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
 #ninja-btn.armado { background: var(--red); animation: latePancho .45s ease-in-out infinite alternate; }
 #ninja-btn.armado .txt { color: var(--cream); }
 #ninja-btn[disabled] { animation: none; }
-/* 🥃 los poderes de Rorro: un botón que cambia (⏸ DEBUG con la pelota en el aire, ▶ SEGUIR en la pausa, ↩ REVERT
-   apuntando); la versión de la cancha, chiquita, en el cartelito */
-#rorro-btn { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); z-index: 31; width: 88px; height: 88px; border-radius: 50%; background: #0b1f16; color: #38f2c8; display: grid; place-items: center; align-content: center; gap: 1px; padding: 0; font-family: var(--font-display); }
-#rorro-btn .emo { font-size: 30px; line-height: 1; color: var(--cream); }
-#rorro-btn .txt { font-size: 13px; letter-spacing: .08em; line-height: 1.1; }
-#rorro-btn b { position: absolute; top: -8px; right: -10px; padding: 3px 7px 2px; border-radius: 999px; background: #0b1f16; color: #38f2c8; border: 2px solid var(--game-ink); font: 11px/1 ui-monospace, Menlo, monospace; transform: rotate(8deg); }
-#rorro-btn.vivo { animation: latePancho .45s ease-in-out infinite alternate; background: #3a1414; color: #ff8a7a; }
-#rorro-btn[disabled] { opacity: .55; }
+/* 🥃 los poderes de Rorro, uno por hoyo cada uno: DEBUG (el bicho con la pausa en el lomo: late rojo mientras vuela
+   la pelota; en la pausa se pone dorado, ▶ SEGUIR) y REVERT (el gráfico de commits con la flecha que vuelve). Redondos
+   como los del juego, con su cinta de terminal (lo que hace, en código) y los usos que quedan */
+.rorro-poder { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; position: fixed; right: 16px; z-index: 31; width: 84px; height: 84px; border-radius: 50%; padding: 0; display: grid; place-items: center; align-content: center; gap: 1px; background: var(--game-ink); color: var(--gold); font-family: var(--font-display); }
+.rorro-poder .gi { width: 40px; height: 40px; --gi-s: var(--game-ink); --gi-f: var(--cream); --gi-a: var(--gold); filter: drop-shadow(0 0 0 transparent); }
+.rorro-poder .txt { font-size: 13px; letter-spacing: .08em; line-height: 1; }
+.rorro-poder .usos { position: absolute; top: -8px; right: -8px; min-width: 30px; height: 30px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--cream); color: var(--green-900); border: 2px solid var(--game-ink); font: 15px/1 var(--font-display); display: grid; place-items: center; transform: rotate(8deg); }
+.rorro-poder .cinta { position: absolute; left: 50%; bottom: -13px; width: max-content; transform: translateX(-50%) rotate(-6deg); background: #0b1f16; color: #38f2c8; border: 2px solid var(--game-ink); box-shadow: 2px 2px 0 var(--game-ink); font: 11px/1 ui-monospace, Menlo, monospace; font-style: normal; padding: 4px 6px 3px; white-space: nowrap; pointer-events: none; }
+.rorro-poder .cinta::before { content: '$ '; color: var(--gold); }
+#rorro-debug { bottom: calc(var(--safe-bot) + 24px); }
+#rorro-revert { bottom: calc(var(--safe-bot) + 142px); width: 74px; height: 74px; }
+#rorro-revert .gi { width: 34px; height: 34px; }
+/* con el poder a mano: se mueve (el revert, de a ratos; el debug con la pelota en el aire, late en rojo) */
+.rorro-poder.listo { animation: g-wiggle 3.6s ease-in-out .8s infinite; }
+.rorro-poder.listo .gi { filter: drop-shadow(0 0 6px rgba(56, 242, 200, .55)); }
+#rorro-debug.vivo { background: var(--red); color: var(--cream); animation: latePancho .45s ease-in-out infinite alternate; }
+#rorro-debug.vivo .gi { --gi-a: var(--cream); --gi-f: var(--gold); }
+#rorro-debug.pausa { background: var(--gold); color: var(--game-ink); animation: latePancho .6s ease-in-out infinite alternate; }
+#rorro-debug.pausa .gi { --gi-a: var(--cream); --gi-f: var(--cream); }
+#rorro-debug.pausa .cinta { color: var(--gold); }
+/* esperando su momento (el debug apuntando, el revert sin versión de antes): quieto y apagado */
+.rorro-poder.espera { opacity: .72; }
+.rorro-poder.espera .gi { --gi-a: #8fa699; --gi-f: #cfd6cc; }
+/* ya usado en este hoyo */
+.rorro-poder.gastado { opacity: .5; filter: grayscale(1); }
+.rorro-poder.gastado .usos { background: #cfc8b0; }
+.rorro-poder.gastado .cinta { text-decoration: line-through; }
+@media (prefers-reduced-motion: reduce) { .rorro-poder.listo, #rorro-debug.vivo, #rorro-debug.pausa { animation: none; } }
 /* con dos botones (el Ninja es Dicky): la Dickyllamada va arriba del RESET */
 body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 #dicky-btn, #e5-btn, #ninja-btn { z-index: 31; } /* arriba del Dicky que aparece (que no se toca: pointer-events none) */
@@ -2113,7 +2167,9 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <div id="deme" hidden aria-live="polite"><svg viewBox="0 0 360 300" aria-label="Deme"></svg><p class="globo"></p></div>
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
 <div id="mago-golpes" role="group" aria-label="Golpes del Mago: elegí con cuál pegás" hidden></div>
-<button id="rorro-btn" type="button" hidden aria-label="Los poderes de dev de Rorro"><span class="emo" aria-hidden="true">⏸</span><span class="txt">DEBUG</span><b>v1.0</b></button>
+<svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false"><filter id="g-rojo" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter><filter id="g-cian" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter></svg>
+<button id="rorro-revert" class="rorro-poder" type="button" hidden aria-label="Revert: vuelve la versión de antes de la cancha"><span class="ico"></span><span class="txt">REVERT</span><b class="usos">×1</b><i class="cinta">git revert</i></button>
+<button id="rorro-debug" class="rorro-poder" type="button" hidden aria-label="Debug: congela la pelota en el aire para correrle el destino"><span class="ico"></span><span class="txt">DEBUG</span><b class="usos">×1</b><i class="cinta">breakpoint</i></button>
 <button id="ninja-btn" type="button" hidden aria-label="Reset ninja: el hoyo de nuevo desde el tee, sin multa"><span class="emo" aria-hidden="true">🥷</span><span class="txt">RESET</span><b aria-hidden="true">1</b></button>
 <div id="mp-sel" hidden role="dialog" aria-label="Mejor pelota: elegí con cuál te quedás"><p class="mp-tit"><img src="equipo-5.svg" alt="" draggable="false"><span>MEJOR PELOTA<small>¿Con cuál te quedás?</small></span></p><div id="mp-ops"></div></div>
 <button id="contra-btn" type="button" hidden><span class="emo" aria-hidden="true"></span><span class="txt"></span><i class="tiempo" aria-hidden="true"></i></button>
@@ -2574,8 +2630,8 @@ const DESBLOQUEO_UI = {
   Rorro: {
     nombre: 'Rorro', de: 'con cada uno del mazo', dato: 'rorro', torso: 'jugadores/rorro.jpeg', logo: 'intro/assets/sdga-s-logo.svg', redonda: true,
     logro: 'Rorro se suma al mazo 🥃', logroExtra: 'Jugaste con todos: el que hizo el juego',
-    titulo: '🥃 Rorro se suma al mazo', sub: 'Jugaste con todos. Ahora el que hizo el juego (y la app) juega en su cancha: hecha en código, en 3D, y se rehace en cada tiro.',
-    plus: 'LA CANCHA EN CÓDIGO', plusTexto: 'El tiro bueno se aprueba; el malo trae cambios del cliente. Y dos poderes de dev: ⏸ DEBUG en el aire y ↩ REVERT.',
+    titulo: '🥃 Rorro se suma al mazo', sub: 'Jugaste con todos. Ahora juega el que hizo el juego (y la app).',
+    plus: 'ERR · ▒▒▓░▒ ▓▒░', plusTexto: 'La cancha no es la que ves. Nada es definitivo hasta que pica.',
     jugar: 'Jugar con Rorro', lluvia: ['🥃', '💻', '⛳'],
   },
 }
@@ -4197,7 +4253,8 @@ function introHoyo() {
       despertar()
       hud()
       const hab = M.habilidadDe(ronda.jugador)
-      if (hab && ronda.idx === 0 && !ronda.ruleta) relatar({ lg: `✨ ${hab.nombre}`, verso: hab.texto })
+      // (🥃 Rorro no se explica: una pista, nada más)
+      if (hab && ronda.idx === 0 && !ronda.ruleta) relatar(hab.id === 'codigo' ? { lg: '✨ ▒▒▓░▒ ▓▒░', verso: 'Lo que vuela también se puede pausar' } : { lg: `✨ ${hab.nombre}`, verso: hab.texto })
     })
   }
   const cl = M.climaDe(ronda)
@@ -5622,10 +5679,10 @@ function dibujar3d() {
       zona: { top: (m.card ?? m.top ?? 20) + 6, bot: m.bot ?? H - 20 },
     })
   } catch (e) { console.error(e) }
-  const hoyo = ronda && !ronda.terminada ? M.hoyoActual(ronda) : null
-  if (hoyo && estado === 'apuntar' && enPutt && M.habilidadDe(ronda.jugador)?.id !== 'perro') caida3d(hoyo)
+  // (la caída del green la muestra la cancha 3D: la grilla con las luces que bajan, como en el Mario Golf)
   dibujarMarcasTiro()
   dibujarDestello()
+  monos3dHud()
   const a = estado === 'apuntar' ? apunte() : null
   if (drag) drag.visto = a
   if (a) dibujarApunte(a)
@@ -5642,6 +5699,47 @@ function dibujar3d() {
     if (Math.abs((f._ang ?? 99) - ang) > 0.01) { f.style.transform = `rotate(${ang}rad)`; f._ang = ang }
   }
 }
+/**
+ * Los monos que vienen a buscar la pelota, en la cancha 3D: el que no se ve, marcado en el borde (como en el juego,
+ * con la flecha y las yardas); el que se ve, con un cartelito arriba de la cabeza: el color de cuánto le falta
+ * (verde → rojo) y el ! cuando se dio cuenta.
+ */
+function monos3dHud() {
+  if (!ronda || ronda.terminada || r3d.enIntro() || !ronda.monos?.length) return
+  const v = visible(), lejos = M.alertaDe(ronda)
+  const [bx, by] = w2s(ronda.pelota)
+  ronda.monos.forEach((s, i) => {
+    if (s.modo !== 'caza') return
+    const d = M.dist(s.pos, ronda.pelota)
+    const c = r3d.monoEnPantalla(i)
+    const [x, y, adelante] = w2s(s.pos)
+    if (!c || !c[2] || !adelante || x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1) {
+      // (la dirección, con un punto cerca de la pelota: el mono puede estar atrás de la cámara)
+      const k = 2 / Math.max(1e-6, d), [qx, qy] = w2s([ronda.pelota[0] + (s.pos[0] - ronda.pelota[0]) * k, ronda.pelota[1] + (s.pos[1] - ronda.pelota[1]) * k])
+      indicadorMono(s, bx + (qx - bx) * 1e3, by + (qy - by) * 1e3, v)
+      return
+    }
+    const color = colorDistancia(d, lejos), avisa = s.reaccion > 0
+    const late = d < 20 ? 1 + Math.abs(Math.sin(performance.now() / 120)) * 0.14 : 1
+    ctx.save()
+    ctx.translate(c[0], c[1] - 8)
+    ctx.scale(late, late)
+    ctx.fillStyle = color
+    ctx.strokeStyle = 'rgba(244,238,218,.95)'
+    ctx.lineWidth = 2.2
+    ctx.beginPath()
+    ctx.moveTo(-6, -2); ctx.lineTo(0, 7); ctx.lineTo(6, -2)
+    ctx.arc(0, -13, 13, Math.PI * 0.33, Math.PI * 0.67, true)
+    ctx.closePath()
+    ctx.fill(); ctx.stroke()
+    ctx.fillStyle = C.cream
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    ctx.font = avisa ? '17px Anton, "Arial Narrow", sans-serif' : '11px Anton, "Arial Narrow", sans-serif'
+    ctx.fillText(avisa ? '!' : `${Math.round(d)}`, 0, -12.5)
+    ctx.restore()
+  })
+  ctx.textBaseline = 'alphabetic'
+}
 /** El golfista del juego (para dónde mira, el swing, el palo), para que Rorro lo haga en 3D. */
 function estadoGolfista(a) {
   if (!ronda || ronda.terminada || replay) return null
@@ -5656,58 +5754,51 @@ function estadoGolfista(a) {
   const putt = a ? a.putt : golfista.swing ? golfista.swing.putt : !enVuelo && M.enModoPutt(campo, ronda)
   return { desde: donde, ang: golfista.ang, sv: sGolfista(now, a), putt, palo: golfista.swing || enVuelo ? golfista.palo ?? 'hierro' : M.paloDe(campo, ronda) }
 }
-/** Las flechitas de la caída del green, como las del juego, sobre el green 3D. */
-function caida3d(hoyo) {
-  const ahora = performance.now() / 1000
-  // del tamaño que tienen en el juego (en la pantalla): de cerca, las flechitas no se agrandan
-  const esc = escPantalla(hoyo.pin), k = Math.min(1, 26 / Math.max(1, esc))
-  ctx.save()
-  ctx.strokeStyle = ronda.clima?.id === 'tormenta' ? 'rgb(236,242,232)' : 'rgb(16,54,34)'
-  ctx.lineWidth = Math.max(1.3, Math.min(2.6, 0.13 * esc))
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
-  for (const m of marcasCaida(hoyo)) {
-    const u = (ahora * m.vel / CAIDA_VIAJE + m.fase) % 1
-    const al = m.alfa * Math.sin(Math.PI * u)
-    if (al < 0.02) continue
-    const cx = m.x + m.dx * (u - 0.5) * CAIDA_VIAJE, cy = m.y + m.dy * (u - 0.5) * CAIDA_VIAJE, t = m.tam * k
-    const [x1, y1, v1] = w2s([cx - (m.dx * 0.32 + m.dy * 0.3) * t, cy - (m.dy * 0.32 - m.dx * 0.3) * t])
-    const [x2, y2] = w2s([cx + m.dx * 0.07 * t, cy + m.dy * 0.07 * t])
-    const [x3, y3] = w2s([cx - (m.dx * 0.32 - m.dy * 0.3) * t, cy - (m.dy * 0.32 + m.dx * 0.3) * t])
-    if (!v1 || x2 < -20 || x2 > W + 20 || y2 < -20 || y2 > H + 20) continue
-    ctx.globalAlpha = al
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.stroke()
-  }
-  ctx.restore()
+/** Los íconos de los poderes de Rorro (en el estilo del set del juego: trazo tinta, papel crema, acento dorado). */
+const GI_RORRO = {
+  // el bicho, con la pausa en el lomo
+  debug: '<path d="M11.5 4.5l2.6 3.4M20.5 4.5l-2.6 3.4"/><circle cx="16" cy="10.2" r="3.6" style="fill:var(--gi-f)"/><path d="M6 14.5l4 2M26 14.5l-4 2M4.5 20.5h5M27.5 20.5h-5M6.5 27l4-2.6M25.5 27l-4-2.6"/><ellipse cx="16" cy="20" rx="7" ry="8.2" style="fill:var(--gi-a)"/><path d="M13.4 16.4v7.2M18.6 16.4v7.2" stroke-width="3"/>',
+  // ▶ seguir (con las rayitas del que arranca)
+  seguir: '<path d="M11.5 6.5v19l15-9.5z" style="fill:var(--gi-a)"/><path d="M3.5 11.5h4M2.5 16h5M3.5 20.5h4"/>',
+  // los commits y la flecha que vuelve al de antes
+  revert: '<path d="M10 4v24"/><circle cx="10" cy="8" r="3.4" style="fill:var(--gi-f)"/><circle cx="10" cy="17.5" r="3.4" style="fill:var(--gi-a)"/><circle cx="10" cy="26.5" r="2.6" style="fill:var(--gi-f)"/><path d="M14.5 8h6.5a4.75 4.75 0 0 1 0 9.5h-5"/><path d="M19 14l-3.5 3.5L19 21"/>',
 }
-/** El botón de los poderes de Rorro: ⏸ DEBUG en el aire, ▶ SEGUIR en la pausa, ↩ REVERT apuntando. */
+const giRorro = (n) => `<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g>${GI_RORRO[n]}</g></svg>`
+/**
+ * Los poderes de Rorro (uno por hoyo cada uno). DEBUG: con la pelota en el aire, la congela (y en la pausa es ▶ SEGUIR).
+ * REVERT: apuntando, vuelve la versión de antes de la cancha (la cinta dice de cuál a cuál).
+ */
 let poderPintado = ''
 function pintarPoderRorro() {
-  const b = $('#rorro-btn')
+  const bd = $('#rorro-debug'), br = $('#rorro-revert')
   const ver = modo3d() && !ronda.terminada && !$('#hud-top').hidden && !r3d.enIntro()
-  let modo = 'nada'
-  if (ver) {
-    if (estado === 'pausa') modo = 'seguir'
-    else if (estado === 'tiro' && tiro?.modo === 'full' && tiro.fase === 'vuelo' && r3d.puedeDebug()) modo = 'debug'
-    else if (estado === 'apuntar' && r3d.puedeRevert()) modo = 'revert'
-  }
-  const clave = `${ver}|${modo}|${ver ? r3d.version() : ''}`
+  const p = ver ? r3d.poderes() : null
+  const enVuelo = estado === 'tiro' && tiro?.modo === 'full' && tiro.fase === 'vuelo'
+  const debug = !ver ? '' : estado === 'pausa' ? 'pausa' : !p.bp ? 'gastado' : enVuelo ? 'vivo' : 'espera'
+  const revert = !ver ? '' : !p.revert ? 'gastado' : estado === 'apuntar' && r3d.puedeRevert() ? 'listo' : 'espera'
+  const clave = `${debug}|${revert}|${p?.ver}|${p?.antes}`
   if (clave === poderPintado) return
   poderPintado = clave
-  b.hidden = !ver
+  bd.hidden = br.hidden = !ver
   if (!ver) return
-  const [emo, txt] = { seguir: ['▶', 'SEGUIR'], debug: ['⏸', 'DEBUG'], revert: ['↩', 'REVERT'], nada: ['💻', 'DEV'] }[modo]
-  b.querySelector('.emo').textContent = emo
-  b.querySelector('.txt').textContent = txt
-  b.querySelector('b').textContent = r3d.version()
-  b.disabled = modo === 'nada'
-  b.classList.toggle('vivo', modo === 'debug')
+  bd.className = `rorro-poder ${debug}`
+  bd.querySelector('.ico').innerHTML = giRorro(debug === 'pausa' ? 'seguir' : 'debug')
+  bd.querySelector('.txt').textContent = debug === 'pausa' ? 'SEGUIR' : 'DEBUG'
+  bd.querySelector('.usos').textContent = `×${p.bp}`
+  bd.querySelector('.cinta').textContent = debug === 'pausa' ? 'continue()' : 'breakpoint'
+  br.className = `rorro-poder ${revert}`
+  br.querySelector('.ico').innerHTML = giRorro('revert')
+  br.querySelector('.usos').textContent = `×${p.revert}`
+  br.querySelector('.cinta').textContent = revert === 'listo' && p.antes ? `${p.ver} → ${p.antes}` : p.ver
 }
 const LG_RORRO = {
   bp: ['Eso es trampa… pero la del mono.', 'Pausó el juego. En la vida real no se puede, Rorro.', 'Breakpoint en el aire. Clásico de programador.'],
   revert: ['Ctrl+Z en la vida real, por favor.', 'Revirtió. El cliente no se enteró.', 'git revert y a otra cosa.'],
+  // tocando antes de tiempo
+  bpAntes: ['El breakpoint va con la pelota en el aire, Rorro.', 'Primero pegale. Después se debuggea.'],
+  revertAntes: ['No hay versión de antes: nothing to revert.', 'Todavía no hay commit para revertir.'],
 }
-$('#rorro-btn').addEventListener('click', () => {
+$('#rorro-debug').addEventListener('click', () => {
   if (!modo3d()) return
   r3d.despertar()
   if (estado === 'pausa' && tiro) {
@@ -5721,12 +5812,18 @@ $('#rorro-btn').addEventListener('click', () => {
     $('#depura').hidden = false
     relatar({ lg: M.elegir(rng, LG_RORRO.bp) })
     hud()
-  } else if (estado === 'apuntar' && r3d.puedeRevert()) {
-    estado = 'revert'
-    relatar({ lg: M.elegir(rng, LG_RORRO.revert) })
-    r3d.revert(ronda, (p) => { ronda.pelota = p; if (estado === 'revert') { estado = 'apuntar'; hud() } })
-    hud()
-  }
+  } else if (r3d.poderes().bp) { relatar({ lg: M.elegir(rng, LG_RORRO.bpAntes) }); return }
+  else return
+  poderPintado = ''
+})
+$('#rorro-revert').addEventListener('click', () => {
+  if (!modo3d()) return
+  if (estado !== 'apuntar' || !r3d.puedeRevert()) { if (estado === 'apuntar' && r3d.poderes().revert) relatar({ lg: M.elegir(rng, LG_RORRO.revertAntes) }); return }
+  r3d.despertar()
+  estado = 'revert'
+  relatar({ lg: M.elegir(rng, LG_RORRO.revert) })
+  r3d.revert(ronda, (p) => { ronda.pelota = p; if (estado === 'revert') { estado = 'apuntar'; hud() } })
+  hud()
   poderPintado = ''
 })
 // ── ☔ el clima del día: el tinte de la cancha, los charcos, las nubes, la lluvia, los rayos, la nieve y el sol ──
@@ -10369,6 +10466,16 @@ function fotoRuleta(j) {
     </div>`
 }
 
+/** 🥃 La foto de Rorro, glitcheada: el rojo y el cian corridos (se suman de nuevo con la mezcla), una tira que se corre y la tele. */
+function fotoGlitch(j) {
+  const capa = (c) => `<img class="g-capa ${c}" src="${j.foto}" alt="" draggable="false">`
+  return `${capa('g-r')}${capa('g-c')}<img class="g-capa g-tira" src="${j.foto}" alt="${esc(j.apodo)}" draggable="false"><span class="g-tele" aria-hidden="true"></span>`
+}
+/** 🥃 En vez de la habilidad, una terminal: el comando, un error y pistas que van cambiando (que no explican nada). */
+const PISTAS_RORRO = ['la cancha no es la que ves', 'nada es definitivo hasta que pica', 'lo que vuela también se puede pausar', 'a veces volver es avanzar']
+function terminalGlitch() {
+  return `<div class="g-term" role="note" aria-label="Una pista: ${PISTAS_RORRO[0]}"><span class="g-cmd">rorro --habilidad</span><span class="g-err">segmentation fault (core dumped)</span><span class="g-pistas" aria-hidden="true">${PISTAS_RORRO.map((p) => `<i>// ${p}</i>`).join('')}</span></div>`
+}
 function cartaDe(j) {
   if (cartasDom.has(j.apodo)) return cartasDom.get(j.apodo)
   const dif = difDe(j)
@@ -10377,15 +10484,16 @@ function cartaDe(j) {
   const s = j.stats
   const nivel = nivelDe(j)
   const lock = bloqueado(j) // 🔒 Taiu, hasta que hagas −1 con los otros Dicky
+  const glitch = !!j.cancha3d // 🥃 Rorro: la carta glitcheada, y la habilidad no se dice
   const el = document.createElement('div')
   el.className = 'envoltorio'
-  el.innerHTML = `<article class="carta${j.retro ? ' dorada' : ''}${j.ruleta ? ' ruleta' : ''}${lock ? ' bloqueada' : ''}">
+  el.innerHTML = `<article class="carta${j.retro ? ' dorada' : ''}${j.ruleta ? ' ruleta' : ''}${glitch ? ' glitch' : ''}${lock ? ' bloqueada' : ''}">
     <div class="carta-foto">
-      ${j.ruleta ? fotoRuleta(j) : j.foto ? `<img src="${j.foto}" alt="${esc(j.apodo)}" draggable="false">` : `<div class="carta-emoji" aria-hidden="true">${j.emoji}</div>`}
+      ${j.ruleta ? fotoRuleta(j) : glitch ? fotoGlitch(j) : j.foto ? `<img src="${j.foto}" alt="${esc(j.apodo)}" draggable="false">` : `<div class="carta-emoji" aria-hidden="true">${j.emoji}</div>`}
       <div class="carta-degrade"></div>
       <div class="carta-marcas">
         <span class="carta-nivel">Nivel ${nivel} · ${hcpEtiqueta(j)}</span>
-        ${hab ? `<span class="carta-hab">✨ ${esc(hab.nombre)}</span>` : ''}
+        ${glitch ? '<span class="carta-hab">✨ ▒▒▓░▒ ▓▒░</span>' : hab ? `<span class="carta-hab">✨ ${esc(hab.nombre)}</span>` : ''}
       </div>
       <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
       ${j.dicky ? '<img class="carta-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}
@@ -10396,7 +10504,7 @@ function cartaDe(j) {
     </div>
     <div class="carta-cuerpo">
       ${lock ? requisitos(desbloqueoDe(j)) : `${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : '<p class="carta-frase vacia">Todavía no cargó su frase célebre.</p>'}
-      ${hab ? `<button class="carta-prev" type="button" aria-label="Ver la habilidad ${esc(hab.nombre)} entera">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p><span class="mas" aria-hidden="true">›</span></button>` : ''}
+      ${glitch ? terminalGlitch() : hab ? `<button class="carta-prev" type="button" aria-label="Ver la habilidad ${esc(hab.nombre)} entera">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p><span class="mas" aria-hidden="true">›</span></button>` : ''}
       <dl>
         <div><dt>HCP</dt><dd>${j.ruleta ? 'C/U<span class="sub">el suyo</span>' : dif.cargado ? hcpTxt(j) : `—<span class="sub">juega ${dif.hcp}</span>`}</dd></div>
         <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span>${dif.prom != null ? `<span class="sub">${M.formatoPar(Math.round(dif.prom))} prom.</span>` : ''}</dd></div>
@@ -10720,7 +10828,7 @@ function mostrarTodos() {
         ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}${j.equipo === 5 ? '<img class="todo-dicky" src="equipo-5.svg" alt="Equipo 5" title="Equipo 5" draggable="false">' : ''}
         <button class="carta-jugar" type="button" data-jugar="${i}">Jugar</button>
       </div>
-      ${hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
+      ${j.cancha3d ? terminalGlitch() : hab ? `<div class="carta-prev">${previewHab(hab.id)}<p><b>✨ ${esc(hab.nombre)}</b>${esc(hab.texto)}</p></div>` : ''}
       ${j.frase ? `<p class="carta-frase">“${esc(j.frase)}”</p>` : ''}
     </li>`
   }).join('')
