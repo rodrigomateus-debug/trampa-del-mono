@@ -1314,9 +1314,18 @@ function poseDelJuego(st) {
   }
   if (st.estado === 'tiro' && t) {
     if (t.modo === 'putt') return encuadrar(enPiso(t.pos), cam.yaw, 1.02, -0.25, [enPiso(pin), ...anilloPuntos(pin, 2.5)], { Dmin: 12.5, Dmax: 70, k: 2.4 })
+    const enVuelo = t.fase === 'vuelo'
+    // 🌬️ con el viento de Tito (`t.vivo`: lo cambia en el aire, a swipes; también si Rorro se lo copió) la deriva se mueve
+    // todo el vuelo: la cámara va de atrás, en la línea de salida, siguiendo a la pelota y mirando lo que le queda de
+    // vuelo derecho adelante. Antes encuadraba dónde caía con el viento de ese momento: giraba con cada ráfaga y, con la
+    // pelota corrida 60 yd de costado, se alejaba hasta perderse en la niebla
+    if (t.vivo && enVuelo) {
+      const resto = 1 - clamp(t.t / (t.T || 1), 0, 1)
+      const adelante = [t.pos[0] + t.carryVec[0] * resto, t.pos[1] + t.carryVec[1] * resto]
+      return encuadrar(B.clone(), Math.atan2(t.carryVec[1], t.carryVec[0]), 0.82, -0.15, [enPiso(adelante, 0)], { Dmin: 30, Dmax: 160, k: 3.2 })
+    }
     const cae = [t.desde[0] + t.carryVec[0] + (t.deriva?.[0] ?? 0), t.desde[1] + t.carryVec[1] + (t.deriva?.[1] ?? 0)]
     const yaw = Math.atan2(cae[1] - t.desde[1], cae[0] - t.desde[0])
-    const enVuelo = t.fase === 'vuelo'
     return encuadrar(B.clone(), yaw, enVuelo ? 0.82 : 0.95, enVuelo ? -0.15 : -0.25, [enPiso(cae, 0), ...(enVuelo ? [] : anilloPuntos(t.pos, 6))], { Dmin: enVuelo ? 30 : 22, k: enVuelo ? 3.2 : 2.4 })
   }
   // 🪄 el Dibuje maestro (el golpe del Mago, también copiado por Rorro): la cámara se aleja y mira más desde arriba,
@@ -1825,6 +1834,17 @@ export function jacobianoInv(p) {
   const det = j00 * j11 - j01 * j10 || 1e-6
   return [j11 / det, -j01 / det, -j10 / det, j00 / det]
 }
+/** Lo mismo pero en la pelota que se ve (la que vuela, a su altura): los swipes de Tito con la pelota en el aire se leen
+ *  donde está la pelota, no en el piso de abajo (que con la pelota alta queda en otro lado de la pantalla). */
+function enBola(dx, dz) { const b = bola.position; _pr.set(b.x + dx, b.y, b.z + dz).project(camara); return [((_pr.x + 1) / 2) * innerWidth, ((1 - _pr.y) / 2) * innerHeight] }
+export function jacobianoInvBola() {
+  const a = enBola(0, 0), b = enBola(1, 0), c = enBola(0, 1)
+  const j00 = b[0] - a[0], j01 = c[0] - a[0], j10 = b[1] - a[1], j11 = c[1] - a[1]
+  const det = j00 * j11 - j01 * j10 || 1e-6
+  return [j11 / det, -j01 / det, -j10 / det, j00 / det]
+}
+/** Para dónde se ve, en la pelota, una dirección de la cancha (la flechita del viento con la pelota en el aire). */
+export function anguloEnBola(ang) { const a = enBola(0, 0), b = enBola(Math.cos(ang) * 0.5, Math.sin(ang) * 0.5); return Math.atan2(b[1] - a[1], b[0] - a[0]) }
 /** Cuántos píxeles sube en la pantalla una yarda de altura, en la pelota (lo que en el juego de siempre es `levante`). */
 export function pxAlto() {
   const b = bola.position
@@ -1962,9 +1982,22 @@ function cercaDelHoyo(B, t, pin, alt) {
   const k = d > 1e-6 ? dv / d : 1
   const piso = alturaEn(pin)
   let y = rb
-  if (t?.salto && d < boca) y = rb + 1.1 * rb * (1 - d / boca) // pasada: salta del labio
-  else if (dv < R) y = dv > R - rb ? Math.sqrt(Math.max(0, rb * rb - (R - dv) ** 2)) : 0 // sobre el agujero, baja
+  const hunde = dv < R ? (dv > R - rb ? Math.sqrt(Math.max(0, rb * rb - (R - dv) ** 2)) : 0) : rb // sobre el agujero, baja
+  // la que se pasa (el motor dice que salta el hoyo: venía muy fuerte) pasa rozando por arriba, apenas hundida, y da un
+  // saltito chico al salir por el borde de enfrente. Antes se hundía media pelota y en el cuadro siguiente saltaba una
+  // pelota entera para arriba: parecía que rebotaba en el fondo del hoyo (2026-10-10, lo vio Rorro)
+  if (t?.salto && d < boca) y = rb + 0.3 * rb * Math.max(0, 1 - Math.abs(d - R) / 0.25)
+  else if (dv < R) y = t && !t.vuelta && !t.embocada && t.fase === 'rodando' && !vaAEntrar(t, pin) ? rb - 0.15 * (rb - hunde) : hunde
   return V3(pin[0] + dx * k, piso + y, pin[1] + dz * k)
+}
+/** ¿La que viene rodando va a entrar? Lo mismo que decide el motor al pasar por el punto más cercano al hoyo (por dónde
+ *  va a pasar, con lo rápido que va): si no, sobre el agujero no se hunde (va a saltar el hoyo o a dar la corbata). */
+function vaAEntrar(t, pin) {
+  const v = Math.hypot(t.v?.[0] ?? 0, t.v?.[1] ?? 0)
+  if (t.exacto || v < 0.05) return true
+  const ux = t.v[0] / v, uy = t.v[1] / v, px = pin[0] - t.pos[0], py = pin[1] - t.pos[1]
+  const dmin = Math.abs(px * uy - py * ux) // a cuánto del centro pasa
+  return (v < M.limiteEmbocar(dmin) && (t.modo !== 'full' || dmin <= M.CHIP.centro)) || (t.modo === 'full' && M.suerteDe(t) < M.chanceRodando(dmin, v))
 }
 export function cuadro(dtR, st) {
   if (!renderer || !activo) return
@@ -2068,7 +2101,9 @@ export function cuadro(dtR, st) {
     fantasma.position.set(f.pos[0], alturaEn(inversa(f.pos)) + RADIO_BOLA + (adentro ? 0.012 - HONDO_TAZA : f.alt ?? 0), f.pos[1])
     fantasma.scale.setScalar(escalaVista(fantasma.position) * 1.1)
   }
-  // la cámara (la intro y los sobrevuelos van por su ruta)
+  // la cámara (la intro y los sobrevuelos van por su ruta). Si pegaste con el sobrevuelo del hoyo todavía andando, se
+  // corta: la cámara va a la pelota (si no, seguía la ruta y la pelota volaba fuera de cuadro)
+  if (pose?.ruta && !intro && (st.estado === 'swing' || st.estado === 'tiro')) { const fin = pose.ruta.alFinal; delete pose.ruta; fin?.() }
   if (!pose?.ruta) pose = _prueba.pose ?? poseDelJuego({ ...st, bola: B })
   // (dibujando el vuelo con el dedo, la cámara queda quieta: lo dibujado es lo que se ve)
   if (!st.dibuje?.dibujando) moverCamara(dtR)
