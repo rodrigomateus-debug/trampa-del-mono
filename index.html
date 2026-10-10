@@ -2017,7 +2017,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
 </div>
 
-<div id="clima-cartel" hidden role="status" aria-live="polite" aria-label="El clima de hoy"><div class="cl-caja"><span class="cl-ico" aria-hidden="true"></span><small class="cl-kick">HOY EN SAN DIEGO</small><b class="cl-nombre"></b><p class="cl-texto"></p><span class="cl-raro">1 EN 100</span></div></div>
+<div id="clima-cartel" hidden role="status" aria-live="polite" aria-label="El clima de hoy"><div class="cl-caja"><span class="cl-ico" aria-hidden="true"></span><small class="cl-kick">HOY EN SAN DIEGO</small><b class="cl-nombre"></b><p class="cl-texto"></p><span class="cl-raro">1 EN 10</span></div></div>
 
 <button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
 
@@ -2195,7 +2195,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 86ffd13 · 9/10, 10:34 p. m.</span>
+  <span class="version" id="version">v b078532 · 10/10, 12:40 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2415,11 +2415,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=6d8947107b'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEOS } from './plantel.js?v=6d8947107b'
+import * as M from './motor.js?v=f882dbacbd'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEOS } from './plantel.js?v=f882dbacbd'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=6d8947107b'
-import * as S from './sonido.js?v=6d8947107b'
+import * as R from './ranking.js?v=f882dbacbd'
+import * as S from './sonido.js?v=f882dbacbd'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"banana": "<path d=\"M21 6C28.6 9.4 30 20 22.8 25.4C17.4 29.4 9.4 29 3.8 24.6C10.2 24.4 14.8 21.4 16.9 17.4C18.9 13.6 18.8 9.8 16.8 6.6Z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.2 8.2C21.6 13.8 19.9 20.4 12.2 24.8\" stroke-width=\"1.5\"/><path d=\"M24.4 11.6C25.8 16 24.3 20.8 20.3 23.8\" style=\"stroke:var(--gi-f)\" stroke-width=\"2.4\"/><path d=\"M16.8 6.6L17.3 2.8L21.1 2.4L21 6\" style=\"fill:var(--gi-s)\"/><path d=\"M3.8 24.6L2.6 26.5\" stroke-width=\"3\"/>", "match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2599,8 +2599,8 @@ const campo = M.crearCampo()
 const fondo = new Image()
 fondo.src = 'cancha.webp'
 // la cancha de cada clima (dibujadas encima de la original, mismo encuadre: el terreno del juego no cambia). La lluvia
-// intensa usa la de lluvia (con más tinte encima); la nieve, la original con el blanco encima
-const CANCHA_CLIMA = { soleado: 'cancha-soleado.webp', nuboso: 'cancha-nuboso.webp', seco: 'cancha-seco.webp', mojado: 'cancha-mojado.webp', lluvia: 'cancha-lluvia.webp', tormenta: 'cancha-lluvia.webp' }
+// intensa usa la de lluvia (con más tinte encima)
+const CANCHA_CLIMA = { soleado: 'cancha-soleado.webp', nuboso: 'cancha-nuboso.webp', seco: 'cancha-seco.webp', mojado: 'cancha-mojado.webp', lluvia: 'cancha-lluvia.webp', tormenta: 'cancha-lluvia.webp', nieve: 'cancha-nieve.webp' }
 function fondoDelClima(id) {
   const src = CANCHA_CLIMA[id] ?? 'cancha.webp'
   if (fondo.getAttribute('src') === src) return
@@ -2609,23 +2609,27 @@ function fondoDelClima(id) {
   nueva.onload = () => { fondo.src = src }
   nueva.src = src
 }
-// afuera del dibujo: el verde del SDGA con rayas de pasto cortado (sutiles, para que no distraiga)
-let tramaFondo = null
+// afuera del dibujo (el fuera de límite): el verde del SDGA con rayas de pasto cortado (sutiles, para que no distraiga);
+// con la cancha nevada, nieve: blanco a la sombra, con las mismas rayas (el borde de la cancha se sigue viendo)
+const fondoNevado = () => fondo.getAttribute('src') === CANCHA_CLIMA.nieve
+const tramaFondo = {}
 function trama() {
-  if (tramaFondo) return tramaFondo
+  const nieve = fondoNevado()
+  const k = nieve ? 'nieve' : 'pasto'
+  if (tramaFondo[k]) return tramaFondo[k]
   const t = document.createElement('canvas')
   const L = 56
   t.width = t.height = L
   const c = t.getContext('2d')
-  c.fillStyle = '#0c2b1c'
+  c.fillStyle = nieve ? '#d6e1ec' : '#0c2b1c'
   c.fillRect(0, 0, L, L)
-  c.fillStyle = '#113524'
+  c.fillStyle = nieve ? '#dfe8f1' : '#113524'
   c.beginPath() // franja diagonal que empalma con la de al lado
   c.moveTo(0, 0); c.lineTo(L / 2, 0); c.lineTo(0, L / 2); c.closePath()
   c.moveTo(L, 0); c.lineTo(L, L / 2); c.lineTo(L / 2, L); c.lineTo(0, L); c.closePath()
   c.fill()
-  tramaFondo = ctx.createPattern(t, 'repeat')
-  return tramaFondo
+  tramaFondo[k] = ctx.createPattern(t, 'repeat')
+  return tramaFondo[k]
 }
 
 const lienzo = $('#cancha')
@@ -4012,11 +4016,12 @@ function empezar(jugador) {
   const duelo = matchModo
   matchModo = null
   if (duelo) {
-    M.aplicarMatch(ronda, M.condicionesMatch(duelo.semilla))
+    // el clima, según la fecha del desafío (la nieve cambió de chance: M.NIEVE); el que desafía, el de ahora
+    M.aplicarMatch(ronda, M.condicionesMatch(duelo.semilla, duelo.desafio?.fecha ? Date.parse(duelo.desafio.fecha) : Date.now()))
     ronda.duelo = { ...duelo, grabacion: [] }
   }
   // el clima del día: en un match, el de la semilla (los dos juegan el mismo día, con los mismos charcos);
-  // si no, sorteado (la nieve, 1 de cada 100). Para probar: ?clima=nieve
+  // si no, sorteado (la nieve, 1 de cada 10). Para probar: ?clima=nieve
   if (!ronda.match) ronda.pro = !!datos.pro // el MODO PRO de la vuelta normal (en un match, el del desafío)
   const climaUrl = PARAMS.get('clima')
   if (ronda.match) M.ponerClima(campo, ronda, ronda.match.clima, ronda.match.semillaClima)
@@ -5402,7 +5407,7 @@ function dibujar() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   for (const h of ronda?.hoyos ?? replay?.hoyos ?? M.HOYOS) {
     const [tx, ty] = w2s(atrasDelTee(h, 9))
-    ctx.fillStyle = 'rgba(244,238,218,.85)'
+    ctx.fillStyle = fondoNevado() ? 'rgba(20,64,42,.78)' : 'rgba(244,238,218,.85)' // sobre la nieve, verde oscuro
     ctx.font = '13px Anton, "Arial Narrow", sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(`TEE ${h.n}`, tx, ty + 5)
@@ -5493,8 +5498,8 @@ const CLIMA_TXT = {
 }
 // el tinte de la cancha (abajo de la pelota y los monos): cada día con su luz
 // (con las canchas dibujadas para cada clima, el tinte ya casi no hace falta: queda el de la lluvia intensa, que usa la
-// de lluvia, y la nieve, que usa la original)
-const TINTE_CLIMA = { soleado: null, nuboso: null, seco: null, mojado: null, lluvia: 'rgba(24,40,62,.06)', tormenta: 'rgba(10,20,36,.28)', nieve: 'rgba(244,248,252,.64)' }
+// de lluvia)
+const TINTE_CLIMA = { soleado: null, nuboso: null, seco: null, mojado: null, lluvia: 'rgba(24,40,62,.06)', tormenta: 'rgba(10,20,36,.28)', nieve: null }
 /**
  * El clima del día, en un banner chico debajo del número de la cuenta regresiva: aparece en el 3 con lo corto de sus
  * mecánicas y se va en el 1, así no te come tiempo de juego (el reloj arranca en el ¡YA!). No se toca ni frena nada.
@@ -5915,7 +5920,7 @@ function indicadorMono(s, mx, my, v) {
   ctx.fillText('🐒', 0, 1)
   // cuántas yardas le faltan
   ctx.font = '12px Anton, "Arial Narrow", sans-serif'
-  ctx.fillStyle = C.cream
+  ctx.fillStyle = fondoNevado() ? C.g900 : C.cream
   ctx.fillText(`${Math.round(d)} YD`, -Math.cos(ang) * 32, -Math.sin(ang) * 32)
   ctx.restore()
 }
@@ -6013,14 +6018,15 @@ function cajonTee(h) {
   ctx.save()
   ctx.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
   ctx.rotate(ang)
-  ctx.fillStyle = '#326222'
-  ctx.strokeStyle = '#285419'
+  const nieve = fondoNevado() // con nieve, el verde clarito que asoma abajo de la nieve (como en el dibujo)
+  ctx.fillStyle = nieve ? '#c3d6bf' : '#326222'
+  ctx.strokeStyle = nieve ? '#a6bea3' : '#285419'
   ctx.lineWidth = 0.5
   ctx.beginPath()
   ctx.roundRect(-largo / 2, -ancho / 2, largo, ancho, 1.4)
   ctx.fill()
   ctx.stroke()
-  ctx.fillStyle = 'rgba(255,255,255,.05)' // rayas de corte
+  ctx.fillStyle = nieve ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.05)' // rayas de corte
   for (let x = -largo / 2 + 2; x < largo / 2 - 2; x += 4) ctx.fillRect(x, -ancho / 2 + 0.6, 2, ancho - 1.2)
   ctx.restore()
 }
@@ -8376,7 +8382,7 @@ $('#mt-lista').addEventListener('click', (e) => { if (e.target.closest('[data-bn
 /** El MATCH de prueba (prueba.js): rivales y bananas de mentira, en el teléfono. `entrar`: suelto, entra con esa identidad. */
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
-  const { crearPrueba } = await import('./prueba.js?v=6d8947107b')
+  const { crearPrueba } = await import('./prueba.js?v=f882dbacbd')
   pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs })
   R.usarPrueba(pruebaApp, entrar ? yo : null)
   $('#mt-prueba').hidden = false
@@ -8980,7 +8986,7 @@ async function abrirReplay(d, grabs = null, boton = null) {
   }
   const pistas = [pistaReplay(grabs.retador, d.retador, 0)]
   if (grabs.rival?.length) pistas.push(pistaReplay(grabs.rival, d.rival, 1))
-  const cond = M.condicionesMatch(d.semilla)
+  const cond = M.condicionesMatch(d.semilla, d.fecha ? Date.parse(d.fecha) : Date.now()) // el clima, con la chance de nieve de su fecha
   const hoyos = M.HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera }))
   // el clima que hubo: el de la semilla, con los mismos charcos que vieron los dos (ponerClima, como en la ronda)
   let clima = null
