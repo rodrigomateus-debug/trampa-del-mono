@@ -1282,6 +1282,37 @@ input { -webkit-user-select: text; user-select: text; }
 .bnb-txt small, .bnb-pozo small { font: 800 10px/1.2 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: rgba(12, 43, 28, .72); }
 .bnb-txt b { font: 32px/1 var(--font-display); font-weight: 400; }
 .bnb-txt em { font-style: normal; font-size: 11px; font-weight: 700; color: rgba(12, 43, 28, .78); }
+.bnb-txt em.bnb-mas { white-space: nowrap; font-style: normal; font-weight: 800; font-size: 10.5px; letter-spacing: .04em; text-decoration: underline; text-underline-offset: 2px; color: var(--green-900); }
+/* 🍌 cómo conseguir más bananas (en la hojita de las bananas) */
+.bn-sub { margin: 4px 0 0; font: 800 11px/1.2 var(--font-body) !important; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
+.bn-como { display: grid; gap: 8px; text-align: left; }
+.bc-card { display: grid; gap: 6px; padding: 10px 12px; border-radius: 14px; background: rgba(20, 64, 42, .06); box-shadow: inset 0 0 0 1.5px rgba(20, 64, 42, .12); }
+.bc-card > b, .bc-cab > b { font: 15px/1.1 var(--font-display); font-weight: 400; letter-spacing: .04em; text-transform: uppercase; color: var(--green-900); }
+.bc-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.bc-quedan { font: 800 11.5px/1.2 var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: var(--green-700); }
+.bc-quedan b { font: 18px/1 var(--font-display); font-weight: 400; color: var(--green-900); }
+.bc-quedan.cero { color: var(--red); }
+.bc-barra { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.bc-barra i { height: 10px; border-radius: 5px; background: rgba(20, 64, 42, .15); }
+.bc-barra i.lleno { background: var(--gold); box-shadow: inset 0 0 0 1.5px var(--game-ink); }
+.bc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bc-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border-radius: 999px; background: var(--cream); border: 1.5px solid var(--game-ink); }
+.bc-chip small { font: 800 10.5px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; }
+.bc-chip b { padding: 2px 6px 1px; border-radius: 999px; background: var(--gold); font: 14px/1 var(--font-display); font-weight: 400; }
+.bc-nota { font: 600 12px/1.35 var(--font-body); color: var(--text-muted); }
+.bc-nota b { color: var(--green-900); font-weight: 800; }
+.bc-grande { font: 24px/1 var(--font-display); font-weight: 400; color: var(--green-900); }
+.bc-uno { background: var(--gold); box-shadow: 0 0 0 2px var(--game-ink), 2px 3px 0 var(--game-ink); }
+.bc-uno .bc-nota { color: rgba(12, 43, 28, .8); }
+.bc-uno .gi.bn { width: 22px; height: 22px; }
+.bc-match > b { display: flex; align-items: center; gap: 6px; }
+.bc-match > b .gi { flex: none; width: 20px; height: 20px; }
+.bc-mesada .bc-nota b { white-space: nowrap; }
+.bc-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bc-fila .bc-card { align-content: start; }
+.bn-como-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 8px; padding: 6px 10px; border: 2px solid var(--game-ink); border-radius: 999px; background: var(--cream); color: var(--green-900); font: 800 12.5px/1.2 var(--font-body); letter-spacing: .04em; box-shadow: 2px 3px 0 var(--game-ink); cursor: pointer; }
+.bn-como-btn .bn-sticker { width: 22px; height: 22px; }
+.bn-como-btn:active { transform: translate(2px, 3px); box-shadow: 0 0 0 var(--game-ink); }
 .bnb-pozo { display: grid; justify-items: end; gap: 2px; padding-left: 12px; border-left: 2px dashed rgba(12, 43, 28, .4); text-align: right; white-space: nowrap; }
 .bnb-pozo b { font: 24px/1 var(--font-display); font-weight: 400; }
 /* la apuesta: − y + grandes, el número en el medio, TODO; arranca en 2 */
@@ -2164,7 +2195,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v fdb91f1 · 9/10, 09:14 p. m.</span>
+  <span class="version" id="version">v 86ffd13 · 9/10, 10:34 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -8138,7 +8169,7 @@ function pintarBananas() {
   const el = $('#bn-barra')
   el.hidden = !hayBananas || !bananas
   if (el.hidden) return
-  el.innerHTML = `<span class="bnb-yo">${stickerBanana()}<span class="bnb-txt"><small>Tenés</small><span><b>${bananas.saldo}</b> ${bananas.saldo === 1 ? 'banana' : 'bananas'}</span>${bananas.reservadas ? `<em>y ${bananas.reservadas} apostadas</em>` : ''}</span></span><span class="bnb-pozo"><small>Pozo del mono</small><span>🐒 <b>${bananas.pozo}</b></span></span>`
+  el.innerHTML = `<span class="bnb-yo">${stickerBanana()}<span class="bnb-txt"><small>Tenés</small><span><b>${bananas.saldo}</b> ${bananas.saldo === 1 ? 'banana' : 'bananas'}</span>${bananas.reservadas ? `<em>y ${bananas.reservadas} apostadas</em>` : ''}<em class="bnb-mas">¿Cómo conseguir más? ›</em></span></span><span class="bnb-pozo"><small>Pozo del mono</small><span>🐒 <b>${bananas.pozo}</b></span></span>`
   el.setAttribute('aria-label', `Tenés ${bananas.saldo} ${bananas.saldo === 1 ? 'banana' : 'bananas'}${bananas.reservadas ? ` y ${bananas.reservadas} apostadas` : ''}. El pozo del mono: ${bananas.pozo}. Tocá para ver tus movimientos.`)
 }
 /** La hojita de las bananas: muestra el html y espera un botón con `data-bn` (cerrar o Escape = null). */
@@ -8268,6 +8299,59 @@ async function rechazarDesafio(d, confirmar = true) {
   pintarMatch()
 }
 /** Tus movimientos (tocando el saldo). */
+/**
+ * 🍌 Cómo conseguir más bananas (las reglas de la base, trampa_bananas_*): hoy jugando (lo que te queda del tope de 5 y
+ * cuánto da cada cosa), el hoyo en uno (+10; en PRO, el pozo), la mesada (cuánto falta para que se renueve la semana:
+ * el lunes a las 0, hora argentina) y las otras (el Clásico, el match).
+ */
+const BN_REGLAS = { tope: 5, birdie: 1, aguila: 3, bajoPar: 2, hoyoEnUno: 10, mesada: 3, mesadaBajo: 10, clasico: 2 }
+function lunesQueViene(ahora = Date.now()) {
+  const ART = 3 * 3600e3 // Argentina, UTC−3 (sin horario de verano)
+  const d = new Date(ahora - ART)
+  const faltan = (8 - d.getUTCDay()) % 7 || 7
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + faltan) + ART
+}
+const faltaTxt = (ms) => {
+  const min = Math.max(1, Math.round(ms / 60000)), h = Math.floor(min / 60), dias = Math.floor(h / 24)
+  return dias ? `${dias} d ${h % 24} h` : h ? `${h} h ${min % 60} min` : `${min} min`
+}
+function comoBananas() {
+  const b = bananas
+  const hoy = Math.min(BN_REGLAS.tope, b.premiosHoy ?? 0), queda = BN_REGLAS.tope - hoy
+  const lunes = lunesQueViene()
+  const desdeLunes = lunes - 7 * 864e5
+  const yaMesada = b.movimientos.some((m) => m.motivo === 'mesada' && Date.parse(m.fecha) >= desdeLunes)
+  const total = b.saldo + b.reservadas
+  // (la base la da sola al abrir el juego, si tenés menos de 10 contando las apostadas; una por semana)
+  const mesada = yaMesada ? 'Esta semana ya te las tiró' : `Si tenés menos de ${BN_REGLAS.mesadaBajo} (contando las apostadas), te tira ${BN_REGLAS.mesada} al abrir el juego`
+  const chip = (txt, n) => `<span class="bc-chip"><small>${txt}</small><b>+${n}</b></span>`
+  return `<div class="bn-como" aria-label="Cómo conseguir más bananas">
+    <p class="bn-sub">¿Cómo conseguir más?</p>
+    <div class="bc-card bc-hoy">
+      <div class="bc-cab"><b>Hoy jugando</b><span class="bc-quedan${queda ? '' : ' cero'}">${queda ? `te quedan <b>${queda}</b> de ${BN_REGLAS.tope}` : 'ya ganaste las 5 de hoy'}</span></div>
+      <div class="bc-barra" role="img" aria-label="Ganaste ${hoy} de ${BN_REGLAS.tope} hoy">${Array.from({ length: BN_REGLAS.tope }, (_, i) => `<i class="${i < hoy ? 'lleno' : ''}"></i>`).join('')}</div>
+      <div class="bc-chips">${chip('Birdie', BN_REGLAS.birdie)}${chip('Águila', BN_REGLAS.aguila)}${chip('Vuelta bajo par', BN_REGLAS.bajoPar)}</div>
+      <small class="bc-nota">Por cada vuelta firmada. El tope se renueva a la medianoche.</small>
+    </div>
+    <div class="bc-card bc-uno">
+      <div class="bc-cab"><b>🕳️ Hoyo en uno</b><span class="bc-grande">+${BN_REGLAS.hoyoEnUno}${BN}</span></div>
+      <small class="bc-nota">Aparte del tope de 5. En <b>MODO PRO</b> te llevás <b>el pozo del mono</b>: hoy ${Math.max(BN_REGLAS.hoyoEnUno, b.pozo)}${BN}.</small>
+    </div>
+    <div class="bc-fila">
+      <div class="bc-card bc-mesada">
+        <b>🐒 La mesada</b>
+        <span class="bc-grande">+${BN_REGLAS.mesada}</span>
+        <small class="bc-nota">Semana nueva en <b>${faltaTxt(lunes - Date.now())}</b>. ${esc(mesada)}.</small>
+      </div>
+      <div class="bc-card bc-otras">
+        <b>⚔️ El Clásico</b>
+        <span class="bc-grande">+${BN_REGLAS.clasico}</span>
+        <small class="bc-nota">Si gana tu equipo la semana y sumaste.</small>
+      </div>
+    </div>
+    <div class="bc-card bc-match"><b>${gi('match')}Ganá un match con bananas</b><small class="bc-nota">Te llevás lo apostado por los dos, menos 1 para el mono.</small></div>
+  </div>`
+}
 function verBananas() {
   if (!bananas) return
   const linea = (m) => {
@@ -8277,9 +8361,10 @@ function verBananas() {
   }
   hojaBananas(`
     <p class="bn-tit" id="bn-tit">${stickerBanana()}Tenés ${bananas.saldo}</p>
-    <p>${bananas.reservadas ? `Y ${bananas.reservadas} apostadas en desafíos abiertos. ` : ''}Hoy ganaste ${bananas.premiosHoy} de 5 jugando.</p>
-    ${bananas.movimientos.length ? `<ul class="bn-mov">${bananas.movimientos.map(linea).join('')}</ul>` : ''}
-    <p class="extras">10 al empezar. Si tenés menos de 10, el mono te tira 3 por semana. Jugando (vuelta firmada): birdie +1, águila +3, vuelta bajo par +2, hasta 5 por día; hoyo en uno, +10. El pozo del mono (hoy ${bananas.pozo}${BN}) se lo lleva el próximo hoyo en uno en MODO PRO. Son solo del juego.</p>
+    ${bananas.reservadas ? `<p>Y ${bananas.reservadas} apostadas en desafíos abiertos.</p>` : ''}
+    ${comoBananas()}
+    ${bananas.movimientos.length ? `<p class="bn-sub">Tus movimientos</p><ul class="bn-mov">${bananas.movimientos.map(linea).join('')}</ul>` : ''}
+    <p class="extras">Son solo del juego: no se compran ni se cambian por nada.</p>
     ${R.enPrueba() ? '<button class="carta-jugar oro" type="button" data-bn="fiesta">Probar la fiesta del hoyo en uno</button><button class="carta-jugar crema" type="button" data-bn="pozo">Probar la del pozo (PRO)</button>' : ''}
     <button class="carta-jugar" type="button" data-bn="ok">Listo</button>`).then((v) => {
     if (v === 'fiesta') fiestaBananas({ total: 10 })
@@ -8287,6 +8372,7 @@ function verBananas() {
   })
 }
 $('#bn-barra').addEventListener('click', verBananas)
+$('#mt-lista').addEventListener('click', (e) => { if (e.target.closest('[data-bn-como]')) verBananas() })
 /** El MATCH de prueba (prueba.js): rivales y bananas de mentira, en el teléfono. `entrar`: suelto, entra con esa identidad. */
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
@@ -8430,7 +8516,7 @@ function pintarRankingBananas(lista, vistas) {
   const yo = yoUid()
   const filas = (bananasRk ?? []).filter((f) => f.abrio).sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre))
   let pos = 0, prev = null
-  lista.innerHTML = `${vistas}<li class="bn-pozo">🐒 El pozo del mono: <b>${bananas?.pozo ?? 0}</b>${BN}. Se lo lleva el próximo hoyo en uno en MODO PRO.</li>${filas.length ? filas.map((f, k) => {
+  lista.innerHTML = `${vistas}<li class="bn-pozo">🐒 El pozo del mono: <b>${bananas?.pozo ?? 0}</b>${BN}. Se lo lleva el próximo hoyo en uno en MODO PRO.${bananas ? `<button class="bn-como-btn" type="button" data-bn-como>${stickerBanana()}¿Cómo conseguir más bananas?</button>` : ''}</li>${filas.length ? filas.map((f, k) => {
     if (prev == null || f.total !== prev) pos = k + 1
     prev = f.total
     return `<li class="rk-fila bn-fila${f.uid === yo ? ' yo' : ''}">
