@@ -2354,7 +2354,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 887330f · 10/10, 01:28 p. m.</span>
+  <span class="version" id="version">v da330e3 · 10/10, 01:42 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -8967,6 +8967,17 @@ $('#mt-prueba-borrar').addEventListener('click', async () => {
   pintarMatch()
 })
 if (PARAMS.get('probar') === 'match') activarPrueba({ uid: 'prueba:yo', alias: datos.usuario || 'Vos', sdga: true, match: true }, true)
+// para probar (solo en la copia dev/): ?jugar=rorro arranca directo con ese player, sin portada ni mazo (si tiene candado,
+// lo desbloquea en este teléfono, como ?rorro=1). Va al final de la carga, cuando ya está todo armado
+{
+  const quien = PRUEBA && PARAMS.get('jugar')?.toLowerCase()
+  const j = quien && TODOS.find((x) => sinD(x.apodo).toLowerCase() === quien)
+  if (j) {
+    const d = DESBLOQUEOS.find((x) => x.apodo === j.apodo)
+    if (d && !tiene(d)) { datos[DESBLOQUEO_UI[d.apodo].dato] = { fecha: new Date().toISOString(), prueba: true }; guardar(datos) }
+    setTimeout(() => empezar(j), 0)
+  }
+}
 if (['fiesta', 'pozo'].includes(PARAMS.get('probar'))) setTimeout(() => fiestaBananas(PARAMS.get('probar') === 'pozo' ? { total: 47, pozo: true } : { total: 10 }), 1200)
 /** Después de firmar: lo que ganaste jugando (birdies, bajo par, hoyo en uno, el pozo), al lado del puesto. */
 async function premiosDeLaVuelta(antes) {
@@ -11110,7 +11121,7 @@ obj = vistaGeneral()
 Object.assign(cam, obj)
 requestAnimationFrame(cuadro)
 </script>
-<script type="module" src="intro/app.js?v=43ee2ec872"></script>
+<script type="module" src="intro/app.js?v=6d3519de0c"></script>
 
 </body>
 </html>
