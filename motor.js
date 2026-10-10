@@ -134,12 +134,16 @@ export const HABILIDADES = {
   'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito y la racha de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro lo manejás vos hasta la pelota (al green va caminando, y al próximo tee lo lleva solo). Los árboles no se atraviesan; si se traba, RESET: vuelve al medio del fairway más cercano. El reloj corre. Y la racha: cada tiro bueno lo festeja a los gritos y el próximo sale con menos error (cada vez menos, hasta la mitad y un poco más); uno malo la corta.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
   'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (la goma llega más lejos; en el sweet spot, perfecta) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
+  Rorro: { id: 'codigo', corto: 'Su cancha en 3D, que se rehace cada 10 segundos.', nombre: 'La cancha en código', texto: 'Rorro juega en su cancha, hecha en código y en 3D, y cada 10 segundos la cancha se rehace (un deploy; el reloj avisa). Si el último tiro lo soltaste en el latido, se aprueba: se abre la calle y se arreglan los bugs. Si no, cambios del cliente: todo se mueve, otra skin y algún bug. Los greens no se mueven, pero en el green el hoyo se puede mudar. Dos poderes de dev por hoyo: ⏸ DEBUG en el aire (congela la pelota y le corrés el destino) y ↩ REVERT (vuelve a la cancha anterior). Y en cada vuelta se copia una habilidad de otro: elegís entre tres al azar.' },
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
 // 🦅 Fito de pase en el Equipo 5 (2026-10-09): la misma habilidad que Fito
 HABILIDADES['Fito (5)'] = HABILIDADES['Fito (Đ)']
-export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
+/** La habilidad del que pega. Rorro, en cada vuelta, juega con la de otro (`prestada`: el apodo de quién la copió). */
+export const habilidadDe = (jugador) => HABILIDADES[jugador?.prestada ?? jugador?.apodo] ?? null
+/** Las que Rorro no puede copiar: la suya, la Ruleta, la de Demetrio (otra cancha) y el carrito de Marcos (no hay en 3D). */
+export const SIN_PRESTAR = ['codigo', 'ruleta', 'retro', 'carrito']
 /** Taiu (la Rana): los controles al revés (lo resuelve la página al leer el arrastre; el motor recibe el tiro que sale). */
 export const alReves = (jugador) => habilidadDe(jugador)?.id === 'reves'
 /**
@@ -2201,8 +2205,13 @@ export function nuevaRonda(jugador, rng) {
 
 // ── desbloqueos: un player que se gana con vueltas firmadas (Taiu: −1 o mejor con cada uno de los otros Dicky) ──
 /** `req` = { con: [apodos], vsPar }; `records` = { [apodo]: mejor vsPar firmado }. Cómo vas con cada uno. */
-export function progresoDesbloqueo(req, records) {
+export function progresoDesbloqueo(req, records, jugados = []) {
   const items = req.con.map((apodo) => {
+    // Rorro: alcanza con haber jugado una vuelta con cada uno (una firmada también cuenta)
+    if (req.jugar) {
+      const ok = (req.alias?.[apodo] ?? [apodo]).some((a) => jugados?.includes?.(a) || records?.[a] != null)
+      return { apodo, mejor: null, ok, jugado: ok }
+    }
     const mejor = records?.[apodo] ?? null
     return { apodo, mejor, ok: mejor != null && mejor <= req.vsPar }
   })

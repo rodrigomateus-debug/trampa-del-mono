@@ -46,15 +46,19 @@ ${cuerpo}
 // con la versión, cada cambio del juego llega apenas se publica (también adentro de la SDGApp).
 // cancha-grid.js va sin versión: lo importa también motor.js y tiene que ser el MISMO módulo.
 import crypto from 'node:crypto'
-const version = crypto.createHash('sha1').update(['motor.js', 'plantel.js', 'ranking.js', 'sonido.js', 'cancha-grid.js', 'prueba.js'].map((f) => fs.readFileSync(f, 'utf8')).join('')).digest('hex').slice(0, 10)
+// (con la cancha 3D de Rorro: cancha3d.js y lo que importa, campo3d.js y ciber.js)
+const version = crypto.createHash('sha1').update(['motor.js', 'plantel.js', 'ranking.js', 'sonido.js', 'cancha-grid.js', 'prueba.js', 'cancha3d.js', 'campo3d.js', 'ciber.js'].map((f) => fs.readFileSync(f, 'utf8')).join('')).digest('hex').slice(0, 10)
 const html = html0.replace(/from '\.\/(motor|plantel|ranking|sonido)\.js'/g, (_, f) => `from './${f}.js?v=${version}'`)
   // el match de prueba (prueba.js) se carga solo cuando hace falta (import dinámico): también con la versión
   .replace("import('./prueba.js')", `import('./prueba.js?v=${version}')`)
+  // 🥃 la cancha 3D de Rorro (se carga solo cuando juega él)
+  .replace("import('./cancha3d.js')", `import('./cancha3d.js?v=${version}')`)
 // la intro también (su app.js y lo que arma armar-app.mjs)
   .replace('src="intro/app.js"', `src="intro/app.js?v=${crypto.createHash('sha1').update(['intro/app.js', 'intro/app-overlay.js'].map((f) => fs.readFileSync(f, 'utf8')).join('')).digest('hex').slice(0, 10)}"`)
 // la versión, chiquita al pie de la portada: para ver de un vistazo si al teléfono ya le llegó lo último
 const huella = crypto.createHash('sha1').update(juego + version).digest('hex').slice(0, 7)
 const fecha = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+if (!html.includes(`cancha3d.js?v=${version}`)) throw new Error('no encontré el import de cancha3d.js en juego.html')
 const conVersion = html.replace('<span class="version" id="version"></span>', `<span class="version" id="version">v ${huella} · ${fecha}</span>`)
 if (conVersion === html) throw new Error('no encontré el lugar de la versión en la portada')
 fs.writeFileSync('index.html', conVersion)

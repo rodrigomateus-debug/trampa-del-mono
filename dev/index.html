@@ -78,7 +78,7 @@ body {
 /* 🥃 la cancha de Rorro en 3D (abajo del lienzo del juego, que queda transparente con la goma y los cartelitos) */
 #cancha3d { position: fixed; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; background: #0a2117; }
 #cancha3d[hidden] { display: none; }
-body.cine #hud-top, body.cine .rorro-poder, body.cine #reloj-rorro { opacity: 0; pointer-events: none; transition: opacity .5s; }
+body.cine #hud-top, body.cine .rorro-poder, body.cine #reloj-rorro, body.cine #pancho, body.cine #deme-btn, body.cine #ninja-btn, body.cine #mago-golpes { opacity: 0; pointer-events: none; transition: opacity .5s; }
 #carga3d { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: #071a12; color: #cfe3d6; font: 13px/1.6 ui-monospace, Menlo, monospace; }
 #carga3d[hidden] { display: none; }
 #carga3d b { color: #38f2c8; font-weight: 400; }
@@ -2354,7 +2354,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v da330e3 · 10/10, 01:42 p. m.</span>
+  <span class="version" id="version">v 2bf809c · 10/10, 01:58 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
