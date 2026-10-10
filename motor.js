@@ -204,7 +204,7 @@ export const SORPRESAS = ['arbol', 'rafaga', 'carrito']
 // la frena y se va rajando. La deja casi dada: a `dada` yardas reales del hoyo, del lado de donde venía
 export const MAPACHE = { chance: 0.35, dada: [1, 1.6] }
 // ── el clima del día: se sortea en cada vuelta (en un match, sale de la semilla: los dos juegan el mismo día) ──
-// prob = chance de que toque (la nieve, el easter egg: 1 de cada 100). Lo que cambia cada uno:
+// prob = chance de que toque en la primera tirada (la nieve, el easter egg: 1 de cada 100; después, ver NIEVE). Lo que cambia cada uno:
 // carry = cuánto vuela (se ve al apuntar); pique / roce = cuánto rueda al caer y cuánto lo frena el pasto (fuera del
 // green); green = cuánto frena el green (más = greens lentos: el putt se queda corto de la línea; menos = rápidos);
 // charcos = cuántos charcos por hoyo en la calle (si cae o rueda en uno, se frena de golpe); barro = chance de que la
@@ -220,17 +220,25 @@ export const CLIMAS = {
   mojado: { nombre: 'Día mojado', prob: 0.16, pique: 0.3, green: 1.2, charcos: 2, barro: 0.3, corto: 'Se clava · greens lentos · charcos y barro', texto: 'Llovió anoche: la pelota se clava y casi no rueda, los greens están lentos y a veces queda con barro: el tiro siguiente sale para cualquier lado.' },
   lluvia: { nombre: 'Lluvia', prob: 0.14, carry: 0.95, pique: 0.5, green: 1.15, charcos: 4, corto: 'Vuela menos · rueda poco · charcos', texto: 'Llueve: la pelota vuela un poco menos, rueda poco, los greens están lentos y hay charcos en la calle: si cae o rueda en uno, se frena de golpe.' },
   tormenta: { nombre: 'Lluvia intensa', prob: 0.09, carry: 0.9, pique: 0.4, green: 1.3, charcos: 7, resbalon: 0.2, vientoMin: 15, sinMonos: true, corto: 'Vuela menos · viento fuerte · el palo resbala', texto: '¡Diluvia! Viento fuerte, charcos por todos lados, greens lentísimos y el palo mojado resbala: a veces la pegás finita y sale cortita. Los monos se escondieron.' },
-  nieve: { nombre: '¡Nevó en San Diego!', prob: 0.01, carry: 0.95, pique: 0.08, roce: 3, green: 1.25, siesta: 0.5, corto: 'Pelota naranja · se clava donde cae', texto: 'Pasa una vez cada cien vueltas. La pelota (naranja) se clava en la nieve donde cae, en el green rueda lento y los monos, muertos de frío, andan en cámara lenta.' },
+  nieve: { nombre: '¡Nevó en San Diego!', prob: 0.01, carry: 0.95, pique: 0.08, roce: 3, green: 1.25, siesta: 0.5, corto: 'Pelota naranja · se clava donde cae', texto: 'Pasa una vez cada diez vueltas. La pelota (naranja) se clava en la nieve donde cae, en el green rueda lento y los monos, muertos de frío, andan en cámara lenta.' },
 }
 export const CLIMA_EFECTO = { barroError: 1.8, resbalonCarry: 0.55, charco: [2.2, 4.2] }
-/** El clima del día, sorteado según `prob` (la nieve, 1 de cada 100). */
-export function sortearClima(rng) {
-  let u = rng()
-  for (const [id, c] of Object.entries(CLIMAS)) {
-    if (u < c.prob) return id
+// la nieve sale 1 de cada 10 desde `desde` (antes, 1 de cada 100). Para que no cambie nada más (el clima de un match
+// sale de su semilla: un desafío pendiente o un replay tienen que seguir igual), el sorteo es el de siempre y, si no
+// nevó, una segunda tirada sacada del mismo número la convierte en nieve con la chance que falta. Los desafíos de
+// antes de `desde` siguen con la de 1 en 100
+export const NIEVE = { prob: 0.1, desde: Date.parse('2026-10-10T03:40:00Z') }
+/** El clima del día, sorteado según `prob` y NIEVE (la nieve, 1 de cada 10). `fecha`: la del desafío, en un match. */
+export function sortearClima(rng, fecha = Date.now()) {
+  const u0 = rng()
+  let u = u0, id = 'nuboso'
+  for (const [k, c] of Object.entries(CLIMAS)) {
+    if (u < c.prob) { id = k; break }
     u -= c.prob
   }
-  return 'nuboso'
+  if (id === 'nieve' || !(fecha >= NIEVE.desde)) return id
+  const u2 = mezclar(Math.floor(u0 * 4294967296), 0x6e696576) / 4294967296
+  return u2 < (NIEVE.prob - CLIMAS.nieve.prob) / (1 - CLIMAS.nieve.prob) ? 'nieve' : id
 }
 /** Un número 32 bits a partir de otros (para que el clima de cada tiro salga igual en los dos lados de un match). */
 const mezclar = (...ns) => ns.reduce((h, n) => Math.imul(h ^ (n >>> 0), 0x9e3779b1) >>> 0, 0x811c9dc5)
@@ -1058,13 +1066,13 @@ export function chocarRacha(r, impacto) {
 // Los dos juegan con las MISMAS condiciones: el viento de cada hoyo y dónde está cada bandera salen de una
 // semilla (no del player que elija cada uno). El error de los tiros y los monos, no: eso es de cada uno.
 export const MATCH = { muestraMs: 100, maxMuestras: 6000 }
-/** El viento de cada hoyo y las banderas de un match, a partir de su semilla. */
-export function condicionesMatch(semilla) {
+/** El viento de cada hoyo, las banderas y el clima de un match, a partir de su semilla (y la fecha del desafío: NIEVE). */
+export function condicionesMatch(semilla, fecha = Date.now()) {
   const rv = rngDesde(semilla), rb = rngDesde((semilla ^ 0x5bd1e995) >>> 0)
   const vientos = HOYOS.map(() => vientoAleatorio(rv))
   const conBanderas = sortearBanderas({}, rb)
   const rc = rngDesde((semilla ^ 0x27d4eb2f) >>> 0) // el clima: otra tirada, así el viento y las banderas no cambian
-  const clima = sortearClima(rc)
+  const clima = sortearClima(rc, fecha)
   return { semilla, vientos, pines: conBanderas.hoyos.map((h) => ({ pin: [...h.pin], bandera: h.bandera })), clima, semillaClima: Math.floor(rc() * 4294967296) }
 }
 // el MODO PRO del match: sin líneas punteadas ni zona de pique (no ves dónde cae). Va marcado en la semilla del
