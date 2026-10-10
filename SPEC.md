@@ -689,10 +689,18 @@ su cancha se dibuja en 3D (`cancha3d.js`, three.js de `intro/assets/vendor/`, qu
   el green entero). Todo se mueve suave. La goma, el latido, la línea, el óvalo y los cartelitos son los del juego,
   dibujados arriba con la perspectiva (`w2s` y el arrastre pasan por la cámara 3D cuando juega Rorro).
 - **La escala es arcade** (como en el Mario Golf): la pelota, el hoyo, la bandera, los palos, Rorro y los monos, más
-  grandes que de verdad. **El hoyo** es del tamaño de la boca del motor menos la pelota, así que lo que se ve es lo que
-  pasa, sin achicar nada cerca (antes se achicaba y parecía un imán): la que entra ya está colgando del borde y la que
-  pasa de largo pasa rozando. Tiene el borde blanco y, con la pelota cerca o en el putt, dos aros que se abren
-  (que se vea bien); la bandera queda puesta también en el putt. La pelota rueda sobre el eje de la marcha; de lejos
+  grandes que de verdad (Rorro y sus palos, parejo). **El hoyo** es casi del tamaño de la boca del motor, así que lo
+  que se ve es lo que pasa, sin achicar nada cerca (antes se achicaba y parecía un imán). Tiene el borde blanco y, con
+  la pelota cerca o en el putt, dos aros que se abren (que se vea bien); la bandera queda puesta también en el putt.
+- **La pelota y el hoyo**: el hoyo es **un agujero de verdad** en el green (el terreno no se dibuja en la boca: el
+  stencil), con el vaso blanco adentro y el palo hasta el fondo. El motor resuelve el hoyo de una (la que entra la pone
+  en el centro y el juego pasa al hoyo siguiente); en 3D se ve como sería: **la que entra cae desde donde venía** (se
+  monta en el labio, choca las paredes y el palo, pica en el fondo y queda ahí, a la vista), y cuando toca el fondo sale
+  el festejo (el aro dorado que se abre, las chispas, la bandera que tiembla, los monos que saltan). La cámara del
+  resultado se queda en ese hoyo, de arriba, abajo del cartel (antes se iba al green siguiente). **La corbata** va
+  montada en el labio (el centro un poco adentro del borde); **la pasada** salta del labio; **la que queda colgando**,
+  cuelga del borde; sobre el agujero la pelota baja lo que baja de verdad (la sostiene el canto). Los saltos del motor
+  (cuando empieza o termina la corbata, cuando queda en el borde) se ven suaves. La pelota rueda sobre el eje de la marcha; de lejos
   se agranda lo justo para que se vea, en la salida está arriba de un tee, en el aire tiene su sombra y un
   **trazador** como el de la tele; el vuelo sube rápido y cae más parado (mismo alto que el motor).
 - **Los greens**: corte fino cruzado, el collar alrededor y el relieve sale de las caídas del motor (por Poisson: la
