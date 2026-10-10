@@ -1388,6 +1388,26 @@ input { -webkit-user-select: text; user-select: text; }
 .bn-mov b { font: 18px/1 var(--font-display); font-weight: 400; }
 .bn-mov b.mas { color: #2e7d4f; }
 .bn-mov b.menos { color: var(--red); }
+/* 🎁 donar bananas (10/10/2026): la tarjeta de la hojita, la lista para elegir a quién y el "¡listo!" */
+.bn-don { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(20, 64, 42, .06); box-shadow: inset 0 0 0 1.5px rgba(20, 64, 42, .12); text-align: left; }
+.bn-don > span { display: grid; gap: 2px; min-width: 0; }
+.bn-don b { font: 15px/1.1 var(--font-display); font-weight: 400; letter-spacing: .04em; text-transform: uppercase; color: var(--green-900); }
+.bn-don .mt-btn { white-space: nowrap; }
+.bn-don-buscar { width: 100%; box-sizing: border-box; height: 38px; padding: 0 12px; border: 2px solid var(--game-ink); border-radius: 999px; background: #fffaf0; color: var(--green-900); font: 600 15px var(--font-body); }
+.bn-don-lista { list-style: none; margin: 0; padding: 2px 2px 4px; display: grid; gap: 6px; max-height: 46dvh; overflow-y: auto; }
+.bn-don-lista li[hidden] { display: none; }
+.bn-don-lista button { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; border: 2px solid var(--game-ink); border-radius: 12px; background: var(--cream); color: var(--green-900); box-shadow: 2px 3px 0 var(--game-ink); text-align: left; cursor: pointer; }
+.bn-don-lista button:active { translate: 2px 3px; box-shadow: 0 0 0 var(--game-ink); }
+.bn-don-lista .rk-nombre { display: grid; gap: 2px; min-width: 0; }
+.bn-don-lista .rk-nombre b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 15px var(--font-body); }
+.bn-don-lista .rk-sellos { display: flex; align-items: center; gap: 5px; }
+.bn-don-lista .rk-sellos .cam-mini { flex: none; width: 18px; height: 18px; margin: 0; transform: rotate(-8deg); box-shadow: 1px 1.5px 0 var(--game-ink); }
+.bn-don-lista small.tiene { font: 800 11px var(--font-body); color: var(--text-muted); white-space: nowrap; }
+.bn-don-para { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; font-size: 20px !important; }
+.bn-don-ok { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.bn-don-ok b { font: 72px/1 var(--font-display); font-weight: 400; color: var(--green-900); animation: bnf-pop .45s cubic-bezier(.2, .9, .3, 1.4) both; }
+.bn-don-ok .bn-sticker { width: 56px; height: 56px; animation: bnf-cae .7s cubic-bezier(.2, .9, .3, 1.25) both; }
+@media (prefers-reduced-motion: reduce) { .bn-don-ok b, .bn-don-ok .bn-sticker { animation: none; } }
 .bn-vistas { display: flex; gap: 6px; padding: 4px 0 6px; list-style: none; }
 .bn-vistas button { flex: 1; height: 32px; border: 2px solid var(--green-900); border-radius: 999px; background: var(--cream); color: var(--green-900); font: 800 12px var(--font-body); letter-spacing: .06em; text-transform: uppercase; }
 .bn-vistas button[aria-pressed="true"] { background: var(--green-900); color: var(--cream); }
@@ -1395,6 +1415,7 @@ input { -webkit-user-select: text; user-select: text; }
 .bn-vistas button { min-width: 0; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 380px) { .bn-vistas button { font-size: 11px; letter-spacing: .03em; } }
 .bn-fila { grid-template-columns: 30px minmax(0, 1fr) auto; }
+.bn-fila[data-bn-para] { cursor: pointer; }
 /* las disponibles (para apostar ya), abajo del total; si tiene bananas apostadas, en verde fuerte para que se note la diferencia */
 .mtr-pct small.bn-disp { margin-top: 1px; white-space: nowrap; }
 /* el nombre se corta con … (si no, con "(14 disponibles)" al lado los nombres largos empujaban la fila afuera de la hoja) */
@@ -8663,7 +8684,7 @@ async function cargarDesafios() {
 let bananas = null // { saldo, reservadas, pozo, premiosHoy, movimientos }
 let bananasRk = null // [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]
 let hayBananas = false
-const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío', clasico: '⚔️ Ganó tu equipo en el Clásico', camiseta: '👕 El pase de camiseta' }
+const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío', clasico: '⚔️ Ganó tu equipo en el Clásico', camiseta: '👕 El pase de camiseta', donacion: '🎁 Donación' }
 const POR_BANANA = { birdie: 'birdie', aguila: 'águila', bajo_par: 'bajo par' }
 // la banana del set SDGA: chiquita, en el texto (BN); grande, troquelada como sticker (stickerBanana)
 const BN = gi('banana', 'bn')
@@ -8748,6 +8769,11 @@ function hojaBananas(html) {
   })
 }
 const avisoBananas = (tit, txt) => hojaBananas(`<p class="bn-tit" id="bn-tit">${tit}</p><p>${txt}</p><button class="carta-jugar" type="button" data-bn="ok">Ok</button>`)
+/** El nombre corto: sin lo de entre paréntesis y, si la primera palabra es cortita ("El Mono"), con la segunda. */
+function nombreCorto(nombre) {
+  const pal = String(nombre ?? '').replace(/\s*\(.*\)\s*$/, '').split(' ')
+  return pal[0].length > 3 ? pal[0] : pal.slice(0, 2).join(' ')
+}
 /** Antes de jugar un desafío: ¿cuánto apostás? (0 = por el honor; null = te arrepentiste). Sin bananas, por el honor. */
 async function elegirApuesta(rival) {
   if (!(await cargarBananas())) return 0
@@ -8755,12 +8781,10 @@ async function elegirApuesta(rival) {
   const tope = Math.min(bananas.saldo, suyas)
   const abierto = conBananasAbierto(rival.uid)
   const puede = tope >= 2 && !abierto
-  // el nombre corto: sin lo de entre paréntesis y, si la primera palabra es cortita ("El Mono"), con la segunda
-  const pal = rival.nombre.replace(/\s*\(.*\)\s*$/, '').split(' ')
-  const corto = pal[0].length > 3 ? pal[0] : pal.slice(0, 2).join(' ')
+  const corto = nombreCorto(rival.nombre)
   const nota = abierto ? 'Ya tienen un desafío con bananas abierto: hasta que se juegue, este va por el honor.'
     : tope < 2 ? `Para apostar hacen falta 2 cada uno${bananas.saldo < 2 ? '' : ` y ${esc(corto)} tiene ${suyas}`}.` : ''
-  let n = 2
+  let leer = () => 2
   const espera = hojaBananas(`
     <p class="bn-tit" id="bn-tit">${stickerBanana()}¿Cuánto apostás?</p>
     <div class="bn-vs"><div><small>Vos tenés</small><span>${bananas.saldo}${BN}</span></div><div><small>${esc(corto)} tiene</small><span>${suyas}${BN}</span></div></div>
@@ -8774,35 +8798,41 @@ async function elegirApuesta(rival) {
       <button class="carta-jugar oro" type="button" data-bn="apostar" id="bn-apostar">Apostar 2${BN}</button>` : `<p>${nota}</p>`}
     <button class="carta-jugar crema" type="button" data-bn="0">Por el honor 🤝</button>
     <p class="extras">Los dos ponen lo mismo y el que gana se lleva todo menos 1, que se queda el mono. Si no lo acepta (o lo deja vencer, 48 h), le cuesta 1. Se elige ahora, antes de jugar tu vuelta.</p>`)
-  if (puede) {
-    const menos = $('#bn-cuerpo .bn-menos'), mas = $('#bn-cuerpo .bn-mas'), todo = $('#bn-cuerpo .bn-todo'), cuanto = $('#bn-cuerpo .bn-cuanto')
-    const poner = (v) => {
-      const antes = n
-      n = Math.max(2, Math.min(tope, v))
-      $('#bn-n').textContent = n
-      $('#bn-gana').textContent = 2 * n - 1
-      $('#bn-apostar').innerHTML = `Apostar ${n}${BN}`
-      menos.disabled = n <= 2
-      mas.disabled = n >= tope
-      todo.setAttribute('aria-pressed', String(n === tope))
-      if (n !== antes) { cuanto.classList.remove('pop'); void cuanto.offsetWidth; cuanto.classList.add('pop'); S.ruletaTic() }
-    }
-    // un toque: de a una; manteniendo apretado, sigue sola cada vez más rápido
-    const mantener = (boton, paso) => {
-      let t = 0, repitio = false
-      const parar = () => { clearTimeout(t); t = 0 }
-      const repetir = (ms) => { t = setTimeout(() => { repitio = true; poner(n + paso); if ((paso > 0 && n < tope) || (paso < 0 && n > 2)) repetir(Math.max(45, ms * 0.85)) }, ms) }
-      boton.addEventListener('pointerdown', () => { repitio = false; parar(); repetir(420) })
-      for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) boton.addEventListener(ev, parar)
-      boton.addEventListener('click', () => { if (repitio) { repitio = false; return } poner(n + paso) })
-    }
-    mantener(menos, -1)
-    mantener(mas, 1)
-    todo.addEventListener('click', () => poner(tope))
-    poner(2)
-  }
+  if (puede) leer = pasoBananas(2, tope, (k) => { $('#bn-gana').textContent = 2 * k - 1; $('#bn-apostar').innerHTML = `Apostar ${k}${BN}` })
   const v = await espera
-  return v == null ? null : v === 'apostar' ? n : 0
+  return v == null ? null : v === 'apostar' ? leer() : 0
+}
+/**
+ * El − y el + grandes de la hojita (la apuesta, donar), con el número en el medio (`#bn-n`) y TODO: de `min` a `max`,
+ * arranca en `min`. Un toque, de a una; manteniendo apretado, sigue sola cada vez más rápido. `alCambiar(n)` pinta lo
+ * que depende del número. Devuelve cómo leerlo.
+ */
+function pasoBananas(min, max, alCambiar) {
+  const menos = $('#bn-cuerpo .bn-menos'), mas = $('#bn-cuerpo .bn-mas'), todo = $('#bn-cuerpo .bn-todo'), cuanto = $('#bn-cuerpo .bn-cuanto')
+  let n = min
+  const poner = (v) => {
+    const antes = n
+    n = Math.max(min, Math.min(max, v))
+    $('#bn-n').textContent = n
+    alCambiar(n)
+    menos.disabled = n <= min
+    mas.disabled = n >= max
+    todo?.setAttribute('aria-pressed', String(n === max))
+    if (n !== antes) { cuanto.classList.remove('pop'); void cuanto.offsetWidth; cuanto.classList.add('pop'); S.ruletaTic() }
+  }
+  const mantener = (boton, paso) => {
+    let t = 0, repitio = false
+    const parar = () => { clearTimeout(t); t = 0 }
+    const repetir = (ms) => { t = setTimeout(() => { repitio = true; poner(n + paso); if ((paso > 0 && n < max) || (paso < 0 && n > min)) repetir(Math.max(45, ms * 0.85)) }, ms) }
+    boton.addEventListener('pointerdown', () => { repitio = false; parar(); repetir(420) })
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) boton.addEventListener(ev, parar)
+    boton.addEventListener('click', () => { if (repitio) { repitio = false; return } poner(n + paso) })
+  }
+  mantener(menos, -1)
+  mantener(mas, 1)
+  todo?.addEventListener('click', () => poner(max))
+  poner(min)
+  return () => n
 }
 /** Arrancar con un player. En un desafío con bananas, primero se reservan (si la base dice que no, te dice por qué). */
 async function jugarCon(j, boton = null) {
@@ -8858,6 +8888,85 @@ async function rechazarDesafio(d, confirmar = true) {
   try { await R.rechazarDesafio(d.id) } catch (e) { await avisoBananas('No se pudo', esc(errTxt(e))) }
   await Promise.all([cargarDesafios(), cargarBananas()])
   pintarMatch()
+}
+// ── 🎁 donar bananas (10/10/2026, pedido de Rorro): le regalás a otro del juego, hasta 10 por día EN TOTAL (entre todas
+// tus donaciones, hora argentina). Salen de las disponibles (no de las apostadas), llegan enteras (el mono no se queda con
+// nada) y al instante. Las reglas, en la base (`trampa_bananas_donar`); sin la base nueva (`donarTope` null), no aparece.
+const puedeDonar = () => hayBananas && bananas?.donarTope != null
+/** Cuántas podés donar hoy: lo que te queda del tope del día (sin contar lo que tenés). */
+const quedanHoy = () => Math.max(0, (bananas?.donarTope ?? 0) - (bananas?.donadasHoy ?? 0))
+const donarTxt = () => {
+  const q = quedanHoy(), tope = bananas.donarTope
+  return q >= tope ? `Hasta ${tope}${BN} por día, a uno o repartidas.` : q ? `Hoy te quedan <b>${q}</b>${BN} para donar (el máximo es ${tope} por día).` : `Hoy ya donaste ${tope}${BN}: mañana podés de nuevo.`
+}
+/** Elegís a quién (o viene elegido, `para`: { uid, nombre }) y cuántas, y se las mandás. */
+async function donarBananas(para = null) {
+  if (!(await cargarBananas()) || !puedeDonar()) return
+  const tope = bananas.donarTope
+  if (!quedanHoy()) return avisoBananas('Por hoy, listo', `Hoy ya donaste ${bananas.donadasHoy}${BN}: el máximo es ${tope} por día. Mañana podés de nuevo.`)
+  if (bananas.saldo < 1) return avisoBananas('No tenés para donar', bananas.reservadas ? `Las ${bananas.reservadas}${BN} que tenés están apostadas en desafíos abiertos: se pueden donar las disponibles.` : 'Cuando juntes, podés regalarle a quien quieras.')
+  const max = Math.min(quedanHoy(), bananas.saldo)
+  const yo = yoUid()
+  const gente = (bananasRk ?? []).filter((f) => f.uid !== yo).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+  if (!para && !gente.length) return avisoBananas('No hay a quién', 'Todavía no hay nadie más en el juego.')
+  for (;;) {
+    if (!para) {
+      const espera = hojaBananas(`
+        <p class="bn-tit" id="bn-tit">🎁 ¿A quién le donás?</p>
+        <p>${donarTxt()}</p>
+        ${gente.length > 8 ? '<input class="bn-don-buscar" type="search" placeholder="Buscar…" aria-label="Buscar a quién donarle" autocomplete="off">' : ''}
+        <ul class="bn-don-lista">${gente.map((f) => `<li data-nombre="${esc(f.nombre.toLowerCase())}"><button type="button" data-bn="u:${esc(f.uid)}">
+          <span class="rk-nombre"><b>${esc(f.nombre)}</b>${camisetaMini(f.uid) || f.sdga ? `<small class="rk-sellos">${camisetaMini(f.uid)}${f.sdga ? selloSdga() : ''}</small>` : ''}</span>
+          <small class="tiene">tiene ${f.total}${BN}</small></button></li>`).join('')}</ul>
+        <p class="extras">Llegan al instante y enteras: el mono no se queda con nada.</p>`)
+      const buscar = $('#bn-cuerpo .bn-don-buscar')
+      buscar?.addEventListener('input', () => {
+        const q = buscar.value.trim().toLowerCase()
+        for (const li of $('#bn-cuerpo').querySelectorAll('.bn-don-lista li')) li.hidden = !!q && !li.dataset.nombre.includes(q)
+      })
+      const v = await espera
+      para = typeof v === 'string' && v.startsWith('u:') ? gente.find((f) => f.uid === v.slice(2)) ?? null : null
+      if (!para) return
+    }
+    const corto = nombreCorto(para.nombre)
+    const espera = hojaBananas(`
+      <p class="bn-tit" id="bn-tit">${stickerBanana()}¿Cuántas le donás?</p>
+      <div class="bn-vs"><div><small>Vos tenés</small><span>${bananas.saldo}${BN}</span></div><div><small>Para</small><span class="bn-don-para">${esc(corto)}</span></div></div>
+      <div class="bn-paso">
+        <button class="bn-menos" type="button" aria-label="Una banana menos">−</button>
+        <output class="bn-cuanto" aria-live="polite"><b id="bn-n">1</b>${stickerBanana()}</output>
+        <button class="bn-mas" type="button" aria-label="Una banana más">+</button>
+      </div>
+      ${max > 1 ? `<button class="bn-todo" type="button" aria-pressed="false">TODO · ${max}</button>` : ''}
+      <p class="bn-premio">${donarTxt()}</p>
+      <button class="carta-jugar oro" type="button" data-bn="donar" id="bn-donar">Donar 1${BN}</button>
+      ${gente.length > 1 ? '<button class="carta-jugar crema" type="button" data-bn="otro">Elegir a otro</button>' : ''}
+      <p class="extras">Llegan al instante y enteras (el mono no se queda con nada). No hay vuelta atrás.</p>`)
+    const leer = pasoBananas(1, max, (k) => { $('#bn-donar').innerHTML = `Donar ${k}${BN} a ${esc(corto)}` })
+    const v = await espera
+    if (v === 'otro') { para = null; continue }
+    if (v !== 'donar') return
+    const n = leer()
+    let r
+    try {
+      r = await R.donarBananas(para.uid, n)
+    } catch (e) {
+      await avisoBananas('No se pudo', esc(errTxt(e)))
+      await cargarBananas()
+      return
+    }
+    await cargarBananas()
+    if (mtTab === 'ranking' && mtRkVista === 'bananas') pintarMatch()
+    S.logro()
+    tic()
+    await hojaBananas(`
+      <p class="bn-tit" id="bn-tit">🎁 ¡Listo!</p>
+      <div class="bn-don-ok"><b>${r.cantidad}</b>${stickerBanana()}</div>
+      <p>Le donaste <b>${r.cantidad}</b>${BN} a <b>${esc(r.nombre ?? para.nombre)}</b>. Ya le llegaron.</p>
+      <p>Ahora tenés <b>${r.saldo}</b>${BN}.${r.tope - r.donadasHoy > 0 ? ` Hoy podés donar ${r.tope - r.donadasHoy} más.` : ' Por hoy, listo.'}</p>
+      <button class="carta-jugar" type="button" data-bn="ok">Listo</button>`)
+    return
+  }
 }
 /** Tus movimientos (tocando el saldo). */
 /**
@@ -8918,22 +9027,39 @@ function verBananas() {
   const linea = (m) => {
     const por = Array.isArray(m.detalle?.por) ? m.detalle.por.map((x) => POR_BANANA[x] ?? x).join(', ') : ''
     const f = fechaLarga(m.fecha)
-    return `<li><span>${esc(MOTIVO_BANANA[m.motivo] ?? m.motivo)}${por ? ` · ${esc(por)}` : ''}${f ? `<small>${esc(f.dia)}</small>` : ''}</span><b class="${m.monto > 0 ? 'mas' : 'menos'}">${m.monto > 0 ? '+' : '−'}${Math.abs(m.monto)}</b></li>`
+    const quien = m.detalle?.nombre ? String(m.detalle.nombre) : 'alguien'
+    const motivo = m.motivo === 'donacion' ? (m.monto < 0 ? `🎁 Le donaste a ${quien}` : `🎁 Te donó ${quien}`) : (MOTIVO_BANANA[m.motivo] ?? m.motivo)
+    return `<li><span>${esc(motivo)}${por ? ` · ${esc(por)}` : ''}${f ? `<small>${esc(f.dia)}</small>` : ''}</span><b class="${m.monto > 0 ? 'mas' : 'menos'}">${m.monto > 0 ? '+' : '−'}${Math.abs(m.monto)}</b></li>`
   }
   hojaBananas(`
     <p class="bn-tit" id="bn-tit">${stickerBanana()}Tenés ${bananas.saldo}</p>
     ${bananas.reservadas ? `<p>Y ${bananas.reservadas} apostadas en desafíos abiertos.</p>` : ''}
+    ${puedeDonar() ? `<div class="bn-don"><span><b>🎁 Regalale bananas a otro</b><small class="bc-nota">${donarTxt()}</small></span><button class="mt-btn oro" type="button" data-bn="donar"${quedanHoy() && bananas.saldo ? '' : ' disabled'}>Donar</button></div>` : ''}
     ${comoBananas()}
     ${bananas.movimientos.length ? `<p class="bn-sub">Tus movimientos</p><ul class="bn-mov">${bananas.movimientos.map(linea).join('')}</ul>` : ''}
     <p class="extras">Son solo del juego: no se compran ni se cambian por nada.</p>
     ${R.enPrueba() ? '<button class="carta-jugar oro" type="button" data-bn="fiesta">Probar la fiesta del hoyo en uno</button><button class="carta-jugar crema" type="button" data-bn="pozo">Probar la del pozo (PRO)</button>' : ''}
     <button class="carta-jugar" type="button" data-bn="ok">Listo</button>`).then((v) => {
-    if (v === 'fiesta') fiestaBananas({ total: 10 })
+    if (v === 'donar') donarBananas()
+    else if (v === 'fiesta') fiestaBananas({ total: 10 })
     else if (v === 'pozo') fiestaBananas({ total: Math.max(10, bananas?.pozo ?? 0), pozo: true })
   })
 }
 $('#bn-barra').addEventListener('click', verBananas)
-$('#mt-lista').addEventListener('click', (e) => { if (e.target.closest('[data-bn-como]')) verBananas() })
+$('#mt-lista').addEventListener('click', (e) => {
+  if (e.target.closest('[data-bn-como]')) return verBananas()
+  if (e.target.closest('[data-bn-donar]')) return donarBananas()
+  // en el ranking de bananas, tocando a alguien: donarle a él
+  const fila = e.target.closest('[data-bn-para]')
+  const f = fila && bananasRk?.find((x) => x.uid === fila.dataset.bnPara)
+  if (f) donarBananas(f)
+})
+$('#mt-lista').addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return
+  const fila = e.target.closest('[data-bn-para]')
+  const f = fila && e.target === fila && bananasRk?.find((x) => x.uid === fila.dataset.bnPara)
+  if (f) { e.preventDefault(); donarBananas(f) }
+})
 /** El MATCH de prueba (prueba.js): rivales y bananas de mentira, en el teléfono. `entrar`: suelto, entra con esa identidad. */
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
@@ -9086,14 +9212,15 @@ function pintarRankingMatch(lista) {
 }
 /** Los más ricos: todas sus bananas (con las apostadas), de los que ya las abrieron. Arriba, el pozo del mono. */
 function pintarRankingBananas(lista, vistas) {
-  $('#mt-nota').textContent = 'Las bananas de cada uno, contando las que tiene apostadas en desafíos abiertos. Entre paréntesis, las disponibles: las que puede apostar ya.'
+  $('#mt-nota').textContent = `Las bananas de cada uno, contando las que tiene apostadas en desafíos abiertos. Entre paréntesis, las disponibles: las que puede apostar ya.${puedeDonar() ? ' Tocá a alguien para donarle.' : ''}`
   const yo = yoUid()
   const filas = (bananasRk ?? []).filter((f) => f.abrio).sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre))
   let pos = 0, prev = null
-  lista.innerHTML = `${vistas}<li class="bn-pozo">🐒 El pozo del mono: <b>${bananas?.pozo ?? 0}</b>${BN}. Se lo lleva el próximo hoyo en uno en MODO PRO.${bananas ? `<button class="bn-como-btn" type="button" data-bn-como>${stickerBanana()}¿Cómo conseguir más bananas?</button>` : ''}</li>${filas.length ? filas.map((f, k) => {
+  lista.innerHTML = `${vistas}<li class="bn-pozo">🐒 El pozo del mono: <b>${bananas?.pozo ?? 0}</b>${BN}. Se lo lleva el próximo hoyo en uno en MODO PRO.${bananas ? `<button class="bn-como-btn" type="button" data-bn-como>${stickerBanana()}¿Cómo conseguir más bananas?</button>` : ''}${puedeDonar() ? '<button class="bn-como-btn" type="button" data-bn-donar>🎁 Donar bananas</button>' : ''}</li>${filas.length ? filas.map((f, k) => {
     if (prev == null || f.total !== prev) pos = k + 1
     prev = f.total
-    return `<li class="rk-fila bn-fila${f.uid === yo ? ' yo' : ''}">
+    const donar = puedeDonar() && f.uid !== yo
+    return `<li class="rk-fila bn-fila${f.uid === yo ? ' yo' : ''}"${donar ? ` data-bn-para="${esc(f.uid)}" role="button" tabindex="0" aria-label="Donarle bananas a ${esc(f.nombre)}"` : ''}>
       <span class="rk-pos">${pos}</span>
       <span class="rk-nombre"><span class="linea"><b>${esc(f.nombre)}</b></span>${camisetaMini(f.uid) || f.sdga ? `<small class="rk-sellos">${camisetaMini(f.uid)}${f.sdga ? selloSdga() : ''}</small>` : ''}</span>
       <span class="mtr-pct">${f.total}<small>bananas</small><small class="bn-disp${f.saldo < f.total ? ' apostadas' : ''}">(${f.saldo} disponible${f.saldo === 1 ? '' : 's'})</small></span>

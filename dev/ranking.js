@@ -538,12 +538,19 @@ export async function leerClasicoSemana(atras = 0) {
     clasicos: (Array.isArray(r.clasicos) ? r.clasicos : []).filter((c) => equipoOk(c?.equipo)),
   }
 }
-/** Tus bananas: { saldo, reservadas, pozo, premiosHoy, movimientos: [{ monto, motivo, desafio, detalle, fecha }] }. */
+/**
+ * Tus bananas: { saldo, reservadas, pozo, premiosHoy, donadasHoy, donarTope, movimientos: [{ monto, motivo, desafio, detalle,
+ * fecha }] }. `donarTope` es null si la base todavía no tiene donar (ahí no se muestra el botón).
+ */
 export async function leerBananas() {
   const b = puente.enApp ? await porApp('bananas') : await rpc('trampa_bananas_estado')
   if (!b || typeof b !== 'object') throw new Error('sin bananas')
   const n = (x) => Math.floor(+x || 0)
-  return { saldo: n(b.saldo), reservadas: n(b.reservadas), pozo: n(b.pozo), premiosHoy: n(b.premiosHoy), movimientos: Array.isArray(b.movimientos) ? b.movimientos : [] }
+  return {
+    saldo: n(b.saldo), reservadas: n(b.reservadas), pozo: n(b.pozo), premiosHoy: n(b.premiosHoy),
+    donadasHoy: n(b.donadasHoy), donarTope: b.donarTope == null ? null : n(b.donarTope),
+    movimientos: Array.isArray(b.movimientos) ? b.movimientos : [],
+  }
 }
 /** Las bananas de todos: [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]. */
 export async function leerRankingBananas() {
@@ -578,4 +585,17 @@ export async function completarApuesta(id, { apodo, emoji, golpes, vsPar, ms, lp
 export async function rechazarDesafio(id) {
   const r = puente.enApp ? await porApp('rechazar', { desafioId: id }) : { costo: await rpc('trampa_desafio_rechazar', { p_id: id }) }
   return { costo: Math.floor(+r?.costo || 0) }
+}
+/**
+ * 🎁 Donás `cantidad` bananas a `uid` (10/10/2026): hasta 10 por día en total, de las disponibles; las reglas, en la base
+ * (`trampa_bananas_donar`). Devuelve { cantidad, para, nombre, saldo (el tuyo, después), donadasHoy, tope }. Si no se puede
+ * (el tope del día, no te alcanzan), el "no" de la base.
+ */
+export async function donarBananas(uid, cantidad) {
+  const r = puente.enApp
+    ? await porApp('donar', { paraId: uid, cantidad })
+    : await rpc('trampa_bananas_donar', { p_para: uid, p_cantidad: cantidad, p_alias: puente.identidad?.alias ?? null })
+  if (!r || typeof r !== 'object') throw new Error('no se pudo donar')
+  const n = (x) => Math.floor(+x || 0)
+  return { cantidad: n(r.cantidad), para: r.para ?? uid, nombre: r.nombre ?? null, saldo: n(r.saldo), donadasHoy: n(r.donadasHoy), tope: n(r.tope) }
 }

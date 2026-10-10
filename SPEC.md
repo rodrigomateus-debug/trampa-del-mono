@@ -600,6 +600,13 @@ El análisis (bot de 120 vueltas con la física de verdad): ~4 tramos por vuelta
   - **La mesada:** +3, con la cuenta regresiva a la semana nueva (el lunes a las 0, hora argentina) y si ya te la tiró esta semana (si tenés menos de 10 contando las apostadas, te las tira al abrir el juego).
   - **El Clásico:** +2 si gana tu equipo la semana y sumaste. **El match:** te llevás lo apostado por los dos, menos 1 para el mono.
 
+## 🎁 Donar bananas (2026-10-10, pedido de Rorro)
+- **Qué es:** le regalás bananas a otro del juego (cualquiera de los que se pueden desafiar). **Hasta 10 por día en total** (hora argentina), a uno o repartidas: entre todas tus donaciones del día no pasás de 10, así siguen siendo escasas. Salen de las **disponibles** (no de las apostadas), llegan **enteras** (el mono no se queda con nada) y **al instante** (no hay que aceptarlas). No hay vuelta atrás.
+- **Dónde:** en la hojita de las bananas (tocando la barra dorada), la tarjeta **🎁 Regalale bananas a otro** con lo que te queda hoy y el botón **DONAR**; en MATCH → Ranking → Bananas, el botón **🎁 Donar bananas** y, **tocando a alguien**, directo a donarle a él. Primero **¿A quién le donás?** (la lista de todos, con la camiseta, el sello SDGA y cuántas tiene; con buscador si son más de 8), después **¿Cuántas le donás?** con el mismo − / + grande de la apuesta (de 1 hasta lo que te queda hoy o lo que tenés, y TODO) y "Elegir a otro"; al final, **¡Listo!** con el número, cuántas te quedan y cuántas podés donar hoy. Si la base dice que no (el tope del día, no te alcanzan), se muestra tal cual.
+- **En los movimientos:** "🎁 Le donaste a Lechu −3" y, al otro, "🎁 Te donó Rorro +3".
+- **Dónde vive:** en la base de la SDGApp (repo FEDECUP, bloque "donar bananas" de `supabase/trampa-staging.sql`): `trampa_bananas_donar` chequea todo y deja los dos movimientos `donacion`; `trampa_bananas_estado` trae `donadasHoy` y `donarTope`. El juego lo pide por el puente (`trampa:match` con la acción `donar`, `{ paraId, cantidad }`; ranking.js `donarBananas`); suelto, por REST. **Sin la base nueva no aparece** (`donarTope` llega null): se puede publicar antes que el SQL. El MATCH de prueba (`prueba.js`) dona con las mismas reglas.
+- El − / + de la apuesta y el de donar son la misma función (`pasoBananas`).
+
 ## La nieve, con su dibujo y más seguido (2026-10-10)
 
 Pedido de Rorro: le tocó la nieve y el fondo no estaba bien (era la cancha original con un velo blanco al 64% encima: todo lavado). Mandó el dibujo nevado de nuevo.

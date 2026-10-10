@@ -6,7 +6,8 @@
 // Contesta los mismos pedidos que el puente de la app (`trampa:match` con su acción, `trampa:anotar`…) con la misma
 // forma, y aplica las mismas reglas que las funciones de la base (ver "las bananas" en supabase/migration.sql de la
 // SDGApp): 10 al empezar, la mesada, los premios con el tope del día, el hoyo en uno y el pozo, la apuesta reservada,
-// el que gana se lleva todo menos 1, rechazar cuesta 1, vence a las 48 h, abandonar es LP. Todo queda en este teléfono.
+// el que gana se lleva todo menos 1, rechazar cuesta 1, vence a las 48 h, abandonar es LP, donar hasta 10 por día. Todo
+// queda en este teléfono.
 //
 // Los rivales son de mentira: cuando les llega un desafío lo juegan solos a los pocos segundos (abrí MATCH de nuevo
 // para ver el resultado), y siempre hay uno que te desafió a vos, con su pelota grabada.
@@ -24,6 +25,8 @@ const H = 3600e3
 const MONO = 'mono'
 // los rivales de mentira juegan su parte a los RESPONDEN ms de que les llega
 const RESPONDEN = 6000
+// 🎁 donar: cuántas por día, entre todas (como `trampa_donar_tope` en la base)
+const DONAR_TOPE = 10
 
 const ahora = () => Date.now()
 const iso = (t = ahora()) => new Date(t).toISOString()
@@ -47,6 +50,7 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
 
   const mover = (uid, monto, motivo, desafio = null, detalle = null) => { if (monto) st.movs.push({ uid, monto, motivo, desafio, detalle, fecha: iso(), dia: diaAR(), semana: motivo === 'mesada' ? lunesAR() : null }) }
   const saldo = (uid) => st.movs.filter((m) => m.uid === uid).reduce((a, m) => a + m.monto, 0)
+  const donadasHoy = () => -st.movs.filter((m) => m.uid === yo.uid && m.motivo === 'donacion' && m.monto < 0 && m.dia === diaAR()).reduce((a, m) => a + m.monto, 0)
   const reservadas = (uid) => st.desafios.filter((d) => d.apuesta > 0 && ((d.retador_id === uid && ['jugando', 'pendiente', 'respondiendo'].includes(d.estado)) || (d.rival_id === uid && d.estado === 'respondiendo'))).reduce((a, d) => a + d.apuesta, 0)
   function alDia(uid) {
     if (!st.movs.some((m) => m.uid === uid && m.motivo === 'inicial')) mover(uid, 10, 'inicial')
@@ -181,7 +185,21 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
       }
       case 'bananas': {
         const movs = st.movs.filter((m) => m.uid === yo.uid).slice(-30).reverse()
-        return { saldo: saldo(yo.uid), reservadas: reservadas(yo.uid), pozo: saldo(MONO), premiosHoy: st.movs.filter((m) => m.uid === yo.uid && m.motivo === 'premio' && m.dia === diaAR()).reduce((a, m) => a + m.monto, 0), movimientos: movs.map(({ uid, dia, semana, ...m }) => m) }
+        return { saldo: saldo(yo.uid), reservadas: reservadas(yo.uid), pozo: saldo(MONO), premiosHoy: st.movs.filter((m) => m.uid === yo.uid && m.motivo === 'premio' && m.dia === diaAR()).reduce((a, m) => a + m.monto, 0), donadasHoy: donadasHoy(), donarTope: DONAR_TOPE, movimientos: movs.map(({ uid, dia, semana, ...m }) => m) }
+      }
+      // ── 🎁 donar: hasta 10 por día en total, de las disponibles, enteras y al instante (como la base) ──
+      case 'donar': {
+        const para = RIVALES.find((r) => r.user_id === d.paraId)
+        if (!para) throw new No('a ese jugador no se le pueden donar bananas')
+        if (!Number.isInteger(d.cantidad) || d.cantidad < 1 || d.cantidad > DONAR_TOPE) throw new No(`se donan de 1 a ${DONAR_TOPE} bananas`)
+        alDia(para.user_id)
+        const ya = donadasHoy()
+        if (ya >= DONAR_TOPE) throw new No(`hoy ya donaste ${ya}: el máximo es ${DONAR_TOPE} por día`)
+        if (ya + d.cantidad > DONAR_TOPE) throw new No(`hoy ya donaste ${ya}: te quedan ${DONAR_TOPE - ya} (el máximo es ${DONAR_TOPE} por día)`)
+        if (saldo(yo.uid) < d.cantidad) throw new No('no te alcanzan las bananas')
+        mover(yo.uid, -d.cantidad, 'donacion', null, { para: para.user_id, nombre: para.nombre })
+        mover(para.user_id, d.cantidad, 'donacion', null, { de: yo.uid, nombre: yo.alias })
+        return { cantidad: d.cantidad, para: para.user_id, nombre: para.nombre, saldo: saldo(yo.uid), donadasHoy: ya + d.cantidad, tope: DONAR_TOPE }
       }
       case 'bananasRanking': return [{ user_id: yo.uid, nombre: yo.alias, sdga: true }, ...RIVALES].map((r) => { alDia(r.user_id); return { user_id: r.user_id, nombre: r.nombre, sdga: true, saldo: saldo(r.user_id), total: saldo(r.user_id) + reservadas(r.user_id), abrio: true } })
       case 'apostar': {
