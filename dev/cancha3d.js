@@ -11,7 +11,7 @@
 import * as THREE from './intro/assets/vendor/three.module.min.js'
 import * as M from './motor.js'
 import * as C from './ciber.js'
-import { campoBase, FILAS, W, H, N, clamp, lerp, ss, dist, norm, letraBase, CAPA, est, NB, avance, armado, adelante, inversa, alturaEn, hornear, campoCon, SKINS, TIPOS_ARBOL } from './campo3d.js'
+import { campoBase, FILAS, W, H, N, clamp, lerp, ss, dist, norm, letraBase, CAPA, est, NB, avance, armado, adelante, adelanteQuieto, inversa, alturaEn, alturaBase, hornear, campoCon, SKINS, TIPOS_ARBOL, CAIDA_GREEN } from './campo3d.js'
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z)
 const col = (h) => new THREE.Color(h)
@@ -36,7 +36,7 @@ escena.add(cielo)
 const sol = new THREE.DirectionalLight('#fff0d0', 2.6)
 const SOL_DIR = V3(-1, 1.55, -1).normalize()
 sol.castShadow = true
-sol.shadow.mapSize.set(2048, 2048)
+sol.shadow.mapSize.set(1024, 1024)
 sol.shadow.bias = -0.0004
 sol.shadow.normalBias = 0.35
 sol.shadow.radius = 3
@@ -62,14 +62,30 @@ const b255 = (a, k = 1) => (i) => Math.round(clamp(a[i] * k, 0, 1) * 255)
 const TEX1 = textura(b255(CAPA.calle), b255(CAPA.green), b255(CAPA.bunker), b255(CAPA.tee))
 const TEX2 = textura(b255(CAPA.afuera), b255(CAPA.arbol), b255(CAPA.relieve, 0.5), b255(CAPA.collar))
 const TEX3 = textura(b255(CAPA.quieta), () => 0, () => 0, () => 255)
+const TEXN = (() => {
+  const nx = new Float32Array(N), nz = new Float32Array(N)
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const q = [x + 0.5, y + 0.5], e = 0.7
+    const h0 = alturaBase(q), hx = alturaBase([q[0] + e, q[1]]), hz = alturaBase([q[0], q[1] + e])
+    const a = -(hx - h0) / e, c = -(hz - h0) / e, l = Math.hypot(a, 1, c)
+    nx[y * W + x] = a / l; nz[y * W + x] = c / l
+  }
+  const b = (a) => (i) => Math.round(clamp(a[i] * 0.5 + 0.5, 0, 1) * 255)
+  return textura(b(nx), b(nz), () => 0, () => 255)
+})()
+// la caída del motor en los greens (para dónde y cuánto), para la grilla del putt: dirección en rg, fuerza en b
+const TEXC = (() => {
+  const C = CAIDA_GREEN, s = (i) => Math.hypot(C[i * 2], C[i * 2 + 1])
+  return textura((i) => Math.round((C[i * 2] / (s(i) || 1)) * 127.5 + 127.5), (i) => Math.round((C[i * 2 + 1] / (s(i) || 1)) * 127.5 + 127.5), (i) => Math.round(clamp(s(i) / 1.3, 0, 1) * 255), (i) => (s(i) > 0 ? 255 : 0))
+})()
 
 // ── el terreno: una malla de una yarda, deformada y pintada en el shader (sobre el material estándar: luz y sombras) ──
-const MARGEN = 24
+const MARGEN = 24, PASO_MALLA = 1.5
 function mallaTerreno() {
-  const x0 = -MARGEN, z0 = -MARGEN, nx = W + 2 * MARGEN, nz = H + 2 * MARGEN
+  const x0 = -MARGEN, z0 = -MARGEN, nx = Math.ceil((W + 2 * MARGEN) / PASO_MALLA), nz = Math.ceil((H + 2 * MARGEN) / PASO_MALLA)
   const pos = new Float32Array((nx + 1) * (nz + 1) * 3)
   let k = 0
-  for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) { pos[k++] = x0 + i; pos[k++] = 0; pos[k++] = z0 + j }
+  for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) { pos[k++] = x0 + i * PASO_MALLA; pos[k++] = 0; pos[k++] = z0 + j * PASO_MALLA }
   const idx = new Uint32Array(nx * nz * 6)
   k = 0
   for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
@@ -85,7 +101,7 @@ function mallaTerreno() {
 }
 const paleta = (id) => SKINS[id].col.map(col)
 const U = {
-  uMask1: { value: TEX1 }, uMask2: { value: TEX2 }, uMask3: { value: TEX3 }, uTam: { value: new THREE.Vector2(W, H) },
+  uMask1: { value: TEX1 }, uMask2: { value: TEX2 }, uMask3: { value: TEX3 }, uNormal: { value: TEXN }, uTam: { value: new THREE.Vector2(W, H) },
   uBC: { value: Array.from({ length: NB }, () => new THREE.Vector4()) }, uBV: { value: Array.from({ length: NB }, () => new THREE.Vector4()) }, uNB: { value: 0 },
   uBolaQ: { value: new THREE.Vector2() },
   uSwO: { value: new THREE.Vector2() }, uSwSentido: { value: 1 }, uSwW: { value: 1e5 }, uSwBanda: { value: est.swBanda }, uSwVivo: { value: 0 }, uRebobina: { value: 0 },
@@ -96,10 +112,11 @@ const U = {
   uNubes: { value: 0 }, uMojado: { value: 0 }, uSeco: { value: 0 }, uOscuro: { value: 0 }, uNieve: { value: 0 }, uNubeV: { value: new THREE.Vector2(1, 0.3) },
   uColPlano: { value: col('#071a12') }, uColOro: { value: col('#e8c34a') }, uColAzul: { value: col('#7fc4ff') }, uColNeon: { value: col('#38f2c8') },
   uDibujo: { value: null }, uDibTam: { value: new THREE.Vector2(219.5, 447.75) }, uDibW: { value: -50 }, uDibVivo: { value: 0 },
+  uCaida: { value: TEXC }, uGrilla: { value: 0 },
 }
 const GLSL_COMUN = /* glsl */ `
 #define NB ${NB}
-uniform sampler2D uMask1; uniform sampler2D uMask2; uniform sampler2D uMask3; uniform vec2 uTam;
+uniform sampler2D uMask1; uniform sampler2D uMask2; uniform sampler2D uMask3; uniform sampler2D uNormal; uniform vec2 uTam;
 uniform vec4 uBC[NB]; uniform vec4 uBV[NB]; uniform int uNB;
 uniform vec2 uBolaQ;
 uniform vec2 uSwO; uniform float uSwSentido; uniform float uSwW; uniform float uSwBanda; uniform float uSwVivo; uniform float uRebobina;
@@ -112,6 +129,8 @@ float armado(vec2 q) { return clamp((uArmaW - dot(q - uArmaO, uArmaD)) / uArmaBa
 `
 const GLSL_VERTICE = /* glsl */ `
 vec2 desplazo(vec2 q) {
+  float qq = texture(uMask3, q / uTam).r;
+  if (qq < 0.001 || (uNB == 0 && uResp == 0.0)) return vec2(0.0); // los greens no se mueven: ni se calcula
   float k = avance(q);
   vec2 d = vec2(0.0);
   for (int i = 0; i < NB; i++) {
@@ -126,7 +145,7 @@ vec2 desplazo(vec2 q) {
   float r = uResp * smoothstep(3.0, 9.0, distance(q, uBolaQ));
   d.x += r * (sin(q.y * 0.061 + uT * 0.9) + 0.5 * sin(q.x * 0.11 - uT * 1.3));
   d.y += r * (cos(q.x * 0.07 + uT * 0.7) + 0.5 * cos(q.y * 0.09 + uT * 1.1));
-  return d * texture(uMask3, q / uTam).r;
+  return d * qq;
 }
 vec2 inversa(vec2 p) { vec2 q = p; for (int i = 0; i < 3; i++) q = p - desplazo(q); return q; }
 float alturaEn(vec2 q) {
@@ -146,6 +165,7 @@ uniform vec4 uBug[4]; uniform vec4 uBugV[4]; uniform int uNBug;
 uniform float uNubes; uniform float uMojado; uniform float uSeco; uniform float uOscuro; uniform float uNieve; uniform vec2 uNubeV;
 uniform vec3 uColPlano; uniform vec3 uColOro; uniform vec3 uColAzul; uniform vec3 uColNeon;
 uniform sampler2D uDibujo; uniform vec2 uDibTam; uniform float uDibW; uniform float uDibVivo;
+uniform sampler2D uCaida; uniform float uGrilla;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float ruido(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y); }
@@ -259,6 +279,20 @@ vec3 brillo(vec2 q) {
     e += colorDibujo(q) * kd * 0.92;
     e += uColNeon * exp(-pow((q.y - uDibW) / 1.6, 2.0)) * 2.2 * uDibVivo;
   }
+  // la grilla del green en el putt (como en el Mario Golf): una grilla de una yarda y luces que bajan con la caída
+  // del motor (la que sigue la pelota): donde cae poco, celestes y lentas; donde cae mucho, doradas y rápidas
+  if (uGrilla > 0.001) {
+    vec4 c = texture(uCaida, q / uTam);
+    if (c.a > 0.02) {
+      vec2 dir = normalize(c.rg * 2.0 - 1.0 + vec2(1e-5));
+      float fuerza = c.b;
+      float lin = linea(q, 1.0);
+      float fase = fract(dot(q, dir) * 0.3 - uT * (0.35 + 1.1 * fuerza));
+      float luz = smoothstep(0.0, 0.06, fase) * (1.0 - smoothstep(0.06, 0.4, fase));
+      vec3 tono = mix(vec3(0.55, 0.95, 1.0), uColOro * 1.15, smoothstep(0.25, 0.85, fuerza));
+      e += (vec3(0.09) + tono * 1.4 * luz) * lin * smoothstep(0.02, 0.6, c.a) * uGrilla;
+    }
+  }
   return e;
 }
 `
@@ -271,8 +305,8 @@ matTerreno.onBeforeCompile = (sh) => {
       vec2 q = inversa(position.xz);
       vQ = q;
       float h0 = alturaEn(q);
-      float hx = alturaEn(q + vec2(0.7, 0.0)), hz = alturaEn(q + vec2(0.0, 0.7));
-      vec3 objectNormal = normalize(vec3(-(hx - h0) / 0.7, 1.0, -(hz - h0) / 0.7));`)
+      vec2 nn = texture(uNormal, q / uTam).rg * 2.0 - 1.0;
+      vec3 objectNormal = normalize(mix(vec3(0.0, 1.0, 0.0), vec3(nn.x, sqrt(max(0.0, 1.0 - dot(nn, nn))), nn.y), armado(q)));`)
     .replace('#include <begin_vertex>', 'vec3 transformed = vec3(position.x, h0, position.z);\nvMundo = transformed;')
   sh.fragmentShader = sh.fragmentShader
     .replace('#include <common>', `#include <common>\n${GLSL_COMUN}\n${GLSL_FRAGMENTO}`)
@@ -335,12 +369,12 @@ function unir(...gs) {
   return r
 }
 const GEO_ARBOL = {
-  redondo: unir(new THREE.IcosahedronGeometry(1, 1), new THREE.IcosahedronGeometry(0.62, 1).translate(0.45, 0.42, 0.2), new THREE.IcosahedronGeometry(0.58, 1).translate(-0.42, 0.3, -0.28)),
-  pino: unir(new THREE.ConeGeometry(1.05, 1.9, 8).translate(0, -0.2, 0), new THREE.ConeGeometry(0.78, 1.5, 8).translate(0, 0.6, 0), new THREE.ConeGeometry(0.5, 1.1, 8).translate(0, 1.25, 0)),
+  redondo: unir(new THREE.IcosahedronGeometry(1, 0), new THREE.IcosahedronGeometry(0.62, 0).translate(0.45, 0.42, 0.2), new THREE.IcosahedronGeometry(0.58, 0).translate(-0.42, 0.3, -0.28)),
+  pino: unir(new THREE.ConeGeometry(1.05, 1.9, 7).translate(0, -0.2, 0), new THREE.ConeGeometry(0.78, 1.5, 7).translate(0, 0.6, 0), new THREE.ConeGeometry(0.5, 1.1, 7).translate(0, 1.25, 0)),
   cubo: new THREE.BoxGeometry(1.45, 1.45, 1.45),
-  chupetin: new THREE.SphereGeometry(0.95, 12, 9),
+  chupetin: new THREE.IcosahedronGeometry(0.95, 1),
   cristal: new THREE.OctahedronGeometry(1.05, 0).scale(0.8, 1.5, 0.8),
-  cactus: unir(new THREE.CylinderGeometry(0.42, 0.48, 2.6, 9), new THREE.CylinderGeometry(0.2, 0.22, 0.9, 7).rotateZ(Math.PI / 2).translate(0.55, 0.05, 0), new THREE.CylinderGeometry(0.21, 0.23, 0.9, 7).translate(0.98, 0.4, 0), new THREE.CylinderGeometry(0.19, 0.21, 0.75, 7).rotateZ(Math.PI / 2).translate(-0.5, -0.25, 0), new THREE.CylinderGeometry(0.19, 0.21, 0.75, 7).translate(-0.86, 0.08, 0)),
+  cactus: unir(new THREE.CylinderGeometry(0.42, 0.48, 2.6, 7), new THREE.CylinderGeometry(0.2, 0.22, 0.9, 5).rotateZ(Math.PI / 2).translate(0.55, 0.05, 0), new THREE.CylinderGeometry(0.21, 0.23, 0.9, 5).translate(0.98, 0.4, 0), new THREE.CylinderGeometry(0.19, 0.21, 0.75, 5).rotateZ(Math.PI / 2).translate(-0.5, -0.25, 0), new THREE.CylinderGeometry(0.19, 0.21, 0.75, 5).translate(-0.86, 0.08, 0)),
 }
 const PARAM_ARBOL = { redondo: { tronco: 1, alto: 0.62 }, pino: { tronco: 0.55, alto: 0.95 }, cubo: { tronco: 1, alto: 0.72 }, chupetin: { tronco: 1.7, alto: 0.95 }, cristal: { tronco: 0.35, alto: 1.25 }, cactus: { tronco: 0, alto: 1.3 } }
 /** Con nieve, las caras que miran para arriba quedan blancas (las copas y los techos). */
@@ -357,31 +391,58 @@ function nevable(mat) {
       diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.95, 0.99), uNieve * smoothstep(0.3, 0.7, vNy) * 0.92);`)
   }
 }
+// Una malla por tipo, con los árboles de ese tipo juntos al principio (`count`): así se dibujan solo los que hay
+// (antes se dibujaban los 1.454 de los seis tipos, la mayoría achicados a cero: era lo que trababa)
 const copas = {}
 for (const tipo of TIPOS_ARBOL) {
-  const mat = new THREE.MeshStandardMaterial({ flatShading: tipo !== 'chupetin', roughness: tipo === 'cristal' ? 0.25 : 0.85, metalness: tipo === 'cristal' ? 0.35 : 0 })
+  const mat = new THREE.MeshStandardMaterial({ flatShading: true, roughness: tipo === 'cristal' ? 0.25 : 0.85, metalness: tipo === 'cristal' ? 0.35 : 0 })
   nevable(mat)
   const m = new THREE.InstancedMesh(GEO_ARBOL[tipo], mat, arboles.length)
   m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false
-  for (let i = 0; i < arboles.length; i++) { m.setMatrixAt(i, CERO); m.setColorAt(i, col('#3a6b24')) }
+  m.setColorAt(0, col('#3a6b24'))
+  m.count = 0
   copas[tipo] = m
   escena.add(m)
 }
-const troncos = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.26, 1, 7).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ color: '#5b3f26', roughness: 1 }), arboles.length)
+const troncos = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.26, 1, 6).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ color: '#5b3f26', roughness: 1 }), arboles.length)
 troncos.castShadow = true; troncos.frustumCulled = false
-for (let i = 0; i < arboles.length; i++) troncos.setMatrixAt(i, CERO)
+troncos.count = 0
 escena.add(troncos)
 const tipoDe = (skin) => SKINS[skin].arbol
 function colorArbol(a, skin) { const v = SKINS[skin].verdes; return col(v[Math.floor(a.tono * v.length) % v.length]).offsetHSL(0, 0, (a.tono - 0.5) * 0.05) }
-arboles.forEach((a, i) => copas.redondo.setColorAt(i, colorArbol(a, 'clasico')))
+for (const a of arboles) { a.color = colorArbol(a, 'clasico'); a.colorDe = null }
 let energiaArboles = 0
+// los árboles se mueven solo cuando pasa algo (una versión, un revert, la intro, el cambio de hoyo); el resto del
+// tiempo quedan quietos y no se recalculan (salvo los que flotan por un bug)
+let despiertoHasta = 0
+const despertarArboles = (seg = 2.5) => { despiertoHasta = Math.max(despiertoHasta, tReal + seg) }
+function matrizCopa(a, tipo, esc, reves, flota, sy, sxz, aplasta, r, yc) {
+  _e.set(clamp(a.vel[1] * 0.05, -0.4, 0.4) + reves, a.giro + (a.bug === 'flota' ? tReal * 1.5 : 0), -clamp(a.vel[0] * 0.05, -0.4, 0.4))
+  _q.setFromEuler(_e)
+  _p.set(a.pos[0], yc, a.pos[1])
+  _s.set(r * esc * (1 + aplasta * 0.5) * sxz, r * esc * 0.95 * (1 - aplasta) * sy, r * esc * (1 + aplasta * 0.5) * sxz)
+  return _m.compose(_p, _q, _s)
+}
 function moverArboles(dt) {
-  const viento = Math.sin(est.t * 0.7)
-  let suma = 0
-  const tocados = new Set()
+  const hayFlota = cancha.arbolBugA.size || cancha.arbolBugB.size
+  if (tReal > despiertoHasta && !barrido && !intro) {
+    // dormidos: solo los que flotan (en su lugar de siempre)
+    if (hayFlota) for (const a of arboles) {
+      if (a.bug !== 'flota' || a.slot == null) continue
+      const flota = 5 + Math.sin(tReal * 1.7 + a.fase) * 0.8, P = PARAM_ARBOL[tipoDe(a.skin)], r = a.r
+      const yc = a.suelo + a.alto * r * 0.55 * P.tronco + r * P.alto + flota
+      copas[tipoDe(a.skin)].setMatrixAt(a.slot, matrizCopa(a, tipoDe(a.skin), 1, 0, flota, 1, 1, 0, r, yc))
+      copas[tipoDe(a.skin)].instanceMatrix.needsUpdate = true
+    }
+    energiaArboles = 0
+    return
+  }
+  let suma = 0, animando = false
+  const n = Object.fromEntries(TIPOS_ARBOL.map((t) => [t, 0]))
+  let nt = 0
   for (let i = 0; i < arboles.length; i++) {
     const a = arboles[i]
-    const obj = adelante(a.q)
+    const obj = adelanteQuieto(a.q)
     const kx = (obj[0] - a.pos[0]) * 70, ky = (obj[1] - a.pos[1]) * 70
     a.vel[0] = (a.vel[0] + kx * dt) * Math.exp(-7 * dt); a.vel[1] = (a.vel[1] + ky * dt) * Math.exp(-7 * dt)
     a.pos[0] += a.vel[0] * dt; a.pos[1] += a.vel[1] * dt
@@ -390,45 +451,51 @@ function moverArboles(dt) {
     const quiere = k > 0.5 ? cancha.skinB : cancha.skinA
     if (quiere !== a.skin) {
       a.swap = { de: a.skin, t0: tReal }
+      a.colorDe = a.color
       a.skin = quiere
-      copas[tipoDe(quiere)].setColorAt(i, colorArbol(a, quiere)); tocados.add(tipoDe(quiere))
+      a.color = colorArbol(a, quiere)
     }
     a.bug = (k > 0.5 ? cancha.arbolBugB : cancha.arbolBugA).get(i) ?? null
     const pop = a.popT < 0 ? 0 : elastic(Math.min(1, (tReal - a.popT) / 0.9))
     const sw = a.swap ? Math.min(1, (tReal - a.swap.t0) / 0.55) : 1
-    if (a.swap && sw >= 1) a.swap = null
+    if (a.swap && sw >= 1) { a.swap = null; a.colorDe = null }
+    if (a.swap || (a.popT >= 0 && tReal - a.popT < 1)) animando = true
     const v = Math.hypot(a.vel[0], a.vel[1])
     suma += v
+    if (v > 0.02) animando = true
     const aplasta = Math.min(0.28, v * 0.035)
-    const suelo = alturaEn(a.q)
+    a.suelo = alturaEn(a.q)
     const tipo = tipoDe(a.skin), P = PARAM_ARBOL[tipo]
     const r = a.r * pop
+    a.slot = null
+    if (r <= 0.001) continue
     let sy = 1, sxz = 1, flota = 0, reves = 0
     if (a.bug === 'flota') flota = 5 + Math.sin(tReal * 1.7 + a.fase) * 0.8
     if (a.bug === 'estirado') { sy = 3.2; sxz = 0.55 }
     if (a.bug === 'reves') reves = Math.PI
-    _e.set(clamp(a.vel[1] * 0.05, -0.4, 0.4) + Math.sin(est.t * 1.3 + a.fase) * 0.015 * viento + reves, a.giro + (a.bug === 'flota' ? tReal * 1.5 : 0), -clamp(a.vel[0] * 0.05, -0.4, 0.4) + Math.cos(est.t * 1.1 + a.fase) * 0.015)
-    _q.setFromEuler(_e)
     const tronco = a.alto * r * 0.55 * P.tronco
-    const yc = suelo + tronco + r * P.alto * (1 - aplasta) * sy + flota
-    for (const t of TIPOS_ARBOL) {
-      let esc = 0
-      if (t === tipo) esc = a.swap ? elastic(sw) : 1
-      else if (a.swap && t === tipoDe(a.swap.de)) esc = 1 - easeIO(sw)
-      if (esc <= 0.001 || r <= 0.001) { if (a['z' + t] !== true) { copas[t].setMatrixAt(i, CERO); a['z' + t] = true; tocados.add(t) } continue }
-      a['z' + t] = false
-      _p.set(a.pos[0], yc, a.pos[1])
-      _s.set(r * esc * (1 + aplasta * 0.5) * sxz, r * esc * 0.95 * (1 - aplasta) * sy, r * esc * (1 + aplasta * 0.5) * sxz)
-      copas[t].setMatrixAt(i, _m.compose(_p, _q, _s))
-      tocados.add(t)
+    const yc = a.suelo + tronco + r * P.alto * (1 - aplasta) * sy + flota
+    // la copa nueva crece con rebote; la vieja se achica
+    const poner = (t, esc, color) => {
+      if (esc <= 0.001) return
+      const m = copas[t], j = n[t]++
+      m.setMatrixAt(j, matrizCopa(a, t, esc, reves, flota, sy, sxz, aplasta, r, yc))
+      m.setColorAt(j, color)
+      if (t === tipo && !a.swap) a.slot = j
     }
-    _p.set(a.pos[0], suelo - 0.1 + flota, a.pos[1])
-    _s.set(Math.max(0.001, pop), (tronco + 0.25) * (P.tronco ? 1 : 0.001) * (pop ? 1 : 0.001), Math.max(0.001, pop))
-    troncos.setMatrixAt(i, _m.compose(_p, _q.setFromEuler(_e.set(reves, 0, 0)), _s))
+    poner(tipo, a.swap ? elastic(sw) : 1, a.color)
+    if (a.swap) poner(tipoDe(a.swap.de), 1 - easeIO(sw), a.colorDe ?? a.color)
+    if (P.tronco) {
+      _p.set(a.pos[0], a.suelo - 0.1 + flota, a.pos[1])
+      _s.set(pop, tronco + 0.25, pop)
+      troncos.setMatrixAt(nt++, _m.compose(_p, _q.setFromEuler(_e.set(reves, 0, 0)), _s))
+    }
   }
-  for (const t of tocados) { copas[t].instanceMatrix.needsUpdate = true; if (copas[t].instanceColor) copas[t].instanceColor.needsUpdate = true }
+  for (const t of TIPOS_ARBOL) { const m = copas[t]; m.count = n[t]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true }
+  troncos.count = nt
   troncos.instanceMatrix.needsUpdate = true
   energiaArboles = suma / arboles.length
+  if (animando) despertarArboles(0.6)
 }
 
 // ── la bandera y el hoyo, como los de verdad: la taza con su vaso blanco, el palo con la bandera numerada que flamea con
@@ -466,40 +533,41 @@ function texturaTela(n, color) {
 }
 const TEX_TAZA = texturaTaza()
 /**
- * El hoyo, de verdad (≈ 11 cm): el del motor (`bocaHoyo`, la boca que atrapa la pelota) es mucho más grande, para que
- * se pueda jugar. Para que lo que se ve sea lo que pasa, cerca del hoyo se achica todo hacia el centro: lo que está
- * adentro de la boca del motor se ve adentro de la taza, y de ahí hasta `MEZCLA` se estira de a poco (la pelota que
- * entra se ve caer en la taza; la que queda colgando, en el borde).
+ * El hoyo, arcade (como en el Mario Golf): grande, del tamaño de la boca del motor (`bocaHoyo`, la que atrapa la
+ * pelota) menos la pelota. Así lo que se ve es lo que pasa, sin achicar nada cerca del hoyo (eso parecía un imán):
+ * la pelota que el motor mete ya está colgando del borde; la que pasa de largo, pasa rozando.
  */
-const RADIO_TAZA = 0.075
-const MEZCLA_TAZA = 1.6
+const RADIO_BOLA = 0.13 // arcade: grande al lado del muñeco, como en el Mario Golf
+const RADIO_TAZA = M.FISICA.bocaHoyo - RADIO_BOLA
 let pinActual = null
-function alHoyo(p) {
-  if (!pinActual) return p
-  const dx = p[0] - pinActual[0], dy = p[1] - pinActual[1], d = Math.hypot(dx, dy)
-  if (d >= MEZCLA_TAZA || d < 1e-6) return p
-  const R = M.FISICA.bocaHoyo
-  const dv = d <= R ? d * (RADIO_TAZA / R) : RADIO_TAZA + ((d - R) * (MEZCLA_TAZA - RADIO_TAZA)) / (MEZCLA_TAZA - R)
-  return [pinActual[0] + (dx / d) * dv, pinActual[1] + (dy / d) * dv]
-}
-const ALTO_PALO = 2.6 // 2,4 m: como los de verdad
+const ALTO_PALO = 4.4 // arcade: alta, que se vea de lejos (y en el putt queda puesta)
+const TAM_TELA = [1.25, 0.82]
 const banderas = HOYOS.map((h) => {
   const g = new THREE.Group()
   const taza = new THREE.Mesh(new THREE.CircleGeometry(RADIO_TAZA, 40).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: TEX_TAZA, transparent: true, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2 }))
   taza.position.y = 0.012
   taza.receiveShadow = true
   const palo = new THREE.Group()
-  const vara = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.016, ALTO_PALO, 10).translate(0, ALTO_PALO / 2, 0), new THREE.MeshStandardMaterial({ color: '#f5f2e6', roughness: 0.3 }))
-  const anillos = new THREE.Mesh(new THREE.CylinderGeometry(0.0175, 0.0175, 0.34, 10).translate(0, 0.17 + ALTO_PALO * 0.2, 0), new THREE.MeshStandardMaterial({ color: '#c8352e', roughness: 0.4 }))
-  const punta = new THREE.Mesh(new THREE.SphereGeometry(0.03, 12, 8), new THREE.MeshStandardMaterial({ color: '#e8c34a', roughness: 0.25, metalness: 0.6 }))
-  punta.position.y = ALTO_PALO + 0.015
-  const geoTela = new THREE.PlaneGeometry(0.62, 0.41, 14, 5).translate(0.31, 0, 0)
+  const vara = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.04, ALTO_PALO, 10).translate(0, ALTO_PALO / 2, 0), new THREE.MeshStandardMaterial({ color: '#f5f2e6', roughness: 0.3 }))
+  const anillos = new THREE.Mesh(new THREE.CylinderGeometry(0.043, 0.043, 0.6, 10).translate(0, 0.3 + ALTO_PALO * 0.2, 0), new THREE.MeshStandardMaterial({ color: '#c8352e', roughness: 0.4 }))
+  const punta = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 8), new THREE.MeshStandardMaterial({ color: '#e8c34a', roughness: 0.25, metalness: 0.6 }))
+  punta.position.y = ALTO_PALO + 0.04
+  const geoTela = new THREE.PlaneGeometry(TAM_TELA[0], TAM_TELA[1], 14, 5).translate(TAM_TELA[0] / 2, 0, 0)
   const tela = new THREE.Mesh(geoTela, new THREE.MeshStandardMaterial({ map: texturaTela(h.n, 'roja'), side: THREE.DoubleSide, roughness: 0.75 }))
-  tela.position.set(0.016, ALTO_PALO - 0.23, 0)
+  tela.position.set(0.04, ALTO_PALO - TAM_TELA[1] / 2 - 0.04, 0)
   for (const o of [vara, anillos, punta, tela]) o.castShadow = true
   palo.add(vara, anillos, punta, tela)
-  g.add(taza, palo)
-  g.userData = { tela, palo, base: geoTela.attributes.position.array.slice(), color: null, sacada: 0, tiembla: 0 }
+  // el borde del hoyo (blanco, que se ve aunque el green esté lejos) y el pulso que lo marca cuando la pelota anda cerca
+  const aro = new THREE.Mesh(new THREE.RingGeometry(RADIO_TAZA * 0.97, RADIO_TAZA * 1.12, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#f6f3e8', transparent: true, opacity: 0.95, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 }))
+  aro.position.y = 0.014
+  const pulsos = [0, 1].map(() => {
+    const m = new THREE.Mesh(new THREE.RingGeometry(1, 1.16, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -4 }))
+    m.position.y = 0.02
+    m.renderOrder = 4
+    return m
+  })
+  g.add(taza, aro, ...pulsos, palo)
+  g.userData = { tela, palo, aro, pulsos, base: geoTela.attributes.position.array.slice(), color: null, tiembla: 0, marca: 0 }
   escena.add(g)
   return g
 })
@@ -517,9 +585,9 @@ function moverBanderas(dt, st) {
     const p = tela.geometry.attributes.position
     const tt = est.t * (3 + 9 * fuerza)
     for (let k = 0; k < p.count; k++) {
-      const x = base[k * 3], u = x / 0.62
-      p.array[k * 3 + 2] = Math.sin(x * 6 - tt + i) * 0.09 * u * (0.3 + fuerza) + Math.sin(x * 12 - tt * 1.7) * 0.02 * u
-      p.array[k * 3 + 1] = base[k * 3 + 1] - u * u * 0.27 * (1 - fuerza)
+      const x = base[k * 3], u = x / TAM_TELA[0], xr = u * 0.62
+      p.array[k * 3 + 2] = (Math.sin(xr * 6 - tt + i) * 0.09 * u * (0.3 + fuerza) + Math.sin(xr * 12 - tt * 1.7) * 0.02 * u) * 2
+      p.array[k * 3 + 1] = base[k * 3 + 1] - u * u * 0.27 * 2 * (1 - fuerza)
       p.array[k * 3] = x * (0.55 + 0.45 * fuerza)
     }
     p.needsUpdate = true
@@ -527,17 +595,23 @@ function moverBanderas(dt, st) {
     g.userData.tiembla = Math.max(0, g.userData.tiembla - dt)
     const tiembla = Math.sin(g.userData.tiembla * 40) * g.userData.tiembla * 0.12
     palo.rotation.y = -v.ang + Math.sin(est.t * 0.8 + i) * 0.06 * fuerza
-    // en el putt del hoyo que se juega, la bandera se saca y queda acostada al lado (hasta que se emboca)
-    const sacar = r && i === r.idx && !!st.enPutt && st.estado !== 'resultado'
-    g.userData.sacada += ((sacar ? 1 : 0) - g.userData.sacada) * Math.min(1, dt * 5)
-    const s = g.userData.sacada
-    palo.position.set(0.9 * s, 0.03 * s, 0.5 * s)
-    palo.rotation.z = -Math.PI / 2 * s + tiembla
+    palo.rotation.z = tiembla
+    // el hoyo que se juega, marcado: de cerca (en el putt, o a tiro del green) late con dos aros que se abren
+    const { aro, pulsos } = g.userData
+    const cerca = !!r && i === r.idx && !r.terminada && st.estado !== 'resultado' && st.estado !== 'fin' && (st.enPutt || dist(r.pelota, h.pin) < 60)
+    g.userData.marca += ((cerca ? 1 : 0) - g.userData.marca) * Math.min(1, dt * 4)
+    const mk = g.userData.marca
+    aro.material.opacity = 0.75 + 0.25 * mk
+    pulsos.forEach((m, j) => {
+      const u = (est.t * 0.7 + j * 0.5) % 1
+      m.visible = mk > 0.01
+      m.scale.setScalar(RADIO_TAZA * (1.05 + 2.6 * u))
+      m.material.opacity = 0.6 * mk * (1 - u) ** 1.5
+    })
   })
 }
 
-// ── la pelota (del tamaño de una de verdad; de lejos se agranda lo justo para que se vea), su sombra, el tee y el trazador ──
-const RADIO_BOLA = 0.0234 // 42,7 mm de diámetro
+// ── la pelota (arcade; de lejos se agranda lo justo para que se vea), su sombra, el tee y el trazador ──
 function texturaDimples() {
   const c = document.createElement('canvas'); c.width = 128; c.height = 64
   const g = c.getContext('2d')
@@ -552,7 +626,8 @@ escena.add(bola)
 const sombraBola = new THREE.Mesh(new THREE.CircleGeometry(1, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.32, depthWrite: false }))
 sombraBola.renderOrder = 3
 escena.add(sombraBola)
-const teePeg = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.004, 0.06, 8).translate(0, 0.03, 0), new THREE.MeshStandardMaterial({ color: '#f4eeda', roughness: 0.5 }))
+const ALTO_TEE = 0.07
+const teePeg = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.014, 0.16, 8).translate(0, 0.08, 0), new THREE.MeshStandardMaterial({ color: '#f4eeda', roughness: 0.5 }))
 teePeg.visible = false
 escena.add(teePeg)
 const fantasma = new THREE.Mesh(new THREE.SphereGeometry(RADIO_BOLA, 14, 10), new THREE.MeshBasicMaterial({ color: '#9fd3f7', transparent: true, opacity: 0.55, depthWrite: false }))
@@ -569,6 +644,7 @@ trazo.frustumCulled = false
 trazo.renderOrder = 5
 escena.add(trazo)
 let trazoPts = [], trazoColor = col('#fff1c9'), trazoApaga = null
+const _td = V3(), _tv = V3(), _tl = V3()
 function pintarTrazo() {
   const p = trazoGeo.attributes.position.array, c = trazoGeo.attributes.color.array
   const n = Math.min(trazoPts.length, MAXT), pts = trazoPts.slice(-n)
@@ -578,11 +654,11 @@ function pintarTrazo() {
     const j = Math.min(i, n - 1), s = pts[j]
     if (!s || n < 2) { p.fill(0, i * 6, i * 6 + 6); c.fill(0, i * 8, i * 8 + 8); continue }
     const sig = pts[Math.min(n - 1, j + 1)], ant = pts[Math.max(0, j - 1)]
-    const d = V3(sig[0] - ant[0], sig[1] - ant[1], sig[2] - ant[2]).normalize()
-    const vista = V3(cam.x - s[0], cam.y - s[1], cam.z - s[2])
+    const d = _td.set(sig[0] - ant[0], sig[1] - ant[1], sig[2] - ant[2]).normalize()
+    const vista = _tv.set(cam.x - s[0], cam.y - s[1], cam.z - s[2])
     const lejos = vista.length()
     const ancho = Math.max(0.03, lejos * 0.0024) // ~1 px de cada lado
-    const lado = d.clone().cross(vista.normalize()).normalize().multiplyScalar(ancho)
+    const lado = _tl.copy(d).cross(vista.normalize()).normalize().multiplyScalar(ancho)
     p[i * 6] = s[0] + lado.x; p[i * 6 + 1] = s[1] + lado.y; p[i * 6 + 2] = s[2] + lado.z
     p[i * 6 + 3] = s[0] - lado.x; p[i * 6 + 4] = s[1] - lado.y; p[i * 6 + 5] = s[2] - lado.z
     const a = i >= n ? 0 : (0.08 + 0.92 * (i / n) ** 1.6) * apaga
@@ -595,6 +671,7 @@ function pintarTrazo() {
 const MAXP = 220
 const parts = new THREE.InstancedMesh(new THREE.TetrahedronGeometry(0.06), new THREE.MeshStandardMaterial({ roughness: 0.8 }), MAXP)
 parts.frustumCulled = false
+parts.setColorAt(0, new THREE.Color()) // (el color por chispa, de entrada: si no, la primera chispa recompila el shader)
 escena.add(parts)
 const vivas = []
 function chispas(pos, n, colores, fuerza = 3, arriba = 3, tam = 1) {
@@ -680,7 +757,7 @@ const MAT = {
 }
 /** Una cápsula de `largo` entre 0 e y=largo (para ponerla entre dos puntos con `entre`). */
 const capsula = (r, largo, seg = 10) => new THREE.CapsuleGeometry(r, Math.max(0.001, largo), 4, seg).translate(0, largo / 2, 0)
-const _Y = V3(0, 1, 0)
+const _Y = V3(0, 1, 0), _eje = V3()
 function entre(obj, a, b) {
   obj.position.copy(a)
   _v.subVectors(b, a)
@@ -694,7 +771,8 @@ const PALOS = {
   wedge: { L: 0.84, lie: (58 * Math.PI) / 180, x: 0.0 },
   putter: { L: 0.8, lie: (66 * Math.PI) / 180, x: 0.04 },
 }
-const ESCALA_RORRO = 1.2 // un poco más grande que de verdad (como la pelota de lejos): que se vea el swing
+const CABEZA_PALO = 1.7
+const ESCALA_RORRO = 1.85 // arcade: más grande que de verdad, que se vea el swing (y los palos, más todavía)
 const rorro = (() => {
   const g = new THREE.Group()
   g.visible = false
@@ -767,6 +845,7 @@ const rorro = (() => {
     putter: add(new THREE.BoxGeometry(0.11, 0.028, 0.026), MAT.hierro, palo),
   }
   const lineaPutter = add(new THREE.BoxGeometry(0.004, 0.0012, 0.026), MAT.logo, cabezas.putter); lineaPutter.position.y = 0.0145
+  for (const m of Object.values(cabezas)) m.scale.multiplyScalar(CABEZA_PALO) // arcade: los palos con cabezas grandes, para la pelota grande
   g.scale.setScalar(ESCALA_RORRO)
   return { g, pelvis, columna, torso, cabeza, brazos, palo, grip, vara, cabezas, HOMBRO, ANCHO, INCLINA, cadera }
 })()
@@ -780,7 +859,7 @@ function poseRorro(sv, putt, tipo) {
   const { L, lie } = P
   // la pelota y las manos en el piso de referencia (la cabeza del palo apoyada atrás de la pelota)
   const c0 = V3(0, -Math.sin(lie), Math.cos(lie))
-  const H0 = V3(P.x * 0.6, L * Math.sin(lie) + RADIO_BOLA, 0.3)
+  const H0 = V3(P.x * 0.6, L * Math.sin(lie) + 0.022 * CABEZA_PALO, 0.3) // (la suela del palo apoyada en el piso)
   const pelotaLocal = H0.clone().addScaledVector(c0, L)
   // el swing: las manos giran alrededor de los hombros en el plano del palo; la muñeca se quiebra
   const phi = putt ? sv : sv >= 0 ? sv * 2.62 : sv * 2.97
@@ -833,7 +912,8 @@ function poseRorro(sv, putt, tipo) {
     b.mano.position.copy(Tr); b.mano.quaternion.copy(rorro.palo.quaternion)
     if (b.reloj) { const r = codo.clone().lerp(Tr, 0.86); entre(b.reloj, r, Tr); b.reloj.scale.y = 0.03 }
   }
-  return pelotaLocal
+  // (la pelota grande va adelante de la cara del palo, no adentro)
+  return pelotaLocal.add(V3(RADIO_BOLA / ESCALA_RORRO + 0.012 * CABEZA_PALO, 0, 0))
 }
 
 // ── los monos (los del motor: patrullan, cazan la pelota quieta, se la roban) ──
@@ -855,8 +935,9 @@ function crearMono() {
   g.traverse((o) => { if (o.isMesh) o.castShadow = true })
   g.visible = false
   escena.add(g)
-  return { g, ultimo: null, dir: 0, salto: 0 }
+  return { g, ultimo: null, dir: 0, salto: 0, partes: ['pata-1', 'pata1', 'brazo-1', 'brazo1'].map((n) => g.getObjectByName(n)) }
 }
+const ESCALA_MONO = 2.5 // arcade: grandes, que se vean venir
 const monos3d = Array.from({ length: 8 }, crearMono)
 function moverMonos3d(dt, st) {
   const lista = st.ronda?.monos ?? []
@@ -874,13 +955,14 @@ function moverMonos3d(dt, st) {
     const tpose = cancha.monoBug === i
     const brinco = m.salto > 0 ? Math.abs(Math.sin(m.salto * 9)) * 0.7 : Math.abs(Math.sin(est.t * corre + i)) * (espera ? 0.015 : 0.09)
     m.g.position.set(p[0], alturaEn(inversa(p)) + brinco + (tpose ? 1.6 + Math.sin(tReal * 2) * 0.2 : 0), p[1])
-    m.g.scale.setScalar(1.25 * escalaVista(m.g.position, 0.5))
+    m.g.scale.setScalar(ESCALA_MONO * escalaVista(m.g.position, 0.5 * ESCALA_MONO, 14))
     if (tpose) m.g.rotation.y += dt * 2
     const paso = espera ? 0 : Math.sin(est.t * corre + i)
-    m.g.getObjectByName('pata-1').rotation.x = paso * 0.6
-    m.g.getObjectByName('pata1').rotation.x = -paso * 0.6
-    m.g.getObjectByName('brazo-1').rotation.set(tpose ? 0 : m.salto > 0 ? -2.6 : paso * 0.5, 0, tpose ? -1.57 : -0.35)
-    m.g.getObjectByName('brazo1').rotation.set(tpose ? 0 : m.salto > 0 ? -2.6 : -paso * 0.5, 0, tpose ? 1.57 : 0.35)
+    const [p1, p2, b1, b2] = m.partes
+    p1.rotation.x = paso * 0.6
+    p2.rotation.x = -paso * 0.6
+    b1.rotation.set(tpose ? 0 : m.salto > 0 ? -2.6 : paso * 0.5, 0, tpose ? -1.57 : -0.35)
+    b2.rotation.set(tpose ? 0 : m.salto > 0 ? -2.6 : -paso * 0.5, 0, tpose ? 1.57 : 0.35)
   })
 }
 
@@ -1053,8 +1135,9 @@ function moverCamara(dt) {
   cam.yB += (pose.yB - cam.yB) * k
   if (pose.ruta) seguirRuta(pose)
   aplicarCamara()
-  const rr = clamp(camara.position.distanceTo(cam.piv) * 0.8, 35, 320)
-  sombraEn(cam.piv.x, cam.piv.z, Math.round(rr / 10) * 10)
+  // (la sombra cubre lo que se ve: de cerca, más chica y más nítida)
+  const rr = clamp(camara.position.distanceTo(cam.piv) * 0.8, 16, 320)
+  sombraEn(cam.piv.x, cam.piv.z, rr < 60 ? Math.round(rr / 4) * 4 : Math.round(rr / 10) * 10)
 }
 const enPiso = (p, extra = 0) => V3(p[0], alturaEn(inversa(p)) + extra, p[1])
 /** Una pose que encuadra: el pivote en yB de la pantalla y todos los puntos adentro. */
@@ -1094,7 +1177,7 @@ function poseDelJuego(st) {
     return encuadrar(enPiso(a.hasta ?? r.pelota), cam.yaw, 1.0, -0.2, [enPiso(a.desde ?? a.hasta ?? r.pelota)], { Dmin: 28, k: 2.2 })
   }
   if (st.estado === 'tiro' && t) {
-    if (t.modo === 'putt') return encuadrar(enPiso(t.pos), cam.yaw, 1.02, -0.25, [enPiso(pin), ...anilloPuntos(pin, 2.5)], { Dmin: 8, Dmax: 70, k: 2.4 })
+    if (t.modo === 'putt') return encuadrar(enPiso(t.pos), cam.yaw, 1.02, -0.25, [enPiso(pin), ...anilloPuntos(pin, 2.5)], { Dmin: 11, Dmax: 70, k: 2.4 })
     const cae = [t.desde[0] + t.carryVec[0] + (t.deriva?.[0] ?? 0), t.desde[1] + t.carryVec[1] + (t.deriva?.[1] ?? 0)]
     const yaw = Math.atan2(cae[1] - t.desde[1], cae[0] - t.desde[0])
     const enVuelo = t.fase === 'vuelo'
@@ -1105,7 +1188,7 @@ function poseDelJuego(st) {
   const piv = enPiso(r.pelota)
   if (st.enPutt) {
     const d = dist(r.pelota, pin)
-    return encuadrar(piv, alPin, 1.02, -0.36, [enPiso(pin, 0.2), ...anilloPuntos(pin, Math.max(3, d * 0.45)), ...anilloPuntos(r.pelota, 2.2)], { Dmin: 8, Dmax: 80, k: 2.6 })
+    return encuadrar(piv, alPin, 1.02, -0.36, [enPiso(pin, ALTO_PALO * 0.5), ...anilloPuntos(pin, Math.max(3, d * 0.45)), ...anilloPuntos(r.pelota, 3)], { Dmin: 11, Dmax: 80, k: 2.6 })
   }
   const d = dist(r.pelota, pin)
   const puntos = [enPiso([r.pelota[0] + Math.cos(alPin) * Math.min(d + 8, 34), r.pelota[1] + Math.sin(alPin) * Math.min(d + 8, 34)])]
@@ -1233,6 +1316,7 @@ function desplegar({ nuevos = [], quitar = [], skin, bugs, origen, rebobina = fa
   const desdeA = rebobina ? lejos : -est.swBanda - 2, a1 = rebobina ? -est.swBanda - 2 : lejos
   est.swW = desdeA
   const sonido = rebobina ? C.revert(dur) : C.deploy(dur)
+  despertarArboles(dur + 2)
   barrido = { horno: hornear(), filas: null, t0: est.t, dur, desdeA, a1, rebobina, sonido, alFinal }
 }
 function moverBarrido(forzar = false) {
@@ -1258,6 +1342,7 @@ function terminarBarrido() {
   cancha.monoBug = cancha.bugsB.some((x) => x.tipo === 'mono') ? Math.floor(Math.random() * 3) : null
   campoActual = campoCon(b.filas)
   alCampo(b.filas === FILAS ? null : b.filas)
+  despertarArboles(2)
   b.alFinal?.()
 }
 
@@ -1282,13 +1367,23 @@ export function iniciar({ lienzo: el, alCampo: cb }) {
   lienzo = el
   alCampo = cb ?? (() => {})
   renderer = new THREE.WebGLRenderer({ canvas: el, antialias: true, powerPreference: 'high-performance' })
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)) // (con 2 o 3, el teléfono pinta el doble o más: se traba)
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  renderer.shadowMap.type = THREE.PCFShadowMap
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.05
   medir()
+  calentar()
+}
+/**
+ * Los shaders, todos de entrada (con la terminal de carga en pantalla): si no, el primer tiro compila los de las chispas,
+ * el trazador, la sombra de la pelota y las sombras de lo que aparece, en pleno vuelo, y se traba.
+ */
+function calentar() {
+  const vuelta = []
+  escena.traverse((o) => { if (o.isLight) return; vuelta.push([o, o.visible, o.frustumCulled]); o.visible = true; o.frustumCulled = false })
+  try { renderer.compile(escena, camara); renderer.render(escena, camara) } catch (e) { console.warn(e) } finally { for (const [o, v, f] of vuelta) { o.visible = v; o.frustumCulled = f } }
 }
 export function medir() {
   if (!renderer) return
@@ -1312,12 +1407,15 @@ export function despertar() { C.despertar() }
 /** Una vuelta nueva: el clima (la luz, la lluvia, los charcos) y la cancha limpia. */
 export function nuevaRonda(ronda, imagenCancha = null) {
   aplicarClima(ronda)
+  despertarArboles(2)
   juego.versiones = 0; juego.bugs = 0; juego.reverts = 0
   // el dibujo de la cancha (el del clima de hoy): la misma imagen del juego; cuando cambia, se vuelve a subir
   if (imagenCancha && U.uDibujo.value?.image !== imagenCancha) {
     const t = new THREE.Texture(imagenCancha); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8
-    if (imagenCancha.complete && imagenCancha.naturalWidth) t.needsUpdate = true
-    imagenCancha.addEventListener('load', () => { t.needsUpdate = true })
+    // (se sube a la placa ya, no en el primer cuadro de la intro)
+    const subir = () => { t.needsUpdate = true; try { renderer?.initTexture(t) } catch {} }
+    if (imagenCancha.complete && imagenCancha.naturalWidth) subir()
+    imagenCancha.addEventListener('load', subir)
     U.uDibujo.value = t
   }
 }
@@ -1331,6 +1429,7 @@ export function empezarHoyo(ronda) {
   cancha.bugsA = cancha.bugsB = []; cancha.arbolBugA = new Map(); cancha.arbolBugB = new Map(); cancha.monoBug = null
   campoActual = campoBase
   alCampo(null)
+  despertarArboles(2.5)
   trazoPts = []; trazoApaga = null
   teeBase = null; golfistaBase = null
   pintarCharcos(ronda)
@@ -1386,6 +1485,7 @@ function terminarIntro() {
   U.uDibVivo.value = 0
   est.armaW = H + 200
   for (const a of arboles) if (a.popT < 0) a.popT = tReal - 1
+  despertarArboles(2)
   C.compilado()
   C.zumbido(0)
   C.volumen(0.55)
@@ -1436,6 +1536,8 @@ export function revert(ronda, alFinal) {
 }
 export const revirtiendo = () => !!barrido?.rebobina
 export const puedeDebug = () => juego.poder.bp > 0
+/** Los usos que quedan de cada poder en este hoyo, y la versión de ahora y la de antes (para el botón del revert). */
+export const poderes = () => ({ bp: juego.poder.bp, revert: juego.poder.revert, ver: version(), antes: juego.historial.length ? `v${juego.ver[0]}.${Math.max(0, juego.ver[1] - 1)}` : null })
 /** ⏸ El breakpoint: la pelota congelada en el aire (el juego deja de avanzar el tiro); acá, lo que se dibuja. */
 export function breakpoint(tiro) {
   if (!puedeDebug()) return false
@@ -1469,8 +1571,14 @@ export function continuar(t) {
 const _pr = V3()
 /** El punto de la cancha (en el piso, más `alt` yardas) en la pantalla: [x, y, adelante de la cámara]. */
 export function aPantalla(p, alt = 0) {
-  const v = alHoyo(p)
-  _pr.set(v[0], alturaEn(inversa(p)) + alt, v[1]).project(camara)
+  _pr.set(p[0], alturaEn(inversa(p)) + alt, p[1]).project(camara)
+  return [((_pr.x + 1) / 2) * innerWidth, ((1 - _pr.y) / 2) * innerHeight, _pr.z < 1]
+}
+/** Dónde se ve la cabeza del mono `i` (para el cartelito del juego): [x, y, adelante], o null si no está. */
+export function monoEnPantalla(i) {
+  const m = monos3d[i]
+  if (!m?.g.visible) return null
+  _pr.set(m.g.position.x, m.g.position.y + 1.3 * m.g.scale.x, m.g.position.z).project(camara)
   return [((_pr.x + 1) / 2) * innerWidth, ((1 - _pr.y) / 2) * innerHeight, _pr.z < 1]
 }
 const _ray = new THREE.Raycaster(), _plano = new THREE.Plane(V3(0, 1, 0), 0), _hit = V3()
@@ -1552,6 +1660,9 @@ export function cuadro(dtR, st) {
   zona = st.zona ?? zona
   const r = st.ronda
   pinActual = r && !r.terminada ? M.hoyoActual(r).pin : null
+  // la grilla del green: se prende en el putt (apuntando y mientras rueda) y se apaga suave
+  const grilla = !!st.enPutt && !intro && (st.estado === 'apuntar' || st.estado === 'swing' || (st.estado === 'tiro' && st.tiro?.modo === 'putt'))
+  U.uGrilla.value += ((grilla ? 1 : 0) - U.uGrilla.value) * Math.min(1, dtR * 4)
   moverIntro()
   moverBarrido()
   const t = st.tiro
@@ -1565,9 +1676,8 @@ export function cuadro(dtR, st) {
       const u = clamp(t.t / t.T, 0.001, 0.999)
       alt *= (3.48 * u * (1 - u) ** 0.82) / (4 * u * (1 - u)) // la forma del vuelo de verdad (mismo alto, el pico más adelante)
     }
-    const pv = alHoyo(t.pos)
-    B = V3(pv[0], alturaEn(inversa(t.pos)) + RADIO_BOLA + alt, pv[1])
-    if (t.embocada && t.fase === 'quieta') { B.x = pinActual?.[0] ?? B.x; B.z = pinActual?.[1] ?? B.z; B.y -= 0.09 }
+    B = V3(t.pos[0], alturaEn(inversa(t.pos)) + RADIO_BOLA + alt, t.pos[1])
+    if (t.embocada && t.fase === 'quieta') { B.x = pinActual?.[0] ?? B.x; B.z = pinActual?.[1] ?? B.z; B.y -= RADIO_BOLA * 1.25 }
     if (t.modo === 'full' && (t.fase === 'vuelo' || trazoPts.length < 400) && !t.embocada) { const l = trazoPts[trazoPts.length - 1]; if (!l || Math.hypot(l[0] - B.x, l[1] - B.y, l[2] - B.z) > 0.25) trazoPts.push([B.x, B.y, B.z]) }
     if (t.fase === 'quieta' && trazoApaga == null) trazoApaga = tReal
   } else if (pelotaBase) {
@@ -1575,8 +1685,7 @@ export function cuadro(dtR, st) {
     B = V3(p[0], alturaEn(pelotaBase) + RADIO_BOLA, p[1])
   } else if (r) {
     const enTee = r.lie === 'tee' && !st.enPutt
-    const pv = alHoyo(r.pelota)
-    B = V3(pv[0], alturaEn(inversa(r.pelota)) + RADIO_BOLA + (enTee ? 0.03 : 0), pv[1])
+    B = V3(r.pelota[0], alturaEn(inversa(r.pelota)) + RADIO_BOLA + (enTee ? ALTO_TEE : 0), r.pelota[1])
   } else B = V3(W / 2, -10, H / 2)
   if (st.anim && st.estado === 'anim') {
     const a = st.anim, u = clamp(a.t / a.T, 0, 1), e = easeIO(u)
@@ -1585,7 +1694,10 @@ export function cuadro(dtR, st) {
   }
   bola.position.copy(B)
   bola.visible = !!r && !intro && st.estado !== 'fin' && !(t?.embocada && t.fase === 'quieta' && st.estado === 'resultado')
-  if (t && t.fase !== 'quieta') bola.rotation.x += dt * Math.hypot(...(t.v ?? [0, 0])) * 8
+  if (t && t.fase !== 'quieta' && t.v) {
+    const vel = Math.hypot(t.v[0], t.v[1])
+    if (vel > 1e-3) bola.rotateOnWorldAxis(_eje.set(t.v[1] / vel, 0, -t.v[0] / vel), (vel * dt) / (RADIO_BOLA * bola.scale.x))
+  }
   est.bola = r ? inversa(r.pelota) : [0, 0]
   // la sombra de la pelota en el piso (en el aire, más chica y más clara): así se lee la altura
   {
@@ -1601,7 +1713,7 @@ export function cuadro(dtR, st) {
   const enTee = r && r.lie === 'tee' && !st.enPutt && !t
   if (enTee) teeBase = inversa(r.pelota)
   teePeg.visible = !!teeBase && !!r && !intro
-  if (teeBase) { const p = adelante(teeBase); teePeg.position.set(p[0], alturaEn(teeBase), p[1]); teePeg.scale.setScalar(escalaVista(teePeg.position, 0.03, 1.5)) }
+  if (teeBase) { const p = adelante(teeBase); teePeg.position.set(p[0], alturaEn(teeBase), p[1]); teePeg.scale.setScalar(escalaVista(teePeg.position, 0.08, 1.5)) }
   // el fantasma del match
   fantasma.visible = !!st.fantasma && !intro
   if (st.fantasma) { const f = st.fantasma; fantasma.position.set(f.pos[0], alturaEn(inversa(f.pos)) + RADIO_BOLA + (f.alt ?? 0), f.pos[1]); fantasma.scale.setScalar(escalaVista(fantasma.position) * 1.1) }
@@ -1615,12 +1727,12 @@ export function cuadro(dtR, st) {
   if (rorro.g.visible) {
     const donde = gs.desde && (st.estado === 'tiro' || st.estado === 'anim' || st.estado === 'swing' || st.estado === 'resultado' || st.estado === 'pausa') ? gs.desde : r.pelota
     const base = pelotaBase ?? (golfistaBase && (st.estado === 'tiro' || st.estado === 'anim' || st.estado === 'pausa') ? golfistaBase : inversa(donde))
-    const pw = alHoyo(adelante(base))
+    const pw = adelante(base)
     const bl = poseRorro(gs.sv ?? 0, !!gs.putt, gs.palo ?? 'hierro')
     const ang = gs.ang ?? 0
     rorro.g.rotation.y = -ang
     const off = V3(bl.x, 0, bl.z).applyAxisAngle(_Y, -ang).multiplyScalar(ESCALA_RORRO)
-    rorro.g.position.set(pw[0] - off.x, alturaEn(base) + (r.lie === 'tee' && !st.enPutt && !t ? 0.03 : 0), pw[1] - off.z)
+    rorro.g.position.set(pw[0] - off.x, alturaEn(base), pw[1] - off.z)
   }
   moverArboles(dt)
   moverMonos3d(dt, st)
@@ -1664,4 +1776,4 @@ export function golpe(ronda) {
   if (ronda?.lie !== 'green') chispas(p, ronda?.lie === 'bunker' ? 18 : 8, ronda?.lie === 'bunker' ? ['#f4e6c4', '#e9d7a9'] : ['#6f9636', '#a2bc43', '#5d432c'], 1.2, 1.6, 0.7)
 }
 // para probar (window.__r3d en la copia dev/)
-export const _prueba = { juego, est, cancha, camara, cam, rorro, poseRorro, ponerSkins, SKINS, arboles, bola, pose: null, V3 }
+export const _prueba = { juego, est, cancha, camara, cam, rorro, poseRorro, ponerSkins, SKINS, arboles, bola, pose: null, V3, ren: () => renderer, escena }

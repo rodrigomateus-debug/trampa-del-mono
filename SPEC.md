@@ -661,7 +661,11 @@ la goma, el latido, el MODO PRO, LG, los monos, el reloj, la tarjeta, el ranking
 su cancha se dibuja en 3D (`cancha3d.js`, three.js de `intro/assets/vendor/`, que se carga solo cuando juega él).
 - **El candado**: Rorro arranca bloqueado. Se desbloquea terminando **una vuelta con cada uno del mazo** (firmada o no,
   ganes o pierdas; Fito cuenta con cualquiera de sus dos cartas; la Ruleta no cuenta). La carta con candado muestra
-  la grilla de caritas: con quién ya jugaste y con quién te falta. Queda en el teléfono (`datos.jugados`, y se
+  la grilla de caritas: con quién ya jugaste y con quién te falta. **La carta está glitcheada a propósito** (la foto con
+  el RGB corrido y tiras que se corren, las líneas de la tele, el nombre que tiembla) y **no dice la habilidad**: en
+  su lugar, una terminal (`$ rorro --habilidad` → `segmentation fault`) con pistas que van cambiando y no explican
+  nada ("la cancha no es la que ves", "nada es definitivo hasta que pica", "lo que vuela también se puede pausar",
+  "a veces volver es avanzar"). Tampoco la explican el anuncio del desbloqueo ni el arranque de la vuelta. Queda en el teléfono (`datos.jugados`, y se
   recupera de tus vueltas de la base con tu usuario). Al completar, el logro y el anuncio ("Jugar con Rorro"). Para
   probar en dev/: `?rorro=1` (o `=0`). No es secreto: en el ranking sale como cualquiera, y en un match te pueden
   desafiar con él aunque no lo tengas (como Taiu). No sale en la Ruleta (su cancha es otra).
@@ -671,22 +675,36 @@ su cancha se dibuja en 3D (`cancha3d.js`, three.js de `intro/assets/vendor/`, qu
   más onda a la calle), una skin rara y uno o dos bugs simulados. La onda sale de donde pegaste y la grilla del motor
   se hornea mientras pasa: antes de que pique, la física ya juega en la versión nueva. Los greens y alrededor no se
   mueven nunca (`CAPA.quieta`); en el putt no cambia nada. Cada hoyo arranca en la v1.0.
-- **Los poderes de dev** (uno de cada por hoyo), en un solo botón abajo a la derecha (con la versión de la cancha en
-  el cartelito): **⏸ DEBUG** con la pelota en el aire (se congela, la cámara se va arriba, arrastrás la cancha para
-  correr el destino hasta un 38% de lo que le falta, y ▶ SEGUIR) y **↩ REVERT** apuntando (la versión anterior; la
-  pelota va con su pedazo de cancha, sin cambiar de lie). Lo único "de terminal" es una línea chiquita en la pausa.
+- **Los poderes de dev** (uno de cada por hoyo), dos botones redondos del juego abajo a la derecha, con íconos propios
+  en el estilo del set (trazo tinta, papel crema, acento dorado), su cinta de terminal y los usos que quedan:
+  **DEBUG** (un bicho con la pausa en el lomo; late en rojo con la pelota en el aire: se congela, la cámara se va
+  arriba, arrastrás la cancha para correr el destino hasta un 38% de lo que le falta, y se pone dorado: ▶ SEGUIR,
+  `$ continue()`) y **REVERT** (los commits con la flecha que vuelve; apuntando, se mueve y su cinta dice de qué versión
+  a cuál: la anterior, y la pelota va con su pedazo de cancha, sin cambiar de lie). Fuera de su momento quedan
+  apagados (tocándolos, LG dice por qué); usados, en gris y tachados. Lo único "de terminal" en la cancha es una
+  línea chiquita en la pausa.
 - **Cómo se ve**: la cámara, más de arriba que de atrás (entre la tele y el juego de siempre), se arma con un pivote
   fijo en la pantalla y la distancia justa para que entre lo que hace falta (apuntando, ~35 yd adelante; tirando para
   atrás se abre hasta dónde pica, o hasta el hoyo en el PRO; en el aire sigue a la pelota y a dónde cae; en el putt,
   el green entero). Todo se mueve suave. La goma, el latido, la línea, el óvalo y los cartelitos son los del juego,
   dibujados arriba con la perspectiva (`w2s` y el arrastre pasan por la cámara 3D cuando juega Rorro).
-- **La pelota** es del tamaño de una de verdad (de lejos se agranda lo justo para que se vea, 3 px) y en la salida
-  está arriba de un tee (que queda ahí). En el aire tiene su sombra en el piso y un **trazador** como el de la tele;
-  el vuelo sube rápido y cae más parado (mismo alto que el motor). **El hoyo** es del tamaño de uno real; como la boca
-  del motor es más grande, cerca del hoyo todo se achica hacia el centro: la pelota que entra se ve caer en la taza.
-- **Los greens**, como los de verdad: corte fino cruzado, el collar alrededor y el relieve sale de las caídas del motor
-  (por Poisson: la pendiente es la caída; coincide en un 88-95%), un poco arriba de la cancha y bajando suave. Las
-  flechitas de la caída son las del juego, sobre el green 3D.
+- **La escala es arcade** (como en el Mario Golf): la pelota, el hoyo, la bandera, los palos, Rorro y los monos, más
+  grandes que de verdad. **El hoyo** es del tamaño de la boca del motor menos la pelota, así que lo que se ve es lo que
+  pasa, sin achicar nada cerca (antes se achicaba y parecía un imán): la que entra ya está colgando del borde y la que
+  pasa de largo pasa rozando. Tiene el borde blanco y, con la pelota cerca o en el putt, dos aros que se abren
+  (que se vea bien); la bandera queda puesta también en el putt. La pelota rueda sobre el eje de la marcha; de lejos
+  se agranda lo justo para que se vea, en la salida está arriba de un tee, en el aire tiene su sombra y un
+  **trazador** como el de la tele; el vuelo sube rápido y cae más parado (mismo alto que el motor).
+- **Los greens**: corte fino cruzado, el collar alrededor y el relieve sale de las caídas del motor (por Poisson: la
+  pendiente es la caída; coincide en un 88-95%), un poco arriba de la cancha y bajando suave. En el putt, **la grilla
+  del Mario Golf**: líneas de una yarda y luces que bajan con la caída del motor (la que sigue la pelota): celestes y
+  lentas donde cae poco, doradas y rápidas donde cae mucho (reemplaza a las flechitas).
+- **Los monos que vienen**: el que no se ve, marcado en el borde (como en el juego: la flecha, el 🐒 y las yardas, en
+  verde → rojo); el que se ve, con un cartelito arriba de la cabeza (las yardas, o el ! cuando se dio cuenta).
+- **Fluido**: los shaders se compilan todos con la terminal de carga (antes el primer tiro compilaba los de las
+  chispas, el trazador y las sombras en pleno vuelo y se trababa); los árboles van en pocas mallas compartidas y
+  duermen cuando no hay versión nueva; la sombra cubre lo que se ve (más nítida de cerca) y el teléfono pinta a
+  1,5× como mucho.
 - **Rorro**, como en la foto: gorra negra, barba, chomba bordó con su tejido, pantalón negro, zapatillas negras con
   suela blanca, guante blanco en la izquierda y el reloj. El swing es el del juego (la potencia de la goma es el
   backswing; al soltar baja, pega y termina), con las manos en el plano del swing, la muñeca que se quiebra y los

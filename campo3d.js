@@ -47,6 +47,8 @@ export function muestra(a, x, y) {
  * con el collar (el pasto un poco más largo que lo rodea) en las primeras `collar`.
  */
 export const RELIEVE = { k: 0.045, plato: 0.16, falda: 8, collar: 2, vueltas: 260 }
+/** La caída del motor en cada celda de los greens (x, y por celda; 0 afuera): para la grilla del green en el putt. */
+export const CAIDA_GREEN = new Float32Array(N * 2)
 function relieveGreens() {
   const z = new Float32Array(N).fill(NaN)
   const R = RELIEVE
@@ -67,6 +69,7 @@ function relieveGreens() {
       }
     }
     const v = new Map(celdas.map((i) => [i, M.caidaEn(h, [(i % W) + 0.5, Math.floor(i / W) + 0.5])]))
+    for (const [i, c] of v) { CAIDA_GREEN[i * 2] = c[0]; CAIDA_GREEN[i * 2 + 1] = c[1] }
     for (const i of celdas) z[i] = 0
     for (let it = 0; it < R.vueltas; it++) {
       for (const i of celdas) {
@@ -137,7 +140,10 @@ export const est = {
 export const avance = (q) => { const d = dist(q, est.swO); return clamp((est.swSentido > 0 ? est.swW - d : d - est.swW) / est.swBanda, 0, 1) }
 export const armado = (q) => clamp((est.armaW - ((q[0] - est.armaO[0]) * est.armaD[0] + (q[1] - est.armaO[1]) * est.armaD[1])) / est.armaBanda, 0, 1)
 /** El desplazamiento en q. `final`: el de la versión que viene, sin respiración (para la grilla del motor). */
-export function desplazo(q, final = false) {
+export function desplazo(q, final = false, respira = true) {
+  // en los greens (y cerca) no se mueve nada: ni se calcula
+  const qq = muestra(CAPA.quieta, q[0], q[1])
+  if (qq < 1e-4 || (!est.bumps.length && (final || !respira || !est.resp))) return [0, 0]
   const k = final ? 1 : avance(q)
   let dx = 0, dy = 0
   for (const b of est.bumps) {
@@ -148,16 +154,24 @@ export function desplazo(q, final = false) {
     const w = Math.exp(-(ex * ex + ey * ey) / (b.r * b.r)) * amp
     if (b.tipo === 0) { dx += b.vx * w; dy += b.vy * w } else { dx += (ex / b.r) * b.vx * w; dy += (ey / b.r) * b.vx * w }
   }
-  if (!final && est.resp) {
+  if (!final && respira && est.resp) {
     const t = est.t, r = est.resp * ss(3, 9, dist(q, est.bola))
     dx += r * (Math.sin(q[1] * 0.061 + t * 0.9) + 0.5 * Math.sin(q[0] * 0.11 - t * 1.3))
     dy += r * (Math.cos(q[0] * 0.07 + t * 0.7) + 0.5 * Math.cos(q[1] * 0.09 + t * 1.1))
   }
-  const qq = muestra(CAPA.quieta, q[0], q[1])
   return [dx * qq, dy * qq]
 }
 export const adelante = (q, final = false) => { const d = desplazo(q, final); return [q[0] + d[0], q[1] + d[1]] }
+/** Como `adelante`, sin la respiración (los árboles: así no hay que moverlos en cada cuadro). */
+export const adelanteQuieto = (q) => { const d = desplazo(q, false, false); return [q[0] + d[0], q[1] + d[1]] }
 export function inversa(p, final = false) { let q = p; for (let i = 0; i < 4; i++) { const d = desplazo(q, final); q = [p[0] - d[0], p[1] - d[1]] } return q }
+/** La altura de la cancha armada y quieta en q (sin la ola de la versión): para las normales del terreno. */
+export function alturaBase(q) {
+  const fw = ss(0.3, 0.7, muestra(CAPA.calle, q[0], q[1])), te = ss(0.3, 0.7, muestra(CAPA.tee, q[0], q[1]))
+  const bk = ss(0.25, 0.7, muestra(CAPA.bunker, q[0], q[1]))
+  const fu = ss(0.3, 0.7, muestra(CAPA.afuera, q[0], q[1])), ar = muestra(CAPA.arbol, q[0], q[1])
+  return lerp(fw * 0.1 + te * 0.35 + muestra(CAPA.relieve, q[0], q[1]) - bk * 0.9 + ar * 0.2, -4.5, fu)
+}
 /** La altura del terreno en q (yardas), como el shader (con la ola de la versión y la cancha que se arma). */
 export function alturaEn(q) {
   const fw = ss(0.3, 0.7, muestra(CAPA.calle, q[0], q[1])), te = ss(0.3, 0.7, muestra(CAPA.tee, q[0], q[1]))
@@ -170,14 +184,17 @@ export function alturaEn(q) {
 }
 
 // ── la grilla del motor: la cancha de la versión que viene, celda por celda (de a pedazos, para no trabar el cuadro) ──
-export function* hornear() {
+export function* hornear(ms = 2.5) {
   if (!est.bumps.some((b) => b.hasta)) return FILAS
   const out = new Array(H)
+  const ahora = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
+  let t0 = ahora()
   for (let y = 0; y < H; y++) {
     let fila = ''
     for (let x = 0; x < W; x++) fila += letraBase(inversa([x + 0.5, y + 0.5], true))
     out[y] = fila
-    if (y % 16 === 15) yield y / H
+    // de a poquito: unos milisegundos por cuadro (si no, el vuelo se traba)
+    if (ahora() - t0 > ms) { yield y / H; t0 = ahora() }
   }
   return out
 }
