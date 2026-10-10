@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0a2117">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23e8c34a' stroke='%230c2b1c' stroke-width='3'/%3E%3Ctext x='16' y='21' font-size='13' text-anchor='middle' font-family='monospace' font-weight='700' fill='%230c2b1c'%3E%7B%7D%3C/text%3E%3C/svg%3E">
+<title>La cancha de Rorro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+<style>
+/* La cancha de Rorro: la maqueta en 3D. Los paneles, estilo SDGA (crema, borde tinta, sombra dura); lo de dev, terminal. */
+:root {
+  --ink: #0c2b1c; --cream: #f4eeda; --cream-d: #e7dfc2; --gold: #e8c34a; --g900: #14402a; --red: #bc4b3c;
+  --term: #0b1d14; --term-l: #12291d; --mono-g: #7ee787; --mono-r: #ff8a7a; --mono-b: #8fd0ff; --mono-p: #d6b4ff; --mono-y: #f5d76e;
+  --safe-top: env(safe-area-inset-top, 0px); --safe-bot: env(safe-area-inset-bottom, 0px);
+  --display: Anton, 'Arial Narrow', Impact, sans-serif; --body: Archivo, system-ui, sans-serif; --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a2117; color: var(--cream); font-family: var(--body); touch-action: none; user-select: none; -webkit-user-select: none; }
+#lienzo { position: fixed; inset: 0; width: 100%; height: 100%; display: block; transition: filter .45s ease; }
+body.pausa #lienzo { filter: saturate(.25) contrast(1.08) brightness(.92); }
+body.rebobina #lienzo { filter: hue-rotate(-16deg) saturate(.75) contrast(1.08); }
+
+/* ── arriba: la tarjeta del hoyo (como en el juego) y la versión ── */
+#hud { position: fixed; left: 12px; right: 12px; top: calc(var(--safe-top) + 12px); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; pointer-events: none; z-index: 5; }
+.tarjeta { min-width: 0; display: grid; grid-template-columns: 52px 1fr; gap: 10px; align-items: center; padding: 8px 12px 8px 8px; background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 16px; box-shadow: 4px 5px 0 var(--ink); }
+.tarjeta img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--ink); background: var(--g900); }
+.tarjeta .t1 { font: 24px/1 var(--display); white-space: nowrap; letter-spacing: .01em; display: flex; gap: 8px; align-items: baseline; }
+.tarjeta .t1 small { font: 15px/1 var(--display); color: var(--g900); opacity: .8; }
+.tarjeta .t2 { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px 8px; align-items: center; font: 800 11px/1 var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--g900); }
+.tarjeta .t2 .beta { padding: 3px 6px 2px; border: 2px solid var(--ink); border-radius: 6px; background: var(--gold); font-size: 10px; transform: rotate(-3deg); }
+.tarjeta .t2 .yd { margin-left: auto; font: 13px/1 var(--display); letter-spacing: .03em; color: var(--ink); }
+.lado { display: grid; gap: 8px; justify-items: end; }
+.ver { font: 700 14px/1 var(--mono); color: var(--mono-g); background: var(--term); border: 2px solid #000; border-radius: 10px; padding: 8px 10px; box-shadow: 3px 4px 0 #000; display: flex; gap: 6px; align-items: center; }
+.ver i { font-style: normal; color: #6f8a7a; font-weight: 400; }
+.ver::after { content: ''; width: 7px; height: 15px; background: var(--mono-g); animation: cursor 1s steps(1) infinite; }
+@keyframes cursor { 50% { opacity: 0; } }
+.ver.salta { animation: salta .5s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes salta { 0% { transform: scale(1); } 40% { transform: scale(1.25) rotate(-4deg); } 100% { transform: scale(1); } }
+.golpes { min-width: 58px; text-align: center; background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 12px; box-shadow: 3px 4px 0 var(--ink); padding: 5px 8px 6px; }
+.golpes small { display: block; font: 800 9px/1 var(--body); letter-spacing: .12em; }
+.golpes b { display: block; font: 30px/1 var(--display); margin-top: 2px; }
+
+/* LG relata (abajo de la tarjeta) */
+#lg { position: fixed; left: 12px; right: 92px; top: calc(var(--safe-top) + 100px); z-index: 5; display: flex; gap: 8px; align-items: center; pointer-events: none; opacity: 0; transform: translateY(-6px); transition: opacity .3s, transform .3s; }
+#lg.ve { opacity: 1; transform: none; }
+#lg b { flex: none; font: 800 10px/1 var(--body); letter-spacing: .08em; background: var(--gold); color: var(--ink); border: 2px solid var(--ink); border-radius: 6px; padding: 4px 6px 3px; }
+#lg span { font: italic 600 13px/1.25 var(--body); color: var(--cream); text-shadow: 0 1px 2px #000a, 0 0 12px #000a; }
+
+/* el commit: cada versión nueva de la cancha, como en la terminal */
+#commit { position: fixed; left: 12px; right: 12px; top: calc(var(--safe-top) + 138px); z-index: 6; max-width: 460px; margin: 0 auto; background: var(--term); border: 2px solid #000; border-radius: 14px; box-shadow: 4px 6px 0 #000; padding: 12px 14px; font: 12.5px/1.55 var(--mono); color: #cfe3d6; pointer-events: none; opacity: 0; transform: translateY(-14px) scale(.97); transition: opacity .35s, transform .45s cubic-bezier(.2, 1.4, .4, 1); }
+#commit.ve { opacity: 1; transform: none; }
+#commit .c1 { display: flex; gap: 8px; align-items: center; color: #6f8a7a; }
+#commit .c1 b { color: var(--mono-y); font-weight: 700; }
+#commit .c2 { margin: 4px 0 6px; font: 18px/1.1 var(--display); letter-spacing: .02em; }
+#commit .c2.ok { color: var(--mono-g); }
+#commit .c2.mal { color: var(--mono-r); }
+#commit .c2.rev { color: var(--mono-b); }
+#commit .mas { color: var(--mono-g); }
+#commit .menos { color: var(--mono-r); }
+#commit .com { color: #7d9a89; }
+#commit .linea { opacity: 0; transform: translateX(-6px); animation: entra .3s ease forwards; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@keyframes entra { to { opacity: 1; transform: none; } }
+
+/* el veredicto donde cayó */
+#veredicto { position: fixed; left: 50%; top: 44%; z-index: 6; transform: translate(-50%, -50%) scale(.6); opacity: 0; font: 34px/1 var(--display); letter-spacing: .03em; padding: 8px 16px 10px; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 4px 5px 0 var(--ink); pointer-events: none; transition: opacity .2s, transform .35s cubic-bezier(.2, 1.6, .4, 1); white-space: nowrap; }
+#veredicto.ve { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-3deg); }
+#veredicto.ok { background: var(--gold); color: var(--ink); }
+#veredicto.mal { background: var(--red); color: var(--cream); }
+#veredicto.gol { background: var(--cream); color: var(--ink); font-size: 46px; }
+
+/* ── abajo: los botones ── */
+#abajo { position: fixed; left: 12px; right: 12px; bottom: calc(var(--safe-bot) + 14px); z-index: 5; display: grid; gap: 10px; }
+.fila { display: flex; gap: 10px; align-items: center; justify-content: center; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.btn { position: relative; border: 3px solid var(--ink); border-radius: 999px; box-shadow: 3px 4px 0 var(--ink); background: var(--cream); color: var(--ink); font: 18px/1 var(--display); letter-spacing: .03em; padding: 12px 16px 13px; transition: transform .09s, box-shadow .09s, opacity .2s; }
+.btn:active { transform: translate(3px, 4px); box-shadow: 0 0 0 var(--ink); }
+.btn:disabled { opacity: .45; pointer-events: none; }
+.btn.oro { background: var(--gold); font-size: 24px; padding: 14px 24px 15px; min-width: 124px; }
+.btn.dev { background: var(--term); color: var(--mono-g); border-color: #000; box-shadow: 3px 4px 0 #000; font: 700 12px/1 var(--mono); padding: 12px 11px; display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+.btn.dev.bp { color: var(--mono-r); }
+.btn.dev .n { min-width: 18px; height: 18px; border-radius: 50%; background: currentColor; color: var(--term); font-size: 11px; display: grid; place-items: center; }
+.btn.dev.vivo { animation: late 1s ease-in-out infinite; }
+@keyframes late { 50% { box-shadow: 3px 4px 0 #000, 0 0 0 6px #ff8a7a33; } }
+.chica { gap: 6px; }
+.chip { border: 2px solid var(--ink); border-radius: 10px; background: var(--cream); color: var(--ink); font: 15px/1 var(--display); padding: 7px 10px 8px; box-shadow: 2px 3px 0 var(--ink); }
+.chip.on { background: var(--gold); }
+.chip.ic { width: 38px; padding: 6px 0 7px; }
+
+/* la cancha se arma: la terminal del principio */
+#compila { position: fixed; left: 50%; bottom: calc(var(--safe-bot) + 64px); z-index: 8; width: min(92vw, 420px); transform: translateX(-50%); background: color-mix(in srgb, var(--term) 82%, transparent); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 2px solid #000; border-radius: 14px; box-shadow: 5px 7px 0 #000; padding: 14px 16px; font: 12.5px/1.65 var(--mono); color: #cfe3d6; transition: opacity .6s, transform .6s; }
+#compila.fuera { opacity: 0; transform: translate(-50%, 20px) scale(.96); pointer-events: none; }
+#compila .p { color: var(--mono-y); }
+#compila .ok { color: var(--mono-g); }
+#compila .dim { color: #6f8a7a; }
+#compila .tit { font: 22px/1 var(--display); color: var(--cream); letter-spacing: .02em; margin-bottom: 8px; }
+#compila .tit em { font-style: normal; color: var(--gold); }
+#compila #arrancar { display: block; width: 100%; margin: 16px 0 8px; font-size: 26px; animation: late-oro 1.6s ease-in-out infinite; }
+@keyframes late-oro { 50% { box-shadow: 3px 4px 0 var(--ink), 0 0 0 8px #e8c34a33; } }
+#compila .chico { font-size: 11px; text-align: center; }
+#saltar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--safe-bot) + 18px); z-index: 9; font: 700 12px/1 var(--mono); color: #9fb8a9; background: none; border: 0; padding: 10px 16px; }
+/* en la intro, solo la cancha y la terminal; el HUD entra al final */
+#hud, #abajo { transition: opacity .6s ease, transform .7s cubic-bezier(.2, 1.3, .4, 1); }
+body.intro #hud { opacity: 0; transform: translateY(-30px); pointer-events: none; }
+body.intro #abajo { opacity: 0; transform: translateY(40px); pointer-events: none; }
+
+/* el breakpoint: el tiempo congelado */
+#depurador { position: fixed; inset: 0; z-index: 4; pointer-events: none; opacity: 0; transition: opacity .3s; background: repeating-linear-gradient(0deg, #0000 0 3px, #00000018 3px 4px), radial-gradient(ellipse at center, #0000 50%, #000a 100%); }
+body.pausa #depurador { opacity: 1; }
+#codigo { position: fixed; left: 12px; right: 12px; bottom: calc(var(--safe-bot) + 136px); z-index: 6; max-width: 460px; margin: 0 auto; background: var(--term); border: 2px solid #000; border-left: 5px solid var(--mono-r); border-radius: 12px; box-shadow: 4px 6px 0 #000; padding: 10px 12px; font: 12px/1.6 var(--mono); color: #cfe3d6; display: none; }
+body.pausa #codigo { display: block; animation: entra .3s ease; }
+#codigo .k { color: var(--mono-p); }
+#codigo .s { color: var(--mono-b); }
+#codigo .num { color: var(--mono-y); }
+#codigo .com { color: #7d9a89; }
+#codigo .stop { color: var(--mono-r); font-weight: 700; }
+
+/* ajustes de dev (simular, respirar) */
+#ajustes { position: fixed; right: 12px; top: calc(var(--safe-top) + 150px); z-index: 7; display: none; flex-direction: column; gap: 8px; background: var(--term); border: 2px solid #000; border-radius: 12px; box-shadow: 3px 4px 0 #000; padding: 10px; font: 12px/1 var(--mono); }
+#ajustes.ve { display: flex; }
+#ajustes button { font: 700 12px/1 var(--mono); color: var(--mono-g); background: var(--term-l); border: 1px solid #2c4a3a; border-radius: 8px; padding: 9px 10px; text-align: left; }
+#ajustes button.mal { color: var(--mono-r); }
+
+@media (max-width: 420px) {
+  .ver i { display: none; }
+}
+@media (max-width: 380px) {
+  #lg { top: calc(var(--safe-top) + 118px); }
+  #commit { top: calc(var(--safe-top) + 152px); }
+  .chica { gap: 5px; }
+  .chip { font-size: 14px; padding: 7px 8px 8px; }
+  .chip.ic { width: 34px; }
+  .btn.oro { min-width: 108px; padding: 13px 18px 14px; font-size: 22px; }
+}
+@media (min-width: 700px) {
+  #hud { left: 24px; right: 24px; grid-template-columns: minmax(0, 400px) 1fr; }
+  #lg { left: 24px; right: auto; max-width: 420px; }
+  #commit { left: auto; right: 24px; top: calc(var(--safe-top) + 120px); width: 420px; margin: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ver::after, .btn.dev.vivo { animation: none; }
+}
+</style>
+</head>
+<body class="intro">
+<canvas id="lienzo"></canvas>
+<div id="depurador"></div>
+
+<div id="hud">
+  <div class="tarjeta">
+    <img src="../jugadores/rorro.jpeg" alt="Rorro">
+    <div>
+      <div class="t1"><span id="h-tit">HOYO 15</span><small id="h-par">PAR 4</small></div>
+      <div class="t2"><span>RORRO</span><span class="beta">EN DESARROLLO</span><span class="yd" id="h-yd">— YD</span></div>
+    </div>
+  </div>
+  <div class="lado">
+    <div class="ver" id="ver"><i>cancha@</i><span id="ver-n">v1.0</span></div>
+    <div class="golpes"><small>GOLPES</small><b id="golpes">0</b></div>
+  </div>
+</div>
+<div id="lg"><b>LG</b><span id="lg-txt"></span></div>
+<div id="commit"></div>
+<div id="veredicto"></div>
+<pre id="codigo"></pre>
+
+<div id="abajo">
+  <div class="fila">
+    <button class="btn dev" id="revert" title="git revert: deshace la última versión de la cancha">↩ revert <span class="n" id="revert-n">1</span></button>
+    <button class="btn oro" id="pegar" disabled>PEGAR</button>
+    <button class="btn dev bp" id="bp" disabled title="En el aire: congela la pelota y le cambiás el destino">⏸ debug <span class="n" id="bp-n">1</span></button>
+  </div>
+  <div class="fila chica">
+    <button class="chip" data-hoyo="0">15</button>
+    <button class="chip" data-hoyo="1">16</button>
+    <button class="chip" data-hoyo="2">17</button>
+    <button class="chip" id="vista">LA CANCHA</button>
+    <button class="chip ic" id="sonido" aria-label="Sonido">🔊</button>
+    <button class="chip ic" id="engranaje" aria-label="Ajustes de dev">⚙︎</button>
+  </div>
+</div>
+
+<div id="ajustes">
+  <button id="sim-bueno">✓ simular tiro bueno</button>
+  <button id="sim-malo" class="mal">✗ simular tiro malo</button>
+  <button id="respira">~ respira: sí</button>
+</div>
+
+<div id="compila"></div>
+<button id="saltar">saltar ›</button>
+
+<script type="module" src="./rorro.js"></script>
+</body>
+</html>
