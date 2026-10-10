@@ -302,6 +302,22 @@ export function embocada() {
   osc('sine', 82.4, { at: 0.12, dur: 0.8, f2: 41, vol: 0.4, destino: limpio })
   ruido(0.8, { at: 0.12, f: 6000, f2: 800, q: 0.7, vol: 0.12, a: 0.01, destino: eco })
 }
+/** La cuenta del deploy del reloj (3, 2, 1): un bip de alarma que sube, con un glitch. */
+export function cuenta(n = 3) {
+  if (!ac) return
+  const f = { 3: 880, 2: 1046.5, 1: 1318.5 }[n] ?? 880
+  osc('square', f, { dur: 0.09, vol: 0.07, a: 0.002 })
+  osc('square', f * 1.5, { at: 0.11, dur: 0.06, vol: 0.05, a: 0.002 })
+  datos(3, { at: 0.05, vol: 0.04 })
+}
+/** El hoyo que se muda: el palo sale (un chupón que sube), vuela (aire) y cae en el lugar nuevo (un golpe seco). */
+export function hoyo(dur = 1.5) {
+  if (!ac) return
+  osc('sine', 180, { dur: 0.22, f2: 900, vol: 0.18, a: 0.004, destino: limpio })
+  ruido(dur * 0.5, { at: 0.3, f: 600, f2: 2400, q: 1.5, vol: 0.08, a: dur * 0.2 })
+  osc('sine', 140, { at: dur * 0.8, dur: 0.25, f2: 50, vol: 0.4, a: 0.002, destino: limpio })
+  metal(420, { at: dur * 0.8, vol: 0.08, dur: 0.4 })
+}
 export function tap() { if (!ac) return; osc('square', 1400, { dur: 0.03, vol: 0.05, a: 0.001 }); tecla() }
 /** El sobrevuelo: una pasada de aire grave (el resto lo hace la capa del servo, que sigue la cámara). */
 export function pasada(dur = 4) { if (!ac) return; ruido(dur, { f: 180, f2: 1400, q: 1.1, tipo: 'lowpass', vol: 0.07, a: dur * 0.45 }) }
