@@ -345,6 +345,8 @@ body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando 
 .mt-fila .mini.cam { padding: 0; overflow: hidden; background: #1d1a5c; }
 .mt-fila .mini.cam.e5 { background: var(--green-900); }
 .mt-fila .mini.cam img { display: block; width: 100%; height: 100%; }
+/* los datos del rival (CLÁSICO, equipo, SDGA, bananas): si no entran en una línea, siguen abajo en vez de cortarse */
+.mt-fila .rk-nombre small.mt-datos { white-space: normal; line-height: 1.55; }
 .mt-clasico { display: inline-block; margin-left: 2px; padding: 2px 5px 1px; font: 10px/1 var(--font-display); letter-spacing: .06em; color: var(--game-ink); background: var(--gold); border-radius: 5px; transform: rotate(-2deg); }
 @media (prefers-reduced-motion: reduce) {
   #cam, #cam *, #cam *::before, .cam-home *, .cam-sello { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
@@ -8444,18 +8446,18 @@ function pintarMatch() {
   $('#mt-pro').hidden = mtTab !== 'desafiar'
   $('#mt-pro').setAttribute('aria-pressed', String(mtPro))
   if (mtTab === 'desafiar') {
-    $('#mt-nota').textContent = `Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma. Mismo clima, viento y banderas para los dos.${hayBananas ? ' Antes de jugar elegís si va con bananas o por el honor.' : ''}`
+    $('#mt-nota').textContent = `Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma. Mismo clima, viento y banderas para los dos.${hayBananas ? ' Antes de jugar elegís si va con bananas o por el honor.' : ''}${camiseta.equipo ? ' ⚔️ CLÁSICO: es de la otra camiseta; si le ganás, suma 3 para tu equipo.' : ''}`
     if (!mtRivales) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudo cargar la lista. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; return }
     const q = $('#mt-buscar').value.trim().toLowerCase()
     const rs = mtRivales.filter((r) => !q || r.nombre.toLowerCase().includes(q))
     lista.innerHTML = rs.length ? rs.map((r) => {
-      // 👕 su camiseta y, si es la otra, el match es un CLÁSICO (vale 3 para tu equipo)
+      // 👕 su camiseta (el escudo y el nombre del equipo) y, si es la otra, el match es un CLÁSICO (vale 3 para tu equipo)
       const ce = camisetasDe.get(r.uid)
       const clasico = ce && camiseta.equipo && ce !== camiseta.equipo
-      const datosFila = [clasico ? '<span class="mt-clasico">⚔️ CLÁSICO</span>' : '', r.sdga ? '⛳ SDGA' : '', hayBananas && bananasDe(r.uid) ? `${BN}${bananasDe(r.uid).saldo}` : ''].filter(Boolean)
+      const datosFila = [clasico ? '<span class="mt-clasico">⚔️ CLÁSICO</span>' : '', ce ? (ce === 'dicky' ? 'Dicky' : 'Equipo&nbsp;5') : '', r.sdga ? '⛳&nbsp;SDGA' : '', hayBananas && bananasDe(r.uid) ? `${BN}${bananasDe(r.uid).saldo}` : ''].filter(Boolean)
       return `<li class="rk-fila mt-fila">
         ${ce ? `<span class="mini cam${ce === 'e5' ? ' e5' : ''}" aria-hidden="true"><img src="${EQUIPOS[ce].logo}" alt="" draggable="false"></span>` : `<span class="mini" aria-hidden="true">${esc(r.nombre.charAt(0).toUpperCase())}</span>`}
-        <span class="rk-nombre"><b>${esc(r.nombre)}</b>${datosFila.length ? `<small>${datosFila.join(' · ')}</small>` : ''}</span>
+        <span class="rk-nombre"><b>${esc(r.nombre)}</b>${datosFila.length ? `<small class="mt-datos">${datosFila.join(' · ')}</small>` : ''}</span>
         <button class="mt-btn${mtPro ? ' pro' : ''}" type="button" data-desafiar="${esc(r.uid)}">${mtPro ? `${gi('pro')}Desafiar` : 'Desafiar'}</button>
       </li>`
     }).join('') : `<li class="rk-vacio">${q ? 'Nadie con ese nombre.' : 'Todavía no hay a quién desafiar.'}</li>`
@@ -8481,16 +8483,16 @@ function pintarMatch() {
   const html = [
     sec('Te desafiaron', meToca.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.retador.alias)}${pro(d)}${tag(d)}</b><small>Ya jugó${vence(d)} · con ${esc(d.retador.emoji)} ${esc(apodoLimpio(d.retador.apodo))}</small></span>
+        <span class="rk-nombre"><b>${esc(d.retador.alias)}${camisetaMini(d.retador.uid)}${pro(d)}${tag(d)}</b><small>Ya jugó${vence(d)} · con ${esc(d.retador.emoji)} ${esc(apodoLimpio(d.retador.apodo))}</small></span>
         <span class="mt-acc"><button class="mt-btn oro" type="button" data-responder="${esc(d.id)}">Jugar</button>${hayBananas ? `<button class="mt-btn chico" type="button" data-rechazar="${esc(d.id)}">Rechazar</button>` : ''}</span>
       </li>`).concat(loJuego.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.retador.alias)}${pro(d)}${tag(d)}</b><small>Lo aceptaste: si no lo terminás, cuenta como LP</small></span>
+        <span class="rk-nombre"><b>${esc(d.retador.alias)}${camisetaMini(d.retador.uid)}${pro(d)}${tag(d)}</b><small>Lo aceptaste: si no lo terminás, cuenta como LP</small></span>
         <span class="mt-estado" title="Lo estás jugando">${gi('calendar')}</span>
       </li>`))),
     sec('Esperando que jueguen', espero.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.rival.alias)}${pro(d)}${tag(d)}</b><small>${d.estado === 'jugando' ? 'Lo empezaste: si no lo terminás, le llega como LP' : `Hiciste ${esc(golpesTxt(d.retador))}${d.estado === 'respondiendo' ? ' · lo está jugando' : vence(d)}`}</small></span>
+        <span class="rk-nombre"><b>${esc(d.rival.alias)}${camisetaMini(d.rival.uid)}${pro(d)}${tag(d)}</b><small>${d.estado === 'jugando' ? 'Lo empezaste: si no lo terminás, le llega como LP' : `Hiciste ${esc(golpesTxt(d.retador))}${d.estado === 'respondiendo' ? ' · lo está jugando' : vence(d)}`}</small></span>
         <span class="mt-estado" title="Esperando que juegue">${gi('calendar')}</span>
       </li>`)),
   ].join('')
@@ -8513,8 +8515,10 @@ function pintarRankingMatch(lista) {
   if (mtRkVista === 'equipos') {
     // ⚔️ el ranking por equipo: el Clásico de la semana, con los matches clásicos
     $('#mt-nota').textContent = 'Cada match que le ganás a uno de la otra camiseta vale 3 para tu equipo en el Clásico de la semana: con bananas, siempre; por el honor, sin LP y uno por pareja por día. Tu escudo, en el home: tocándolo, el pase.'
-    lista.innerHTML = `${vistas}<li class="mt-clasico-li"><div class="clasico" id="mt-clasico"></div></li>`
-    pintarClasico($('#mt-clasico'))
+    const listo = clasicoBase || clasicoMarcas
+    lista.innerHTML = `${vistas}${listo ? '<li class="mt-clasico-li"><div class="clasico" id="mt-clasico"></div></li>' : `<li class="rk-vacio">${clasicoMarcas === false ? 'No se pudo cargar el Clásico. Probá de nuevo en un rato.' : 'Cargando…'}</li>`}`
+    if (listo) pintarClasico($('#mt-clasico'), clasicoMarcas || [])
+    if (!clasicoCargando && Date.now() - clasicoCargadoEn > 30e3) cargarClasicoMatch()
     return
   }
   pintarRankingMatchLista(lista)
@@ -8541,7 +8545,7 @@ $('#mt-lista').addEventListener('click', (e) => {
   if (!b) return
   mtRkVista = b.dataset.rkv
   if (mtRkVista === 'bananas') cargarBananas().then(() => mtTab === 'ranking' && pintarMatch())
-  if (mtRkVista === 'equipos') cargarClasicoBase().then(() => mtTab === 'ranking' && mtRkVista === 'equipos' && pintarMatch())
+  if (mtRkVista === 'equipos') cargarClasicoMatch()
   pintarMatch()
 })
 function pintarRankingMatchLista(lista) {
@@ -9852,11 +9856,26 @@ async function cargarClasicoBase() {
   } catch { clasicoBase = null }
   return clasicoBase
 }
-function pintarClasico(el = $('#rk-clasico')) {
+// sin la base, el juego cuenta el Clásico con todas las vueltas: el ranking ya las tiene, MATCH las pide (con la lista
+// vacía daba 0 a 0). `clasicoMarcas`: null todavía no, false no se pudieron leer
+let clasicoMarcas = null, clasicoCargando = null, clasicoCargadoEn = 0
+function cargarClasicoMatch() {
+  clasicoCargando ??= (async () => {
+    if (await cargarClasicoBase()) return
+    const r = await R.leerMarcas().catch(() => null)
+    clasicoMarcas = r && !r.error ? r.marcas : false
+  })().finally(() => {
+    clasicoCargando = null
+    clasicoCargadoEn = Date.now()
+    if (!$('#match').hidden && mtTab === 'ranking' && mtRkVista === 'equipos') pintarMatch()
+  })
+  return clasicoCargando
+}
+function pintarClasico(el = $('#rk-clasico'), marcas = rkMarcas ?? []) {
   const ahora = Date.now()
   const base = clasicoBase
-  const c = base?.ahora ?? M.clasico(rkMarcas ?? [], M.lunesDe(ahora), equipoDe)
-  const antes = base ? { ...base.antes, desde: Date.parse(base.antes.semana ?? 0) || 0 } : M.clasico(rkMarcas ?? [], M.lunesDe(ahora, 1), equipoDe)
+  const c = base?.ahora ?? M.clasico(marcas, M.lunesDe(ahora), equipoDe)
+  const antes = base ? { ...base.antes, desde: Date.parse(base.antes.semana ?? 0) || 0 } : M.clasico(marcas, M.lunesDe(ahora, 1), equipoDe)
   const tot = c.dicky + c.e5
   const quedan = Math.ceil((M.lunesDe(ahora) + 7 * 864e5 - ahora) / 864e5)
   const va = c.ganador === 'dicky' ? 'Van ganando los Dicky' : c.ganador === 'e5' ? 'Va ganando el Equipo 5' : tot ? 'Van empatados' : 'Todavía no sumó nadie'
