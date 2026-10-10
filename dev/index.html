@@ -2195,7 +2195,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 286d9b7 · 10/10, 12:51 a. m.</span>
+  <span class="version" id="version">v b3bea7c · 10/10, 01:05 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2641,6 +2641,16 @@ let ronda = null, tiro = null, anim = null, drag = null
 let estela = []
 const cam = { cx: M.MUNDO.w / 2, cy: M.MUNDO.h / 2, esc: 1, rot: 0, sy: 300 }
 let obj = { ...cam }
+/**
+ * La luz de las canchas dibujadas viene de arriba a la izquierda del dibujo (las sombras de los árboles caen abajo a la
+ * derecha). Pasa un corrimiento pensado con la cámara derecha (x a la derecha, y para abajo) a la pantalla con el giro
+ * de la cámara: así el sol y las sombras y brillos que dibuja el juego (pelota, hoyo, bandera, carrito) caen siempre
+ * para el mismo lado que las del dibujo, también en el 16, que se juega con la cancha dada vuelta.
+ */
+function aLuz(dx, dy) {
+  const c = Math.cos(cam.rot), s = Math.sin(cam.rot)
+  return [dx * c - dy * s, dx * s + dy * c]
+}
 let velCam = 2
 
 function medir() {
@@ -5733,8 +5743,7 @@ function dibujarClima() {
   // izquierda de la cancha: las sombras de los árboles caen abajo a la derecha). Gira con la cámara, así siempre
   // coincide con las sombras: jugando hacia arriba del dibujo queda arriba a la izquierda; hacia abajo, abajo a la derecha
   if (id === 'soleado') {
-    const c = Math.cos(cam.rot), s = Math.sin(cam.rot)
-    const ux = (s - c) / Math.SQRT2, uy = -(s + c) / Math.SQRT2 // el (-1, -1) del dibujo, en la pantalla
+    const [ux, uy] = aLuz(-Math.SQRT1_2, -Math.SQRT1_2) // de donde viene la luz, en la pantalla
     const sx = W / 2 + ux * W * 0.6, sy = H / 2 + uy * H * 0.6
     const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, Math.max(W, H) * 0.55)
     g.addColorStop(0, 'rgba(255,236,170,.42)')
@@ -6036,7 +6045,7 @@ function cajonTee(h) {
 /** El hoyo dibujado encima del dibujo (vectorial, nítido): 3 veces el real (y más grande que la pelota), con borde claro. */
 /**
  * El hoyo, como uno de verdad: el corte del green (un borde finito de tierra), adentro oscuro con la sombra del lado de
- * la luz (arriba a la izquierda), la pared de enfrente iluminada y el vaso blanco que asoma. De lejos, chiquito y con
+ * la luz (arriba a la izquierda del dibujo: gira con la cámara, `aLuz`), la pared de enfrente iluminada y el vaso blanco que asoma. De lejos, chiquito y con
  * un borde claro para que se lea (antes tenía un mínimo de 5,4 px y con la cancha entera parecía un pozo).
  */
 function hoyoNitido([x, y]) {
@@ -6049,6 +6058,10 @@ function hoyoNitido([x, y]) {
     return
   }
   ctx.save()
+  // dibujado con la cámara derecha y girado con ella: la luz, del lado de la del dibujo
+  ctx.translate(x, y)
+  ctx.rotate(cam.rot)
+  x = 0; y = 0
   // el corte: un borde de tierra y, del lado de enfrente, el pasto del borde que toma luz
   ctx.fillStyle = 'rgba(52,40,24,.6)'
   ctx.beginPath(); ctx.arc(x, y, r * 1.07, 0, 7); ctx.fill()
@@ -6126,7 +6139,7 @@ function marcasCaida(h) {
 const TELA = { roja: ['#c8352e', '#f4eeda'], blanca: ['#f4eeda', '#14402a'], azul: ['#2f5fd0', '#f4eeda'] }
 /**
  * La bandera, como una de verdad: el palo blanco con su volumen y su sombra en el green (la luz viene de arriba a la
- * izquierda), una bolita en la punta y el paño rectangular que flamea para donde sopla el viento: más estirado y más
+ * izquierda del dibujo: la sombra gira con la cámara, `aLuz`), una bolita en la punta y el paño rectangular que flamea para donde sopla el viento: más estirado y más
  * rápido cuanto más sopla; sin viento, caído. Cuando la pelota le pega al palo, tiembla.
  */
 let golpeBandera = null // { n, t0 }: el palo que tiembla
@@ -6144,9 +6157,10 @@ function bandera([x, y], n, actual, color = 'blanca') {
   ctx.save()
   ctx.globalAlpha = actual ? 1 : 0.55
   ctx.lineCap = 'round'
-  // la sombra del palo y del paño en el green: para abajo a la derecha
+  // la sombra del palo y del paño en el green: para abajo a la derecha del dibujo
+  const [shx, shy] = aLuz(alto * 0.5, alto * 0.32)
   ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 2 * k
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + alto * 0.5, y + alto * 0.32); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + shx, y + shy); ctx.stroke()
   // el palo: un borde oscuro finito, blanco y un lado en sombra
   ctx.strokeStyle = 'rgba(12,43,28,.45)'; ctx.lineWidth = 3.4 * k
   ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(px, py); ctx.stroke()
@@ -6381,8 +6395,10 @@ function cuerpoCarrito(x, y, ang, L, carroceria = ['#1f7a45', '#2f9b5d']) {
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate(ang) // la trompa mira a +x
-  ctx.fillStyle = 'rgba(8,26,16,.3)' // sombra
-  ctx.beginPath(); ctx.roundRect(-L / 2 + 3, -A / 2 + 4, L, A, A * 0.3); ctx.fill()
+  // la sombra: para abajo a la derecha del dibujo (no del carrito: antes giraba con él), pasada a lo girado
+  const [shx, shy] = aLuz(3, 4), ca = Math.cos(ang), sa = Math.sin(ang)
+  ctx.fillStyle = 'rgba(8,26,16,.3)'
+  ctx.beginPath(); ctx.roundRect(-L / 2 + shx * ca + shy * sa, -A / 2 - shx * sa + shy * ca, L, A, A * 0.3); ctx.fill()
   ctx.fillStyle = '#121212' // ruedas
   for (const wx of [-L * 0.3, L * 0.28]) for (const s of [-1, 1]) {
     ctx.beginPath(); ctx.roundRect(wx - L * 0.1, s * A * 0.5 - A * 0.09, L * 0.2, A * 0.18, 2); ctx.fill()
@@ -6958,7 +6974,7 @@ function golfistaTiraPalo() { golfista.tira = { t0: performance.now(), dir: -Mat
  * La pelota, como una de golf de verdad: blanca, con sus dimples (los hoyuelos, en panal, más chatos hacia el borde
  * como en una esfera, cada uno con su sombrita del lado de la luz), la luz de arriba a la izquierda con su brillo, el
  * borde un poco más gris y una sombra suave en el piso. Los dimples van en una textura que se arma una vez por color y
- * gira a medida que la pelota avanza (rueda); la luz y la sombra quedan fijas. En la nieve, naranja.
+ * gira a medida que la pelota avanza (rueda); la luz y la sombra no ruedan: van del lado de la luz del dibujo (`aLuz`). En la nieve, naranja.
  */
 const SPRITE_PELOTA = new Map()
 function spritePelota(color) {
@@ -6988,13 +7004,14 @@ function pelota(p, alt, alfa = 1, pantalla = null, escala = 1) {
   const [x, y] = pantalla ?? w2s(p)
   const r = radioPelota() * (1 + alt / 50) * escala
   const yb = y - alt * levante()
-  // la sombra en el piso: suave, abajo a la derecha (en el aire, más chica y más clara)
+  // la sombra en el piso: suave, abajo a la derecha del dibujo (en el aire, más chica y más clara)
   const lejos = Math.min(1, alt / 30)
   ctx.globalAlpha = alfa * (0.4 - 0.2 * lejos)
-  const sg = ctx.createRadialGradient(x + r * 0.35, y + r * 0.45, 0, x + r * 0.35, y + r * 0.45, r * (1.05 - 0.25 * lejos))
+  const [shx, shy] = aLuz(r * 0.35, r * 0.45)
+  const sg = ctx.createRadialGradient(x + shx, y + shy, 0, x + shx, y + shy, r * (1.05 - 0.25 * lejos))
   sg.addColorStop(0, 'rgba(0,0,0,.9)'); sg.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = sg
-  ctx.beginPath(); ctx.ellipse(x + r * 0.35, y + r * 0.45, r * (1.05 - 0.25 * lejos), r * (0.75 - 0.2 * lejos), 0, 0, 7); ctx.fill()
+  ctx.beginPath(); ctx.ellipse(x + shx, y + shy, r * (1.05 - 0.25 * lejos), r * (0.75 - 0.2 * lejos), cam.rot, 0, 7); ctx.fill()
   ctx.globalAlpha = alfa
   // la pelota con sus dimples (gira con lo que avanza)
   const color = (replay ? replay.clima : ronda?.clima)?.id === 'nieve' ? '#ff7a1a' : '#ffffff' // en la nieve, la pelota naranja (si no, no se ve)
@@ -7002,8 +7019,9 @@ function pelota(p, alt, alfa = 1, pantalla = null, escala = 1) {
   ctx.save(); ctx.translate(x, yb); ctx.rotate(gira)
   ctx.drawImage(spritePelota(color), -r, -r, 2 * r, 2 * r)
   ctx.restore()
-  // la luz: el brillo arriba a la izquierda y el borde de abajo a la derecha, más gris
-  const luz = ctx.createRadialGradient(x - r * 0.38, yb - r * 0.42, r * 0.05, x - r * 0.1, yb - r * 0.1, r * 1.05)
+  // la luz: el brillo arriba a la izquierda del dibujo y el borde de enfrente, más gris
+  const [b1x, b1y] = aLuz(-r * 0.38, -r * 0.42), [b2x, b2y] = aLuz(-r * 0.1, -r * 0.1)
+  const luz = ctx.createRadialGradient(x + b1x, yb + b1y, r * 0.05, x + b2x, yb + b2y, r * 1.05)
   luz.addColorStop(0, 'rgba(255,255,255,.95)')
   luz.addColorStop(0.28, 'rgba(255,255,255,.25)')
   luz.addColorStop(0.62, 'rgba(255,255,255,0)')
