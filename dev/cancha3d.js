@@ -542,11 +542,11 @@ const TEX_VASO = texturaVaso()
  */
 // (2026-10-10: la pelota, Rorro, los monos y las banderas al doble, con el hoyo igual; después todo un 20 % más chico,
 // hoyo incluido, para que el green se vea más grande: la pelota sigue grande al lado del hoyo)
-const RADIO_BOLA = 0.27 // arcade: grande al lado del muñeco, como en el Mario Golf
+const RADIO_BOLA = 0.23 // arcade: grande al lado del muñeco, como en el Mario Golf (un 15 % más chica que la del doble)
 const RADIO_TAZA = 0.42
 const HONDO_TAZA = 0.72 // (que la pelota grande quede adentro; de arriba se ve en el fondo)
 const ESCALA_BANDERA = 1.6 // la bandera entera (el palo, la tela, la punta), arcade
-const PALO_R = 0.04 * ESCALA_BANDERA // el palo de la bandera (con la pelota en el green, la bandera se saca: salta y queda acostada)
+const PALO_R = 0.04 * ESCALA_BANDERA // el palo de la bandera (con la pelota en el green, la bandera se saca)
 let pinActual = null
 const ALTO_PALO = 4.4 // (en el palo, sin la escala; de alto se ve ALTO_PALO × ESCALA_BANDERA)
 const ALTO_BANDERA = ALTO_PALO * ESCALA_BANDERA
@@ -622,21 +622,20 @@ function moverBanderas(dt, st) {
     tela.geometry.computeVertexNormals()
     g.userData.tiembla = Math.max(0, g.userData.tiembla - dt)
     const tiembla = Math.sin(g.userData.tiembla * 40) * g.userData.tiembla * 0.12
-    // con la pelota en el green (apuntando el putt, rodando o adentro), la bandera se saca, como en la tele: el palo
-    // salta del hoyo y queda acostado en el green, de costado en la pantalla (no tapa la línea ni la pelota). Si la pelota
-    // sale del green, vuelve al hoyo
-    const afuera = !!r && i === r.idx && !mudanza && (st.enPutt || st.tiro?.modo === 'putt' || (caida.on && caida.idx === i))
-    if (afuera && !g.userData.fuera) g.userData.sacaYaw = Math.PI / 2 - cam.yaw
-    g.userData.fuera = clamp((g.userData.fuera ?? 0) + (afuera || (mudanza?.idx === i && g.userData.fuera) ? dt : -dt) / 0.5, 0, 1)
+    // con la pelota en el green (apuntando el putt, rodando o adentro), la bandera se saca, como en la tele: sale para
+    // arriba del hoyo, se achica y desaparece (no queda tirada en el green). Está solo con la pelota afuera del green: si
+    // sale del green, vuelve a bajar al hoyo
+    const afuera = !!r && i === r.idx && (st.enPutt || st.tiro?.modo === 'putt' || (caida.on && caida.idx === i))
+    g.userData.fuera = clamp((g.userData.fuera ?? 0) + (afuera ? dt : -dt) / 0.35, 0, 1)
     const sacada = g.userData.fuera
+    palo.visible = sacada < 1
+    palo.rotation.y = -v.ang + Math.sin(est.t * 0.8 + i) * 0.06 * fuerza
+    palo.rotation.z = sacada ? 0 : tiembla
     if (sacada > 0) {
-      const e = easeIO(sacada), a = g.userData.sacaYaw, lejos = (RADIO_TAZA + 0.25 + HONDO_TAZA * ESCALA_BANDERA) * e
-      palo.rotation.set(0, a, (Math.PI / 2) * e)
-      palo.position.set(-Math.cos(a) * lejos, PALO_R * e + Math.sin(Math.PI * sacada) * 1.3, Math.sin(a) * lejos)
-    } else {
-      palo.rotation.y = -v.ang + Math.sin(est.t * 0.8 + i) * 0.06 * fuerza
-      palo.rotation.z = tiembla
-    }
+      const e = easeIO(sacada)
+      palo.position.set(0, e * (HONDO_TAZA * ESCALA_BANDERA + 2.2), 0)
+      palo.scale.setScalar(ESCALA_BANDERA * Math.max(0.001, 1 - e))
+    } else palo.scale.setScalar(ESCALA_BANDERA)
     // el hoyo que se juega, marcado: de cerca (en el putt, o a tiro del green) late con dos aros que se abren
     const { pulsos } = g.userData
     const cerca = !!r && i === r.idx && !r.terminada && st.estado !== 'resultado' && st.estado !== 'fin' && (st.enPutt || dist(r.pelota, h.pin) < 60)
@@ -1577,7 +1576,7 @@ export function empezarHoyo(ronda) {
   terminarBarrido()
   caida.on = false; caida.tiro = null; festejo = null
   mudanza = null; aviso = 0
-  for (const g of banderas) { g.userData.fuera = 0; g.userData.palo.position.set(0, 0, 0); g.userData.palo.rotation.set(0, 0, 0); g.userData.taza.scale.setScalar(1); g.userData.aro.scale.setScalar(1) }
+  for (const g of banderas) { g.userData.fuera = 0; g.userData.palo.visible = true; g.userData.palo.scale.setScalar(ESCALA_BANDERA); g.userData.palo.position.set(0, 0, 0); g.userData.palo.rotation.set(0, 0, 0); g.userData.taza.scale.setScalar(1); g.userData.aro.scale.setScalar(1) }
   juego.ver = [1, 0]; juego.historial = []; juego.poder = { revert: 1, bp: 1 }; juego.proximo = null
   est.bumps = []
   ponerSkins('clasico', 'clasico')
