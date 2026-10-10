@@ -621,4 +621,10 @@ Rorro mandó los dibujos de cada clima para que vayan tal cual. El 7/10 los hab�
 - **Sin tintes**: ningún clima lleva el velo de color encima (`TINTE_CLIMA` todo en null; antes la lluvia tenía uno de 6% y la lluvia intensa uno de 28%). Siguen los efectos que se mueven: el sol que brilla, las sombras de las nubes, la lluvia, los rayos y los copos.
 - Las flechitas de caída del green van claras solo en la lluvia intensa, que tiene el green oscuro. En la lluvia nueva el green es más claro y van oscuras, como en los demás.
 - **El sol, del lado de las sombras** (Rorro: "los rayos de sol deberían venir del lado correcto"). En el dibujo de sol las sombras de los árboles caen abajo a la derecha, así que la luz viene de arriba a la izquierda de la cancha. El brillo con los rayos estaba fijo arriba a la derecha de la pantalla. Ahora sale de esa dirección del dibujo pasada a la pantalla con el giro de la cámara (`cam.rot`): en el 15 y el 17, que se juegan hacia arriba del dibujo, queda arriba a la izquierda; en el 16, que se juega hacia abajo, abajo a la derecha. Siempre coincide con las sombras, también mientras la cámara gira.
+- **Las sombras del juego, también** (Rorro: "tiene sentido"). Lo que el juego dibuja con luz tenía la sombra fija abajo a la derecha de la pantalla, así que en el 16 quedaba al revés que las del dibujo. Ahora todo pasa por `aLuz(dx, dy)`, que gira con la cámara un corrimiento pensado con la cámara derecha (la luz de arriba a la izquierda del dibujo). Lo usan el sol y estas cuatro cosas:
+  - la pelota: la sombra en el piso y el brillo (los dimples siguen rodando);
+  - el hoyo: se dibuja girado con la cámara (la sombra del borde de atrás y la pared de enfrente iluminada);
+  - la sombra del palo de la bandera;
+  - el carrito (el de Marcos y el de Juanpa): la sombra iba en el sistema del carrito y giraba con él; ahora cae siempre para el mismo lado de la cancha.
+  El golfista y los monos no tienen sombra con dirección. Probado en un putt del 15 (cámara derecha: sombra abajo a la derecha) y del 16 (dada vuelta: arriba a la izquierda, como las del dibujo).
 
