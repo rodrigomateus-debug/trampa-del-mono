@@ -540,12 +540,14 @@ const TEX_VASO = texturaVaso()
  * pelota que el motor mete ya está colgando del borde; la que pasa de largo, pasa rozando. Es un agujero de verdad: el
  * green no se dibuja adentro (con el stencil: la boca marca y el terreno se saltea), y adentro está el vaso.
  */
-const RADIO_BOLA = 0.17 // arcade: grande al lado del muñeco, como en el Mario Golf
+const RADIO_BOLA = 0.34 // arcade: grande al lado del muñeco, como en el Mario Golf (2026-10-10: el doble; el hoyo, igual)
 const RADIO_TAZA = 0.53
-const HONDO_TAZA = 0.55 // (bajito, como en los juegos: la pelota del fondo se ve)
-const PALO_R = 0.04 // el palo de la bandera (queda puesto: la pelota cae al lado)
+const HONDO_TAZA = 0.9 // (que la pelota grande quede adentro; de arriba se ve en el fondo)
+const ESCALA_BANDERA = 2 // la bandera entera (el palo, la tela, la punta), arcade: el doble que antes; el hoyo no
+const PALO_R = 0.04 * ESCALA_BANDERA // el palo de la bandera (en el putt queda puesto; cuando la pelota entra, salta y queda acostado)
 let pinActual = null
-const ALTO_PALO = 4.4 // arcade: alta, que se vea de lejos (y en el putt queda puesta)
+const ALTO_PALO = 4.4 // (en el palo, sin la escala; de alto se ve ALTO_PALO × ESCALA_BANDERA)
+const ALTO_BANDERA = ALTO_PALO * ESCALA_BANDERA
 const TAM_TELA = [1.25, 0.82]
 const banderas = HOYOS.map((h) => {
   const g = new THREE.Group()
@@ -569,6 +571,7 @@ const banderas = HOYOS.map((h) => {
   tela.position.set(0.04, ALTO_PALO - TAM_TELA[1] / 2 - 0.04, 0)
   for (const o of [vara, anillos, punta, tela]) o.castShadow = true
   palo.add(vara, anillos, punta, tela)
+  palo.scale.setScalar(ESCALA_BANDERA)
   // el borde del hoyo (blanco, que se ve aunque el green esté lejos) y el pulso que lo marca cuando la pelota anda cerca
   const aro = new THREE.Mesh(new THREE.RingGeometry(RADIO_TAZA * 0.99, RADIO_TAZA * 1.1, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#f6f3e8', transparent: true, opacity: 0.95, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 }))
   aro.position.y = 0.014
@@ -617,8 +620,16 @@ function moverBanderas(dt, st) {
     tela.geometry.computeVertexNormals()
     g.userData.tiembla = Math.max(0, g.userData.tiembla - dt)
     const tiembla = Math.sin(g.userData.tiembla * 40) * g.userData.tiembla * 0.12
-    palo.rotation.y = -v.ang + Math.sin(est.t * 0.8 + i) * 0.06 * fuerza
-    palo.rotation.z = tiembla
+    // la pelota adentro: el palo salta del hoyo y queda acostado en el green (la pelota grande no entra al lado del palo)
+    const sacada = g.userData.saca != null ? clamp((tReal - g.userData.saca) / 0.5, 0, 1) : 0
+    if (sacada) {
+      const e = easeIO(sacada), a = g.userData.sacaYaw, lejos = (RADIO_TAZA + 0.25 + HONDO_TAZA * ESCALA_BANDERA) * e
+      palo.rotation.set(0, a, (Math.PI / 2) * e)
+      palo.position.set(-Math.cos(a) * lejos, PALO_R * e + Math.sin(Math.PI * sacada) * 1.6, Math.sin(a) * lejos)
+    } else {
+      palo.rotation.y = -v.ang + Math.sin(est.t * 0.8 + i) * 0.06 * fuerza
+      palo.rotation.z = tiembla
+    }
     // el hoyo que se juega, marcado: de cerca (en el putt, o a tiro del green) late con dos aros que se abren
     const { pulsos } = g.userData
     const cerca = !!r && i === r.idx && !r.terminada && st.estado !== 'resultado' && st.estado !== 'fin' && (st.enPutt || dist(r.pelota, h.pin) < 60)
@@ -661,15 +672,15 @@ escena.add(bola)
 const sombraBola = new THREE.Mesh(new THREE.CircleGeometry(1, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.32, depthWrite: false }))
 sombraBola.renderOrder = 3
 escena.add(sombraBola)
-const ALTO_TEE = 0.11 // (la pelota apoyada arriba del tee)
-const teePeg = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.016, ALTO_TEE + 0.015, 8).translate(0, (ALTO_TEE + 0.015) / 2, 0), new THREE.MeshStandardMaterial({ color: '#f4eeda', roughness: 0.5 }))
+const ALTO_TEE = 0.22 // (la pelota apoyada arriba del tee; el doble, con la pelota)
+const teePeg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.032, ALTO_TEE + 0.03, 8).translate(0, (ALTO_TEE + 0.015) / 2, 0), new THREE.MeshStandardMaterial({ color: '#f4eeda', roughness: 0.5 }))
 teePeg.visible = false
 escena.add(teePeg)
 // las marcas de salida de cada hoyo, como en el juego de siempre y en cualquier cancha: dos bochas azules, dos blancas y
 // dos amarillas, a los costados de donde se sale (de atrás para adelante, sobre el cajón). Las del tee que te toca, un
 // poco más grandes
 const COLOR_BOCHA = { azul: '#2f5fd0', blanca: '#f4f2ea', amarilla: '#f2d335' }
-const RADIO_BOCHA = 0.3, SEP_BOCHA = 2.8
+const RADIO_BOCHA = 0.6, SEP_BOCHA = 3.6 // (el doble, como Rorro y la pelota; más separadas, que Rorro entre)
 const geoBocha = new THREE.SphereGeometry(RADIO_BOCHA, 18, 12)
 const bochas = []
 for (const h of HOYOS) {
@@ -839,7 +850,7 @@ const PALOS = {
   putter: { L: 0.8, lie: (66 * Math.PI) / 180, x: 0.04 },
 }
 const CABEZA_PALO = 1.7
-const ESCALA_RORRO = 2.25 // arcade: más grande que de verdad (los palos con él), que se vea el swing
+const ESCALA_RORRO = 4.5 // arcade: más grande que de verdad (los palos con él), que se vea el swing (2026-10-10: el doble)
 const rorro = (() => {
   const g = new THREE.Group()
   g.visible = false
@@ -1014,7 +1025,7 @@ function crearMono() {
   escena.add(g)
   return { g, ultimo: null, dir: 0, salto: 0, partes: ['pata-1', 'pata1', 'brazo-1', 'brazo1'].map((n) => g.getObjectByName(n)) }
 }
-const ESCALA_MONO = 2.5 // arcade: grandes, que se vean venir
+const ESCALA_MONO = 5 // arcade: grandes, que se vean venir (2026-10-10: el doble)
 const monos3d = Array.from({ length: 8 }, crearMono)
 function moverMonos3d(dt, st) {
   const lista = st.ronda?.monos ?? []
@@ -1262,7 +1273,7 @@ function poseDelJuego(st) {
   const r = st.ronda
   // el resultado: el hoyo que se jugó (el motor ya pasó al siguiente, o terminó), de arriba para ver la pelota en el
   // fondo, abajo del cartel
-  if (r && st.estado === 'resultado' && (caida.on || pinVivo)) { const hp = caida.on ? caida.pin : pinVivo; return encuadrar(enPiso(hp), cam.yaw, 1.0, -0.45, [enPiso(hp, 0.3), enPiso(hp, ALTO_PALO)], { Dmin: 9, Dmax: 16, k: 2.4 }) }
+  if (r && st.estado === 'resultado' && (caida.on || pinVivo)) { const hp = caida.on ? caida.pin : pinVivo; return encuadrar(enPiso(hp), cam.yaw, 1.0, -0.45, [enPiso(hp, 0.3), enPiso(hp, 3)], { Dmin: 9, Dmax: 22, k: 2.4 }) }
   if (!r || r.terminada) return { piv: V3(W / 2, 0, H / 2 - 10), yaw: -Math.PI / 2, pitch: 1.05, yB: 0, D: 380, k: 0.8 }
   const h = M.hoyoActual(r), pin = h.pin
   const t = st.tiro
@@ -1286,12 +1297,21 @@ function poseDelJuego(st) {
     const enVuelo = t.fase === 'vuelo'
     return encuadrar(B.clone(), yaw, enVuelo ? 0.82 : 0.95, enVuelo ? -0.15 : -0.25, [enPiso(cae, 0), ...(enVuelo ? [] : anilloPuntos(t.pos, 6))], { Dmin: enVuelo ? 30 : 22, k: enVuelo ? 3.2 : 2.4 })
   }
+  // 🪄 el Dibuje maestro (el golpe del Mago, también copiado por Rorro): la cámara se aleja y mira más desde arriba,
+  // para ver todo lo que le da el carry (hasta el hoyo y un poco más) y dibujar el vuelo entero, con lugar a los
+  // costados para las curvas. Mientras dibujás no se mueve (ver `cuadro`)
+  if (st.dibuje && (st.estado === 'apuntar' || st.estado === 'cambio')) {
+    const L = Math.min(st.dibuje.max, dist(r.pelota, pin) + 15) + 6
+    const fin = [r.pelota[0] + Math.cos(alPin) * L, r.pelota[1] + Math.sin(alPin) * L]
+    const medio = [r.pelota[0] + Math.cos(alPin) * L * 0.55, r.pelota[1] + Math.sin(alPin) * L * 0.55]
+    return encuadrar(enPiso(r.pelota), alPin, 1.2, -0.5, [enPiso(fin), ...anilloPuntos(medio, 0, L * 0.45, L * 0.3, alPin), ...anilloPuntos(r.pelota, 5)], { Dmin: 24, Dmax: 620, k: 2.6 })
+  }
   // apuntando (o esperando): la pelota abajo, mirando al hoyo, ~75 yd para adelante (o el hoyo); tirando para atrás,
   // se abre lo justo para ver dónde pica (en el MODO PRO, hasta el hoyo o 200 yd, como el juego)
   const piv = enPiso(r.pelota)
   if (st.enPutt) {
     const d = dist(r.pelota, pin)
-    return encuadrar(piv, alPin, 1.02, -0.36, [enPiso(pin, ALTO_PALO * 0.5), ...anilloPuntos(pin, Math.max(3, d * 0.45)), ...anilloPuntos(r.pelota, 3.5)], { Dmin: 12.5, Dmax: 80, k: 2.6 })
+    return encuadrar(piv, alPin, 1.02, -0.36, [enPiso(pin, 2.2), ...anilloPuntos(pin, Math.max(3, d * 0.45)), ...anilloPuntos(r.pelota, 3.5)], { Dmin: 12.5, Dmax: 80, k: 2.6 })
   }
   const d = dist(r.pelota, pin)
   const puntos = [enPiso([r.pelota[0] + Math.cos(alPin) * Math.min(d + 8, 34), r.pelota[1] + Math.sin(alPin) * Math.min(d + 8, 34)])]
@@ -1301,6 +1321,8 @@ function poseDelJuego(st) {
     else {
       const largo = Math.max(1.5 * a.disp.carry * a.alcance, 1.5), ancho = Math.max(a.alcance * Math.tan(Math.min(1.5 * a.disp.ang, 1.1)), 1.5)
       puntos.push(...anilloPuntos(a.destino, 0, largo + 4, ancho + 3, a.plan.cuerda))
+      // la comba del Mago: también la panza de la curva (la mitad de la Bézier: sale para afuera y vuelve)
+      if (a.plan.control) { const b = r.pelota, c = a.plan.control, f = a.destino; puntos.push(enPiso([0.25 * b[0] + 0.5 * c[0] + 0.25 * f[0], 0.25 * b[1] + 0.5 * c[1] + 0.25 * f[1]])) }
     }
   }
   return encuadrar(piv, st.drag ? cam.yaw : alPin, 0.84, -0.36, puntos, { Dmin: 10.5, k: st.drag ? 2.2 : 2.6 })
@@ -1532,7 +1554,7 @@ export function empezarHoyo(ronda) {
   terminarBarrido()
   caida.on = false; caida.tiro = null; festejo = null
   mudanza = null; aviso = 0
-  for (const g of banderas) { g.userData.palo.position.y = 0; g.userData.taza.scale.setScalar(1); g.userData.aro.scale.setScalar(1) }
+  for (const g of banderas) { g.userData.saca = null; g.userData.palo.position.set(0, 0, 0); g.userData.palo.rotation.set(0, 0, 0); g.userData.taza.scale.setScalar(1); g.userData.aro.scale.setScalar(1) }
   juego.ver = [1, 0]; juego.historial = []; juego.poder = { revert: 1, bp: 1 }; juego.proximo = null
   est.bumps = []
   ponerSkins('clasico', 'clasico')
@@ -1871,9 +1893,17 @@ function empezarCaida(t, pin, idx) {
     v[0] = ux * vr2 + tx * vt; v[1] = uy * vr2 + ty * vt
   }
   Object.assign(caida, { on: true, tiro: t, idx, pin: [...pin], piso, p, v, y: Math.max(y, -HONDO_TAZA + rb), vy: Math.min(vy, 0), fondo: false })
+  sacarBandera(idx)
+}
+/** La pelota entra: el palo salta del hoyo y queda acostado en el green, del lado de atrás (para la cámara). */
+function sacarBandera(idx) {
+  const g = banderas[idx]
+  if (!g || g.userData.saca != null) return
+  g.userData.saca = tReal
+  g.userData.sacaYaw = Math.PI / 2 - cam.yaw // (acostado de costado en la pantalla: se lee que está en el piso y no tapa la pelota)
 }
 function avanzarCaida(dt) {
-  const R = RADIO_TAZA, rb = RADIO_BOLA, pared = R - rb, fondoY = 0.012 - HONDO_TAZA + rb, minPalo = PALO_R + rb
+  const R = RADIO_TAZA, rb = RADIO_BOLA, pared = R - rb, fondoY = 0.012 - HONDO_TAZA + rb
   const c = caida, n = Math.max(1, Math.ceil(dt * 240)), h = dt / n
   for (let i = 0; i < n; i++) {
     let d = Math.hypot(c.p[0], c.p[1])
@@ -1888,19 +1918,12 @@ function avanzarCaida(dt) {
     c.p[0] += c.v[0] * h; c.p[1] += c.v[1] * h
     c.y += c.vy * h
     if (c.y < apoyo) { c.y = apoyo; if (c.vy < 0) c.vy = 0 }
-    // adentro: las paredes del vaso y el palo de la bandera
+    // adentro: las paredes del vaso (el palo de la bandera ya saltó del hoyo: ver `sacarBandera`)
     d = Math.hypot(c.p[0], c.p[1])
-    if (c.y < rb * 0.6) {
-      if (d > pared) {
-        const nx = c.p[0] / d, ny = c.p[1] / d, vr = c.v[0] * nx + c.v[1] * ny
-        if (vr > 0) { c.v[0] = (c.v[0] - 1.45 * vr * nx) * 0.85; c.v[1] = (c.v[1] - 1.45 * vr * ny) * 0.85 }
-        c.p[0] = nx * pared; c.p[1] = ny * pared
-      }
-      if (d < minPalo) {
-        const nx = d > 1e-6 ? c.p[0] / d : 1, ny = d > 1e-6 ? c.p[1] / d : 0, vr = c.v[0] * nx + c.v[1] * ny
-        if (vr < 0) { c.v[0] -= 1.4 * vr * nx; c.v[1] -= 1.4 * vr * ny }
-        c.p[0] = nx * minPalo; c.p[1] = ny * minPalo
-      }
+    if (c.y < rb * 0.6 && d > pared) {
+      const nx = c.p[0] / d, ny = c.p[1] / d, vr = c.v[0] * nx + c.v[1] * ny
+      if (vr > 0) { c.v[0] = (c.v[0] - 1.45 * vr * nx) * 0.85; c.v[1] = (c.v[1] - 1.45 * vr * ny) * 0.85 }
+      c.p[0] = nx * pared; c.p[1] = ny * pared
     }
     // el fondo: pica (cada vez menos) y se frena
     if (c.y < fondoY) {
@@ -1918,7 +1941,7 @@ function cercaDelHoyo(B, t, pin, alt) {
   const dx = B.x - pin[0], dz = B.z - pin[1], d = Math.hypot(dx, dz)
   if (d > boca + 0.1 || alt > 0.05) return B
   let dv = d
-  if (t?.vuelta && !t.vuelta.hecha) dv = R - rb * 0.55 // la corbata: el centro un poco adentro del borde
+  if (t?.vuelta && !t.vuelta.hecha) dv = R - rb * 0.2 // la corbata: montada en el labio (adentro, la pelota grande tocaría el palo)
   else if ((!t || t.fase === 'quieta') && d >= boca - 0.01) dv = R + rb * 0.1 // colgando del borde (el motor la deja en la boca)
   const k = d > 1e-6 ? dv / d : 1
   const piso = alturaEn(pin)
@@ -2029,7 +2052,8 @@ export function cuadro(dtR, st) {
   }
   // la cámara (la intro y los sobrevuelos van por su ruta)
   if (!pose?.ruta) pose = _prueba.pose ?? poseDelJuego({ ...st, bola: B })
-  moverCamara(dtR)
+  // (dibujando el vuelo con el dedo, la cámara queda quieta: lo dibujado es lo que se ve)
+  if (!st.dibuje?.dibujando) moverCamara(dtR)
   bola.scale.setScalar(escalaVista(B))
   // Rorro: parado atrás de la pelota (de la que pega; mientras vuela, donde pegó), con el swing del juego
   const gs = st.golfista
