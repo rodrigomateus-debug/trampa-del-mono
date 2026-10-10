@@ -1137,10 +1137,8 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-lista { list-style: none; margin: 0; padding: 0; display: grid; }
 .rk-fila { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 4px; border-top: 1px solid var(--border-subtle); }
 .rk-fila.yo { background: rgba(232, 195, 74, .3); border-radius: 10px; }
-/* 🪞 EL ORIGINAL: jugó con su propio player. Reborde dorado a la izquierda (en tu fila, que ya es dorada, verde), la carita
-   con aro dorado y el sello: dorado, borde tinta, apenas torcido como un sello de goma */
-.rk-fila.propio { border-radius: 10px; box-shadow: inset 4px 0 0 var(--gold), inset 0 0 0 1.5px rgba(232, 195, 74, .55); background: linear-gradient(90deg, rgba(232, 195, 74, .16), transparent 70%); }
-.rk-fila.yo.propio { background: rgba(232, 195, 74, .3); box-shadow: inset 4px 0 0 var(--green-700), inset 0 0 0 1.5px rgba(28, 86, 56, .45); }
+/* 🪞 EL ORIGINAL: jugó con su propio player. La carita con aro dorado y el sello: dorado, borde tinta, apenas torcido como
+   un sello de goma (desde el rediseño del 10/10 la fila ya no se enmarca: con media lista de originales, no se leía) */
 .mini.propio { border-color: var(--gold); box-shadow: 0 0 0 2px var(--green-900); }
 .rk-nombre small.rk-sub { display: flex; align-items: center; min-width: 0; overflow: visible; }
 .rs-player.original { box-shadow: inset 0 0 0 2.5px var(--gold); }
@@ -1160,6 +1158,44 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-score { font-family: var(--font-display); font-size: 20px; text-align: right; }
 .rk-score small { display: block; font-family: var(--font-body); font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; }
 .rk-tiempo { font-family: var(--font-display); font-size: 17px; font-variant-numeric: tabular-nums; text-align: right; min-width: 7.5ch; }
+/* 📋 el ranking de vueltas (rediseño 2026-10-10): agrupado por golpes, con un encabezado por score (lo que manda) y adentro
+   las vueltas por tiempo (el desempate). La fila: puesto (el podio con medalla) · la carita del player · el nombre con sus
+   sellos y abajo con quién jugó · el tiempo. Una sola columna de números: el nombre se lleva el ancho */
+.rk-regla { margin: -4px 0 0; font-size: 13px; line-height: 1.35; color: var(--text-muted); }
+.rk-regla b { color: var(--green-900); }
+.rk-grupo { display: flex; align-items: center; gap: 8px; padding: 16px 2px 6px; }
+.rk-grupo:first-child { padding-top: 0; }
+.rk-grupo::after { content: ''; flex: 1; height: 2px; border-radius: 2px; background: var(--border-subtle); }
+.rk-grupo.salto { margin-top: 8px; border-top: 2px dashed var(--border-subtle); }
+.rk-grupo small { font: 800 12px/1 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.rk-par { min-width: 46px; height: 32px; padding: 3px 9px 0; box-sizing: border-box; display: inline-grid; place-items: center; border-radius: 9px; border: 2px solid var(--game-ink); background: var(--gold); color: var(--green-900); font: 22px/1 var(--font-display); box-shadow: var(--game-shadow-xs); }
+.rk-par.bajo { background: #2e7d4f; color: var(--cream); }
+.rk-par.sobre { background: var(--cream-dark); }
+.rk-vuelta { grid-template-columns: 30px minmax(0, 1fr) auto; padding: 9px 6px 9px 2px; }
+.rk-grupo + .rk-vuelta { border-top: 0; }
+.rk-vuelta .rk-pos { font-size: 19px; }
+.rk-vuelta .rk-pos.podio { width: 30px; height: 30px; padding-top: 2px; box-sizing: border-box; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--game-ink); font-size: 17px; }
+.rk-vuelta .podio.p1 { background: var(--gold); }
+.rk-vuelta .podio.p2 { background: #d6dadd; }
+.rk-vuelta .podio.p3 { background: #dfa36a; }
+.rk-vuelta .rk-quien { gap: 10px; }
+.rk-vuelta .mini { width: 32px; height: 32px; font-size: 17px; }
+.rk-vuelta .rk-nombre { gap: 3px; }
+/* el nombre no se corta ni se aplasta: si no entra con sus sellos, los sellos bajan; si no entra solo, va en dos líneas */
+.rk-vuelta .rk-nombre .linea { flex-wrap: wrap; row-gap: 3px; }
+/* los sellos van juntos (si bajan, bajan todos) */
+.rk-vuelta .sellos { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+.rk-vuelta .sellos .cam-mini, .rk-vuelta .sellos .s9 { margin-left: 0; }
+.rk-vuelta .rk-nombre .linea b { flex: 0 0 auto; max-width: 100%; font-size: 16px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.rk-vuelta .rk-nombre small { font-size: 12.5px; }
+.rk-vuelta .rk-sub .con { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.rk-vuelta .rk-tiempo { min-width: 0; }
+@media (max-width: 360px) {
+  .rk-vuelta { gap: 8px; }
+  .rk-vuelta .rk-quien { gap: 8px; }
+  .rk-vuelta .mini { width: 28px; height: 28px; font-size: 15px; }
+  .rk-vuelta .rk-tiempo { font-size: 15px; }
+}
 /* ── match ── */
 #match { background: rgba(12, 43, 28, .97); }
 .mt-buscar { height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border-subtle); background: #fff; color: var(--green-900); font: 600 15px var(--font-body); }
@@ -2557,7 +2593,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   <div class="card tarjeta ranking">
     <header>
       <span class="teja" id="rk-teja"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4"/><path d="M16 17.5v4"/><path d="M11 26.5h10l-1-5h-8z" style="fill:var(--gi-f)"/><path d="M10 5.5h12v6a6 6 0 0 1-12 0z" style="fill:var(--gi-a)"/></g></svg></span>
-      <div><span class="kicker" style="color: var(--text-muted)">Ranking · golpes, después tiempo</span><div class="quien" id="rk-tit">GENERAL</div></div>
+      <div><span class="kicker" style="color: var(--text-muted)">Ranking</span><div class="quien" id="rk-tit">GENERAL</div></div>
     </header>
     <div class="clasico" id="rk-clasico" hidden></div>
     <div class="rk-modo" id="rk-modo" role="tablist" aria-label="Normal o PRO">
@@ -2569,6 +2605,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <button type="button" role="tab" data-ambito="sdga" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><ellipse cx="16" cy="25.5" rx="10" ry="3" style="fill:var(--gi-f)"/><ellipse cx="12" cy="25.5" rx="2.4" ry="1" style="fill:var(--gi-s)" stroke="none"/><path d="M12 25.5V4.5"/><path d="M12 5l12 4.5L12 14z" style="fill:var(--gi-a)"/></g></svg>SDGA</button>
     </div>
     <div class="rk-tabs" id="rk-tabs" role="tablist" aria-label="Ranking"></div>
+    <p class="rk-regla">Gana el que hace <b>menos golpes</b>. Si empatan, <b>el más rápido</b>.</p>
     <ol class="rk-lista" id="rk-lista"></ol>
     <p class="rk-conteo" id="rk-conteo" hidden></p>
     <p class="extras" id="rk-fuente"></p>
@@ -10682,20 +10719,37 @@ function pintarRanking(error = false) {
   const base = baseRanking()
   const lista = M.armarRanking(base, j ? j.apodo : null)
   rkVista = lista
-  // el sello del SDGA: en el Mundial, al lado del nombre de los socios
-  // ⛳ y el del sábado 9 AM, en las firmadas a esa hora
-  const sello = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '') + camisetaMini(m.uid) + (M.esSabado9(Date.parse(m.fecha)) ? '<span class="s9" title="Sábado 9 AM" aria-label="firmada un sábado a las 9">🌅</span>' : '')
-  // 🪞 el que juega con su propio player: reborde dorado, la carita con aro y el sello EL ORIGINAL
-  const fila = (m, salto) => { const pr = esPropio(m); return `<li class="rk-fila tocable${esYo(m) ? ' yo' : ''}${pr ? ' propio' : ''}${salto ? ' salto' : ''}" data-k="${lista.indexOf(m)}" tabindex="0" role="button" aria-label="Ver la vuelta de ${esc(m.usuario)}${pr ? ', con su propio player' : ''}">
-      <span class="rk-pos">${m.pos}</span>
-      <span class="rk-quien">${j ? `<span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span>${pr ? `<small class="rk-sub">${selloOriginal()}</small>` : ''}</span>` : `<span class="mini${publico(m).misterio ? ' misterio' : ''}${pr ? ' propio' : ''}" aria-hidden="true">${publico(m).emoji}</span><span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span><small class="rk-sub">${pr ? selloOriginal() : `con ${esc(publico(m).apodo.replace(/ \(Đ\)$/, ''))}`}</small></span>`}</span>
-      <span class="rk-score">${M.formatoPar(m.vsPar)}<small>${m.golpes} golpes</small></span>
+  // el sello del SDGA (en el Mundial, los socios) y la camiseta: al lado del nombre, son de quien juega
+  const sellos = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '') + camisetaMini(m.uid)
+  // ⛳ el del sábado 9 AM: abajo, con la vuelta (las firmadas a esa hora)
+  const s9 = (m) => (M.esSabado9(Date.parse(m.fecha)) ? '<span class="s9" title="Sábado 9 AM" aria-label="firmada un sábado a las 9">🌅</span>' : '')
+  // 📋 agrupado por golpes: un encabezado por score (lo que manda) y adentro las vueltas por tiempo (el desempate)
+  const grupo = (m, salto = false) => `<li class="rk-grupo${salto ? ' salto' : ''}" aria-hidden="true"><span class="rk-par ${m.vsPar < 0 ? 'bajo' : m.vsPar > 0 ? 'sobre' : ''}">${M.formatoPar(m.vsPar)}</span><small>${m.golpes} ${m.golpes === 1 ? 'golpe' : 'golpes'}</small></li>`
+  // la fila: puesto (el podio con medalla) · la carita del player · el nombre con sus sellos y abajo con quién jugó · el tiempo
+  // 🪞 el que juega con su propio player: la carita con aro dorado y el sello EL ORIGINAL en lugar de "con …"
+  const fila = (m, salto = false) => {
+    const pr = esPropio(m)
+    const p = publico(m)
+    const con = j ? '' : `con ${esc(p.apodo.replace(/ \(Đ\)$/, ''))}`
+    // (en la solapa de un player no hay "con …": el 🌅 sube al lado del nombre)
+    const sol = s9(m)
+    const abajo = pr ? selloOriginal() + sol : con ? `<span class="con">${con}</span>${sol}` : ''
+    return `<li class="rk-fila rk-vuelta tocable${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}" data-k="${lista.indexOf(m)}" tabindex="0" role="button" aria-label="${m.pos}°, ${esc(m.usuario)}${esYo(m) ? ' (vos)' : ''}: ${M.formatoPar(m.vsPar)}, ${m.golpes} golpes, en ${M.formatoTiempo(m.ms)}${pr ? ', con su propio player' : con ? `, ${con}` : ''}. Ver la vuelta">
+      <span class="rk-pos${m.pos <= 3 ? ` podio p${m.pos}` : ''}">${m.pos}</span>
+      <span class="rk-quien">${j ? '' : `<span class="mini${p.misterio ? ' misterio' : ''}${pr ? ' propio' : ''}" aria-hidden="true">${p.emoji}</span>`}<span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sellos(m) || (!abajo && sol) ? `<span class="sellos">${sellos(m)}${abajo ? '' : sol}</span>` : ''}</span>${abajo ? `<small class="rk-sub">${abajo}</small>` : ''}</span></span>
       <span class="rk-tiempo">${M.formatoTiempo(m.ms)}</span>
-    </li>` }
+    </li>`
+  }
   const top = lista.slice(0, 50)
   const mio = lista.find(esYo)
-  const filas = top.map((m) => fila(m, false))
-  if (mio && mio.pos > top.length) filas.push(fila(mio, true))
+  const filas = []
+  top.forEach((m, i) => { if (m.golpes !== top[i - 1]?.golpes) filas.push(grupo(m)); filas.push(fila(m)) })
+  // la tuya, si quedó fuera de los 50: separada (la raya punteada va en su encabezado, o en ella si es del mismo score)
+  if (mio && mio.pos > top.length) {
+    const otro = mio.golpes !== top.at(-1)?.golpes
+    if (otro) filas.push(grupo(mio, true))
+    filas.push(fila(mio, !otro))
+  }
   $('#rk-lista').innerHTML = filas.length ? filas.join('') : `<li class="rk-vacio">Todavía nadie firmó una vuelta${rkPro ? ' PRO' : ''}${j ? ` con ${esc(j.apodo)}` : ''}. Sé el primero.</li>`
   $('#rk-fuente').textContent = (top.some(esPropio) ? 'EL ORIGINAL: jugó con su propio player. ' : '') + (rkPro ? 'Ranking PRO: solo las vueltas en MODO PRO (sin líneas punteadas). ' : '') + (app && rkCompartido
     ? `${rkAmbito === 'sdga' ? 'Ranking SDGA: solo los socios del club.' : 'Ranking mundial: todos los que juegan, en la SDGApp o acá.'} Entra cada tarjeta firmada (LP y sin firmar no cuentan).`

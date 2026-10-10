@@ -586,6 +586,15 @@ El análisis (bot de 120 vueltas con la física de verdad): ~4 tramos por vuelta
 - La hoja del MATCH ya no se sale de la pantalla en celus de 360 (una sola columna que no se estira; las pestañas achican).
 - **El carrito, minimalista** ("hay un MONTÓN de información"): afuera el minimapa. En FÁCIL quedan los dos almohadones y, en el medio, la cara de Marcos (LLEVAME: maneja él; con aro dorado y el volante que se mueve mientras maneja) y la bocina; sin velocímetro. En PRO, el volante y los pedales, con la cara, la bocina y el velocímetro arriba. El RESET aparece solo si te trabaste ("¿TRABADO?", late). FÁCIL/PRO y la cámara, guardados atrás de un engranaje (se abre al tocarlo y se cierra al elegir). Sin la flecha alrededor del carrito: alcanza con la línea dorada. El relato, más corto.
 
+## 📋 El ranking, que se lea (2026-10-10, pedido de Rorro · en dev/)
+Pedido de Rorro (con una captura del ranking Mundial en la SDGApp): "habría que rediseñar cómo se ven los rankings para que se lea y entienda mejor". En la captura los nombres salían cortados ("El …", "Ro…", "Lib…"): el score y el tiempo eran dos columnas de números grandes y, con el sello SDGA y la camiseta al lado, al nombre le quedaban ~30 px. Y no se veía por qué el 4º con −6 iba abajo del 1º con −6.
+- **Agrupado por golpes.** Un encabezado por score (la ficha `−6`, verde bajo par, dorada en el par, crema sobre par, y "5 GOLPES") y adentro las vueltas por tiempo: se ve de un vistazo quiénes empataron y que el tiempo desempata. Arriba de la lista, la regla en castellano: "Gana el que hace **menos golpes**. Si empatan, **el más rápido**." (el kicker ya no dice "golpes, después tiempo").
+- **La fila**: puesto · la carita del player · el nombre con sus sellos (SDGA en el Mundial, la camiseta) y abajo "con Demetrio López" (o el sello ★ EL ORIGINAL) · el tiempo. Una sola columna de números: el nombre se lleva el ancho; si no entra al lado de sus sellos, baja a una segunda línea en vez de cortarse. El 🌅 del sábado 9 AM va abajo, con la vuelta.
+- **El podio**: 1º, 2º y 3º en una medalla (oro, plata, bronce). Tu fila sigue dorada; si quedaste fuera de los 50, va al final con su encabezado y la raya punteada.
+- **EL ORIGINAL** ya no enmarca la fila (en el SDGA, media lista era original y no se leía nada): queda la carita con aro dorado y el sello.
+- Para el lector de pantalla, cada fila dice puesto, nombre, score, golpes, tiempo y con quién; los encabezados no se leen (ya está en la fila).
+- Solo en `dev/` (el juego publicado sigue con el de antes) hasta que Rorro diga.
+
 ## 🎴 La tarjeta final, más linda entre el tiempo y COMPARTIR (2026-10-10, pedido de Rorro)
 - **Los monos:** una tira con la cara del mono y tres datos (MALOS en rojo si hubo, BUENOS en verde, ROBOS en rojo; en cero, apagados). Abajo, las notas (el Sábado 9 AM, el LP).
 - **La firma:** un sello de goma verde "FIRMADA ✍️" (apenas torcido; "SIN FIRMAR" en rojo) y al lado el récord en una pastilla: "TU RÉCORD −4", o dorada con estrella si es nuevo ("¡RÉCORD PERSONAL! antes −1"; "El Marshall te puso 110 neto" sin firmar).
