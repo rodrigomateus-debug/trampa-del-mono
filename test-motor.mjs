@@ -1,7 +1,8 @@
 // node test-motor.mjs — chequeos del motor de La Trampa del Mono.
 import assert from 'node:assert/strict'
 import * as M from './motor.js'
-import { RULETA, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEOS, PLANTEL } from './plantel.js'
+import { RULETA, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS, PLANTEL, EN_PRUEBA } from './plantel.js'
+import * as C3 from './campo3d.js' // 🥃 la cancha de Rorro (sin three)
 
 const campo = M.crearCampo()
 // para probar la física sola: sin monos cruzando y con greens planos
@@ -2441,6 +2442,38 @@ ok('🛺 el carrito divertido: mini turbo del derrape, cáscaras (trompo), bocin
   assert.ok(!M.chocarRacha(r, 12) && r.racha === 0)
   const otro = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), racha: 2 }
   assert.ok(!M.chocarRacha(otro, 12))
+})
+
+ok('🥃 Rorro: en el mazo con candado (una vuelta con cada uno), su habilidad, no en la Ruleta; su cancha 3D no mueve los greens', () => {
+  const rorro = PLANTEL.find((j) => j.apodo === 'Rorro')
+  assert.ok(EN_PRUEBA.includes('Rorro') && DESBLOQUEOS.includes(DESBLOQUEO_RORRO))
+  assert.equal(M.habilidadDe(rorro).id, 'codigo')
+  assert.ok(!RULETA.pool.some((j) => j.apodo === 'Rorro'))
+  // los del mazo, sin la Ruleta, sin el pase de Fito y sin él
+  assert.ok(!DESBLOQUEO_RORRO.con.some((a) => ['La Ruleta', 'Fito (5)', 'Rorro'].includes(a)))
+  const casi = DESBLOQUEO_RORRO.con.filter((a) => a !== 'Taiu (Đ)')
+  let p = M.progresoDesbloqueo(DESBLOQUEO_RORRO, {}, casi)
+  assert.equal(p.listo, false); assert.equal(p.hechos, casi.length)
+  assert.equal(M.progresoDesbloqueo(DESBLOQUEO_RORRO, { 'Taiu (Đ)': 3 }, casi).listo, true) // una firmada también cuenta
+  // Fito cuenta con cualquiera de sus dos cartas
+  const sinFito = DESBLOQUEO_RORRO.con.filter((a) => a !== 'Fito (Đ)')
+  assert.equal(M.progresoDesbloqueo(DESBLOQUEO_RORRO, {}, [...sinFito, 'Fito (5)']).listo, true)
+  assert.equal(M.progresoDesbloqueo(DESBLOQUEO_RORRO, {}, sinFito).listo, false)
+  // la cancha de Rorro (campo3d.js): el relieve de los greens va para donde cae la pelota y los greens no se mueven
+  const C = C3
+  for (const h of M.HOYOS) {
+    let cos = 0, n = 0
+    for (let y = h.pin[1] - 20; y < h.pin[1] + 20; y++) for (let x = h.pin[0] - 20; x < h.pin[0] + 20; x++) {
+      if ([[0, 0], [2, 0], [-2, 0], [0, 2], [0, -2]].some(([dx, dy]) => C.letraBase([x + dx, y + dy]) !== 'g')) continue
+      const z = (a, b) => C.muestra(C.CAPA.relieve, a, b), g = [z(x + 1, y) - z(x - 1, y), z(x, y + 1) - z(x, y - 1)], v = M.caidaEn(h, [x, y])
+      cos += -(g[0] * v[0] + g[1] * v[1]) / (Math.hypot(...g) * Math.hypot(...v) + 1e-9); n++
+    }
+    assert.ok(n > 50 && cos / n > 0.85, `hoyo ${h.n}: ${cos / n}`)
+  }
+  C.est.bumps = [{ id: 1, cx: 0.04, cy: 0.02, r: 0, tipo: 2, vx: 6, vy: 3, desde: 1, hasta: 1 }]
+  for (const h of M.HOYOS) assert.ok(Math.hypot(...C.desplazo(h.pin, true)) < 1e-9)
+  assert.ok(Math.hypot(...C.desplazo([110, 230], true)) > 0.5) // lejos de los greens, sí se mueve
+  C.est.bumps = []
 })
 
 console.log('\nTodo verde.')

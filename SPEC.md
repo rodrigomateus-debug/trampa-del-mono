@@ -653,3 +653,47 @@ El prototipo pasa a jugarse igual que la Trampa del Mono, con el motor del juego
 - **El sonido**: el dron (servo, aire y zumbido) suena solo en la compilación, los sobrevuelos y la vista LA CANCHA; jugando, el sonido del juego (`sonido.js`: la carga, el latido, golpe, piques por terreno, rodar, viento, lluvia, la tensión de los monos). Lo cibernético queda para lo de dev: el deploy, el revert, el breakpoint y el commit. La canción del final se busca al lado de `sonido.js` (antes, al lado de la página: desde `dev/rorro/` no la encontraba).
 - **Superpoderes**: los dos siguen. En el ⏸ debug la cámara se va casi cenital y se dibuja hasta dónde se puede correr el destino, a dónde iba, la mira del destino nuevo con cuántas yardas lo corriste y el resto del vuelo.
 - La tarjeta final de la vuelta cuenta versiones, bugs y reverts, con ▶ OTRA VUELTA.
+
+## Rorro, un player más: su cancha en 3D adentro del juego (2026-10-10, a prueba en dev/)
+
+Rorro deja de ser un prototipo suelto: es una carta del mazo, con su habilidad, y se juega como cualquiera (el HUD,
+la goma, el latido, el MODO PRO, LG, los monos, el reloj, la tarjeta, el ranking, el match). Lo único distinto es que
+su cancha se dibuja en 3D (`cancha3d.js`, three.js de `intro/assets/vendor/`, que se carga solo cuando juega él).
+- **El candado**: Rorro arranca bloqueado. Se desbloquea terminando **una vuelta con cada uno del mazo** (firmada o no,
+  ganes o pierdas; Fito cuenta con cualquiera de sus dos cartas; la Ruleta no cuenta). La carta con candado muestra
+  la grilla de caritas: con quién ya jugaste y con quién te falta. Queda en el teléfono (`datos.jugados`, y se
+  recupera de tus vueltas de la base con tu usuario). Al completar, el logro y el anuncio ("Jugar con Rorro"). Para
+  probar en dev/: `?rorro=1` (o `=0`). No es secreto: en el ranking sale como cualquiera, y en un match te pueden
+  desafiar con él aunque no lo tengas (como Taiu). No sale en la Ruleta (su cancha es otra).
+- **La habilidad, "La cancha en código"**: la cancha se rehace en cada tiro **mientras vuela la pelota**. Soltado en
+  el latido (perfecto o bueno), se aprueba: se abre la calle, se arreglan los bugs, vuelve una skin prolija. Si no,
+  cambios del cliente: dos o tres ondas que mueven toda la cancha, dos pedidos (correr un árbol, agrandar un bunker,
+  más onda a la calle), una skin rara y uno o dos bugs simulados. La onda sale de donde pegaste y la grilla del motor
+  se hornea mientras pasa: antes de que pique, la física ya juega en la versión nueva. Los greens y alrededor no se
+  mueven nunca (`CAPA.quieta`); en el putt no cambia nada. Cada hoyo arranca en la v1.0.
+- **Los poderes de dev** (uno de cada por hoyo), en un solo botón abajo a la derecha (con la versión de la cancha en
+  el cartelito): **⏸ DEBUG** con la pelota en el aire (se congela, la cámara se va arriba, arrastrás la cancha para
+  correr el destino hasta un 38% de lo que le falta, y ▶ SEGUIR) y **↩ REVERT** apuntando (la versión anterior; la
+  pelota va con su pedazo de cancha, sin cambiar de lie). Lo único "de terminal" es una línea chiquita en la pausa.
+- **Cómo se ve**: la cámara, más de arriba que de atrás (entre la tele y el juego de siempre), se arma con un pivote
+  fijo en la pantalla y la distancia justa para que entre lo que hace falta (apuntando, ~35 yd adelante; tirando para
+  atrás se abre hasta dónde pica, o hasta el hoyo en el PRO; en el aire sigue a la pelota y a dónde cae; en el putt,
+  el green entero). Todo se mueve suave. La goma, el latido, la línea, el óvalo y los cartelitos son los del juego,
+  dibujados arriba con la perspectiva (`w2s` y el arrastre pasan por la cámara 3D cuando juega Rorro).
+- **La pelota** es del tamaño de una de verdad (de lejos se agranda lo justo para que se vea, 3 px) y en la salida
+  está arriba de un tee (que queda ahí). En el aire tiene su sombra en el piso y un **trazador** como el de la tele;
+  el vuelo sube rápido y cae más parado (mismo alto que el motor). **El hoyo** es del tamaño de uno real; como la boca
+  del motor es más grande, cerca del hoyo todo se achica hacia el centro: la pelota que entra se ve caer en la taza.
+- **Los greens**, como los de verdad: corte fino cruzado, el collar alrededor y el relieve sale de las caídas del motor
+  (por Poisson: la pendiente es la caída; coincide en un 88-95%), un poco arriba de la cancha y bajando suave. Las
+  flechitas de la caída son las del juego, sobre el green 3D.
+- **Rorro**, como en la foto: gorra negra, barba, chomba bordó con su tejido, pantalón negro, zapatillas negras con
+  suela blanca, guante blanco en la izquierda y el reloj. El swing es el del juego (la potencia de la goma es el
+  backswing; al soltar baja, pega y termina), con las manos en el plano del swing, la muñeca que se quiebra y los
+  brazos con IK; con el palo apoyado, la cabeza del palo queda justo atrás de la pelota (driver, hierro, wedge, putter).
+- **La intro** (la primera vez de cada vuelta, se salta tocando): la cancha dibujada de siempre, de arriba como el
+  juego; una onda la pasa a una grilla de neón con el contorno de cada cosa, y de la grilla se levanta la cancha 3D
+  mientras la cámara baja. Después, el sobrevuelo de cada hoyo (del green al tee). El dron suena solo ahí; jugando,
+  el sonido del juego, y lo cibernético (más bajo) en las versiones y los poderes.
+- Los climas, la nieve en las copas, los charcos, la lluvia, los rayos y los monos, como en el prototipo.
+- Sin WebGL, Rorro juega en la cancha 2D (sin la habilidad). Para probar sin placa de video: `?rapido` en dev/.

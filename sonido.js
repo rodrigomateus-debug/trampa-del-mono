@@ -4,7 +4,7 @@
 // monos, viento… Todo pasa por un master con mute (se recuerda en el teléfono).
 // Celu en silencio: por defecto el audio web respeta la tecla de silencio, así que el juego no suena. Si el jugador
 // toca 🔊 para prenderlo, se fuerza el modo "reproducción" (suena aunque el celu esté en silencio, como un video).
-const CANCION = 'intro/assets/trampa-del-mono.mp3'
+const CANCION = new URL('intro/assets/trampa-del-mono.mp3', import.meta.url).href // al lado de este archivo (también lo usa dev/rorro)
 const COMPAS = 1.3285, C0 = 0.92
 const c = (n) => C0 + COMPAS * n
 const CLAVE = 'sdga-trampa-sonido'
