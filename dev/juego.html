@@ -3417,7 +3417,11 @@ function soltarSwipeTito() {
   const largo = Math.hypot(dx, dy)
   if (largo < 22) return
   const kmh = Math.min(M.FISICA.vientoMax, (largo / (Math.min(W, H) * 0.45)) * M.FISICA.vientoMax)
-  const [wx, wy] = s2wVec(dx, dy) // (de la pantalla a la cancha: también en la 3D de Rorro, si le copió a Tito)
+  // de la pantalla a la cancha. En la 3D de Rorro (si le copió a Tito), con cómo se ve la cancha en la pelota que vuela
+  // (a su altura): con la del lugar de salida, que con la cámara siguiendo a la pelota queda lejos o detrás de la cámara,
+  // el swipe salía dado vuelta
+  const J = modo3d() ? r3d.jacobianoInvBola() : null
+  const [wx, wy] = J ? [J[0] * dx + J[1] * dy, J[2] * dx + J[3] * dy] : s2wVec(dx, dy)
   M.rafagaTito(ronda, tiro, Math.atan2(wy, wx), kmh)
   rafagasTito.push({ ux: dx / largo, uy: dy / largo, k: kmh / M.FISICA.vientoMax, t0: performance.now() })
   S.soplo(kmh / M.FISICA.vientoMax)
@@ -5921,7 +5925,7 @@ function dibujar3d() {
   }
   pintarPoderRorro()
   if (ronda && !ronda.terminada) {
-    const ang = angPantalla(ronda.pelota, ronda.viento.ang)
+    const ang = tiro && estado === 'tiro' ? r3d.anguloEnBola(ronda.viento.ang) : angPantalla(ronda.pelota, ronda.viento.ang) // (en la pelota: la que vuela, si vuela)
     const f = $('#v-flecha')
     if (Math.abs((f._ang ?? 99) - ang) > 0.01) { f.style.transform = `rotate(${ang}rad)`; f._ang = ang }
   }
