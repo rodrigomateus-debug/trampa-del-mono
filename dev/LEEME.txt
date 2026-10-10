@@ -1,2 +1,2 @@
 Copia del juego para probar en el dev de la SDGApp (que apunta /trampa a esta carpeta).
-Hoy es igual al juego publicado (la raíz), con la camiseta, el carrito nuevo de Marcos, EL ORIGINAL en el ranking, la nieve nueva (con su dibujo, 1 de cada 20) y cada clima con su cancha. Sin Google (la SDGApp de dev en modo DEV) se juega el MATCH DE PRUEBA; suelto: dev/?probar=match.
+Hoy es igual al juego publicado (la raíz), con la camiseta, el carrito nuevo de Marcos, EL ORIGINAL en el ranking, la nieve nueva (con su dibujo, 1 de cada 20) y cada clima con su cancha. En dev/rorro/, la cancha de Rorro en 3D, que ya se juega como el juego. Sin Google (la SDGApp de dev en modo DEV) se juega el MATCH DE PRUEBA; suelto: dev/?probar=match.
