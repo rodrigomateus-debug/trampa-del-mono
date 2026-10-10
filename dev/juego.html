@@ -1840,7 +1840,6 @@ body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
 #reloj-rorro.aviso .rr-arco { stroke: #ff5a4a; filter: drop-shadow(0 0 5px rgba(255, 90, 74, .9)); }
 #reloj-rorro.aviso .rr-txt { color: #ffb3a8; }
 #reloj-rorro.aviso .rr-seg { animation: rr-glitch .25s steps(2) infinite; }
-#reloj-rorro.espera .rr-seg { animation: rr-glitch .12s steps(2) infinite; }
 #reloj-rorro.deploy { animation: rr-deploy .7s cubic-bezier(.2, 1.6, .4, 1); }
 #reloj-rorro.deploy.ok .cinta { color: var(--gold); }
 #reloj-rorro.deploy.mal .cinta { color: #ff8a7a; }
@@ -1850,7 +1849,7 @@ body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
 /* los últimos segundos antes del deploy: el borde de la pantalla titila en neón */
 body.aviso-deploy::after { content: ''; position: fixed; inset: 0; z-index: 29; pointer-events: none; box-shadow: inset 0 0 0 3px rgba(56, 242, 200, .85), inset 0 0 46px rgba(56, 242, 200, .35); animation: aviso-borde .3s steps(2) infinite; }
 @keyframes aviso-borde { 50% { box-shadow: inset 0 0 0 2px rgba(255, 79, 216, .7), inset 0 0 30px rgba(255, 79, 216, .25); } }
-@media (prefers-reduced-motion: reduce) { #reloj-rorro.aviso, #reloj-rorro.aviso .rr-seg, #reloj-rorro.espera .rr-seg, #reloj-rorro.deploy, body.aviso-deploy::after { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #reloj-rorro.aviso, #reloj-rorro.aviso .rr-seg, #reloj-rorro.deploy, body.aviso-deploy::after { animation: none; } }
 /* con Rorro, las habilidades que le copia a otro tienen sus botones a la izquierda (a la derecha están sus poderes) */
 body.modo-rorro #pancho, body.modo-rorro #deme-btn, body.modo-rorro #ninja-btn { right: auto; left: 16px; }
 body.modo-rorro #mago-golpes { right: 108px; justify-content: flex-start; }
@@ -5959,11 +5958,11 @@ const LG_RORRO = {
   cliente: ['Cambios del cliente. Otra vez.', '"Un cambiecito nomás", dijo el cliente.', 'Deploy un viernes a la tarde. Qué podía salir mal.'],
   hoyo: ['¡Se mudó el hoyo!', 'El cliente quería la bandera más a la izquierda.', 'Movieron el hoyo. Así no se puede, Rorro.'],
 }
-// ── ⏱ 🥃 el reloj de Rorro: cada 10 s su cancha se rehace (un deploy). Corre jugando (apuntando y con la pelota andando);
-// en la pausa del DEBUG, el REVERT, la banda del hoyo o mientras la cancha cambia, espera. En el cero, con la pelota
-// quieta, sale ya (la pelota y Rorro van con su pedazo de cancha; en el green, además, se muda el hoyo); con la pelota
-// en el aire, también (la cancha se rehace mientras vuela); si estás apuntando con el dedo o la pelota está rodando,
-// espera en cero (titilando) a que sueltes o a que pare ──
+// ── ⏱ 🥃 el reloj de Rorro: cada 10 s su cancha se rehace (un deploy), pase lo que pase: apuntando, con el dedo en la
+// pantalla, dibujando, con la pelota en el aire o rodando (la idea es que sea dinámico: no se puede frenar). Solo espera
+// lo que no se juega: la banda del hoyo, la pausa del DEBUG, el REVERT o una animación (el mono, el perro). Con la pelota
+// quieta y sin el dedo, la pelota y Rorro van con su pedazo de cancha; en el green,
+// además, se muda el hoyo ──
 const relojR = { quedan: 10, seg: null, pintado: '' }
 function reiniciarRelojRorro() { relojR.quedan = r3d?.RELOJ.cada ?? 10; relojR.seg = null }
 function relojRorroCuadro(dt) {
@@ -5972,43 +5971,41 @@ function relojRorroCuadro(dt) {
   if (el.hidden === ver) el.hidden = !ver
   if (!ver) { r3d?.avisar(0); document.body.classList.remove('aviso-deploy'); return }
   const R = r3d.RELOJ
-  const juega = ronda.t0 != null && !r3d.ocupado() && (estado === 'apuntar' || estado === 'tiro' || estado === 'swing')
+  // (cuenta también mientras la cancha cambia: el próximo sale a los 10 s del anterior, no a los 10 s de que terminó)
+  const juega = ronda.t0 != null && !r3d.enIntro() && (estado === 'apuntar' || estado === 'tiro' || estado === 'swing' || estado === 'cambio')
   if (juega) relojR.quedan = Math.max(0, relojR.quedan - dt)
-  if (juega && relojR.quedan <= 0) {
-    const vuela = estado === 'tiro' && tiro?.modo === 'full' && tiro.fase === 'vuelo' && !tiro.embocada && tiro.T - tiro.t > 0.6
-    if ((estado === 'apuntar' && !drag && !trazo) || vuela) deployRorro(vuela)
-  }
+  if (juega && relojR.quedan <= 0 && !r3d.ocupado()) deployRorro()
   const k = juega ? Math.min(1, Math.max(0, 1 - relojR.quedan / R.aviso)) : 0
   r3d.avisar(k)
-  const seg = Math.ceil(relojR.quedan)
-  if (juega && seg !== relojR.seg && seg >= 1 && seg <= 3) r3d.cuenta(seg)
+  const seg = Math.max(1, Math.ceil(relojR.quedan))
+  if (juega && seg !== relojR.seg && seg <= 3) r3d.cuenta(seg)
   relojR.seg = seg
   el.style.setProperty('--k', (relojR.quedan / R.cada).toFixed(3))
-  const espera = juega && relojR.quedan <= 0
-  const clave = `${seg}|${k > 0}|${espera}`
+  const clave = `${seg}|${k > 0}`
   if (clave !== relojR.pintado) {
     relojR.pintado = clave
-    el.querySelector('.rr-seg').textContent = espera ? '!' : seg
-    el.querySelector('.rr-txt').textContent = espera ? 'YA SALE' : 'DEPLOY'
+    el.querySelector('.rr-seg').textContent = seg
     el.classList.toggle('aviso', k > 0)
-    el.classList.toggle('espera', espera)
   }
   document.body.classList.toggle('aviso-deploy', k > 0)
 }
-/** El deploy: la cancha se rehace desde la pelota (`vuela`: con la pelota en el aire). */
-function deployRorro(vuela) {
+/** El deploy: la cancha se rehace desde la pelota (quieta, en el aire, rodando o con el dedo apuntando). */
+function deployRorro() {
   reiniciarRelojRorro()
   const quieta = estado === 'apuntar'
+  const viaja = quieta && !drag && !trazo // (con el dedo en la pantalla la pelota no se mueve: lo que apuntás sigue valiendo)
   const enPutt = quieta && M.enModoPutt(campo, ronda)
+  // con la pelota en el aire (y tiempo para que la onda pase antes de que pique), la cancha cambia mientras vuela
+  const vuela = estado === 'tiro' && tiro?.modo === 'full' && tiro.fase === 'vuelo' && !tiro.embocada && tiro.T - tiro.t > 0.8
   const r = ronda
-  const v = r3d.cambio(ronda, { tiro, quieta, enPutt, dur: vuela ? Math.min(2.2, Math.max(0.6, (tiro.T - tiro.t) * 0.85)) : null }, (p) => {
+  const v = r3d.cambio(ronda, { tiro, quieta, viaja, enPutt, alPicar: vuela, dur: vuela ? Math.min(2.2, Math.max(0.7, (tiro.T - tiro.t) * 0.85)) : null }, (p) => {
     if (ronda !== r) return
     if (p && !ronda.terminada) ronda.pelota = p
     if (estado === 'cambio') { estado = 'apuntar'; hud() }
   })
   if (!v) return
+  if (viaja) estado = 'cambio' // (como en el revert: mientras la pelota viaja con su pedazo de cancha, no se pega)
   if (quieta) {
-    estado = 'cambio' // (como en el revert: mientras la cancha cambia, no se pega)
     relatar({ lg: v.hoyo ? M.elegir(rng, LG_RORRO.hoyo) : v.cita ?? M.elegir(rng, v.tipo === 'ok' ? LG_RORRO.aprobado : LG_RORRO.cliente) })
   }
   const el = $('#reloj-rorro')
