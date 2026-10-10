@@ -2410,7 +2410,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 766f494 · 10/10, 05:43 p. m.</span>
+  <span class="version" id="version">v 6109245 · 10/10, 07:00 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -3221,6 +3221,7 @@ function pegarYa(a, base = null) {
   else if (a.soltada) marcarTiro(`${a.soltada.nivel === 'bueno' ? 'BUENO · ' : ''}${a.soltada.lado < 0 ? 'TEMPRANO' : 'TARDE'}`, desde, a.soltada.nivel === 'bueno' ? 'bueno' : 'pifia')
   estela = []
   estado = 'tiro'
+  if (ronda.duelo && ronda.t0 != null) vivoCuadro() // 🔌 el golpe queda anotado al toque (si te vas con la pelota en el aire, se sabe)
   hud()
 }
 
@@ -4333,6 +4334,7 @@ function levantarVuelta() {
   const n = M.levantar(ronda)
   // en un match, si los dos levantan, gana el que aguantó más: el tiempo hasta acá
   if (ronda.t0 != null) ronda.msLP = Math.max(1, Math.round(performance.now() - ronda.t0))
+  if (ronda.duelo && ronda.t0 != null) vivoCuadro() // 🔌 la vuelta que se manda, guardada al toque
   S.lamento()
   banda({ kicker: `Levantaste en el ${n}`, grande: 'LP 💅', banda: 'VUELTA PERDIDA', verso: 'Entraste en la lista LP 💅' }, 2600, tarjetaFinal)
 }
@@ -4388,8 +4390,10 @@ function empezar(jugador) {
   matchModo = null
   if (duelo) {
     // el clima, según la fecha del desafío (la nieve cambió de chance: M.NIEVE); el que desafía, el de ahora
-    M.aplicarMatch(ronda, M.condicionesMatch(duelo.semilla, duelo.desafio?.fecha ? Date.parse(duelo.desafio.fecha) : Date.now()))
-    ronda.duelo = { ...duelo, grabacion: [] }
+    const fechaMatch = duelo.desafio?.fecha ?? duelo.fecha
+    M.aplicarMatch(ronda, M.condicionesMatch(duelo.semilla, fechaMatch ? Date.parse(fechaMatch) : Date.now()))
+    if (ronda.ruleta) contarRuleta(ronda) // 🔌 (para reconectar: la tanda de la Ruleta, adelantada a donde iba)
+    ronda.duelo = { ...duelo, grabacion: [], desde: Date.now() }
   }
   // el clima del día: en un match, el de la semilla (los dos juegan el mismo día, con los mismos charcos);
   // si no, sorteado (la nieve, 1 de cada 20). Para probar: ?clima=nieve
@@ -4402,13 +4406,22 @@ function empezar(jugador) {
   const forzada = PRUEBA && PARAMS.has('lechuza')
   ronda.lechuzaEn = ronda.duelo || ronda.match || ronda.pro ? null : forzada ? 1 : Math.random() < M.LECHUZA.prob ? 1 + Math.floor(Math.random() * M.LECHUZA.tiros) : null
   ronda.apuntadas = 0
+  // ⛳ el sábado 9 AM (un easter egg): la lista sale antes del primer hoyo; pide ya las vueltas del ranking
+  ronda.sabado = M.esSabado9(Date.now()) || (PRUEBA && PARAMS.has('sabado'))
+  sabadoMarcas = ronda.sabado ? R.leerMarcas().catch(() => null) : null
+  // para probar el secreto: la pelota en el green del 16, a 4 yd del hoyo
+  if (PARAMS.has('probar-secreto')) {
+    const h16 = ronda.hoyos[1]
+    Object.assign(ronda, { pelota: [h16.pin[0], h16.pin[1] - 4], lie: 'green', golpes: 1 })
+  }
+  ponerEnEscena(jugador)
+}
+/** La cancha, la pantalla y el primer hoyo de `ronda` (una nueva o, 🔌, una que se reconecta). */
+function ponerEnEscena(jugador) {
   campo = campoBase
   if (usa3d(jugador) && r3d) { ronda.lechuzaEn = null; r3d.activar(true) }
   else r3d?.activar(false)
   lechuzaFuera()
-  // ⛳ el sábado 9 AM (un easter egg): la lista sale antes del primer hoyo; pide ya las vueltas del ranking
-  ronda.sabado = M.esSabado9(Date.now()) || (PRUEBA && PARAMS.has('sabado'))
-  sabadoMarcas = ronda.sabado ? R.leerMarcas().catch(() => null) : null
   fxClima = []
   chicanaDe = null; chicanaVino = false; ablandoVino = false; cerrarContra()
   descartadas = []; $('#mp-sel').hidden = true
@@ -4420,11 +4433,6 @@ function empezar(jugador) {
   document.body.classList.toggle('retro', !!jugador.retro)
   document.body.classList.toggle('modo-ruleta', !!ronda.ruleta)
   document.body.classList.toggle('modo-rorro', usa3d(jugador) && !!r3d)
-  // para probar el secreto: la pelota en el green del 16, a 4 yd del hoyo
-  if (PARAMS.has('probar-secreto')) {
-    const h16 = ronda.hoyos[1]
-    Object.assign(ronda, { pelota: [h16.pin[0], h16.pin[1] - 4], lie: 'green', golpes: 1 })
-  }
   pararCuenta()
   $('#marcador').hidden = true
   marcadorPintado = ''
@@ -4475,16 +4483,20 @@ function introHoyo() {
   const hoy = (cl ? ` · ${cl.nombre.toLowerCase().replace(/[¡!]/g, '')}` : '') + (ronda.pro ? ' · modo pro' : '')
   // ⛳ un sábado entre las 9 y las 10: antes de todo, la lista (el reloj todavía no corre)
   if (ronda.sabado && !ronda.sabadoVisto && ronda.t0 == null) { ronda.sabadoVisto = true; mostrarSabado(introHoyo); return }
-  banda({ kicker: ronda.carta.retro ? `San Diego · 1960 · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}` : `La Trampa del Mono · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}`, grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${h.yardas[ronda.tee]} YD`, verso: h.verso }, 2800, () => {
+  // 🔌 reconectado: seguís donde quedaste (la cuenta regresiva y el reloj desde donde estaba)
+  const rec = ronda.reconecta
+  banda(rec
+    ? { kicker: '🔌 Reconectado · seguís donde quedaste', grande: `HOYO ${h.n}`, banda: `GOLPE ${ronda.golpes + 1} · PAR ${h.par}`, verso: rec.gyd ? 'Te fuiste con la pelota en el aire: golpe y distancia (ese tiro cuenta, más uno de multa)' : `El reloj sigue desde ${M.formatoTiempo(rec.ms)}` }
+    : { kicker: ronda.carta.retro ? `San Diego · 1960 · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}` : `La Trampa del Mono · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}`, grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${h.yardas[ronda.tee]} YD`, verso: h.verso }, 2800, () => {
     // la primera vez: 3, 2, 1 y arranca el reloj, que corre hasta el último putt
     if (ronda.t0 == null) {
       // la cuenta regresiva muestra de cerca de dónde salís; en el ¡YA! se abre al hoyo
-      const vista = vistaApuntar(M.teeDe(ronda), h.pin)
+      const vista = vistaApuntar(rec ? ronda.pelota : M.teeDe(ronda), h.pin)
       obj = { ...vista, esc: 7 }
       velCam = 2.2
       // en el "2" vuelve al encuadre de salida: en el ¡YA! ya está quieta hace un segundo (no perdés tiempo)
       setTimeout(() => { if (estado === 'cuenta') { obj = vista; velCam = 4.5 } }, 900)
-      cuentaRegresiva(() => { ronda.t0 = performance.now(); arrancar(); obj = vista })
+      cuentaRegresiva(() => { ronda.t0 = performance.now() - (rec?.ms ?? 0); delete ronda.reconecta; arrancar(); obj = vista })
     }
     else arrancar()
   })
@@ -4913,6 +4925,7 @@ function pintarCrono() {
 function cerrar(frase) {
   estado = 'resultado'
   const fila = M.cerrarHoyo(ronda, rng)
+  if (ronda.duelo && ronda.t0 != null) vivoCuadro() // 🔌 ya en el tee del que sigue (o, si terminó, la vuelta que se manda)
   const nombre = M.nombreResultado(fila.golpes, fila.par, false)
   S.resultado(nombre)
   const linea = frase ?? M.fraseResultado(rng, nombre, ronda.jugador)
@@ -8753,7 +8766,10 @@ const golpesVan = (r) => r.tarjeta.reduce((t, f) => t + (f.golpes ?? 0), 0) + r.
 function pendientesMatch(ds = mtDesafios) {
   if (!ds) return 0
   const v = vistos()
-  return ds.filter((d) => (d.estado === 'pendiente' && d.rival.uid === yoUid()) || (d.estado === 'jugado' && d.retador.uid === yoUid() && !v.has(d.id))).length
+  const n = ds.filter((d) => (d.estado === 'pendiente' && d.rival.uid === yoUid()) || (d.estado === 'jugado' && d.retador.uid === yoUid() && !v.has(d.id))).length
+  // 🔌 y el que quedó por la mitad (si no es uno de esos)
+  const vivo = leerVivo()?.ronda?.duelo
+  return n + (vivo && !ds.some((d) => d.estado === 'pendiente' && d.id === vivo.desafio?.id) ? 1 : 0)
 }
 function pintarAvisoMatch() {
   const n = pendientesMatch()
@@ -9248,6 +9264,13 @@ function pintarMatch() {
   const loJuego = mtDesafios.filter((d) => d.estado === 'respondiendo' && d.rival.uid === yo)
   const espero = mtDesafios.filter((d) => ['jugando', 'pendiente', 'respondiendo'].includes(d.estado) && d.retador.uid === yo)
   const sec = (t, filas) => (filas.length ? `<li class="mt-sec">${t}</li>${filas.join('')}` : '')
+  // 🔌 el que quedó por la mitad: Reconectar (o, si la vuelta no está en este teléfono, Jugar de nuevo)
+  const vivo = leerVivo()?.ronda ?? null
+  const reconecta = (id) => !!vivo && (vivo.duelo.desafioId === id || vivo.duelo.desafio?.id === id)
+  const porLaMitad = () => `Quedó por la mitad: hoyo ${M.hoyoActual(vivo).n}`
+  const btnSeguir = (attr, id) => `<span class="mt-acc"><button class="mt-btn oro" type="button" ${attr}="${esc(id)}">${reconecta(id) ? '🔌 Reconectar' : 'Jugar'}</button></span>`
+  // un desafío por el honor que empezaste y no terminaste todavía no está en la base: sale de lo guardado
+  const suelto = vivo?.duelo?.tipo === 'reto' && !vivo.duelo.desafioId ? vivo : null
   const pro = (d) => (M.esPro(d.semilla) ? `<span class="pro-tag">${gi('pro')}PRO</span>` : '')
   const tag = (d) => (d.apuesta > 0 ? `<span class="bn-tag">${d.apuesta}${BN}</span>` : '')
   const vence = (d) => {
@@ -9256,19 +9279,24 @@ function pintarMatch() {
     return ` · vence en ${h} h`
   }
   const html = [
+    sec('Sin terminar', suelto ? [`<li class="rk-fila mt-fila">
+        <span class="mini" aria-hidden="true">${esc(suelto.carta.emoji)}</span>
+        <span class="rk-nombre"><b>${esc(suelto.duelo.rival.nombre)}${pro(suelto.duelo)}</b><small>${porLaMitad()}</small></span>
+        <span class="mt-acc"><button class="mt-btn oro" type="button" data-reconectar>🔌 Reconectar</button></span>
+      </li>`] : []),
     sec('Te desafiaron', meToca.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.retador.alias)}${camisetaMini(d.retador.uid)}${pro(d)}${tag(d)}</b><small>Ya jugó${vence(d)} · con ${esc(d.retador.emoji)} ${esc(apodoLimpio(d.retador.apodo))}</small></span>
-        <span class="mt-acc"><button class="mt-btn oro" type="button" data-responder="${esc(d.id)}">Jugar</button>${hayBananas ? `<button class="mt-btn chico" type="button" data-rechazar="${esc(d.id)}">Rechazar</button>` : ''}</span>
+        <span class="rk-nombre"><b>${esc(d.retador.alias)}${camisetaMini(d.retador.uid)}${pro(d)}${tag(d)}</b><small>${reconecta(d.id) ? porLaMitad() : `Ya jugó${vence(d)} · con ${esc(d.retador.emoji)} ${esc(apodoLimpio(d.retador.apodo))}`}</small></span>
+        <span class="mt-acc"><button class="mt-btn oro" type="button" data-responder="${esc(d.id)}">${reconecta(d.id) ? '🔌 Reconectar' : 'Jugar'}</button>${hayBananas && !reconecta(d.id) ? `<button class="mt-btn chico" type="button" data-rechazar="${esc(d.id)}">Rechazar</button>` : ''}</span>
       </li>`).concat(loJuego.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.retador.alias)}${camisetaMini(d.retador.uid)}${pro(d)}${tag(d)}</b><small>Lo aceptaste: si no lo terminás, cuenta como LP</small></span>
-        <span class="mt-estado" title="Lo estás jugando">${gi('calendar')}</span>
+        <span class="rk-nombre"><b>${esc(d.retador.alias)}${camisetaMini(d.retador.uid)}${pro(d)}${tag(d)}</b><small>${reconecta(d.id) ? porLaMitad() : 'Lo aceptaste: si no lo terminás, cuenta como LP'}</small></span>
+        ${btnSeguir('data-responder', d.id)}
       </li>`))),
     sec('Esperando que jueguen', espero.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.rival.alias)}${camisetaMini(d.rival.uid)}${pro(d)}${tag(d)}</b><small>${d.estado === 'jugando' ? 'Lo empezaste: si no lo terminás, le llega como LP' : `Hiciste ${esc(golpesTxt(d.retador))}${d.estado === 'respondiendo' ? ' · lo está jugando' : vence(d)}`}</small></span>
-        <span class="mt-estado" title="Esperando que juegue">${gi('calendar')}</span>
+        <span class="rk-nombre"><b>${esc(d.rival.alias)}${camisetaMini(d.rival.uid)}${pro(d)}${tag(d)}</b><small>${d.estado === 'jugando' ? (reconecta(d.id) ? porLaMitad() : 'Lo empezaste: si no lo terminás, le llega como LP') : `Hiciste ${esc(golpesTxt(d.retador))}${d.estado === 'respondiendo' ? ' · lo está jugando' : vence(d)}`}</small></span>
+        ${d.estado === 'jugando' ? btnSeguir('data-retomar', d.id) : `<span class="mt-estado" title="Esperando que juegue">${gi('calendar')}</span>`}
       </li>`)),
   ].join('')
   lista.innerHTML = html || '<li class="rk-vacio">No tenés matches pendientes. Desafiá a alguien.</li>'
@@ -9518,10 +9546,27 @@ $('#mt-lista').addEventListener('click', async (e) => {
     if (desafio) rechazarDesafio(desafio)
     return
   }
+  // 🔌 el match que quedó por la mitad
+  if (e.target.closest('[data-reconectar]')) { const v = leerVivo(); if (v?.ronda) reconectar(v); else pintarMatch(); return }
+  const sigo = e.target.closest('[data-retomar]')
+  if (sigo) {
+    const d = mtDesafios?.find((x) => x.id === sigo.dataset.retomar)
+    if (!d) return
+    const v = vivoDe(d.id)
+    if (v) { reconectar(v); return }
+    // la vuelta no está en este teléfono (otro teléfono, o se borró): la jugás de nuevo, con el mismo desafío y su player
+    matchModo = { tipo: 'reto', rival: { uid: d.rival.uid, nombre: d.rival.alias }, semilla: d.semilla, apuesta: d.apuesta, desafioId: d.id, fecha: d.fecha }
+    const j = TODOS.find((x) => x.apodo === d.retador.apodo)
+    if (j) empezar(j)
+    else mostrarElegir()
+    return
+  }
   const resp = e.target.closest('[data-responder]')
   if (resp) {
     const desafio = mtDesafios?.find((d) => d.id === resp.dataset.responder)
     if (!desafio) return
+    const v = vivoDe(desafio.id)
+    if (v) { reconectar(v); return }
     // con bananas: primero aceptar (ponés lo mismo) o rechazar
     if (desafio.apuesta > 0 && desafio.estado === 'pendiente' && !(await aceptarApuesta(desafio))) return
     resp.disabled = true
@@ -9546,7 +9591,151 @@ function cuadroDuelo() {
     M.grabar(d.grabacion, ms, ronda.idx, tiro ? tiro.pos : ronda.pelota, tiro ? tiro.alt : 0, golpesVan(ronda))
   }
   if (d.fantasma) pintarMarcador(ms)
+  vivoCuadro()
 }
+
+// ── 🔌 RECONECTAR: el match a medio jugar (2026-10-10, pedido de Rorro) ──
+// La vuelta de un match vivía solo en la memoria: si la app se cerraba, se perdía y, con bananas (el desafío ya está en la
+// base como `jugando` / `respondiendo`), el match quedaba trabado hasta que a las 2 h contaba como LP. Ahora se guarda en
+// el teléfono cada vez que la pelota queda quieta (y el reloj, cada segundo) y al volver se retoma desde ahí: la misma
+// pelota, los mismos golpes y el reloj donde estaba (lo que estuviste afuera no cuenta). Si te fuiste con la pelota en el
+// aire, golpe y distancia: ese tiro cuenta, más uno de multa, y pegás de nuevo desde donde estabas (como una pelota
+// perdida: así irse no sirve para borrar un mal tiro). Si terminaste y no se llegó a mandar, se manda al volver.
+// Vale 2 h desde que arrancaste: después la base ya lo dio por LP.
+const VIVO = 'sdga-trampa-match-vivo-v1' // { v, uid, desde, ms, ronda } o, terminada, { v, uid, desde, fin }
+const VIVO_RELOJ = 'sdga-trampa-match-reloj-v1' // { ms, van, idx }: el reloj y los golpes, al toque
+const VIVO_VALE = 2 * 3600e3
+const escribirJSON = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)) } catch {} }
+const borrarVivo = () => { escribirJSON(VIVO, null); escribirJSON(VIVO_RELOJ, null) }
+/** El match guardado, si todavía vale (y es de este usuario). */
+function leerVivo() {
+  const v = leerJSON(VIVO)
+  if (!v || v.v !== 1 || !(v.ronda || v.fin)) return null
+  if (!(Date.now() - v.desde < VIVO_VALE) || (v.uid && yoUid() && v.uid !== yoUid())) { if (!(Date.now() - v.desde < VIVO_VALE)) borrarVivo(); return null }
+  return v
+}
+/** ¿Es la vuelta guardada de este desafío? (el que desafía con bananas: su `desafioId`; el que responde: el del desafío) */
+const vivoDe = (id) => { const v = leerVivo(); const d = v?.ronda?.duelo; return d && (d.desafioId === id || d.desafio?.id === id) ? v : null }
+const contraQuien = (d) => (d.tipo === 'reto' ? d.rival?.nombre : d.desafio?.retador?.alias) ?? 'tu rival'
+/** La Ruleta del match sale de la semilla: la tanda, contada (para seguirla desde donde iba al reconectar). */
+function contarRuleta(r, n = 0) {
+  const base = M.aplicarMatch({ idx: 0, ruleta: {} }, r.match).ruleta.rng
+  for (let i = 0; i < n; i++) base()
+  r.ruleta.rngN = n
+  r.ruleta.rng = () => { r.ruleta.rngN++; return base() }
+}
+let vivoClave = '', vivoIdx = -1, vivoVan = -1, vivoReloj = 0
+function vivoCuadro() {
+  const r = ronda, d = r.duelo
+  if (r.terminada) { if (!d.fin && (r.lp || r.ms != null)) finMatch(r); return }
+  const ms = Math.round(performance.now() - r.t0)
+  const van = golpesVan(r)
+  // quieta (o recién embocada: ya está en el tee del que sigue): la ronda entera, sin la grabación del rival (se vuelve a pedir)
+  const clave = `${r.idx}|${van}|${r.pelota}|${r.jugador?.apodo}`
+  if ((estado === 'apuntar' || r.idx !== vivoIdx) && clave !== vivoClave) {
+    vivoClave = clave
+    vivoIdx = r.idx
+    escribirJSON(VIVO, { v: 1, uid: yoUid() ?? null, desde: d.desde, ms, ronda: { ...r, t0: null, duelo: { ...d, fantasma: null } } })
+  }
+  // el reloj, cada segundo; los golpes, al toque (si te vas con la pelota en el aire, se sabe)
+  if (van !== vivoVan || ms - vivoReloj >= 1000) {
+    vivoVan = van
+    vivoReloj = ms
+    escribirJSON(VIVO_RELOJ, { ms, van, idx: r.idx })
+  }
+}
+/** Lo que se manda al terminar un match. Queda guardado hasta que se manda (si la app se cierra antes, se manda al volver). */
+function finMatch(r) {
+  const d = r.duelo
+  if (d.fin) return d.fin
+  const t = M.totales(r.tarjeta)
+  const lp = !!r.lp
+  // si levantó, el tiempo hasta que levantó (si los dos levantan, gana el que aguantó más)
+  const mia = { apodo: r.carta.apodo, emoji: r.carta.emoji, golpes: lp ? null : t.golpes, vsPar: lp ? null : t.vsPar, ms: lp ? (r.msLP ?? null) : r.ms == null ? null : Math.round(r.ms), lp }
+  // la última muestra de la grabación: dónde terminó y con cuántos golpes
+  const fin = Math.round(r.ms ?? performance.now() - r.t0)
+  const u = d.grabacion[d.grabacion.length - 1]
+  const pin = M.hoyoActual({ ...r, idx: Math.min(r.idx, M.HOYOS.length - 1) }).pin
+  // (si levantó, la pelota queda donde la levantó)
+  const donde = lp && u ? [u[1], u[2], u[3]] : [Math.min(r.idx, M.HOYOS.length - 1), Math.round(pin[0] * 10) / 10, Math.round(pin[1] * 10) / 10]
+  if (!u || u[0] < fin) d.grabacion.push([fin, ...donde, 0, lp ? golpesVan(r) : t.golpes])
+  d.fin = { tipo: d.tipo, apuesta: (d.tipo === 'reto' ? d.apuesta : d.desafio.apuesta) ?? 0, desafioId: d.desafioId ?? null, desId: d.desafio?.id ?? null, rival: d.rival ?? null, semilla: d.semilla, quien: contraQuien(d), mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) }
+  escribirJSON(VIVO, { v: 1, uid: yoUid() ?? null, desde: d.desde, fin: d.fin })
+  escribirJSON(VIVO_RELOJ, null)
+  return d.fin
+}
+/** Manda la vuelta de un match terminado (desafío nuevo, el de bananas o la respuesta). Mandada, ya no hay nada que reconectar. */
+async function mandarFin(f) {
+  const vuelta = { ...f.mia, fantasma: f.fantasma, ruleta: f.ruleta }
+  if (f.tipo === 'reto') {
+    if (f.apuesta > 0) await R.enviarApuesta(f.desafioId, vuelta)
+    else await R.crearDesafio({ rival: f.rival, semilla: f.semilla, ...vuelta })
+  } else if (f.apuesta > 0) await R.completarApuesta(f.desId, vuelta)
+  else await R.responderDesafio(f.desId, vuelta)
+  const g = leerJSON(VIVO)
+  if (!g || g.fin?.semilla === f.semilla) borrarVivo() // (si ya hay otro match guardado, ese queda)
+}
+/** Cómo quedó: el reloj (lo que llevabas; lo de afuera no cuenta) y si te fuiste con la pelota en el aire (los golpes del
+ *  reloj van adelante de la ronda guardada): golpe y distancia, ese tiro y uno de multa, desde donde estabas. */
+function comoQuedo(v) {
+  const reloj = leerJSON(VIVO_RELOJ)
+  const igual = reloj?.idx === v.ronda.idx
+  return { ms: Math.max(v.ms ?? 0, igual ? reloj.ms : 0), gyd: igual && reloj.van > golpesVan(v.ronda) }
+}
+/** Retoma el match guardado: la ronda tal cual quedó, el reloj donde estaba y la cuenta regresiva para arrancar. */
+async function reconectar(v) {
+  const r = v.ronda
+  if (usa3d(r.carta) && !r3d && !r3dFallo) { esperar3d(() => reconectar(v)); return }
+  // la grabación del rival (el que responde juega contra su fantasma): se vuelve a pedir
+  if (r.duelo.tipo === 'respuesta') {
+    let f = null
+    try { f = await R.leerFantasma(r.duelo.desafio.id) } catch {}
+    if (!Array.isArray(f)) { await avisoBananas('No se pudo reconectar', 'No llegó la vuelta de tu rival. Probá de nuevo en un rato (desde MATCH › Pendientes).'); return }
+    r.duelo.fantasma = f
+  }
+  if (r.ruleta && r.match) contarRuleta(r, r.ruleta.rngN ?? 0)
+  const { ms, gyd } = comoQuedo(v)
+  if (gyd) r.golpes += 2
+  r.t0 = null
+  r.reconecta = { ms, gyd }
+  ronda = r
+  vivoClave = ''; vivoIdx = -1; vivoVan = -1; vivoReloj = 0
+  matchModo = null
+  for (const id of ['bananas-modal', 'match']) $('#' + id).hidden = true
+  ponerEnEscena(r.carta)
+}
+/** Al entrar: si quedó un match a medio jugar, te ofrece reconectar; si quedó uno terminado sin mandar, lo manda. */
+async function ofrecerReconectar() {
+  const v = leerVivo()
+  if (!v || ronda?.duelo && !ronda.terminada) return
+  if (v.fin) {
+    try {
+      await mandarFin(v.fin)
+      mtDesafios = null
+      cargarDesafios()
+      await avisoBananas('🔌 Match anotado', `Tu vuelta del match con <b>${esc(v.fin.quien)}</b> no se había llegado a mandar. Ya está: mirala en MATCH › Historial.`)
+    } catch (e) {
+      if (/ya no está/.test(errTxt(e))) { borrarVivo(); await avisoBananas('El match ya no está', `Tu vuelta con <b>${esc(v.fin.quien)}</b> llegó tarde: ${esc(errTxt(e))}.`) }
+    }
+    return
+  }
+  const r = v.ronda, h = M.hoyoActual(r), { ms, gyd } = comoQuedo(v)
+  const queda = Math.max(1, Math.round((v.desde + VIVO_VALE - Date.now()) / 60000))
+  const res = await hojaBananas(`<p class="bn-tit" id="bn-tit">🔌 Tenés un match sin terminar</p>
+    <p>Contra <b>${esc(contraQuien(r.duelo))}</b>, con ${esc(r.carta.emoji)} ${esc(apodoLimpio(r.carta.apodo))}: ibas por el <b>hoyo ${h.n}</b> con <b>${golpesVan(r)}</b> ${golpesVan(r) === 1 ? 'golpe' : 'golpes'} y ${M.formatoTiempo(ms)} de reloj.</p>
+    <p>${gyd ? 'Te fuiste con la pelota en el aire: golpe y distancia (ese tiro cuenta, más uno de multa) y pegás de nuevo desde donde estabas.' : 'Seguís desde donde quedó la pelota.'} Tenés ${queda >= 60 ? `${Math.floor(queda / 60)} h${queda % 60 ? ` ${queda % 60} min` : ''}` : `${queda} min`} para terminarlo; si no, cuenta como LP.</p>
+    <button class="carta-jugar oro" type="button" data-bn="si">🔌 Reconectar</button>
+    <button class="carta-jugar" type="button" data-bn="no">Ahora no</button>`)
+  if (res === 'si') reconectar(v)
+}
+// lo que estuviste afuera no cuenta en el reloj del match (salir y volver es lo mismo que reconectar)
+let afueraDesde = null
+document.addEventListener('visibilitychange', () => {
+  const enJuego = ronda?.duelo && ronda.t0 != null && ronda.ms == null && !ronda.terminada
+  if (document.hidden) { afueraDesde = enJuego ? performance.now() : null; if (enJuego) vivoCuadro(); return }
+  if (afueraDesde != null && enJuego) ronda.t0 += performance.now() - afueraDesde
+  afueraDesde = null
+})
 /**
  * El marcador del match en vivo: los 3 hoyos y el total, vos arriba y el fantasma abajo. Los golpes del hoyo que se
  * está jugando cuentan en vivo (resaltado en dorado); el total del que va ganando, en una pastilla dorada.
@@ -10218,26 +10407,17 @@ async function cerrarMatch(r) {
   const d = r.duelo
   if (d.enviado) return
   d.enviado = true
-  const t = M.totales(r.tarjeta)
+  const f = finMatch(r) // 🔌 (queda guardado hasta que se manda)
+  const { mia } = f
   const lp = !!r.lp
-  // si levantó, el tiempo hasta que levantó (si los dos levantan, gana el que aguantó más)
-  const mia = { apodo: r.carta.apodo, emoji: r.carta.emoji, golpes: lp ? null : t.golpes, vsPar: lp ? null : t.vsPar, ms: lp ? (r.msLP ?? null) : r.ms == null ? null : Math.round(r.ms), lp }
   const el = $('#t-match')
   el.className = 't-match'
   el.hidden = false
-  // la última muestra de la grabación: dónde terminó y con cuántos golpes
-  const fin = Math.round(r.ms ?? performance.now() - r.t0)
-  const u = d.grabacion[d.grabacion.length - 1]
-  const pin = M.hoyoActual({ ...r, idx: Math.min(r.idx, M.HOYOS.length - 1) }).pin
-  // (si levantó, la pelota queda donde la levantó)
-  const donde = lp && u ? [u[1], u[2], u[3]] : [Math.min(r.idx, M.HOYOS.length - 1), Math.round(pin[0] * 10) / 10, Math.round(pin[1] * 10) / 10]
-  if (!u || u[0] < fin) d.grabacion.push([fin, ...donde, 0, lp ? golpesVan(r) : t.golpes])
   if (d.tipo === 'reto') {
     const mandar = async () => {
       el.innerHTML = `${gi('match', 'linea')}Mandando el desafío a <b>${esc(d.rival.nombre)}</b>…`
       try {
-        if (d.apuesta > 0) await R.enviarApuesta(d.desafioId, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
-        else await R.crearDesafio({ rival: d.rival, semilla: d.semilla, ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
+        await mandarFin(f)
         el.className = 't-match res'
         el.innerHTML = `<p class="tm-veredicto enviado">${gi('match')}<span>Desafío enviado<small>a ${esc(d.rival.nombre)}</small></span></p>
           <div class="tm-datos">
@@ -10280,8 +10460,7 @@ async function cerrarMatch(r) {
   const anotar = async () => {
     el.innerHTML = `${gi('match', 'linea')}Anotando el match con <b>${esc(des.retador.alias)}</b>…`
     try {
-      if (des.apuesta > 0) await R.completarApuesta(des.id, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
-      else await R.responderDesafio(des.id, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
+      await mandarFin(f)
       const g = M.ganadorMatch(mia, des.retador)
       const n = des.apuesta
       el.className = 't-match res'
@@ -11185,6 +11364,7 @@ R.alEntrar(async (yo) => {
     // ?match=1 (el aviso de la SDGApp, el link de WhatsApp); con &replay=<id>, directo al replay de ese match
     const q = new URLSearchParams(location.search)
     if (q.has('match')) entrarPorAviso({ replayId: q.get('replay') || null, desdeLink: true })
+    ofrecerReconectar() // 🔌
   }
 })
 // suelto, con el ranking de la SDGApp: se entra con Google (la misma cuenta que en la app), no con un nombre
