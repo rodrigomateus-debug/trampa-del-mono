@@ -592,3 +592,10 @@ El análisis (bot de 120 vueltas con la física de verdad): ~4 tramos por vuelta
 - **El puesto:** tarjeta verde con el trofeo dorado y dos cajas: el puesto en el ranking (PRO/mundial/general) y con ese player; arriba, "¡MEJOR MARCA CON 👴!" o "TU MEJOR VUELTA".
 - **Las bananas:** un ticket dorado (con las muescas a los costados): la banana, "+5 BANANAS" y cada motivo en un chip (ÁGUILA, BIRDIE, BAJO PAR); el pozo del mono, en verde.
 - Cada bloque entra con un pop chiquito (sin animación si el teléfono pide menos movimiento).
+
+## 🍌 ¿Cómo conseguir más bananas? (2026-10-10, pedido de Rorro)
+- En la hojita de las bananas (tocando la barra dorada "TENÉS N BANANAS", que ahora dice "¿Cómo conseguir más? ›", o el botón nuevo del ranking de bananas), antes de los movimientos, el resumen (`comoBananas`, con las reglas de la base en `BN_REGLAS`):
+  - **Hoy jugando:** "te quedan N de 5" con una barra de 5 (las ganadas hoy, doradas) y lo que da cada cosa por vuelta firmada: BIRDIE +1, ÁGUILA +3, VUELTA BAJO PAR +2. El tope se renueva a la medianoche (hora argentina).
+  - **Hoyo en uno:** +10, aparte del tope; en MODO PRO, el pozo del mono (hoy, lo que tenga; como mínimo 10).
+  - **La mesada:** +3, con la cuenta regresiva a la semana nueva (el lunes a las 0, hora argentina) y si ya te la tiró esta semana (si tenés menos de 10 contando las apostadas, te las tira al abrir el juego).
+  - **El Clásico:** +2 si gana tu equipo la semana y sumaste. **El match:** te llevás lo apostado por los dos, menos 1 para el mono.
