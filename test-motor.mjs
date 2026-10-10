@@ -1185,7 +1185,7 @@ ok('ranking: menos golpes arriba; a igual golpes, el más rápido al milisegundo
 })
 
 
-ok('El clima: se sortea (la nieve, 1 de cada 10) y en un match sale de la semilla, igual para los dos', () => {
+ok('El clima: se sortea (la nieve, 1 de cada 20) y en un match sale de la semilla, igual para los dos', () => {
   const N = 20000
   const sortear = (fecha) => {
     const veces = {}
@@ -1193,22 +1193,25 @@ ok('El clima: se sortea (la nieve, 1 de cada 10) y en un match sale de la semill
     return veces
   }
   assert.ok(Math.abs(Object.values(M.CLIMAS).reduce((a, c) => a + c.prob, 0) - 1) < 1e-9)
-  // ahora: la nieve 1 de cada 10 y el resto, en la misma proporción de siempre
-  const resto = (1 - M.NIEVE.prob) / (1 - M.CLIMAS.nieve.prob)
-  const ahora = sortear(M.NIEVE.desde + 1)
-  for (const [id, c] of Object.entries(M.CLIMAS)) assert.ok(Math.abs((ahora[id] ?? 0) / N - (id === 'nieve' ? M.NIEVE.prob : c.prob * resto)) < 0.012, `${id}: ${ahora[id]}`)
-  // antes (un desafío de antes de la nieve al 10%): la de siempre, 1 de cada 100
-  const antes = sortear(M.NIEVE.desde - 1)
-  for (const [id, c] of Object.entries(M.CLIMAS)) assert.ok(Math.abs((antes[id] ?? 0) / N - c.prob) < 0.012, `${id}: ${antes[id]}`)
-  // con la misma tirada, el clima nuevo es el de antes o nieve: un match no cambia de clima por otra cosa
+  // cada época con su chance de nieve y el resto en la misma proporción de siempre: antes 1 de cada 100, el rato de
+  // 1 de cada 10 y ahora 1 de cada 20
+  const epocas = [M.NIEVE[0].desde - 1, ...M.NIEVE.map((n) => n.desde), Date.now()]
+  assert.deepEqual(epocas.map(M.chanceNieve), [M.CLIMAS.nieve.prob, 0.1, 0.05, 0.05])
+  for (const f of epocas.slice(0, 3)) {
+    const pn = M.chanceNieve(f), resto = (1 - pn) / (1 - M.CLIMAS.nieve.prob), veces = sortear(f)
+    for (const [id, c] of Object.entries(M.CLIMAS)) assert.ok(Math.abs((veces[id] ?? 0) / N - (id === 'nieve' ? pn : c.prob * resto)) < 0.012, `${f} ${id}: ${veces[id]}`)
+  }
+  // con la misma tirada, el clima de cada época es el de antes o nieve: un match no cambia de clima por otra cosa
   for (let i = 0; i < 3000; i++) {
-    const viejo = M.sortearClima(M.rngDesde(i), M.NIEVE.desde - 1), nuevo = M.sortearClima(M.rngDesde(i), M.NIEVE.desde)
-    assert.ok(nuevo === viejo || nuevo === 'nieve', `${i}: ${viejo} → ${nuevo}`)
+    const [viejo, diez, cinco] = epocas.slice(0, 3).map((f) => M.sortearClima(M.rngDesde(i), f))
+    assert.ok((diez === viejo || diez === 'nieve') && (cinco === viejo || cinco === 'nieve'), `${i}: ${viejo} → ${diez} → ${cinco}`)
+    if (cinco === 'nieve') assert.equal(diez, 'nieve') // la del 5% nieva solo donde nevaba con la del 10%
   }
   // la semilla del match: con la fecha del desafío, el clima de esa fecha; la semillaClima (los charcos), igual
-  const s = [...Array(400).keys()].find((i) => M.condicionesMatch(i, M.NIEVE.desde).clima !== M.condicionesMatch(i, M.NIEVE.desde - 1).clima)
-  assert.ok(s != null && M.condicionesMatch(s, M.NIEVE.desde).clima === 'nieve')
-  assert.equal(M.condicionesMatch(s, M.NIEVE.desde).semillaClima, M.condicionesMatch(s, M.NIEVE.desde - 1).semillaClima)
+  const [f0, f10] = epocas
+  const s = [...Array(400).keys()].find((i) => M.condicionesMatch(i, f10).clima !== M.condicionesMatch(i, f0).clima)
+  assert.ok(s != null && M.condicionesMatch(s, f10).clima === 'nieve')
+  assert.equal(M.condicionesMatch(s, f10).semillaClima, M.condicionesMatch(s, f0).semillaClima)
   // el match: mismo clima y mismos charcos con la misma semilla; el viento y las banderas, como antes
   const a = M.condicionesMatch(123456), b = M.condicionesMatch(123456)
   assert.equal(a.clima, b.clima)
