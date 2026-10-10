@@ -220,15 +220,20 @@ export const CLIMAS = {
   mojado: { nombre: 'Día mojado', prob: 0.16, pique: 0.3, green: 1.2, charcos: 2, barro: 0.3, corto: 'Se clava · greens lentos · charcos y barro', texto: 'Llovió anoche: la pelota se clava y casi no rueda, los greens están lentos y a veces queda con barro: el tiro siguiente sale para cualquier lado.' },
   lluvia: { nombre: 'Lluvia', prob: 0.14, carry: 0.95, pique: 0.5, green: 1.15, charcos: 4, corto: 'Vuela menos · rueda poco · charcos', texto: 'Llueve: la pelota vuela un poco menos, rueda poco, los greens están lentos y hay charcos en la calle: si cae o rueda en uno, se frena de golpe.' },
   tormenta: { nombre: 'Lluvia intensa', prob: 0.09, carry: 0.9, pique: 0.4, green: 1.3, charcos: 7, resbalon: 0.2, vientoMin: 15, sinMonos: true, corto: 'Vuela menos · viento fuerte · el palo resbala', texto: '¡Diluvia! Viento fuerte, charcos por todos lados, greens lentísimos y el palo mojado resbala: a veces la pegás finita y sale cortita. Los monos se escondieron.' },
-  nieve: { nombre: '¡Nevó en San Diego!', prob: 0.01, carry: 0.95, pique: 0.08, roce: 3, green: 1.25, siesta: 0.5, corto: 'Pelota naranja · se clava donde cae', texto: 'Pasa una vez cada diez vueltas. La pelota (naranja) se clava en la nieve donde cae, en el green rueda lento y los monos, muertos de frío, andan en cámara lenta.' },
+  nieve: { nombre: '¡Nevó en San Diego!', prob: 0.01, carry: 0.95, pique: 0.08, roce: 3, green: 1.25, siesta: 0.5, corto: 'Pelota naranja · se clava donde cae', texto: 'Pasa una vez cada veinte vueltas. La pelota (naranja) se clava en la nieve donde cae, en el green rueda lento y los monos, muertos de frío, andan en cámara lenta.' },
 }
 export const CLIMA_EFECTO = { barroError: 1.8, resbalonCarry: 0.55, charco: [2.2, 4.2] }
-// la nieve sale 1 de cada 10 desde `desde` (antes, 1 de cada 100). Para que no cambie nada más (el clima de un match
-// sale de su semilla: un desafío pendiente o un replay tienen que seguir igual), el sorteo es el de siempre y, si no
-// nevó, una segunda tirada sacada del mismo número la convierte en nieve con la chance que falta. Los desafíos de
-// antes de `desde` siguen con la de 1 en 100
-export const NIEVE = { prob: 0.1, desde: Date.parse('2026-10-10T03:40:00Z') }
-/** El clima del día, sorteado según `prob` y NIEVE (la nieve, 1 de cada 10). `fecha`: la del desafío, en un match. */
+// la chance de la nieve desde cada fecha (antes de la primera, 1 de cada 100: la `prob` de CLIMAS). Hoy, 1 de cada 20.
+// Para que no cambie nada más (el clima de un match sale de su semilla: un desafío pendiente o un replay tienen que
+// seguir igual), el sorteo es el de siempre y, si no nevó, una segunda tirada sacada del mismo número la convierte en
+// nieve con la chance que falta. Cada desafío, con la chance de su fecha
+export const NIEVE = [
+  { desde: Date.parse('2026-10-10T03:40:00Z'), prob: 0.1 },
+  { desde: Date.parse('2026-10-10T03:44:00Z'), prob: 0.05 },
+]
+/** La chance de que nieve en una vuelta (o un desafío) de esa fecha. */
+export const chanceNieve = (fecha) => NIEVE.reduce((p, n) => (fecha >= n.desde ? n.prob : p), CLIMAS.nieve.prob)
+/** El clima del día, sorteado según `prob` y NIEVE (la nieve, 1 de cada 20). `fecha`: la del desafío, en un match. */
 export function sortearClima(rng, fecha = Date.now()) {
   const u0 = rng()
   let u = u0, id = 'nuboso'
@@ -236,9 +241,10 @@ export function sortearClima(rng, fecha = Date.now()) {
     if (u < c.prob) { id = k; break }
     u -= c.prob
   }
-  if (id === 'nieve' || !(fecha >= NIEVE.desde)) return id
+  const base = CLIMAS.nieve.prob, p = chanceNieve(fecha)
+  if (id === 'nieve' || !(p > base)) return id
   const u2 = mezclar(Math.floor(u0 * 4294967296), 0x6e696576) / 4294967296
-  return u2 < (NIEVE.prob - CLIMAS.nieve.prob) / (1 - CLIMAS.nieve.prob) ? 'nieve' : id
+  return u2 < (p - base) / (1 - base) ? 'nieve' : id
 }
 /** Un número 32 bits a partir de otros (para que el clima de cada tiro salga igual en los dos lados de un match). */
 const mezclar = (...ns) => ns.reduce((h, n) => Math.imul(h ^ (n >>> 0), 0x9e3779b1) >>> 0, 0x811c9dc5)

@@ -2000,7 +2000,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
 </div>
 
-<div id="clima-cartel" hidden role="status" aria-live="polite" aria-label="El clima de hoy"><div class="cl-caja"><span class="cl-ico" aria-hidden="true"></span><small class="cl-kick">HOY EN SAN DIEGO</small><b class="cl-nombre"></b><p class="cl-texto"></p><span class="cl-raro">1 EN 10</span></div></div>
+<div id="clima-cartel" hidden role="status" aria-live="polite" aria-label="El clima de hoy"><div class="cl-caja"><span class="cl-ico" aria-hidden="true"></span><small class="cl-kick">HOY EN SAN DIEGO</small><b class="cl-nombre"></b><p class="cl-texto"></p><span class="cl-raro">1 EN 20</span></div></div>
 
 <button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
 
@@ -4004,7 +4004,7 @@ function empezar(jugador) {
     ronda.duelo = { ...duelo, grabacion: [] }
   }
   // el clima del día: en un match, el de la semilla (los dos juegan el mismo día, con los mismos charcos);
-  // si no, sorteado (la nieve, 1 de cada 10). Para probar: ?clima=nieve
+  // si no, sorteado (la nieve, 1 de cada 20). Para probar: ?clima=nieve
   if (!ronda.match) ronda.pro = !!datos.pro // el MODO PRO de la vuelta normal (en un match, el del desafío)
   const climaUrl = PARAMS.get('clima')
   if (ronda.match) M.ponerClima(campo, ronda, ronda.match.clima, ronda.match.semillaClima)
