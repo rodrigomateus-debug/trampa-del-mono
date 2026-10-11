@@ -1810,13 +1810,44 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 .clasico .cl-antes { color: var(--gold); }
 .clasico .cl-como { opacity: .7; font-size: 11.5px; }
 .clasico .cl-como .bn { width: 15px; height: 15px; vertical-align: -3px; }
-.clasico .cl-mia { text-align: center; color: var(--gold); font: 13px/1.2 var(--font-display); letter-spacing: .06em; }
+.clasico .cl-mia { text-align: center; color: var(--cream); font-size: 12.5px; }
+.clasico .cl-mia b { color: var(--gold); }
 .clasico .cl-mia img { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--game-ink); vertical-align: -4px; margin-right: 4px; }
-.clasico .cl-clasicos { margin: 6px 0 0; padding: 0; list-style: none; font-size: 12px; line-height: 1.35; }
-.clasico .cl-clasicos li::before { content: '⚔️ '; }
-.clasico .cl-clasicos b { color: var(--gold); }
-.clasico .cl-m { font: 10px/1 var(--font-display); color: var(--gold); }
-.clasico .cl-ap { font-style: normal; white-space: nowrap; }
+/* 📋 el detalle (abajo de "Ver detalle"): secciones con título, los de cada equipo en filas, los últimos clásicos, la semana
+   pasada y cómo se suma */
+.clasico .cl-ver { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 36px; margin: 10px 0 0; border: 1.5px solid rgba(244, 238, 218, .35); border-radius: 999px; background: rgba(244, 238, 218, .08); color: var(--cream); font: 14px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.clasico .cl-ver span { font-size: 12px; transition: transform 150ms; }
+.clasico .cl-ver[aria-expanded="true"] span { transform: rotate(180deg); }
+.clasico .cl-ver:active { background: rgba(244, 238, 218, .16); }
+.clasico .cl-ver:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.clasico .cl-detalle[hidden] { display: none; }
+.clasico .cl-sec { margin: 16px 0 6px; font: 12px/1 var(--font-display); letter-spacing: .1em; color: var(--gold); text-transform: uppercase; }
+.clasico .cl-equipos { display: grid; gap: 10px; }
+.clasico .cl-lista { padding: 8px 10px; border-radius: 12px; background: rgba(0, 0, 0, .18); }
+.clasico .cl-eqt { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font: 14px/1 var(--font-display); letter-spacing: .06em; }
+.clasico .cl-eqt img { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--game-ink); background: #1d1a5c; }
+.clasico .cl-lista.e5 .cl-eqt img { background: var(--green-900); }
+.clasico .cl-eqt b { margin-left: auto; font: 20px/1 var(--font-display); color: var(--gold); }
+.clasico .cl-lista ol { margin: 0; padding: 0; list-style: none; }
+.clasico .cl-lista li { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-top: 1px solid rgba(244, 238, 218, .1); }
+.clasico .cl-lista li.yo .cl-n > span { color: var(--gold); }
+.clasico .cl-n { display: grid; min-width: 0; flex: 1; }
+.clasico .cl-n > span { font: 700 14px/1.2 var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clasico .cl-n small { font-size: 11.5px; opacity: .7; }
+.clasico .cl-lista li > b { font: 18px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.clasico .cl-nadie, .clasico .cl-mas-gente { margin: 2px 0 0; font-size: 12px; opacity: .7; }
+.clasico .cl-clasicos { margin: 0; padding: 0; list-style: none; }
+.clasico .cl-clasicos li { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-top: 1px solid rgba(244, 238, 218, .1); font-size: 13px; line-height: 1.3; }
+.clasico .cl-clasicos li:first-child { border-top: 0; }
+.clasico .cl-clasicos li > span { flex: 1; min-width: 0; }
+.clasico .cl-clasicos b { color: var(--cream); }
+.clasico .cl-clasicos i { flex: none; padding: 3px 7px; border-radius: 999px; font: 11px/1 var(--font-display); font-style: normal; letter-spacing: .05em; background: #3e8f5a; color: var(--cream); }
+.clasico .cl-clasicos i.dicky { background: #6b67d8; }
+.clasico .cl-antes { color: var(--cream); font-size: 13.5px; font-weight: 700; }
+.clasico .cl-lg { color: var(--gold); font-size: 12.5px; font-style: italic; }
+.clasico .cl-reglas { margin: 0; padding: 0 0 0 16px; list-style: disc; font-size: 12.5px; line-height: 1.4; opacity: .85; }
+.clasico .cl-reglas li + li { margin-top: 4px; }
+.clasico .cl-reglas .bn { width: 15px; height: 15px; vertical-align: -3px; }
 .mt-clasico-li { list-style: none; }
 .mt-clasico-li .clasico { margin: 4px 0 0; }
 .cl-cobro { text-align: center; }
@@ -2410,7 +2441,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 61bc385 · 10/10, 08:40 p. m.</span>
+  <span class="version" id="version">v ce2b778 · 10/10, 11:57 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -10830,6 +10861,12 @@ function cargarClasicoMatch() {
   })
   return clasicoCargando
 }
+// 📋 (2026-10-10, pedido de Rorro: "la data desprolija, mucha info: un resumen y algo para ver más") arriba, siempre, el
+// resumen: el marcador, la barra, cómo va y lo tuyo. Abajo de "Ver detalle", ordenado: los que más suman de cada equipo
+// (con cuántos matches clásicos ganó cada uno, en vez del ⚔️ con los puntos), los últimos clásicos, la semana pasada y
+// cómo se suma. En el Ranking arranca cerrado; en MATCH › Equipos (donde es lo único), abierto
+const clasicoAbierto = { 'rk-clasico': false, 'mt-clasico': true }
+const PTS_CLASICO = 3 // lo que vale cada match clásico ganado (lo suma la base: `trampa_clasico_puntos`)
 function pintarClasico(el = $('#rk-clasico'), marcas = rkMarcas ?? []) {
   const ahora = Date.now()
   const base = clasicoBase
@@ -10837,11 +10874,35 @@ function pintarClasico(el = $('#rk-clasico'), marcas = rkMarcas ?? []) {
   const antes = base ? { ...base.antes, desde: Date.parse(base.antes.semana ?? 0) || 0 } : M.clasico(marcas, M.lunesDe(ahora, 1), equipoDe)
   const tot = c.dicky + c.e5
   const quedan = Math.ceil((M.lunesDe(ahora) + 7 * 864e5 - ahora) / 864e5)
-  const va = c.ganador === 'dicky' ? 'Van ganando los Dicky' : c.ganador === 'e5' ? 'Va ganando el Equipo 5' : tot ? 'Van empatados' : 'Todavía no sumó nadie'
-  const top = (l) => l.slice(0, 3).map((x) => `<i class="cl-ap">${esc(x.nombre ?? '—')} <b>${x.pts}</b>${x.matches ? ` <small class="cl-m">⚔️${x.matches}</small>` : ''}</i>`).join(' · ') || 'nadie todavía'
-  const mia = camiseta.equipo ? `<p class="cl-mia"><img src="${EQUIPOS[camiseta.equipo].logo}" alt="">TU CAMISETA: ${EQUIPOS[camiseta.equipo].nombre}</p>` : ''
-  const clasicos = base?.ahora?.clasicos?.length ? `<ul class="cl-clasicos">${base.ahora.clasicos.slice(0, 3).map((x) => `<li><b>${esc(x.gano)}</b> le ganó a ${esc(x.perdio)} · +3 ${x.equipo === 'dicky' ? 'Dicky' : 'Equipo 5'}</li>`).join('')}</ul>` : ''
-  const salio = antes.ganador === 'dicky' ? 'ganaron los Dicky' : antes.ganador === 'e5' ? 'ganó el Equipo 5' : 'empataron'
+  const nom = { dicky: 'Dicky', e5: 'Equipo 5' }
+  const va = c.ganador === 'dicky' ? `Van ganando los Dicky por ${c.dicky - c.e5}` : c.ganador === 'e5' ? `Va ganando el Equipo 5 por ${c.e5 - c.dicky}` : tot ? 'Van empatados' : 'Todavía no sumó nadie'
+  // lo tuyo: tu camiseta y lo que sumaste para ella
+  const yo = yoUid()
+  const mio = camiseta.equipo && yo ? (c.aportes[camiseta.equipo] ?? []).find((x) => x.quien === yo) : null
+  const mia = camiseta.equipo ? `<p class="cl-mia"><img src="${EQUIPOS[camiseta.equipo].logo}" alt="">Tu camiseta: ${nom[camiseta.equipo]} · ${mio?.pts ? `sumaste <b>${mio.pts}</b>` : 'todavía no sumaste'}</p>` : ''
+  // el detalle
+  const matchesDe = (x) => Math.round((x.matches ?? 0) / PTS_CLASICO)
+  const desglose = (x) => {
+    if (!base) return ''
+    const w = matchesDe(x), v = x.pts - (x.matches ?? 0)
+    return [v > 0 ? `${v} en vueltas` : '', w > 0 ? `${w} ${w === 1 ? 'match ganado' : 'matches ganados'}` : ''].filter(Boolean).join(' · ')
+  }
+  const MAX = 5
+  const lista = (eq) => {
+    const l = c.aportes[eq] ?? []
+    return `<div class="cl-lista ${eq}">
+      <p class="cl-eqt"><img src="${EQUIPOS[eq].logo}" alt="" draggable="false">${nom[eq].toUpperCase()}<b>${c[eq]}</b></p>
+      ${l.length ? `<ol>${l.slice(0, MAX).map((x) => { const d = desglose(x); return `<li${x.quien && x.quien === yo ? ' class="yo"' : ''}><span class="cl-n"><span>${esc(x.nombre ?? '—')}</span>${d ? `<small>${d}</small>` : ''}</span><b>${x.pts}</b></li>` }).join('')}</ol>${l.length > MAX ? `<p class="cl-mas-gente">y ${l.length - MAX} más</p>` : ''}` : '<p class="cl-nadie">Nadie sumó todavía</p>'}
+    </div>`
+  }
+  const clasicos = base?.ahora?.clasicos?.length ? `<p class="cl-sec">Los últimos clásicos</p><ul class="cl-clasicos">${base.ahora.clasicos.slice(0, 5).map((x) => `<li><span><b>${esc(x.gano)}</b> le ganó a ${esc(x.perdio)}</span><i class="${x.equipo === 'dicky' ? 'dicky' : 'e5'}">+${PTS_CLASICO} ${nom[x.equipo === 'dicky' ? 'dicky' : 'e5']}</i></li>`).join('')}</ul>` : ''
+  const ganoAntes = antes.ganador === 'dicky' ? `Ganaron los Dicky, ${antes.dicky} a ${antes.e5}` : antes.ganador === 'e5' ? `Ganó el Equipo 5, ${antes.e5} a ${antes.dicky}` : `Empataron ${antes.dicky} a ${antes.e5}`
+  const semanaPasada = antes.dicky + antes.e5 ? `<p class="cl-sec">La semana pasada</p><p class="cl-antes">${ganoAntes}</p><p class="cl-lg">📺 LG: «${esc(lgClasico(antes))}»</p>` : ''
+  const reglas = (base
+    ? [`Cada vuelta firmada bajo par: un punto por golpe bajo par (hasta ${M.CLASICO.porDia} vueltas por día; doble el sábado de 9 a 10)`, 'Con camiseta, solo suman las vueltas con cartas de tu equipo', `Cada match clásico que le ganás a uno de la otra camiseta: ${PTS_CLASICO} (por el honor, sin LP y uno por pareja por día; con bananas, siempre)`]
+    : [`Cada vuelta firmada bajo par con un Dicky o con el Equipo 5: un punto por golpe bajo par para su equipo (hasta ${M.CLASICO.porDia} vueltas por día)`])
+    .concat(`Termina el domingo a la noche${hayBananas ? `: los que sumaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}`)
+  const abierto = clasicoAbierto[el.id] ?? false
   el.innerHTML = `<p class="cl-kicker">⚔️ El Clásico de la semana</p>
     <div class="cl-marcador">
       <span class="cl-eq dicky${c.ganador === 'dicky' ? ' gana' : ''}"><img src="dicky-toons.svg" alt="" draggable="false"><span><b>${c.dicky}</b><small>DICKY</small></span></span>
@@ -10851,12 +10912,24 @@ function pintarClasico(el = $('#rk-clasico'), marcas = rkMarcas ?? []) {
     <div class="cl-barra" aria-hidden="true"><i style="width:${tot ? Math.round((100 * c.dicky) / tot) : 50}%"></i></div>
     <p class="cl-va"><b>${va}</b> · ${quedan > 1 ? `faltan ${quedan} días` : 'termina hoy'}</p>
     ${mia}
-    <p class="cl-top"><span><small>DICKY</small>${top(c.aportes.dicky)}</span><span><small>EQUIPO 5</small>${top(c.aportes.e5)}</span></p>
-    ${clasicos}
-    ${antes.dicky + antes.e5 ? `<p class="cl-antes">La semana pasada ${salio}, ${antes.dicky} a ${antes.e5} · 📺 LG: «${esc(lgClasico(antes))}»</p>` : ''}
-    <p class="cl-como">${base
-      ? 'Suman las vueltas bajo par, un punto por golpe (con camiseta, solo con cartas de tu equipo; doble el sábado de 9 a 10; hasta 5 por día), y cada match clásico que le ganás a uno de la otra camiseta: 3 (por el honor, sin LP y uno por pareja por día; con bananas, siempre).'
-      : 'Solo suman las vueltas bajo par: cada vuelta firmada con un Dicky o con el Equipo 5, un punto por cada golpe bajo par para su equipo (hasta 5 vueltas por día).'} Termina el domingo a la noche${hayBananas ? `; los que sumaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}.</p>`
+    <button class="cl-ver" type="button" aria-expanded="${abierto}">${abierto ? 'Ocultar el detalle' : 'Ver detalle'}<span aria-hidden="true">▾</span></button>
+    <div class="cl-detalle"${abierto ? '' : ' hidden'}>
+      <p class="cl-sec">Los que más suman</p>
+      <div class="cl-equipos">${lista('dicky')}${lista('e5')}</div>
+      ${clasicos}
+      ${semanaPasada}
+      <p class="cl-sec">Cómo se suma</p>
+      <ul class="cl-reglas">${reglas.map((r) => `<li>${r}</li>`).join('')}</ul>
+    </div>`
+  el.onclick = (e) => {
+    const b = e.target.closest('.cl-ver')
+    if (!b) return
+    const ab = !(clasicoAbierto[el.id] ?? false)
+    clasicoAbierto[el.id] = ab
+    b.setAttribute('aria-expanded', String(ab))
+    b.firstChild.textContent = ab ? 'Ocultar el detalle' : 'Ver detalle'
+    el.querySelector('.cl-detalle').hidden = !ab
+  }
   el.hidden = false
 }
 /** El escudito de la camiseta de `uid` (si tiene), para poner al lado del nombre. */
