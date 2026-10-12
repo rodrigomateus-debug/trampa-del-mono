@@ -587,6 +587,8 @@ export function tension(dist, alerta) {
 }
 export const perro = () => { [0, 0.22].forEach((at) => { tono(480, 0.09, { vol: 0.2, tipo: 'sawtooth', f2: 320, at }); ruido(0.08, { f: 1200, q: 2, vol: 0.1, at }) }) }
 export function pancho() { ruido(0.25, { f: 900, f2: 2600, vol: 0.1, ataque: 0.04 }); [0.4, 0.6].forEach((at) => tono(170, 0.12, { vol: 0.14, f2: 120, at })) }
+/** Los monos llegaron al pancho: tres mordiscos (crujiditos cortos, graves) */
+export function mordisco() { [0, 0.16, 0.34].forEach((at, i) => { ruido(0.06, { filtro: 'lowpass', f: 700 - i * 80, vol: 0.18, at, ataque: 0.002 }); tono(140 - i * 10, 0.05, { vol: 0.08, tipo: 'triangle', at }) }) }
 
 // ── el viento: un colchón de ruido que sube con los km/h y va en ráfagas ──
 export function viento(kmh) {

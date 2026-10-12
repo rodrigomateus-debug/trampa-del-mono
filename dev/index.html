@@ -1029,6 +1029,14 @@ body.retro #retro::after { content: ''; position: absolute; inset: 0; background
 #pancho .pancho-txt { font-size: 12px; letter-spacing: .06em; line-height: 1.1; }
 #pancho b { position: absolute; top: -8px; right: -8px; min-width: 30px; height: 30px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--cream); color: var(--green-900); border: 2px solid var(--game-ink); font: 17px/1 var(--font-display); display: grid; place-items: center; transform: rotate(8deg); }
 body.monos-vienen #pancho:not([disabled]) { animation: latePancho .5s ease-in-out infinite alternate; }
+/* al tirar un pancho: el botón se aprieta, sale y el número salta (gana a latePancho mientras dura) */
+body #pancho.tira, body.monos-vienen #pancho.tira:not([disabled]) { animation: tiraPancho .55s cubic-bezier(.2, 1.4, .4, 1); }
+#pancho.tira .pancho-emo { animation: saleEmoPancho .55s ease-out; }
+#pancho.tira b { animation: cuentaPancho .55s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes tiraPancho { 0% { transform: scale(1); } 22% { transform: scale(.82) rotate(-10deg); } 60% { transform: scale(1.14) rotate(6deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes saleEmoPancho { 0% { transform: none; } 30% { transform: translate(-6px, -16px) rotate(-40deg) scale(1.2); } 31% { opacity: 0; } 60% { opacity: 0; transform: none; } 100% { opacity: 1; } }
+@keyframes cuentaPancho { 0% { transform: rotate(8deg) scale(1); } 40% { transform: rotate(-6deg) scale(1.45); background: var(--gold); } 100% { transform: rotate(8deg) scale(1); } }
+@media (prefers-reduced-motion: reduce) { #pancho.tira, #pancho.tira .pancho-emo, #pancho.tira b { animation-duration: 1ms; } }
 @keyframes latePancho { to { transform: scale(1.1); } }
 .chip { font-family: var(--font-display); font-size: 16px; letter-spacing: .05em; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); border-radius: 999px; padding: 0 12px; height: 30px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 #crono { color: var(--gold); min-width: 10ch; justify-content: center; }
@@ -1291,13 +1299,21 @@ input { -webkit-user-select: text; user-select: text; }
 /* la primera vez: que se sepa que tocando la cancha se ve sin controles */
 .rp-tip { justify-self: center; margin: 0; padding: 5px 12px; border-radius: 999px; background: rgba(244, 238, 218, .12); font: 700 12px var(--font-body); color: rgba(244, 238, 218, .9); animation: rp-limpio 300ms ease-out both; }
 .rp-tip[hidden] { display: none; }
+/* 🎬 2D / 3D: arriba a la derecha de los controles, como el botón de cámara de las transmisiones */
+.rp-3d { position: absolute; right: 2px; bottom: calc(100% + 10px); display: flex; padding: 3px; gap: 2px; border: 2px solid var(--game-ink); border-radius: 999px; background: rgba(8, 26, 16, .9); box-shadow: var(--shadow-pop); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.rp-3d[hidden] { display: none; }
+.rp-3d span { min-width: 38px; height: 32px; display: grid; place-items: center; border-radius: 999px; color: rgba(244, 238, 218, .8); font: 15px/1 var(--font-display); letter-spacing: .04em; transition: background-color 140ms, color 140ms; }
+.rp-3d[aria-pressed="false"] span:first-child, .rp-3d[aria-pressed="true"] span:last-child { background: var(--gold); color: var(--green-900); }
+.rp-3d.cargando span:last-child { animation: latePancho .45s ease-in-out infinite alternate; }
+.rp-3d:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { #replay.limpio .rp-marcador, .rp-tip { animation: none; } }
-.rp-mandos { margin: 0 10px calc(var(--safe-bot) + 10px); padding: 10px 12px 12px; border-radius: 18px; background: rgba(8, 26, 16, .9); box-shadow: var(--shadow-pop); display: grid; gap: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.rp-mandos { position: relative; margin: 0 10px calc(var(--safe-bot) + 10px); padding: 10px 12px 12px; border-radius: 18px; background: rgba(8, 26, 16, .9); box-shadow: var(--shadow-pop); display: grid; gap: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .rp-linea { display: flex; align-items: center; gap: 10px; }
 .rp-t { flex: none; min-width: 34px; font: 700 12px var(--font-body); font-variant-numeric: tabular-nums; color: rgba(244, 238, 218, .85); text-align: center; }
 .rp-pista { position: relative; flex: 1; min-width: 0; height: 28px; display: grid; align-items: center; }
 .rp-marcas { position: absolute; left: 9px; right: 9px; top: 50%; height: 0; pointer-events: none; }
 .rp-marcas i { position: absolute; top: -9px; width: 2px; height: 6px; margin-left: -1px; border-radius: 1px; background: var(--c); }
+.rp-marcas i.dbg { top: 4px; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 1.5px var(--c); } /* ⏸ un DEBUG de Rorro */
 #rp-barra { --p: 0%; -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; touch-action: none; }
 #rp-barra::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--gold) var(--p), rgba(244, 238, 218, .22) var(--p)); }
 #rp-barra::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--gold) var(--p), rgba(244, 238, 218, .22) var(--p)); }
@@ -2441,7 +2457,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v ce2b778 · 10/10, 08:52 p. m.</span>
+  <span class="version" id="version">v 880d4a2 · 12/10, 10:56 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2597,6 +2613,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <p class="rp-fin" id="rp-fin" hidden aria-live="polite"></p>
   </div>
   <div class="rp-mandos">
+    <button class="rp-3d" id="rp-3d" type="button" aria-pressed="false" aria-label="Ver el replay en 3D" hidden><span>2D</span><span>3D</span></button>
     <p class="rp-tip" id="rp-tip" hidden>Tocá la cancha para verla sin controles</p>
     <div class="rp-linea">
       <span class="rp-t" id="rp-t">0:00</span>
@@ -2662,11 +2679,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=d6eba85160'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS } from './plantel.js?v=d6eba85160'
+import * as M from './motor.js?v=af95ac28d2'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS } from './plantel.js?v=af95ac28d2'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=d6eba85160'
-import * as S from './sonido.js?v=d6eba85160'
+import * as R from './ranking.js?v=af95ac28d2'
+import * as S from './sonido.js?v=af95ac28d2'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"banana": "<path d=\"M21 6C28.6 9.4 30 20 22.8 25.4C17.4 29.4 9.4 29 3.8 24.6C10.2 24.4 14.8 21.4 16.9 17.4C18.9 13.6 18.8 9.8 16.8 6.6Z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.2 8.2C21.6 13.8 19.9 20.4 12.2 24.8\" stroke-width=\"1.5\"/><path d=\"M24.4 11.6C25.8 16 24.3 20.8 20.3 23.8\" style=\"stroke:var(--gi-f)\" stroke-width=\"2.4\"/><path d=\"M16.8 6.6L17.3 2.8L21.1 2.4L21 6\" style=\"fill:var(--gi-s)\"/><path d=\"M3.8 24.6L2.6 26.5\" stroke-width=\"3\"/>", "match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2882,7 +2899,7 @@ const usa3d = (j) => !!j?.cancha3d // (Rorro, aunque esta vuelta juegue con la h
 const modo3d = () => !!r3d?.estaActivo() && !replay && !!ronda && usa3d(ronda.carta)
 function cargar3d() {
   if (r3d) return Promise.resolve(r3d)
-  r3dCarga ??= import('./cancha3d.js?v=d6eba85160').then((m) => {
+  r3dCarga ??= import('./cancha3d.js?v=af95ac28d2').then((m) => {
     m.iniciar({ lienzo: $('#cancha3d'), alCampo: (filas) => { campo = filas ? { ...campoBase, cancha: { ...campoBase.cancha, filas } } : campoBase } })
     m.sonido(S.prendido())
     r3d = m
@@ -4212,28 +4229,129 @@ function despertar() {
   if (M.despertarMonosDe(ronda)) S.monosVienen() // en la salida no vienen
 }
 // ── los panchos de la Mugre ──
-let pancho = null // { desde, hasta, t0 } — el que va volando / está en el piso
+// (2026-10-12, pedido de Rorro) el pancho sale de la pelota girando, en arco y con su sombra, pica con un rebotecito y
+// larga el olor. Cae cerca (motor.js `tirarPancho`): los monos corren a comer y se juntan alrededor, cada uno en su lugar
+// de la ronda, así se ve cómo se van acumulando (con los del barrio que vienen al olor). Lo comen de a mordiscos: el
+// pancho se achica y cuando se lo terminan, se van
+let pancho = null // { desde, hasta, t0, dur, mordio } — el que va volando / está en el piso
 function tirarPancho() {
   if (estado !== 'apuntar' || !ronda.panchos) return
   const desde = [...ronda.pelota]
+  const antes = new Set(ronda.monos.filter((s) => s.pancho))
   const pos = M.tirarPancho(ronda)
   if (!pos) { relatar({ lg: 'No viene ningún mono', verso: 'Guardá los panchos para cuando vengan' }); return }
-  pancho = { desde, hasta: pos, t0: performance.now() }
+  const golosos = ronda.monos.filter((s) => s.modo === 'come' && !antes.has(s)).length
+  pancho = { desde, hasta: pos, t0: performance.now(), dur: Math.min(750, 420 + M.dist(desde, pos) * 20), mordio: false }
   S.pancho()
-  relatar({ lg: M.elegir(rng, M.RELATO.pancho), verso: `Te quedan ${ronda.panchos} 🌭 en este hoyo` })
+  const b = $('#pancho')
+  b.classList.remove('tira')
+  void b.offsetWidth // (reinicia la animación)
+  b.classList.add('tira')
+  relatar({ lg: M.elegir(rng, M.RELATO.pancho), verso: golosos ? `Al olor vienen ${golosos === 1 ? 'uno más' : `${golosos} más`} del barrio · te quedan ${ronda.panchos} 🌭` : `Te quedan ${ronda.panchos} 🌭 en este hoyo` })
   hud()
 }
+/** Los que comen este pancho (los que van y los que ya llegaron a su lugar de la ronda). */
+const comenPancho = () => (pancho && ronda ? ronda.monos.filter((s) => s.pancho && s.panchoEn && M.dist(s.panchoEn, pancho.hasta) < 0.01) : [])
+const estaComiendo = (s) => !!s.pancho && M.dist(s.pos, s.pancho) < 0.05
 function dibujarPancho() {
   if (!pancho || !ronda) return
-  const u = Math.min(1, (performance.now() - pancho.t0) / 450)
-  const comiendo = ronda.monos.some((s) => s.pancho)
-  if (u >= 1 && !comiendo) { pancho = null; return }
-  const p = [pancho.desde[0] + (pancho.hasta[0] - pancho.desde[0]) * u, pancho.desde[1] + (pancho.hasta[1] - pancho.desde[1]) * u]
-  const [x, y] = w2s(p)
-  ctx.font = `${Math.max(18, Math.min(28, cam.esc * 2.6))}px ${EMOJI}`
+  const ahora = performance.now()
+  const u = Math.min(1, (ahora - pancho.t0) / pancho.dur)
+  const comen = comenPancho()
+  if (u >= 1 && !comen.length) { pancho = null; return }
+  const tam = Math.max(18, Math.min(30, cam.esc * 2.8))
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText('🌭', x, y - Math.sin(Math.PI * u) * 40)
+  if (u < 1) {
+    // en el aire: de la pelota a donde cae, en arco, girando, con la sombra que se achica cuando sube
+    const p = [pancho.desde[0] + (pancho.hasta[0] - pancho.desde[0]) * u, pancho.desde[1] + (pancho.hasta[1] - pancho.desde[1]) * u]
+    const [x, y] = w2s(p), [x0, y0] = w2s(pancho.desde), [x1, y1] = w2s(pancho.hasta)
+    const alto = Math.max(40, Math.hypot(x1 - x0, y1 - y0) * 0.6)
+    const h = 4 * u * (1 - u) * alto
+    ctx.fillStyle = 'rgba(8, 26, 16, .3)'
+    ctx.beginPath()
+    ctx.ellipse(x, y + tam * 0.2, tam * 0.38 * (1 - (0.45 * h) / alto), tam * 0.14 * (1 - (0.45 * h) / alto), 0, 0, 7)
+    ctx.fill()
+    ctx.save()
+    ctx.translate(x, y - h)
+    ctx.rotate(u * Math.PI * 4.5)
+    ctx.font = `${tam * (1 + (0.25 * h) / alto)}px ${EMOJI}`
+    ctx.fillText('🌭', 0, 0)
+    ctx.restore()
+    ctx.textBaseline = 'alphabetic'
+    return
+  }
+  // en el piso
+  const [x, y] = w2s(pancho.hasta)
+  const enPiso = (ahora - pancho.t0 - pancho.dur) / 1000
+  const llegaron = comen.filter(estaComiendo)
+  if (llegaron.length && !pancho.mordio) { pancho.mordio = true; S.mordisco() }
+  // lo comido: el que lleva más tiempo comiendo manda (se achica hasta la mitad)
+  const comido = llegaron.length ? Math.max(...llegaron.map((s) => 1 - s.comiendo / M.MUGRE.comer)) : 0
+  const k = 1 - 0.5 * comido
+  // al caer: un rebotecito (se aplasta y se estira) y un poco de polvo
+  const r = enPiso < 0.4 ? Math.sin((enPiso / 0.4) * Math.PI) * 0.28 * (1 - enPiso / 0.4) : 0
+  if (enPiso < 0.45) {
+    ctx.fillStyle = `rgba(244, 238, 218, ${0.5 * (1 - enPiso / 0.45)})`
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2, d = tam * (0.35 + enPiso * 1.6)
+      ctx.beginPath()
+      ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.45, 2.2, 0, 7)
+      ctx.fill()
+    }
+  }
+  // el olor: tres hilos que suben ondulando (los monos lo huelen)
+  ctx.save()
+  ctx.strokeStyle = 'rgba(244, 238, 218, .7)'
+  ctx.lineWidth = 1.8
+  ctx.lineCap = 'round'
+  for (let i = 0; i < 3; i++) {
+    const f = ((ahora / 1000) * 0.8 + i / 3) % 1
+    ctx.globalAlpha = Math.sin(f * Math.PI) * 0.75 * k
+    ctx.beginPath()
+    for (let j = 0; j <= 10; j++) {
+      const v = j / 10
+      const yy = y - tam * 0.45 - f * tam * 1.1 - v * tam * 0.9
+      const xx = x + (i - 1) * tam * 0.32 + Math.sin(v * 7 + ahora / 160 + i * 2) * tam * 0.12
+      if (j) ctx.lineTo(xx, yy)
+      else ctx.moveTo(xx, yy)
+    }
+    ctx.stroke()
+  }
+  ctx.restore()
+  // las migas, cuando ya lo están comiendo
+  if (llegaron.length) {
+    ctx.fillStyle = '#c98a3c'
+    for (let i = 0; i < 7; i++) {
+      const a = i * 2.4 + 0.7, d = tam * (0.32 + ((i * 37) % 10) / 22)
+      ctx.globalAlpha = Math.min(1, comido * 3)
+      ctx.beginPath()
+      ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.5 + tam * 0.1, 1.4 + (i % 3) * 0.5, 0, 7)
+      ctx.fill()
+    }
+    ctx.globalAlpha = 1
+  }
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(Math.sin(ahora / 260) * (llegaron.length ? 0.12 : 0.04)) // lo tironean
+  ctx.scale(k * (1 + r), k * (1 - r))
+  ctx.font = `${tam}px ${EMOJI}`
+  ctx.fillText('🌭', 0, 0)
+  ctx.restore()
+  // cuántos se juntaron (arriba de la ronda)
+  if (comen.length >= 2) {
+    const radio = Math.max(...comen.map((s) => { const [sx, sy] = w2s(s.pancho); return Math.hypot(sx - x, sy - y) }))
+    const txt = `🐒 ×${comen.length}`
+    ctx.font = `800 13px ${EMOJI}`
+    const w = ctx.measureText(txt).width + 14
+    const py = y - radio - tamMono() * 0.95 - 12
+    ctx.fillStyle = 'rgba(12, 43, 28, .88)'
+    ctx.beginPath()
+    ctx.roundRect(x - w / 2, py - 11, w, 22, 11)
+    ctx.fill()
+    ctx.fillStyle = C.cream
+    ctx.fillText(txt, x, py + 1)
+  }
   ctx.textBaseline = 'alphabetic'
 }
 /** Embocó: el último putt del 17 para el reloj. */
@@ -5740,6 +5858,7 @@ function golpeMago() {
 }
 let lpArmado = 0
 $('#pancho').addEventListener('click', tirarPancho)
+$('#pancho').addEventListener('animationend', (e) => { if (e.animationName === 'tiraPancho') e.currentTarget.classList.remove('tira') })
 $('#dicky-btn').addEventListener('click', abrirDickyllamada)
 $('#e5-btn').addEventListener('click', () => {
   if (!ronda || estado !== 'apuntar') return
@@ -5799,6 +5918,7 @@ function dibujarFondo({ x0, y0, x1, y1, e }) {
   ctx.drawImage(fondo, x0 * e, y0 * e, (x1 - x0) * e, (y1 - y0) * e, x0, y0, x1 - x0, y1 - y0)
 }
 function dibujar() {
+  if (replay?.tres && r3d) { dibujarReplay3d(); return }
   if (modo3d()) { dibujar3d(); return }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   const c = Math.cos(cam.rot) * cam.esc, s = Math.sin(cam.rot) * cam.esc
@@ -6617,6 +6737,7 @@ function dibujarMonos() {
   const v = visible()
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
+  const grupo = comenPancho().filter(estaComiendo) // los que ya están comiendo el pancho (para turnarse el ñam)
   for (const s of ronda.monos) {
     let [x, y] = w2s(s.pos)
     if (s.modo === 'aplastado') {
@@ -6638,7 +6759,8 @@ function dibujarMonos() {
       continue
     }
     const activo = M.monoActivo(s)
-    const salta = activo && !(s.modo === 'caza' && s.reaccion > 0) ? Math.abs(Math.sin(ahora * 12 + s.m.fase)) * 4 : 0
+    const come = estaComiendo(s), alPancho = !!s.pancho && !come // 🌭 la Mugre: el que come y el que va corriendo a comer
+    const salta = come ? Math.abs(Math.sin(ahora * 14 + s.m.fase)) * 2.5 : activo && !(s.modo === 'caza' && s.reaccion > 0) ? Math.abs(Math.sin(ahora * (alPancho ? 17 : 12) + s.m.fase)) * (alPancho ? 6 : 4) : 0
     const afuera = x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1
     if (afuera) {
       if (s.modo === 'caza') indicadorMono(s, x, y, v) // viene y no se ve: marca en el borde
@@ -6646,8 +6768,45 @@ function dibujarMonos() {
     }
     ctx.globalAlpha = activo ? 1 : 0.5 // esperando entre los pinos se ve a medias
     ctx.font = `${tam}px ${EMOJI}`
-    ctx.fillText('🐒', x, y - salta)
+    if (come) {
+      // comiendo: cabecea para el lado del pancho
+      const [px] = w2s(s.panchoEn ?? s.pancho)
+      ctx.save()
+      ctx.translate(x, y - salta)
+      ctx.rotate((px < x ? -1 : 1) * (0.12 + Math.sin(ahora * 9 + s.m.fase) * 0.12))
+      ctx.fillText('🐒', 0, 0)
+      ctx.restore()
+      // ñam: de a uno por vez en la ronda (se turnan), del lado de afuera, subiendo
+      const n = grupo.length || 1, i = Math.max(0, grupo.indexOf(s))
+      const f = ((ahora * 0.75) % 1) * n - i
+      if (f >= 0 && f < 1.4) {
+        const [cx] = w2s(s.panchoEn ?? s.pancho)
+        const lado = x >= cx ? 1 : -1
+        ctx.globalAlpha = Math.sin((f / 1.4) * Math.PI)
+        ctx.font = '13px Anton, "Arial Narrow", sans-serif'
+        ctx.lineJoin = 'round'
+        ctx.lineWidth = 3
+        ctx.strokeStyle = 'rgba(12, 43, 28, .85)'
+        const nx = x + lado * tam * 0.55, ny = y - tam * 0.55 - f * 10
+        ctx.strokeText('ÑAM', nx, ny)
+        ctx.fillStyle = C.cream
+        ctx.fillText('ÑAM', nx, ny)
+      }
+    } else ctx.fillText('🐒', x, y - salta)
     ctx.globalAlpha = 1
+    if (alPancho) {
+      // va corriendo al pancho: la burbujita con el 🌭 (lo huele)
+      const bx = x + tam * 0.48, by = y - salta - tam * 0.72
+      ctx.fillStyle = C.cream
+      ctx.beginPath()
+      ctx.arc(bx, by, 10, 0, 7)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(bx - 8, by + 9, 2.5, 0, 7)
+      ctx.fill()
+      ctx.font = `12px ${EMOJI}`
+      ctx.fillText('🌭', bx, by + 1)
+    }
     if (s.modo === 'huye' && s.huyeDe) {
       // se espantó con la bocina: polvareda atrás (del lado del carrito)
       const [hx, hy] = w2s(s.huyeDe), d = Math.hypot(x - hx, y - hy) || 1
@@ -9203,7 +9362,7 @@ $('#mt-lista').addEventListener('keydown', (e) => {
 /** El MATCH de prueba (prueba.js): rivales y bananas de mentira, en el teléfono. `entrar`: suelto, entra con esa identidad. */
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
-  const { crearPrueba } = await import('./prueba.js?v=d6eba85160')
+  const { crearPrueba } = await import('./prueba.js?v=af95ac28d2')
   pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs })
   R.usarPrueba(pruebaApp, entrar ? yo : null)
   $('#mt-prueba').hidden = false
@@ -9966,7 +10125,7 @@ let replay = null // { d, cond, clima, viento, hoyos, pistas, t, dur, vel, play,
 const CLIMA_EN_MATCH_DESDE = Date.parse('2026-10-07T18:22:00Z')
 
 /** Lo que hay que saber de una grabación para el replay: cuándo cambia de hoyo (las marcas de la barra) y cada golpe. */
-function pistaReplay(g, x, k) {
+function pistaReplay(g, x, k, conDebug = false) {
   const hoyos = [], golpes = [], tramos = []
   let idx = -1, gol = null, desde = 0
   g.forEach((m, i) => {
@@ -9980,7 +10139,8 @@ function pistaReplay(g, x, k) {
       desde = i + 1
     }
   })
-  return { g, x, k, color: REPLAY_COLORES[k], hoyos, golpes, tramos, fin: g[g.length - 1][0] }
+  // ⏸ con Rorro, las veces que congeló la pelota en el aire con el DEBUG (no es un golpe: que se vea en el replay)
+  return { g, x, k, color: REPLAY_COLORES[k], hoyos, golpes, tramos, debugs: conDebug ? M.pausasDebug(g) : [], fin: g[g.length - 1][0] }
 }
 
 /** Abre el replay de un match jugado. `grabs` ({ retador, rival }) si ya están acá; si no, se piden. */
@@ -9992,8 +10152,9 @@ async function abrirReplay(d, grabs = null, boton = null) {
     if (boton) { boton.disabled = false; boton.classList.remove('cargando') }
     if (!grabs?.retador?.length) { avisoReplay('No se pudo cargar el replay. Probá de nuevo en un rato.'); return }
   }
-  const pistas = [pistaReplay(grabs.retador, d.retador, 0)]
-  if (grabs.rival?.length) pistas.push(pistaReplay(grabs.rival, d.rival, 1))
+  const conDebug = M.habilidadDe({ apodo: d.retador.apodo })?.id === 'codigo' // (los dos juegan con el mismo player)
+  const pistas = [pistaReplay(grabs.retador, d.retador, 0, conDebug)]
+  if (grabs.rival?.length) pistas.push(pistaReplay(grabs.rival, d.rival, 1, conDebug))
   const cond = M.condicionesMatch(d.semilla, d.fecha ? Date.parse(d.fecha) : Date.now()) // el clima, con la chance de nieve de su fecha
   const hoyos = M.HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera }))
   // el clima que hubo: el de la semilla, con los mismos charcos que vieron los dos (ponerClima, como en la ronda)
@@ -10040,6 +10201,7 @@ function avisoReplay(txt) {
 function cerrarReplay() {
   if (!replay) return
   const g = replay.guardado
+  if (replay.tres) salirReplay3d(g.ronda)
   replay = null
   clearTimeout(abrirReplay.tip)
   $('#replay').hidden = true
@@ -10085,12 +10247,18 @@ function armarReplay() {
   }
   $('#rp-nota').hidden = r.pistas.length > 1
   $('#rp-nota').textContent = `De este match solo está grabada la pelota de ${r.d.retador.alias}.`
-  $('#rp-marcas').innerHTML = r.pistas.flatMap((p) => p.hoyos.slice(1).map((h) => `<i style="left: ${(100 * h.ms) / r.dur}%; --c: ${p.color}" title="Hoyo ${h.n}"></i>`)).join('')
+  $('#rp-marcas').innerHTML = r.pistas.flatMap((p) => [
+    ...p.hoyos.slice(1).map((h) => `<i style="left: ${(100 * h.ms) / r.dur}%; --c: ${p.color}" title="Hoyo ${h.n}"></i>`),
+    ...p.debugs.map((b) => `<i class="dbg" style="left: ${(100 * b.desde) / r.dur}%; --c: ${p.color}" title="DEBUG"></i>`),
+  ]).join('')
   const barra = $('#rp-barra')
   barra.max = String(Math.round(r.dur))
   $('#rp-dur').textContent = tiempoReplay(r.dur)
   for (const b of $('#rp-vel').children) b.setAttribute('aria-checked', String(+b.dataset.vel === r.vel))
   $('#rp-fin').hidden = true
+  $('#rp-3d').hidden = !HAY_WEBGL || r3dFallo
+  $('#rp-3d').setAttribute('aria-pressed', 'false')
+  if (datos.replay3d && HAY_WEBGL && !r3dFallo) replay3d(true)
 }
 const tiempoReplay = (ms) => { const t = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}` }
 /** El lugar de la cancha que queda libre entre los jugadores de arriba y los controles de abajo. */
@@ -10245,6 +10413,7 @@ function pintarReplay(todo = false) {
     const f = M.fantasmaEn(p.g, r.t)
     const txt = !f ? '' : f.fin
       ? `Terminó · ${p.x.lp || p.x.golpes == null ? 'LP 💅' : `${p.x.golpes} (${M.formatoPar(p.x.vsPar)})`}`
+      : p.debugs.some((b) => r.t >= b.desde && r.t < b.hasta) ? '⏸ DEBUG · no es golpe'
       : `Hoyo ${M.HOYOS[f.idx]?.n ?? ''} · ${f.golpes} ${f.golpes === 1 ? 'golpe' : 'golpes'}`
     poner(`e${k}`, $(`#rp-estado-${k}`), txt, (el, v) => { el.textContent = v })
   })
@@ -10304,6 +10473,7 @@ function dibujarReplay() {
       ctx.beginPath()
       ctx.arc(x, y, rad + 2.5, 0, 7)
       ctx.stroke()
+      if (p.debugs.some((b) => r.t >= b.desde && r.t < b.hasta)) debugEnReplay(x, y, rad)
     }
     carteles.push({ x, y, rad, fuera, p })
   }
@@ -10312,6 +10482,127 @@ function dibujarReplay() {
     const sube = o && !c.fuera && !o.fuera && Math.abs(o.x - c.x) < 110 && Math.abs(o.y - c.y) < 24 ? Math.max(0, 24 + c.y - o.y) : 0
     cartelPelota(c.x, c.y, c.rad, c.p.x.emoji ?? r.d.retador.emoji ?? '⛳', String(c.p.x.alias ?? ''), c.fuera, top - 20, bot, c.p.color, 0.92, sube)
   })
+}
+// ── 🎬 el replay en 3D (2026-10-12, pedido de Rorro): la cancha 3D de Rorro (la base, sin los deploys) con las dos
+// pelotas, la cámara del juego siguiendo a una y arriba lo mismo que en 2D (el aro de cada uno, el cartel, el ⏸ DEBUG).
+// Se prende con el botón 2D / 3D y se acuerda para el próximo replay (datos.replay3d)
+const HAY_WEBGL = (() => { try { return !!document.createElement('canvas').getContext('webgl2') } catch { return false } })()
+let rp3dAntes = null // si la 3D estaba prendida antes del replay (una vuelta de Rorro): al cerrar queda como estaba
+async function replay3d(si) {
+  const r = replay
+  if (!r || !!r.tres === si) return
+  const b = $('#rp-3d')
+  if (si) {
+    b.classList.add('cargando')
+    try { await cargar3d() } catch (e) { console.error(e); r3dFallo = true }
+    b.classList.remove('cargando')
+    if (replay !== r) return
+    if (!r3d || r3dFallo) { b.hidden = true; return }
+    rp3dAntes ??= r3d.estaActivo()
+    r3d.replayEmpezar({ hoyos: r.hoyos, clima: r.clima, imagenCancha: fondo })
+    r3d.activar(true)
+    r.tres = true
+    r.sigue3d = r.sigue ?? 0
+  } else salirReplay3d(r.guardado.ronda)
+  b.setAttribute('aria-pressed', String(!!r.tres))
+  b.setAttribute('aria-label', r.tres ? 'Ver el replay en 2D' : 'Ver el replay en 3D')
+  if (!!datos.replay3d !== !!r.tres) { datos.replay3d = !!r.tres; guardar(datos) }
+}
+function salirReplay3d(ronda) {
+  if (replay) replay.tres = false
+  if (!r3d) return
+  r3d.replayTerminar(ronda)
+  r3d.activar(!!rp3dAntes)
+  rp3dAntes = null
+}
+$('#rp-3d').addEventListener('click', (e) => { e.stopPropagation(); S.tap(); replay3d(!replay?.tres) })
+/** El momento `t` de una pista: dónde está, si viaja (el tramo) y en qué golpe va. */
+function pistaEn(p, t) {
+  const f = M.fantasmaEn(p.g, t)
+  if (!f) return null
+  const tramo = !f.fin ? p.tramos.find((x) => x.desde <= t && t <= x.hasta) ?? null : null
+  return { ...f, tramo }
+}
+function dibujarReplay3d() {
+  const r = replay
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.clearRect(0, 0, W, H)
+  const { top, bot } = r.zona ?? { top: 120, bot: H - 160 }
+  const ya = r.pistas.map((p) => pistaEn(p, r.t))
+  // a quién sigue la cámara: el que elegiste arriba; si no, el mismo de antes (saltar de uno a otro en cada golpe marea),
+  // hasta que termina: ahí le deja la cámara al que sigue jugando
+  if (r.sigue != null && ya[r.sigue]) r.sigue3d = r.sigue
+  else if (!(ya[r.sigue3d] && !ya[r.sigue3d].fin)) { const j = ya.findIndex((x) => x && !x.fin); if (j >= 0) r.sigue3d = j }
+  const k = ya[r.sigue3d] ? r.sigue3d : 0, f = ya[k], o = ya[1 - k]
+  if (!f) return
+  try {
+    r3d.replayCuadro(dtCuadro, {
+      sigue: { k, idx: f.idx, pos: f.pos, alt: f.alt ?? 0, golpes: f.golpes, tramo: f.tramo },
+      otra: o && !o.fin ? { idx: o.idx, pos: o.pos, alt: o.alt ?? 0, color: r.pistas[1 - k].color } : null,
+      viento: r.viento, zona: { top, bot },
+    })
+  } catch (e) { console.error(e) }
+  // arriba de la 3D: el aro de cada golpe, el de cada pelota, el ⏸ DEBUG y los carteles (los del hoyo que se ve)
+  const carteles = []
+  r.pistas.forEach((p, j) => {
+    const x = ya[j]
+    if (!x || x.idx !== f.idx) return
+    for (const gp of p.golpes) {
+      const u = (r.t - gp.ms) / 700
+      if (u < 0 || u > 1 || gp.idx !== f.idx) continue
+      const [gx, gy, ve] = r3d.aPantalla(gp.pos)
+      if (!ve) continue
+      ctx.globalAlpha = 0.8 * (1 - u)
+      ctx.strokeStyle = p.color
+      ctx.lineWidth = 2.5
+      ctx.beginPath()
+      ctx.arc(gx, gy, 6 + 22 * u, 0, 7)
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 1
+    if (x.fin) return
+    const [sx, sy, ve] = r3d.aPantalla(x.pos, x.alt ?? 0)
+    if (!ve) return
+    const rad = Math.max(4, r3d.radioPelotaPx())
+    const fuera = sx < 0 || sx > W || sy < top - 30 || sy > bot
+    if (!fuera) {
+      ctx.strokeStyle = p.color
+      ctx.lineWidth = 2.5
+      ctx.beginPath()
+      ctx.arc(sx, sy, rad + 3, 0, 7)
+      ctx.stroke()
+      if (p.debugs.some((b) => r.t >= b.desde && r.t < b.hasta)) debugEnReplay(sx, sy, rad)
+    }
+    carteles.push({ x: sx, y: sy, rad, fuera, p })
+  })
+  carteles.forEach((c, i) => {
+    const o2 = carteles[i - 1]
+    const sube = o2 && !c.fuera && !o2.fuera && Math.abs(o2.x - c.x) < 110 && Math.abs(o2.y - c.y) < 24 ? Math.max(0, 24 + c.y - o2.y) : 0
+    cartelPelota(c.x, c.y, c.rad, c.p.x.emoji ?? r.d.retador.emoji ?? '⛳', String(c.p.x.alias ?? ''), c.fuera, top - 20, bot, c.p.color, 0.92, sube)
+  })
+}
+/** ⏸ La pelota congelada con el DEBUG de Rorro: un aro rojo que late y el cartelito abajo (arriba va el del nombre). */
+function debugEnReplay(x, y, rad) {
+  const late = 0.5 + 0.5 * Math.sin(performance.now() / 150)
+  ctx.save()
+  ctx.strokeStyle = C.red
+  ctx.lineWidth = 2.5
+  ctx.globalAlpha = 0.45 + 0.55 * late
+  ctx.beginPath()
+  ctx.arc(x, y, rad + 7 + late * 3, 0, 7)
+  ctx.stroke()
+  ctx.globalAlpha = 1
+  ctx.font = '13px Anton, "Arial Narrow", sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  const txt = '⏸ DEBUG', w = ctx.measureText(txt).width + 16, py = y + rad + 20
+  ctx.fillStyle = C.red
+  ctx.beginPath()
+  ctx.roundRect(x - w / 2, py - 11, w, 22, 11)
+  ctx.fill()
+  ctx.fillStyle = C.cream
+  ctx.fillText(txt, x, py + 1)
+  ctx.restore()
 }
 function irReplay(ms) {
   if (!replay) return
