@@ -587,6 +587,15 @@ export function tension(dist, alerta) {
 }
 export const perro = () => { [0, 0.22].forEach((at) => { tono(480, 0.09, { vol: 0.2, tipo: 'sawtooth', f2: 320, at }); ruido(0.08, { f: 1200, q: 2, vol: 0.1, at }) }) }
 export function pancho() { ruido(0.25, { f: 900, f2: 2600, vol: 0.1, ataque: 0.04 }); [0.4, 0.6].forEach((at) => tono(170, 0.12, { vol: 0.14, f2: 120, at })) }
+/** 🐒 Alan (la Mugre), cada mono que se lleva: "Lurrrrpin". El "lu", la erre que vibra (más erres, más larga) y el "pin" */
+export function lurpin(erres = 5) {
+  tono(330, 0.07, { vol: 0.1, tipo: 'triangle', f2: 210 })
+  const n = 4 + erres * 2
+  for (let i = 0; i < n; i++) tono(i % 2 ? 185 : 232, 0.03, { vol: 0.12, tipo: 'sawtooth', at: 0.06 + i * 0.032, ataque: 0.002 })
+  const fin = 0.07 + n * 0.032
+  tono(1480, 0.1, { vol: 0.16, at: fin, f2: 2000 })
+  ruido(0.03, { f: 3200, q: 4, vol: 0.06, at: fin })
+}
 /** Los monos llegaron al pancho: tres mordiscos (crujiditos cortos, graves) */
 export function mordisco() { [0, 0.16, 0.34].forEach((at, i) => { ruido(0.06, { filtro: 'lowpass', f: 700 - i * 80, vol: 0.18, at, ataque: 0.002 }); tono(140 - i * 10, 0.05, { vol: 0.08, tipo: 'triangle', at }) }) }
 

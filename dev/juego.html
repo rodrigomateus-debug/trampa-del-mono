@@ -996,6 +996,23 @@ body.retro #retro::after { content: ''; position: absolute; inset: 0; background
 #deme .globo b { display: block; font: 19px/1.1 var(--font-display); letter-spacing: .02em; margin-bottom: 4px; }
 #deme .globo.ve { animation: globo-sale 520ms cubic-bezier(.2, 1.5, .4, 1) forwards, globo-respira 2.2s 520ms ease-in-out infinite; }
 /* Lucas (LG) en persona: con Rodal aparece abajo a la izquierda y lo adula con un globo de diálogo */
+/* 🐒 Alan (la Mugre): cada mono que se lleva asoma arriba del botón del pancho con su "Lurrrrpin" (las erres tiemblan) */
+#alan { position: fixed; z-index: 31; width: 64px; height: 64px; pointer-events: none; opacity: 0; }
+#alan[hidden] { display: none; }
+#alan img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid var(--game-ink); box-shadow: 3px 4px 0 var(--game-ink); background: var(--cream); }
+#alan .globo { position: absolute; bottom: 72%; margin: 0; width: max-content; padding: 8px 12px 7px; background: var(--cream); color: var(--green-900); font: 22px/1 var(--font-display); letter-spacing: .02em; border: 2.5px solid var(--green-900); border-radius: 20px 24px 22px 16px; box-shadow: 0 6px 16px rgba(8, 26, 16, .4); }
+#alan.der .globo { right: 62%; transform-origin: 100% 100%; } /* el botón a la derecha: el globo sale para adentro */
+#alan.izq .globo { left: 62%; transform-origin: 0% 100%; }
+#alan .globo small { display: block; margin-top: 3px; font: 800 11px/1 var(--font-body); letter-spacing: .04em; text-align: center; }
+#alan .globo .r { display: inline-block; animation: alan-erre 70ms linear infinite alternate; }
+#alan .globo .r:nth-child(even) { animation-direction: alternate-reverse; }
+#alan.premio .globo { background: var(--gold); font-size: 26px; }
+#alan.entra { animation: alan-entra 1600ms cubic-bezier(.2, 1.2, .4, 1) forwards; }
+#alan.entra .globo { animation: alan-globo 1600ms ease-out; }
+@keyframes alan-entra { 0% { opacity: 0; transform: translateY(26px) scale(.4) rotate(-14deg); } 16% { opacity: 1; transform: translateY(-6px) scale(1.12) rotate(6deg); } 26% { transform: none; } 82% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-14px) scale(.9); } }
+@keyframes alan-globo { 0%, 12% { transform: scale(.2); } 28% { transform: scale(1.14) rotate(-3deg); } 40%, 100% { transform: scale(1) rotate(0); } }
+@keyframes alan-erre { from { transform: translateY(-1.5px) rotate(-4deg); } to { transform: translateY(1.5px) rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) { #alan.entra, #alan.entra .globo, #alan .globo .r { animation-duration: 1ms; animation-iteration-count: 1; } #alan.entra { opacity: 1; } }
 #lucas, #dicky { position: fixed; left: 0; bottom: 0; z-index: 30; width: min(46vw, 230px); pointer-events: none; opacity: 0; transform: translateY(70%) rotate(-7deg); transform-origin: 30% 100%; }
 #lucas.entra, #dicky.entra { animation: lucas-entra 620ms cubic-bezier(.2, 1.25, .4, 1) forwards; }
 #lucas.sale, #dicky.sale { animation: lucas-sale 520ms cubic-bezier(.5, 0, .8, .4) forwards; }
@@ -2378,6 +2395,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
 </div>
 <div id="dicky" hidden aria-live="polite"><div class="corazones" aria-hidden="true"></div><div class="cuerpo"><img alt="" width="480" height="480" draggable="false"><img class="escudo" src="equipo-5.svg" alt="" draggable="false"><p class="globo"><b class="quien"></b><span class="dice"></span></p></div></div>
+<div id="alan" hidden aria-live="polite"><img src="jugadores/mugre.webp" alt="Alan, la Mugre" width="64" height="64" draggable="false"><p class="globo"></p></div>
 <div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
 <button id="lechuza" type="button" hidden aria-label="¡Una lechuza! Tocala"><span aria-hidden="true">🦉</span></button>
@@ -4371,6 +4389,7 @@ function agarrarMono(px, py) {
     c.classList.remove('salta')
     void c.offsetWidth
     c.classList.add('salta')
+    alanDice(res)
     if (res.premio) S.perfecto()
   }, LLEVAR_MS - 80)
   if (res.premio) {
@@ -4379,6 +4398,29 @@ function agarrarMono(px, py) {
   } else relatar({ lg: M.elegir(rng, ['¡Te lo llevaste!', 'Uno menos que roba', 'A la bolsa, mono']), verso: `🐒 ${res.n} de ${M.LLEVAR.premio}: con ${M.LLEVAR.premio}, un golpe menos` })
   hud()
   return true
+}
+/** 🐒 Alan, cada mono que se lleva: "¡LURRRRPIN!" arriba del botón del pancho (al quinto, más erres y el golpe menos). */
+let alanTimer = 0
+function alanDice(res) {
+  const el = $('#alan')
+  const erres = res.premio ? 9 : 4 + Math.floor(Math.random() * 4)
+  el.querySelector('.globo').innerHTML = `¡LU${'<span class="r">R</span>'.repeat(erres)}PIN!${res.premio ? `<small>🐒 ${res.n} · UN GOLPE MENOS</small>` : ''}`
+  // arriba del botón del pancho (a la derecha; con Rorro, a la izquierda), con el globo para el lado de adentro
+  const b = $('#pancho')
+  const r = b && !b.hidden ? b.getBoundingClientRect() : { left: W - 100, top: H - 120, width: 84 }
+  const der = r.left + r.width / 2 > W / 2
+  el.classList.toggle('der', der)
+  el.classList.toggle('izq', !der)
+  el.classList.toggle('premio', !!res.premio)
+  el.style.left = `${Math.round(r.left + r.width / 2 - 32)}px`
+  el.style.top = `${Math.round(r.top - 76)}px`
+  clearTimeout(alanTimer)
+  el.hidden = false
+  el.classList.remove('entra')
+  void el.offsetWidth // (otro mono antes de que termine: arranca de nuevo)
+  el.classList.add('entra')
+  S.lurpin(erres)
+  alanTimer = setTimeout(() => { el.hidden = true; el.classList.remove('entra') }, 1650)
 }
 function dibujarLlevados() {
   if (!llevando.length) return
