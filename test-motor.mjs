@@ -1540,24 +1540,85 @@ ok('El Perro: greens sin caída y el perro la trae del bosque sin multa', () => 
   assert.ok(Math.abs(conCaida.pos[0] - h15.pin[0]) > 0.3)
 })
 
-ok('Mugre: los monos la huelen de lejos; un pancho los distrae un segundo y vuelven', () => {
+ok('🐒 la Mugre se los lleva: comiendo el pancho los agarrás y cada 5, un golpe menos', () => {
+  const r = M.nuevaRonda({ apodo: 'Mugre', emoji: '💩' }, fijo(0.5))
+  r.pelota = [...h15.calle[2]]
+  for (const x of r.monos) { x.pos = [r.pelota[0] - 500, r.pelota[1]]; x.espera = 99 }
+  const [a, b] = r.monos
+  a.pos = [r.pelota[0] + 30, r.pelota[1] - 5]
+  b.pos = [r.pelota[0] + 60, r.pelota[1] + 5]
+  M.despertarMonos([a, b], r.pelota, M.alertaDe(r))
+  M.tirarPancho(r)
+  // yendo al pancho todavía no se puede: recién cuando come
+  assert.equal(M.llevarMono(r, a), null)
+  for (let i = 0; i < 60 && !M.sePuedeLlevar(a); i++) M.moverMonos(r.monos, 1 / 30, r.pelota)
+  assert.ok(M.sePuedeLlevar(a))
+  assert.equal(M.sePuedeLlevar(b), false, 'el otro todavía viene')
+  assert.deepEqual(M.llevarMono(r, a), { n: 1, premio: false })
+  assert.equal(a.modo, 'llevado')
+  assert.equal(M.monoActivo(a), false)
+  // no está más: no camina, no sale a cazar, no se lo pueden llevar dos veces
+  const donde = [...a.pos]
+  for (let i = 0; i < 30; i++) M.moverMonos(r.monos, 1 / 30, r.pelota)
+  assert.deepEqual(a.pos, donde)
+  assert.equal(M.despertarMonos([a], a.pos, 999), 0)
+  assert.equal(M.llevarMono(r, a), null)
+  // cada 5, un golpe menos en la tarjeta (lo suma totales, como la apuesta de Rorro)
+  r.tarjeta.push({ n: 15, par: 4, golpes: 5, lp: false }, { n: 16, par: 4, golpes: 4, lp: false }, { n: 17, par: 3, golpes: 3, lp: false })
+  assert.equal(M.totales(r.tarjeta).golpes, 12)
+  const otro = () => ({ modo: 'come', pos: [0, 0], pancho: [0, 0] })
+  for (let i = 0; i < 3; i++) assert.equal(M.llevarMono(r, otro()).premio, false)
+  assert.deepEqual(M.llevarMono(r, otro()), { n: 5, premio: true })
+  assert.equal(r.tarjeta.monos, -1)
+  assert.equal(M.totales(r.tarjeta).golpes, 11)
+  assert.equal(M.totales(r.tarjeta).vsPar, 0)
+  // en el hoyo que sigue, el que te llevaste vuelve a sus pinos
+  const r2 = M.nuevaRonda({ apodo: 'Mugre', emoji: '💩' }, fijo(0.5))
+  const s2 = r2.monos[0]
+  Object.assign(s2, { modo: 'come', pancho: [...s2.pos], panchoEn: [...s2.pos] })
+  M.llevarMono(r2, s2)
+  r2.golpes = 4
+  M.cerrarHoyo(r2, fijo(0.5))
+  assert.equal(s2.modo, 'ronda')
+  assert.deepEqual(s2.pos, s2.m.a)
+  assert.equal(r2.llevados, 1, 'la cuenta es de toda la vuelta')
+})
+
+ok('⏸ el DEBUG de Rorro en el replay: la pelota congelada en el aire (y no una pelota quieta en el piso)', () => {
+  // [ms, hoyo, x, y, altura, golpes]: vuela, se congela en el aire 3 s, sigue; después, quieta en el piso 3 s y el putt
+  const g = [[0, 2, 10, 10, 0, 9], [100, 2, 12, 10, 8, 9], [200, 2, 14, 10, 12, 9], [3200, 2, 16, 10, 11, 9], [3300, 2, 18, 10, 6, 9], [3400, 2, 20, 10, 0, 9], [6400, 2, 21, 10, 0, 10], [6500, 2, 22, 10, 0, 10]]
+  assert.deepEqual(M.pausasDebug(g), [{ desde: 200, hasta: 3200, pos: [14, 10] }])
+  // un salto corto (un cuadro lento del teléfono) no es un DEBUG, ni el cambio de hoyo
+  assert.deepEqual(M.pausasDebug([[0, 0, 1, 1, 9, 1], [400, 0, 2, 1, 9, 1], [1500, 1, 3, 1, 9, 1]]), [])
+  assert.deepEqual(M.pausasDebug(null), [])
+})
+
+ok('Mugre: los monos la huelen de lejos; el pancho cae cerca, comen en ronda y vuelven', () => {
   const r = M.nuevaRonda({ apodo: 'Mugre', emoji: '💩' }, fijo(0.5))
   assert.equal(r.panchos, M.MUGRE.panchos)
   assert.equal(M.alertaDe(r), M.MUGRE.alerta)
   // un mono a 80 yd: a cualquiera no lo ve, a la Mugre sí
   r.pelota = [...h15.calle[2]]
+  for (const x of r.monos) { x.pos = [r.pelota[0] - 500, r.pelota[1]]; x.espera = 99 } // los demás, lejos
   const s = r.monos[0]
   s.pos = [r.pelota[0] + 80, r.pelota[1]]
   assert.equal(M.despertarMonos([{ ...s, pos: [...s.pos] }], r.pelota), 0)
-  assert.equal(M.despertarMonos(r.monos, r.pelota, M.alertaDe(r)) >= 1, true)
-  // tira un pancho: cae del lado del mono, más allá; el mono va, come y vuelve
+  assert.equal(M.despertarMonos(r.monos, r.pelota, M.alertaDe(r)), 1)
+  // tira un pancho: cae cerca de la pelota, del lado del mono (no más allá de él)
   const pos = M.tirarPancho(r)
-  assert.ok(pos && pos[0] > s.pos[0] - 1 && r.panchos === M.MUGRE.panchos - 1)
-  const d0 = M.dist(s.pos, r.pelota)
-  for (let i = 0; i < 60; i++) M.moverMonos(r.monos, 1 / 30, r.pelota)
-  assert.ok(M.dist(s.pos, r.pelota) > d0, 'se alejó de la pelota para comer')
-  for (let i = 0; i < 400 && s.pancho; i++) M.moverMonos(r.monos, 1 / 30, r.pelota)
-  assert.equal(s.pancho, null)
+  assert.ok(pos && r.panchos === M.MUGRE.panchos - 1)
+  const d = M.dist(pos, r.pelota)
+  assert.ok(d >= M.MUGRE.minimo - 1e-9 && d <= M.MUGRE.tiro + 1e-9, `cae cerca (${d.toFixed(1)} yd)`)
+  assert.ok(pos[0] > r.pelota[0] && pos[0] < s.pos[0], 'entre la pelota y el mono')
+  assert.deepEqual(s.panchoEn, pos)
+  // corre a su lugar de la ronda (al lado del pancho), come `comer` s y recién ahí vuelve por la pelota
+  let t = 0
+  while (M.dist(s.pos, s.pancho) > 1e-6 && t < 20) { M.moverMonos(r.monos, 1 / 30, r.pelota); t += 1 / 30 }
+  assert.ok(Math.abs(M.dist(s.pos, pos) - M.MUGRE.ronda) < 1e-6, 'come al lado del pancho')
+  let comio = 0
+  while (s.pancho && comio < 10) { assert.equal(M.moverMonos(r.monos, 1 / 30, r.pelota), null); comio += 1 / 30 }
+  assert.ok(Math.abs(comio - M.MUGRE.comer) < 0.1, `comió ${comio.toFixed(2)} s`)
+  assert.equal(s.panchoEn, null)
   let llego = null
   for (let i = 0; i < 900 && !llego; i++) llego = M.moverMonos(r.monos, 1 / 30, r.pelota)
   assert.ok(llego, 'después de comer vuelve por la pelota')
@@ -1565,6 +1626,46 @@ ok('Mugre: los monos la huelen de lejos; un pancho los distrae un segundo y vuel
   r.panchos = 0
   assert.equal(M.tirarPancho(r), null)
   assert.equal(M.tirarPancho({ ...M.nuevaRonda({ apodo: 'Mugre' }, fijo(0.5)) }), null)
+})
+
+ok('Mugre: los monos se juntan en ronda (cada uno en su lugar), vienen los del barrio y siguen comiendo aunque pegues', () => {
+  const r = M.nuevaRonda({ apodo: 'Mugre', emoji: '💩' }, fijo(0.5))
+  r.pelota = [...h15.calle[2]]
+  for (const x of r.monos) { x.pos = [r.pelota[0] - 500, r.pelota[1]]; x.espera = 99 }
+  const [a, b, c, lejos] = r.monos
+  a.pos = [r.pelota[0] + 40, r.pelota[1] - 6]
+  b.pos = [r.pelota[0] + 44, r.pelota[1] + 6]
+  M.despertarMonos([a, b], r.pelota, M.alertaDe(r))
+  // uno del barrio, en su recorrido cerca de donde cae el pancho (esperando entre los pinos): viene al olor
+  c.pos = [r.pelota[0] + 30, r.pelota[1] + 25]
+  c.espera = 3
+  const pos = M.tirarPancho(r)
+  assert.equal(c.modo, 'come')
+  assert.equal(c.espera, 0)
+  assert.equal(lejos.modo, 'ronda', 'el que está lejos no viene')
+  assert.equal(lejos.pancho ?? null, null)
+  // cada uno en su lugar: todos a la misma distancia del pancho y separados entre sí (no uno encima del otro)
+  const lugares = [a, b, c].map((x) => x.pancho)
+  for (const l of lugares) assert.ok(Math.abs(M.dist(l, pos) - M.MUGRE.ronda) < 1e-6)
+  for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) assert.ok(M.dist(lugares[i], lugares[j]) > M.MUGRE.ronda, 'lugares separados')
+  // llegan de a uno (se ve cómo se juntan)
+  const llegada = new Map()
+  for (let t = 0; t < 10 && llegada.size < 3; t += 1 / 30) {
+    M.moverMonos(r.monos, 1 / 30, r.pelota)
+    for (const x of [a, b, c]) if (!llegada.has(x) && x.pancho && M.dist(x.pos, x.pancho) < 1e-6) llegada.set(x, t)
+  }
+  assert.equal(llegada.size, 3)
+  const ts = [...llegada.values()]
+  assert.ok(Math.max(...ts) - Math.min(...ts) > 0.3, 'llegan de a uno, no todos juntos')
+  // pegó: los que cazaban no salen corriendo, terminan el pancho (y después se van a sus pinos, como el del barrio)
+  M.calmarMonos(r.monos)
+  assert.equal(a.modo, 'come')
+  assert.ok(a.pancho)
+  for (let i = 0; i < 300; i++) M.moverMonos(r.monos, 1 / 30, null)
+  for (const x of [a, b, c]) { assert.equal(x.modo, 'ronda'); assert.equal(x.pancho, null) }
+  // con los que ya comen, otro pancho no hace nada: no hay quién lo vaya a buscar
+  r.pelota = [...h15.calle[2]]
+  assert.equal(M.tirarPancho(r), null)
 })
 
 ok('Liberty: drive derecho; approach con el triple de error', () => {

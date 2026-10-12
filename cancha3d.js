@@ -1053,27 +1053,31 @@ function moverMonos3d(dt, st) {
   const lista = st.ronda?.monos ?? []
   monos3d.forEach((m, i) => {
     const s = lista[i]
-    if (!s || s.modo === 'aplastado' || !st.ronda || intro) { m.g.visible = false; return }
+    if (!s || s.modo === 'aplastado' || s.modo === 'llevado' || !st.ronda || intro) { m.g.visible = false; return }
     const p = s.pos
     if (m.ultimo) { const v = [p[0] - m.ultimo[0], p[1] - m.ultimo[1]]; if (Math.hypot(...v) > 1e-3) m.dir = Math.atan2(v[0], v[1]) }
     m.ultimo = [...p]
     const espera = s.espera > 0 && s.modo !== 'caza'
+    // 🌭 la Mugre: el que llegó a su lugar de la ronda come (no camina, mira al pancho y se lleva las manos a la boca)
+    const come = !!s.pancho && Math.hypot(p[0] - s.pancho[0], p[1] - s.pancho[1]) < 0.05
+    if (come && s.panchoEn) m.dir = Math.atan2(s.panchoEn[0] - p[0], s.panchoEn[1] - p[1])
     m.g.visible = true
     m.g.rotation.y += difAng(m.dir, m.g.rotation.y) * Math.min(1, dt * 8)
     m.salto = Math.max(0, m.salto - dt)
     const corre = s.modo === 'caza' ? 16 : 9
     const tpose = cancha.monoBug === i
-    const brinco = m.salto > 0 ? Math.abs(Math.sin(m.salto * 9)) * 0.7 : Math.abs(Math.sin(est.t * corre + i)) * (espera ? 0.015 : 0.09)
+    const brinco = m.salto > 0 ? Math.abs(Math.sin(m.salto * 9)) * 0.7 : come ? Math.abs(Math.sin(est.t * 14 + i)) * 0.04 : Math.abs(Math.sin(est.t * corre + i)) * (espera ? 0.015 : 0.09)
     m.g.position.set(p[0], alturaEn(inversa(p)) + brinco + (tpose ? 1.6 + Math.sin(tReal * 2) * 0.2 : 0), p[1])
     // del tamaño de la cancha que se ve: de lejos se agrandan un poco (hasta el doble), lo justo para que se vean
     m.g.scale.setScalar(ESCALA_MONO * escalaVista(m.g.position, 0.5 * ESCALA_MONO, 8, 2))
     if (tpose) m.g.rotation.y += dt * 2
-    const paso = espera ? 0 : Math.sin(est.t * corre + i)
+    const paso = espera || come ? 0 : Math.sin(est.t * corre + i)
     const [p1, p2, b1, b2] = m.partes
     p1.rotation.x = paso * 0.6
     p2.rotation.x = -paso * 0.6
-    b1.rotation.set(tpose ? 0 : m.salto > 0 ? -2.6 : paso * 0.5, 0, tpose ? -1.57 : -0.35)
-    b2.rotation.set(tpose ? 0 : m.salto > 0 ? -2.6 : -paso * 0.5, 0, tpose ? 1.57 : 0.35)
+    const boca = come ? Math.sin(est.t * 12 + i) * 0.35 : 0 // comiendo: una mano y la otra a la boca
+    b1.rotation.set(tpose ? 0 : m.salto > 0 ? -2.6 : come ? -2.1 + boca : paso * 0.5, 0, tpose ? -1.57 : -0.35)
+    b2.rotation.set(tpose ? 0 : m.salto > 0 ? -2.6 : come ? -2.1 - boca : -paso * 0.5, 0, tpose ? 1.57 : 0.35)
   })
 }
 
@@ -1336,6 +1340,12 @@ function poseDelJuego(st) {
     const fin = [r.pelota[0] + Math.cos(alPin) * L, r.pelota[1] + Math.sin(alPin) * L]
     const medio = [r.pelota[0] + Math.cos(alPin) * L * 0.55, r.pelota[1] + Math.sin(alPin) * L * 0.55]
     return encuadrar(enPiso(r.pelota), alPin, 1.2, -0.5, [enPiso(fin), ...anilloPuntos(medio, 0, L * 0.45, L * 0.3, alPin), ...anilloPuntos(r.pelota, 5)], { Dmin: 24, Dmax: 620, k: 2.6 })
+  }
+  // 🌭 la Mugre (copiada) tiró un pancho: mientras comen, la cámara sube y se abre para que se vean el pancho, los monos
+  // en ronda (para agarrarlos) y la pelota. Apuntando (con el dedo), vuelve a la de siempre
+  if (st.pancho && !st.drag && st.estado === 'apuntar') {
+    const medio = [(r.pelota[0] + st.pancho[0]) / 2, (r.pelota[1] + st.pancho[1]) / 2]
+    return encuadrar(enPiso(medio), alPin, 1.15, -0.1, [...anilloPuntos(st.pancho, 6), ...anilloPuntos(r.pelota, 4)], { Dmin: 18, Dmax: 160, k: 2.4 })
   }
   // apuntando (o esperando): la pelota abajo, mirando al hoyo, ~75 yd para adelante (o el hoyo); tirando para atrás,
   // se abre lo justo para ver dónde pica (en el MODO PRO, hasta el hoyo o 200 yd, como el juego)
@@ -1763,6 +1773,61 @@ export function revert(ronda, alFinal) {
   return true
 }
 export const revirtiendo = () => !!barrido?.rebobina
+// ── 🎬 el replay del match, en 3D (2026-10-12, pedido de Rorro) ──
+// La cancha base (la v1.0, la skin clásica, sin bugs: los deploys de las vueltas de Rorro no se guardan en el match) con
+// el clima que hubo, las pelotas de los dos (la que se sigue es la pelota de siempre; la otra, la del fantasma, con el
+// color de su jugador) y la cámara del juego: atrás de la pelota mirando a la bandera cuando está quieta, siguiendo el
+// vuelo cuando viaja (el tramo: de dónde salió a dónde llegó) y, en el green, la grilla del putt. Lo de arriba (el aro de
+// cada uno, los carteles, el ⏸ DEBUG) lo dibuja el juego con `aPantalla`. No toca la vuelta que se está jugando.
+let rp = null
+const FANTASMA_COLOR = '#9fd3f7'
+/** Arranca el replay: `hoyos` con las banderas del match, `clima` (el de ponerClima, o null) y el dibujo de la cancha. */
+export function replayEmpezar({ hoyos, clima = null, imagenCancha = null }) {
+  const h = hoyos[0]
+  rp = { ronda: { idx: 0, hoyos, clima, viento: { ang: 0, kmh: 0 }, pelota: [...(h.tees?.azul ?? h.azul)], lie: 'tee', terminada: false, monos: [], tarjeta: [] }, golpes: null, k: null, tiro: null }
+  nuevaRonda(rp.ronda, imagenCancha)
+  empezarHoyo(rp.ronda)
+  delete pose?.ruta
+  trazoPts = []; trazoApaga = null
+}
+/** Cierra el replay (la pelota del fantasma vuelve a ser la del match en vivo). */
+export function replayTerminar(ronda = null) {
+  rp = null
+  trazoPts = []; trazoApaga = null
+  fantasma.visible = false
+  fantasma.material.color.set(FANTASMA_COLOR); fantasma.material.opacity = 0.55
+  if (ronda) aplicarClima(ronda)
+}
+export const enReplay = () => !!rp
+/**
+ * Un cuadro del replay. `sigue`: la pelota que sigue la cámara { k, idx, pos, alt, golpes, tramo } (`tramo` = { a, b }:
+ * está viajando de `a` a `b`); `otra`: la del otro { idx, pos, alt, color } o null; `viento`: el del hoyo.
+ */
+export function replayCuadro(dtR, { sigue, otra = null, viento = null, zona: z = null }) {
+  if (!rp || !sigue) return
+  const r = rp.ronda
+  if (sigue.idx !== r.idx) { r.idx = sigue.idx; empezarHoyo(r) }
+  // otro golpe (o la cámara pasó al otro jugador): el trazador arranca de nuevo
+  if (sigue.golpes !== rp.golpes || sigue.k !== rp.k) { trazoPts = []; trazoApaga = null; rp.golpes = sigue.golpes; rp.k = sigue.k; rp.tiro = null }
+  if (viento) r.viento = viento
+  const h = M.hoyoActual(r)
+  const ter = M.terreno(campoBase, sigue.pos)
+  r.pelota = [...sigue.pos]
+  r.lie = ter.tipo
+  const enGreen = (p) => { const t = M.terreno(campoBase, p); return t.tipo === 'green' && t.hoyo === h.n }
+  let tiro = null
+  if (sigue.tramo) {
+    const { a, b } = sigue.tramo
+    if (rp.tiro?.tramo !== sigue.tramo) rp.tiro = { tramo: sigue.tramo, desde: [...a], carryVec: [b[0] - a[0], b[1] - a[1]], modo: enGreen(a) ? 'putt' : 'full', eventos: [] }
+    tiro = rp.tiro
+    tiro.pos = [...sigue.pos]
+    tiro.alt = sigue.alt ?? 0
+    tiro.fase = tiro.alt > 0 ? 'vuelo' : 'rodando'
+  }
+  const ver = otra && otra.idx === sigue.idx ? otra : null
+  if (ver?.color) { fantasma.material.color.set(ver.color); fantasma.material.opacity = 0.95 }
+  cuadro(dtR, { estado: tiro ? 'tiro' : 'apuntar', ronda: r, tiro, anim: null, drag: false, enPutt: !tiro && enGreen(sigue.pos), apunte: null, golfista: null, fantasma: ver, dibuje: null, zona: z })
+}
 /** Algo de la cancha está cambiando (un deploy, un revert, el hoyo que se muda): el reloj espera. */
 export const ocupado = () => !!barrido || !!mudanza || !!intro
 /** El aviso de que viene un deploy (0 a 1): la cancha muestra su grilla y titila. */
