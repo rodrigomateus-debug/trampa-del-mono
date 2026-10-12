@@ -1023,6 +1023,11 @@ body #pancho.tira, body.monos-vienen #pancho.tira:not([disabled]) { animation: t
 @keyframes cuentaPancho { 0% { transform: rotate(8deg) scale(1); } 40% { transform: rotate(-6deg) scale(1.45); background: var(--gold); } 100% { transform: rotate(8deg) scale(1); } }
 @media (prefers-reduced-motion: reduce) { #pancho.tira, #pancho.tira .pancho-emo, #pancho.tira b { animation-duration: 1ms; } }
 @keyframes latePancho { to { transform: scale(1.1); } }
+/* 🐒 los monos que te llevaste (cada 5, un golpe menos): abajo del botón; salta con cada uno */
+#pancho i { position: absolute; bottom: -12px; left: 50%; translate: -50% 0; padding: 3px 8px; border-radius: 999px; background: var(--cream); color: var(--green-900); border: 2px solid var(--game-ink); font: 13px/1 var(--font-display); letter-spacing: .03em; white-space: nowrap; font-style: normal; }
+#pancho i[hidden] { display: none; }
+#pancho i.salta { animation: cuentaPancho .55s cubic-bezier(.2, 1.6, .4, 1); }
+#pancho i.premio { background: var(--gold); }
 .chip { font-family: var(--font-display); font-size: 16px; letter-spacing: .05em; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); border-radius: 999px; padding: 0 12px; height: 30px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 #crono { color: var(--gold); min-width: 10ch; justify-content: center; }
 #efecto { background: var(--gold); color: var(--green-900); }
@@ -2250,7 +2255,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <div id="clima-cartel" hidden role="status" aria-live="polite" aria-label="El clima de hoy"><div class="cl-caja"><span class="cl-ico" aria-hidden="true"></span><small class="cl-kick">HOY EN SAN DIEGO</small><b class="cl-nombre"></b><p class="cl-texto"></p><span class="cl-raro">1 EN 20</span></div></div>
 
-<button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
+<button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b><i id="pancho-monos" hidden></i></button>
 
 <div id="cuenta" hidden aria-live="assertive"></div>
 
@@ -3112,6 +3117,7 @@ lienzo.addEventListener('pointerdown', (e) => {
   // Tito: con la pelota en el aire, el swipe es una ráfaga
   if (titoVolando() && !swipeTito) { swipeTito = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; lienzo.setPointerCapture(e.pointerId); return }
   if (estado !== 'apuntar' || drag || trazo) return // un segundo dedo no pisa el tiro que estás armando
+  if (agarrarMono(e.clientX, e.clientY)) return // 🐒 la Mugre: tocaste un mono que come el pancho, te lo llevás
   // el Dibuje maestro: con el dedo dibujás el vuelo (de la pelota a donde cae)
   if (esDibuje()) {
     trazo = { id: e.pointerId, pts: [s2w(e.clientX, e.clientY)], ult: [e.clientX, e.clientY], plan: null }
@@ -4242,7 +4248,8 @@ function dibujarPancho() {
   const u = Math.min(1, (ahora - pancho.t0) / pancho.dur)
   const comen = comenPancho()
   if (u >= 1 && !comen.length) { pancho = null; return }
-  const tam = Math.max(18, Math.min(30, cam.esc * 2.8))
+  // (en la cancha 3D de Rorro, del tamaño de la cancha que se ve: los monos son grandes)
+  const tam = modo3d() ? Math.max(20, Math.min(56, r3d.escEn(pancho.hasta) * 2.4)) : Math.max(18, Math.min(30, cam.esc * 2.8))
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   if (u < 1) {
@@ -4270,7 +4277,7 @@ function dibujarPancho() {
   const llegaron = comen.filter(estaComiendo)
   if (llegaron.length && !pancho.mordio) { pancho.mordio = true; S.mordisco() }
   // lo comido: el que lleva más tiempo comiendo manda (se achica hasta la mitad)
-  const comido = llegaron.length ? Math.max(...llegaron.map((s) => 1 - s.comiendo / M.MUGRE.comer)) : 0
+  const comido = llegaron.length ? Math.min(1, Math.max(0, ...llegaron.map((s) => 1 - s.comiendo / M.MUGRE.comer))) : 0
   const k = 1 - 0.5 * comido
   // al caer: un rebotecito (se aplasta y se estira) y un poco de polvo
   const r = enPiso < 0.4 ? Math.sin((enPiso / 0.4) * Math.PI) * 0.28 * (1 - enPiso / 0.4) : 0
@@ -4336,6 +4343,70 @@ function dibujarPancho() {
     ctx.fillText(txt, x, py + 1)
   }
   ctx.textBaseline = 'alphabetic'
+}
+// 🐒 la Mugre se los lleva: tocando un mono que come, lo agarra una mano, salta y vuela al botón del pancho (el contador
+// salta); cada 5 en la vuelta, un golpe menos (motor.js `llevarMono`)
+let llevando = [] // { x, y, t0, tam } — los que van volando al botón (en la pantalla)
+const LLEVAR_MS = 750
+function agarrarMono(px, py) {
+  if (!ronda?.monos.some(M.sePuedeLlevar)) return false
+  let mejor = null
+  for (const s of ronda.monos) {
+    if (!M.sePuedeLlevar(s)) continue
+    // dónde se ve: en 2D el emoji está centrado en su lugar; en 3D, el cuerpo, un poco arriba del piso
+    const [x, y, ve] = modo3d() ? r3d.aPantalla(s.pos, 1.2) : w2s(s.pos)
+    if (modo3d() && !ve) continue
+    const radio = modo3d() ? Math.max(30, r3d.escEn(s.pos) * 2.4) : Math.max(24, tamMono() * 0.8)
+    const d = Math.hypot(px - x, py - y)
+    if (d <= radio && (!mejor || d < mejor.d)) mejor = { s, d, x, y }
+  }
+  if (!mejor) return false
+  const res = M.llevarMono(ronda, mejor.s)
+  if (!res) return false
+  const tam = modo3d() ? Math.max(30, Math.min(72, r3d.escEn(mejor.s.pos) * 2.6)) : Math.max(26, tamMono())
+  llevando.push({ x: mejor.x, y: mejor.y, t0: performance.now(), tam })
+  S.robo()
+  setTimeout(() => {
+    const c = $('#pancho-monos')
+    c.classList.remove('salta')
+    void c.offsetWidth
+    c.classList.add('salta')
+    if (res.premio) S.perfecto()
+  }, LLEVAR_MS - 80)
+  if (res.premio) {
+    relatar({ lg: M.elegir(rng, ['¡LURRRRPIN! Cinco monos en la bolsa', 'Se los llevó a todos. Un golpe menos', 'La Mugre pagó el tercer tiempo con monos']), verso: `🐒 ${res.n} monos: un golpe menos en la tarjeta` })
+    marcarTiro('🐒 −1 GOLPE', ronda.pelota)
+  } else relatar({ lg: M.elegir(rng, ['¡Te lo llevaste!', 'Uno menos que roba', 'A la bolsa, mono']), verso: `🐒 ${res.n} de ${M.LLEVAR.premio}: con ${M.LLEVAR.premio}, un golpe menos` })
+  hud()
+  return true
+}
+function dibujarLlevados() {
+  if (!llevando.length) return
+  const ahora = performance.now()
+  llevando = llevando.filter((l) => ahora - l.t0 < LLEVAR_MS)
+  const b = $('#pancho')
+  const r = b && !b.hidden ? b.getBoundingClientRect() : null
+  const destino = r ? [r.left + r.width / 2, r.top + r.height / 2] : [W - 40, H - 60]
+  ctx.save()
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  for (const l of llevando) {
+    const u = (ahora - l.t0) / LLEVAR_MS, tam = l.tam
+    // primero lo agarra la mano y salta (un tercio); después vuela en arco al botón, achicándose
+    const sube = Math.min(1, u / 0.3), vuela = Math.max(0, (u - 0.3) / 0.7), e = vuela * vuela * (3 - 2 * vuela)
+    const x = l.x + (destino[0] - l.x) * e
+    const y = l.y - Math.sin(sube * Math.PI * 0.5) * 22 + (destino[1] - l.y) * e - Math.sin(e * Math.PI) * 60
+    const k = (1 + 0.25 * sube) * (1 - 0.6 * e)
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.rotate(Math.sin(u * 30) * 0.25 * (1 - e))
+    ctx.font = `${tam * k}px ${EMOJI}`
+    ctx.fillText('🐒', 0, 0)
+    if (u < 0.45) { ctx.font = `${tam * 0.8 * k}px ${EMOJI}`; ctx.fillText('🫳', 0, -tam * 0.62 * k) }
+    ctx.restore()
+  }
+  ctx.restore()
 }
 /** Embocó: el último putt del 17 para el reloj. */
 function embocar(frase) {
@@ -4579,6 +4650,7 @@ function ponerEnEscena(jugador) {
 function introHoyo() {
   const h = M.hoyoActual(ronda)
   pancho = null
+  llevando = []
   estado = 'intro'
   tiro = null
   estela = []
@@ -5535,7 +5607,12 @@ function relatar({ lg, excusa, verso }) {
 }
 function pintarVoz() {
   let clase = 'vacia', dice = 'mirando…', extra = ''
-  if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza')) {
+  if (ronda && estado === 'apuntar' && ronda.monos.some(M.sePuedeLlevar) && !(voz && performance.now() < voz.hasta)) {
+    // (lo que acaba de pasar —el pancho, el que te llevaste, el golpe menos— se lee primero)
+    const n = ronda.llevados ?? 0, P = M.LLEVAR.premio
+    clase = 'alerta comen'; dice = '🐒 ¡ESTÁN COMIENDO! TOCALOS' // (alerta, pero el botón del pancho no late: ya comen)
+    extra = n < P ? `y te los llevás · ${n} de ${P} = un golpe menos` : `y te los llevás · van ${n}: con ${(Math.floor(n / P) + 1) * P}, otro golpe menos`
+  } else if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza' && !s.pancho)) { // (los que van al pancho no vienen)
     clase = 'alerta'; dice = '🐒 ¡VIENEN LOS MONOS! PEGALE'
     extra = ronda.panchos ? `…o tirales un pancho 🌭 (te quedan ${ronda.panchos})` : 'Si llegan, se la llevan: al tee con un golpe de multa'
   } else if (estado === 'manejar' && ronda?.carro && !(voz && performance.now() < voz.hasta)) {
@@ -5653,6 +5730,12 @@ function hud() {
     $('#pancho-n').textContent = ronda.panchos
     $('#pancho').disabled = !ronda.panchos || estado !== 'apuntar'
   }
+  const n = ronda.llevados ?? 0, menos = -(ronda.tarjeta.monos ?? 0)
+  const cont = $('#pancho-monos')
+  cont.hidden = !n
+  const txt = menos ? `🐒 ${n} · −${menos}` : `🐒 ${n}/${M.LLEVAR.premio}`
+  if (n && cont.textContent !== txt) cont.textContent = txt
+  cont.classList.toggle('premio', !!menos)
   // Maxi: el botón de Deme (una vez por vuelta; en el tee, apagado)
   // los Dicky: la Dickyllamada (una por vuelta: un Dicky te pega el próximo tiro)
   const dicky = !oculto && hayOtroDicky(j) && M.puedeDickyllamar(ronda)
@@ -5997,6 +6080,7 @@ function dibujar() {
   const aJ = estado === 'apuntar' && drag ? apunte() : null
   dibujarGolfista(aJ)
   dibujarMonos()
+  dibujarLlevados()
   dibujarMarcasTiro()
   dibujarDestello()
   if (ronda?.duelo?.fantasma) dibujarFantasma()
@@ -6041,6 +6125,7 @@ function dibujar3d() {
   try {
     r3d.cuadro(dtCuadro, {
       estado, ronda, tiro, anim, drag: !!drag, enPutt, apunte: aJ, golfista: estadoGolfista(aJ), fantasma: fant,
+      pancho: pancho && comenPancho().length ? pancho.hasta : null, // 🌭 mientras comen, la cámara se abre para verlo
       // 🪄 el Dibuje maestro: hasta dónde le da el carry (en yardas del dibujo), para que la cámara lo muestre entero
       dibuje: esDibuje() && (estado === 'apuntar' || estado === 'cambio') ? { max: maxDibuje(), dibujando: !!trazo } : null,
       zona: { top: (m.card ?? m.top ?? 20) + 6, bot: m.bot ?? H - 20 },
@@ -6052,6 +6137,7 @@ function dibujar3d() {
   monos3dHud()
   // la habilidad que Rorro le copió a otro: lo que en el juego de siempre se dibuja arriba de la cancha
   dibujarPancho()
+  dibujarLlevados()
   if (ronda && !ronda.terminada) {
     if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro) }
     else if (ronda.deme?.listo && estado === 'apuntar') auraDeme(ronda.pelota)
@@ -6091,7 +6177,7 @@ function monos3dHud() {
   const v = visible(), lejos = M.alertaDe(ronda)
   const [bx, by] = w2s(ronda.pelota)
   ronda.monos.forEach((s, i) => {
-    if (s.modo !== 'caza') return
+    if (s.modo !== 'caza' || s.pancho) return // (el que va al pancho o lo come no viene: sin cartel)
     const d = M.dist(s.pos, ronda.pelota)
     const c = r3d.monoEnPantalla(i)
     const [x, y, adelante] = w2s(s.pos)
@@ -6722,6 +6808,7 @@ function dibujarMonos() {
   ctx.textBaseline = 'middle'
   const grupo = comenPancho().filter(estaComiendo) // los que ya están comiendo el pancho (para turnarse el ñam)
   for (const s of ronda.monos) {
+    if (s.modo === 'llevado') continue // te lo llevaste (vuela al botón: dibujarLlevados)
     let [x, y] = w2s(s.pos)
     if (s.modo === 'aplastado') {
       // aplastado por el carrito: chato, de costado, con estrellitas
@@ -8381,6 +8468,7 @@ function tarjetaFinal() {
     const marca = f.lp || f.golpes > f.par ? 'sobre' : f.golpes < f.par ? 'bajo' : ''
     return `<tr><td>${f.n}</td><td class="num">${f.par}</td><td class="num">${f.golpes ?? '—'}</td><td class="res"><i class="${marca}"></i>${nombre === 'LP' ? 'LP 💅' : nombre}</td></tr>`
   })
+  if (ronda.tarjeta.monos) filas.push(`<tr><td>🐒</td><td class="num">—</td><td class="num">−${-ronda.tarjeta.monos}</td><td class="res"><i class="bajo"></i>Te llevaste ${ronda.llevados} monos</td></tr>`)
   if (ronda.tarjeta.rorro) filas.push(`<tr><td>🥃</td><td class="num">—</td><td class="num">${ronda.tarjeta.rorro > 0 ? '+1' : '−1'}</td><td class="res"><i class="${ronda.tarjeta.rorro > 0 ? 'sobre' : 'bajo'}"></i>Rorro anotó mal</td></tr>`)
   const t = M.totales(ronda.tarjeta)
   filas.push(`<tr class="total"><td>TOTAL</td><td class="num">${t.par}</td><td class="num">${t.golpes ?? '—'}</td><td class="res"><span class="band" style="font-family: var(--font-display); font-size: 22px; font-weight: 400">${M.formatoPar(t.vsPar)}</span></td></tr>`)
@@ -8869,7 +8957,7 @@ async function anotarVuelta() {
   if (R.puente.activo) marca.uid = R.puente.identidad.uid
   // el detalle de la vuelta: hoyo por hoyo, los monos y la apuesta de Rorro (queda en el teléfono y, cuando la
   // base de la SDGApp tenga la columna `detalle`, también allá: así se ve en el resumen del ranking de todos)
-  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}), ...(datos.demetrio ? { secreto: true } : {}), ...(ronda.ruleta ? { ruleta: M.tirosRuleta(ronda).map((h) => h.tiros.map((t) => t.emoji)) } : {}), ...(ronda.pro ? { pro: true } : {}) }
+  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos, ...(ronda.llevados ? { llevados: ronda.llevados } : {}) }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}), ...(datos.demetrio ? { secreto: true } : {}), ...(ronda.ruleta ? { ruleta: M.tirosRuleta(ronda).map((h) => h.tiros.map((t) => t.emoji)) } : {}), ...(ronda.pro ? { pro: true } : {}) }
   const jugador = ronda.carta
   const pro = !!ronda.pro
   // las bananas de la vuelta (birdies, bajo par, hoyo en uno, el pozo): las da la base al anotarla; se ve la diferencia
@@ -9871,6 +9959,7 @@ async function reconectar(v) {
     r.duelo.fantasma = f
   }
   if (r.ruleta && r.match) contarRuleta(r, r.ruleta.rngN ?? 0)
+  if (r.llevados) r.tarjeta.monos = -Math.floor(r.llevados / M.LLEVAR.premio) || undefined // 🐒 (la tarjeta se guarda sin él)
   const { ms, gyd } = comoQuedo(v)
   if (gyd) r.golpes += 2
   r.t0 = null
@@ -10915,7 +11004,7 @@ function abrirResumen(m) {
       <div class="ancho"><dt>Fecha</dt><dd>${f ? `${esc(f.dia)}<small>a las ${f.hora} h</small>` : '—'}</dd></div>
       <div class="ancho"><dt>Contra el líder</dt><dd>${alLider}</dd></div>
     </dl>
-    ${det?.hoyos ? `<p class="rs-titulo">Hoyo por hoyo</p><div class="rs-hoyos">${M.HOYOS.map((h, i) => { const g = det.hoyos[i]; const c = g < h.par ? 'bajo' : g > h.par ? 'sobre' : ''; return `<div class="${c}">HOYO ${h.n} · PAR ${h.par}<b>${g ?? '—'}</b></div>` }).join('')}</div>${det.monos ? `<p class="rs-titulo" style="margin-top:4px">Los monos: ${det.monos.robos} robos · ${det.monos.malos} malos · ${det.monos.buenos} buenos${det.rorro ? ` · Rorro anotó ${det.rorro > 0 ? '+1' : '−1'}` : ''}</p>` : ''}${det.ruleta ? `<p class="rs-titulo" style="margin-top:4px">🎰 Quién pegó: ${det.ruleta.map((e, i) => `${M.HOYOS[i]?.n} ${[].concat(e).join('›')}`).map(esc).join(' · ')}</p>` : ''}` : ''}
+    ${det?.hoyos ? `<p class="rs-titulo">Hoyo por hoyo</p><div class="rs-hoyos">${M.HOYOS.map((h, i) => { const g = det.hoyos[i]; const c = g < h.par ? 'bajo' : g > h.par ? 'sobre' : ''; return `<div class="${c}">HOYO ${h.n} · PAR ${h.par}<b>${g ?? '—'}</b></div>` }).join('')}</div>${det.monos ? `<p class="rs-titulo" style="margin-top:4px">Los monos: ${det.monos.robos} robos · ${det.monos.malos} malos · ${det.monos.buenos} buenos${det.monos.llevados ? ` · se llevó ${det.monos.llevados}` : ''}${det.rorro ? ` · Rorro anotó ${det.rorro > 0 ? '+1' : '−1'}` : ''}</p>` : ''}${det.ruleta ? `<p class="rs-titulo" style="margin-top:4px">🎰 Quién pegó: ${det.ruleta.map((e, i) => `${M.HOYOS[i]?.n} ${[].concat(e).join('›')}`).map(esc).join(' · ')}</p>` : ''}` : ''}
     <p class="rs-titulo">Sus vueltas</p>
     <dl class="rs-datos">
       <div><dt>Firmadas</dt><dd>${suyas.length}</dd></div>

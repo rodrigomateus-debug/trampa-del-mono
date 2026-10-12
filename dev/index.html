@@ -1038,6 +1038,11 @@ body #pancho.tira, body.monos-vienen #pancho.tira:not([disabled]) { animation: t
 @keyframes cuentaPancho { 0% { transform: rotate(8deg) scale(1); } 40% { transform: rotate(-6deg) scale(1.45); background: var(--gold); } 100% { transform: rotate(8deg) scale(1); } }
 @media (prefers-reduced-motion: reduce) { #pancho.tira, #pancho.tira .pancho-emo, #pancho.tira b { animation-duration: 1ms; } }
 @keyframes latePancho { to { transform: scale(1.1); } }
+/* 🐒 los monos que te llevaste (cada 5, un golpe menos): abajo del botón; salta con cada uno */
+#pancho i { position: absolute; bottom: -12px; left: 50%; translate: -50% 0; padding: 3px 8px; border-radius: 999px; background: var(--cream); color: var(--green-900); border: 2px solid var(--game-ink); font: 13px/1 var(--font-display); letter-spacing: .03em; white-space: nowrap; font-style: normal; }
+#pancho i[hidden] { display: none; }
+#pancho i.salta { animation: cuentaPancho .55s cubic-bezier(.2, 1.6, .4, 1); }
+#pancho i.premio { background: var(--gold); }
 .chip { font-family: var(--font-display); font-size: 16px; letter-spacing: .05em; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); border-radius: 999px; padding: 0 12px; height: 30px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 #crono { color: var(--gold); min-width: 10ch; justify-content: center; }
 #efecto { background: var(--gold); color: var(--green-900); }
@@ -2267,7 +2272,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <div id="clima-cartel" hidden role="status" aria-live="polite" aria-label="El clima de hoy"><div class="cl-caja"><span class="cl-ico" aria-hidden="true"></span><small class="cl-kick">HOY EN SAN DIEGO</small><b class="cl-nombre"></b><p class="cl-texto"></p><span class="cl-raro">1 EN 20</span></div></div>
 
-<button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
+<button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b><i id="pancho-monos" hidden></i></button>
 
 <div id="cuenta" hidden aria-live="assertive"></div>
 
@@ -2457,7 +2462,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 880d4a2 · 12/10, 10:56 a. m.</span>
+  <span class="version" id="version">v 562ffda · 12/10, 11:22 a. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2679,11 +2684,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=af95ac28d2'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS } from './plantel.js?v=af95ac28d2'
+import * as M from './motor.js?v=c8c2941661'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS } from './plantel.js?v=c8c2941661'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=af95ac28d2'
-import * as S from './sonido.js?v=af95ac28d2'
+import * as R from './ranking.js?v=c8c2941661'
+import * as S from './sonido.js?v=c8c2941661'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"banana": "<path d=\"M21 6C28.6 9.4 30 20 22.8 25.4C17.4 29.4 9.4 29 3.8 24.6C10.2 24.4 14.8 21.4 16.9 17.4C18.9 13.6 18.8 9.8 16.8 6.6Z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.2 8.2C21.6 13.8 19.9 20.4 12.2 24.8\" stroke-width=\"1.5\"/><path d=\"M24.4 11.6C25.8 16 24.3 20.8 20.3 23.8\" style=\"stroke:var(--gi-f)\" stroke-width=\"2.4\"/><path d=\"M16.8 6.6L17.3 2.8L21.1 2.4L21 6\" style=\"fill:var(--gi-s)\"/><path d=\"M3.8 24.6L2.6 26.5\" stroke-width=\"3\"/>", "match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2899,7 +2904,7 @@ const usa3d = (j) => !!j?.cancha3d // (Rorro, aunque esta vuelta juegue con la h
 const modo3d = () => !!r3d?.estaActivo() && !replay && !!ronda && usa3d(ronda.carta)
 function cargar3d() {
   if (r3d) return Promise.resolve(r3d)
-  r3dCarga ??= import('./cancha3d.js?v=af95ac28d2').then((m) => {
+  r3dCarga ??= import('./cancha3d.js?v=c8c2941661').then((m) => {
     m.iniciar({ lienzo: $('#cancha3d'), alCampo: (filas) => { campo = filas ? { ...campoBase, cancha: { ...campoBase.cancha, filas } } : campoBase } })
     m.sonido(S.prendido())
     r3d = m
@@ -3129,6 +3134,7 @@ lienzo.addEventListener('pointerdown', (e) => {
   // Tito: con la pelota en el aire, el swipe es una ráfaga
   if (titoVolando() && !swipeTito) { swipeTito = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; lienzo.setPointerCapture(e.pointerId); return }
   if (estado !== 'apuntar' || drag || trazo) return // un segundo dedo no pisa el tiro que estás armando
+  if (agarrarMono(e.clientX, e.clientY)) return // 🐒 la Mugre: tocaste un mono que come el pancho, te lo llevás
   // el Dibuje maestro: con el dedo dibujás el vuelo (de la pelota a donde cae)
   if (esDibuje()) {
     trazo = { id: e.pointerId, pts: [s2w(e.clientX, e.clientY)], ult: [e.clientX, e.clientY], plan: null }
@@ -4259,7 +4265,8 @@ function dibujarPancho() {
   const u = Math.min(1, (ahora - pancho.t0) / pancho.dur)
   const comen = comenPancho()
   if (u >= 1 && !comen.length) { pancho = null; return }
-  const tam = Math.max(18, Math.min(30, cam.esc * 2.8))
+  // (en la cancha 3D de Rorro, del tamaño de la cancha que se ve: los monos son grandes)
+  const tam = modo3d() ? Math.max(20, Math.min(56, r3d.escEn(pancho.hasta) * 2.4)) : Math.max(18, Math.min(30, cam.esc * 2.8))
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   if (u < 1) {
@@ -4287,7 +4294,7 @@ function dibujarPancho() {
   const llegaron = comen.filter(estaComiendo)
   if (llegaron.length && !pancho.mordio) { pancho.mordio = true; S.mordisco() }
   // lo comido: el que lleva más tiempo comiendo manda (se achica hasta la mitad)
-  const comido = llegaron.length ? Math.max(...llegaron.map((s) => 1 - s.comiendo / M.MUGRE.comer)) : 0
+  const comido = llegaron.length ? Math.min(1, Math.max(0, ...llegaron.map((s) => 1 - s.comiendo / M.MUGRE.comer))) : 0
   const k = 1 - 0.5 * comido
   // al caer: un rebotecito (se aplasta y se estira) y un poco de polvo
   const r = enPiso < 0.4 ? Math.sin((enPiso / 0.4) * Math.PI) * 0.28 * (1 - enPiso / 0.4) : 0
@@ -4353,6 +4360,70 @@ function dibujarPancho() {
     ctx.fillText(txt, x, py + 1)
   }
   ctx.textBaseline = 'alphabetic'
+}
+// 🐒 la Mugre se los lleva: tocando un mono que come, lo agarra una mano, salta y vuela al botón del pancho (el contador
+// salta); cada 5 en la vuelta, un golpe menos (motor.js `llevarMono`)
+let llevando = [] // { x, y, t0, tam } — los que van volando al botón (en la pantalla)
+const LLEVAR_MS = 750
+function agarrarMono(px, py) {
+  if (!ronda?.monos.some(M.sePuedeLlevar)) return false
+  let mejor = null
+  for (const s of ronda.monos) {
+    if (!M.sePuedeLlevar(s)) continue
+    // dónde se ve: en 2D el emoji está centrado en su lugar; en 3D, el cuerpo, un poco arriba del piso
+    const [x, y, ve] = modo3d() ? r3d.aPantalla(s.pos, 1.2) : w2s(s.pos)
+    if (modo3d() && !ve) continue
+    const radio = modo3d() ? Math.max(30, r3d.escEn(s.pos) * 2.4) : Math.max(24, tamMono() * 0.8)
+    const d = Math.hypot(px - x, py - y)
+    if (d <= radio && (!mejor || d < mejor.d)) mejor = { s, d, x, y }
+  }
+  if (!mejor) return false
+  const res = M.llevarMono(ronda, mejor.s)
+  if (!res) return false
+  const tam = modo3d() ? Math.max(30, Math.min(72, r3d.escEn(mejor.s.pos) * 2.6)) : Math.max(26, tamMono())
+  llevando.push({ x: mejor.x, y: mejor.y, t0: performance.now(), tam })
+  S.robo()
+  setTimeout(() => {
+    const c = $('#pancho-monos')
+    c.classList.remove('salta')
+    void c.offsetWidth
+    c.classList.add('salta')
+    if (res.premio) S.perfecto()
+  }, LLEVAR_MS - 80)
+  if (res.premio) {
+    relatar({ lg: M.elegir(rng, ['¡LURRRRPIN! Cinco monos en la bolsa', 'Se los llevó a todos. Un golpe menos', 'La Mugre pagó el tercer tiempo con monos']), verso: `🐒 ${res.n} monos: un golpe menos en la tarjeta` })
+    marcarTiro('🐒 −1 GOLPE', ronda.pelota)
+  } else relatar({ lg: M.elegir(rng, ['¡Te lo llevaste!', 'Uno menos que roba', 'A la bolsa, mono']), verso: `🐒 ${res.n} de ${M.LLEVAR.premio}: con ${M.LLEVAR.premio}, un golpe menos` })
+  hud()
+  return true
+}
+function dibujarLlevados() {
+  if (!llevando.length) return
+  const ahora = performance.now()
+  llevando = llevando.filter((l) => ahora - l.t0 < LLEVAR_MS)
+  const b = $('#pancho')
+  const r = b && !b.hidden ? b.getBoundingClientRect() : null
+  const destino = r ? [r.left + r.width / 2, r.top + r.height / 2] : [W - 40, H - 60]
+  ctx.save()
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  for (const l of llevando) {
+    const u = (ahora - l.t0) / LLEVAR_MS, tam = l.tam
+    // primero lo agarra la mano y salta (un tercio); después vuela en arco al botón, achicándose
+    const sube = Math.min(1, u / 0.3), vuela = Math.max(0, (u - 0.3) / 0.7), e = vuela * vuela * (3 - 2 * vuela)
+    const x = l.x + (destino[0] - l.x) * e
+    const y = l.y - Math.sin(sube * Math.PI * 0.5) * 22 + (destino[1] - l.y) * e - Math.sin(e * Math.PI) * 60
+    const k = (1 + 0.25 * sube) * (1 - 0.6 * e)
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.rotate(Math.sin(u * 30) * 0.25 * (1 - e))
+    ctx.font = `${tam * k}px ${EMOJI}`
+    ctx.fillText('🐒', 0, 0)
+    if (u < 0.45) { ctx.font = `${tam * 0.8 * k}px ${EMOJI}`; ctx.fillText('🫳', 0, -tam * 0.62 * k) }
+    ctx.restore()
+  }
+  ctx.restore()
 }
 /** Embocó: el último putt del 17 para el reloj. */
 function embocar(frase) {
@@ -4596,6 +4667,7 @@ function ponerEnEscena(jugador) {
 function introHoyo() {
   const h = M.hoyoActual(ronda)
   pancho = null
+  llevando = []
   estado = 'intro'
   tiro = null
   estela = []
@@ -5552,7 +5624,12 @@ function relatar({ lg, excusa, verso }) {
 }
 function pintarVoz() {
   let clase = 'vacia', dice = 'mirando…', extra = ''
-  if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza')) {
+  if (ronda && estado === 'apuntar' && ronda.monos.some(M.sePuedeLlevar) && !(voz && performance.now() < voz.hasta)) {
+    // (lo que acaba de pasar —el pancho, el que te llevaste, el golpe menos— se lee primero)
+    const n = ronda.llevados ?? 0, P = M.LLEVAR.premio
+    clase = 'alerta comen'; dice = '🐒 ¡ESTÁN COMIENDO! TOCALOS' // (alerta, pero el botón del pancho no late: ya comen)
+    extra = n < P ? `y te los llevás · ${n} de ${P} = un golpe menos` : `y te los llevás · van ${n}: con ${(Math.floor(n / P) + 1) * P}, otro golpe menos`
+  } else if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza' && !s.pancho)) { // (los que van al pancho no vienen)
     clase = 'alerta'; dice = '🐒 ¡VIENEN LOS MONOS! PEGALE'
     extra = ronda.panchos ? `…o tirales un pancho 🌭 (te quedan ${ronda.panchos})` : 'Si llegan, se la llevan: al tee con un golpe de multa'
   } else if (estado === 'manejar' && ronda?.carro && !(voz && performance.now() < voz.hasta)) {
@@ -5670,6 +5747,12 @@ function hud() {
     $('#pancho-n').textContent = ronda.panchos
     $('#pancho').disabled = !ronda.panchos || estado !== 'apuntar'
   }
+  const n = ronda.llevados ?? 0, menos = -(ronda.tarjeta.monos ?? 0)
+  const cont = $('#pancho-monos')
+  cont.hidden = !n
+  const txt = menos ? `🐒 ${n} · −${menos}` : `🐒 ${n}/${M.LLEVAR.premio}`
+  if (n && cont.textContent !== txt) cont.textContent = txt
+  cont.classList.toggle('premio', !!menos)
   // Maxi: el botón de Deme (una vez por vuelta; en el tee, apagado)
   // los Dicky: la Dickyllamada (una por vuelta: un Dicky te pega el próximo tiro)
   const dicky = !oculto && hayOtroDicky(j) && M.puedeDickyllamar(ronda)
@@ -6014,6 +6097,7 @@ function dibujar() {
   const aJ = estado === 'apuntar' && drag ? apunte() : null
   dibujarGolfista(aJ)
   dibujarMonos()
+  dibujarLlevados()
   dibujarMarcasTiro()
   dibujarDestello()
   if (ronda?.duelo?.fantasma) dibujarFantasma()
@@ -6058,6 +6142,7 @@ function dibujar3d() {
   try {
     r3d.cuadro(dtCuadro, {
       estado, ronda, tiro, anim, drag: !!drag, enPutt, apunte: aJ, golfista: estadoGolfista(aJ), fantasma: fant,
+      pancho: pancho && comenPancho().length ? pancho.hasta : null, // 🌭 mientras comen, la cámara se abre para verlo
       // 🪄 el Dibuje maestro: hasta dónde le da el carry (en yardas del dibujo), para que la cámara lo muestre entero
       dibuje: esDibuje() && (estado === 'apuntar' || estado === 'cambio') ? { max: maxDibuje(), dibujando: !!trazo } : null,
       zona: { top: (m.card ?? m.top ?? 20) + 6, bot: m.bot ?? H - 20 },
@@ -6069,6 +6154,7 @@ function dibujar3d() {
   monos3dHud()
   // la habilidad que Rorro le copió a otro: lo que en el juego de siempre se dibuja arriba de la cancha
   dibujarPancho()
+  dibujarLlevados()
   if (ronda && !ronda.terminada) {
     if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro) }
     else if (ronda.deme?.listo && estado === 'apuntar') auraDeme(ronda.pelota)
@@ -6108,7 +6194,7 @@ function monos3dHud() {
   const v = visible(), lejos = M.alertaDe(ronda)
   const [bx, by] = w2s(ronda.pelota)
   ronda.monos.forEach((s, i) => {
-    if (s.modo !== 'caza') return
+    if (s.modo !== 'caza' || s.pancho) return // (el que va al pancho o lo come no viene: sin cartel)
     const d = M.dist(s.pos, ronda.pelota)
     const c = r3d.monoEnPantalla(i)
     const [x, y, adelante] = w2s(s.pos)
@@ -6739,6 +6825,7 @@ function dibujarMonos() {
   ctx.textBaseline = 'middle'
   const grupo = comenPancho().filter(estaComiendo) // los que ya están comiendo el pancho (para turnarse el ñam)
   for (const s of ronda.monos) {
+    if (s.modo === 'llevado') continue // te lo llevaste (vuela al botón: dibujarLlevados)
     let [x, y] = w2s(s.pos)
     if (s.modo === 'aplastado') {
       // aplastado por el carrito: chato, de costado, con estrellitas
@@ -8398,6 +8485,7 @@ function tarjetaFinal() {
     const marca = f.lp || f.golpes > f.par ? 'sobre' : f.golpes < f.par ? 'bajo' : ''
     return `<tr><td>${f.n}</td><td class="num">${f.par}</td><td class="num">${f.golpes ?? '—'}</td><td class="res"><i class="${marca}"></i>${nombre === 'LP' ? 'LP 💅' : nombre}</td></tr>`
   })
+  if (ronda.tarjeta.monos) filas.push(`<tr><td>🐒</td><td class="num">—</td><td class="num">−${-ronda.tarjeta.monos}</td><td class="res"><i class="bajo"></i>Te llevaste ${ronda.llevados} monos</td></tr>`)
   if (ronda.tarjeta.rorro) filas.push(`<tr><td>🥃</td><td class="num">—</td><td class="num">${ronda.tarjeta.rorro > 0 ? '+1' : '−1'}</td><td class="res"><i class="${ronda.tarjeta.rorro > 0 ? 'sobre' : 'bajo'}"></i>Rorro anotó mal</td></tr>`)
   const t = M.totales(ronda.tarjeta)
   filas.push(`<tr class="total"><td>TOTAL</td><td class="num">${t.par}</td><td class="num">${t.golpes ?? '—'}</td><td class="res"><span class="band" style="font-family: var(--font-display); font-size: 22px; font-weight: 400">${M.formatoPar(t.vsPar)}</span></td></tr>`)
@@ -8886,7 +8974,7 @@ async function anotarVuelta() {
   if (R.puente.activo) marca.uid = R.puente.identidad.uid
   // el detalle de la vuelta: hoyo por hoyo, los monos y la apuesta de Rorro (queda en el teléfono y, cuando la
   // base de la SDGApp tenga la columna `detalle`, también allá: así se ve en el resumen del ranking de todos)
-  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}), ...(datos.demetrio ? { secreto: true } : {}), ...(ronda.ruleta ? { ruleta: M.tirosRuleta(ronda).map((h) => h.tiros.map((t) => t.emoji)) } : {}), ...(ronda.pro ? { pro: true } : {}) }
+  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos, ...(ronda.llevados ? { llevados: ronda.llevados } : {}) }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}), ...(datos.demetrio ? { secreto: true } : {}), ...(ronda.ruleta ? { ruleta: M.tirosRuleta(ronda).map((h) => h.tiros.map((t) => t.emoji)) } : {}), ...(ronda.pro ? { pro: true } : {}) }
   const jugador = ronda.carta
   const pro = !!ronda.pro
   // las bananas de la vuelta (birdies, bajo par, hoyo en uno, el pozo): las da la base al anotarla; se ve la diferencia
@@ -9362,7 +9450,7 @@ $('#mt-lista').addEventListener('keydown', (e) => {
 /** El MATCH de prueba (prueba.js): rivales y bananas de mentira, en el teléfono. `entrar`: suelto, entra con esa identidad. */
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
-  const { crearPrueba } = await import('./prueba.js?v=af95ac28d2')
+  const { crearPrueba } = await import('./prueba.js?v=c8c2941661')
   pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs })
   R.usarPrueba(pruebaApp, entrar ? yo : null)
   $('#mt-prueba').hidden = false
@@ -9888,6 +9976,7 @@ async function reconectar(v) {
     r.duelo.fantasma = f
   }
   if (r.ruleta && r.match) contarRuleta(r, r.ruleta.rngN ?? 0)
+  if (r.llevados) r.tarjeta.monos = -Math.floor(r.llevados / M.LLEVAR.premio) || undefined // 🐒 (la tarjeta se guarda sin él)
   const { ms, gyd } = comoQuedo(v)
   if (gyd) r.golpes += 2
   r.t0 = null
@@ -10932,7 +11021,7 @@ function abrirResumen(m) {
       <div class="ancho"><dt>Fecha</dt><dd>${f ? `${esc(f.dia)}<small>a las ${f.hora} h</small>` : '—'}</dd></div>
       <div class="ancho"><dt>Contra el líder</dt><dd>${alLider}</dd></div>
     </dl>
-    ${det?.hoyos ? `<p class="rs-titulo">Hoyo por hoyo</p><div class="rs-hoyos">${M.HOYOS.map((h, i) => { const g = det.hoyos[i]; const c = g < h.par ? 'bajo' : g > h.par ? 'sobre' : ''; return `<div class="${c}">HOYO ${h.n} · PAR ${h.par}<b>${g ?? '—'}</b></div>` }).join('')}</div>${det.monos ? `<p class="rs-titulo" style="margin-top:4px">Los monos: ${det.monos.robos} robos · ${det.monos.malos} malos · ${det.monos.buenos} buenos${det.rorro ? ` · Rorro anotó ${det.rorro > 0 ? '+1' : '−1'}` : ''}</p>` : ''}${det.ruleta ? `<p class="rs-titulo" style="margin-top:4px">🎰 Quién pegó: ${det.ruleta.map((e, i) => `${M.HOYOS[i]?.n} ${[].concat(e).join('›')}`).map(esc).join(' · ')}</p>` : ''}` : ''}
+    ${det?.hoyos ? `<p class="rs-titulo">Hoyo por hoyo</p><div class="rs-hoyos">${M.HOYOS.map((h, i) => { const g = det.hoyos[i]; const c = g < h.par ? 'bajo' : g > h.par ? 'sobre' : ''; return `<div class="${c}">HOYO ${h.n} · PAR ${h.par}<b>${g ?? '—'}</b></div>` }).join('')}</div>${det.monos ? `<p class="rs-titulo" style="margin-top:4px">Los monos: ${det.monos.robos} robos · ${det.monos.malos} malos · ${det.monos.buenos} buenos${det.monos.llevados ? ` · se llevó ${det.monos.llevados}` : ''}${det.rorro ? ` · Rorro anotó ${det.rorro > 0 ? '+1' : '−1'}` : ''}</p>` : ''}${det.ruleta ? `<p class="rs-titulo" style="margin-top:4px">🎰 Quién pegó: ${det.ruleta.map((e, i) => `${M.HOYOS[i]?.n} ${[].concat(e).join('›')}`).map(esc).join(' · ')}</p>` : ''}` : ''}
     <p class="rs-titulo">Sus vueltas</p>
     <dl class="rs-datos">
       <div><dt>Firmadas</dt><dd>${suyas.length}</dd></div>

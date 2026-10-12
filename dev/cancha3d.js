@@ -1053,7 +1053,7 @@ function moverMonos3d(dt, st) {
   const lista = st.ronda?.monos ?? []
   monos3d.forEach((m, i) => {
     const s = lista[i]
-    if (!s || s.modo === 'aplastado' || !st.ronda || intro) { m.g.visible = false; return }
+    if (!s || s.modo === 'aplastado' || s.modo === 'llevado' || !st.ronda || intro) { m.g.visible = false; return }
     const p = s.pos
     if (m.ultimo) { const v = [p[0] - m.ultimo[0], p[1] - m.ultimo[1]]; if (Math.hypot(...v) > 1e-3) m.dir = Math.atan2(v[0], v[1]) }
     m.ultimo = [...p]
@@ -1340,6 +1340,12 @@ function poseDelJuego(st) {
     const fin = [r.pelota[0] + Math.cos(alPin) * L, r.pelota[1] + Math.sin(alPin) * L]
     const medio = [r.pelota[0] + Math.cos(alPin) * L * 0.55, r.pelota[1] + Math.sin(alPin) * L * 0.55]
     return encuadrar(enPiso(r.pelota), alPin, 1.2, -0.5, [enPiso(fin), ...anilloPuntos(medio, 0, L * 0.45, L * 0.3, alPin), ...anilloPuntos(r.pelota, 5)], { Dmin: 24, Dmax: 620, k: 2.6 })
+  }
+  // 🌭 la Mugre (copiada) tiró un pancho: mientras comen, la cámara sube y se abre para que se vean el pancho, los monos
+  // en ronda (para agarrarlos) y la pelota. Apuntando (con el dedo), vuelve a la de siempre
+  if (st.pancho && !st.drag && st.estado === 'apuntar') {
+    const medio = [(r.pelota[0] + st.pancho[0]) / 2, (r.pelota[1] + st.pancho[1]) / 2]
+    return encuadrar(enPiso(medio), alPin, 1.15, -0.1, [...anilloPuntos(st.pancho, 6), ...anilloPuntos(r.pelota, 4)], { Dmin: 18, Dmax: 160, k: 2.4 })
   }
   // apuntando (o esperando): la pelota abajo, mirando al hoyo, ~75 yd para adelante (o el hoyo); tirando para atrás,
   // se abre lo justo para ver dónde pica (en el MODO PRO, hasta el hoyo o 200 yd, como el juego)

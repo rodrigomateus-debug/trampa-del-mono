@@ -1028,7 +1028,7 @@ export function tirarCascaras(r, ruta, rng) {
     if (!pos) continue
     // la tira el mono más cercano que anda por ahí (si no hay ninguno, no hay cáscara)
     let mono = null
-    for (const s of r.monos ?? []) if (s.modo !== 'aplastado' && dist(s.pos, pos) < CASCARA.alcance && (!mono || dist(s.pos, pos) < dist(mono.pos, pos))) mono = s
+    for (const s of r.monos ?? []) if (!monoFuera(s) && dist(s.pos, pos) < CASCARA.alcance && (!mono || dist(s.pos, pos) < dist(mono.pos, pos))) mono = s
     if (!mono) continue
     if (r.cascaras.some((k) => dist(k.pos, pos) < 12)) continue
     r.cascaras.push({ pos, desde: [...mono.pos], viva: true })
@@ -1339,7 +1339,9 @@ export function crearMonos() {
   return HOYOS.flatMap((h) => h.monos.map((m) => ({ m, hoyo: h.n, pos: [...m.a], hacia: 'b', espera: m.fase % 6, modo: 'ronda', reaccion: 0 })))
 }
 /** Un mono está "en la cancha" (se lo puede golpear) cuando camina o caza; esperando en los pinos, no. */
-export const monoActivo = (s) => s.modo !== 'aplastado' && (s.modo === 'caza' || s.espera <= 0)
+export const monoActivo = (s) => !monoFuera(s) && (s.modo === 'caza' || s.espera <= 0)
+/** Ya no juega en esta vuelta: lo pisó el carrito de Marcos o te lo llevaste comiendo el pancho de la Mugre. */
+export const monoFuera = (s) => s.modo === 'aplastado' || s.modo === 'llevado'
 
 function caminar(s, destino, vel, dt) {
   const d = dist(s.pos, destino)
@@ -1356,7 +1358,7 @@ function caminar(s, destino, vel, dt) {
 export function moverMonos(monos, dt, pelota) {
   let llego = null
   for (const s of monos) {
-    if (s.modo === 'aplastado') continue // el que pisó el carrito de Marcos queda ahí
+    if (monoFuera(s)) continue // el que pisó el carrito de Marcos queda ahí; el que te llevaste, no está más
     if (s.modo === 'huye') {
       // la bocina de Marcos: corre para el otro lado y, pasado el susto, vuelve a su recorrido
       s.susto -= dt
@@ -1399,7 +1401,7 @@ export function moverMonos(monos, dt, pelota) {
 export function despertarMonos(monos, pelota, alerta = MONO.alerta) {
   let n = 0
   for (const s of monos) {
-    if (s.modo === 'aplastado' || s.modo === 'huye' || dist(s.pos, pelota) > alerta) continue
+    if (monoFuera(s) || s.modo === 'huye' || dist(s.pos, pelota) > alerta) continue
     if (s.modo !== 'caza') {
       s.modo = 'caza'
       s.reaccion = MONO.reaccion / (s.siesta ?? 1) // el clima: con sol (o nieve) salen tarde y lentos
@@ -1470,6 +1472,26 @@ export function tirarPancho(r) {
   })
   r.panchos -= 1
   return pos
+}
+
+/**
+ * 🐒 La Mugre se los lleva (2026-10-12, pedido de Rorro): mientras comen el pancho (ya en su lugar de la ronda), a los
+ * monos los podés agarrar tocándolos y te los llevás: no vuelven en lo que queda del hoyo (en el que sigue salen otra vez
+ * de sus pinos: son 6 en toda la cancha). Cada `premio` que te llevás en la vuelta, un golpe menos en la tarjeta
+ * (`tarjeta.monos`, que `totales` suma, como la apuesta de Rorro; la cuenta, en `r.llevados`).
+ */
+export const LLEVAR = { premio: 5 }
+export const sePuedeLlevar = (s) => !!s?.pancho && (s.modo === 'caza' || s.modo === 'come') && dist(s.pos, s.pancho) < 0.05
+/** Te llevás a `s`. Devuelve { n: cuántos van, premio: si este completó otros `premio` (un golpe menos) } o null. */
+export function llevarMono(r, s) {
+  if (!sePuedeLlevar(s)) return null
+  s.modo = 'llevado'
+  s.pancho = null
+  s.panchoEn = null
+  r.llevados = (r.llevados ?? 0) + 1
+  const premio = r.llevados % LLEVAR.premio === 0
+  r.tarjeta.monos = -Math.floor(r.llevados / LLEVAR.premio) || undefined
+  return { n: r.llevados, premio }
 }
 
 // ── tiro ────────────────────────────────────────────────────────────────
@@ -2726,6 +2748,8 @@ export function cerrarHoyo(r, rng) {
     r.viento = r.match ? { ...r.match.vientos[r.idx] } : vientoAleatorio(rng) // en un match, el mismo viento para los dos
     vientoDelClima(r)
     if (r.panchos || habilidadDe(r.jugador)?.id === 'panchitos') r.panchos = MUGRE.panchos
+    // los monos que se llevó la Mugre vuelven a sus pinos para el hoyo que sigue
+    for (const s of r.monos) if (s.modo === 'llevado') { s.modo = 'ronda'; s.pos = [...s.m.a]; s.hacia = 'b'; s.espera = MONO.pausa }
     // Marcos: el carrito lo espera en el próximo tee (no hace falta manejar de green a tee)
     if (r.carro) r.carro = carroAlLado(r.pelota)
   }
@@ -2736,8 +2760,9 @@ export function cerrarHoyo(r, rng) {
 export function totales(tarjeta) {
   const par = tarjeta.reduce((s, f) => s + f.par, 0)
   const lp = tarjeta.some((f) => f.lp)
-  // Marcos: la apuesta de "¿jugaste con Rorro?" (−1 o +1 al total; ver apostarRorro)
-  const golpes = lp ? null : tarjeta.reduce((s, f) => s + f.golpes, 0) + (tarjeta.rorro ?? 0)
+  // Marcos: la apuesta de "¿jugaste con Rorro?" (−1 o +1 al total; ver apostarRorro). La Mugre: −1 cada 5 monos que se
+  // llevó (ver llevarMono)
+  const golpes = lp ? null : tarjeta.reduce((s, f) => s + f.golpes, 0) + (tarjeta.rorro ?? 0) + (tarjeta.monos ?? 0)
   return { golpes, par, vsPar: lp ? null : golpes - par, lp }
 }
 /**
