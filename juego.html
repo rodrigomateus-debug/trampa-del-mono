@@ -8523,6 +8523,11 @@ function tarjetaFinal() {
   $('#t-ranking').hidden = true
   $('#t-bananas').hidden = true
   $('#t-match').hidden = true
+  // en un match, primero lo del match (el veredicto y el hoyo a hoyo contra el otro) y enseguida la firma, que tiene que
+  // verse sin bajar (son 10 s); tu tarjeta, abajo (2026-10-17, pedido de Rorro). Sin match, el orden de siempre
+  const delMatch = ['#t-match', '#t-firma', '#t-firmada', '#t-ranking', '#t-bananas'].map((s) => $(s))
+  if (ronda.duelo) $('#fin .tarjeta > header').after(...delMatch)
+  else $('#t-acciones').before(...delMatch.slice(1), delMatch[0])
   if (ronda.duelo) cerrarMatch(ronda)
   posRanking = null
   resumenListo = null

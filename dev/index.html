@@ -2480,7 +2480,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v c9b1845 · 12/10, 11:48 a. m.</span>
+  <span class="version" id="version">v 385f4d0 · 16/10, 10:33 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -8540,6 +8540,11 @@ function tarjetaFinal() {
   $('#t-ranking').hidden = true
   $('#t-bananas').hidden = true
   $('#t-match').hidden = true
+  // en un match, primero lo del match (el veredicto y el hoyo a hoyo contra el otro) y enseguida la firma, que tiene que
+  // verse sin bajar (son 10 s); tu tarjeta, abajo (2026-10-17, pedido de Rorro). Sin match, el orden de siempre
+  const delMatch = ['#t-match', '#t-firma', '#t-firmada', '#t-ranking', '#t-bananas'].map((s) => $(s))
+  if (ronda.duelo) $('#fin .tarjeta > header').after(...delMatch)
+  else $('#t-acciones').before(...delMatch.slice(1), delMatch[0])
   if (ronda.duelo) cerrarMatch(ronda)
   posRanking = null
   resumenListo = null
