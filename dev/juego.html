@@ -9096,12 +9096,13 @@ async function cargarDesafios() {
 // El saldo y las reglas viven en la base de la SDGApp (funciones `trampa_bananas_*` y `trampa_desafio_*`): acá solo se
 // piden y se muestran. Si la app o la base todavía no las tienen, no aparecen y el match es como siempre.
 //   10 al empezar · la mesada del mono: 3 por semana si tenés menos de 10 · jugando (vuelta firmada): birdie +1, águila
-//   +3, bajo par +2, hasta 5 por día · hoyo en uno +10; en MODO PRO, el pozo del mono · el match: los dos ponen lo mismo
-//   (2 o más; 0 = por el honor), el que gana se lleva todo menos 1 (para el mono) · rechazar o dejar vencer (48 h): 1.
+//   +3, bajo par +2, hasta 5 por día · hoyo en uno +10, una vez por día (19/10/2026); en MODO PRO, el pozo del mono · el
+//   match: los dos ponen lo mismo (2 o más; 0 = por el honor), el que gana se lleva todo menos 1 (para el mono) ·
+//   rechazar o dejar vencer (48 h): 1 · un regalo (`regalo`, lo carga la base a mano, con un mensaje): se avisa al entrar.
 let bananas = null // { saldo, reservadas, pozo, premiosHoy, movimientos }
 let bananasRk = null // [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]
 let hayBananas = false
-const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío', clasico: '⚔️ Ganó tu equipo en el Clásico', camiseta: '👕 El pase de camiseta', donacion: '🎁 Donación' }
+const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío', clasico: '⚔️ Ganó tu equipo en el Clásico', camiseta: '👕 El pase de camiseta', donacion: '🎁 Donación', regalo: '🎁 Regalo' }
 const POR_BANANA = { birdie: 'birdie', aguila: 'águila', bajo_par: 'bajo par' }
 // la banana del set SDGA: chiquita, en el texto (BN); grande, troquelada como sticker (stickerBanana)
 const BN = gi('banana', 'bn')
@@ -9422,7 +9423,7 @@ function comoBananas() {
     </div>
     <div class="bc-card bc-uno">
       <div class="bc-cab"><b>🕳️ Hoyo en uno</b><span class="bc-grande">+${BN_REGLAS.hoyoEnUno}${BN}</span></div>
-      <small class="bc-nota">Aparte del tope de 5. En <b>MODO PRO</b> te llevás <b>el pozo del mono</b>: hoy ${Math.max(BN_REGLAS.hoyoEnUno, b.pozo)}${BN}.</small>
+      <small class="bc-nota">Una vez por día, aparte del tope de 5. En <b>MODO PRO</b> te llevás <b>el pozo del mono</b>: hoy ${Math.max(BN_REGLAS.hoyoEnUno, b.pozo)}${BN}.</small>
     </div>
     <div class="bc-fila">
       <div class="bc-card bc-mesada">
@@ -9445,7 +9446,8 @@ function verBananas() {
     const por = Array.isArray(m.detalle?.por) ? m.detalle.por.map((x) => POR_BANANA[x] ?? x).join(', ') : ''
     const f = fechaLarga(m.fecha)
     const quien = m.detalle?.nombre ? String(m.detalle.nombre) : 'alguien'
-    const motivo = m.motivo === 'donacion' ? (m.monto < 0 ? `🎁 Le donaste a ${quien}` : `🎁 Te donó ${quien}`) : (MOTIVO_BANANA[m.motivo] ?? m.motivo)
+    const motivo = m.motivo === 'donacion' ? (m.monto < 0 ? `🎁 Le donaste a ${quien}` : `🎁 Te donó ${quien}`)
+      : m.motivo === 'regalo' && m.detalle?.de ? `🎁 Regalo de ${m.detalle.de}` : (MOTIVO_BANANA[m.motivo] ?? m.motivo)
     return `<li><span>${esc(motivo)}${por ? ` · ${esc(por)}` : ''}${f ? `<small>${esc(f.dia)}</small>` : ''}</span><b class="${m.monto > 0 ? 'mas' : 'menos'}">${m.monto > 0 ? '+' : '−'}${Math.abs(m.monto)}</b></li>`
   }
   hojaBananas(`
@@ -11359,6 +11361,23 @@ async function cobrarClasico() {
     <p class="cl-lg">📺 LG: «${esc(lgClasico({ ganador: r.ganador, desde: Date.parse(r.semana ?? 0) || 0 }))}»</p>
     <button class="carta-jugar" type="button" data-bn="ok">¡Vamos!</button></div>`)
 }
+/**
+ * Al entrar: los regalos con mensaje (motivo `regalo`, los carga la base a mano: una compensación, una disculpa) que
+ * todavía no viste en este teléfono, de los últimos 30 días. Uno por vez; visto, no vuelve (`datos.regalosVistos`).
+ */
+async function verRegalos() {
+  const vistos = new Set(datos.regalosVistos ?? [])
+  const nuevos = (bananas?.movimientos ?? []).filter((m) => m.motivo === 'regalo' && m.monto > 0 && typeof m.detalle?.mensaje === 'string'
+    && !vistos.has(m.fecha) && Date.now() - (Date.parse(m.fecha) || 0) < 30 * 864e5).reverse() // del más viejo al más nuevo
+  for (const m of nuevos) {
+    S.monoBueno()
+    await hojaBananas(`<div class="cl-cobro">${stickerBanana()}<p class="bn-tit" id="bn-tit">🎁 +${m.monto}${BN}</p>
+      <p>${esc(m.detalle.mensaje)}</p>${m.detalle.de ? `<p class="cl-lg">— ${esc(m.detalle.de)}</p>` : ''}
+      <button class="carta-jugar" type="button" data-bn="ok">¡Gracias!</button></div>`)
+    datos.regalosVistos = [...(datos.regalosVistos ?? []), m.fecha].slice(-20)
+    guardar(datos)
+  }
+}
 
 async function mostrarRanking(tab = 'general') {
   rkTab = tab
@@ -11847,7 +11866,7 @@ R.alEntrar(async (yo) => {
   if (R.hayMatch()) {
     $('#ver-match').hidden = false
     cargarDesafios()
-    cargarBananas().then((hay) => { if (hay) cobrarClasico() })
+    cargarBananas().then(async (hay) => { if (hay) { await cobrarClasico(); await verRegalos() } })
     // ?match=1 (el aviso de la SDGApp, el link de WhatsApp); con &replay=<id>, directo al replay de ese match
     const q = new URLSearchParams(location.search)
     if (q.has('match')) entrarPorAviso({ replayId: q.get('replay') || null, desdeLink: true })

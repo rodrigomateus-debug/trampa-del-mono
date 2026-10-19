@@ -36,6 +36,26 @@ ok('par 11 y la cancha sale del dibujo (4 px = 1 yarda)', () => {
   assert.ok(campo.cancha.filas.every((f) => f.length === 219))
 })
 
+ok('sin tiras de green de 1 yarda: atrás del green del 15 es rough y no da el putter (2026-10-19)', () => {
+  // la herramienta que leyó el dibujo dejó una columna de 'g' (x = 42, y = 2..27) del green del 15 para arriba, por
+  // el rough y hasta afuera: la pelota que paraba ahí quedaba "en el green" y salía el putter a 18 yd del hoyo
+  for (const y of [2, 8, 15, 20, 27]) assert.notEqual(M.terreno(campo, [42.5, y + 0.5]).tipo, 'green', `x 42, y ${y}`)
+  const r = M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛' }, fijo(0.5))
+  r.pelota = [42.5, 20.5]
+  r.lie = M.terreno(campo, r.pelota).tipo
+  assert.equal(r.lie, 'rough')
+  assert.ok(!M.enModoPutt(campo, r), 'desde el rough no hay putter')
+  // en toda la cancha: ninguna columna de green de 1 yarda de ancho más larga que 2 yardas
+  const { filas } = campo.cancha
+  const angosta = (x, y) => filas[y]?.[x] === 'g' && filas[y][x - 1] !== 'g' && filas[y][x + 1] !== 'g'
+  for (let y = 0; y < filas.length; y++) for (let x = 0; x < filas[y].length; x++) {
+    if (!angosta(x, y) || angosta(x, y - 1)) continue
+    let largo = 0
+    while (angosta(x, y + largo)) largo++
+    assert.ok(largo <= 2, `tira de green de ${largo} yd en x ${x}, desde y ${y}`)
+  }
+})
+
 ok('terreno: tee, green, fairway, bunker, rough entre hoyos, árbol y afuera', () => {
   for (const h of M.HOYOS) {
     assert.deepEqual(M.terreno(campo, h.tee), { tipo: 'tee', hoyo: h.n })
