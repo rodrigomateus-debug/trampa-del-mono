@@ -717,6 +717,17 @@ function moverBochas(r) {
 const fantasma = new THREE.Mesh(new THREE.SphereGeometry(RADIO_BOLA, 14, 10), new THREE.MeshBasicMaterial({ color: '#9fd3f7', transparent: true, opacity: 0.55, depthWrite: false }))
 fantasma.visible = false
 escena.add(fantasma)
+// ⚔️ en el fourball hay hasta tres pelotas ajenas: la primera es `fantasma` (la del replay también); las otras, copias
+const fantasmas = [fantasma]
+function mallaFantasma(i) {
+  while (fantasmas.length <= i) {
+    const m = new THREE.Mesh(fantasma.geometry, new THREE.MeshBasicMaterial({ color: '#9fd3f7', transparent: true, opacity: 0.55, depthWrite: false }))
+    m.visible = false
+    escena.add(m)
+    fantasmas.push(m)
+  }
+  return fantasmas[i]
+}
 // el trazador del vuelo (como en la tele): una cinta que sigue a la pelota desde que sale, y se apaga cuando para
 const MAXT = 220
 const trazoGeo = new THREE.BufferGeometry()
@@ -1794,7 +1805,7 @@ export function replayEmpezar({ hoyos, clima = null, imagenCancha = null }) {
 export function replayTerminar(ronda = null) {
   rp = null
   trazoPts = []; trazoApaga = null
-  fantasma.visible = false
+  for (const m of fantasmas) m.visible = false
   fantasma.material.color.set(FANTASMA_COLOR); fantasma.material.opacity = 0.55
   if (ronda) aplicarClima(ronda)
 }
@@ -2159,12 +2170,17 @@ export function cuadro(dtR, st) {
   if (enTee) teeBase = pelotaBase ?? inversa(r.pelota)
   teePeg.visible = !!teeBase && !!r && !intro
   if (teeBase) { const p = adelante(teeBase); teePeg.position.set(p[0], alturaEn(teeBase), p[1]); teePeg.scale.setScalar(escalaVista(teePeg.position, ALTO_TEE, 1.5)) }
-  // el fantasma del match
-  fantasma.visible = !!st.fantasma && !intro
-  if (st.fantasma) {
-    const f = st.fantasma, adentro = pinActual && !f.alt && dist(f.pos, pinActual) < RADIO_TAZA - RADIO_BOLA // (el que la metió: en el fondo)
-    fantasma.position.set(f.pos[0], alturaEn(inversa(f.pos)) + RADIO_BOLA + (adentro ? 0.012 - HONDO_TAZA : f.alt ?? 0), f.pos[1])
-    fantasma.scale.setScalar(escalaVista(fantasma.position) * 1.1)
+  // el fantasma del match (en el fourball, los de los que ya jugaron: cada uno con su color)
+  const lista = st.fantasmas ?? (st.fantasma ? [st.fantasma] : [])
+  for (let i = 0; i < Math.max(lista.length, fantasmas.length); i++) {
+    const f = lista[i], m = f ? mallaFantasma(i) : fantasmas[i]
+    m.visible = !!f && !intro
+    if (!f) continue
+    if (f.color) m.material.color.set(f.color)
+    else if (i > 0) m.material.color.set(FANTASMA_COLOR)
+    const adentro = pinActual && !f.alt && dist(f.pos, pinActual) < RADIO_TAZA - RADIO_BOLA // (el que la metió: en el fondo)
+    m.position.set(f.pos[0], alturaEn(inversa(f.pos)) + RADIO_BOLA + (adentro ? 0.012 - HONDO_TAZA : f.alt ?? 0), f.pos[1])
+    m.scale.setScalar(escalaVista(m.position) * 1.1)
   }
   // la cámara (la intro y los sobrevuelos van por su ruta). Si pegaste con el sobrevuelo del hoyo todavía andando, se
   // corta: la cámara va a la pelota (si no, seguía la ruta y la pelota volaba fuera de cuadro)

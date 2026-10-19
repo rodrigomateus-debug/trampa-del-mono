@@ -1192,6 +1192,55 @@ export function porTiempo(a, b) {
   return ga != null && ga === (b?.golpes ?? null) && (a.ms ?? Infinity) !== (b.ms ?? Infinity)
 }
 
+// ── el FOURBALL ⚔️ (2 contra 2, mejor y suma; 2026-10-19, pedido de Rorro) ──
+// Dos parejas, a distancia como el match: cada uno juega su vuelta con su player, cuando quiere, con la misma semilla
+// (viento, banderas y clima) y viendo los fantasmas de los que ya jugaron. En cada hoyo hay DOS puntos: uno para la
+// mejor pelota de la pareja y otro para la suma de las dos (empatado, medio y medio): 6 en juego. Gana la pareja que
+// suma más; 3 a 3, el tiempo sumado de los dos. El que levantó (LP) no tiene score en los hoyos que no terminó: ahí
+// cuenta la mejor del compañero y la pareja pierde la suma; y la pareja queda sin tiempo (pierde el desempate).
+// Por el honor (las bananas y el Clásico, más adelante). Sin rival en 7 días, vence; tomado, 48 h para jugar los cuatro
+// (el que no jugó, LP). La pareja A es la que lo armó (a1 lo armó, a2 su compañero); la B, la que lo tomó (b1, b2).
+export const FOURBALL = { puntosHoyo: 2, venceAbierto: 7 * 24 * 3600e3, venceTomado: 48 * 3600e3 }
+export const LUGARES_FOURBALL = ['a1', 'a2', 'b1', 'b2']
+// 1 si `a` es mejor (menos golpes), −1 si es peor, 0 igual; sin score (null) pierde con cualquiera
+const mejorScore = (a, b) => (a == null && b == null ? 0 : a == null ? -1 : b == null ? 1 : a < b ? 1 : a > b ? -1 : 0)
+/**
+ * La cuenta del fourball. `A` y `B`: las dos parejas, [jugador, jugador], con jugador = { hoyos: [g15, g16, g17], ms, lp }
+ * (en `hoyos`, null = ese hoyo no lo terminó porque levantó; undefined = todavía no lo jugó). Un hoyo se cuenta cuando
+ * los cuatro lo tienen (jugado o levantado): si no, sus puntos van en null (el marcador en vivo).
+ * → { hoyos: [{ n, par, a: { mejor, suma }, b, puntos: [pa, pb] | null }], puntos: [A, B], tiempos: [A, B] (null = sin
+ *   tiempo), ganador: 1 (A) | −1 (B) | 0, porTiempo, completo }
+ */
+export function resultadoFourball(A, B) {
+  const g = (j, k) => (j?.hoyos ? j.hoyos[k] : undefined)
+  const lado = (P, k) => {
+    const x = g(P[0], k), y = g(P[1], k)
+    return { mejor: x == null ? (y ?? null) : y == null ? x : Math.min(x, y), suma: x != null && y != null ? x + y : null, listo: x !== undefined && y !== undefined }
+  }
+  const pts = (c) => (c > 0 ? [1, 0] : c < 0 ? [0, 1] : [0.5, 0.5])
+  const hoyos = HOYOS.map((h, k) => {
+    const a = lado(A, k), b = lado(B, k)
+    if (!a.listo || !b.listo) return { n: h.n, par: h.par, a, b, puntos: null }
+    const [ma, mb] = pts(mejorScore(a.mejor, b.mejor)), [sa, sb] = pts(mejorScore(a.suma, b.suma))
+    return { n: h.n, par: h.par, a, b, puntos: [ma + sa, mb + sb], mejor: [ma, mb], sumaPts: [sa, sb] }
+  })
+  const puntos = [0, 1].map((i) => hoyos.reduce((t, h) => t + (h.puntos?.[i] ?? 0), 0))
+  const tiempo = (P) => (P.every((j) => j && !j.lp && j.ms != null && j.hoyos?.every((x) => x != null)) ? P[0].ms + P[1].ms : null)
+  const tiempos = [tiempo(A), tiempo(B)]
+  const completo = hoyos.every((h) => h.puntos)
+  let ganador = puntos[0] > puntos[1] ? 1 : puntos[0] < puntos[1] ? -1 : 0, porTiempoFb = false
+  if (!ganador && completo) {
+    const [ta, tb] = tiempos
+    ganador = ta == null && tb == null ? 0 : ta == null ? -1 : tb == null ? 1 : ta === tb ? 0 : ta < tb ? 1 : -1
+    porTiempoFb = ganador !== 0
+  }
+  return { hoyos, puntos, tiempos, ganador, porTiempo: porTiempoFb, completo }
+}
+/** Los puntos del fourball con medios: 3½, ½, 4. */
+export const formatoPuntos = (x) => { const e = Math.floor(x + 1e-9), m = x - e > 0.25; return e || !m ? `${e}${m ? '½' : ''}` : '½' }
+/** Los golpes de cada hoyo de una vuelta terminada (la tarjeta): null en los que levantó. */
+export const hoyosDeTarjeta = (tarjeta) => HOYOS.map((h, k) => { const f = tarjeta?.[k]; return f && !f.lp && f.golpes != null ? f.golpes : null })
+
 // ── banderas ──
 // La bandera cambia de lugar en cada ronda: en cualquier parte del green a `margen` yardas o más del borde. Esa zona
 // se parte en tres tercios a lo largo de la línea del tee al green; el color dice en cuál está: roja adelante (el
