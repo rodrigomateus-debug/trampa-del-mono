@@ -116,8 +116,27 @@ function relieveGreens() {
   return { relieve, collar, cerca }
 }
 const RG = relieveGreens()
+/**
+ * Los cajones de salida, como en el juego de siempre (`cajonTee`): de la marca azul a la amarilla, 8 yd más largo y 9 de
+ * ancho, sumados a los tees del dibujo. Las amarillas (las de Rorro, por su handicap) quedaban afuera del tee dibujado
+ * y salía del rough.
+ */
+export const CAJON_TEE = { largo: 8, ancho: 9 }
+function cajonesTee() {
+  const a = capa('e')
+  for (const h of M.HOYOS) {
+    const A = h.tees.azul, B = h.tees.amarilla, l = Math.hypot(B[0] - A[0], B[1] - A[1])
+    const u = [(B[0] - A[0]) / l, (B[1] - A[1]) / l], c = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2]
+    const L = (l + CAJON_TEE.largo) / 2, An = CAJON_TEE.ancho / 2, R = Math.ceil(L + An)
+    for (let y = Math.max(0, Math.floor(c[1] - R)); y < Math.min(H, c[1] + R); y++) for (let x = Math.max(0, Math.floor(c[0] - R)); x < Math.min(W, c[0] + R); x++) {
+      const dx = x + 0.5 - c[0], dy = y + 0.5 - c[1]
+      if (Math.abs(dx * u[0] + dy * u[1]) <= L && Math.abs(-dx * u[1] + dy * u[0]) <= An) a[y * W + x] = 1
+    }
+  }
+  return a
+}
 export const CAPA = {
-  calle: suavizar(capa('f')), green: suavizar(capa('g'), 1), bunker: suavizar(capa('b')), tee: suavizar(capa('e')),
+  calle: suavizar(capa('f')), green: suavizar(capa('g'), 1), bunker: suavizar(capa('b')), tee: suavizar(cajonesTee()),
   afuera: suavizar(capa('x')), arbol: suavizar(capa('t'), 3),
   relieve: suavizar(RG.relieve, 2), collar: suavizar(RG.collar, 1),
   // la cancha no se mueve en los greens ni cerca (de 5 a 12 yardas del borde, se va soltando): el putt es el putt

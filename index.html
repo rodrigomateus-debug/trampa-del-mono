@@ -78,7 +78,7 @@ body {
 /* 🥃 la cancha de Rorro en 3D (abajo del lienzo del juego, que queda transparente con la goma y los cartelitos) */
 #cancha3d { position: fixed; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; background: #0a2117; }
 #cancha3d[hidden] { display: none; }
-body.cine #hud-top, body.cine .rorro-poder { opacity: 0; pointer-events: none; transition: opacity .5s; }
+body.cine #hud-top, body.cine .rorro-poder, body.cine #reloj-rorro, body.cine #pancho, body.cine #deme-btn, body.cine #ninja-btn, body.cine #mago-golpes { opacity: 0; pointer-events: none; transition: opacity .5s; }
 #carga3d { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: #071a12; color: #cfe3d6; font: 13px/1.6 ui-monospace, Menlo, monospace; }
 #carga3d[hidden] { display: none; }
 #carga3d b { color: #38f2c8; font-weight: 400; }
@@ -221,6 +221,11 @@ body.apuntando #hud-top .card { opacity: .18; }
 body.apuntando #crono, body.apuntando #viento, body.apuntando #efecto, body.apuntando #golpes { opacity: .45; }
 #hud-chips > * { transition: opacity 150ms; }
 body.apuntando #lie, body.apuntando #lp, body.apuntando #pancho, body.apuntando #deme-btn, body.apuntando #dicky-btn, body.apuntando #e5-btn, body.apuntando #ninja-btn, body.apuntando .rorro-poder { opacity: .25; pointer-events: none; }
+/* 🥃 con Rorro, mientras la pelota vuela (y en la pausa del DEBUG) sigue transparente, como apuntando: se ve el vuelo.
+   Menos el DEBUG, que es el que frena la pelota en el aire */
+body.vuela #hud-top .card { opacity: .18; }
+body.vuela #crono, body.vuela #viento, body.vuela #efecto, body.vuela #golpes, body.vuela #pronostico, body.vuela #furia { opacity: .45; }
+body.vuela #lie, body.vuela #lp, body.vuela #sonido, body.vuela #clima-chip, body.vuela #pancho, body.vuela #deme-btn, body.vuela #dicky-btn, body.vuela #e5-btn, body.vuela #ninja-btn, body.vuela #rorro-revert, body.vuela #reloj-rorro, body.vuela #mago-golpes { opacity: .25; pointer-events: none; }
 
 /* ── banda central (intro de hoyo y resultado) ── */
 #banda {
@@ -1006,6 +1011,23 @@ body.retro #retro::after { content: ''; position: absolute; inset: 0; background
 #deme .globo b { display: block; font: 19px/1.1 var(--font-display); letter-spacing: .02em; margin-bottom: 4px; }
 #deme .globo.ve { animation: globo-sale 520ms cubic-bezier(.2, 1.5, .4, 1) forwards, globo-respira 2.2s 520ms ease-in-out infinite; }
 /* Lucas (LG) en persona: con Rodal aparece abajo a la izquierda y lo adula con un globo de diálogo */
+/* 🐒 Alan (la Mugre): cada mono que se lleva asoma arriba del botón del pancho con su "Lurrrrpin" (las erres tiemblan) */
+#alan { position: fixed; z-index: 31; width: 64px; height: 64px; pointer-events: none; opacity: 0; }
+#alan[hidden] { display: none; }
+#alan img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid var(--game-ink); box-shadow: 3px 4px 0 var(--game-ink); background: var(--cream); }
+#alan .globo { position: absolute; bottom: 72%; margin: 0; width: max-content; padding: 8px 12px 7px; background: var(--cream); color: var(--green-900); font: 22px/1 var(--font-display); letter-spacing: .02em; border: 2.5px solid var(--green-900); border-radius: 20px 24px 22px 16px; box-shadow: 0 6px 16px rgba(8, 26, 16, .4); }
+#alan.der .globo { right: 62%; transform-origin: 100% 100%; } /* el botón a la derecha: el globo sale para adentro */
+#alan.izq .globo { left: 62%; transform-origin: 0% 100%; }
+#alan .globo small { display: block; margin-top: 3px; font: 800 11px/1 var(--font-body); letter-spacing: .04em; text-align: center; }
+#alan .globo .r { display: inline-block; animation: alan-erre 70ms linear infinite alternate; }
+#alan .globo .r:nth-child(even) { animation-direction: alternate-reverse; }
+#alan.premio .globo { background: var(--gold); font-size: 26px; }
+#alan.entra { animation: alan-entra 1600ms cubic-bezier(.2, 1.2, .4, 1) forwards; }
+#alan.entra .globo { animation: alan-globo 1600ms ease-out; }
+@keyframes alan-entra { 0% { opacity: 0; transform: translateY(26px) scale(.4) rotate(-14deg); } 16% { opacity: 1; transform: translateY(-6px) scale(1.12) rotate(6deg); } 26% { transform: none; } 82% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-14px) scale(.9); } }
+@keyframes alan-globo { 0%, 12% { transform: scale(.2); } 28% { transform: scale(1.14) rotate(-3deg); } 40%, 100% { transform: scale(1) rotate(0); } }
+@keyframes alan-erre { from { transform: translateY(-1.5px) rotate(-4deg); } to { transform: translateY(1.5px) rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) { #alan.entra, #alan.entra .globo, #alan .globo .r { animation-duration: 1ms; animation-iteration-count: 1; } #alan.entra { opacity: 1; } }
 #lucas, #dicky { position: fixed; left: 0; bottom: 0; z-index: 30; width: min(46vw, 230px); pointer-events: none; opacity: 0; transform: translateY(70%) rotate(-7deg); transform-origin: 30% 100%; }
 #lucas.entra, #dicky.entra { animation: lucas-entra 620ms cubic-bezier(.2, 1.25, .4, 1) forwards; }
 #lucas.sale, #dicky.sale { animation: lucas-sale 520ms cubic-bezier(.5, 0, .8, .4) forwards; }
@@ -1024,7 +1046,20 @@ body.retro #retro::after { content: ''; position: absolute; inset: 0; background
 #pancho .pancho-txt { font-size: 12px; letter-spacing: .06em; line-height: 1.1; }
 #pancho b { position: absolute; top: -8px; right: -8px; min-width: 30px; height: 30px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--cream); color: var(--green-900); border: 2px solid var(--game-ink); font: 17px/1 var(--font-display); display: grid; place-items: center; transform: rotate(8deg); }
 body.monos-vienen #pancho:not([disabled]) { animation: latePancho .5s ease-in-out infinite alternate; }
+/* al tirar un pancho: el botón se aprieta, sale y el número salta (gana a latePancho mientras dura) */
+body #pancho.tira, body.monos-vienen #pancho.tira:not([disabled]) { animation: tiraPancho .55s cubic-bezier(.2, 1.4, .4, 1); }
+#pancho.tira .pancho-emo { animation: saleEmoPancho .55s ease-out; }
+#pancho.tira b { animation: cuentaPancho .55s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes tiraPancho { 0% { transform: scale(1); } 22% { transform: scale(.82) rotate(-10deg); } 60% { transform: scale(1.14) rotate(6deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes saleEmoPancho { 0% { transform: none; } 30% { transform: translate(-6px, -16px) rotate(-40deg) scale(1.2); } 31% { opacity: 0; } 60% { opacity: 0; transform: none; } 100% { opacity: 1; } }
+@keyframes cuentaPancho { 0% { transform: rotate(8deg) scale(1); } 40% { transform: rotate(-6deg) scale(1.45); background: var(--gold); } 100% { transform: rotate(8deg) scale(1); } }
+@media (prefers-reduced-motion: reduce) { #pancho.tira, #pancho.tira .pancho-emo, #pancho.tira b { animation-duration: 1ms; } }
 @keyframes latePancho { to { transform: scale(1.1); } }
+/* 🐒 los monos que te llevaste (cada 5, un golpe menos): abajo del botón; salta con cada uno */
+#pancho i { position: absolute; bottom: -12px; left: 50%; translate: -50% 0; padding: 3px 8px; border-radius: 999px; background: var(--cream); color: var(--green-900); border: 2px solid var(--game-ink); font: 13px/1 var(--font-display); letter-spacing: .03em; white-space: nowrap; font-style: normal; }
+#pancho i[hidden] { display: none; }
+#pancho i.salta { animation: cuentaPancho .55s cubic-bezier(.2, 1.6, .4, 1); }
+#pancho i.premio { background: var(--gold); }
 .chip { font-family: var(--font-display); font-size: 16px; letter-spacing: .05em; background: rgba(12, 43, 28, .9); box-shadow: inset 0 0 0 1px rgba(244, 238, 218, .28); color: var(--cream); border-radius: 999px; padding: 0 12px; height: 30px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 #crono { color: var(--gold); min-width: 10ch; justify-content: center; }
 #efecto { background: var(--gold); color: var(--green-900); }
@@ -1147,10 +1182,8 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-lista { list-style: none; margin: 0; padding: 0; display: grid; }
 .rk-fila { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 4px; border-top: 1px solid var(--border-subtle); }
 .rk-fila.yo { background: rgba(232, 195, 74, .3); border-radius: 10px; }
-/* 🪞 EL ORIGINAL: jugó con su propio player. Reborde dorado a la izquierda (en tu fila, que ya es dorada, verde), la carita
-   con aro dorado y el sello: dorado, borde tinta, apenas torcido como un sello de goma */
-.rk-fila.propio { border-radius: 10px; box-shadow: inset 4px 0 0 var(--gold), inset 0 0 0 1.5px rgba(232, 195, 74, .55); background: linear-gradient(90deg, rgba(232, 195, 74, .16), transparent 70%); }
-.rk-fila.yo.propio { background: rgba(232, 195, 74, .3); box-shadow: inset 4px 0 0 var(--green-700), inset 0 0 0 1.5px rgba(28, 86, 56, .45); }
+/* 🪞 EL ORIGINAL: jugó con su propio player. La carita con aro dorado y el sello: dorado, borde tinta, apenas torcido como
+   un sello de goma (desde el rediseño del 10/10 la fila ya no se enmarca: con media lista de originales, no se leía) */
 .mini.propio { border-color: var(--gold); box-shadow: 0 0 0 2px var(--green-900); }
 .rk-nombre small.rk-sub { display: flex; align-items: center; min-width: 0; overflow: visible; }
 .rs-player.original { box-shadow: inset 0 0 0 2.5px var(--gold); }
@@ -1170,6 +1203,44 @@ input { -webkit-user-select: text; user-select: text; }
 .rk-score { font-family: var(--font-display); font-size: 20px; text-align: right; }
 .rk-score small { display: block; font-family: var(--font-body); font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: .04em; }
 .rk-tiempo { font-family: var(--font-display); font-size: 17px; font-variant-numeric: tabular-nums; text-align: right; min-width: 7.5ch; }
+/* 📋 el ranking de vueltas (rediseño 2026-10-10): agrupado por golpes, con un encabezado por score (lo que manda) y adentro
+   las vueltas por tiempo (el desempate). La fila: puesto (el podio con medalla) · la carita del player · el nombre con sus
+   sellos y abajo con quién jugó · el tiempo. Una sola columna de números: el nombre se lleva el ancho */
+.rk-regla { margin: -4px 0 0; font-size: 13px; line-height: 1.35; color: var(--text-muted); }
+.rk-regla b { color: var(--green-900); }
+.rk-grupo { display: flex; align-items: center; gap: 8px; padding: 16px 2px 6px; }
+.rk-grupo:first-child { padding-top: 0; }
+.rk-grupo::after { content: ''; flex: 1; height: 2px; border-radius: 2px; background: var(--border-subtle); }
+.rk-grupo.salto { margin-top: 8px; border-top: 2px dashed var(--border-subtle); }
+.rk-grupo small { font: 800 12px/1 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.rk-par { min-width: 46px; height: 32px; padding: 3px 9px 0; box-sizing: border-box; display: inline-grid; place-items: center; border-radius: 9px; border: 2px solid var(--game-ink); background: var(--gold); color: var(--green-900); font: 22px/1 var(--font-display); box-shadow: var(--game-shadow-xs); }
+.rk-par.bajo { background: #2e7d4f; color: var(--cream); }
+.rk-par.sobre { background: var(--cream-dark); }
+.rk-vuelta { grid-template-columns: 30px minmax(0, 1fr) auto; padding: 9px 6px 9px 2px; }
+.rk-grupo + .rk-vuelta { border-top: 0; }
+.rk-vuelta .rk-pos { font-size: 19px; }
+.rk-vuelta .rk-pos.podio { width: 30px; height: 30px; padding-top: 2px; box-sizing: border-box; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--game-ink); font-size: 17px; }
+.rk-vuelta .podio.p1 { background: var(--gold); }
+.rk-vuelta .podio.p2 { background: #d6dadd; }
+.rk-vuelta .podio.p3 { background: #dfa36a; }
+.rk-vuelta .rk-quien { gap: 10px; }
+.rk-vuelta .mini { width: 32px; height: 32px; font-size: 17px; }
+.rk-vuelta .rk-nombre { gap: 3px; }
+/* el nombre no se corta ni se aplasta: si no entra con sus sellos, los sellos bajan; si no entra solo, va en dos líneas */
+.rk-vuelta .rk-nombre .linea { flex-wrap: wrap; row-gap: 3px; }
+/* los sellos van juntos (si bajan, bajan todos) */
+.rk-vuelta .sellos { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+.rk-vuelta .sellos .cam-mini, .rk-vuelta .sellos .s9 { margin-left: 0; }
+.rk-vuelta .rk-nombre .linea b { flex: 0 0 auto; max-width: 100%; font-size: 16px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.rk-vuelta .rk-nombre small { font-size: 12.5px; }
+.rk-vuelta .rk-sub .con { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.rk-vuelta .rk-tiempo { min-width: 0; }
+@media (max-width: 360px) {
+  .rk-vuelta { gap: 8px; }
+  .rk-vuelta .rk-quien { gap: 8px; }
+  .rk-vuelta .mini { width: 28px; height: 28px; font-size: 15px; }
+  .rk-vuelta .rk-tiempo { font-size: 15px; }
+}
 /* ── match ── */
 #match { background: rgba(12, 43, 28, .97); }
 .mt-buscar { height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border-subtle); background: #fff; color: var(--green-900); font: 600 15px var(--font-body); }
@@ -1250,13 +1321,21 @@ input { -webkit-user-select: text; user-select: text; }
 /* la primera vez: que se sepa que tocando la cancha se ve sin controles */
 .rp-tip { justify-self: center; margin: 0; padding: 5px 12px; border-radius: 999px; background: rgba(244, 238, 218, .12); font: 700 12px var(--font-body); color: rgba(244, 238, 218, .9); animation: rp-limpio 300ms ease-out both; }
 .rp-tip[hidden] { display: none; }
+/* 🎬 2D / 3D: arriba a la derecha de los controles, como el botón de cámara de las transmisiones */
+.rp-3d { position: absolute; right: 2px; bottom: calc(100% + 10px); display: flex; padding: 3px; gap: 2px; border: 2px solid var(--game-ink); border-radius: 999px; background: rgba(8, 26, 16, .9); box-shadow: var(--shadow-pop); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.rp-3d[hidden] { display: none; }
+.rp-3d span { min-width: 38px; height: 32px; display: grid; place-items: center; border-radius: 999px; color: rgba(244, 238, 218, .8); font: 15px/1 var(--font-display); letter-spacing: .04em; transition: background-color 140ms, color 140ms; }
+.rp-3d[aria-pressed="false"] span:first-child, .rp-3d[aria-pressed="true"] span:last-child { background: var(--gold); color: var(--green-900); }
+.rp-3d.cargando span:last-child { animation: latePancho .45s ease-in-out infinite alternate; }
+.rp-3d:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { #replay.limpio .rp-marcador, .rp-tip { animation: none; } }
-.rp-mandos { margin: 0 10px calc(var(--safe-bot) + 10px); padding: 10px 12px 12px; border-radius: 18px; background: rgba(8, 26, 16, .9); box-shadow: var(--shadow-pop); display: grid; gap: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.rp-mandos { position: relative; margin: 0 10px calc(var(--safe-bot) + 10px); padding: 10px 12px 12px; border-radius: 18px; background: rgba(8, 26, 16, .9); box-shadow: var(--shadow-pop); display: grid; gap: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .rp-linea { display: flex; align-items: center; gap: 10px; }
 .rp-t { flex: none; min-width: 34px; font: 700 12px var(--font-body); font-variant-numeric: tabular-nums; color: rgba(244, 238, 218, .85); text-align: center; }
 .rp-pista { position: relative; flex: 1; min-width: 0; height: 28px; display: grid; align-items: center; }
 .rp-marcas { position: absolute; left: 9px; right: 9px; top: 50%; height: 0; pointer-events: none; }
 .rp-marcas i { position: absolute; top: -9px; width: 2px; height: 6px; margin-left: -1px; border-radius: 1px; background: var(--c); }
+.rp-marcas i.dbg { top: 4px; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 1.5px var(--c); } /* ⏸ un DEBUG de Rorro */
 #rp-barra { --p: 0%; -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; touch-action: none; }
 #rp-barra::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--gold) var(--p), rgba(244, 238, 218, .22) var(--p)); }
 #rp-barra::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--gold) var(--p), rgba(244, 238, 218, .22) var(--p)); }
@@ -1398,6 +1477,26 @@ input { -webkit-user-select: text; user-select: text; }
 .bn-mov b { font: 18px/1 var(--font-display); font-weight: 400; }
 .bn-mov b.mas { color: #2e7d4f; }
 .bn-mov b.menos { color: var(--red); }
+/* 🎁 donar bananas (10/10/2026): la tarjeta de la hojita, la lista para elegir a quién y el "¡listo!" */
+.bn-don { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(20, 64, 42, .06); box-shadow: inset 0 0 0 1.5px rgba(20, 64, 42, .12); text-align: left; }
+.bn-don > span { display: grid; gap: 2px; min-width: 0; }
+.bn-don b { font: 15px/1.1 var(--font-display); font-weight: 400; letter-spacing: .04em; text-transform: uppercase; color: var(--green-900); }
+.bn-don .mt-btn { white-space: nowrap; }
+.bn-don-buscar { width: 100%; box-sizing: border-box; height: 38px; padding: 0 12px; border: 2px solid var(--game-ink); border-radius: 999px; background: #fffaf0; color: var(--green-900); font: 600 15px var(--font-body); }
+.bn-don-lista { list-style: none; margin: 0; padding: 2px 2px 4px; display: grid; gap: 6px; max-height: 46dvh; overflow-y: auto; }
+.bn-don-lista li[hidden] { display: none; }
+.bn-don-lista button { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; border: 2px solid var(--game-ink); border-radius: 12px; background: var(--cream); color: var(--green-900); box-shadow: 2px 3px 0 var(--game-ink); text-align: left; cursor: pointer; }
+.bn-don-lista button:active { translate: 2px 3px; box-shadow: 0 0 0 var(--game-ink); }
+.bn-don-lista .rk-nombre { display: grid; gap: 2px; min-width: 0; }
+.bn-don-lista .rk-nombre b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 15px var(--font-body); }
+.bn-don-lista .rk-sellos { display: flex; align-items: center; gap: 5px; }
+.bn-don-lista .rk-sellos .cam-mini { flex: none; width: 18px; height: 18px; margin: 0; transform: rotate(-8deg); box-shadow: 1px 1.5px 0 var(--game-ink); }
+.bn-don-lista small.tiene { font: 800 11px var(--font-body); color: var(--text-muted); white-space: nowrap; }
+.bn-don-para { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; font-size: 20px !important; }
+.bn-don-ok { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.bn-don-ok b { font: 72px/1 var(--font-display); font-weight: 400; color: var(--green-900); animation: bnf-pop .45s cubic-bezier(.2, .9, .3, 1.4) both; }
+.bn-don-ok .bn-sticker { width: 56px; height: 56px; animation: bnf-cae .7s cubic-bezier(.2, .9, .3, 1.25) both; }
+@media (prefers-reduced-motion: reduce) { .bn-don-ok b, .bn-don-ok .bn-sticker { animation: none; } }
 .bn-vistas { display: flex; gap: 6px; padding: 4px 0 6px; list-style: none; }
 .bn-vistas button { flex: 1; height: 32px; border: 2px solid var(--green-900); border-radius: 999px; background: var(--cream); color: var(--green-900); font: 800 12px var(--font-body); letter-spacing: .06em; text-transform: uppercase; }
 .bn-vistas button[aria-pressed="true"] { background: var(--green-900); color: var(--cream); }
@@ -1405,6 +1504,7 @@ input { -webkit-user-select: text; user-select: text; }
 .bn-vistas button { min-width: 0; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 380px) { .bn-vistas button { font-size: 11px; letter-spacing: .03em; } }
 .bn-fila { grid-template-columns: 30px minmax(0, 1fr) auto; }
+.bn-fila[data-bn-para] { cursor: pointer; }
 /* las disponibles (para apostar ya), abajo del total; si tiene bananas apostadas, en verde fuerte para que se note la diferencia */
 .mtr-pct small.bn-disp { margin-top: 1px; white-space: nowrap; }
 /* el nombre se corta con … (si no, con "(14 disponibles)" al lado los nombres largos empujaban la fila afuera de la hoja) */
@@ -1748,13 +1848,44 @@ body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
 .clasico .cl-antes { color: var(--gold); }
 .clasico .cl-como { opacity: .7; font-size: 11.5px; }
 .clasico .cl-como .bn { width: 15px; height: 15px; vertical-align: -3px; }
-.clasico .cl-mia { text-align: center; color: var(--gold); font: 13px/1.2 var(--font-display); letter-spacing: .06em; }
+.clasico .cl-mia { text-align: center; color: var(--cream); font-size: 12.5px; }
+.clasico .cl-mia b { color: var(--gold); }
 .clasico .cl-mia img { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--game-ink); vertical-align: -4px; margin-right: 4px; }
-.clasico .cl-clasicos { margin: 6px 0 0; padding: 0; list-style: none; font-size: 12px; line-height: 1.35; }
-.clasico .cl-clasicos li::before { content: '⚔️ '; }
-.clasico .cl-clasicos b { color: var(--gold); }
-.clasico .cl-m { font: 10px/1 var(--font-display); color: var(--gold); }
-.clasico .cl-ap { font-style: normal; white-space: nowrap; }
+/* 📋 el detalle (abajo de "Ver detalle"): secciones con título, los de cada equipo en filas, los últimos clásicos, la semana
+   pasada y cómo se suma */
+.clasico .cl-ver { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 36px; margin: 10px 0 0; border: 1.5px solid rgba(244, 238, 218, .35); border-radius: 999px; background: rgba(244, 238, 218, .08); color: var(--cream); font: 14px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.clasico .cl-ver span { font-size: 12px; transition: transform 150ms; }
+.clasico .cl-ver[aria-expanded="true"] span { transform: rotate(180deg); }
+.clasico .cl-ver:active { background: rgba(244, 238, 218, .16); }
+.clasico .cl-ver:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.clasico .cl-detalle[hidden] { display: none; }
+.clasico .cl-sec { margin: 16px 0 6px; font: 12px/1 var(--font-display); letter-spacing: .1em; color: var(--gold); text-transform: uppercase; }
+.clasico .cl-equipos { display: grid; gap: 10px; }
+.clasico .cl-lista { padding: 8px 10px; border-radius: 12px; background: rgba(0, 0, 0, .18); }
+.clasico .cl-eqt { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font: 14px/1 var(--font-display); letter-spacing: .06em; }
+.clasico .cl-eqt img { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--game-ink); background: #1d1a5c; }
+.clasico .cl-lista.e5 .cl-eqt img { background: var(--green-900); }
+.clasico .cl-eqt b { margin-left: auto; font: 20px/1 var(--font-display); color: var(--gold); }
+.clasico .cl-lista ol { margin: 0; padding: 0; list-style: none; }
+.clasico .cl-lista li { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-top: 1px solid rgba(244, 238, 218, .1); }
+.clasico .cl-lista li.yo .cl-n > span { color: var(--gold); }
+.clasico .cl-n { display: grid; min-width: 0; flex: 1; }
+.clasico .cl-n > span { font: 700 14px/1.2 var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clasico .cl-n small { font-size: 11.5px; opacity: .7; }
+.clasico .cl-lista li > b { font: 18px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.clasico .cl-nadie, .clasico .cl-mas-gente { margin: 2px 0 0; font-size: 12px; opacity: .7; }
+.clasico .cl-clasicos { margin: 0; padding: 0; list-style: none; }
+.clasico .cl-clasicos li { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-top: 1px solid rgba(244, 238, 218, .1); font-size: 13px; line-height: 1.3; }
+.clasico .cl-clasicos li:first-child { border-top: 0; }
+.clasico .cl-clasicos li > span { flex: 1; min-width: 0; }
+.clasico .cl-clasicos b { color: var(--cream); }
+.clasico .cl-clasicos i { flex: none; padding: 3px 7px; border-radius: 999px; font: 11px/1 var(--font-display); font-style: normal; letter-spacing: .05em; background: #3e8f5a; color: var(--cream); }
+.clasico .cl-clasicos i.dicky { background: #6b67d8; }
+.clasico .cl-antes { color: var(--cream); font-size: 13.5px; font-weight: 700; }
+.clasico .cl-lg { color: var(--gold); font-size: 12.5px; font-style: italic; }
+.clasico .cl-reglas { margin: 0; padding: 0 0 0 16px; list-style: disc; font-size: 12.5px; line-height: 1.4; opacity: .85; }
+.clasico .cl-reglas li + li { margin-top: 4px; }
+.clasico .cl-reglas .bn { width: 15px; height: 15px; vertical-align: -3px; }
 .mt-clasico-li { list-style: none; }
 .mt-clasico-li .clasico { margin: 4px 0 0; }
 .cl-cobro { text-align: center; }
@@ -1834,6 +1965,35 @@ body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
 .rorro-poder.gastado .usos { background: #cfc8b0; }
 .rorro-poder.gastado .cinta { text-decoration: line-through; }
 @media (prefers-reduced-motion: reduce) { .rorro-poder.listo, #rorro-debug.vivo, #rorro-debug.pausa { animation: none; } }
+/* ⏱ el reloj de Rorro: cada 10 s la cancha se rehace (un deploy). Un aro que se vacía con los segundos; en los últimos,
+   se pone rojo, late y tiembla, la pantalla titila en neón (y la cancha muestra su grilla). Al cero, el flash del deploy
+   con la versión nueva en la cinta */
+#reloj-rorro { --k: 1; position: fixed; right: 21px; bottom: calc(var(--safe-bot) + 252px); transition: opacity 180ms; z-index: 31; width: 64px; height: 64px; border-radius: 50%; background: #0b1f16; border: var(--game-stroke) solid var(--game-ink); box-shadow: 3px 4px 0 var(--game-ink); display: grid; place-items: center; align-content: center; color: #38f2c8; pointer-events: none; font-family: var(--font-display); }
+#reloj-rorro[hidden] { display: none; }
+#reloj-rorro svg { position: absolute; inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); transform: rotate(-90deg); }
+#reloj-rorro .rr-fondo { fill: none; stroke: rgba(56, 242, 200, .16); stroke-width: 5; }
+#reloj-rorro .rr-arco { fill: none; stroke: #38f2c8; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: calc(100 - var(--k) * 100); filter: drop-shadow(0 0 3px rgba(56, 242, 200, .7)); }
+#reloj-rorro .rr-seg { position: relative; font-size: 25px; line-height: .9; font-variant-numeric: tabular-nums; }
+#reloj-rorro .rr-txt { position: relative; font: 8.5px/1 ui-monospace, Menlo, monospace; letter-spacing: .08em; color: #9fe9d6; margin-top: 2px; }
+#reloj-rorro .cinta { position: absolute; left: 50%; bottom: -14px; width: max-content; transform: translateX(-50%) rotate(-6deg); background: #0b1f16; color: #38f2c8; border: 2px solid var(--game-ink); box-shadow: 2px 2px 0 var(--game-ink); font: 10.5px/1 ui-monospace, Menlo, monospace; font-style: normal; padding: 4px 6px 3px; white-space: nowrap; }
+#reloj-rorro .cinta::before { content: '$ '; color: var(--gold); }
+#reloj-rorro.aviso { background: #2a0b10; color: #ff8a7a; animation: rr-late .5s ease-in-out infinite alternate; }
+#reloj-rorro.aviso .rr-arco { stroke: #ff5a4a; filter: drop-shadow(0 0 5px rgba(255, 90, 74, .9)); }
+#reloj-rorro.aviso .rr-txt { color: #ffb3a8; }
+#reloj-rorro.aviso .rr-seg { animation: rr-glitch .25s steps(2) infinite; }
+#reloj-rorro.deploy { animation: rr-deploy .7s cubic-bezier(.2, 1.6, .4, 1); }
+#reloj-rorro.deploy.ok .cinta { color: var(--gold); }
+#reloj-rorro.deploy.mal .cinta { color: #ff8a7a; }
+@keyframes rr-late { from { transform: scale(1) rotate(-2deg); } to { transform: scale(1.12) rotate(2deg); } }
+@keyframes rr-glitch { 0% { text-shadow: -2px 0 #38f2c8, 2px 0 #ff4fd8; transform: translateX(-1px); } 100% { text-shadow: 2px 0 #38f2c8, -2px 0 #ff4fd8; transform: translateX(1px); } }
+@keyframes rr-deploy { 0% { transform: scale(1.5); box-shadow: 0 0 0 0 rgba(56, 242, 200, .9), 3px 4px 0 var(--game-ink); } 100% { transform: scale(1); box-shadow: 0 0 0 26px rgba(56, 242, 200, 0), 3px 4px 0 var(--game-ink); } }
+/* los últimos segundos antes del deploy: el borde de la pantalla titila en neón */
+body.aviso-deploy::after { content: ''; position: fixed; inset: 0; z-index: 29; pointer-events: none; box-shadow: inset 0 0 0 3px rgba(56, 242, 200, .85), inset 0 0 46px rgba(56, 242, 200, .35); animation: aviso-borde .3s steps(2) infinite; }
+@keyframes aviso-borde { 50% { box-shadow: inset 0 0 0 2px rgba(255, 79, 216, .7), inset 0 0 30px rgba(255, 79, 216, .25); } }
+@media (prefers-reduced-motion: reduce) { #reloj-rorro.aviso, #reloj-rorro.aviso .rr-seg, #reloj-rorro.deploy, body.aviso-deploy::after { animation: none; } }
+/* con Rorro, las habilidades que le copia a otro tienen sus botones a la izquierda (a la derecha están sus poderes) */
+body.modo-rorro #pancho, body.modo-rorro #deme-btn, body.modo-rorro #ninja-btn { right: auto; left: 16px; }
+body.modo-rorro #mago-golpes { right: 108px; justify-content: flex-start; }
 /* con dos botones (el Ninja es Dicky): la Dickyllamada va arriba del RESET */
 body.dos-botones #dicky-btn { bottom: calc(var(--safe-bot) + 150px); }
 #dicky-btn, #e5-btn, #ninja-btn { z-index: 31; } /* arriba del Dicky que aparece (que no se toca: pointer-events none) */
@@ -1941,6 +2101,24 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 #logro .lg-ico i .gi { width: 22px; height: 22px; }
 .dk-kicker .cand-abierto .gi, .tu-extra b .cand-abierto .gi { display: inline-block; width: 16px; height: 16px; margin: 0 2px -3px 0; }
 /* el anuncio: la Dickyllamada desbloqueada */
+/* 🥃 antes de cada vuelta, Rorro se copia una habilidad de otro: tres al azar (en un match, las mismas tres para los dos) */
+.rh-caja { background: #0b1f16; color: var(--cream); }
+.rh-caja h3 { color: #38f2c8; text-shadow: -1px 0 #ff4fd8, 1px 0 #38f2c8; }
+.rh-caja .dk-sub { color: #b9cfc3; }
+.rh-caja .tu-despues { color: #9fb8aa; }
+.rh-cmd { margin: 0; font: 12px/1.3 ui-monospace, Menlo, monospace; color: var(--gold); }
+.rh-cmd::before { content: '$ '; color: #38f2c8; }
+.rh-cmd::after { content: '▋'; color: #38f2c8; animation: cursor3d 1s steps(1) infinite; }
+.rh-ops { display: grid; gap: 10px; margin: 2px 0 6px; }
+.rh-op { display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: center; width: 100%; padding: 8px 10px; box-sizing: border-box; text-align: left; background: var(--cream); color: var(--green-900); border: 2.5px solid var(--game-ink); border-radius: 14px; box-shadow: 3px 4px 0 var(--game-ink); cursor: pointer; font: inherit; -webkit-tap-highlight-color: transparent; animation: rh-entra .45s cubic-bezier(.2, 1.4, .4, 1) both; animation-delay: calc(var(--i) * 90ms); transition: transform .12s, box-shadow .12s; }
+.rh-op:active { transform: translate(2px, 3px); box-shadow: 1px 1px 0 var(--game-ink); }
+.rh-op:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.rh-op .rh-foto { width: 56px; height: 56px; box-sizing: border-box; border-radius: 50%; object-fit: cover; border: 2px solid var(--game-ink); background: var(--green-900); display: grid; place-items: center; font-size: 28px; }
+.rh-op b { display: block; font: 16px/1.05 var(--font-display); letter-spacing: .03em; }
+.rh-op small { display: block; margin: 2px 0 3px; font-size: 11px; font-weight: 800; letter-spacing: .06em; color: var(--red); text-transform: uppercase; }
+.rh-op i { font-style: normal; font-size: 12px; line-height: 1.25; opacity: .85; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+@keyframes rh-entra { from { opacity: 0; transform: translateY(12px) rotate(-2deg); } }
+@media (prefers-reduced-motion: reduce) { .rh-op, .rh-cmd::after { animation: none; } }
 .tu-extra { display: grid; grid-template-columns: 48px 1fr; gap: 10px; align-items: center; margin: 8px 0 4px; padding: 8px 10px; text-align: left; background: #fff8e6; border: 2.5px solid var(--game-ink); border-radius: 14px; box-shadow: 3px 4px 0 var(--game-ink); transform: rotate(-1.5deg); }
 .tu-extra img { width: 48px; height: 48px; border-radius: 50%; background: #1d1a5c; border: 2px solid var(--game-ink); }
 .tu-extra b { display: block; font: 15px/1.1 var(--font-display); letter-spacing: .04em; color: var(--red); margin-bottom: 2px; }
@@ -2111,7 +2289,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 
 <div id="clima-cartel" hidden role="status" aria-live="polite" aria-label="El clima de hoy"><div class="cl-caja"><span class="cl-ico" aria-hidden="true"></span><small class="cl-kick">HOY EN SAN DIEGO</small><b class="cl-nombre"></b><p class="cl-texto"></p><span class="cl-raro">1 EN 20</span></div></div>
 
-<button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b></button>
+<button id="pancho" type="button" hidden aria-label="Tirar un pancho a los monos"><span class="pancho-emo" aria-hidden="true">🌭</span><span class="pancho-txt">PANCHO</span><b id="pancho-n">3</b><i id="pancho-monos" hidden></i></button>
 
 <div id="cuenta" hidden aria-live="assertive"></div>
 
@@ -2185,7 +2363,8 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
 <div id="mago-golpes" role="group" aria-label="Golpes del Mago: elegí con cuál pegás" hidden></div>
 <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false"><filter id="g-rojo" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter><filter id="g-cian" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter></svg>
-<button id="rorro-revert" class="rorro-poder" type="button" hidden aria-label="Revert: vuelve la versión de antes de la cancha"><span class="ico"></span><span class="txt">REVERT</span><b class="usos">×1</b><i class="cinta">git revert</i></button>
+<div id="reloj-rorro" hidden role="timer" aria-label="El deploy de la cancha: cada 10 segundos se rehace"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="rr-fondo" cx="32" cy="32" r="27"/><circle class="rr-arco" cx="32" cy="32" r="27" pathLength="100"/></svg><b class="rr-seg">10</b><small class="rr-txt">DEPLOY</small><i class="cinta">v1.0</i></div>
+<button id="rorro-revert" class="rorro-poder" type="button" hidden aria-label="Revert: vuelve a la cancha anterior"><span class="ico"></span><span class="txt">REVERT</span><b class="usos">×1</b><i class="cinta">git revert</i></button>
 <button id="rorro-debug" class="rorro-poder" type="button" hidden aria-label="Debug: congela la pelota en el aire para correrle el destino"><span class="ico"></span><span class="txt">DEBUG</span><b class="usos">×1</b><i class="cinta">breakpoint</i></button>
 <button id="ninja-btn" type="button" hidden aria-label="Reset ninja: el hoyo de nuevo desde el tee, sin multa"><span class="emo" aria-hidden="true">🥷</span><span class="txt">RESET</span><b aria-hidden="true">1</b></button>
 <div id="mp-sel" hidden role="dialog" aria-label="Mejor pelota: elegí con cuál te quedás"><p class="mp-tit"><img src="equipo-5.svg" alt="" draggable="false"><span>MEJOR PELOTA<small>¿Con cuál te quedás?</small></span></p><div id="mp-ops"></div></div>
@@ -2197,6 +2376,16 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   <span class="lg-txt"><small>🏆 LOGRO DESBLOQUEADO</small><b>Taiu (Đ) se suma al mazo 🐸</b><em>+ 📞 la Dickyllamada para todos los Dicky</em></span>
   <span class="lg-brillo" aria-hidden="true"></span>
 </button>
+<div class="hab-modal" id="rorro-hab" hidden style="z-index: 62">
+  <div class="hab-fondo" data-cerrar></div>
+  <div class="dk-caja rh-caja" role="dialog" aria-modal="true" aria-labelledby="rh-tit">
+    <p class="rh-cmd">git cherry-pick habilidad</p>
+    <h3 id="rh-tit">ELEGÍ UNA HABILIDAD</h3>
+    <p class="dk-sub">Rorro hizo el juego: en esta vuelta se copia la de otro. Te tocaron estas tres.</p>
+    <div class="rh-ops" id="rh-ops"></div>
+    <button class="tu-despues" id="rh-volver" type="button" data-cerrar>Volver al mazo</button>
+  </div>
+</div>
 <div class="hab-modal" id="taiu-ok" hidden style="z-index: 62">
   <div class="hab-fondo" data-cerrar></div>
   <div class="tu-ranas" aria-hidden="true"></div>
@@ -2223,6 +2412,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
 </div>
 <div id="dicky" hidden aria-live="polite"><div class="corazones" aria-hidden="true"></div><div class="cuerpo"><img alt="" width="480" height="480" draggable="false"><img class="escudo" src="equipo-5.svg" alt="" draggable="false"><p class="globo"><b class="quien"></b><span class="dice"></span></p></div></div>
+<div id="alan" hidden aria-live="polite"><img src="jugadores/mugre.webp" alt="Alan, la Mugre" width="64" height="64" draggable="false"><p class="globo"></p></div>
 <div id="lucas" hidden aria-live="polite"><div class="cuerpo"><img src="jugadores/lg-torso.webp" alt="Lucas" width="480" height="480"><p class="globo"></p></div></div><!-- vacío: los botones subieron debajo del marcador -->
 
 <button id="lechuza" type="button" hidden aria-label="¡Una lechuza! Tocala"><span aria-hidden="true">🦉</span></button>
@@ -2290,7 +2480,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v cb11784 · 10/10, 12:35 p. m.</span>
+  <span class="version" id="version">v 385f4d0 · 16/10, 10:33 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2446,6 +2636,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <p class="rp-fin" id="rp-fin" hidden aria-live="polite"></p>
   </div>
   <div class="rp-mandos">
+    <button class="rp-3d" id="rp-3d" type="button" aria-pressed="false" aria-label="Ver el replay en 3D" hidden><span>2D</span><span>3D</span></button>
     <p class="rp-tip" id="rp-tip" hidden>Tocá la cancha para verla sin controles</p>
     <div class="rp-linea">
       <span class="rp-t" id="rp-t">0:00</span>
@@ -2490,7 +2681,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   <div class="card tarjeta ranking">
     <header>
       <span class="teja" id="rk-teja"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4"/><path d="M16 17.5v4"/><path d="M11 26.5h10l-1-5h-8z" style="fill:var(--gi-f)"/><path d="M10 5.5h12v6a6 6 0 0 1-12 0z" style="fill:var(--gi-a)"/></g></svg></span>
-      <div><span class="kicker" style="color: var(--text-muted)">Ranking · golpes, después tiempo</span><div class="quien" id="rk-tit">GENERAL</div></div>
+      <div><span class="kicker" style="color: var(--text-muted)">Ranking</span><div class="quien" id="rk-tit">GENERAL</div></div>
     </header>
     <div class="clasico" id="rk-clasico" hidden></div>
     <div class="rk-modo" id="rk-modo" role="tablist" aria-label="Normal o PRO">
@@ -2502,6 +2693,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
       <button type="button" role="tab" data-ambito="sdga" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><ellipse cx="16" cy="25.5" rx="10" ry="3" style="fill:var(--gi-f)"/><ellipse cx="12" cy="25.5" rx="2.4" ry="1" style="fill:var(--gi-s)" stroke="none"/><path d="M12 25.5V4.5"/><path d="M12 5l12 4.5L12 14z" style="fill:var(--gi-a)"/></g></svg>SDGA</button>
     </div>
     <div class="rk-tabs" id="rk-tabs" role="tablist" aria-label="Ranking"></div>
+    <p class="rk-regla">Gana el que hace <b>menos golpes</b>. Si empatan, <b>el más rápido</b>.</p>
     <ol class="rk-lista" id="rk-lista"></ol>
     <p class="rk-conteo" id="rk-conteo" hidden></p>
     <p class="extras" id="rk-fuente"></p>
@@ -2510,11 +2702,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=8c1134cbda'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS } from './plantel.js?v=8c1134cbda'
+import * as M from './motor.js?v=6bb95cc7fc'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS } from './plantel.js?v=6bb95cc7fc'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=8c1134cbda'
-import * as S from './sonido.js?v=8c1134cbda'
+import * as R from './ranking.js?v=6bb95cc7fc'
+import * as S from './sonido.js?v=6bb95cc7fc'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"banana": "<path d=\"M21 6C28.6 9.4 30 20 22.8 25.4C17.4 29.4 9.4 29 3.8 24.6C10.2 24.4 14.8 21.4 16.9 17.4C18.9 13.6 18.8 9.8 16.8 6.6Z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.2 8.2C21.6 13.8 19.9 20.4 12.2 24.8\" stroke-width=\"1.5\"/><path d=\"M24.4 11.6C25.8 16 24.3 20.8 20.3 23.8\" style=\"stroke:var(--gi-f)\" stroke-width=\"2.4\"/><path d=\"M16.8 6.6L17.3 2.8L21.1 2.4L21 6\" style=\"fill:var(--gi-s)\"/><path d=\"M3.8 24.6L2.6 26.5\" stroke-width=\"3\"/>", "match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2726,11 +2918,11 @@ let campo = campoBase // 🥃 con Rorro, la grilla de la versión de su cancha q
 // ── 🥃 Rorro: su cancha en 3D (cancha3d.js, con three.js). Se carga solo cuando juega él; el juego es el mismo y la
 // cancha 3D es la que dibuja (el lienzo del juego queda transparente arriba: la goma, el latido, la línea, los cartelitos) ──
 let r3d = null, r3dCarga = null, r3dFallo = false, dtCuadro = 1 / 60
-const usa3d = (j) => M.habilidadDe(j)?.id === 'codigo'
+const usa3d = (j) => !!j?.cancha3d // (Rorro, aunque esta vuelta juegue con la habilidad que le copió a otro)
 const modo3d = () => !!r3d?.estaActivo() && !replay && !!ronda && usa3d(ronda.carta)
 function cargar3d() {
   if (r3d) return Promise.resolve(r3d)
-  r3dCarga ??= import('./cancha3d.js?v=8c1134cbda').then((m) => {
+  r3dCarga ??= import('./cancha3d.js?v=6bb95cc7fc').then((m) => {
     m.iniciar({ lienzo: $('#cancha3d'), alCampo: (filas) => { campo = filas ? { ...campoBase, cancha: { ...campoBase.cancha, filas } } : campoBase } })
     m.sonido(S.prendido())
     r3d = m
@@ -2960,6 +3152,7 @@ lienzo.addEventListener('pointerdown', (e) => {
   // Tito: con la pelota en el aire, el swipe es una ráfaga
   if (titoVolando() && !swipeTito) { swipeTito = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; lienzo.setPointerCapture(e.pointerId); return }
   if (estado !== 'apuntar' || drag || trazo) return // un segundo dedo no pisa el tiro que estás armando
+  if (agarrarMono(e.clientX, e.clientY)) return // 🐒 la Mugre: tocaste un mono que come el pancho, te lo llevás
   // el Dibuje maestro: con el dedo dibujás el vuelo (de la pelota a donde cae)
   if (esDibuje()) {
     trazo = { id: e.pointerId, pts: [s2w(e.clientX, e.clientY)], ult: [e.clientX, e.clientY], plan: null }
@@ -3100,6 +3293,7 @@ function pegarYa(a, base = null) {
   else if (a.soltada) marcarTiro(`${a.soltada.nivel === 'bueno' ? 'BUENO · ' : ''}${a.soltada.lado < 0 ? 'TEMPRANO' : 'TARDE'}`, desde, a.soltada.nivel === 'bueno' ? 'bueno' : 'pifia')
   estela = []
   estado = 'tiro'
+  if (ronda.duelo && ronda.t0 != null) vivoCuadro() // 🔌 el golpe queda anotado al toque (si te vas con la pelota en el aire, se sabe)
   hud()
 }
 
@@ -3155,6 +3349,36 @@ $('#mago-golpes').addEventListener('click', (e) => {
   trazoFade = null
   hud()
 })
+/** Hasta dónde le da el carry al Dibuje maestro (yardas del dibujo): lo que dibujes más largo, se corta ahí. */
+const maxDibuje = () => M.planTiro(campo, ronda, 0, 1).carry
+/**
+ * 🪄 En la cancha 3D (Rorro, con el Mago copiado): el arco de hasta dónde llega lo que dibujes, con las yardas, así se
+ * ve cuánto podés pegar (lo que pase de ahí se corta: "HASTA ACÁ LLEGA").
+ */
+function alcanceDibuje3d() {
+  if (!esDibuje() || estado !== 'apuntar' || trazo) return
+  const b = ronda.pelota, pin = M.hoyoActual(ronda).pin, L = maxDibuje()
+  const base = Math.atan2(pin[1] - b[1], pin[0] - b[0])
+  ctx.save()
+  ctx.beginPath()
+  for (let i = 0; i <= 40; i++) { const a = base - 1.1 + (2.2 * i) / 40, [x, y] = w2s([b[0] + Math.cos(a) * L, b[1] + Math.sin(a) * L]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) }
+  ctx.lineCap = 'round'
+  ctx.setLineDash([2, 9])
+  ctx.strokeStyle = 'rgba(12,43,28,.7)'; ctx.lineWidth = 6; ctx.stroke()
+  ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 3; ctx.stroke()
+  ctx.setLineDash([])
+  const [lx, ly] = w2s([b[0] + Math.cos(base) * L, b[1] + Math.sin(base) * L])
+  const txt = `HASTA ACÁ LLEGA · ${Math.round(M.aYardas(ronda, L))} YD`
+  ctx.font = '14px Anton, "Arial Narrow", sans-serif'
+  ctx.textAlign = 'center'
+  const w = ctx.measureText(txt).width + 14
+  const x = Math.max(w / 2 + 8, Math.min(W - w / 2 - 8, lx))
+  ctx.fillStyle = 'rgba(12,43,28,.85)'
+  ctx.beginPath(); ctx.roundRect(x - w / 2, ly - 30, w, 22, 11); ctx.fill()
+  ctx.fillStyle = '#ffd34d'
+  ctx.fillText(txt, x, ly - 14)
+  ctx.restore()
+}
 /** Soltaste el dibujo: la línea se borra de a poco y, si alcanza, la pelota sale por ahí. */
 function soltarTrazo() {
   const t = trazo
@@ -3282,7 +3506,12 @@ function soltarSwipeTito() {
   const largo = Math.hypot(dx, dy)
   if (largo < 22) return
   const kmh = Math.min(M.FISICA.vientoMax, (largo / (Math.min(W, H) * 0.45)) * M.FISICA.vientoMax)
-  M.rafagaTito(ronda, tiro, Math.atan2(dy, dx) - cam.rot, kmh)
+  // de la pantalla a la cancha. En la 3D de Rorro (si le copió a Tito), con cómo se ve la cancha en la pelota que vuela
+  // (a su altura): con la del lugar de salida, que con la cámara siguiendo a la pelota queda lejos o detrás de la cámara,
+  // el swipe salía dado vuelta
+  const J = modo3d() ? r3d.jacobianoInvBola() : null
+  const [wx, wy] = J ? [J[0] * dx + J[1] * dy, J[2] * dx + J[3] * dy] : s2wVec(dx, dy)
+  M.rafagaTito(ronda, tiro, Math.atan2(wy, wx), kmh)
   rafagasTito.push({ ux: dx / largo, uy: dy / largo, k: kmh / M.FISICA.vientoMax, t0: performance.now() })
   S.soplo(kmh / M.FISICA.vientoMax)
 }
@@ -3375,6 +3604,12 @@ function actualizar(dt) {
   if (!drag && document.body.classList.contains('apuntando')) document.body.classList.remove('apuntando')
   pintarVoz()
   pintarCrono()
+  if (r3d) {
+    relojRorroCuadro(dt)
+    // 🥃 con la pelota en el aire (y en la pausa del DEBUG), la UI sigue transparente: se ve el vuelo
+    const vuela = modo3d() && (estado === 'swing' || estado === 'pausa' || (estado === 'tiro' && tiro?.fase === 'vuelo'))
+    if (document.body.classList.contains('vuela') !== vuela) document.body.classList.toggle('vuela', vuela)
+  }
   if (ronda?.duelo) cuadroDuelo()
   if (replay) cuadroReplay(dt)
   if (firmaHasta) $('#reloj').style.width = `${Math.max(0, (firmaHasta - performance.now()) / (M.SEGUNDOS_FIRMA * 10))}%`
@@ -4018,29 +4253,219 @@ function despertar() {
   if (M.despertarMonosDe(ronda)) S.monosVienen() // en la salida no vienen
 }
 // ── los panchos de la Mugre ──
-let pancho = null // { desde, hasta, t0 } — el que va volando / está en el piso
+// (2026-10-12, pedido de Rorro) el pancho sale de la pelota girando, en arco y con su sombra, pica con un rebotecito y
+// larga el olor. Cae cerca (motor.js `tirarPancho`): los monos corren a comer y se juntan alrededor, cada uno en su lugar
+// de la ronda, así se ve cómo se van acumulando (con los del barrio que vienen al olor). Lo comen de a mordiscos: el
+// pancho se achica y cuando se lo terminan, se van
+let pancho = null // { desde, hasta, t0, dur, mordio } — el que va volando / está en el piso
 function tirarPancho() {
   if (estado !== 'apuntar' || !ronda.panchos) return
   const desde = [...ronda.pelota]
+  const antes = new Set(ronda.monos.filter((s) => s.pancho))
   const pos = M.tirarPancho(ronda)
   if (!pos) { relatar({ lg: 'No viene ningún mono', verso: 'Guardá los panchos para cuando vengan' }); return }
-  pancho = { desde, hasta: pos, t0: performance.now() }
+  const golosos = ronda.monos.filter((s) => s.modo === 'come' && !antes.has(s)).length
+  pancho = { desde, hasta: pos, t0: performance.now(), dur: Math.min(750, 420 + M.dist(desde, pos) * 20), mordio: false }
   S.pancho()
-  relatar({ lg: M.elegir(rng, M.RELATO.pancho), verso: `Te quedan ${ronda.panchos} 🌭 en este hoyo` })
+  const b = $('#pancho')
+  b.classList.remove('tira')
+  void b.offsetWidth // (reinicia la animación)
+  b.classList.add('tira')
+  relatar({ lg: M.elegir(rng, M.RELATO.pancho), verso: golosos ? `Al olor vienen ${golosos === 1 ? 'uno más' : `${golosos} más`} del barrio · te quedan ${ronda.panchos} 🌭` : `Te quedan ${ronda.panchos} 🌭 en este hoyo` })
   hud()
 }
+/** Los que comen este pancho (los que van y los que ya llegaron a su lugar de la ronda). */
+const comenPancho = () => (pancho && ronda ? ronda.monos.filter((s) => s.pancho && s.panchoEn && M.dist(s.panchoEn, pancho.hasta) < 0.01) : [])
+const estaComiendo = (s) => !!s.pancho && M.dist(s.pos, s.pancho) < 0.05
 function dibujarPancho() {
   if (!pancho || !ronda) return
-  const u = Math.min(1, (performance.now() - pancho.t0) / 450)
-  const comiendo = ronda.monos.some((s) => s.pancho)
-  if (u >= 1 && !comiendo) { pancho = null; return }
-  const p = [pancho.desde[0] + (pancho.hasta[0] - pancho.desde[0]) * u, pancho.desde[1] + (pancho.hasta[1] - pancho.desde[1]) * u]
-  const [x, y] = w2s(p)
-  ctx.font = `${Math.max(18, Math.min(28, cam.esc * 2.6))}px ${EMOJI}`
+  const ahora = performance.now()
+  const u = Math.min(1, (ahora - pancho.t0) / pancho.dur)
+  const comen = comenPancho()
+  if (u >= 1 && !comen.length) { pancho = null; return }
+  // (en la cancha 3D de Rorro, del tamaño de la cancha que se ve: los monos son grandes)
+  const tam = modo3d() ? Math.max(20, Math.min(56, r3d.escEn(pancho.hasta) * 2.4)) : Math.max(18, Math.min(30, cam.esc * 2.8))
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText('🌭', x, y - Math.sin(Math.PI * u) * 40)
+  if (u < 1) {
+    // en el aire: de la pelota a donde cae, en arco, girando, con la sombra que se achica cuando sube
+    const p = [pancho.desde[0] + (pancho.hasta[0] - pancho.desde[0]) * u, pancho.desde[1] + (pancho.hasta[1] - pancho.desde[1]) * u]
+    const [x, y] = w2s(p), [x0, y0] = w2s(pancho.desde), [x1, y1] = w2s(pancho.hasta)
+    const alto = Math.max(40, Math.hypot(x1 - x0, y1 - y0) * 0.6)
+    const h = 4 * u * (1 - u) * alto
+    ctx.fillStyle = 'rgba(8, 26, 16, .3)'
+    ctx.beginPath()
+    ctx.ellipse(x, y + tam * 0.2, tam * 0.38 * (1 - (0.45 * h) / alto), tam * 0.14 * (1 - (0.45 * h) / alto), 0, 0, 7)
+    ctx.fill()
+    ctx.save()
+    ctx.translate(x, y - h)
+    ctx.rotate(u * Math.PI * 4.5)
+    ctx.font = `${tam * (1 + (0.25 * h) / alto)}px ${EMOJI}`
+    ctx.fillText('🌭', 0, 0)
+    ctx.restore()
+    ctx.textBaseline = 'alphabetic'
+    return
+  }
+  // en el piso
+  const [x, y] = w2s(pancho.hasta)
+  const enPiso = (ahora - pancho.t0 - pancho.dur) / 1000
+  const llegaron = comen.filter(estaComiendo)
+  if (llegaron.length && !pancho.mordio) { pancho.mordio = true; S.mordisco() }
+  // lo comido: el que lleva más tiempo comiendo manda (se achica hasta la mitad)
+  const comido = llegaron.length ? Math.min(1, Math.max(0, ...llegaron.map((s) => 1 - s.comiendo / M.MUGRE.comer))) : 0
+  const k = 1 - 0.5 * comido
+  // al caer: un rebotecito (se aplasta y se estira) y un poco de polvo
+  const r = enPiso < 0.4 ? Math.sin((enPiso / 0.4) * Math.PI) * 0.28 * (1 - enPiso / 0.4) : 0
+  if (enPiso < 0.45) {
+    ctx.fillStyle = `rgba(244, 238, 218, ${0.5 * (1 - enPiso / 0.45)})`
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2, d = tam * (0.35 + enPiso * 1.6)
+      ctx.beginPath()
+      ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.45, 2.2, 0, 7)
+      ctx.fill()
+    }
+  }
+  // el olor: tres hilos que suben ondulando (los monos lo huelen)
+  ctx.save()
+  ctx.strokeStyle = 'rgba(244, 238, 218, .7)'
+  ctx.lineWidth = 1.8
+  ctx.lineCap = 'round'
+  for (let i = 0; i < 3; i++) {
+    const f = ((ahora / 1000) * 0.8 + i / 3) % 1
+    ctx.globalAlpha = Math.sin(f * Math.PI) * 0.75 * k
+    ctx.beginPath()
+    for (let j = 0; j <= 10; j++) {
+      const v = j / 10
+      const yy = y - tam * 0.45 - f * tam * 1.1 - v * tam * 0.9
+      const xx = x + (i - 1) * tam * 0.32 + Math.sin(v * 7 + ahora / 160 + i * 2) * tam * 0.12
+      if (j) ctx.lineTo(xx, yy)
+      else ctx.moveTo(xx, yy)
+    }
+    ctx.stroke()
+  }
+  ctx.restore()
+  // las migas, cuando ya lo están comiendo
+  if (llegaron.length) {
+    ctx.fillStyle = '#c98a3c'
+    for (let i = 0; i < 7; i++) {
+      const a = i * 2.4 + 0.7, d = tam * (0.32 + ((i * 37) % 10) / 22)
+      ctx.globalAlpha = Math.min(1, comido * 3)
+      ctx.beginPath()
+      ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.5 + tam * 0.1, 1.4 + (i % 3) * 0.5, 0, 7)
+      ctx.fill()
+    }
+    ctx.globalAlpha = 1
+  }
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(Math.sin(ahora / 260) * (llegaron.length ? 0.12 : 0.04)) // lo tironean
+  ctx.scale(k * (1 + r), k * (1 - r))
+  ctx.font = `${tam}px ${EMOJI}`
+  ctx.fillText('🌭', 0, 0)
+  ctx.restore()
+  // cuántos se juntaron (arriba de la ronda)
+  if (comen.length >= 2) {
+    const radio = Math.max(...comen.map((s) => { const [sx, sy] = w2s(s.pancho); return Math.hypot(sx - x, sy - y) }))
+    const txt = `🐒 ×${comen.length}`
+    ctx.font = `800 13px ${EMOJI}`
+    const w = ctx.measureText(txt).width + 14
+    const py = y - radio - tamMono() * 0.95 - 12
+    ctx.fillStyle = 'rgba(12, 43, 28, .88)'
+    ctx.beginPath()
+    ctx.roundRect(x - w / 2, py - 11, w, 22, 11)
+    ctx.fill()
+    ctx.fillStyle = C.cream
+    ctx.fillText(txt, x, py + 1)
+  }
   ctx.textBaseline = 'alphabetic'
+}
+// 🐒 la Mugre se los lleva: tocando un mono que come, lo agarra una mano, salta y vuela al botón del pancho (el contador
+// salta); cada 5 en la vuelta, un golpe menos (motor.js `llevarMono`)
+let llevando = [] // { x, y, t0, tam } — los que van volando al botón (en la pantalla)
+const LLEVAR_MS = 750
+function agarrarMono(px, py) {
+  if (!ronda?.monos.some(M.sePuedeLlevar)) return false
+  let mejor = null
+  for (const s of ronda.monos) {
+    if (!M.sePuedeLlevar(s)) continue
+    // dónde se ve: en 2D el emoji está centrado en su lugar; en 3D, el cuerpo, un poco arriba del piso
+    const [x, y, ve] = modo3d() ? r3d.aPantalla(s.pos, 1.2) : w2s(s.pos)
+    if (modo3d() && !ve) continue
+    const radio = modo3d() ? Math.max(30, r3d.escEn(s.pos) * 2.4) : Math.max(24, tamMono() * 0.8)
+    const d = Math.hypot(px - x, py - y)
+    if (d <= radio && (!mejor || d < mejor.d)) mejor = { s, d, x, y }
+  }
+  if (!mejor) return false
+  const res = M.llevarMono(ronda, mejor.s)
+  if (!res) return false
+  const tam = modo3d() ? Math.max(30, Math.min(72, r3d.escEn(mejor.s.pos) * 2.6)) : Math.max(26, tamMono())
+  llevando.push({ x: mejor.x, y: mejor.y, t0: performance.now(), tam })
+  S.robo()
+  setTimeout(() => {
+    const c = $('#pancho-monos')
+    c.classList.remove('salta')
+    void c.offsetWidth
+    c.classList.add('salta')
+    alanDice(res)
+    if (res.premio) S.perfecto()
+  }, LLEVAR_MS - 80)
+  if (res.premio) {
+    relatar({ lg: M.elegir(rng, ['¡LURRRRPIN! Cinco monos en la bolsa', 'Se los llevó a todos. Un golpe menos', 'La Mugre pagó el tercer tiempo con monos']), verso: `🐒 ${res.n} monos: un golpe menos en la tarjeta` })
+    marcarTiro('🐒 −1 GOLPE', ronda.pelota)
+  } else relatar({ lg: M.elegir(rng, ['¡Te lo llevaste!', 'Uno menos que roba', 'A la bolsa, mono']), verso: `🐒 ${res.n} de ${M.LLEVAR.premio}: con ${M.LLEVAR.premio}, un golpe menos` })
+  hud()
+  return true
+}
+/** 🐒 Alan, cada mono que se lleva: "¡LURRRRPIN!" arriba del botón del pancho (al quinto, más erres y el golpe menos). */
+let alanTimer = 0
+function alanDice(res) {
+  const el = $('#alan')
+  const erres = res.premio ? 9 : 4 + Math.floor(Math.random() * 4)
+  el.querySelector('.globo').innerHTML = `¡LU${'<span class="r">R</span>'.repeat(erres)}PIN!${res.premio ? `<small>🐒 ${res.n} · UN GOLPE MENOS</small>` : ''}`
+  // arriba del botón del pancho (a la derecha; con Rorro, a la izquierda), con el globo para el lado de adentro
+  const b = $('#pancho')
+  const r = b && !b.hidden ? b.getBoundingClientRect() : { left: W - 100, top: H - 120, width: 84 }
+  const der = r.left + r.width / 2 > W / 2
+  el.classList.toggle('der', der)
+  el.classList.toggle('izq', !der)
+  el.classList.toggle('premio', !!res.premio)
+  el.style.left = `${Math.round(r.left + r.width / 2 - 32)}px`
+  el.style.top = `${Math.round(r.top - 76)}px`
+  clearTimeout(alanTimer)
+  el.hidden = false
+  el.classList.remove('entra')
+  void el.offsetWidth // (otro mono antes de que termine: arranca de nuevo)
+  el.classList.add('entra')
+  S.lurpin(erres)
+  alanTimer = setTimeout(() => { el.hidden = true; el.classList.remove('entra') }, 1650)
+}
+function dibujarLlevados() {
+  if (!llevando.length) return
+  const ahora = performance.now()
+  llevando = llevando.filter((l) => ahora - l.t0 < LLEVAR_MS)
+  const b = $('#pancho')
+  const r = b && !b.hidden ? b.getBoundingClientRect() : null
+  const destino = r ? [r.left + r.width / 2, r.top + r.height / 2] : [W - 40, H - 60]
+  ctx.save()
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  for (const l of llevando) {
+    const u = (ahora - l.t0) / LLEVAR_MS, tam = l.tam
+    // primero lo agarra la mano y salta (un tercio); después vuela en arco al botón, achicándose
+    const sube = Math.min(1, u / 0.3), vuela = Math.max(0, (u - 0.3) / 0.7), e = vuela * vuela * (3 - 2 * vuela)
+    const x = l.x + (destino[0] - l.x) * e
+    const y = l.y - Math.sin(sube * Math.PI * 0.5) * 22 + (destino[1] - l.y) * e - Math.sin(e * Math.PI) * 60
+    const k = (1 + 0.25 * sube) * (1 - 0.6 * e)
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.rotate(Math.sin(u * 30) * 0.25 * (1 - e))
+    ctx.font = `${tam * k}px ${EMOJI}`
+    ctx.fillText('🐒', 0, 0)
+    if (u < 0.45) { ctx.font = `${tam * 0.8 * k}px ${EMOJI}`; ctx.fillText('🫳', 0, -tam * 0.62 * k) }
+    ctx.restore()
+  }
+  ctx.restore()
 }
 /** Embocó: el último putt del 17 para el reloj. */
 function embocar(frase) {
@@ -4175,14 +4600,49 @@ function levantarVuelta() {
   const n = M.levantar(ronda)
   // en un match, si los dos levantan, gana el que aguantó más: el tiempo hasta acá
   if (ronda.t0 != null) ronda.msLP = Math.max(1, Math.round(performance.now() - ronda.t0))
+  if (ronda.duelo && ronda.t0 != null) vivoCuadro() // 🔌 la vuelta que se manda, guardada al toque
   S.lamento()
   banda({ kicker: `Levantaste en el ${n}`, grande: 'LP 💅', banda: 'VUELTA PERDIDA', verso: 'Entraste en la lista LP 💅' }, 2600, tarjetaFinal)
 }
 
 // ── hoyos ──
+// ── 🥃 Rorro se copia una habilidad: antes de cada vuelta, tres al azar de los otros del mazo (sin candado, y no las que
+// no van en su cancha: M.SIN_PRESTAR). En un match salen de la semilla: las mismas tres para los dos ──
+let rorroListo = null
+function opcionesRorro(semilla) {
+  const pool = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo) && !j.pase && !j.cancha3d && !bloqueado(j) && M.habilidadDe(j) && !M.SIN_PRESTAR.includes(M.habilidadDe(j).id))
+  const r = semilla != null ? M.rngDesde((Number(semilla) ^ 0x5eed) >>> 0) : Math.random
+  for (let i = pool.length - 1; i > 0; i--) { const k = Math.floor(r() * (i + 1)); [pool[i], pool[k]] = [pool[k], pool[i]] }
+  return pool.slice(0, 3)
+}
+function elegirHabilidadRorro(jugador) {
+  const { prestada, ...base } = jugador
+  const ops = opcionesRorro(matchModo?.semilla ?? null)
+  const listo = (j) => { rorroListo = j ? { ...base, prestada: j.apodo } : base; empezar(rorroListo) }
+  // (para probar: ?prestada=Tito)
+  const forzada = PRUEBA && TODOS.find((j) => j.apodo === PARAMS.get('prestada'))
+  if (forzada || !ops.length) { listo(forzada || null); return }
+  const el = $('#rorro-hab')
+  $('#rh-ops').innerHTML = ops.map((j, i) => {
+    const h = M.habilidadDe(j)
+    const cara = j.foto ? `<img class="rh-foto" src="${esc(j.foto)}" alt="" draggable="false">` : `<span class="rh-foto" aria-hidden="true">${j.emoji}</span>`
+    return `<button class="rh-op" type="button" data-i="${i}" style="--i:${i}">${cara}<span><b>✨ ${esc(h.nombre)}</b><small>la de ${esc(sinD(j.apodo))} ${j.emoji}</small><i>${esc(h.corto ?? h.texto)}</i></span></button>`
+  }).join('')
+  $('#rh-volver').hidden = !!matchModo // (en un match no se vuelve: el desafío ya está armado)
+  el.onclick = (e) => {
+    if (e.target.closest('[data-cerrar]')) { if (!matchModo) el.hidden = true; return }
+    const b = e.target.closest('.rh-op')
+    if (!b) return
+    el.hidden = true
+    listo(ops[+b.dataset.i])
+  }
+  el.hidden = false
+}
 function empezar(jugador) {
   if (bloqueado(jugador) && !matchModo) return // 🔒 Taiu, hasta desbloquearlo (si te desafían con él, sí)
   if (usa3d(jugador) && !r3d && !r3dFallo) { esperar3d(() => empezar(jugador)); return } // 🥃 la cancha 3D, antes
+  if (usa3d(jugador) && jugador !== rorroListo) { elegirHabilidadRorro(jugador); return } // 🥃 y la habilidad que se copia
+  rorroListo = null
   // la Ruleta: el bloqueado no sale. En un match, los dos con el MISMO mazo (sin los que se desbloquean, así nadie tiene
   // uno que el otro no): con la semilla del match, tiro por tiro les salen los mismos players a los dos
   if (jugador.ruleta) {
@@ -4196,8 +4656,10 @@ function empezar(jugador) {
   matchModo = null
   if (duelo) {
     // el clima, según la fecha del desafío (la nieve cambió de chance: M.NIEVE); el que desafía, el de ahora
-    M.aplicarMatch(ronda, M.condicionesMatch(duelo.semilla, duelo.desafio?.fecha ? Date.parse(duelo.desafio.fecha) : Date.now()))
-    ronda.duelo = { ...duelo, grabacion: [] }
+    const fechaMatch = duelo.desafio?.fecha ?? duelo.fecha
+    M.aplicarMatch(ronda, M.condicionesMatch(duelo.semilla, fechaMatch ? Date.parse(fechaMatch) : Date.now()))
+    if (ronda.ruleta) contarRuleta(ronda) // 🔌 (para reconectar: la tanda de la Ruleta, adelantada a donde iba)
+    ronda.duelo = { ...duelo, grabacion: [], desde: Date.now() }
   }
   // el clima del día: en un match, el de la semilla (los dos juegan el mismo día, con los mismos charcos);
   // si no, sorteado (la nieve, 1 de cada 20). Para probar: ?clima=nieve
@@ -4210,13 +4672,22 @@ function empezar(jugador) {
   const forzada = PRUEBA && PARAMS.has('lechuza')
   ronda.lechuzaEn = ronda.duelo || ronda.match || ronda.pro ? null : forzada ? 1 : Math.random() < M.LECHUZA.prob ? 1 + Math.floor(Math.random() * M.LECHUZA.tiros) : null
   ronda.apuntadas = 0
+  // ⛳ el sábado 9 AM (un easter egg): la lista sale antes del primer hoyo; pide ya las vueltas del ranking
+  ronda.sabado = M.esSabado9(Date.now()) || (PRUEBA && PARAMS.has('sabado'))
+  sabadoMarcas = ronda.sabado ? R.leerMarcas().catch(() => null) : null
+  // para probar el secreto: la pelota en el green del 16, a 4 yd del hoyo
+  if (PARAMS.has('probar-secreto')) {
+    const h16 = ronda.hoyos[1]
+    Object.assign(ronda, { pelota: [h16.pin[0], h16.pin[1] - 4], lie: 'green', golpes: 1 })
+  }
+  ponerEnEscena(jugador)
+}
+/** La cancha, la pantalla y el primer hoyo de `ronda` (una nueva o, 🔌, una que se reconecta). */
+function ponerEnEscena(jugador) {
   campo = campoBase
   if (usa3d(jugador) && r3d) { ronda.lechuzaEn = null; r3d.activar(true) }
   else r3d?.activar(false)
   lechuzaFuera()
-  // ⛳ el sábado 9 AM (un easter egg): la lista sale antes del primer hoyo; pide ya las vueltas del ranking
-  ronda.sabado = M.esSabado9(Date.now()) || (PRUEBA && PARAMS.has('sabado'))
-  sabadoMarcas = ronda.sabado ? R.leerMarcas().catch(() => null) : null
   fxClima = []
   chicanaDe = null; chicanaVino = false; ablandoVino = false; cerrarContra()
   descartadas = []; $('#mp-sel').hidden = true
@@ -4227,11 +4698,7 @@ function empezar(jugador) {
   // Demetrio juega en 1960: la cancha en sepia, con viñeta y grano (y sin monos, ver nuevaRonda)
   document.body.classList.toggle('retro', !!jugador.retro)
   document.body.classList.toggle('modo-ruleta', !!ronda.ruleta)
-  // para probar el secreto: la pelota en el green del 16, a 4 yd del hoyo
-  if (PARAMS.has('probar-secreto')) {
-    const h16 = ronda.hoyos[1]
-    Object.assign(ronda, { pelota: [h16.pin[0], h16.pin[1] - 4], lie: 'green', golpes: 1 })
-  }
+  document.body.classList.toggle('modo-rorro', usa3d(jugador) && !!r3d)
   pararCuenta()
   $('#marcador').hidden = true
   marcadorPintado = ''
@@ -4242,12 +4709,15 @@ function empezar(jugador) {
 function introHoyo() {
   const h = M.hoyoActual(ronda)
   pancho = null
+  llevando = []
   estado = 'intro'
   tiro = null
   estela = []
   hud()
   if (modo3d()) {
     r3d.empezarHoyo(ronda)
+    reiniciarRelojRorro()
+    $('#reloj-rorro .cinta').textContent = r3d.version()
     if (ronda.idx === 0 && ronda.t0 == null && !ronda.introRorro) {
       ronda.introRorro = true
       document.body.classList.add('cine')
@@ -4271,23 +4741,29 @@ function introHoyo() {
       hud()
       const hab = M.habilidadDe(ronda.jugador)
       // (🥃 Rorro no se explica: una pista, nada más)
-      if (hab && ronda.idx === 0 && !ronda.ruleta) relatar(hab.id === 'codigo' ? { lg: '✨ ▒▒▓░▒ ▓▒░', verso: 'Lo que vuela también se puede pausar' } : { lg: `✨ ${hab.nombre}`, verso: hab.texto })
+      const copia = ronda.carta?.cancha3d && ronda.jugador.prestada // 🥃 Rorro, con la habilidad que se copió
+      if (copia && hab && ronda.idx === 0) relatar({ lg: `✨ ${hab.nombre} · la de ${sinD(copia)}`, verso: 'Cada 10 segundos, deploy. Lo que vuela se puede pausar' })
+      else if (hab && ronda.idx === 0 && !ronda.ruleta) relatar(hab.id === 'codigo' ? { lg: '✨ ▒▒▓░▒ ▓▒░', verso: 'Lo que vuela también se puede pausar' } : { lg: `✨ ${hab.nombre}`, verso: hab.texto })
     })
   }
   const cl = M.climaDe(ronda)
   const hoy = (cl ? ` · ${cl.nombre.toLowerCase().replace(/[¡!]/g, '')}` : '') + (ronda.pro ? ' · modo pro' : '')
   // ⛳ un sábado entre las 9 y las 10: antes de todo, la lista (el reloj todavía no corre)
   if (ronda.sabado && !ronda.sabadoVisto && ronda.t0 == null) { ronda.sabadoVisto = true; mostrarSabado(introHoyo); return }
-  banda({ kicker: ronda.carta.retro ? `San Diego · 1960 · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}` : `La Trampa del Mono · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}`, grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${h.yardas[ronda.tee]} YD`, verso: h.verso }, 2800, () => {
+  // 🔌 reconectado: seguís donde quedaste (la cuenta regresiva y el reloj desde donde estaba)
+  const rec = ronda.reconecta
+  banda(rec
+    ? { kicker: '🔌 Reconectado · seguís donde quedaste', grande: `HOYO ${h.n}`, banda: `GOLPE ${ronda.golpes + 1} · PAR ${h.par}`, verso: rec.gyd ? 'Te fuiste con la pelota en el aire: golpe y distancia (ese tiro cuenta, más uno de multa)' : `El reloj sigue desde ${M.formatoTiempo(rec.ms)}` }
+    : { kicker: ronda.carta.retro ? `San Diego · 1960 · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}` : `La Trampa del Mono · desde las ${M.COLORES_TEE[ronda.tee].toLowerCase()}${hoy}`, grande: `HOYO ${h.n}`, banda: `PAR ${h.par} · ${h.yardas[ronda.tee]} YD`, verso: h.verso }, 2800, () => {
     // la primera vez: 3, 2, 1 y arranca el reloj, que corre hasta el último putt
     if (ronda.t0 == null) {
       // la cuenta regresiva muestra de cerca de dónde salís; en el ¡YA! se abre al hoyo
-      const vista = vistaApuntar(M.teeDe(ronda), h.pin)
+      const vista = vistaApuntar(rec ? ronda.pelota : M.teeDe(ronda), h.pin)
       obj = { ...vista, esc: 7 }
       velCam = 2.2
       // en el "2" vuelve al encuadre de salida: en el ¡YA! ya está quieta hace un segundo (no perdés tiempo)
       setTimeout(() => { if (estado === 'cuenta') { obj = vista; velCam = 4.5 } }, 900)
-      cuentaRegresiva(() => { ronda.t0 = performance.now(); arrancar(); obj = vista })
+      cuentaRegresiva(() => { ronda.t0 = performance.now() - (rec?.ms ?? 0); delete ronda.reconecta; arrancar(); obj = vista })
     }
     else arrancar()
   })
@@ -4716,6 +5192,7 @@ function pintarCrono() {
 function cerrar(frase) {
   estado = 'resultado'
   const fila = M.cerrarHoyo(ronda, rng)
+  if (ronda.duelo && ronda.t0 != null) vivoCuadro() // 🔌 ya en el tee del que sigue (o, si terminó, la vuelta que se manda)
   const nombre = M.nombreResultado(fila.golpes, fila.par, false)
   S.resultado(nombre)
   const linea = frase ?? M.fraseResultado(rng, nombre, ronda.jugador)
@@ -5189,7 +5666,12 @@ function relatar({ lg, excusa, verso }) {
 }
 function pintarVoz() {
   let clase = 'vacia', dice = 'mirando…', extra = ''
-  if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza')) {
+  if (ronda && estado === 'apuntar' && ronda.monos.some(M.sePuedeLlevar) && !(voz && performance.now() < voz.hasta)) {
+    // (lo que acaba de pasar —el pancho, el que te llevaste, el golpe menos— se lee primero)
+    const n = ronda.llevados ?? 0, P = M.LLEVAR.premio
+    clase = 'alerta comen'; dice = '🐒 ¡ESTÁN COMIENDO! TOCALOS' // (alerta, pero el botón del pancho no late: ya comen)
+    extra = n < P ? `y te los llevás · ${n} de ${P} = un golpe menos` : `y te los llevás · van ${n}: con ${(Math.floor(n / P) + 1) * P}, otro golpe menos`
+  } else if (ronda && estado === 'apuntar' && ronda.monos.some((s) => s.modo === 'caza' && !s.pancho)) { // (los que van al pancho no vienen)
     clase = 'alerta'; dice = '🐒 ¡VIENEN LOS MONOS! PEGALE'
     extra = ronda.panchos ? `…o tirales un pancho 🌭 (te quedan ${ronda.panchos})` : 'Si llegan, se la llevan: al tee con un golpe de multa'
   } else if (estado === 'manejar' && ronda?.carro && !(voz && performance.now() < voz.hasta)) {
@@ -5307,6 +5789,12 @@ function hud() {
     $('#pancho-n').textContent = ronda.panchos
     $('#pancho').disabled = !ronda.panchos || estado !== 'apuntar'
   }
+  const n = ronda.llevados ?? 0, menos = -(ronda.tarjeta.monos ?? 0)
+  const cont = $('#pancho-monos')
+  cont.hidden = !n
+  const txt = menos ? `🐒 ${n} · −${menos}` : `🐒 ${n}/${M.LLEVAR.premio}`
+  if (n && cont.textContent !== txt) cont.textContent = txt
+  cont.classList.toggle('premio', !!menos)
   // Maxi: el botón de Deme (una vez por vuelta; en el tee, apagado)
   // los Dicky: la Dickyllamada (una por vuelta: un Dicky te pega el próximo tiro)
   const dicky = !oculto && hayOtroDicky(j) && M.puedeDickyllamar(ronda)
@@ -5495,6 +5983,7 @@ function golpeMago() {
 }
 let lpArmado = 0
 $('#pancho').addEventListener('click', tirarPancho)
+$('#pancho').addEventListener('animationend', (e) => { if (e.animationName === 'tiraPancho') e.currentTarget.classList.remove('tira') })
 $('#dicky-btn').addEventListener('click', abrirDickyllamada)
 $('#e5-btn').addEventListener('click', () => {
   if (!ronda || estado !== 'apuntar') return
@@ -5554,6 +6043,7 @@ function dibujarFondo({ x0, y0, x1, y1, e }) {
   ctx.drawImage(fondo, x0 * e, y0 * e, (x1 - x0) * e, (y1 - y0) * e, x0, y0, x1 - x0, y1 - y0)
 }
 function dibujar() {
+  if (replay?.tres && r3d) { dibujarReplay3d(); return }
   if (modo3d()) { dibujar3d(); return }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   const c = Math.cos(cam.rot) * cam.esc, s = Math.sin(cam.rot) * cam.esc
@@ -5649,6 +6139,7 @@ function dibujar() {
   const aJ = estado === 'apuntar' && drag ? apunte() : null
   dibujarGolfista(aJ)
   dibujarMonos()
+  dibujarLlevados()
   dibujarMarcasTiro()
   dibujarDestello()
   if (ronda?.duelo?.fantasma) dibujarFantasma()
@@ -5693,6 +6184,9 @@ function dibujar3d() {
   try {
     r3d.cuadro(dtCuadro, {
       estado, ronda, tiro, anim, drag: !!drag, enPutt, apunte: aJ, golfista: estadoGolfista(aJ), fantasma: fant,
+      pancho: pancho && comenPancho().length ? pancho.hasta : null, // 🌭 mientras comen, la cámara se abre para verlo
+      // 🪄 el Dibuje maestro: hasta dónde le da el carry (en yardas del dibujo), para que la cámara lo muestre entero
+      dibuje: esDibuje() && (estado === 'apuntar' || estado === 'cambio') ? { max: maxDibuje(), dibujando: !!trazo } : null,
       zona: { top: (m.card ?? m.top ?? 20) + 6, bot: m.bot ?? H - 20 },
     })
   } catch (e) { console.error(e) }
@@ -5700,10 +6194,26 @@ function dibujar3d() {
   dibujarMarcasTiro()
   dibujarDestello()
   monos3dHud()
+  // la habilidad que Rorro le copió a otro: lo que en el juego de siempre se dibuja arriba de la cancha
+  dibujarPancho()
+  dibujarLlevados()
+  if (ronda && !ronda.terminada) {
+    if (tiro) { if (tiro.deme) auraDeme(tiro.pos, tiro.alt); if (tiro.flecha && tiro.fase === 'vuelo') flechaSueco(tiro); sorpresaJuanpa(tiro) }
+    else if (ronda.deme?.listo && estado === 'apuntar') auraDeme(ronda.pelota)
+  }
+  dibujarFxJuanpa()
+  dibujarRafagasTito()
+  alcanceDibuje3d()
   const a = estado === 'apuntar' ? apunte() : null
   if (drag) drag.visto = a
   if (a) dibujarApunte(a)
+  else if (trazo) dibujarTrazo(trazo.pts, 1, ronda?.pro ? null : trazo.plan, trazo.desde)
   else if (estado === 'apuntar' && !r3d.enIntro()) dibujarGuia()
+  if (trazoFade && !trazo) {
+    const k = 1 - (performance.now() - trazoFade.t0) / TRAZO_FADE
+    if (k <= 0) trazoFade = null
+    else dibujarTrazo(trazoFade.pts, k * k, null, trazoFade.desde)
+  }
   if (estado === 'pausa' && tiro) {
     r3d.dibujarDepurador(ctx, tiro)
     const n = tiro.nuevo ?? tiro.pos
@@ -5711,7 +6221,7 @@ function dibujar3d() {
   }
   pintarPoderRorro()
   if (ronda && !ronda.terminada) {
-    const ang = angPantalla(ronda.pelota, ronda.viento.ang)
+    const ang = tiro && estado === 'tiro' ? r3d.anguloEnBola(ronda.viento.ang) : angPantalla(ronda.pelota, ronda.viento.ang) // (en la pelota: la que vuela, si vuela)
     const f = $('#v-flecha')
     if (Math.abs((f._ang ?? 99) - ang) > 0.01) { f.style.transform = `rotate(${ang}rad)`; f._ang = ang }
   }
@@ -5726,7 +6236,7 @@ function monos3dHud() {
   const v = visible(), lejos = M.alertaDe(ronda)
   const [bx, by] = w2s(ronda.pelota)
   ronda.monos.forEach((s, i) => {
-    if (s.modo !== 'caza') return
+    if (s.modo !== 'caza' || s.pancho) return // (el que va al pancho o lo come no viene: sin cartel)
     const d = M.dist(s.pos, ronda.pelota)
     const c = r3d.monoEnPantalla(i)
     const [x, y, adelante] = w2s(s.pos)
@@ -5810,10 +6320,73 @@ function pintarPoderRorro() {
 }
 const LG_RORRO = {
   bp: ['Eso es trampa… pero la del mono.', 'Pausó el juego. En la vida real no se puede, Rorro.', 'Breakpoint en el aire. Clásico de programador.'],
-  revert: ['Ctrl+Z en la vida real, por favor.', 'Revirtió. El cliente no se enteró.', 'git revert y a otra cosa.'],
+  revert: ['Ctrl+Z en la vida real, por favor.', 'Volvió a la cancha de antes. El cliente no se enteró.', 'git revert y a otra cosa.'],
   // tocando antes de tiempo
   bpAntes: ['El breakpoint va con la pelota en el aire, Rorro.', 'Primero pegale. Después se debuggea.'],
-  revertAntes: ['No hay versión de antes: nothing to revert.', 'Todavía no hay commit para revertir.'],
+  revertAntes: ['No hay cancha de antes: nothing to revert.', 'Todavía no hubo deploy para revertir.'],
+  // ⏱ el deploy del reloj
+  aprobado: ['Aprobado. Se abre la calle.', 'Deploy limpio. Merge a main.', 'El cliente aprobó. Milagro.'],
+  cliente: ['Cambios del cliente. Otra vez.', '"Un cambiecito nomás", dijo el cliente.', 'Deploy un viernes a la tarde. Qué podía salir mal.'],
+  hoyo: ['¡Se mudó el hoyo!', 'El cliente quería la bandera más a la izquierda.', 'Movieron el hoyo. Así no se puede, Rorro.'],
+}
+// ── ⏱ 🥃 el reloj de Rorro: cada 10 s su cancha se rehace (un deploy), pase lo que pase: apuntando, con el dedo en la
+// pantalla, dibujando, con la pelota en el aire o rodando (la idea es que sea dinámico: no se puede frenar). Solo espera
+// lo que no se juega: la banda del hoyo, la pausa del DEBUG, el REVERT o una animación (el mono, el perro). Con la pelota
+// quieta y sin el dedo, la pelota y Rorro van con su pedazo de cancha; en el green,
+// además, se muda el hoyo ──
+const relojR = { quedan: 10, seg: null, pintado: '' }
+function reiniciarRelojRorro() { relojR.quedan = r3d?.RELOJ.cada ?? 10; relojR.seg = null }
+function relojRorroCuadro(dt) {
+  const el = $('#reloj-rorro')
+  const ver = modo3d() && !ronda.terminada && !$('#hud-top').hidden && !r3d.enIntro()
+  if (el.hidden === ver) el.hidden = !ver
+  if (!ver) { r3d?.avisar(0); document.body.classList.remove('aviso-deploy'); return }
+  const R = r3d.RELOJ
+  // (cuenta también mientras la cancha cambia: el próximo sale a los 10 s del anterior, no a los 10 s de que terminó)
+  const juega = ronda.t0 != null && !r3d.enIntro() && (estado === 'apuntar' || estado === 'tiro' || estado === 'swing' || estado === 'cambio')
+  if (juega) relojR.quedan = Math.max(0, relojR.quedan - dt)
+  if (juega && relojR.quedan <= 0 && !r3d.ocupado()) deployRorro()
+  const k = juega ? Math.min(1, Math.max(0, 1 - relojR.quedan / R.aviso)) : 0
+  r3d.avisar(k)
+  const seg = Math.max(1, Math.ceil(relojR.quedan))
+  if (juega && seg !== relojR.seg && seg <= 3) r3d.cuenta(seg)
+  relojR.seg = seg
+  el.style.setProperty('--k', (relojR.quedan / R.cada).toFixed(3))
+  const clave = `${seg}|${k > 0}`
+  if (clave !== relojR.pintado) {
+    relojR.pintado = clave
+    el.querySelector('.rr-seg').textContent = seg
+    el.classList.toggle('aviso', k > 0)
+  }
+  document.body.classList.toggle('aviso-deploy', k > 0)
+}
+/** El deploy: la cancha se rehace desde la pelota (quieta, en el aire, rodando o con el dedo apuntando). */
+function deployRorro() {
+  reiniciarRelojRorro()
+  const quieta = estado === 'apuntar'
+  const viaja = quieta && !drag && !trazo // (con el dedo en la pantalla la pelota no se mueve: lo que apuntás sigue valiendo)
+  const enPutt = quieta && M.enModoPutt(campo, ronda)
+  // con la pelota en el aire (y tiempo para que la onda pase antes de que pique), la cancha cambia mientras vuela
+  const vuela = estado === 'tiro' && tiro?.modo === 'full' && tiro.fase === 'vuelo' && !tiro.embocada && tiro.T - tiro.t > 0.8
+  const r = ronda
+  const v = r3d.cambio(ronda, { tiro, quieta, viaja, enPutt, alPicar: vuela, dur: vuela ? Math.min(2.2, Math.max(0.7, (tiro.T - tiro.t) * 0.85)) : null }, (p) => {
+    if (ronda !== r) return
+    if (p && !ronda.terminada) ronda.pelota = p
+    if (estado === 'cambio') { estado = 'apuntar'; hud() }
+  })
+  if (!v) return
+  if (viaja) estado = 'cambio' // (como en el revert: mientras la pelota viaja con su pedazo de cancha, no se pega)
+  if (quieta) {
+    relatar({ lg: v.hoyo ? M.elegir(rng, LG_RORRO.hoyo) : v.cita ?? M.elegir(rng, v.tipo === 'ok' ? LG_RORRO.aprobado : LG_RORRO.cliente) })
+  }
+  const el = $('#reloj-rorro')
+  el.querySelector('.cinta').textContent = `deploy ${v.version}`
+  el.classList.remove('deploy', 'ok', 'mal')
+  void el.offsetWidth // (reinicia el flash)
+  el.classList.add('deploy', v.tipo === 'ok' ? 'ok' : 'mal')
+  relojR.pintado = ''
+  poderPintado = ''
+  hud()
 }
 $('#rorro-debug').addEventListener('click', () => {
   if (!modo3d()) return
@@ -5839,7 +6412,9 @@ $('#rorro-revert').addEventListener('click', () => {
   r3d.despertar()
   estado = 'revert'
   relatar({ lg: M.elegir(rng, LG_RORRO.revert) })
-  r3d.revert(ronda, (p) => { ronda.pelota = p; if (estado === 'revert') { estado = 'apuntar'; hud() } })
+  r3d.revert(ronda, (p) => { ronda.pelota = p; reiniciarRelojRorro(); if (estado === 'revert') { estado = 'apuntar'; hud() } })
+  reiniciarRelojRorro()
+  $('#reloj-rorro .cinta').textContent = 'git revert'
   hud()
   poderPintado = ''
 })
@@ -6218,7 +6793,7 @@ function etiquetaRuleta() {
   ctx.fillText(texto, bx + 30, by + h / 2 + 1)
   ctx.restore()
 }
-const levante = () => Math.min(cam.esc * 0.5, 2.2)
+const levante = () => (modo3d() ? r3d.pxAlto() : Math.min(cam.esc * 0.5, 2.2))
 const tamMono = () => Math.max(22, Math.min(36, cam.esc * 3.4))
 
 /** La parte de la pantalla donde se ve la cancha (sin el marcador de arriba). */
@@ -6290,7 +6865,9 @@ function dibujarMonos() {
   const v = visible()
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
+  const grupo = comenPancho().filter(estaComiendo) // los que ya están comiendo el pancho (para turnarse el ñam)
   for (const s of ronda.monos) {
+    if (s.modo === 'llevado') continue // te lo llevaste (vuela al botón: dibujarLlevados)
     let [x, y] = w2s(s.pos)
     if (s.modo === 'aplastado') {
       // aplastado por el carrito: chato, de costado, con estrellitas
@@ -6311,7 +6888,8 @@ function dibujarMonos() {
       continue
     }
     const activo = M.monoActivo(s)
-    const salta = activo && !(s.modo === 'caza' && s.reaccion > 0) ? Math.abs(Math.sin(ahora * 12 + s.m.fase)) * 4 : 0
+    const come = estaComiendo(s), alPancho = !!s.pancho && !come // 🌭 la Mugre: el que come y el que va corriendo a comer
+    const salta = come ? Math.abs(Math.sin(ahora * 14 + s.m.fase)) * 2.5 : activo && !(s.modo === 'caza' && s.reaccion > 0) ? Math.abs(Math.sin(ahora * (alPancho ? 17 : 12) + s.m.fase)) * (alPancho ? 6 : 4) : 0
     const afuera = x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1
     if (afuera) {
       if (s.modo === 'caza') indicadorMono(s, x, y, v) // viene y no se ve: marca en el borde
@@ -6319,8 +6897,45 @@ function dibujarMonos() {
     }
     ctx.globalAlpha = activo ? 1 : 0.5 // esperando entre los pinos se ve a medias
     ctx.font = `${tam}px ${EMOJI}`
-    ctx.fillText('🐒', x, y - salta)
+    if (come) {
+      // comiendo: cabecea para el lado del pancho
+      const [px] = w2s(s.panchoEn ?? s.pancho)
+      ctx.save()
+      ctx.translate(x, y - salta)
+      ctx.rotate((px < x ? -1 : 1) * (0.12 + Math.sin(ahora * 9 + s.m.fase) * 0.12))
+      ctx.fillText('🐒', 0, 0)
+      ctx.restore()
+      // ñam: de a uno por vez en la ronda (se turnan), del lado de afuera, subiendo
+      const n = grupo.length || 1, i = Math.max(0, grupo.indexOf(s))
+      const f = ((ahora * 0.75) % 1) * n - i
+      if (f >= 0 && f < 1.4) {
+        const [cx] = w2s(s.panchoEn ?? s.pancho)
+        const lado = x >= cx ? 1 : -1
+        ctx.globalAlpha = Math.sin((f / 1.4) * Math.PI)
+        ctx.font = '13px Anton, "Arial Narrow", sans-serif'
+        ctx.lineJoin = 'round'
+        ctx.lineWidth = 3
+        ctx.strokeStyle = 'rgba(12, 43, 28, .85)'
+        const nx = x + lado * tam * 0.55, ny = y - tam * 0.55 - f * 10
+        ctx.strokeText('ÑAM', nx, ny)
+        ctx.fillStyle = C.cream
+        ctx.fillText('ÑAM', nx, ny)
+      }
+    } else ctx.fillText('🐒', x, y - salta)
     ctx.globalAlpha = 1
+    if (alPancho) {
+      // va corriendo al pancho: la burbujita con el 🌭 (lo huele)
+      const bx = x + tam * 0.48, by = y - salta - tam * 0.72
+      ctx.fillStyle = C.cream
+      ctx.beginPath()
+      ctx.arc(bx, by, 10, 0, 7)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(bx - 8, by + 9, 2.5, 0, 7)
+      ctx.fill()
+      ctx.font = `12px ${EMOJI}`
+      ctx.fillText('🌭', bx, by + 1)
+    }
     if (s.modo === 'huye' && s.huyeDe) {
       // se espantó con la bocina: polvareda atrás (del lado del carrito)
       const [hx, hy] = w2s(s.huyeDe), d = Math.hypot(x - hx, y - hy) || 1
@@ -6989,10 +7604,10 @@ function sorpresaJuanpa(t) {
       const k = (u - 0.5) / 0.5
       const p = [cae[0] - Math.cos(ang) * largo * (1 - k), cae[1] - Math.sin(ang) * largo * (1 - k)]
       const [x, y] = w2s(p)
-      cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
+      cuerpoCarrito(x, y, angPantalla(p, ang), L, CARRITO_JUANPA)
     } else if (t.fase === 'carrito') {
       const [x, y] = w2s(t.pos)
-      cuerpoCarrito(x, y, ang + cam.rot, L, CARRITO_JUANPA)
+      cuerpoCarrito(x, y, angPantalla(t.pos, ang), L, CARRITO_JUANPA)
     }
   }
   if (sp.tipo === 'rafaga' && sp.hecho && !sp.sono) { sp.sono = true; S.rafaga() }
@@ -7022,10 +7637,11 @@ function dibujarFxJuanpa() {
       if (fuera > 0) nubecita(x, y - 18, fuera)
     } else {
       const d = sg * 26
-      const [x, y] = w2s([f.pos[0] + Math.cos(f.ang) * d, f.pos[1] + Math.sin(f.ang) * d])
+      const q = [f.pos[0] + Math.cos(f.ang) * d, f.pos[1] + Math.sin(f.ang) * d]
+      const [x, y] = w2s(q)
       ctx.save()
       ctx.globalAlpha = Math.max(0, 1 - sg / 1.6)
-      cuerpoCarrito(x, y, f.ang + cam.rot, tamCarrito(), CARRITO_JUANPA)
+      cuerpoCarrito(x, y, angPantalla(q, f.ang), tamCarrito(), CARRITO_JUANPA)
       ctx.restore()
     }
   }
@@ -7762,7 +8378,12 @@ function dibujarApunte(a) {
   ctx.setLineDash([1, 8])
   ctx.beginPath()
   ctx.moveTo(bx, by)
-  if (a.plan.control) {
+  if (a.plan.control && modo3d()) {
+    // la comba del Mago en la cancha 3D: la curva se calcula en la cancha y se pasa a la pantalla punto por punto
+    // (con la perspectiva, una curva de la pantalla no es la del vuelo)
+    const p0 = ronda.pelota, c = a.plan.control, f = a.destino
+    for (let i = 1; i <= 28; i++) { const t = i / 28, u = 1 - t; ctx.lineTo(...w2s([u * u * p0[0] + 2 * u * t * c[0] + t * t * f[0], u * u * p0[1] + 2 * u * t * c[1] + t * t * f[1]])) }
+  } else if (a.plan.control) {
     // la comba del Mago: sale para afuera y vuelve a la línea
     const [cx, cy] = w2s(a.plan.control)
     ctx.quadraticCurveTo(cx, cy, dx, dy)
@@ -7906,6 +8527,7 @@ function tarjetaFinal() {
     const marca = f.lp || f.golpes > f.par ? 'sobre' : f.golpes < f.par ? 'bajo' : ''
     return `<tr><td>${f.n}</td><td class="num">${f.par}</td><td class="num">${f.golpes ?? '—'}</td><td class="res"><i class="${marca}"></i>${nombre === 'LP' ? 'LP 💅' : nombre}</td></tr>`
   })
+  if (ronda.tarjeta.monos) filas.push(`<tr><td>🐒</td><td class="num">—</td><td class="num">−${-ronda.tarjeta.monos}</td><td class="res"><i class="bajo"></i>Te llevaste ${ronda.llevados} monos</td></tr>`)
   if (ronda.tarjeta.rorro) filas.push(`<tr><td>🥃</td><td class="num">—</td><td class="num">${ronda.tarjeta.rorro > 0 ? '+1' : '−1'}</td><td class="res"><i class="${ronda.tarjeta.rorro > 0 ? 'sobre' : 'bajo'}"></i>Rorro anotó mal</td></tr>`)
   const t = M.totales(ronda.tarjeta)
   filas.push(`<tr class="total"><td>TOTAL</td><td class="num">${t.par}</td><td class="num">${t.golpes ?? '—'}</td><td class="res"><span class="band" style="font-family: var(--font-display); font-size: 22px; font-weight: 400">${M.formatoPar(t.vsPar)}</span></td></tr>`)
@@ -7918,6 +8540,11 @@ function tarjetaFinal() {
   $('#t-ranking').hidden = true
   $('#t-bananas').hidden = true
   $('#t-match').hidden = true
+  // en un match, primero lo del match (el veredicto y el hoyo a hoyo contra el otro) y enseguida la firma, que tiene que
+  // verse sin bajar (son 10 s); tu tarjeta, abajo (2026-10-17, pedido de Rorro). Sin match, el orden de siempre
+  const delMatch = ['#t-match', '#t-firma', '#t-firmada', '#t-ranking', '#t-bananas'].map((s) => $(s))
+  if (ronda.duelo) $('#fin .tarjeta > header').after(...delMatch)
+  else $('#t-acciones').before(...delMatch.slice(1), delMatch[0])
   if (ronda.duelo) cerrarMatch(ronda)
   posRanking = null
   resumenListo = null
@@ -8394,7 +9021,7 @@ async function anotarVuelta() {
   if (R.puente.activo) marca.uid = R.puente.identidad.uid
   // el detalle de la vuelta: hoyo por hoyo, los monos y la apuesta de Rorro (queda en el teléfono y, cuando la
   // base de la SDGApp tenga la columna `detalle`, también allá: así se ve en el resumen del ranking de todos)
-  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}), ...(datos.demetrio ? { secreto: true } : {}), ...(ronda.ruleta ? { ruleta: M.tirosRuleta(ronda).map((h) => h.tiros.map((t) => t.emoji)) } : {}), ...(ronda.pro ? { pro: true } : {}) }
+  marca.detalle = { hoyos: ronda.tarjeta.map((f) => f.golpes), monos: { robos: ronda.robos, malos: ronda.monosMalos, buenos: ronda.monosBuenos, ...(ronda.llevados ? { llevados: ronda.llevados } : {}) }, ...(ronda.tarjeta.rorro ? { rorro: ronda.tarjeta.rorro } : {}), ...(datos.demetrio ? { secreto: true } : {}), ...(ronda.ruleta ? { ruleta: M.tirosRuleta(ronda).map((h) => h.tiros.map((t) => t.emoji)) } : {}), ...(ronda.pro ? { pro: true } : {}) }
   const jugador = ronda.carta
   const pro = !!ronda.pro
   // las bananas de la vuelta (birdies, bajo par, hoyo en uno, el pozo): las da la base al anotarla; se ve la diferencia
@@ -8468,7 +9095,10 @@ const golpesVan = (r) => r.tarjeta.reduce((t, f) => t + (f.golpes ?? 0), 0) + r.
 function pendientesMatch(ds = mtDesafios) {
   if (!ds) return 0
   const v = vistos()
-  return ds.filter((d) => (d.estado === 'pendiente' && d.rival.uid === yoUid()) || (d.estado === 'jugado' && d.retador.uid === yoUid() && !v.has(d.id))).length
+  const n = ds.filter((d) => (d.estado === 'pendiente' && d.rival.uid === yoUid()) || (d.estado === 'jugado' && d.retador.uid === yoUid() && !v.has(d.id))).length
+  // 🔌 y el que quedó por la mitad (si no es uno de esos)
+  const vivo = leerVivo()?.ronda?.duelo
+  return n + (vivo && !ds.some((d) => d.estado === 'pendiente' && d.id === vivo.desafio?.id) ? 1 : 0)
 }
 function pintarAvisoMatch() {
   const n = pendientesMatch()
@@ -8488,7 +9118,7 @@ async function cargarDesafios() {
 let bananas = null // { saldo, reservadas, pozo, premiosHoy, movimientos }
 let bananasRk = null // [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]
 let hayBananas = false
-const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío', clasico: '⚔️ Ganó tu equipo en el Clásico', camiseta: '👕 El pase de camiseta' }
+const MOTIVO_BANANA = { inicial: 'Para empezar', mesada: 'La mesada del mono', premio: 'Jugando', hoyo_en_uno: '¡Hoyo en uno!', pozo: '¡El pozo del mono!', reserva: 'Apostaste', devolucion: 'Te volvió la apuesta', cobro: 'Ganaste el match', rechazo: 'Rechazaste un desafío', clasico: '⚔️ Ganó tu equipo en el Clásico', camiseta: '👕 El pase de camiseta', donacion: '🎁 Donación' }
 const POR_BANANA = { birdie: 'birdie', aguila: 'águila', bajo_par: 'bajo par' }
 // la banana del set SDGA: chiquita, en el texto (BN); grande, troquelada como sticker (stickerBanana)
 const BN = gi('banana', 'bn')
@@ -8573,6 +9203,11 @@ function hojaBananas(html) {
   })
 }
 const avisoBananas = (tit, txt) => hojaBananas(`<p class="bn-tit" id="bn-tit">${tit}</p><p>${txt}</p><button class="carta-jugar" type="button" data-bn="ok">Ok</button>`)
+/** El nombre corto: sin lo de entre paréntesis y, si la primera palabra es cortita ("El Mono"), con la segunda. */
+function nombreCorto(nombre) {
+  const pal = String(nombre ?? '').replace(/\s*\(.*\)\s*$/, '').split(' ')
+  return pal[0].length > 3 ? pal[0] : pal.slice(0, 2).join(' ')
+}
 /** Antes de jugar un desafío: ¿cuánto apostás? (0 = por el honor; null = te arrepentiste). Sin bananas, por el honor. */
 async function elegirApuesta(rival) {
   if (!(await cargarBananas())) return 0
@@ -8580,12 +9215,10 @@ async function elegirApuesta(rival) {
   const tope = Math.min(bananas.saldo, suyas)
   const abierto = conBananasAbierto(rival.uid)
   const puede = tope >= 2 && !abierto
-  // el nombre corto: sin lo de entre paréntesis y, si la primera palabra es cortita ("El Mono"), con la segunda
-  const pal = rival.nombre.replace(/\s*\(.*\)\s*$/, '').split(' ')
-  const corto = pal[0].length > 3 ? pal[0] : pal.slice(0, 2).join(' ')
+  const corto = nombreCorto(rival.nombre)
   const nota = abierto ? 'Ya tienen un desafío con bananas abierto: hasta que se juegue, este va por el honor.'
     : tope < 2 ? `Para apostar hacen falta 2 cada uno${bananas.saldo < 2 ? '' : ` y ${esc(corto)} tiene ${suyas}`}.` : ''
-  let n = 2
+  let leer = () => 2
   const espera = hojaBananas(`
     <p class="bn-tit" id="bn-tit">${stickerBanana()}¿Cuánto apostás?</p>
     <div class="bn-vs"><div><small>Vos tenés</small><span>${bananas.saldo}${BN}</span></div><div><small>${esc(corto)} tiene</small><span>${suyas}${BN}</span></div></div>
@@ -8599,35 +9232,41 @@ async function elegirApuesta(rival) {
       <button class="carta-jugar oro" type="button" data-bn="apostar" id="bn-apostar">Apostar 2${BN}</button>` : `<p>${nota}</p>`}
     <button class="carta-jugar crema" type="button" data-bn="0">Por el honor 🤝</button>
     <p class="extras">Los dos ponen lo mismo y el que gana se lleva todo menos 1, que se queda el mono. Si no lo acepta (o lo deja vencer, 48 h), le cuesta 1. Se elige ahora, antes de jugar tu vuelta.</p>`)
-  if (puede) {
-    const menos = $('#bn-cuerpo .bn-menos'), mas = $('#bn-cuerpo .bn-mas'), todo = $('#bn-cuerpo .bn-todo'), cuanto = $('#bn-cuerpo .bn-cuanto')
-    const poner = (v) => {
-      const antes = n
-      n = Math.max(2, Math.min(tope, v))
-      $('#bn-n').textContent = n
-      $('#bn-gana').textContent = 2 * n - 1
-      $('#bn-apostar').innerHTML = `Apostar ${n}${BN}`
-      menos.disabled = n <= 2
-      mas.disabled = n >= tope
-      todo.setAttribute('aria-pressed', String(n === tope))
-      if (n !== antes) { cuanto.classList.remove('pop'); void cuanto.offsetWidth; cuanto.classList.add('pop'); S.ruletaTic() }
-    }
-    // un toque: de a una; manteniendo apretado, sigue sola cada vez más rápido
-    const mantener = (boton, paso) => {
-      let t = 0, repitio = false
-      const parar = () => { clearTimeout(t); t = 0 }
-      const repetir = (ms) => { t = setTimeout(() => { repitio = true; poner(n + paso); if ((paso > 0 && n < tope) || (paso < 0 && n > 2)) repetir(Math.max(45, ms * 0.85)) }, ms) }
-      boton.addEventListener('pointerdown', () => { repitio = false; parar(); repetir(420) })
-      for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) boton.addEventListener(ev, parar)
-      boton.addEventListener('click', () => { if (repitio) { repitio = false; return } poner(n + paso) })
-    }
-    mantener(menos, -1)
-    mantener(mas, 1)
-    todo.addEventListener('click', () => poner(tope))
-    poner(2)
-  }
+  if (puede) leer = pasoBananas(2, tope, (k) => { $('#bn-gana').textContent = 2 * k - 1; $('#bn-apostar').innerHTML = `Apostar ${k}${BN}` })
   const v = await espera
-  return v == null ? null : v === 'apostar' ? n : 0
+  return v == null ? null : v === 'apostar' ? leer() : 0
+}
+/**
+ * El − y el + grandes de la hojita (la apuesta, donar), con el número en el medio (`#bn-n`) y TODO: de `min` a `max`,
+ * arranca en `min`. Un toque, de a una; manteniendo apretado, sigue sola cada vez más rápido. `alCambiar(n)` pinta lo
+ * que depende del número. Devuelve cómo leerlo.
+ */
+function pasoBananas(min, max, alCambiar) {
+  const menos = $('#bn-cuerpo .bn-menos'), mas = $('#bn-cuerpo .bn-mas'), todo = $('#bn-cuerpo .bn-todo'), cuanto = $('#bn-cuerpo .bn-cuanto')
+  let n = min
+  const poner = (v) => {
+    const antes = n
+    n = Math.max(min, Math.min(max, v))
+    $('#bn-n').textContent = n
+    alCambiar(n)
+    menos.disabled = n <= min
+    mas.disabled = n >= max
+    todo?.setAttribute('aria-pressed', String(n === max))
+    if (n !== antes) { cuanto.classList.remove('pop'); void cuanto.offsetWidth; cuanto.classList.add('pop'); S.ruletaTic() }
+  }
+  const mantener = (boton, paso) => {
+    let t = 0, repitio = false
+    const parar = () => { clearTimeout(t); t = 0 }
+    const repetir = (ms) => { t = setTimeout(() => { repitio = true; poner(n + paso); if ((paso > 0 && n < max) || (paso < 0 && n > min)) repetir(Math.max(45, ms * 0.85)) }, ms) }
+    boton.addEventListener('pointerdown', () => { repitio = false; parar(); repetir(420) })
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) boton.addEventListener(ev, parar)
+    boton.addEventListener('click', () => { if (repitio) { repitio = false; return } poner(n + paso) })
+  }
+  mantener(menos, -1)
+  mantener(mas, 1)
+  todo?.addEventListener('click', () => poner(max))
+  poner(min)
+  return () => n
 }
 /** Arrancar con un player. En un desafío con bananas, primero se reservan (si la base dice que no, te dice por qué). */
 async function jugarCon(j, boton = null) {
@@ -8683,6 +9322,85 @@ async function rechazarDesafio(d, confirmar = true) {
   try { await R.rechazarDesafio(d.id) } catch (e) { await avisoBananas('No se pudo', esc(errTxt(e))) }
   await Promise.all([cargarDesafios(), cargarBananas()])
   pintarMatch()
+}
+// ── 🎁 donar bananas (10/10/2026, pedido de Rorro): le regalás a otro del juego, hasta 10 por día EN TOTAL (entre todas
+// tus donaciones, hora argentina). Salen de las disponibles (no de las apostadas), llegan enteras (el mono no se queda con
+// nada) y al instante. Las reglas, en la base (`trampa_bananas_donar`); sin la base nueva (`donarTope` null), no aparece.
+const puedeDonar = () => hayBananas && bananas?.donarTope != null
+/** Cuántas podés donar hoy: lo que te queda del tope del día (sin contar lo que tenés). */
+const quedanHoy = () => Math.max(0, (bananas?.donarTope ?? 0) - (bananas?.donadasHoy ?? 0))
+const donarTxt = () => {
+  const q = quedanHoy(), tope = bananas.donarTope
+  return q >= tope ? `Hasta ${tope}${BN} por día, a uno o repartidas.` : q ? `Hoy te quedan <b>${q}</b>${BN} para donar (el máximo es ${tope} por día).` : `Hoy ya donaste ${tope}${BN}: mañana podés de nuevo.`
+}
+/** Elegís a quién (o viene elegido, `para`: { uid, nombre }) y cuántas, y se las mandás. */
+async function donarBananas(para = null) {
+  if (!(await cargarBananas()) || !puedeDonar()) return
+  const tope = bananas.donarTope
+  if (!quedanHoy()) return avisoBananas('Por hoy, listo', `Hoy ya donaste ${bananas.donadasHoy}${BN}: el máximo es ${tope} por día. Mañana podés de nuevo.`)
+  if (bananas.saldo < 1) return avisoBananas('No tenés para donar', bananas.reservadas ? `Las ${bananas.reservadas}${BN} que tenés están apostadas en desafíos abiertos: se pueden donar las disponibles.` : 'Cuando juntes, podés regalarle a quien quieras.')
+  const max = Math.min(quedanHoy(), bananas.saldo)
+  const yo = yoUid()
+  const gente = (bananasRk ?? []).filter((f) => f.uid !== yo).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+  if (!para && !gente.length) return avisoBananas('No hay a quién', 'Todavía no hay nadie más en el juego.')
+  for (;;) {
+    if (!para) {
+      const espera = hojaBananas(`
+        <p class="bn-tit" id="bn-tit">🎁 ¿A quién le donás?</p>
+        <p>${donarTxt()}</p>
+        ${gente.length > 8 ? '<input class="bn-don-buscar" type="search" placeholder="Buscar…" aria-label="Buscar a quién donarle" autocomplete="off">' : ''}
+        <ul class="bn-don-lista">${gente.map((f) => `<li data-nombre="${esc(f.nombre.toLowerCase())}"><button type="button" data-bn="u:${esc(f.uid)}">
+          <span class="rk-nombre"><b>${esc(f.nombre)}</b>${camisetaMini(f.uid) || f.sdga ? `<small class="rk-sellos">${camisetaMini(f.uid)}${f.sdga ? selloSdga() : ''}</small>` : ''}</span>
+          <small class="tiene">tiene ${f.total}${BN}</small></button></li>`).join('')}</ul>
+        <p class="extras">Llegan al instante y enteras: el mono no se queda con nada.</p>`)
+      const buscar = $('#bn-cuerpo .bn-don-buscar')
+      buscar?.addEventListener('input', () => {
+        const q = buscar.value.trim().toLowerCase()
+        for (const li of $('#bn-cuerpo').querySelectorAll('.bn-don-lista li')) li.hidden = !!q && !li.dataset.nombre.includes(q)
+      })
+      const v = await espera
+      para = typeof v === 'string' && v.startsWith('u:') ? gente.find((f) => f.uid === v.slice(2)) ?? null : null
+      if (!para) return
+    }
+    const corto = nombreCorto(para.nombre)
+    const espera = hojaBananas(`
+      <p class="bn-tit" id="bn-tit">${stickerBanana()}¿Cuántas le donás?</p>
+      <div class="bn-vs"><div><small>Vos tenés</small><span>${bananas.saldo}${BN}</span></div><div><small>Para</small><span class="bn-don-para">${esc(corto)}</span></div></div>
+      <div class="bn-paso">
+        <button class="bn-menos" type="button" aria-label="Una banana menos">−</button>
+        <output class="bn-cuanto" aria-live="polite"><b id="bn-n">1</b>${stickerBanana()}</output>
+        <button class="bn-mas" type="button" aria-label="Una banana más">+</button>
+      </div>
+      ${max > 1 ? `<button class="bn-todo" type="button" aria-pressed="false">TODO · ${max}</button>` : ''}
+      <p class="bn-premio">${donarTxt()}</p>
+      <button class="carta-jugar oro" type="button" data-bn="donar" id="bn-donar">Donar 1${BN}</button>
+      ${gente.length > 1 ? '<button class="carta-jugar crema" type="button" data-bn="otro">Elegir a otro</button>' : ''}
+      <p class="extras">Llegan al instante y enteras (el mono no se queda con nada). No hay vuelta atrás.</p>`)
+    const leer = pasoBananas(1, max, (k) => { $('#bn-donar').innerHTML = `Donar ${k}${BN} a ${esc(corto)}` })
+    const v = await espera
+    if (v === 'otro') { para = null; continue }
+    if (v !== 'donar') return
+    const n = leer()
+    let r
+    try {
+      r = await R.donarBananas(para.uid, n)
+    } catch (e) {
+      await avisoBananas('No se pudo', esc(errTxt(e)))
+      await cargarBananas()
+      return
+    }
+    await cargarBananas()
+    if (mtTab === 'ranking' && mtRkVista === 'bananas') pintarMatch()
+    S.logro()
+    tic()
+    await hojaBananas(`
+      <p class="bn-tit" id="bn-tit">🎁 ¡Listo!</p>
+      <div class="bn-don-ok"><b>${r.cantidad}</b>${stickerBanana()}</div>
+      <p>Le donaste <b>${r.cantidad}</b>${BN} a <b>${esc(r.nombre ?? para.nombre)}</b>. Ya le llegaron.</p>
+      <p>Ahora tenés <b>${r.saldo}</b>${BN}.${r.tope - r.donadasHoy > 0 ? ` Hoy podés donar ${r.tope - r.donadasHoy} más.` : ' Por hoy, listo.'}</p>
+      <button class="carta-jugar" type="button" data-bn="ok">Listo</button>`)
+    return
+  }
 }
 /** Tus movimientos (tocando el saldo). */
 /**
@@ -8743,26 +9461,43 @@ function verBananas() {
   const linea = (m) => {
     const por = Array.isArray(m.detalle?.por) ? m.detalle.por.map((x) => POR_BANANA[x] ?? x).join(', ') : ''
     const f = fechaLarga(m.fecha)
-    return `<li><span>${esc(MOTIVO_BANANA[m.motivo] ?? m.motivo)}${por ? ` · ${esc(por)}` : ''}${f ? `<small>${esc(f.dia)}</small>` : ''}</span><b class="${m.monto > 0 ? 'mas' : 'menos'}">${m.monto > 0 ? '+' : '−'}${Math.abs(m.monto)}</b></li>`
+    const quien = m.detalle?.nombre ? String(m.detalle.nombre) : 'alguien'
+    const motivo = m.motivo === 'donacion' ? (m.monto < 0 ? `🎁 Le donaste a ${quien}` : `🎁 Te donó ${quien}`) : (MOTIVO_BANANA[m.motivo] ?? m.motivo)
+    return `<li><span>${esc(motivo)}${por ? ` · ${esc(por)}` : ''}${f ? `<small>${esc(f.dia)}</small>` : ''}</span><b class="${m.monto > 0 ? 'mas' : 'menos'}">${m.monto > 0 ? '+' : '−'}${Math.abs(m.monto)}</b></li>`
   }
   hojaBananas(`
     <p class="bn-tit" id="bn-tit">${stickerBanana()}Tenés ${bananas.saldo}</p>
     ${bananas.reservadas ? `<p>Y ${bananas.reservadas} apostadas en desafíos abiertos.</p>` : ''}
+    ${puedeDonar() ? `<div class="bn-don"><span><b>🎁 Regalale bananas a otro</b><small class="bc-nota">${donarTxt()}</small></span><button class="mt-btn oro" type="button" data-bn="donar"${quedanHoy() && bananas.saldo ? '' : ' disabled'}>Donar</button></div>` : ''}
     ${comoBananas()}
     ${bananas.movimientos.length ? `<p class="bn-sub">Tus movimientos</p><ul class="bn-mov">${bananas.movimientos.map(linea).join('')}</ul>` : ''}
     <p class="extras">Son solo del juego: no se compran ni se cambian por nada.</p>
     ${R.enPrueba() ? '<button class="carta-jugar oro" type="button" data-bn="fiesta">Probar la fiesta del hoyo en uno</button><button class="carta-jugar crema" type="button" data-bn="pozo">Probar la del pozo (PRO)</button>' : ''}
     <button class="carta-jugar" type="button" data-bn="ok">Listo</button>`).then((v) => {
-    if (v === 'fiesta') fiestaBananas({ total: 10 })
+    if (v === 'donar') donarBananas()
+    else if (v === 'fiesta') fiestaBananas({ total: 10 })
     else if (v === 'pozo') fiestaBananas({ total: Math.max(10, bananas?.pozo ?? 0), pozo: true })
   })
 }
 $('#bn-barra').addEventListener('click', verBananas)
-$('#mt-lista').addEventListener('click', (e) => { if (e.target.closest('[data-bn-como]')) verBananas() })
+$('#mt-lista').addEventListener('click', (e) => {
+  if (e.target.closest('[data-bn-como]')) return verBananas()
+  if (e.target.closest('[data-bn-donar]')) return donarBananas()
+  // en el ranking de bananas, tocando a alguien: donarle a él
+  const fila = e.target.closest('[data-bn-para]')
+  const f = fila && bananasRk?.find((x) => x.uid === fila.dataset.bnPara)
+  if (f) donarBananas(f)
+})
+$('#mt-lista').addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return
+  const fila = e.target.closest('[data-bn-para]')
+  const f = fila && e.target === fila && bananasRk?.find((x) => x.uid === fila.dataset.bnPara)
+  if (f) { e.preventDefault(); donarBananas(f) }
+})
 /** El MATCH de prueba (prueba.js): rivales y bananas de mentira, en el teléfono. `entrar`: suelto, entra con esa identidad. */
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
-  const { crearPrueba } = await import('./prueba.js?v=8c1134cbda')
+  const { crearPrueba } = await import('./prueba.js?v=6bb95cc7fc')
   pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs })
   R.usarPrueba(pruebaApp, entrar ? yo : null)
   $('#mt-prueba').hidden = false
@@ -8775,6 +9510,17 @@ $('#mt-prueba-borrar').addEventListener('click', async () => {
   pintarMatch()
 })
 if (PARAMS.get('probar') === 'match') activarPrueba({ uid: 'prueba:yo', alias: datos.usuario || 'Vos', sdga: true, match: true }, true)
+// para probar (solo en la copia dev/): ?jugar=rorro arranca directo con ese player, sin portada ni mazo (si tiene candado,
+// lo desbloquea en este teléfono, como ?rorro=1). Va al final de la carga, cuando ya está todo armado
+{
+  const quien = PRUEBA && PARAMS.get('jugar')?.toLowerCase()
+  const j = quien && TODOS.find((x) => sinD(x.apodo).toLowerCase() === quien)
+  if (j) {
+    const d = DESBLOQUEOS.find((x) => x.apodo === j.apodo)
+    if (d && !tiene(d)) { datos[DESBLOQUEO_UI[d.apodo].dato] = { fecha: new Date().toISOString(), prueba: true }; guardar(datos) }
+    setTimeout(() => empezar(j), 0)
+  }
+}
 if (['fiesta', 'pozo'].includes(PARAMS.get('probar'))) setTimeout(() => fiestaBananas(PARAMS.get('probar') === 'pozo' ? { total: 47, pozo: true } : { total: 10 }), 1200)
 /** Después de firmar: lo que ganaste jugando (birdies, bajo par, hoyo en uno, el pozo), al lado del puesto. */
 async function premiosDeLaVuelta(antes) {
@@ -8847,6 +9593,13 @@ function pintarMatch() {
   const loJuego = mtDesafios.filter((d) => d.estado === 'respondiendo' && d.rival.uid === yo)
   const espero = mtDesafios.filter((d) => ['jugando', 'pendiente', 'respondiendo'].includes(d.estado) && d.retador.uid === yo)
   const sec = (t, filas) => (filas.length ? `<li class="mt-sec">${t}</li>${filas.join('')}` : '')
+  // 🔌 el que quedó por la mitad: Reconectar (o, si la vuelta no está en este teléfono, Jugar de nuevo)
+  const vivo = leerVivo()?.ronda ?? null
+  const reconecta = (id) => !!vivo && (vivo.duelo.desafioId === id || vivo.duelo.desafio?.id === id)
+  const porLaMitad = () => `Quedó por la mitad: hoyo ${M.hoyoActual(vivo).n}`
+  const btnSeguir = (attr, id) => `<span class="mt-acc"><button class="mt-btn oro" type="button" ${attr}="${esc(id)}">${reconecta(id) ? '🔌 Reconectar' : 'Jugar'}</button></span>`
+  // un desafío por el honor que empezaste y no terminaste todavía no está en la base: sale de lo guardado
+  const suelto = vivo?.duelo?.tipo === 'reto' && !vivo.duelo.desafioId ? vivo : null
   const pro = (d) => (M.esPro(d.semilla) ? `<span class="pro-tag">${gi('pro')}PRO</span>` : '')
   const tag = (d) => (d.apuesta > 0 ? `<span class="bn-tag">${d.apuesta}${BN}</span>` : '')
   const vence = (d) => {
@@ -8855,19 +9608,24 @@ function pintarMatch() {
     return ` · vence en ${h} h`
   }
   const html = [
+    sec('Sin terminar', suelto ? [`<li class="rk-fila mt-fila">
+        <span class="mini" aria-hidden="true">${esc(suelto.carta.emoji)}</span>
+        <span class="rk-nombre"><b>${esc(suelto.duelo.rival.nombre)}${pro(suelto.duelo)}</b><small>${porLaMitad()}</small></span>
+        <span class="mt-acc"><button class="mt-btn oro" type="button" data-reconectar>🔌 Reconectar</button></span>
+      </li>`] : []),
     sec('Te desafiaron', meToca.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.retador.alias)}${camisetaMini(d.retador.uid)}${pro(d)}${tag(d)}</b><small>Ya jugó${vence(d)} · con ${esc(d.retador.emoji)} ${esc(apodoLimpio(d.retador.apodo))}</small></span>
-        <span class="mt-acc"><button class="mt-btn oro" type="button" data-responder="${esc(d.id)}">Jugar</button>${hayBananas ? `<button class="mt-btn chico" type="button" data-rechazar="${esc(d.id)}">Rechazar</button>` : ''}</span>
+        <span class="rk-nombre"><b>${esc(d.retador.alias)}${camisetaMini(d.retador.uid)}${pro(d)}${tag(d)}</b><small>${reconecta(d.id) ? porLaMitad() : `Ya jugó${vence(d)} · con ${esc(d.retador.emoji)} ${esc(apodoLimpio(d.retador.apodo))}`}</small></span>
+        <span class="mt-acc"><button class="mt-btn oro" type="button" data-responder="${esc(d.id)}">${reconecta(d.id) ? '🔌 Reconectar' : 'Jugar'}</button>${hayBananas && !reconecta(d.id) ? `<button class="mt-btn chico" type="button" data-rechazar="${esc(d.id)}">Rechazar</button>` : ''}</span>
       </li>`).concat(loJuego.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.retador.alias)}${camisetaMini(d.retador.uid)}${pro(d)}${tag(d)}</b><small>Lo aceptaste: si no lo terminás, cuenta como LP</small></span>
-        <span class="mt-estado" title="Lo estás jugando">${gi('calendar')}</span>
+        <span class="rk-nombre"><b>${esc(d.retador.alias)}${camisetaMini(d.retador.uid)}${pro(d)}${tag(d)}</b><small>${reconecta(d.id) ? porLaMitad() : 'Lo aceptaste: si no lo terminás, cuenta como LP'}</small></span>
+        ${btnSeguir('data-responder', d.id)}
       </li>`))),
     sec('Esperando que jueguen', espero.map((d) => `<li class="rk-fila mt-fila">
         <span class="mini" aria-hidden="true">${esc(d.retador.emoji)}</span>
-        <span class="rk-nombre"><b>${esc(d.rival.alias)}${camisetaMini(d.rival.uid)}${pro(d)}${tag(d)}</b><small>${d.estado === 'jugando' ? 'Lo empezaste: si no lo terminás, le llega como LP' : `Hiciste ${esc(golpesTxt(d.retador))}${d.estado === 'respondiendo' ? ' · lo está jugando' : vence(d)}`}</small></span>
-        <span class="mt-estado" title="Esperando que juegue">${gi('calendar')}</span>
+        <span class="rk-nombre"><b>${esc(d.rival.alias)}${camisetaMini(d.rival.uid)}${pro(d)}${tag(d)}</b><small>${d.estado === 'jugando' ? (reconecta(d.id) ? porLaMitad() : 'Lo empezaste: si no lo terminás, le llega como LP') : `Hiciste ${esc(golpesTxt(d.retador))}${d.estado === 'respondiendo' ? ' · lo está jugando' : vence(d)}`}</small></span>
+        ${d.estado === 'jugando' ? btnSeguir('data-retomar', d.id) : `<span class="mt-estado" title="Esperando que juegue">${gi('calendar')}</span>`}
       </li>`)),
   ].join('')
   lista.innerHTML = html || '<li class="rk-vacio">No tenés matches pendientes. Desafiá a alguien.</li>'
@@ -8900,14 +9658,15 @@ function pintarRankingMatch(lista) {
 }
 /** Los más ricos: todas sus bananas (con las apostadas), de los que ya las abrieron. Arriba, el pozo del mono. */
 function pintarRankingBananas(lista, vistas) {
-  $('#mt-nota').textContent = 'Las bananas de cada uno, contando las que tiene apostadas en desafíos abiertos. Entre paréntesis, las disponibles: las que puede apostar ya.'
+  $('#mt-nota').textContent = `Las bananas de cada uno, contando las que tiene apostadas en desafíos abiertos. Entre paréntesis, las disponibles: las que puede apostar ya.${puedeDonar() ? ' Tocá a alguien para donarle.' : ''}`
   const yo = yoUid()
   const filas = (bananasRk ?? []).filter((f) => f.abrio).sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre))
   let pos = 0, prev = null
-  lista.innerHTML = `${vistas}<li class="bn-pozo">🐒 El pozo del mono: <b>${bananas?.pozo ?? 0}</b>${BN}. Se lo lleva el próximo hoyo en uno en MODO PRO.${bananas ? `<button class="bn-como-btn" type="button" data-bn-como>${stickerBanana()}¿Cómo conseguir más bananas?</button>` : ''}</li>${filas.length ? filas.map((f, k) => {
+  lista.innerHTML = `${vistas}<li class="bn-pozo">🐒 El pozo del mono: <b>${bananas?.pozo ?? 0}</b>${BN}. Se lo lleva el próximo hoyo en uno en MODO PRO.${bananas ? `<button class="bn-como-btn" type="button" data-bn-como>${stickerBanana()}¿Cómo conseguir más bananas?</button>` : ''}${puedeDonar() ? '<button class="bn-como-btn" type="button" data-bn-donar>🎁 Donar bananas</button>' : ''}</li>${filas.length ? filas.map((f, k) => {
     if (prev == null || f.total !== prev) pos = k + 1
     prev = f.total
-    return `<li class="rk-fila bn-fila${f.uid === yo ? ' yo' : ''}">
+    const donar = puedeDonar() && f.uid !== yo
+    return `<li class="rk-fila bn-fila${f.uid === yo ? ' yo' : ''}"${donar ? ` data-bn-para="${esc(f.uid)}" role="button" tabindex="0" aria-label="Donarle bananas a ${esc(f.nombre)}"` : ''}>
       <span class="rk-pos">${pos}</span>
       <span class="rk-nombre"><span class="linea"><b>${esc(f.nombre)}</b></span>${camisetaMini(f.uid) || f.sdga ? `<small class="rk-sellos">${camisetaMini(f.uid)}${f.sdga ? selloSdga() : ''}</small>` : ''}</span>
       <span class="mtr-pct">${f.total}<small>bananas</small><small class="bn-disp${f.saldo < f.total ? ' apostadas' : ''}">(${f.saldo} disponible${f.saldo === 1 ? '' : 's'})</small></span>
@@ -9116,10 +9875,27 @@ $('#mt-lista').addEventListener('click', async (e) => {
     if (desafio) rechazarDesafio(desafio)
     return
   }
+  // 🔌 el match que quedó por la mitad
+  if (e.target.closest('[data-reconectar]')) { const v = leerVivo(); if (v?.ronda) reconectar(v); else pintarMatch(); return }
+  const sigo = e.target.closest('[data-retomar]')
+  if (sigo) {
+    const d = mtDesafios?.find((x) => x.id === sigo.dataset.retomar)
+    if (!d) return
+    const v = vivoDe(d.id)
+    if (v) { reconectar(v); return }
+    // la vuelta no está en este teléfono (otro teléfono, o se borró): la jugás de nuevo, con el mismo desafío y su player
+    matchModo = { tipo: 'reto', rival: { uid: d.rival.uid, nombre: d.rival.alias }, semilla: d.semilla, apuesta: d.apuesta, desafioId: d.id, fecha: d.fecha }
+    const j = TODOS.find((x) => x.apodo === d.retador.apodo)
+    if (j) empezar(j)
+    else mostrarElegir()
+    return
+  }
   const resp = e.target.closest('[data-responder]')
   if (resp) {
     const desafio = mtDesafios?.find((d) => d.id === resp.dataset.responder)
     if (!desafio) return
+    const v = vivoDe(desafio.id)
+    if (v) { reconectar(v); return }
     // con bananas: primero aceptar (ponés lo mismo) o rechazar
     if (desafio.apuesta > 0 && desafio.estado === 'pendiente' && !(await aceptarApuesta(desafio))) return
     resp.disabled = true
@@ -9144,7 +9920,152 @@ function cuadroDuelo() {
     M.grabar(d.grabacion, ms, ronda.idx, tiro ? tiro.pos : ronda.pelota, tiro ? tiro.alt : 0, golpesVan(ronda))
   }
   if (d.fantasma) pintarMarcador(ms)
+  vivoCuadro()
 }
+
+// ── 🔌 RECONECTAR: el match a medio jugar (2026-10-10, pedido de Rorro) ──
+// La vuelta de un match vivía solo en la memoria: si la app se cerraba, se perdía y, con bananas (el desafío ya está en la
+// base como `jugando` / `respondiendo`), el match quedaba trabado hasta que a las 2 h contaba como LP. Ahora se guarda en
+// el teléfono cada vez que la pelota queda quieta (y el reloj, cada segundo) y al volver se retoma desde ahí: la misma
+// pelota, los mismos golpes y el reloj donde estaba (lo que estuviste afuera no cuenta). Si te fuiste con la pelota en el
+// aire, golpe y distancia: ese tiro cuenta, más uno de multa, y pegás de nuevo desde donde estabas (como una pelota
+// perdida: así irse no sirve para borrar un mal tiro). Si terminaste y no se llegó a mandar, se manda al volver.
+// Vale 2 h desde que arrancaste: después la base ya lo dio por LP.
+const VIVO = 'sdga-trampa-match-vivo-v1' // { v, uid, desde, ms, ronda } o, terminada, { v, uid, desde, fin }
+const VIVO_RELOJ = 'sdga-trampa-match-reloj-v1' // { ms, van, idx }: el reloj y los golpes, al toque
+const VIVO_VALE = 2 * 3600e3
+const escribirJSON = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)) } catch {} }
+const borrarVivo = () => { escribirJSON(VIVO, null); escribirJSON(VIVO_RELOJ, null) }
+/** El match guardado, si todavía vale (y es de este usuario). */
+function leerVivo() {
+  const v = leerJSON(VIVO)
+  if (!v || v.v !== 1 || !(v.ronda || v.fin)) return null
+  if (!(Date.now() - v.desde < VIVO_VALE) || (v.uid && yoUid() && v.uid !== yoUid())) { if (!(Date.now() - v.desde < VIVO_VALE)) borrarVivo(); return null }
+  return v
+}
+/** ¿Es la vuelta guardada de este desafío? (el que desafía con bananas: su `desafioId`; el que responde: el del desafío) */
+const vivoDe = (id) => { const v = leerVivo(); const d = v?.ronda?.duelo; return d && (d.desafioId === id || d.desafio?.id === id) ? v : null }
+const contraQuien = (d) => (d.tipo === 'reto' ? d.rival?.nombre : d.desafio?.retador?.alias) ?? 'tu rival'
+/** La Ruleta del match sale de la semilla: la tanda, contada (para seguirla desde donde iba al reconectar). */
+function contarRuleta(r, n = 0) {
+  const base = M.aplicarMatch({ idx: 0, ruleta: {} }, r.match).ruleta.rng
+  for (let i = 0; i < n; i++) base()
+  r.ruleta.rngN = n
+  r.ruleta.rng = () => { r.ruleta.rngN++; return base() }
+}
+let vivoClave = '', vivoIdx = -1, vivoVan = -1, vivoReloj = 0
+function vivoCuadro() {
+  const r = ronda, d = r.duelo
+  if (r.terminada) { if (!d.fin && (r.lp || r.ms != null)) finMatch(r); return }
+  const ms = Math.round(performance.now() - r.t0)
+  const van = golpesVan(r)
+  // quieta (o recién embocada: ya está en el tee del que sigue): la ronda entera, sin la grabación del rival (se vuelve a pedir)
+  const clave = `${r.idx}|${van}|${r.pelota}|${r.jugador?.apodo}`
+  if ((estado === 'apuntar' || r.idx !== vivoIdx) && clave !== vivoClave) {
+    vivoClave = clave
+    vivoIdx = r.idx
+    escribirJSON(VIVO, { v: 1, uid: yoUid() ?? null, desde: d.desde, ms, ronda: { ...r, t0: null, duelo: { ...d, fantasma: null } } })
+  }
+  // el reloj, cada segundo; los golpes, al toque (si te vas con la pelota en el aire, se sabe)
+  if (van !== vivoVan || ms - vivoReloj >= 1000) {
+    vivoVan = van
+    vivoReloj = ms
+    escribirJSON(VIVO_RELOJ, { ms, van, idx: r.idx })
+  }
+}
+/** Lo que se manda al terminar un match. Queda guardado hasta que se manda (si la app se cierra antes, se manda al volver). */
+function finMatch(r) {
+  const d = r.duelo
+  if (d.fin) return d.fin
+  const t = M.totales(r.tarjeta)
+  const lp = !!r.lp
+  // si levantó, el tiempo hasta que levantó (si los dos levantan, gana el que aguantó más)
+  const mia = { apodo: r.carta.apodo, emoji: r.carta.emoji, golpes: lp ? null : t.golpes, vsPar: lp ? null : t.vsPar, ms: lp ? (r.msLP ?? null) : r.ms == null ? null : Math.round(r.ms), lp }
+  // la última muestra de la grabación: dónde terminó y con cuántos golpes
+  const fin = Math.round(r.ms ?? performance.now() - r.t0)
+  const u = d.grabacion[d.grabacion.length - 1]
+  const pin = M.hoyoActual({ ...r, idx: Math.min(r.idx, M.HOYOS.length - 1) }).pin
+  // (si levantó, la pelota queda donde la levantó)
+  const donde = lp && u ? [u[1], u[2], u[3]] : [Math.min(r.idx, M.HOYOS.length - 1), Math.round(pin[0] * 10) / 10, Math.round(pin[1] * 10) / 10]
+  if (!u || u[0] < fin) d.grabacion.push([fin, ...donde, 0, lp ? golpesVan(r) : t.golpes])
+  d.fin = { tipo: d.tipo, apuesta: (d.tipo === 'reto' ? d.apuesta : d.desafio.apuesta) ?? 0, desafioId: d.desafioId ?? null, desId: d.desafio?.id ?? null, rival: d.rival ?? null, semilla: d.semilla, quien: contraQuien(d), mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) }
+  escribirJSON(VIVO, { v: 1, uid: yoUid() ?? null, desde: d.desde, fin: d.fin })
+  escribirJSON(VIVO_RELOJ, null)
+  return d.fin
+}
+/** Manda la vuelta de un match terminado (desafío nuevo, el de bananas o la respuesta). Mandada, ya no hay nada que reconectar. */
+async function mandarFin(f) {
+  const vuelta = { ...f.mia, fantasma: f.fantasma, ruleta: f.ruleta }
+  if (f.tipo === 'reto') {
+    if (f.apuesta > 0) await R.enviarApuesta(f.desafioId, vuelta)
+    else await R.crearDesafio({ rival: f.rival, semilla: f.semilla, ...vuelta })
+  } else if (f.apuesta > 0) await R.completarApuesta(f.desId, vuelta)
+  else await R.responderDesafio(f.desId, vuelta)
+  const g = leerJSON(VIVO)
+  if (!g || g.fin?.semilla === f.semilla) borrarVivo() // (si ya hay otro match guardado, ese queda)
+}
+/** Cómo quedó: el reloj (lo que llevabas; lo de afuera no cuenta) y si te fuiste con la pelota en el aire (los golpes del
+ *  reloj van adelante de la ronda guardada): golpe y distancia, ese tiro y uno de multa, desde donde estabas. */
+function comoQuedo(v) {
+  const reloj = leerJSON(VIVO_RELOJ)
+  const igual = reloj?.idx === v.ronda.idx
+  return { ms: Math.max(v.ms ?? 0, igual ? reloj.ms : 0), gyd: igual && reloj.van > golpesVan(v.ronda) }
+}
+/** Retoma el match guardado: la ronda tal cual quedó, el reloj donde estaba y la cuenta regresiva para arrancar. */
+async function reconectar(v) {
+  const r = v.ronda
+  if (usa3d(r.carta) && !r3d && !r3dFallo) { esperar3d(() => reconectar(v)); return }
+  // la grabación del rival (el que responde juega contra su fantasma): se vuelve a pedir
+  if (r.duelo.tipo === 'respuesta') {
+    let f = null
+    try { f = await R.leerFantasma(r.duelo.desafio.id) } catch {}
+    if (!Array.isArray(f)) { await avisoBananas('No se pudo reconectar', 'No llegó la vuelta de tu rival. Probá de nuevo en un rato (desde MATCH › Pendientes).'); return }
+    r.duelo.fantasma = f
+  }
+  if (r.ruleta && r.match) contarRuleta(r, r.ruleta.rngN ?? 0)
+  if (r.llevados) r.tarjeta.monos = -Math.floor(r.llevados / M.LLEVAR.premio) || undefined // 🐒 (la tarjeta se guarda sin él)
+  const { ms, gyd } = comoQuedo(v)
+  if (gyd) r.golpes += 2
+  r.t0 = null
+  r.reconecta = { ms, gyd }
+  ronda = r
+  vivoClave = ''; vivoIdx = -1; vivoVan = -1; vivoReloj = 0
+  matchModo = null
+  for (const id of ['bananas-modal', 'match']) $('#' + id).hidden = true
+  ponerEnEscena(r.carta)
+}
+/** Al entrar: si quedó un match a medio jugar, te ofrece reconectar; si quedó uno terminado sin mandar, lo manda. */
+async function ofrecerReconectar() {
+  const v = leerVivo()
+  if (!v || ronda?.duelo && !ronda.terminada) return
+  if (v.fin) {
+    try {
+      await mandarFin(v.fin)
+      mtDesafios = null
+      cargarDesafios()
+      await avisoBananas('🔌 Match anotado', `Tu vuelta del match con <b>${esc(v.fin.quien)}</b> no se había llegado a mandar. Ya está: mirala en MATCH › Historial.`)
+    } catch (e) {
+      if (/ya no está/.test(errTxt(e))) { borrarVivo(); await avisoBananas('El match ya no está', `Tu vuelta con <b>${esc(v.fin.quien)}</b> llegó tarde: ${esc(errTxt(e))}.`) }
+    }
+    return
+  }
+  const r = v.ronda, h = M.hoyoActual(r), { ms, gyd } = comoQuedo(v)
+  const queda = Math.max(1, Math.round((v.desde + VIVO_VALE - Date.now()) / 60000))
+  const res = await hojaBananas(`<p class="bn-tit" id="bn-tit">🔌 Tenés un match sin terminar</p>
+    <p>Contra <b>${esc(contraQuien(r.duelo))}</b>, con ${esc(r.carta.emoji)} ${esc(apodoLimpio(r.carta.apodo))}: ibas por el <b>hoyo ${h.n}</b> con <b>${golpesVan(r)}</b> ${golpesVan(r) === 1 ? 'golpe' : 'golpes'} y ${M.formatoTiempo(ms)} de reloj.</p>
+    <p>${gyd ? 'Te fuiste con la pelota en el aire: golpe y distancia (ese tiro cuenta, más uno de multa) y pegás de nuevo desde donde estabas.' : 'Seguís desde donde quedó la pelota.'} Tenés ${queda >= 60 ? `${Math.floor(queda / 60)} h${queda % 60 ? ` ${queda % 60} min` : ''}` : `${queda} min`} para terminarlo; si no, cuenta como LP.</p>
+    <button class="carta-jugar oro" type="button" data-bn="si">🔌 Reconectar</button>
+    <button class="carta-jugar" type="button" data-bn="no">Ahora no</button>`)
+  if (res === 'si') reconectar(v)
+}
+// lo que estuviste afuera no cuenta en el reloj del match (salir y volver es lo mismo que reconectar)
+let afueraDesde = null
+document.addEventListener('visibilitychange', () => {
+  const enJuego = ronda?.duelo && ronda.t0 != null && ronda.ms == null && !ronda.terminada
+  if (document.hidden) { afueraDesde = enJuego ? performance.now() : null; if (enJuego) vivoCuadro(); return }
+  if (afueraDesde != null && enJuego) ronda.t0 += performance.now() - afueraDesde
+  afueraDesde = null
+})
 /**
  * El marcador del match en vivo: los 3 hoyos y el total, vos arriba y el fantasma abajo. Los golpes del hoyo que se
  * está jugando cuentan en vivo (resaltado en dorado); el total del que va ganando, en una pastilla dorada.
@@ -9340,7 +10261,7 @@ let replay = null // { d, cond, clima, viento, hoyos, pistas, t, dur, vel, play,
 const CLIMA_EN_MATCH_DESDE = Date.parse('2026-10-07T18:22:00Z')
 
 /** Lo que hay que saber de una grabación para el replay: cuándo cambia de hoyo (las marcas de la barra) y cada golpe. */
-function pistaReplay(g, x, k) {
+function pistaReplay(g, x, k, conDebug = false) {
   const hoyos = [], golpes = [], tramos = []
   let idx = -1, gol = null, desde = 0
   g.forEach((m, i) => {
@@ -9354,7 +10275,8 @@ function pistaReplay(g, x, k) {
       desde = i + 1
     }
   })
-  return { g, x, k, color: REPLAY_COLORES[k], hoyos, golpes, tramos, fin: g[g.length - 1][0] }
+  // ⏸ con Rorro, las veces que congeló la pelota en el aire con el DEBUG (no es un golpe: que se vea en el replay)
+  return { g, x, k, color: REPLAY_COLORES[k], hoyos, golpes, tramos, debugs: conDebug ? M.pausasDebug(g) : [], fin: g[g.length - 1][0] }
 }
 
 /** Abre el replay de un match jugado. `grabs` ({ retador, rival }) si ya están acá; si no, se piden. */
@@ -9366,8 +10288,9 @@ async function abrirReplay(d, grabs = null, boton = null) {
     if (boton) { boton.disabled = false; boton.classList.remove('cargando') }
     if (!grabs?.retador?.length) { avisoReplay('No se pudo cargar el replay. Probá de nuevo en un rato.'); return }
   }
-  const pistas = [pistaReplay(grabs.retador, d.retador, 0)]
-  if (grabs.rival?.length) pistas.push(pistaReplay(grabs.rival, d.rival, 1))
+  const conDebug = M.habilidadDe({ apodo: d.retador.apodo })?.id === 'codigo' // (los dos juegan con el mismo player)
+  const pistas = [pistaReplay(grabs.retador, d.retador, 0, conDebug)]
+  if (grabs.rival?.length) pistas.push(pistaReplay(grabs.rival, d.rival, 1, conDebug))
   const cond = M.condicionesMatch(d.semilla, d.fecha ? Date.parse(d.fecha) : Date.now()) // el clima, con la chance de nieve de su fecha
   const hoyos = M.HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera }))
   // el clima que hubo: el de la semilla, con los mismos charcos que vieron los dos (ponerClima, como en la ronda)
@@ -9414,6 +10337,7 @@ function avisoReplay(txt) {
 function cerrarReplay() {
   if (!replay) return
   const g = replay.guardado
+  if (replay.tres) salirReplay3d(g.ronda)
   replay = null
   clearTimeout(abrirReplay.tip)
   $('#replay').hidden = true
@@ -9459,12 +10383,18 @@ function armarReplay() {
   }
   $('#rp-nota').hidden = r.pistas.length > 1
   $('#rp-nota').textContent = `De este match solo está grabada la pelota de ${r.d.retador.alias}.`
-  $('#rp-marcas').innerHTML = r.pistas.flatMap((p) => p.hoyos.slice(1).map((h) => `<i style="left: ${(100 * h.ms) / r.dur}%; --c: ${p.color}" title="Hoyo ${h.n}"></i>`)).join('')
+  $('#rp-marcas').innerHTML = r.pistas.flatMap((p) => [
+    ...p.hoyos.slice(1).map((h) => `<i style="left: ${(100 * h.ms) / r.dur}%; --c: ${p.color}" title="Hoyo ${h.n}"></i>`),
+    ...p.debugs.map((b) => `<i class="dbg" style="left: ${(100 * b.desde) / r.dur}%; --c: ${p.color}" title="DEBUG"></i>`),
+  ]).join('')
   const barra = $('#rp-barra')
   barra.max = String(Math.round(r.dur))
   $('#rp-dur').textContent = tiempoReplay(r.dur)
   for (const b of $('#rp-vel').children) b.setAttribute('aria-checked', String(+b.dataset.vel === r.vel))
   $('#rp-fin').hidden = true
+  $('#rp-3d').hidden = !HAY_WEBGL || r3dFallo
+  $('#rp-3d').setAttribute('aria-pressed', 'false')
+  if (datos.replay3d && HAY_WEBGL && !r3dFallo) replay3d(true)
 }
 const tiempoReplay = (ms) => { const t = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}` }
 /** El lugar de la cancha que queda libre entre los jugadores de arriba y los controles de abajo. */
@@ -9619,6 +10549,7 @@ function pintarReplay(todo = false) {
     const f = M.fantasmaEn(p.g, r.t)
     const txt = !f ? '' : f.fin
       ? `Terminó · ${p.x.lp || p.x.golpes == null ? 'LP 💅' : `${p.x.golpes} (${M.formatoPar(p.x.vsPar)})`}`
+      : p.debugs.some((b) => r.t >= b.desde && r.t < b.hasta) ? '⏸ DEBUG · no es golpe'
       : `Hoyo ${M.HOYOS[f.idx]?.n ?? ''} · ${f.golpes} ${f.golpes === 1 ? 'golpe' : 'golpes'}`
     poner(`e${k}`, $(`#rp-estado-${k}`), txt, (el, v) => { el.textContent = v })
   })
@@ -9678,6 +10609,7 @@ function dibujarReplay() {
       ctx.beginPath()
       ctx.arc(x, y, rad + 2.5, 0, 7)
       ctx.stroke()
+      if (p.debugs.some((b) => r.t >= b.desde && r.t < b.hasta)) debugEnReplay(x, y, rad)
     }
     carteles.push({ x, y, rad, fuera, p })
   }
@@ -9686,6 +10618,127 @@ function dibujarReplay() {
     const sube = o && !c.fuera && !o.fuera && Math.abs(o.x - c.x) < 110 && Math.abs(o.y - c.y) < 24 ? Math.max(0, 24 + c.y - o.y) : 0
     cartelPelota(c.x, c.y, c.rad, c.p.x.emoji ?? r.d.retador.emoji ?? '⛳', String(c.p.x.alias ?? ''), c.fuera, top - 20, bot, c.p.color, 0.92, sube)
   })
+}
+// ── 🎬 el replay en 3D (2026-10-12, pedido de Rorro): la cancha 3D de Rorro (la base, sin los deploys) con las dos
+// pelotas, la cámara del juego siguiendo a una y arriba lo mismo que en 2D (el aro de cada uno, el cartel, el ⏸ DEBUG).
+// Se prende con el botón 2D / 3D y se acuerda para el próximo replay (datos.replay3d)
+const HAY_WEBGL = (() => { try { return !!document.createElement('canvas').getContext('webgl2') } catch { return false } })()
+let rp3dAntes = null // si la 3D estaba prendida antes del replay (una vuelta de Rorro): al cerrar queda como estaba
+async function replay3d(si) {
+  const r = replay
+  if (!r || !!r.tres === si) return
+  const b = $('#rp-3d')
+  if (si) {
+    b.classList.add('cargando')
+    try { await cargar3d() } catch (e) { console.error(e); r3dFallo = true }
+    b.classList.remove('cargando')
+    if (replay !== r) return
+    if (!r3d || r3dFallo) { b.hidden = true; return }
+    rp3dAntes ??= r3d.estaActivo()
+    r3d.replayEmpezar({ hoyos: r.hoyos, clima: r.clima, imagenCancha: fondo })
+    r3d.activar(true)
+    r.tres = true
+    r.sigue3d = r.sigue ?? 0
+  } else salirReplay3d(r.guardado.ronda)
+  b.setAttribute('aria-pressed', String(!!r.tres))
+  b.setAttribute('aria-label', r.tres ? 'Ver el replay en 2D' : 'Ver el replay en 3D')
+  if (!!datos.replay3d !== !!r.tres) { datos.replay3d = !!r.tres; guardar(datos) }
+}
+function salirReplay3d(ronda) {
+  if (replay) replay.tres = false
+  if (!r3d) return
+  r3d.replayTerminar(ronda)
+  r3d.activar(!!rp3dAntes)
+  rp3dAntes = null
+}
+$('#rp-3d').addEventListener('click', (e) => { e.stopPropagation(); S.tap(); replay3d(!replay?.tres) })
+/** El momento `t` de una pista: dónde está, si viaja (el tramo) y en qué golpe va. */
+function pistaEn(p, t) {
+  const f = M.fantasmaEn(p.g, t)
+  if (!f) return null
+  const tramo = !f.fin ? p.tramos.find((x) => x.desde <= t && t <= x.hasta) ?? null : null
+  return { ...f, tramo }
+}
+function dibujarReplay3d() {
+  const r = replay
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.clearRect(0, 0, W, H)
+  const { top, bot } = r.zona ?? { top: 120, bot: H - 160 }
+  const ya = r.pistas.map((p) => pistaEn(p, r.t))
+  // a quién sigue la cámara: el que elegiste arriba; si no, el mismo de antes (saltar de uno a otro en cada golpe marea),
+  // hasta que termina: ahí le deja la cámara al que sigue jugando
+  if (r.sigue != null && ya[r.sigue]) r.sigue3d = r.sigue
+  else if (!(ya[r.sigue3d] && !ya[r.sigue3d].fin)) { const j = ya.findIndex((x) => x && !x.fin); if (j >= 0) r.sigue3d = j }
+  const k = ya[r.sigue3d] ? r.sigue3d : 0, f = ya[k], o = ya[1 - k]
+  if (!f) return
+  try {
+    r3d.replayCuadro(dtCuadro, {
+      sigue: { k, idx: f.idx, pos: f.pos, alt: f.alt ?? 0, golpes: f.golpes, tramo: f.tramo },
+      otra: o && !o.fin ? { idx: o.idx, pos: o.pos, alt: o.alt ?? 0, color: r.pistas[1 - k].color } : null,
+      viento: r.viento, zona: { top, bot },
+    })
+  } catch (e) { console.error(e) }
+  // arriba de la 3D: el aro de cada golpe, el de cada pelota, el ⏸ DEBUG y los carteles (los del hoyo que se ve)
+  const carteles = []
+  r.pistas.forEach((p, j) => {
+    const x = ya[j]
+    if (!x || x.idx !== f.idx) return
+    for (const gp of p.golpes) {
+      const u = (r.t - gp.ms) / 700
+      if (u < 0 || u > 1 || gp.idx !== f.idx) continue
+      const [gx, gy, ve] = r3d.aPantalla(gp.pos)
+      if (!ve) continue
+      ctx.globalAlpha = 0.8 * (1 - u)
+      ctx.strokeStyle = p.color
+      ctx.lineWidth = 2.5
+      ctx.beginPath()
+      ctx.arc(gx, gy, 6 + 22 * u, 0, 7)
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 1
+    if (x.fin) return
+    const [sx, sy, ve] = r3d.aPantalla(x.pos, x.alt ?? 0)
+    if (!ve) return
+    const rad = Math.max(4, r3d.radioPelotaPx())
+    const fuera = sx < 0 || sx > W || sy < top - 30 || sy > bot
+    if (!fuera) {
+      ctx.strokeStyle = p.color
+      ctx.lineWidth = 2.5
+      ctx.beginPath()
+      ctx.arc(sx, sy, rad + 3, 0, 7)
+      ctx.stroke()
+      if (p.debugs.some((b) => r.t >= b.desde && r.t < b.hasta)) debugEnReplay(sx, sy, rad)
+    }
+    carteles.push({ x: sx, y: sy, rad, fuera, p })
+  })
+  carteles.forEach((c, i) => {
+    const o2 = carteles[i - 1]
+    const sube = o2 && !c.fuera && !o2.fuera && Math.abs(o2.x - c.x) < 110 && Math.abs(o2.y - c.y) < 24 ? Math.max(0, 24 + c.y - o2.y) : 0
+    cartelPelota(c.x, c.y, c.rad, c.p.x.emoji ?? r.d.retador.emoji ?? '⛳', String(c.p.x.alias ?? ''), c.fuera, top - 20, bot, c.p.color, 0.92, sube)
+  })
+}
+/** ⏸ La pelota congelada con el DEBUG de Rorro: un aro rojo que late y el cartelito abajo (arriba va el del nombre). */
+function debugEnReplay(x, y, rad) {
+  const late = 0.5 + 0.5 * Math.sin(performance.now() / 150)
+  ctx.save()
+  ctx.strokeStyle = C.red
+  ctx.lineWidth = 2.5
+  ctx.globalAlpha = 0.45 + 0.55 * late
+  ctx.beginPath()
+  ctx.arc(x, y, rad + 7 + late * 3, 0, 7)
+  ctx.stroke()
+  ctx.globalAlpha = 1
+  ctx.font = '13px Anton, "Arial Narrow", sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  const txt = '⏸ DEBUG', w = ctx.measureText(txt).width + 16, py = y + rad + 20
+  ctx.fillStyle = C.red
+  ctx.beginPath()
+  ctx.roundRect(x - w / 2, py - 11, w, 22, 11)
+  ctx.fill()
+  ctx.fillStyle = C.cream
+  ctx.fillText(txt, x, py + 1)
+  ctx.restore()
 }
 function irReplay(ms) {
   if (!replay) return
@@ -9816,26 +10869,17 @@ async function cerrarMatch(r) {
   const d = r.duelo
   if (d.enviado) return
   d.enviado = true
-  const t = M.totales(r.tarjeta)
+  const f = finMatch(r) // 🔌 (queda guardado hasta que se manda)
+  const { mia } = f
   const lp = !!r.lp
-  // si levantó, el tiempo hasta que levantó (si los dos levantan, gana el que aguantó más)
-  const mia = { apodo: r.carta.apodo, emoji: r.carta.emoji, golpes: lp ? null : t.golpes, vsPar: lp ? null : t.vsPar, ms: lp ? (r.msLP ?? null) : r.ms == null ? null : Math.round(r.ms), lp }
   const el = $('#t-match')
   el.className = 't-match'
   el.hidden = false
-  // la última muestra de la grabación: dónde terminó y con cuántos golpes
-  const fin = Math.round(r.ms ?? performance.now() - r.t0)
-  const u = d.grabacion[d.grabacion.length - 1]
-  const pin = M.hoyoActual({ ...r, idx: Math.min(r.idx, M.HOYOS.length - 1) }).pin
-  // (si levantó, la pelota queda donde la levantó)
-  const donde = lp && u ? [u[1], u[2], u[3]] : [Math.min(r.idx, M.HOYOS.length - 1), Math.round(pin[0] * 10) / 10, Math.round(pin[1] * 10) / 10]
-  if (!u || u[0] < fin) d.grabacion.push([fin, ...donde, 0, lp ? golpesVan(r) : t.golpes])
   if (d.tipo === 'reto') {
     const mandar = async () => {
       el.innerHTML = `${gi('match', 'linea')}Mandando el desafío a <b>${esc(d.rival.nombre)}</b>…`
       try {
-        if (d.apuesta > 0) await R.enviarApuesta(d.desafioId, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
-        else await R.crearDesafio({ rival: d.rival, semilla: d.semilla, ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
+        await mandarFin(f)
         el.className = 't-match res'
         el.innerHTML = `<p class="tm-veredicto enviado">${gi('match')}<span>Desafío enviado<small>a ${esc(d.rival.nombre)}</small></span></p>
           <div class="tm-datos">
@@ -9878,8 +10922,7 @@ async function cerrarMatch(r) {
   const anotar = async () => {
     el.innerHTML = `${gi('match', 'linea')}Anotando el match con <b>${esc(des.retador.alias)}</b>…`
     try {
-      if (des.apuesta > 0) await R.completarApuesta(des.id, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
-      else await R.responderDesafio(des.id, { ...mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) })
+      await mandarFin(f)
       const g = M.ganadorMatch(mia, des.retador)
       const n = des.apuesta
       el.className = 't-match res'
@@ -10025,7 +11068,7 @@ function abrirResumen(m) {
       <div class="ancho"><dt>Fecha</dt><dd>${f ? `${esc(f.dia)}<small>a las ${f.hora} h</small>` : '—'}</dd></div>
       <div class="ancho"><dt>Contra el líder</dt><dd>${alLider}</dd></div>
     </dl>
-    ${det?.hoyos ? `<p class="rs-titulo">Hoyo por hoyo</p><div class="rs-hoyos">${M.HOYOS.map((h, i) => { const g = det.hoyos[i]; const c = g < h.par ? 'bajo' : g > h.par ? 'sobre' : ''; return `<div class="${c}">HOYO ${h.n} · PAR ${h.par}<b>${g ?? '—'}</b></div>` }).join('')}</div>${det.monos ? `<p class="rs-titulo" style="margin-top:4px">Los monos: ${det.monos.robos} robos · ${det.monos.malos} malos · ${det.monos.buenos} buenos${det.rorro ? ` · Rorro anotó ${det.rorro > 0 ? '+1' : '−1'}` : ''}</p>` : ''}${det.ruleta ? `<p class="rs-titulo" style="margin-top:4px">🎰 Quién pegó: ${det.ruleta.map((e, i) => `${M.HOYOS[i]?.n} ${[].concat(e).join('›')}`).map(esc).join(' · ')}</p>` : ''}` : ''}
+    ${det?.hoyos ? `<p class="rs-titulo">Hoyo por hoyo</p><div class="rs-hoyos">${M.HOYOS.map((h, i) => { const g = det.hoyos[i]; const c = g < h.par ? 'bajo' : g > h.par ? 'sobre' : ''; return `<div class="${c}">HOYO ${h.n} · PAR ${h.par}<b>${g ?? '—'}</b></div>` }).join('')}</div>${det.monos ? `<p class="rs-titulo" style="margin-top:4px">Los monos: ${det.monos.robos} robos · ${det.monos.malos} malos · ${det.monos.buenos} buenos${det.monos.llevados ? ` · se llevó ${det.monos.llevados}` : ''}${det.rorro ? ` · Rorro anotó ${det.rorro > 0 ? '+1' : '−1'}` : ''}</p>` : ''}${det.ruleta ? `<p class="rs-titulo" style="margin-top:4px">🎰 Quién pegó: ${det.ruleta.map((e, i) => `${M.HOYOS[i]?.n} ${[].concat(e).join('›')}`).map(esc).join(' · ')}</p>` : ''}` : ''}
     <p class="rs-titulo">Sus vueltas</p>
     <dl class="rs-datos">
       <div><dt>Firmadas</dt><dd>${suyas.length}</dd></div>
@@ -10245,6 +11288,12 @@ function cargarClasicoMatch() {
   })
   return clasicoCargando
 }
+// 📋 (2026-10-10, pedido de Rorro: "la data desprolija, mucha info: un resumen y algo para ver más") arriba, siempre, el
+// resumen: el marcador, la barra, cómo va y lo tuyo. Abajo de "Ver detalle", ordenado: los que más suman de cada equipo
+// (con cuántos matches clásicos ganó cada uno, en vez del ⚔️ con los puntos), los últimos clásicos, la semana pasada y
+// cómo se suma. En el Ranking arranca cerrado; en MATCH › Equipos (donde es lo único), abierto
+const clasicoAbierto = { 'rk-clasico': false, 'mt-clasico': true }
+const PTS_CLASICO = 3 // lo que vale cada match clásico ganado (lo suma la base: `trampa_clasico_puntos`)
 function pintarClasico(el = $('#rk-clasico'), marcas = rkMarcas ?? []) {
   const ahora = Date.now()
   const base = clasicoBase
@@ -10252,11 +11301,35 @@ function pintarClasico(el = $('#rk-clasico'), marcas = rkMarcas ?? []) {
   const antes = base ? { ...base.antes, desde: Date.parse(base.antes.semana ?? 0) || 0 } : M.clasico(marcas, M.lunesDe(ahora, 1), equipoDe)
   const tot = c.dicky + c.e5
   const quedan = Math.ceil((M.lunesDe(ahora) + 7 * 864e5 - ahora) / 864e5)
-  const va = c.ganador === 'dicky' ? 'Van ganando los Dicky' : c.ganador === 'e5' ? 'Va ganando el Equipo 5' : tot ? 'Van empatados' : 'Todavía no sumó nadie'
-  const top = (l) => l.slice(0, 3).map((x) => `<i class="cl-ap">${esc(x.nombre ?? '—')} <b>${x.pts}</b>${x.matches ? ` <small class="cl-m">⚔️${x.matches}</small>` : ''}</i>`).join(' · ') || 'nadie todavía'
-  const mia = camiseta.equipo ? `<p class="cl-mia"><img src="${EQUIPOS[camiseta.equipo].logo}" alt="">TU CAMISETA: ${EQUIPOS[camiseta.equipo].nombre}</p>` : ''
-  const clasicos = base?.ahora?.clasicos?.length ? `<ul class="cl-clasicos">${base.ahora.clasicos.slice(0, 3).map((x) => `<li><b>${esc(x.gano)}</b> le ganó a ${esc(x.perdio)} · +3 ${x.equipo === 'dicky' ? 'Dicky' : 'Equipo 5'}</li>`).join('')}</ul>` : ''
-  const salio = antes.ganador === 'dicky' ? 'ganaron los Dicky' : antes.ganador === 'e5' ? 'ganó el Equipo 5' : 'empataron'
+  const nom = { dicky: 'Dicky', e5: 'Equipo 5' }
+  const va = c.ganador === 'dicky' ? `Van ganando los Dicky por ${c.dicky - c.e5}` : c.ganador === 'e5' ? `Va ganando el Equipo 5 por ${c.e5 - c.dicky}` : tot ? 'Van empatados' : 'Todavía no sumó nadie'
+  // lo tuyo: tu camiseta y lo que sumaste para ella
+  const yo = yoUid()
+  const mio = camiseta.equipo && yo ? (c.aportes[camiseta.equipo] ?? []).find((x) => x.quien === yo) : null
+  const mia = camiseta.equipo ? `<p class="cl-mia"><img src="${EQUIPOS[camiseta.equipo].logo}" alt="">Tu camiseta: ${nom[camiseta.equipo]} · ${mio?.pts ? `sumaste <b>${mio.pts}</b>` : 'todavía no sumaste'}</p>` : ''
+  // el detalle
+  const matchesDe = (x) => Math.round((x.matches ?? 0) / PTS_CLASICO)
+  const desglose = (x) => {
+    if (!base) return ''
+    const w = matchesDe(x), v = x.pts - (x.matches ?? 0)
+    return [v > 0 ? `${v} en vueltas` : '', w > 0 ? `${w} ${w === 1 ? 'match ganado' : 'matches ganados'}` : ''].filter(Boolean).join(' · ')
+  }
+  const MAX = 5
+  const lista = (eq) => {
+    const l = c.aportes[eq] ?? []
+    return `<div class="cl-lista ${eq}">
+      <p class="cl-eqt"><img src="${EQUIPOS[eq].logo}" alt="" draggable="false">${nom[eq].toUpperCase()}<b>${c[eq]}</b></p>
+      ${l.length ? `<ol>${l.slice(0, MAX).map((x) => { const d = desglose(x); return `<li${x.quien && x.quien === yo ? ' class="yo"' : ''}><span class="cl-n"><span>${esc(x.nombre ?? '—')}</span>${d ? `<small>${d}</small>` : ''}</span><b>${x.pts}</b></li>` }).join('')}</ol>${l.length > MAX ? `<p class="cl-mas-gente">y ${l.length - MAX} más</p>` : ''}` : '<p class="cl-nadie">Nadie sumó todavía</p>'}
+    </div>`
+  }
+  const clasicos = base?.ahora?.clasicos?.length ? `<p class="cl-sec">Los últimos clásicos</p><ul class="cl-clasicos">${base.ahora.clasicos.slice(0, 5).map((x) => `<li><span><b>${esc(x.gano)}</b> le ganó a ${esc(x.perdio)}</span><i class="${x.equipo === 'dicky' ? 'dicky' : 'e5'}">+${PTS_CLASICO} ${nom[x.equipo === 'dicky' ? 'dicky' : 'e5']}</i></li>`).join('')}</ul>` : ''
+  const ganoAntes = antes.ganador === 'dicky' ? `Ganaron los Dicky, ${antes.dicky} a ${antes.e5}` : antes.ganador === 'e5' ? `Ganó el Equipo 5, ${antes.e5} a ${antes.dicky}` : `Empataron ${antes.dicky} a ${antes.e5}`
+  const semanaPasada = antes.dicky + antes.e5 ? `<p class="cl-sec">La semana pasada</p><p class="cl-antes">${ganoAntes}</p><p class="cl-lg">📺 LG: «${esc(lgClasico(antes))}»</p>` : ''
+  const reglas = (base
+    ? [`Cada vuelta firmada bajo par: un punto por golpe bajo par (hasta ${M.CLASICO.porDia} vueltas por día; doble el sábado de 9 a 10)`, 'Con camiseta, solo suman las vueltas con cartas de tu equipo', `Cada match clásico que le ganás a uno de la otra camiseta: ${PTS_CLASICO} (por el honor, sin LP y uno por pareja por día; con bananas, siempre)`]
+    : [`Cada vuelta firmada bajo par con un Dicky o con el Equipo 5: un punto por golpe bajo par para su equipo (hasta ${M.CLASICO.porDia} vueltas por día)`])
+    .concat(`Termina el domingo a la noche${hayBananas ? `: los que sumaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}`)
+  const abierto = clasicoAbierto[el.id] ?? false
   el.innerHTML = `<p class="cl-kicker">⚔️ El Clásico de la semana</p>
     <div class="cl-marcador">
       <span class="cl-eq dicky${c.ganador === 'dicky' ? ' gana' : ''}"><img src="dicky-toons.svg" alt="" draggable="false"><span><b>${c.dicky}</b><small>DICKY</small></span></span>
@@ -10266,12 +11339,24 @@ function pintarClasico(el = $('#rk-clasico'), marcas = rkMarcas ?? []) {
     <div class="cl-barra" aria-hidden="true"><i style="width:${tot ? Math.round((100 * c.dicky) / tot) : 50}%"></i></div>
     <p class="cl-va"><b>${va}</b> · ${quedan > 1 ? `faltan ${quedan} días` : 'termina hoy'}</p>
     ${mia}
-    <p class="cl-top"><span><small>DICKY</small>${top(c.aportes.dicky)}</span><span><small>EQUIPO 5</small>${top(c.aportes.e5)}</span></p>
-    ${clasicos}
-    ${antes.dicky + antes.e5 ? `<p class="cl-antes">La semana pasada ${salio}, ${antes.dicky} a ${antes.e5} · 📺 LG: «${esc(lgClasico(antes))}»</p>` : ''}
-    <p class="cl-como">${base
-      ? 'Suman las vueltas bajo par, un punto por golpe (con camiseta, solo con cartas de tu equipo; doble el sábado de 9 a 10; hasta 5 por día), y cada match clásico que le ganás a uno de la otra camiseta: 3 (por el honor, sin LP y uno por pareja por día; con bananas, siempre).'
-      : 'Solo suman las vueltas bajo par: cada vuelta firmada con un Dicky o con el Equipo 5, un punto por cada golpe bajo par para su equipo (hasta 5 vueltas por día).'} Termina el domingo a la noche${hayBananas ? `; los que sumaron para el que gana cobran ${M.CLASICO.premio}${BN}` : ''}.</p>`
+    <button class="cl-ver" type="button" aria-expanded="${abierto}">${abierto ? 'Ocultar el detalle' : 'Ver detalle'}<span aria-hidden="true">▾</span></button>
+    <div class="cl-detalle"${abierto ? '' : ' hidden'}>
+      <p class="cl-sec">Los que más suman</p>
+      <div class="cl-equipos">${lista('dicky')}${lista('e5')}</div>
+      ${clasicos}
+      ${semanaPasada}
+      <p class="cl-sec">Cómo se suma</p>
+      <ul class="cl-reglas">${reglas.map((r) => `<li>${r}</li>`).join('')}</ul>
+    </div>`
+  el.onclick = (e) => {
+    const b = e.target.closest('.cl-ver')
+    if (!b) return
+    const ab = !(clasicoAbierto[el.id] ?? false)
+    clasicoAbierto[el.id] = ab
+    b.setAttribute('aria-expanded', String(ab))
+    b.firstChild.textContent = ab ? 'Ocultar el detalle' : 'Ver detalle'
+    el.querySelector('.cl-detalle').hidden = !ab
+  }
   el.hidden = false
 }
 /** El escudito de la camiseta de `uid` (si tiene), para poner al lado del nombre. */
@@ -10334,20 +11419,37 @@ function pintarRanking(error = false) {
   const base = baseRanking()
   const lista = M.armarRanking(base, j ? j.apodo : null)
   rkVista = lista
-  // el sello del SDGA: en el Mundial, al lado del nombre de los socios
-  // ⛳ y el del sábado 9 AM, en las firmadas a esa hora
-  const sello = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '') + camisetaMini(m.uid) + (M.esSabado9(Date.parse(m.fecha)) ? '<span class="s9" title="Sábado 9 AM" aria-label="firmada un sábado a las 9">🌅</span>' : '')
-  // 🪞 el que juega con su propio player: reborde dorado, la carita con aro y el sello EL ORIGINAL
-  const fila = (m, salto) => { const pr = esPropio(m); return `<li class="rk-fila tocable${esYo(m) ? ' yo' : ''}${pr ? ' propio' : ''}${salto ? ' salto' : ''}" data-k="${lista.indexOf(m)}" tabindex="0" role="button" aria-label="Ver la vuelta de ${esc(m.usuario)}${pr ? ', con su propio player' : ''}">
-      <span class="rk-pos">${m.pos}</span>
-      <span class="rk-quien">${j ? `<span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span>${pr ? `<small class="rk-sub">${selloOriginal()}</small>` : ''}</span>` : `<span class="mini${publico(m).misterio ? ' misterio' : ''}${pr ? ' propio' : ''}" aria-hidden="true">${publico(m).emoji}</span><span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sello(m)}</span><small class="rk-sub">${pr ? selloOriginal() : `con ${esc(publico(m).apodo.replace(/ \(Đ\)$/, ''))}`}</small></span>`}</span>
-      <span class="rk-score">${M.formatoPar(m.vsPar)}<small>${m.golpes} golpes</small></span>
+  // el sello del SDGA (en el Mundial, los socios) y la camiseta: al lado del nombre, son de quien juega
+  const sellos = (m) => (app && rkAmbito === 'mundial' && m.sdga ? selloSdga() : '') + camisetaMini(m.uid)
+  // ⛳ el del sábado 9 AM: abajo, con la vuelta (las firmadas a esa hora)
+  const s9 = (m) => (M.esSabado9(Date.parse(m.fecha)) ? '<span class="s9" title="Sábado 9 AM" aria-label="firmada un sábado a las 9">🌅</span>' : '')
+  // 📋 agrupado por golpes: un encabezado por score (lo que manda) y adentro las vueltas por tiempo (el desempate)
+  const grupo = (m, salto = false) => `<li class="rk-grupo${salto ? ' salto' : ''}" aria-hidden="true"><span class="rk-par ${m.vsPar < 0 ? 'bajo' : m.vsPar > 0 ? 'sobre' : ''}">${M.formatoPar(m.vsPar)}</span><small>${m.golpes} ${m.golpes === 1 ? 'golpe' : 'golpes'}</small></li>`
+  // la fila: puesto (el podio con medalla) · la carita del player · el nombre con sus sellos y abajo con quién jugó · el tiempo
+  // 🪞 el que juega con su propio player: la carita con aro dorado y el sello EL ORIGINAL en lugar de "con …"
+  const fila = (m, salto = false) => {
+    const pr = esPropio(m)
+    const p = publico(m)
+    const con = j ? '' : `con ${esc(p.apodo.replace(/ \(Đ\)$/, ''))}`
+    // (en la solapa de un player no hay "con …": el 🌅 sube al lado del nombre)
+    const sol = s9(m)
+    const abajo = pr ? selloOriginal() + sol : con ? `<span class="con">${con}</span>${sol}` : ''
+    return `<li class="rk-fila rk-vuelta tocable${esYo(m) ? ' yo' : ''}${salto ? ' salto' : ''}" data-k="${lista.indexOf(m)}" tabindex="0" role="button" aria-label="${m.pos}°, ${esc(m.usuario)}${esYo(m) ? ' (vos)' : ''}: ${M.formatoPar(m.vsPar)}, ${m.golpes} golpes, en ${M.formatoTiempo(m.ms)}${pr ? ', con su propio player' : con ? `, ${con}` : ''}. Ver la vuelta">
+      <span class="rk-pos${m.pos <= 3 ? ` podio p${m.pos}` : ''}">${m.pos}</span>
+      <span class="rk-quien">${j ? '' : `<span class="mini${p.misterio ? ' misterio' : ''}${pr ? ' propio' : ''}" aria-hidden="true">${p.emoji}</span>`}<span class="rk-nombre"><span class="linea"><b>${esc(m.usuario)}</b>${sellos(m) || (!abajo && sol) ? `<span class="sellos">${sellos(m)}${abajo ? '' : sol}</span>` : ''}</span>${abajo ? `<small class="rk-sub">${abajo}</small>` : ''}</span></span>
       <span class="rk-tiempo">${M.formatoTiempo(m.ms)}</span>
-    </li>` }
+    </li>`
+  }
   const top = lista.slice(0, 50)
   const mio = lista.find(esYo)
-  const filas = top.map((m) => fila(m, false))
-  if (mio && mio.pos > top.length) filas.push(fila(mio, true))
+  const filas = []
+  top.forEach((m, i) => { if (m.golpes !== top[i - 1]?.golpes) filas.push(grupo(m)); filas.push(fila(m)) })
+  // la tuya, si quedó fuera de los 50: separada (la raya punteada va en su encabezado, o en ella si es del mismo score)
+  if (mio && mio.pos > top.length) {
+    const otro = mio.golpes !== top.at(-1)?.golpes
+    if (otro) filas.push(grupo(mio, true))
+    filas.push(fila(mio, !otro))
+  }
   $('#rk-lista').innerHTML = filas.length ? filas.join('') : `<li class="rk-vacio">Todavía nadie firmó una vuelta${rkPro ? ' PRO' : ''}${j ? ` con ${esc(j.apodo)}` : ''}. Sé el primero.</li>`
   $('#rk-fuente').textContent = (top.some(esPropio) ? 'EL ORIGINAL: jugó con su propio player. ' : '') + (rkPro ? 'Ranking PRO: solo las vueltas en MODO PRO (sin líneas punteadas). ' : '') + (app && rkCompartido
     ? `${rkAmbito === 'sdga' ? 'Ranking SDGA: solo los socios del club.' : 'Ranking mundial: todos los que juegan, en la SDGApp o acá.'} Entra cada tarjeta firmada (LP y sin firmar no cuentan).`
@@ -10489,7 +11591,7 @@ function fotoGlitch(j) {
   return `${capa('g-r')}${capa('g-c')}<img class="g-capa g-tira" src="${j.foto}" alt="${esc(j.apodo)}" draggable="false"><span class="g-tele" aria-hidden="true"></span>`
 }
 /** 🥃 En vez de la habilidad, una terminal: el comando, un error y pistas que van cambiando (que no explican nada). */
-const PISTAS_RORRO = ['la cancha no es la que ves', 'nada es definitivo hasta que pica', 'lo que vuela también se puede pausar', 'a veces volver es avanzar']
+const PISTAS_RORRO = ['la cancha no es la que ves', 'cada 10 segundos, otra cancha', 'lo que vuela también se puede pausar', 'a veces volver es avanzar']
 function terminalGlitch() {
   return `<div class="g-term" role="note" aria-label="Una pista: ${PISTAS_RORRO[0]}"><span class="g-cmd">rorro --habilidad</span><span class="g-err">segmentation fault (core dumped)</span><span class="g-pistas" aria-hidden="true">${PISTAS_RORRO.map((p) => `<i>// ${p}</i>`).join('')}</span></div>`
 }
@@ -10766,6 +11868,7 @@ R.alEntrar(async (yo) => {
     // ?match=1 (el aviso de la SDGApp, el link de WhatsApp); con &replay=<id>, directo al replay de ese match
     const q = new URLSearchParams(location.search)
     if (q.has('match')) entrarPorAviso({ replayId: q.get('replay') || null, desdeLink: true })
+    ofrecerReconectar() // 🔌
   }
 })
 // suelto, con el ranking de la SDGApp: se entra con Google (la misma cuenta que en la app), no con un nombre
@@ -10918,7 +12021,7 @@ obj = vistaGeneral()
 Object.assign(cam, obj)
 requestAnimationFrame(cuadro)
 </script>
-<script type="module" src="intro/app.js?v=43ee2ec872"></script>
+<script type="module" src="intro/app.js?v=6d3519de0c"></script>
 
 </body>
 </html>

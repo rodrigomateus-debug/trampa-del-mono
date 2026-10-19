@@ -134,13 +134,16 @@ export const HABILIDADES = {
   'El Flaco Ordoñez': { id: 'carrito', nombre: 'El carrito y la racha de Marcos', texto: 'Marcos se mueve en su carrito verde: después de cada tiro lo manejás vos hasta la pelota (al green va caminando, y al próximo tee lo lleva solo). Los árboles no se atraviesan; si se traba, RESET: vuelve al medio del fairway más cercano. El reloj corre. Y la racha: cada tiro bueno lo festeja a los gritos y el próximo sale con menos error (cada vez menos, hasta la mitad y un poco más); uno malo la corta.' },
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
   'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (la goma llega más lejos; en el sweet spot, perfecta) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
-  Rorro: { id: 'codigo', corto: 'Su cancha en 3D, que se rehace en cada tiro.', nombre: 'La cancha en código', texto: 'Rorro juega en su cancha, hecha en código y en 3D, y cada tiro la rehace mientras la pelota vuela. Si soltás en el latido se aprueba: se abre la calle y se arreglan los bugs. Si no, cambios del cliente: todo se mueve, otra skin y algún bug. Los greens no se tocan. Y dos poderes de dev por hoyo: ⏸ DEBUG en el aire (congela la pelota y le corrés el destino) y ↩ REVERT (deshace la última versión).' },
+  Rorro: { id: 'codigo', corto: 'Su cancha en 3D, que se rehace cada 10 segundos.', nombre: 'La cancha en código', texto: 'Rorro juega en su cancha, hecha en código y en 3D, y cada 10 segundos la cancha se rehace (un deploy; el reloj avisa). Si el último tiro lo soltaste en el latido, se aprueba: se abre la calle y se arreglan los bugs. Si no, cambios del cliente: todo se mueve, otra skin y algún bug. Los greens no se mueven, pero en el green el hoyo se puede mudar. Dos poderes de dev por hoyo: ⏸ DEBUG en el aire (congela la pelota y le corrés el destino) y ↩ REVERT (vuelve a la cancha anterior). Y en cada vuelta se copia una habilidad de otro: elegís entre tres al azar.' },
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
 // 🦅 Fito de pase en el Equipo 5 (2026-10-09): la misma habilidad que Fito
 HABILIDADES['Fito (5)'] = HABILIDADES['Fito (Đ)']
-export const habilidadDe = (jugador) => HABILIDADES[jugador?.apodo] ?? null
+/** La habilidad del que pega. Rorro, en cada vuelta, juega con la de otro (`prestada`: el apodo de quién la copió). */
+export const habilidadDe = (jugador) => HABILIDADES[jugador?.prestada ?? jugador?.apodo] ?? null
+/** Las que Rorro no puede copiar: la suya, la Ruleta, la de Demetrio (otra cancha) y el carrito de Marcos (no hay en 3D). */
+export const SIN_PRESTAR = ['codigo', 'ruleta', 'retro', 'carrito']
 /** Taiu (la Rana): los controles al revés (lo resuelve la página al leer el arrastre; el motor recibe el tiro que sale). */
 export const alReves = (jugador) => habilidadDe(jugador)?.id === 'reves'
 /**
@@ -339,8 +342,12 @@ export const AGUILA = { amplitud: 25, periodo: 0.7, ventana: 5, chip: 40, alLado
 // DADA, AGUILA.chip y APPROACH van en yardas REALES (las del marcador): se comparan con la distancia del dibujo × la escala del hoyo.
 export const DADA = 16.4 // 15 metros
 export const PERRO = { segundos: 4 }
-// Mugre: los monos lo huelen desde `alerta` yd; `panchos` por hoyo; los tira a `tiro` yd (para el lado de los monos) y comen `comer` s
-export const MUGRE = { alerta: 90, panchos: 3, tiro: 26, comer: 1 }
+// Mugre: los monos lo huelen desde `alerta` yd; `panchos` por hoyo. El pancho cae CERCA (2026-10-12, pedido de Rorro;
+// antes caía más allá del mono más lejano y comían 1 s): a `tiro` yd de la pelota, del lado de donde vienen (nunca más
+// allá del mono más cercano, ni a menos de `minimo`). Los monos se juntan alrededor a comer, cada uno en su lugar de la
+// ronda (a `ronda` yd del pancho, un poco más si son muchos) y `comer` s desde que llega. Con el olor se acercan también
+// los del barrio que andan a `barrio` yd o menos (hasta `golosos`): comen y vuelven a sus pinos.
+export const MUGRE = { alerta: 90, panchos: 3, tiro: 12, minimo: 5, comer: 2.5, ronda: 3, barrio: 45, golosos: 3 }
 export const APPROACH = { desde: 30, hasta: 100, error: 3 }
 
 // Los tres hoyos del dibujo (posiciones en yardas = píxeles / 4): 15 sube, 16 baja, 17 sube.
@@ -591,6 +598,7 @@ export function atropellar(r) {
     if (!monoActivo(s) || dist(s.pos, c.pos) > ATROPELLO.radio) continue
     s.modo = 'aplastado'
     s.pancho = null
+    s.panchoEn = null
     s.aplastadoAng = c.ang
     r.golpes += 1
     r.aplastados = (r.aplastados ?? 0) + 1
@@ -1020,7 +1028,7 @@ export function tirarCascaras(r, ruta, rng) {
     if (!pos) continue
     // la tira el mono más cercano que anda por ahí (si no hay ninguno, no hay cáscara)
     let mono = null
-    for (const s of r.monos ?? []) if (s.modo !== 'aplastado' && dist(s.pos, pos) < CASCARA.alcance && (!mono || dist(s.pos, pos) < dist(mono.pos, pos))) mono = s
+    for (const s of r.monos ?? []) if (!monoFuera(s) && dist(s.pos, pos) < CASCARA.alcance && (!mono || dist(s.pos, pos) < dist(mono.pos, pos))) mono = s
     if (!mono) continue
     if (r.cascaras.some((k) => dist(k.pos, pos) < 12)) continue
     r.cascaras.push({ pos, desde: [...mono.pos], viva: true })
@@ -1054,6 +1062,7 @@ export function bocina(r) {
     s.susto = BOCINA.susto
     s.huyeDe = [...r.carro.pos]
     s.pancho = null
+    s.panchoEn = null
     s.espera = 0
     n++
   }
@@ -1125,6 +1134,20 @@ export function fantasmaEn(g, ms) {
   if (b[1] !== a[1] || b[0] - a[0] > MATCH.muestraMs * 2.5) return { idx: a[1], pos: [a[2], a[3]], alt: a[4], golpes: a[5], fin: false }
   const u = (ms - a[0]) / (b[0] - a[0])
   return { idx: a[1], pos: [a[2] + (b[2] - a[2]) * u, a[3] + (b[3] - a[3]) * u], alt: a[4] + (b[4] - a[4]) * u, golpes: a[5], fin: false }
+}
+/**
+ * ⏸ El DEBUG de Rorro en una grabación: la pelota congelada en el aire (la última muestra antes de la pausa va en el aire
+ * y la siguiente, del mismo hoyo, llega más de `DEBUG_REPLAY.minMs` después: mientras está congelada no se graba nada,
+ * porque no se mueve). Sirve para los matches de antes (no hace falta guardar nada nuevo). Devuelve [{ desde, hasta, pos }].
+ */
+export const DEBUG_REPLAY = { minMs: 600, minAlt: 1 }
+export function pausasDebug(g) {
+  const out = []
+  for (let i = 0; i + 1 < (g?.length ?? 0); i++) {
+    const a = g[i], b = g[i + 1]
+    if (a[1] === b[1] && b[0] - a[0] > DEBUG_REPLAY.minMs && a[4] >= DEBUG_REPLAY.minAlt) out.push({ desde: a[0], hasta: b[0], pos: [a[2], a[3]] })
+  }
+  return out
 }
 /**
  * El marcador del fantasma hasta `ms`: los golpes de cada hoyo (cada muestra lleva los golpes ACUMULADOS de la vuelta,
@@ -1365,7 +1388,9 @@ export function crearMonos() {
   return HOYOS.flatMap((h) => h.monos.map((m) => ({ m, hoyo: h.n, pos: [...m.a], hacia: 'b', espera: m.fase % 6, modo: 'ronda', reaccion: 0 })))
 }
 /** Un mono está "en la cancha" (se lo puede golpear) cuando camina o caza; esperando en los pinos, no. */
-export const monoActivo = (s) => s.modo !== 'aplastado' && (s.modo === 'caza' || s.espera <= 0)
+export const monoActivo = (s) => !monoFuera(s) && (s.modo === 'caza' || s.espera <= 0)
+/** Ya no juega en esta vuelta: lo pisó el carrito de Marcos o te lo llevaste comiendo el pancho de la Mugre. */
+export const monoFuera = (s) => s.modo === 'aplastado' || s.modo === 'llevado'
 
 function caminar(s, destino, vel, dt) {
   const d = dist(s.pos, destino)
@@ -1382,7 +1407,7 @@ function caminar(s, destino, vel, dt) {
 export function moverMonos(monos, dt, pelota) {
   let llego = null
   for (const s of monos) {
-    if (s.modo === 'aplastado') continue // el que pisó el carrito de Marcos queda ahí
+    if (monoFuera(s)) continue // el que pisó el carrito de Marcos queda ahí; el que te llevaste, no está más
     if (s.modo === 'huye') {
       // la bocina de Marcos: corre para el otro lado y, pasado el susto, vuelve a su recorrido
       s.susto -= dt
@@ -1391,15 +1416,22 @@ export function moverMonos(monos, dt, pelota) {
       if (s.susto <= 0) { s.modo = 'ronda'; s.espera = 0; s.huyeDe = null }
       continue
     }
-    if (s.modo === 'caza') {
-      if (s.pancho) {
-        // la Mugre le tiró un pancho: va, se lo come y después vuelve a la pelota (más rápido)
-        if (caminar(s, s.pancho, MONO.velCaza, dt)) {
-          s.comiendo -= dt
-          if (s.comiendo <= 0) { s.pancho = null; s.velCaza = MONO.velCaza }
+    if (s.pancho && (s.modo === 'caza' || s.modo === 'come')) {
+      // la Mugre tiró un pancho: corre a su lugar de la ronda y se lo come. Después, el que cazaba vuelve a la pelota
+      // (más rápido) y el que vino al olor, a sus pinos
+      if (caminar(s, s.pancho, MONO.velCaza, dt)) {
+        s.comiendo -= dt
+        if (s.comiendo <= 0) {
+          s.pancho = null
+          s.panchoEn = null
+          s.velCaza = MONO.velCaza
+          if (s.modo === 'come') { s.modo = 'ronda'; s.espera = 0 }
         }
-        continue
       }
+      continue
+    }
+    if (s.modo === 'come') { s.modo = 'ronda'; s.espera = 0 }
+    if (s.modo === 'caza') {
       if (!pelota) continue
       if (s.reaccion > 0) { s.reaccion -= dt; continue }
       caminar(s, pelota, s.velCaza, dt)
@@ -1418,7 +1450,7 @@ export function moverMonos(monos, dt, pelota) {
 export function despertarMonos(monos, pelota, alerta = MONO.alerta) {
   let n = 0
   for (const s of monos) {
-    if (s.modo === 'aplastado' || s.modo === 'huye' || dist(s.pos, pelota) > alerta) continue
+    if (monoFuera(s) || s.modo === 'huye' || dist(s.pos, pelota) > alerta) continue
     if (s.modo !== 'caza') {
       s.modo = 'caza'
       s.reaccion = MONO.reaccion / (s.siesta ?? 1) // el clima: con sol (o nieve) salen tarde y lentos
@@ -1429,9 +1461,9 @@ export function despertarMonos(monos, pelota, alerta = MONO.alerta) {
   }
   return n
 }
-/** Se pegó (o terminó el hoyo): los que cazaban vuelven a su recorrido. */
+/** Se pegó (o terminó el hoyo): los que cazaban vuelven a su recorrido (los que están con un pancho lo terminan antes). */
 export function calmarMonos(monos) {
-  for (const s of monos) if (s.modo === 'caza') { s.modo = 'ronda'; s.espera = 0; s.pancho = null }
+  for (const s of monos) if (s.modo === 'caza') { s.modo = s.pancho ? 'come' : 'ronda'; s.espera = 0 }
 }
 
 /** El tiro de salida de cada hoyo: ahí los monos no salen a cazar (te dejan pegar tranquilo desde el tee). */
@@ -1451,25 +1483,64 @@ export function despertarMonosDe(r) {
 export const alertaDe = (r) => (habilidadDe(r.jugador)?.id === 'panchitos' ? MUGRE.alerta : MONO.alerta)
 
 /**
- * La Mugre tira un pancho: cae del lado de donde vienen los monos (más allá de ellos) y todos los que la están
- * cazando van a comerlo. Devuelve dónde cayó, o null si no quedan panchos o no viene ningún mono.
+ * La Mugre tira un pancho: cae cerca, entre la pelota y los monos que vienen (ver MUGRE). Los que la están cazando y los
+ * del barrio que andan cerca van a comerlo y se acomodan en ronda alrededor: cada uno en el lugar que le queda de su lado
+ * (`s.pancho`; dónde está el pancho, `s.panchoEn`). Devuelve dónde cayó, o null si no quedan panchos o no viene ningún mono.
  */
 export function tirarPancho(r) {
   const cazan = r.monos.filter((s) => s.modo === 'caza' && !s.pancho)
   if (!r.panchos || !cazan.length) return null
-  let dx = 0, dy = 0, lejos = 0
+  let dx = 0, dy = 0, cerca = Infinity
   for (const s of cazan) {
     const d = dist(s.pos, r.pelota) || 1
     dx += (s.pos[0] - r.pelota[0]) / d
     dy += (s.pos[1] - r.pelota[1]) / d
-    lejos = Math.max(lejos, d)
+    cerca = Math.min(cerca, d)
   }
   const n = Math.hypot(dx, dy) || 1
-  const a = Math.max(MUGRE.tiro, lejos + 10)
+  const a = Math.max(MUGRE.minimo, Math.min(MUGRE.tiro, cerca - 2))
   const pos = [r.pelota[0] + (dx / n) * a, r.pelota[1] + (dy / n) * a]
-  for (const s of cazan) { s.pancho = [...pos]; s.comiendo = MUGRE.comer; s.reaccion = 0 }
+  // los del barrio: los que andan cerca en su recorrido (también los que esperan entre los pinos) vienen al olor
+  const golosos = r.monos
+    .filter((s) => s.modo === 'ronda' && !s.pancho && dist(s.pos, pos) <= MUGRE.barrio)
+    .sort((p, q) => dist(p.pos, pos) - dist(q.pos, pos))
+    .slice(0, MUGRE.golosos)
+  for (const s of golosos) { s.modo = 'come'; s.espera = 0 }
+  // la ronda: los lugares, parejos alrededor del pancho, en el orden en que vienen (por el ángulo), así nadie cruza
+  const comen = [...cazan, ...golosos]
+  const radio = MUGRE.ronda + 0.4 * Math.max(0, comen.length - 3)
+  const ang = (s) => Math.atan2(s.pos[1] - pos[1], s.pos[0] - pos[0])
+  const orden = comen.sort((p, q) => ang(p) - ang(q))
+  const a0 = ang(orden[0])
+  orden.forEach((s, i) => {
+    const t = a0 + (2 * Math.PI * i) / orden.length
+    s.pancho = [pos[0] + Math.cos(t) * radio, pos[1] + Math.sin(t) * radio]
+    s.panchoEn = [...pos]
+    s.comiendo = MUGRE.comer
+    s.reaccion = 0
+  })
   r.panchos -= 1
   return pos
+}
+
+/**
+ * 🐒 La Mugre se los lleva (2026-10-12, pedido de Rorro): mientras comen el pancho (ya en su lugar de la ronda), a los
+ * monos los podés agarrar tocándolos y te los llevás: no vuelven en lo que queda del hoyo (en el que sigue salen otra vez
+ * de sus pinos: son 6 en toda la cancha). Cada `premio` que te llevás en la vuelta, un golpe menos en la tarjeta
+ * (`tarjeta.monos`, que `totales` suma, como la apuesta de Rorro; la cuenta, en `r.llevados`).
+ */
+export const LLEVAR = { premio: 5 }
+export const sePuedeLlevar = (s) => !!s?.pancho && (s.modo === 'caza' || s.modo === 'come') && dist(s.pos, s.pancho) < 0.05
+/** Te llevás a `s`. Devuelve { n: cuántos van, premio: si este completó otros `premio` (un golpe menos) } o null. */
+export function llevarMono(r, s) {
+  if (!sePuedeLlevar(s)) return null
+  s.modo = 'llevado'
+  s.pancho = null
+  s.panchoEn = null
+  r.llevados = (r.llevados ?? 0) + 1
+  const premio = r.llevados % LLEVAR.premio === 0
+  r.tarjeta.monos = -Math.floor(r.llevados / LLEVAR.premio) || undefined
+  return { n: r.llevados, premio }
 }
 
 // ── tiro ────────────────────────────────────────────────────────────────
@@ -2726,6 +2797,8 @@ export function cerrarHoyo(r, rng) {
     r.viento = r.match ? { ...r.match.vientos[r.idx] } : vientoAleatorio(rng) // en un match, el mismo viento para los dos
     vientoDelClima(r)
     if (r.panchos || habilidadDe(r.jugador)?.id === 'panchitos') r.panchos = MUGRE.panchos
+    // los monos que se llevó la Mugre vuelven a sus pinos para el hoyo que sigue
+    for (const s of r.monos) if (s.modo === 'llevado') { s.modo = 'ronda'; s.pos = [...s.m.a]; s.hacia = 'b'; s.espera = MONO.pausa }
     // Marcos: el carrito lo espera en el próximo tee (no hace falta manejar de green a tee)
     if (r.carro) r.carro = carroAlLado(r.pelota)
   }
@@ -2736,8 +2809,9 @@ export function cerrarHoyo(r, rng) {
 export function totales(tarjeta) {
   const par = tarjeta.reduce((s, f) => s + f.par, 0)
   const lp = tarjeta.some((f) => f.lp)
-  // Marcos: la apuesta de "¿jugaste con Rorro?" (−1 o +1 al total; ver apostarRorro)
-  const golpes = lp ? null : tarjeta.reduce((s, f) => s + f.golpes, 0) + (tarjeta.rorro ?? 0)
+  // Marcos: la apuesta de "¿jugaste con Rorro?" (−1 o +1 al total; ver apostarRorro). La Mugre: −1 cada 5 monos que se
+  // llevó (ver llevarMono)
+  const golpes = lp ? null : tarjeta.reduce((s, f) => s + f.golpes, 0) + (tarjeta.rorro ?? 0) + (tarjeta.monos ?? 0)
   return { golpes, par, vsPar: lp ? null : golpes - par, lp }
 }
 /**
