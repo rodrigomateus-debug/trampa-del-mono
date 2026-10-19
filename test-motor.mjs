@@ -2476,4 +2476,49 @@ ok('🥃 Rorro: en el mazo con candado (una vuelta con cada uno), su habilidad, 
   C.est.bumps = []
 })
 
+ok('⚔️ fourball: mejor y suma (2 puntos por hoyo, ½ en empate), LP por hoyo y el desempate por tiempo sumado', () => {
+  const j = (hoyos, ms = 60000, lp = false) => ({ hoyos, ms, lp })
+  // hoyo 15: mejor A 4 vs B 4 (½-½), suma A 9 vs B 10 (1-0) · 16: mejor 3 vs 4 (1-0), suma 8 vs 8 (½-½) · 17: B gana los dos
+  let r = M.resultadoFourball([j([4, 3, 4]), j([5, 5, 3])], [j([4, 4, 2]), j([6, 4, 3])])
+  assert.deepEqual(r.hoyos.map((h) => h.puntos), [[1.5, 0.5], [1.5, 0.5], [0, 2]])
+  assert.deepEqual(r.puntos, [3, 3])
+  assert.ok(r.completo)
+  // 3 a 3: el tiempo sumado (A 120 s, B 120 s → empate; B más rápido → gana B)
+  assert.equal(r.ganador, 0)
+  r = M.resultadoFourball([j([4, 3, 4]), j([5, 5, 3])], [j([4, 4, 2], 50000), j([6, 4, 3])])
+  assert.equal(r.ganador, -1)
+  assert.ok(r.porTiempo)
+  assert.deepEqual(r.tiempos, [120000, 110000])
+  // gana por puntos (sin mirar el tiempo)
+  r = M.resultadoFourball([j([3, 3, 3], 999999), j([4, 4, 3])], [j([4, 4, 3]), j([5, 5, 4])])
+  assert.deepEqual(r.puntos, [5.5, 0.5])
+  assert.equal(r.ganador, 1)
+  assert.equal(r.porTiempo, false)
+  // LP en el 16: en el 16 y el 17 cuenta la mejor del compañero y la pareja pierde la suma; sin tiempo, pierde el desempate
+  r = M.resultadoFourball([j([4, null, null], 30000, true), j([4, 4, 3])], [j([4, 5, 3]), j([4, 5, 3])])
+  assert.deepEqual(r.hoyos.map((h) => h.puntos), [[1, 1], [1, 1], [0.5, 1.5]])
+  assert.deepEqual(r.puntos, [2.5, 3.5])
+  assert.equal(r.tiempos[0], null)
+  r = M.resultadoFourball([j([4, null, null], 30000, true), j([4, 4, 3])], [j([4, 4, 3]), j([4, 5, 3])])
+  assert.deepEqual(r.puntos, [2, 4])
+  // los dos de una pareja levantaron en el mismo hoyo: la otra se lleva los dos puntos
+  r = M.resultadoFourball([j([5, null, null], 1, true), j([5, null, null], 1, true)], [j([5, 9, 9]), j([5, 9, 9])])
+  assert.deepEqual(r.hoyos.map((h) => h.puntos), [[1, 1], [0, 2], [0, 2]])
+  // 3 a 3 con una pareja sin tiempo (uno levantó en el 17): gana la otra por tiempo
+  r = M.resultadoFourball([j([4, 4, 2]), j([4, 4, null], 1, true)], [j([4, 4, 3]), j([4, 4, 3])])
+  assert.deepEqual(r.puntos, [3, 3])
+  assert.equal(r.ganador, -1)
+  assert.ok(r.porTiempo)
+  // en vivo: un hoyo que no jugaron los cuatro no cuenta todavía
+  r = M.resultadoFourball([j([4, 4]), j([5])], [j([4, 4, 3]), null])
+  assert.deepEqual(r.hoyos.map((h) => h.puntos), [null, null, null])
+  r = M.resultadoFourball([j([4, 4]), j([5, 5])], [j([4, 4, 3]), j([5])])
+  assert.deepEqual(r.hoyos.map((h) => h.puntos), [[1, 1], null, null])
+  assert.equal(r.completo, false)
+  assert.equal(r.ganador, 0)
+  // los puntos con medios y los golpes de la tarjeta
+  assert.deepEqual([0, 0.5, 3, 3.5, 6].map(M.formatoPuntos), ['0', '½', '3', '3½', '6'])
+  assert.deepEqual(M.hoyosDeTarjeta([{ golpes: 5 }, { golpes: 4, lp: true }]), [5, null, null])
+})
+
 console.log('\nTodo verde.')
