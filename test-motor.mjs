@@ -2001,6 +2001,20 @@ ok('📞 Dickyllamada: cada Dicky tiene su foto recortada y le dice algo tierno 
   }
 })
 
+ok('🤝 la interna en escena: el Dicky empujado y el compañero con un Dicky colado dicen algo (con el nombre bien)', () => {
+  const rng = M.rngDesde(11)
+  const lucas = RULETA.pool.find((j) => j.apodo === 'LG')
+  const ninja = RULETA.pool.find((j) => j.apodo === 'El Ninja (Đ)')
+  for (let i = 0; i < 40; i++) {
+    for (const [que, j] of [['empujado', lucas], ['colado', ninja]]) {
+      const f = M.fraseInterna(rng, que, j)
+      assert.ok(typeof f === 'string' && f.length > 8 && !f.includes('(Đ)') && !f.includes('undefined') && !f.includes('LG,') && !f.includes('El Ninja'), `${que}: ${f}`)
+    }
+  }
+  assert.ok(M.INTERNA_DICE.empujado.some((f) => f('Lucas').includes('Lucas')))
+  assert.ok(M.INTERNA_DICE.colado.some((f) => f('El Ninja').includes('Qué hacés acá, Ninja?'))) // sin el "El" al hablarle
+})
+
 ok('📞 Dickyllamada: un Dicky te pega el próximo tiro (con su habilidad) y te devuelve el palo; una por vuelta', () => {
   const por = (a) => RULETA.pool.find((j) => j.apodo === a)
   const fito = por('Fito (Đ)'), migue = por('Mike Queboni (Đ)')

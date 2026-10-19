@@ -897,6 +897,74 @@ body.manejando #crono::after { content: '⏸'; font-size: 12px; margin-left: 2px
 @keyframes sec-rayos { 0% { opacity: .2; scale: .4; } 35% { opacity: 1; scale: 1.6; } 100% { opacity: 1; scale: 1; } }
 @keyframes sec-letra { 0% { opacity: 0; transform: translateY(-26px) scale(2.2) rotate(-12deg); } 100% { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { #secreto *, #secreto { animation-duration: 1ms !important; animation-iteration-count: 1 !important; } }
+/* 🤝 la interna, en escena (19/10/2026: la reportaban como bug): viene el que llamaste (o tu compañero) y se cuela uno
+   del otro equipo. En la Dickyllamada lo empuja y te pega él; en el fourball, el Dicky se suma con una tercera pelota.
+   Unos 3 s con el reloj parado; tocando se saltea (todo salta a su final) y al final, JUGAR CON … */
+#cuela { --cu-color: rgba(62, 143, 90, .55); position: fixed; inset: 0; z-index: 61; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: calc(var(--safe-top, 0px) + 16px) 16px calc(var(--safe-bot) + 18px); overflow: hidden; text-align: center; color: var(--cream); background: radial-gradient(circle at 50% 42%, var(--cu-color), rgba(6, 16, 10, .93) 68%); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: sec-fondo 350ms ease both; }
+#cuela[hidden] { display: none; }
+#cuela.fourball { --cu-color: rgba(107, 103, 216, .55); }
+#cuela .cu-kicker { margin: 0; font: 19px/1.1 var(--font-display); letter-spacing: .08em; }
+#cuela .cu-tel { display: inline-block; }
+#cuela .cu-escena { position: relative; width: min(360px, 100%); height: 290px; flex: none; }
+#cuela figure { position: absolute; bottom: 0; width: 54%; margin: 0; }
+#cuela .cu-viene { left: -2%; }
+#cuela .cu-colado { right: -2%; z-index: 2; }
+#cuela figure img:not(.cu-escudo) { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; object-position: bottom; filter: drop-shadow(3px 5px 0 var(--game-ink)); }
+#cuela figcaption { position: absolute; left: 50%; bottom: 4px; width: max-content; transform: translateX(-50%) rotate(-4deg); padding: 5px 9px 4px; background: var(--gold); color: var(--game-ink); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); font: 16px/1 var(--font-display); letter-spacing: .04em; white-space: nowrap; }
+#cuela .cu-colado figcaption { transform: translateX(-50%) rotate(4deg); }
+#cuela .cu-escudo { position: absolute; left: 4%; top: 30%; width: 30%; height: auto; transform: rotate(-12deg); filter: drop-shadow(2px 3px 0 rgba(12, 43, 28, .55)); }
+#cuela .cu-globo { position: absolute; top: -8px; width: max-content; max-width: 88%; margin: 0; padding: 8px 10px; background: var(--cream); color: var(--game-ink); border: 2.5px solid var(--game-ink); border-radius: 14px; box-shadow: 3px 4px 0 var(--game-ink); font: 700 13px/1.25 var(--font-body); text-align: left; opacity: 0; }
+#cuela .cu-globo::after { content: ''; position: absolute; bottom: -9px; width: 14px; height: 14px; background: var(--cream); border: solid var(--game-ink); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+#cuela .cu-viene .cu-globo { left: 4%; }
+#cuela .cu-viene .cu-globo::after { left: 26px; }
+#cuela .cu-colado .cu-globo { right: 4%; }
+#cuela .cu-colado .cu-globo::after { right: 26px; }
+/* lo que dice después el que venía (afuera de la figura: en la Dickyllamada lo empujan y se achica, el globo no) */
+#cuela .cu-escena > .cu-globo.dos { top: auto; left: 1%; bottom: 67%; max-width: 50%; z-index: 4; }
+#cuela .cu-escena > .cu-globo.dos::after { left: 26px; }
+#cuela.llamada .cu-escena > .cu-globo.dos { bottom: 42%; }
+#cuela .cu-plaf { position: absolute; left: 50%; top: 40%; z-index: 3; display: grid; place-items: center; width: 150px; height: 112px; margin: -56px 0 0 -75px; background: var(--gold); color: var(--red); font: 30px/1 var(--font-display); letter-spacing: .04em; clip-path: polygon(50% 0, 61% 26%, 92% 8%, 77% 38%, 100% 50%, 76% 62%, 92% 92%, 60% 74%, 50% 100%, 40% 74%, 8% 92%, 24% 62%, 0 50%, 23% 38%, 8% 8%, 39% 26%); opacity: 0; }
+#cuela .cu-chispas { position: absolute; inset: 0 0 20% 46%; pointer-events: none; }
+#cuela .cu-chispas span { position: absolute; bottom: 30%; font-size: 24px; opacity: 0; }
+#cuela .cu-sello { margin: 4px 0 0; padding: 7px 14px 5px; border: 3px solid var(--gold); border-radius: 8px; color: var(--gold); font: 32px/1 var(--font-display); letter-spacing: .04em; text-shadow: 3px 3px 0 var(--game-ink); transform: rotate(-4deg); opacity: 0; }
+#cuela .cu-info { max-width: 340px; margin: 0; font: 600 14px/1.35 var(--font-body); opacity: 0; }
+#cuela .cu-info b { color: var(--gold); }
+#cuela .cu-jugar { --sh: var(--game-shadow-lg); width: min(340px, 100%); flex: none; margin-top: 6px; border: var(--game-stroke) solid var(--game-ink); box-shadow: var(--game-shadow-lg); visibility: hidden; }
+#cuela .cu-saltar { font: 700 11px/1 var(--font-body); letter-spacing: .1em; text-transform: uppercase; opacity: 0; }
+/* la escena (con .va): las dos son iguales hasta que llega el que se cuela */
+#cuela.va .cu-kicker { animation: cu-aparece .3s both; }
+#cuela.va .cu-tel { animation: cu-ring .45s ease-in-out 3; }
+#cuela.va .cu-viene { animation: cu-entra-izq .55s .3s var(--game-ease-bounce) both; }
+#cuela.va .cu-viene .cu-globo.uno { animation: cu-globo .3s .8s var(--game-ease-bounce) both, cu-fuera .2s 1.6s forwards; }
+#cuela.va .cu-colado { animation: cu-embiste .45s 1.5s cubic-bezier(.2, 1.4, .4, 1) both; }
+#cuela.va .cu-plaf { animation: cu-plaf .75s 1.6s both; }
+#cuela.va .cu-chispas span { animation: corazon-sube 2.2s ease-out both; }
+#cuela.va .cu-colado .cu-globo { animation: cu-globo .3s 2.05s var(--game-ease-bounce) both; }
+#cuela.va .cu-globo.dos { animation: cu-globo .3s 2.3s var(--game-ease-bounce) both; }
+#cuela.va .cu-sello { animation: cu-sello .45s 2.5s cubic-bezier(.2, 1.6, .4, 1) both; }
+#cuela.va .cu-info { animation: cu-aparece .35s 2.9s both; }
+#cuela.va .cu-jugar { animation: cu-boton .4s 3s var(--game-ease-bounce) both; }
+#cuela.va .cu-saltar { animation: cu-aparece .3s .5s both, cu-fuera .2s 2.9s forwards; }
+/* la Dickyllamada: el del Equipo 5 lo empuja y el Dicky queda tirado en la esquina; el fourball: el compañero se enoja */
+#cuela.va.llamada .cu-viene { animation: cu-entra-izq .55s .3s var(--game-ease-bounce) both, cu-volado .55s 1.65s cubic-bezier(.3, 1.3, .5, 1) forwards; }
+#cuela.va.fourball .cu-viene { animation: cu-entra-izq .55s .3s var(--game-ease-bounce) both, cu-bronca .5s 2.2s ease-in-out both; }
+#cuela.va.fourball .cu-colado { animation: cu-colarse .7s 1.45s cubic-bezier(.3, 1.4, .5, 1) both; }
+/* saltear (o sin animaciones): cada cosa salta a cómo termina */
+#cuela.ya *, #cuela.ya { animation-delay: 0s !important; animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
+#cuela.ya .cu-chispas { display: none; }
+@media (prefers-reduced-motion: reduce) { #cuela *, #cuela { animation-delay: 0s !important; animation-duration: 1ms !important; animation-iteration-count: 1 !important; } #cuela .cu-chispas { display: none; } }
+@keyframes cu-aparece { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes cu-fuera { to { opacity: 0; } }
+@keyframes cu-ring { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-22deg); } 75% { transform: rotate(22deg); } }
+@keyframes cu-entra-izq { from { transform: translateX(-120%) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes cu-globo { from { opacity: 0; transform: scale(.4) translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes cu-embiste { 0% { transform: translateX(150%) rotate(14deg); opacity: 0; } 60% { transform: translateX(-14%) rotate(-6deg); opacity: 1; } 100% { transform: translateX(-20%) scale(1.06); opacity: 1; } }
+@keyframes cu-colarse { 0% { transform: translate(150%, 10px) rotate(10deg); opacity: 0; } 30% { transform: translate(70%, -18px) rotate(-6deg); opacity: 1; } 55% { transform: translate(30%, 0) rotate(6deg); } 80% { transform: translate(6%, -10px) rotate(-3deg); } 100% { transform: none; opacity: 1; } }
+@keyframes cu-volado { 0% { transform: none; } 35% { transform: translate(-40%, -24%) rotate(-38deg) scale(.9); } 100% { transform: translate(-18%, 26%) rotate(-20deg) scale(.66); opacity: .92; } }
+@keyframes cu-bronca { 0%, 100% { transform: none; } 20% { transform: translateX(-6px) rotate(-4deg); } 40% { transform: translateX(6px) rotate(4deg); } 60% { transform: translateX(-5px) rotate(-3deg); } 80% { transform: translateX(4px) rotate(2deg); } }
+@keyframes cu-plaf { 0% { opacity: 0; transform: scale(.2) rotate(-20deg); } 25% { opacity: 1; transform: scale(1.35) rotate(6deg); } 55% { opacity: 1; transform: scale(1) rotate(-4deg); } 100% { opacity: 0; transform: scale(1.1) rotate(-4deg); } }
+@keyframes cu-sello { from { opacity: 0; transform: scale(2.6) rotate(-14deg); } to { opacity: 1; transform: rotate(-4deg); } }
+@keyframes cu-boton { from { opacity: 0; visibility: hidden; transform: scale(.6); } to { opacity: 1; visibility: visible; transform: none; } }
 /* la carta de Demetrio: dorada y retro */
 /* lámina dorada de metal (con vetas de cepillado) + foil holográfico que se mueve solo y sigue el dedo */
 @property --holo-ang { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
@@ -2358,6 +2426,21 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   <div class="chispas" aria-hidden="true"></div>
   <div class="destello" aria-hidden="true"></div>
 </div>
+<!-- 🤝 la interna, en escena: el que venía a ayudar y el del otro equipo que se cuela (ver cuela()) -->
+<div id="cuela" hidden role="dialog" aria-modal="true" aria-labelledby="cu-sello">
+  <p class="cu-kicker"><span class="cu-tel">📞</span> <span id="cu-kicker"></span></p>
+  <div class="cu-escena" aria-hidden="true">
+    <figure class="cu-viene"><img alt="" draggable="false"><figcaption></figcaption><p class="cu-globo uno"></p></figure>
+    <p class="cu-globo dos"></p>
+    <figure class="cu-colado"><img class="cu-escudo" alt="" draggable="false"><img class="cu-cara" alt="" draggable="false"><figcaption></figcaption><p class="cu-globo"></p></figure>
+    <b class="cu-plaf"></b>
+    <div class="cu-chispas"></div>
+  </div>
+  <p class="cu-sello" id="cu-sello"></p>
+  <p class="cu-info" id="cu-info"></p>
+  <button class="carta-jugar cu-jugar" id="cu-jugar" type="button"></button>
+  <small class="cu-saltar">Tocá para saltear</small>
+</div>
 <button id="deme-btn" type="button" hidden aria-label="Invocar a Deme"><img src="jugadores/deme-cabeza.webp" alt="" width="260" height="207"><span>DEME</span></button>
 <div id="deme" hidden aria-live="polite"><svg viewBox="0 0 360 300" aria-label="Deme"></svg><p class="globo"></p></div>
 <div id="multa" hidden aria-live="assertive"><div class="sello-multa"><b>+1 GOLPE DE MULTA</b><small>por tortura animal 🐒</small></div></div>
@@ -2407,7 +2490,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     <img class="dk-logo" src="dicky-toons.svg" alt="" draggable="false">
     <p class="dk-kicker">📞 DICKYLLAMADA · UNA POR VUELTA</p>
     <h3 id="dk-tit">¿A quién llamás?</h3>
-    <p class="dk-sub">El que atiende te pega el próximo tiro, con su handicap y su habilidad. Se ayudan entre Dickys.</p>
+    <p class="dk-sub">El que atiende te pega el próximo tiro, con su handicap y su habilidad. Se ayudan entre Dickys. Ojo: a veces se cuela el #Equipo5 📺🦉</p>
     <div class="dk-lista" id="dk-lista"></div>
   </div>
 </div>
@@ -2480,7 +2563,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v f92534b · 19/10, 12:27 p. m.</span>
+  <span class="version" id="version">v faabbae · 19/10, 03:54 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2702,11 +2785,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=8344e04bf8'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS } from './plantel.js?v=8344e04bf8'
+import * as M from './motor.js?v=35b58eedee'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS } from './plantel.js?v=35b58eedee'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=8344e04bf8'
-import * as S from './sonido.js?v=8344e04bf8'
+import * as R from './ranking.js?v=35b58eedee'
+import * as S from './sonido.js?v=35b58eedee'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"banana": "<path d=\"M21 6C28.6 9.4 30 20 22.8 25.4C17.4 29.4 9.4 29 3.8 24.6C10.2 24.4 14.8 21.4 16.9 17.4C18.9 13.6 18.8 9.8 16.8 6.6Z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.2 8.2C21.6 13.8 19.9 20.4 12.2 24.8\" stroke-width=\"1.5\"/><path d=\"M24.4 11.6C25.8 16 24.3 20.8 20.3 23.8\" style=\"stroke:var(--gi-f)\" stroke-width=\"2.4\"/><path d=\"M16.8 6.6L17.3 2.8L21.1 2.4L21 6\" style=\"fill:var(--gi-s)\"/><path d=\"M3.8 24.6L2.6 26.5\" stroke-width=\"3\"/>", "match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -2922,7 +3005,7 @@ const usa3d = (j) => !!j?.cancha3d // (Rorro, aunque esta vuelta juegue con la h
 const modo3d = () => !!r3d?.estaActivo() && !replay && !!ronda && usa3d(ronda.carta)
 function cargar3d() {
   if (r3d) return Promise.resolve(r3d)
-  r3dCarga ??= import('./cancha3d.js?v=8344e04bf8').then((m) => {
+  r3dCarga ??= import('./cancha3d.js?v=35b58eedee').then((m) => {
     m.iniciar({ lienzo: $('#cancha3d'), alCampo: (filas) => { campo = filas ? { ...campoBase, cancha: { ...campoBase.cancha, filas } } : campoBase } })
     m.sonido(S.prendido())
     r3d = m
@@ -3684,8 +3767,8 @@ function alReposo() {
     tiro.mejorPelota = true
   } else if (mp?.fase === 'vuela') {
     mp.segunda = tiro
-    // 🤝 la interna: a veces se cuela un Dicky y tira una tercera "por amor"
-    if (!tiro.embocada && dickysLibres().length && rng() < M.INTERNA.tercera) { terceraPelota(); return }
+    // 🤝 la interna: el Dicky que se coló al armarla tira la tercera "por amor" (si entró la del compañero, no hace falta)
+    if (!tiro.embocada && mp.cuela) { terceraPelota(); return }
     tiro = null
     elegirPelota()
     return
@@ -3770,10 +3853,10 @@ function segundaPelota() {
   cara.classList.add('nuevo')
   aApuntar()
 }
-/** La interna: se cuela un Dicky en el fourball y tira una tercera pelota, desde el mismo lugar y para el mismo lado. */
+/** La interna: el Dicky que se coló en el fourball (al armarlo) tira una tercera pelota, desde el mismo lugar y para el mismo lado. */
 function terceraPelota() {
   const mp = ronda.mejorPelota
-  const d = M.elegir(rng, dickysLibres())
+  const d = mp.cuela
   const g = mp.golpe2
   mp.dicky = d
   mp.fase = 'intruso'
@@ -3781,7 +3864,7 @@ function terceraPelota() {
   estela = []
   S.golpe(g.p, tiro.modo === 'putt')
   dickyVisita(d, M.fraseInterna(rng, 'tercera', mp.antes))
-  voz = { lg: `💛 ¡SE COLÓ ${sinD(d.apodo).toUpperCase()} EN EL FOURBALL!`, extra: 'Tira una tercera pelota "por amor"', hasta: performance.now() + 4500 }
+  voz = { lg: `💛 AHORA TIRA ${sinD(d.apodo).toUpperCase()}, EL DICKY QUE SE COLÓ`, extra: 'La tercera pelota, "por amor". Si te quedás con esa, el #Equipo5 se ofende', hasta: performance.now() + 4500 }
   hud()
 }
 /** Pararon todas: abajo, con cuál te quedás (la mejor, marcada); arriba se ven todas. Si la del compañero entró, esa. */
@@ -5181,7 +5264,7 @@ function pararCuenta() {
 }
 let cronoPintado = ''
 function pintarCrono() {
-  if (!ronda || $('#hud-top').hidden) return
+  if (!ronda || $('#hud-top').hidden || estado === 'cuela') return // en la escena de la interna, quieto
   const ms = ronda.ms ?? (ronda.t0 != null ? performance.now() - ronda.t0 : 0)
   const txt = `⏱ ${M.formatoTiempo(ms)}`
   if (txt === cronoPintado) return
@@ -5632,7 +5715,88 @@ function cerrarDickyllamada() {
   $('#dicky-sel').hidden = true
   if (estado === 'dicky') { estado = 'apuntar'; hud() }
 }
-$('#dicky-sel').addEventListener('click', (e) => {
+/**
+ * 🤝 La interna, en escena (19/10/2026: cuando se colaba el otro equipo, lo reportaban como bug). `tipo` 'llamada':
+ * llamaste a `viene` (un Dicky), se cuela `colado` (Joaco o Lucas), lo empuja y te pega él. 'fourball': viene tu
+ * compañero del Equipo 5 y se cuela un Dicky, que va a tirar una tercera pelota. Unos 3 s con el reloj parado (y la
+ * ventana del ABRAZO / ¡FUERA, DICKY!, que se vuelve a ofrecer al salir); tocando se saltea. Termina con JUGAR CON …
+ */
+function cuela({ tipo, viene, colado, yo }) {
+  const el = $('#cuela')
+  const llamada = tipo === 'llamada'
+  // el reloj quieto mientras dura (como manejando): cada cuadro corre la largada lo que pasó, así no se mueven ni el
+  // número ni el fantasma del match
+  let ultimo = performance.now(), raf = 0
+  const quieto = () => {
+    const ahora = performance.now()
+    if (ronda?.t0 != null && ronda.ms == null) ronda.t0 += ahora - ultimo
+    ultimo = ahora
+  }
+  const cuadroQuieto = () => { quieto(); raf = requestAnimationFrame(cuadroQuieto) }
+  raf = requestAnimationFrame(cuadroQuieto)
+  const contraAntes = contra
+  if (contra) cerrarContra()
+  drag = null
+  estado = 'cuela'
+  hud()
+  const nombre = (j) => M.NOMBRE_E5[j.apodo] ?? sinD(j.apodo)
+  const aNombre = (j) => (nombre(j).startsWith('El ') ? `al ${nombre(j).slice(3)}` : `a ${nombre(j)}`) // "a Fito", "al Ninja"
+  const figura = (sel, j) => {
+    const f = el.querySelector(sel)
+    f.querySelector('img:not(.cu-escudo)').src = j.torso
+    f.querySelector('figcaption').textContent = `${j.emoji} ${nombre(j).toUpperCase()}`
+  }
+  figura('.cu-viene', viene)
+  figura('.cu-colado', colado)
+  const equipo = llamada ? 'e5' : 'dicky' // el del que se cuela
+  el.querySelector('.cu-escudo').src = EQUIPOS[equipo].logo
+  el.querySelector('.cu-tel').textContent = llamada ? '📞' : '🦉📺'
+  $('#cu-kicker').textContent = llamada ? `Llamando ${aNombre(viene)}…` : 'Fourball del #Equipo5'
+  el.querySelector('.cu-viene .cu-globo').textContent = llamada ? M.fraseDicky(rng, viene.apodo, yo, 'atiende') : M.fraseVestuario(rng, viene.apodo, yo, 'arma')
+  el.querySelector('.cu-colado .cu-globo').textContent = llamada ? M.fraseInterna(rng, 'atiende', viene) : M.fraseInterna(rng, 'tercera', yo)
+  el.querySelector('.cu-globo.dos').textContent = M.fraseInterna(rng, llamada ? 'empujado' : 'colado', colado)
+  el.querySelector('.cu-plaf').textContent = llamada ? '¡PLAF!' : '¡CUCÚ!'
+  el.querySelector('.cu-chispas').innerHTML = Array.from({ length: 7 }, (_, i) =>
+    `<span style="left: ${10 + Math.random() * 70}%; animation-delay: ${1.7 + i * 0.16}s; --dx: ${Math.round((Math.random() - 0.5) * 60)}px; --giro: ${Math.round((Math.random() - 0.5) * 50)}deg">${EQUIPOS[equipo].chispas[i % EQUIPOS[equipo].chispas.length]}</span>`).join('')
+  $('#cu-sello').textContent = llamada ? '¡SE COLÓ EL #EQUIPO5!' : '¡SE COLÓ UN DICKY!'
+  const hab = M.habilidadDe(colado)
+  $('#cu-info').innerHTML = llamada
+    ? `Llamaste ${esc(aNombre(viene))}, pero atendió <b>${esc(nombre(colado))}</b>: este tiro te lo pega él${hab ? `, con ✨ ${esc(hab.nombre)}` : ''}.`
+    : `Pegás vos, después ${esc(nombre(viene))} y <b>${esc(nombre(colado))}</b> tira una tercera pelota "por amor". Si te quedás con la suya, el #Equipo5 se ofende: sin habilidad hasta el final.`
+  const boton = $('#cu-jugar')
+  boton.textContent = llamada ? `Jugar con ${nombre(colado)}` : `Jugar con ${nombre(viene)} y ${nombre(colado)}`
+  // los sonidos van con la escena (si la salteás, no suenan los que faltan)
+  const sonidos = llamada
+    ? [[0, () => S.dickyllamada()], [1650, () => { S.palo(); tic() }], [2500, () => S.ruletaCae()]]
+    : [[0, () => S.ulula()], [1500, () => S.monoBueno()], [2500, () => S.ruletaCae()]]
+  const timers = sonidos.map(([ms, f]) => setTimeout(f, ms))
+  el.className = `${tipo} va`
+  el.hidden = false
+  return new Promise((resolve) => {
+    const saltar = (e) => {
+      if (e.target.closest('#cu-jugar')) return
+      timers.forEach(clearTimeout)
+      el.classList.add('ya')
+    }
+    const listo = (e) => { if (e.animationName === 'cu-boton') boton.focus({ preventScroll: true }) }
+    const jugar = () => {
+      timers.forEach(clearTimeout)
+      el.removeEventListener('click', saltar)
+      boton.removeEventListener('animationend', listo)
+      el.hidden = true
+      el.className = ''
+      cancelAnimationFrame(raf)
+      quieto() // lo último: el reloj sigue desde donde quedó
+      if (contraAntes && ronda && !ronda.terminada) ofrecerContra(contraAntes.tipo, contraAntes.de)
+      S.tap()
+      resolve()
+    }
+    el.addEventListener('click', saltar)
+    boton.addEventListener('animationend', listo)
+    boton.addEventListener('click', jugar, { once: true })
+  })
+}
+$('#dicky-sel').addEventListener('click', async (e) => {
   if (e.target.closest('[data-cerrar]')) { cerrarDickyllamada(); return }
   const b = e.target.closest('[data-apodo]')
   if (!b) return
@@ -5643,13 +5807,16 @@ $('#dicky-sel').addEventListener('click', (e) => {
   const quien = intruso ?? d
   if (!d || !M.dickyllamar(ronda, d, quien)) return
   $('#dicky-sel').hidden = true
+  // se coló: la escena (llega el que llamaste, lo empuja Joaco o Lucas) y después JUGAR CON …
+  if (intruso) await cuela({ tipo: 'llamada', viene: d, colado: intruso, yo })
+  if (!ronda || ronda.terminada) return
   estado = 'apuntar'
   apuntarDesde = performance.now()
   const hab = M.habilidadDe(quien)
   voz = intruso
-    ? { lg: `📞 ¡Atendió ${intruso.emoji} ${M.NOMBRE_E5[intruso.apodo] ?? intruso.apodo}! Equivocado: te pega el #Equipo5`, extra: hab ? `✨ ${hab.nombre}: ${hab.texto}` : hcpEtiqueta(intruso), hasta: performance.now() + 6000 }
+    ? { lg: `📞 Te pega ${intruso.emoji} ${M.NOMBRE_E5[intruso.apodo] ?? intruso.apodo}, del #Equipo5`, extra: hab ? `✨ ${hab.nombre}: ${hab.texto}` : hcpEtiqueta(intruso), hasta: performance.now() + 6000 }
     : { lg: `📞 Atendió ${d.emoji} ${sinD(d.apodo)}: te pega este tiro`, extra: hab ? `✨ ${hab.nombre}: ${hab.texto}` : hcpEtiqueta(d), hasta: performance.now() + 5500 }
-  dickyVisita(quien, intruso ? M.fraseInterna(rng, 'atiende', d) : M.fraseDicky(rng, d.apodo, yo, 'atiende'), !!intruso)
+  if (!intruso) dickyVisita(d, M.fraseDicky(rng, d.apodo, yo, 'atiende')) // con la escena ya dijo lo suyo
   S.ruletaCae()
   hud()
   const cara = $('#hud-top .cara')
@@ -5705,8 +5872,9 @@ function pintarVoz() {
     const c = ronda.mejorPelota.compa
     clase = ''; dice = `${c.emoji} AHORA PEGA ${c.apodo.toUpperCase()}`; extra = ronda.calma ? 'No se enoja: el suyo sale sin error' : 'Desde el mismo lugar. Después elegís con cuál'
   } else if (estado === 'apuntar' && ronda && M.mejorPelotaArmada(ronda)) {
-    const c = ronda.mejorPelota.compa
-    clase = ''; dice = '🦉📺 MEJOR PELOTA'; extra = `Pegás vos, después ${c.emoji} ${c.apodo} y elegís`
+    const c = ronda.mejorPelota.compa, d = ronda.mejorPelota.cuela
+    clase = ''; dice = d ? '🦉📺 MEJOR PELOTA (+ UN DICKY 💛)' : '🦉📺 MEJOR PELOTA'
+    extra = d ? `Pegás vos, después ${c.emoji} ${c.apodo}, tira ${d.emoji} ${sinD(d.apodo)} y elegís` : `Pegás vos, después ${c.emoji} ${c.apodo} y elegís`
   } else if (estado === 'apuntar' && ronda?.calma) {
     clase = ''; dice = '📺 LG no se enoja'; extra = 'El que se enoja pierde: este golpe sale sin error'
   } else if (estado === 'apuntar' && golpeMago()) {
@@ -5985,14 +6153,24 @@ let lpArmado = 0
 $('#pancho').addEventListener('click', tirarPancho)
 $('#pancho').addEventListener('animationend', (e) => { if (e.animationName === 'tiraPancho') e.currentTarget.classList.remove('tira') })
 $('#dicky-btn').addEventListener('click', abrirDickyllamada)
-$('#e5-btn').addEventListener('click', () => {
+$('#e5-btn').addEventListener('click', async () => {
   if (!ronda || estado !== 'apuntar') return
   const yo = ronda.jugador
   if (M.mejorPelotaArmada(ronda)) { M.desarmarMejorPelota(ronda); S.tap(); hud(); return } // guardada: no se gasta
   const compa = M.compaE5(yo, EQUIPO5)
   if (!compa || !M.armarMejorPelota(ronda, compa)) return
+  // 🤝 la interna: a veces se cuela un Dicky y tira una tercera pelota "por amor". Se sortea al armarla (19/10/2026;
+  // antes, después de los dos tiros, y aparecía una pelota de la nada), una vez por vuelta: desarmar no lo espanta
+  if (!('fourballDicky' in ronda)) ronda.fourballDicky = dickysLibres().length && rng() < M.INTERNA.tercera ? M.elegir(rng, dickysLibres()) : null
+  ronda.mejorPelota.cuela = ronda.fourballDicky
+  if (ronda.fourballDicky && !ronda.fourballVisto) {
+    ronda.fourballVisto = true
+    await cuela({ tipo: 'fourball', viene: compa, colado: ronda.fourballDicky, yo })
+    if (!ronda || ronda.terminada) return
+    estado = 'apuntar'
+    apuntarDesde = performance.now()
+  } else dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, 'arma'), true)
   S.ruletaCae()
-  dickyVisita(compa, M.fraseVestuario(rng, compa.apodo, yo, 'arma'), true)
   hud()
 })
 $('#ninja-btn').addEventListener('click', resetDelNinja)
@@ -9499,7 +9677,7 @@ $('#mt-lista').addEventListener('keydown', (e) => {
 /** El MATCH de prueba (prueba.js): rivales y bananas de mentira, en el teléfono. `entrar`: suelto, entra con esa identidad. */
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
-  const { crearPrueba } = await import('./prueba.js?v=8344e04bf8')
+  const { crearPrueba } = await import('./prueba.js?v=35b58eedee')
   pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs })
   R.usarPrueba(pruebaApp, entrar ? yo : null)
   $('#mt-prueba').hidden = false
