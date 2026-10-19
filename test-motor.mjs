@@ -37,6 +37,26 @@ ok('par 11 y la cancha sale del dibujo (4 px = 1 yarda)', () => {
   assert.ok(campo.cancha.filas.every((f) => f.length === 219))
 })
 
+ok('sin tiras de green de 1 yarda: atrás del green del 15 es rough y no da el putter (2026-10-19)', () => {
+  // la herramienta que leyó el dibujo dejó una columna de 'g' (x = 42, y = 2..27) del green del 15 para arriba, por
+  // el rough y hasta afuera: la pelota que paraba ahí quedaba "en el green" y salía el putter a 18 yd del hoyo
+  for (const y of [2, 8, 15, 20, 27]) assert.notEqual(M.terreno(campo, [42.5, y + 0.5]).tipo, 'green', `x 42, y ${y}`)
+  const r = M.nuevaRonda({ apodo: 'El Mago Rodal', emoji: '🥛' }, fijo(0.5))
+  r.pelota = [42.5, 20.5]
+  r.lie = M.terreno(campo, r.pelota).tipo
+  assert.equal(r.lie, 'rough')
+  assert.ok(!M.enModoPutt(campo, r), 'desde el rough no hay putter')
+  // en toda la cancha: ninguna columna de green de 1 yarda de ancho más larga que 2 yardas
+  const { filas } = campo.cancha
+  const angosta = (x, y) => filas[y]?.[x] === 'g' && filas[y][x - 1] !== 'g' && filas[y][x + 1] !== 'g'
+  for (let y = 0; y < filas.length; y++) for (let x = 0; x < filas[y].length; x++) {
+    if (!angosta(x, y) || angosta(x, y - 1)) continue
+    let largo = 0
+    while (angosta(x, y + largo)) largo++
+    assert.ok(largo <= 2, `tira de green de ${largo} yd en x ${x}, desde y ${y}`)
+  }
+})
+
 ok('terreno: tee, green, fairway, bunker, rough entre hoyos, árbol y afuera', () => {
   for (const h of M.HOYOS) {
     assert.deepEqual(M.terreno(campo, h.tee), { tipo: 'tee', hoyo: h.n })
@@ -1980,6 +2000,20 @@ ok('📞 Dickyllamada: cada Dicky tiene su foto recortada y le dice algo tierno 
     const f = M.fraseDicky(rng, 'Taiu (Đ)', { apodo: 'Fito (Đ)' })
     assert.ok(typeof f === 'string' && f.length > 10 && !f.includes('(Đ)') && !f.includes('undefined'))
   }
+})
+
+ok('🤝 la interna en escena: el Dicky empujado y el compañero con un Dicky colado dicen algo (con el nombre bien)', () => {
+  const rng = M.rngDesde(11)
+  const lucas = RULETA.pool.find((j) => j.apodo === 'LG')
+  const ninja = RULETA.pool.find((j) => j.apodo === 'El Ninja (Đ)')
+  for (let i = 0; i < 40; i++) {
+    for (const [que, j] of [['empujado', lucas], ['colado', ninja]]) {
+      const f = M.fraseInterna(rng, que, j)
+      assert.ok(typeof f === 'string' && f.length > 8 && !f.includes('(Đ)') && !f.includes('undefined') && !f.includes('LG,') && !f.includes('El Ninja'), `${que}: ${f}`)
+    }
+  }
+  assert.ok(M.INTERNA_DICE.empujado.some((f) => f('Lucas').includes('Lucas')))
+  assert.ok(M.INTERNA_DICE.colado.some((f) => f('El Ninja').includes('Qué hacés acá, Ninja?'))) // sin el "El" al hablarle
 })
 
 ok('📞 Dickyllamada: un Dicky te pega el próximo tiro (con su habilidad) y te devuelve el palo; una por vuelta', () => {

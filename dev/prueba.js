@@ -415,7 +415,7 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null }) {
       const pozo = saldo(MONO)
       mover(MONO, -pozo, 'pozo')
       mover(yo.uid, Math.max(pozo, 10) + 10 * (unos - 1), 'pozo', null, { pozo })
-    } else if (unos) mover(yo.uid, 10 * unos, 'hoyo_en_uno')
+    } else if (unos && !st.movs.some((m) => m.uid === yo.uid && m.motivo === 'hoyo_en_uno' && m.dia === diaAR())) mover(yo.uid, 10, 'hoyo_en_uno') // una vez por día (19/10/2026)
   }
 
   /** Contesta un pedido del puente como la app (`sdga:match` {ok, datos, error}, `sdga:anotada` {ok}, …). */
