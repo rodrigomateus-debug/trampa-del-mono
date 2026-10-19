@@ -3287,8 +3287,12 @@ export const INTERNA_DICE = {
   elegida: [() => '¡Elegiste el amor! 💛', (n) => `Sabía que en el fondo eras Dicky, ${n} 🤗`],
   // el compañero del Equipo 5, ofendido (n = el que juega)
   ofendido: [(n) => `¿La de un Dicky, ${n}? Me ofendiste. Sin habilidad hasta el final 😤`, () => 'Traición al #Equipo5. Arreglátelas solo 😤', (n) => `${n}, eso no se hace. El Equipo 5 no perdona 😤`],
+  // la escena de cuando se cuela (19/10/2026): el Dicky que venía a atender y se queda afuera (n = el del Equipo 5 que
+  // lo empujó) y el compañero del Equipo 5 cuando se le cuela un Dicky en el fourball (n = el Dicky; "Ninja", sin el "El")
+  empujado: [() => '¡Eeeh! ¡Era para mí! 😵', (n) => `¡${n}, devolveme el teléfono! 📵`, () => '¿Y yo? Venía con todo el amor 😢'],
+  colado: [(n) => `¿Qué hacés acá, ${n.replace(/^El /, '')}? 😤`, () => 'Nadie te invitó, Dicky 🦉', () => 'Guarida lejos de los Dicky 🦉', (n) => `${n.replace(/^El /, '')}, esto es del #Equipo5 📺`],
 }
-/** Lo que dice cada uno en la interna: `que` = atiende / ayuda / tercera / elegida / ofendido; `j` = a quién le habla. */
+/** Lo que dice cada uno en la interna: `que` = atiende / ayuda / tercera / elegida / ofendido / empujado / colado; `j` = a quién le habla. */
 export const fraseInterna = (rng, que, j) => elegir(rng, INTERNA_DICE[que])(nombreDe(j))
 
 // ── 😈 la mufa y el abrazo: cuando el Equipo 5 chicanea a un Dicky, le mufa el próximo tiro (más error, el latido más
