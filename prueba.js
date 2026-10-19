@@ -41,7 +41,7 @@ class No extends Error {}
  * La app de mentira para `yo` ({ uid, alias }). `hoyos` = los hoyos del juego (M.HOYOS: tee y pin, para grabar la
  * pelota de los rivales de mentira) y `muestraMs` cada cuánto va una muestra de la grabación.
  */
-export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
+export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null }) {
   const leer = () => { try { return JSON.parse(localStorage.getItem(CLAVE)) || null } catch { return null } }
   const st = leer() ?? { movs: [], desafios: [] }
   const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(st)) } catch {} }
@@ -84,11 +84,12 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
 
   // la pelota grabada de un rival de mentira: hoyo por hoyo, de la salida a la bandera, golpe a golpe (cada muestra
   // lleva los golpes ACUMULADOS de la vuelta, como la del juego: de ahí sale el hoyo a hoyo)
-  function grabar(porHoyo) {
+  // (`pin`: las banderas del match, si se saben —el fourball—; si no, las de siempre)
+  function grabar(porHoyo, pin = null) {
     const g = []
     let ms = 0, antes = 0
     porHoyo.forEach((golpes, idx) => {
-      const h = hoyos[idx]
+      const h = pin ? { ...hoyos[idx], pin: pin[idx] } : hoyos[idx]
       for (let k = 0; k < golpes; k++) {
         const a = [h.tee[0] + ((h.pin[0] - h.tee[0]) * k) / golpes, h.tee[1] + ((h.pin[1] - h.tee[1]) * k) / golpes]
         const b = [h.tee[0] + ((h.pin[0] - h.tee[0]) * (k + 1)) / golpes, h.tee[1] + ((h.pin[1] - h.tee[1]) * (k + 1)) / golpes]
@@ -105,11 +106,11 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
     return { fantasma: g, ms }
   }
   // cómo juega un rival de mentira (cerca del par, a veces mejor)
-  function vueltaDe(rival) {
+  function vueltaDe(rival, pin = null) {
     const nivel = RIVALES.find((r) => r.user_id === rival)?.nivel ?? 12
     const porHoyo = PARES.map((p) => Math.max(2, p + azar(-1, 2) + (Math.random() < (nivel - 11) / 4 ? 1 : 0)))
     const golpes = porHoyo.reduce((a, b) => a + b, 0)
-    const { fantasma, ms } = grabar(porHoyo)
+    const { fantasma, ms } = grabar(porHoyo, pin)
     return { golpes, vs_par: golpes - 11, ms, fantasma, porHoyo }
   }
 
@@ -118,8 +119,8 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
   st.fourballs ??= []
   const LUGARES = ['a1', 'a2', 'b1', 'b2']
   const lugarDe = (f, uid) => LUGARES.find((l) => f[`${l}_id`] === uid) ?? null
-  const vueltaFb = (uid, carta = ['Lechu', '🦉']) => {
-    const v = vueltaDe(uid)
+  const vueltaFb = (uid, carta = ['Lechu', '🦉'], semilla = null) => {
+    const v = vueltaDe(uid, semilla != null && pines ? pines(semilla) : null) // (terminan en la bandera del match, como las de verdad)
     return { vuelta: { apodo: carta[0], emoji: carta[1], hoyos: v.porHoyo, golpes: v.golpes, vsPar: v.vs_par, ms: v.ms, lp: false }, fantasma: v.fantasma }
   }
   const CARTAS = [['Lechu', '🦉'], ['LG', '📺'], ['El Sueco', '🇸🇪'], ['Mapache', '🦝']]
@@ -129,7 +130,7 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
     return f
   }
   function jugarFb(f, l, uid, carta) {
-    const { vuelta, fantasma } = vueltaFb(uid, carta)
+    const { vuelta, fantasma } = vueltaFb(uid, carta, f.semilla)
     f[l] = vuelta; f[`${l}_fantasma`] = fantasma; f[`${l}_t`] = ahora()
     if (LUGARES.every((x) => f[x])) Object.assign(f, { estado: 'jugado', jugado_at: iso() })
   }

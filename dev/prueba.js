@@ -41,7 +41,7 @@ class No extends Error {}
  * La app de mentira para `yo` ({ uid, alias }). `hoyos` = los hoyos del juego (M.HOYOS: tee y pin, para grabar la
  * pelota de los rivales de mentira) y `muestraMs` cada cuánto va una muestra de la grabación.
  */
-export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
+export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null }) {
   const leer = () => { try { return JSON.parse(localStorage.getItem(CLAVE)) || null } catch { return null } }
   const st = leer() ?? { movs: [], desafios: [] }
   const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(st)) } catch {} }
@@ -84,11 +84,12 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
 
   // la pelota grabada de un rival de mentira: hoyo por hoyo, de la salida a la bandera, golpe a golpe (cada muestra
   // lleva los golpes ACUMULADOS de la vuelta, como la del juego: de ahí sale el hoyo a hoyo)
-  function grabar(porHoyo) {
+  // (`pin`: las banderas del match, si se saben —el fourball—; si no, las de siempre)
+  function grabar(porHoyo, pin = null) {
     const g = []
     let ms = 0, antes = 0
     porHoyo.forEach((golpes, idx) => {
-      const h = hoyos[idx]
+      const h = pin ? { ...hoyos[idx], pin: pin[idx] } : hoyos[idx]
       for (let k = 0; k < golpes; k++) {
         const a = [h.tee[0] + ((h.pin[0] - h.tee[0]) * k) / golpes, h.tee[1] + ((h.pin[1] - h.tee[1]) * k) / golpes]
         const b = [h.tee[0] + ((h.pin[0] - h.tee[0]) * (k + 1)) / golpes, h.tee[1] + ((h.pin[1] - h.tee[1]) * (k + 1)) / golpes]
@@ -105,12 +106,72 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
     return { fantasma: g, ms }
   }
   // cómo juega un rival de mentira (cerca del par, a veces mejor)
-  function vueltaDe(rival) {
+  function vueltaDe(rival, pin = null) {
     const nivel = RIVALES.find((r) => r.user_id === rival)?.nivel ?? 12
     const porHoyo = PARES.map((p) => Math.max(2, p + azar(-1, 2) + (Math.random() < (nivel - 11) / 4 ? 1 : 0)))
     const golpes = porHoyo.reduce((a, b) => a + b, 0)
-    const { fantasma, ms } = grabar(porHoyo)
-    return { golpes, vs_par: golpes - 11, ms, fantasma }
+    const { fantasma, ms } = grabar(porHoyo, pin)
+    return { golpes, vs_par: golpes - 11, ms, fantasma, porHoyo }
+  }
+
+  // ── el FOURBALL ⚔️ de mentira (como "el fourball" de la base): los de mentira juegan su parte solos a los pocos
+  // segundos, una pareja de mentira toma el que armaste, y siempre hay uno buscando rival y otro en el que te eligieron ──
+  st.fourballs ??= []
+  const LUGARES = ['a1', 'a2', 'b1', 'b2']
+  const lugarDe = (f, uid) => LUGARES.find((l) => f[`${l}_id`] === uid) ?? null
+  const vueltaFb = (uid, carta = ['Lechu', '🦉'], semilla = null) => {
+    const v = vueltaDe(uid, semilla != null && pines ? pines(semilla) : null) // (terminan en la bandera del match, como las de verdad)
+    return { vuelta: { apodo: carta[0], emoji: carta[1], hoyos: v.porHoyo, golpes: v.golpes, vsPar: v.vs_par, ms: v.ms, lp: false }, fantasma: v.fantasma }
+  }
+  const CARTAS = [['Lechu', '🦉'], ['LG', '📺'], ['El Sueco', '🇸🇪'], ['Mapache', '🦝']]
+  function nuevoFb(a1, a2, extra = {}) {
+    const f = { id: id(), semilla: azar(0, 4294967295), estado: 'abierto', created_at: iso(), tomado_at: null, jugado_at: null, a1_id: a1, a1_alias: nombreDe(a1), a2_id: a2, a2_alias: nombreDe(a2), b1_id: null, b1_alias: null, b2_id: null, b2_alias: null, a1: null, a2: null, b1: null, b2: null, ...extra }
+    st.fourballs.push(f)
+    return f
+  }
+  function jugarFb(f, l, uid, carta) {
+    const { vuelta, fantasma } = vueltaFb(uid, carta, f.semilla)
+    f[l] = vuelta; f[`${l}_fantasma`] = fantasma; f[`${l}_t`] = ahora()
+    if (LUGARES.every((x) => f[x])) Object.assign(f, { estado: 'jugado', jugado_at: iso() })
+  }
+  // visto por mí (como `trampa_fourball_visto`): las vueltas de los otros, sin golpes mientras yo no jugué
+  function vistoFb(f) {
+    const mio = lugarDe(f, yo.uid)
+    const ve = (mio && f[mio]) || ['jugado', 'vencido'].includes(f.estado)
+    const lado = (l) => (f[`${l}_id`] ? { uid: f[`${l}_id`], alias: f[`${l}_alias`], vuelta: !f[l] ? null : ve || l === mio ? f[l] : { apodo: f[l].apodo, emoji: f[l].emoji, oculta: true } } : null)
+    return { id: f.id, semilla: f.semilla, estado: f.estado, fecha: f.created_at, tomadoFecha: f.tomado_at, jugadoFecha: f.jugado_at, lugar: mio, a1: lado('a1'), a2: lado('a2'), b1: lado('b1'), b2: lado('b2') }
+  }
+  function mantenimientoFb() {
+    const t = ahora()
+    for (const f of st.fourballs) {
+      if (f.estado === 'abierto' && t - Date.parse(f.created_at) > 7 * 24 * H) { f.estado = 'vencido'; continue }
+      if (f.estado === 'tomado' && t - Date.parse(f.tomado_at) > 48 * H) {
+        for (const l of LUGARES) f[l] ??= { apodo: null, emoji: null, hoyos: [null, null, null], golpes: null, vsPar: null, ms: null, lp: true, noJugo: true }
+        Object.assign(f, { estado: 'jugado', jugado_at: iso() })
+        continue
+      }
+      // los de mentira juegan su parte (a los pocos segundos de que les toca)
+      LUGARES.forEach((l, k) => {
+        const uid = f[`${l}_id`]
+        if (!uid || f[l] || !esRival(uid) || f.estado === 'vencido' || f.estado === 'jugado') return
+        const desde = Date.parse(l[0] === 'a' ? f.created_at : f.tomado_at ?? f.created_at)
+        if (t - desde > RESPONDEN * (1 + (k % 2))) jugarFb(f, l, uid, CARTAS[(k + 1) % CARTAS.length])
+      })
+      // una pareja de mentira toma el que armaste vos (cuando ya jugaste)
+      if (f.estado === 'abierto' && f.a1_id === yo.uid && f.a1 && t - Date.parse(f.created_at) > RESPONDEN * 2) {
+        const libres = RIVALES.map((r) => r.user_id).filter((u) => u !== f.a2_id)
+        Object.assign(f, { b1_id: libres[0], b1_alias: nombreDe(libres[0]), b2_id: libres[1], b2_alias: nombreDe(libres[1]), estado: 'tomado', tomado_at: iso() })
+      }
+    }
+    // siempre hay uno buscando rival (de dos de mentira, con uno que ya jugó) y otro en el que te eligieron de compañero
+    if (!st.fourballs.some((f) => f.estado === 'abierto' && !lugarDe(f, yo.uid))) {
+      const f = nuevoFb('prueba:mono', 'prueba:patmig')
+      jugarFb(f, 'a1', 'prueba:mono', CARTAS[2])
+    }
+    if (!st.fourballs.some((f) => f.a2_id === yo.uid && !f.a2 && ['abierto', 'tomado'].includes(f.estado))) {
+      const f = nuevoFb('prueba:lechu', yo.uid)
+      jugarFb(f, 'a1', 'prueba:lechu', CARTAS[0])
+    }
   }
 
   // lo que la base hace sola: los rivales de mentira contestan, lo colgado se cierra, siempre hay uno que te desafió
@@ -283,6 +344,53 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
         if (cobraste) { st.clasico[semana] = true; alDia(yo.uid); mover(yo.uid, 2, 'clasico') }
         return { semana, dicky: 11, e5: 14, ganador: 'e5', cobraste }
       }
+      // ── el fourball ⚔️ (las mismas reglas que la base) ──
+      case 'fourballAbiertos': mantenimientoFb(); return st.fourballs.filter((f) => f.estado === 'abierto' && !lugarDe(f, yo.uid)).sort((a, b) => b.created_at.localeCompare(a.created_at)).map(vistoFb)
+      case 'fourballMios': mantenimientoFb(); return st.fourballs.filter((f) => lugarDe(f, yo.uid)).sort((a, b) => b.created_at.localeCompare(a.created_at)).map(vistoFb)
+      case 'fourballUno': {
+        mantenimientoFb()
+        const f = st.fourballs.find((x) => x.id === d.fourballId)
+        if (!f) throw new No('ese fourball no existe')
+        if (!lugarDe(f, yo.uid) && f.estado !== 'abierto') throw new No('ese fourball ya lo tomó otra pareja')
+        return vistoFb(f)
+      }
+      case 'fourballFantasmas': {
+        const f = st.fourballs.find((x) => x.id === d.fourballId)
+        if (!f || !lugarDe(f, yo.uid)) throw new No('no estás en ese fourball')
+        return { a1: f.a1_fantasma ?? null, a2: f.a2_fantasma ?? null, b1: f.b1_fantasma ?? null, b2: f.b2_fantasma ?? null }
+      }
+      case 'fourballCrear': {
+        if (!d.companeroId || d.companeroId === yo.uid) throw new No('elegí un compañero (vos, no)')
+        if (!esRival(d.companeroId)) throw new No('con ese jugador no se puede armar pareja')
+        const f = nuevoFb(yo.uid, d.companeroId, { semilla: d.semilla })
+        f.a1 = d.vuelta; f.a1_fantasma = d.fantasma ?? []
+        return { id: f.id }
+      }
+      case 'fourballTomar': {
+        mantenimientoFb()
+        const f = st.fourballs.find((x) => x.id === d.fourballId)
+        if (!f) throw new No('ese fourball no existe')
+        if (f.estado === 'vencido') throw new No('ese fourball ya venció')
+        if (f.estado !== 'abierto') throw new No('ya lo tomó otra pareja')
+        if ([f.a1_id, f.a2_id].includes(yo.uid)) throw new No('es tu fourball: lo tiene que tomar otra pareja')
+        if (!d.companeroId || d.companeroId === yo.uid) throw new No('elegí un compañero (vos, no)')
+        if ([f.a1_id, f.a2_id].includes(d.companeroId)) throw new No('tu compañero ya está en la otra pareja')
+        if (!esRival(d.companeroId)) throw new No('con ese jugador no se puede armar pareja')
+        Object.assign(f, { b1_id: yo.uid, b1_alias: yo.alias, b2_id: d.companeroId, b2_alias: nombreDe(d.companeroId), estado: 'tomado', tomado_at: iso() })
+        return vistoFb(f)
+      }
+      case 'fourballJugar': {
+        mantenimientoFb()
+        const f = st.fourballs.find((x) => x.id === d.fourballId)
+        if (!f) throw new No('ese fourball no existe')
+        if (['jugado', 'vencido'].includes(f.estado)) throw new No('ese fourball ya terminó')
+        const l = lugarDe(f, yo.uid)
+        if (!l) throw new No('no estás en ese fourball')
+        if (f[l]) throw new No('ya jugaste tu vuelta')
+        f[l] = d.vuelta; f[`${l}_fantasma`] = d.fantasma ?? []
+        if (LUGARES.every((x) => f[x])) Object.assign(f, { estado: 'jugado', jugado_at: iso() })
+        return vistoFb(f)
+      }
       default: throw new No('acción desconocida')
     }
   }
@@ -324,6 +432,6 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100 }) {
     }
   }
   /** Empezar de cero (todo lo de prueba). */
-  const borrar = () => { st.movs = []; st.desafios = []; guardar() }
+  const borrar = () => { st.movs = []; st.desafios = []; st.fourballs = []; guardar() }
   return { pedir, borrar, rivales: RIVALES }
 }
