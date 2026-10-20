@@ -10178,6 +10178,11 @@ const parejaTxt = (f, ls) => yoPrimero(f, ls).map((l) => nombreFb(f, l)).join(' 
 const yoPrimero = (f, ls) => (ls[1] === f.lugar ? [ls[1], ls[0]] : ls)
 const listaY = (xs) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} y ${xs[xs.length - 1]}`)
 const yaJugo = (f, l) => !!f[l]?.vuelta
+/** De la pareja que lo armó, quién ya jugó: "Ya jugó Lechu · El Mono todavía no". */
+function jugaronTxt(f, ls = ['a1', 'a2']) {
+  const si = ls.filter((l) => yaJugo(f, l)), no = ls.filter((l) => f[l] && !yaJugo(f, l))
+  return !si.length ? 'Todavía no jugaron' : !no.length ? 'Ya jugaron los dos' : `Ya jugó ${nombreFb(f, si[0])} · ${nombreFb(f, no[0])} todavía no`
+}
 /** ¿Me toca jugar? (al compañero del que lo armó, apenas lo arma; a la otra pareja, cuando lo toma) */
 const meTocaFb = (f) => !!f.lugar && !yaJugo(f, f.lugar) && (f.estado === 'tomado' || (f.estado === 'abierto' && f.lugar[0] === 'a'))
 const proTagFb = (f) => (M.esPro(f.semilla) ? `<span class="pro-tag">${gi('pro')}PRO</span>` : '')
@@ -10276,11 +10281,10 @@ function pintarBuscanRival(lista) {
   $('#mt-nota').textContent = 'Parejas que ya armaron su fourball y buscan rival. Tocá TOMAR, elegí tu compañero y jueguen su vuelta: tienen 48 h. El primero que lo toma se lo queda.'
   if (!fbAbiertos) { lista.innerHTML = `<li class="rk-vacio">${fbError ? 'No se pudo cargar la lista. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; if (!fbError) cargarFourballs(); return }
   lista.innerHTML = fbAbiertos.length ? fbAbiertos.map((f) => {
-    const jugaron = ['a1', 'a2'].filter((l) => yaJugo(f, l)).map((l) => nombreCorto(f[l].alias))
     const e = f.a1?.vuelta?.emoji ?? f.a2?.vuelta?.emoji ?? '⛳'
     return `<li class="rk-fila mt-fila">
       <span class="mini" aria-hidden="true">${esc(e)}</span>
-      <span class="rk-nombre"><b class="fb-parejas">${esc(parejaTxt(f, ['a1', 'a2']))}${proTagFb(f)}</b><small>${jugaron.length === 2 ? 'Ya jugaron los dos' : jugaron.length ? `Ya jugó ${esc(jugaron[0])}` : 'Todavía no jugaron'} · ${venceFb(f)}</small></span>
+      <span class="rk-nombre"><b class="fb-parejas">${esc(parejaTxt(f, ['a1', 'a2']))}${proTagFb(f)}</b><small>${esc(jugaronTxt(f))} · ${venceFb(f)}</small></span>
       <button class="mt-btn oro" type="button" data-fb-tomar="${esc(f.id)}">Tomar</button>
     </li>`
   }).join('') : '<li class="rk-vacio">Ninguna pareja busca rival ahora. Armá uno vos (en Armar) y mandalo por WhatsApp.</li>'
@@ -10315,8 +10319,8 @@ function pintarMisFourball(lista) {
       return `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small>${txt}</small></span>
         <span class="mt-acc"><button class="mt-btn oro" type="button" data-fb-jugar="${esc(f.id)}">${vive ? '🔌 Reconectar' : 'Jugar'}</button></span></li>`
     })),
-    sec('Buscando rival', buscando.map((f) => `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small>${faltan(f).length ? `Falta ${esc(listaY(faltan(f)))} · ` : ''}${venceFb(f)}</small></span>${wa(f, 'Mandarlo por WhatsApp para que lo tome otra pareja')}</li>`)),
-    sec('Esperando que jueguen', esperando.map((f) => `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small>Faltan ${esc(listaY(faltan(f)))} · ${venceFb(f)}</small></span>${wa(f, 'Avisarles por WhatsApp')}</li>`)),
+    sec('Buscando rival', buscando.map((f) => `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small>${faltan(f).length ? `Falta ${esc(listaY(faltan(f)))} · ` : ''}${venceFb(f)}</small></span>${wa(f, 'Mandar por WhatsApp: a otras parejas o a tu compañero')}</li>`)),
+    sec('Esperando que jueguen', esperando.map((f) => `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small>Faltan ${esc(listaY(faltan(f)))} · ${venceFb(f)}</small></span>${wa(f, 'Avisarles por WhatsApp a los que faltan')}</li>`)),
     sec('Jugados', jugados.map((f) => {
       if (f.estado === 'vencido') return `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small>Venció: ninguna pareja lo tomó</small></span><span class="mt-estado">${gi('calendar')}</span></li>`
       const c = cuentaFb(f), [pn, pe] = c.i ? [c.puntos[1], c.puntos[0]] : c.puntos
@@ -10344,8 +10348,8 @@ async function armarFb(comp) {
 /** Tomás el de otra pareja con `comp`. El primero que lo toma se lo queda (lo dice la base). */
 async function tomarFb(f, comp, boton) {
   const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">⚔️ ¿Lo toman?</p>
-    <p>Vos y <b>${esc(comp.nombre)}</b> contra <b>${esc(parejaTxt(f, ['a1', 'a2']))}</b>${proTagFb(f)}.</p>
-    <p>Desde que lo toman tienen <b>48 h</b>: cada uno juega su vuelta, con el player que quiera, viendo en vivo las pelotas de los que ya jugaron. El que no juega, LP.</p>
+    <p>Vos y <b>${esc(comp.nombre)}</b> contra <b>${esc(parejaTxt(f, ['a1', 'a2']))}</b>${proTagFb(f)}. ${esc(jugaronTxt(f).replace(' · ', '; '))}.</p>
+    <p>Desde que lo toman tienen <b>48 h</b> los cuatro (también el que todavía no jugó de ellos): cada uno juega su vuelta, con el player que quiera, viendo en vivo las pelotas de los que ya jugaron. El que no juega, LP.</p>
     <button class="carta-jugar oro" type="button" data-bn="si">Tomarlo</button>
     <button class="carta-jugar" type="button" data-bn="no">Cancelar</button>`)
   if (v !== 'si') return
@@ -10450,6 +10454,10 @@ function mensajeFbBuscar(f) {
     '⚔️ FOURBALL ABIERTO · La Trampa del Mono 🐒',
     '',
     `${listaY(nos)} buscamos rival. ¿Quién se anima? Armen pareja y tómenlo.`,
+    ...(() => {
+      const yo = yaJugo(f, f.lugar), el = yaJugo(f, companeroLugar(f.lugar)), comp = nombreCorto(f[companeroLugar(f.lugar)]?.alias ?? '')
+      return [yo && el ? 'Ya jugamos los dos: ¿nos superan? 😏' : yo ? `Yo ya jugué; ${comp} juega la suya en estos días (lo pueden tomar igual).` : el ? `${comp} ya jugó; yo juego la mía en estos días (lo pueden tomar igual).` : null].filter(Boolean)
+    })(),
     `Por hoyo, 2 puntos: la mejor pelota y la suma. Si empatan, el menor tiempo sumado.${M.esPro(f.semilla) ? ' En MODO PRO 🎯.' : ''}`,
     'Cada uno juega su vuelta cuando puede, con el player que quiera (tienen 48 h desde que lo toman).',
     '',
@@ -10457,8 +10465,8 @@ function mensajeFbBuscar(f) {
     `${AYUDA_FB} → Buscan rival.`,
   ].join('\n')
 }
-function mensajeFbFaltan(f) {
-  const faltan = LUGARES_FB.filter((l) => l !== f.lugar && f[l] && !yaJugo(f, l)).map((l) => nombreCorto(f[l].alias))
+function mensajeFbFaltan(f, ls = rivalesDe(f.lugar)) {
+  const faltan = ls.filter((l) => l !== f.lugar && f[l] && !yaJugo(f, l)).map((l) => nombreCorto(f[l].alias))
   return [
     '⏰ FOURBALL · La Trampa del Mono 🐒',
     '',
@@ -10475,6 +10483,22 @@ function mensajeFbResultado(f) {
   const titulo = c.gano > 0 ? `🏆 Con ${comp} le ganamos el fourball a ${contra}` : c.gano < 0 ? `😵 ${contra} nos ganaron el fourball (a ${comp} y a mí)` : `🤝 Empatamos el fourball con ${contra} (${comp} y yo)`
   const hoyos = c.hoyos.map((h) => `${h.n}: ${h.puntos ? `${M.formatoPuntos(h.puntos[c.i])}–${M.formatoPuntos(h.puntos[1 - c.i])}` : '—'}`).join(' · ')
   return ['⚔️ FOURBALL · La Trampa del Mono 🐒', '', titulo, `${M.formatoPuntos(pn)} a ${M.formatoPuntos(pe)}${c.porTiempo ? ' · lo definió el tiempo sumado' : ''}`, `Hoyo a hoyo: ${hoyos}`, '', `¿Revancha? SDGApp → Juegos → MATCH ⚔️ → 2 VS 2 ${R.linkMatch()}`].join('\n')
+}
+/**
+ * Lo que se puede mandar por WhatsApp de un fourball tuyo, según cómo está: el resultado; a tu compañero, si todavía no
+ * jugó (con el link, "te toca"); a otras parejas, si busca rival; a los rivales que faltan. [{ txt, msg }]
+ */
+function avisosFb(f) {
+  if (f.estado === 'jugado') return [{ txt: 'Compartir', msg: () => mensajeFbResultado(f) }]
+  if (f.estado !== 'abierto' && f.estado !== 'tomado') return []
+  const out = [], cl = companeroLugar(f.lugar)
+  if (f[cl] && !yaJugo(f, cl)) out.push({ txt: `Avisale a ${nombreCorto(f[cl].alias)}`, msg: () => mensajeFbCompanero(f) })
+  if (f.estado === 'abierto') out.push({ txt: 'Buscar rival', msg: () => mensajeFbBuscar(f) })
+  else {
+    const faltan = rivalesDe(f.lugar).filter((l) => f[l] && !yaJugo(f, l))
+    if (faltan.length) out.push({ txt: faltan.length === 1 ? `Avisale a ${nombreCorto(f[faltan[0]].alias)}` : 'Avisales a los rivales', msg: () => mensajeFbFaltan(f, faltan) })
+  }
+  return out
 }
 /** Un texto para mandar: el menú de compartir del teléfono; si no hay, WhatsApp; si no se abre, copiado. */
 async function compartirTexto(texto) {
@@ -10567,12 +10591,24 @@ function pintarResultadoFb(el, f) {
     if (c.gano > 0) S.embocada()
     return
   }
-  const faltan = LUGARES_FB.filter((l) => l !== f.lugar && f[l] && !yaJugo(f, l)).map((l) => nombreCorto(f[l].alias))
+  const faltan = [companeroLugar(f.lugar), ...rivalesDe(f.lugar)].filter((l) => f[l] && !yaJugo(f, l)).map((l) => nombreCorto(f[l].alias)) // (tu compañero, primero)
   const sinRival = !f[rivalesDe(f.lugar)[0]]
-  el.innerHTML = `<p class="tm-veredicto enviado">${gi('match')}<span>Vuelta anotada<small>${sinRival ? 'falta que lo tome otra pareja' : `faltan ${esc(listaY(faltan))}`}</small></span></p>${tabla}
+  // los avisos: a tu compañero si todavía no jugó y, aparte, a otras parejas (si busca rival) o a los rivales que faltan
+  const avisos = avisosFb(f)
+  el.innerHTML = `<p class="tm-veredicto enviado">${gi('match')}<span>Vuelta anotada<small>${sinRival ? (faltan.length ? `falta ${esc(listaY(faltan))} y que lo tome otra pareja` : 'falta que lo tome otra pareja') : `faltan ${esc(listaY(faltan))}`}</small></span></p>${tabla}
     <p class="tm-nota">${sinRival ? `Está en Buscan rival · ${venceFb(f)}` : `${venceFb(f).replace(/^v/, 'V')} · el que no juega, LP · el resultado te llega a MATCH › 2 VS 2`}</p>
-    <div class="tm-acciones uno"><button class="btn-wa" type="button">${ICONO_WA}${sinRival ? 'Buscar rival' : 'Avisales'}</button></div>`
-  el.querySelector('.btn-wa').addEventListener('click', () => compartirTexto(sinRival ? mensajeFbBuscar(f) : mensajeFbFaltan(f)))
+    <div class="tm-acciones${avisos.length === 1 ? ' uno' : ''}">${avisos.map((a, k) => `<button class="btn-wa" type="button" data-aviso="${k}">${ICONO_WA}${esc(a.txt)}</button>`).join('')}</div>`
+  el.querySelectorAll('[data-aviso]').forEach((b) => b.addEventListener('click', () => compartirTexto(avisos[+b.dataset.aviso].msg())))
+}
+/** El botón de WhatsApp de una fila de Tus fourball: si hay un solo aviso, directo; si hay más, cuál. */
+async function avisarFb(f) {
+  const avisos = avisosFb(f)
+  if (avisos.length < 2) { if (avisos[0]) compartirTexto(avisos[0].msg()); return }
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">💬 ¿A quién se lo mandás?</p>
+    <p>${esc(parejaTxt(f, parejaDe(f.lugar)))} contra ${f[rivalesDe(f.lugar)[0]] ? esc(parejaTxt(f, rivalesDe(f.lugar))) : 'la pareja que lo tome'}.</p>
+    ${avisos.map((a, k) => `<button class="btn-wa" type="button" data-bn="${k}">${ICONO_WA}${esc(a.txt)}</button>`).join('')}
+    <button class="carta-jugar" type="button" data-bn="no">Cancelar</button>`)
+  if (v != null && avisos[+v]) compartirTexto(avisos[+v].msg())
 }
 /**
  * ⚔️ El marcador del fourball en vivo: vos, tu compañero y los rivales que ya jugaron (sus golpes salen de su fantasma) y
@@ -10663,8 +10699,7 @@ $('#mt-lista').addEventListener('click', async (e) => {
   const wa = e.target.closest('[data-fb-wa]')
   if (wa) {
     const f = fbMios?.find((x) => x.id === wa.dataset.fbWa)
-    if (!f) return
-    compartirTexto(f.estado === 'jugado' ? mensajeFbResultado(f) : f.estado === 'abierto' ? mensajeFbBuscar(f) : mensajeFbFaltan(f))
+    if (f) avisarFb(f)
     return
   }
   const det = !e.target.closest('button') && e.target.closest('[data-fb-detalle]')
