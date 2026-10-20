@@ -1,7 +1,8 @@
 // node test-motor.mjs — chequeos del motor de La Trampa del Mono.
 import assert from 'node:assert/strict'
 import * as M from './motor.js'
-import { RULETA, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEOS, PLANTEL } from './plantel.js'
+import { RULETA, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS, PLANTEL, EN_PRUEBA } from './plantel.js'
+import * as C3 from './campo3d.js' // 🥃 la cancha de Rorro (sin three)
 
 const campo = M.crearCampo()
 // para probar la física sola: sin monos cruzando y con greens planos
@@ -2576,6 +2577,116 @@ ok('🛺 el carrito divertido: mini turbo del derrape, cáscaras (trompo), bocin
   assert.ok(!M.chocarRacha(r, 12) && r.racha === 0)
   const otro = { ...M.nuevaRonda({ apodo: 'Rorro', emoji: '🥃' }, fijo(0.5)), racha: 2 }
   assert.ok(!M.chocarRacha(otro, 12))
+})
+
+ok('🥃 Rorro: en el mazo con candado (una vuelta con cada uno), su habilidad, no en la Ruleta; su cancha 3D no mueve los greens', () => {
+  const rorro = PLANTEL.find((j) => j.apodo === 'Rorro')
+  assert.ok(EN_PRUEBA.includes('Rorro') && DESBLOQUEOS.includes(DESBLOQUEO_RORRO))
+  assert.equal(M.habilidadDe(rorro).id, 'codigo')
+  assert.ok(!RULETA.pool.some((j) => j.apodo === 'Rorro'))
+  // los del mazo, sin la Ruleta, sin el pase de Fito y sin él
+  assert.ok(!DESBLOQUEO_RORRO.con.some((a) => ['La Ruleta', 'Fito (5)', 'Rorro'].includes(a)))
+  const casi = DESBLOQUEO_RORRO.con.filter((a) => a !== 'Taiu (Đ)')
+  let p = M.progresoDesbloqueo(DESBLOQUEO_RORRO, {}, casi)
+  assert.equal(p.listo, false); assert.equal(p.hechos, casi.length)
+  assert.equal(M.progresoDesbloqueo(DESBLOQUEO_RORRO, { 'Taiu (Đ)': 3 }, casi).listo, true) // una firmada también cuenta
+  // Fito cuenta con cualquiera de sus dos cartas
+  const sinFito = DESBLOQUEO_RORRO.con.filter((a) => a !== 'Fito (Đ)')
+  assert.equal(M.progresoDesbloqueo(DESBLOQUEO_RORRO, {}, [...sinFito, 'Fito (5)']).listo, true)
+  assert.equal(M.progresoDesbloqueo(DESBLOQUEO_RORRO, {}, sinFito).listo, false)
+  // la cancha de Rorro (campo3d.js): el relieve de los greens va para donde cae la pelota y los greens no se mueven
+  const C = C3
+  for (const h of M.HOYOS) {
+    let cos = 0, n = 0
+    for (let y = h.pin[1] - 20; y < h.pin[1] + 20; y++) for (let x = h.pin[0] - 20; x < h.pin[0] + 20; x++) {
+      if ([[0, 0], [2, 0], [-2, 0], [0, 2], [0, -2]].some(([dx, dy]) => C.letraBase([x + dx, y + dy]) !== 'g')) continue
+      const z = (a, b) => C.muestra(C.CAPA.relieve, a, b), g = [z(x + 1, y) - z(x - 1, y), z(x, y + 1) - z(x, y - 1)], v = M.caidaEn(h, [x, y])
+      cos += -(g[0] * v[0] + g[1] * v[1]) / (Math.hypot(...g) * Math.hypot(...v) + 1e-9); n++
+    }
+    assert.ok(n > 50 && cos / n > 0.85, `hoyo ${h.n}: ${cos / n}`)
+  }
+  C.est.bumps = [{ id: 1, cx: 0.04, cy: 0.02, r: 0, tipo: 2, vx: 6, vy: 3, desde: 1, hasta: 1 }]
+  for (const h of M.HOYOS) assert.ok(Math.hypot(...C.desplazo(h.pin, true)) < 1e-9)
+  assert.ok(Math.hypot(...C.desplazo([110, 230], true)) > 0.5) // lejos de los greens, sí se mueve
+  C.est.bumps = []
+})
+
+ok('⚔️ fourball: mejor y suma (2 puntos por hoyo, ½ en empate), LP por hoyo y el desempate por tiempo sumado', () => {
+  const j = (hoyos, ms = 60000, lp = false) => ({ hoyos, ms, lp })
+  // hoyo 15: mejor A 4 vs B 4 (½-½), suma A 9 vs B 10 (1-0) · 16: mejor 3 vs 4 (1-0), suma 8 vs 8 (½-½) · 17: B gana los dos
+  let r = M.resultadoFourball([j([4, 3, 4]), j([5, 5, 3])], [j([4, 4, 2]), j([6, 4, 3])])
+  assert.deepEqual(r.hoyos.map((h) => h.puntos), [[1.5, 0.5], [1.5, 0.5], [0, 2]])
+  assert.deepEqual(r.puntos, [3, 3])
+  assert.ok(r.completo)
+  // 3 a 3: el tiempo sumado (A 120 s, B 120 s → empate; B más rápido → gana B)
+  assert.equal(r.ganador, 0)
+  r = M.resultadoFourball([j([4, 3, 4]), j([5, 5, 3])], [j([4, 4, 2], 50000), j([6, 4, 3])])
+  assert.equal(r.ganador, -1)
+  assert.ok(r.porTiempo)
+  assert.deepEqual(r.tiempos, [120000, 110000])
+  // gana por puntos (sin mirar el tiempo)
+  r = M.resultadoFourball([j([3, 3, 3], 999999), j([4, 4, 3])], [j([4, 4, 3]), j([5, 5, 4])])
+  assert.deepEqual(r.puntos, [5.5, 0.5])
+  assert.equal(r.ganador, 1)
+  assert.equal(r.porTiempo, false)
+  // LP en el 16: en el 16 y el 17 cuenta la mejor del compañero y la pareja pierde la suma; sin tiempo, pierde el desempate
+  r = M.resultadoFourball([j([4, null, null], 30000, true), j([4, 4, 3])], [j([4, 5, 3]), j([4, 5, 3])])
+  assert.deepEqual(r.hoyos.map((h) => h.puntos), [[1, 1], [1, 1], [0.5, 1.5]])
+  assert.deepEqual(r.puntos, [2.5, 3.5])
+  assert.equal(r.tiempos[0], null)
+  r = M.resultadoFourball([j([4, null, null], 30000, true), j([4, 4, 3])], [j([4, 4, 3]), j([4, 5, 3])])
+  assert.deepEqual(r.puntos, [2, 4])
+  // los dos de una pareja levantaron en el mismo hoyo: la otra se lleva los dos puntos
+  r = M.resultadoFourball([j([5, null, null], 1, true), j([5, null, null], 1, true)], [j([5, 9, 9]), j([5, 9, 9])])
+  assert.deepEqual(r.hoyos.map((h) => h.puntos), [[1, 1], [0, 2], [0, 2]])
+  // 3 a 3 con una pareja sin tiempo (uno levantó en el 17): gana la otra por tiempo
+  r = M.resultadoFourball([j([4, 4, 2]), j([4, 4, null], 1, true)], [j([4, 4, 3]), j([4, 4, 3])])
+  assert.deepEqual(r.puntos, [3, 3])
+  assert.equal(r.ganador, -1)
+  assert.ok(r.porTiempo)
+  // en vivo: un hoyo que no jugaron los cuatro no cuenta todavía
+  r = M.resultadoFourball([j([4, 4]), j([5])], [j([4, 4, 3]), null])
+  assert.deepEqual(r.hoyos.map((h) => h.puntos), [null, null, null])
+  r = M.resultadoFourball([j([4, 4]), j([5, 5])], [j([4, 4, 3]), j([5])])
+  assert.deepEqual(r.hoyos.map((h) => h.puntos), [[1, 1], null, null])
+  assert.equal(r.completo, false)
+  assert.equal(r.ganador, 0)
+  // los puntos con medios y los golpes de la tarjeta
+  assert.deepEqual([0, 0.5, 3, 3.5, 6].map(M.formatoPuntos), ['0', '½', '3', '3½', '6'])
+  assert.deepEqual(M.hoyosDeTarjeta([{ golpes: 5 }, { golpes: 4, lp: true }]), [5, null, null])
+})
+
+ok('⚔️ fourball: el ranking de jugadores y parejas (G/E/P), sin el lugar vacío y con la vuelta oculta como LP', () => {
+  const v = (hoyos, ms = 60000) => ({ apodo: 'LG', emoji: '📺', hoyos, golpes: hoyos.reduce((a, b) => a + (b ?? 0), 0), vsPar: 0, ms, lp: hoyos.includes(null) })
+  const l = (uid, alias, vuelta) => ({ uid, alias, vuelta })
+  const noJugo = { apodo: null, emoji: null, hoyos: [null, null, null], golpes: null, vsPar: null, ms: null, lp: true, noJugo: true }
+  const jugados = [
+    // Rorro y Lechu le ganan a Mono y Patmig (5½ a ½)
+    { id: '1', fecha: '2026-10-20T10:00:00Z', a1: l('r', 'Rorro', v([3, 3, 3])), a2: l('l', 'Lechu', v([4, 4, 3])), b1: l('m', 'El Mono', v([4, 4, 3])), b2: l('p', 'Patmig', v([5, 5, 4])) },
+    // la revancha: Mono y Patmig arman, Lechu y Rorro (al revés) pierden
+    { id: '2', fecha: '2026-10-21T10:00:00Z', a1: l('m', 'El Mono', v([3, 3, 2])), a2: l('p', 'Patmig', v([4, 4, 3])), b1: l('l', 'Lechu', v([4, 4, 3])), b2: l('r', 'Rorro', v([5, 5, 4])) },
+    // Rorro con Fito contra el Mono y un lugar vacío que venció (no suma para nadie): 3 a 3 y, sin tiempo la pareja
+    // del vacío, ganan Rorro y Fito
+    { id: '3', fecha: '2026-10-19T10:00:00Z', a1: l('r', 'Rorro', v([4, 4, 3])), a2: l('f', 'Fito', v([4, 4, 3])), b1: l('m', 'El Mono', v([3, 3, 2])), b2: { uid: null, alias: '—', vuelta: noJugo } },
+  ]
+  const { jugadores, parejas } = M.rankingFourball(jugados)
+  const de = (uid) => jugadores.find((x) => x.uid === uid)
+  assert.deepEqual([de('r').jugados, de('r').ganados, de('r').empatados, de('r').perdidos], [3, 2, 0, 1])
+  assert.equal(de('r').ultimo, '2026-10-21T10:00:00Z')
+  assert.deepEqual(de('r').con.map((c) => [c.uid, c.ganados, c.perdidos]).sort(), [['f', 1, 0], ['l', 1, 1]])
+  assert.deepEqual([de('m').jugados, de('m').ganados, de('m').perdidos], [3, 1, 2])
+  assert.equal(jugadores.length, 5) // r, l, m, p, f: el vacío no está
+  assert.ok(!jugadores.some((x) => x.uid == null))
+  // la pareja es la misma armen o tomen, y sin importar quién es a1: Rorro y Lechu, 1-1
+  const rl = parejas.find((x) => x.uids.join() === 'l,r')
+  assert.deepEqual([rl.jugados, rl.ganados, rl.perdidos], [2, 1, 1])
+  // el Mono con el lugar vacío no es pareja
+  assert.equal(parejas.length, 3)
+  // el orden: más ganados, menos perdidos, más jugados
+  assert.deepEqual([...jugadores].sort(M.ordenFourball).map((x) => x.uid).slice(0, 2), ['r', 'f'])
+  // la vuelta que no se ve (oculta) o que falta cuenta como LP
+  assert.equal(M.jugadorFourball({ apodo: 'LG', emoji: '📺', oculta: true }), null)
+  assert.deepEqual(M.jugadorFourball(v([4, 4, 3])), { hoyos: [4, 4, 3], ms: 60000, lp: false })
 })
 
 console.log('\nTodo verde.')

@@ -1305,6 +1305,32 @@ input { -webkit-user-select: text; user-select: text; }
 .mt-fila .mini { width: 30px; height: 30px; font-size: 16px; }
 .mt-fila .rk-nombre small.gana { color: var(--green-500); }
 .mt-fila .rk-nombre small.pierde { color: var(--red); }
+/* ⚔️ el fourball: el interruptor 1 VS 1 / 2 VS 2, las parejas ("vos y Lechu vs El Mono y Patmig") y el elegir compañero */
+.mt-modo { margin: 2px 4px 8px 0; }
+.mt-modo button { position: relative; flex-direction: column; gap: 3px; height: 46px; font-size: 18px; white-space: nowrap; }
+.mt-modo small { font: 800 9px/1 var(--font-body); letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+.mt-modo .aviso { position: absolute; top: -10px; right: -6px; margin: 0; }
+/* (20/10/2026) cuatro pestañas (con el Ranking): una grilla de 2 × 2, como la del 1 VS 1 */
+#fb-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 24px; }
+#fb-tabs button { height: 40px; padding: 0 6px; gap: 5px; font-size: 15px; line-height: 1.05; white-space: nowrap; }
+#fb-tabs button .gi { flex: none; }
+#fb-tabs button { position: relative; }
+#fb-tabs .aviso { position: absolute; top: -9px; right: -5px; margin: 0; }
+@media (max-width: 360px) { #fb-tabs button { font-size: 13px; } }
+/* el apuro (6 h o menos para jugar, "tu compañero no puede"), tu récord arriba de los jugados y las novedades al entrar */
+.fb-urgente, .mt-fila .rk-nombre small.fb-urgente, .mt-fila .rk-nombre small .fb-urgente { color: var(--red); font-weight: 800; font-style: normal; }
+.fb-record { list-style: none; display: flex; align-items: center; gap: 8px; margin: 10px 0 0; padding: 8px 12px; border-radius: 12px; background: rgba(232, 195, 74, .24); font: 800 12px var(--font-body); letter-spacing: .04em; text-align: left; }
+.fb-record > span { flex: 1; min-width: 0; text-transform: uppercase; color: var(--green-900); }
+.fb-record > b { font: 18px/1 var(--font-display); color: var(--green-900); }
+.fb-novedades { margin: 0 0 4px; padding: 0; list-style: none; display: grid; gap: 7px; text-align: left; }
+.fb-novedades li { padding: 8px 10px; border-radius: 12px; background: rgba(20, 64, 42, .07); font-size: 14px; line-height: 1.35; }
+.fb-revancha { margin-top: 12px; }
+.fb-vs { display: inline-block; margin: 0 4px; font: 800 10px/1 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); font-style: normal; }
+.mt-fila .rk-nombre b.fb-parejas { white-space: normal; line-height: 1.2; }
+.fb-toma { display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-bottom: 4px; border-radius: 12px; background: rgba(232, 195, 74, .2); font: 600 13px/1.3 var(--font-body); color: var(--green-900); list-style: none; }
+.fb-toma .mt-btn { flex: none; }
+#bn-cuerpo .btn-wa { width: 100%; margin: 2px 0 10px; }
+.fb-copiar { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 10px; border: 1px solid var(--border-subtle); font: 13px/1.4 var(--font-body); color: var(--green-900); background: #fff; resize: none; }
 /* ── el replay del match: la cancha entera de fondo, los jugadores arriba y los controles abajo ── */
 #replay { position: fixed; inset: 0; z-index: 55; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; color: var(--cream); }
 #replay[hidden] { display: none; }
@@ -1691,6 +1717,32 @@ input { -webkit-user-select: text; user-select: text; }
 .marcador.final td.t { font-size: 16px; line-height: 1.05; color: var(--text-muted); }
 .marcador.final td.t.vacio { color: rgba(20, 64, 42, .3); }
 .marcador.final td.t small { display: block; font: 700 11px var(--font-body); color: var(--red); }
+/* ⚔️ el fourball: en vivo, hasta cuatro filas (vos, tu compañero y los dos rivales) y los puntos de cada pareja; en el
+   resultado, cada pareja con sus dos jugadores y abajo sus puntos hoyo a hoyo (mejor pelota + suma) */
+.marcador.fb tbody th { height: 21px; font-size: 13px; }
+.marcador.fb tbody th .e { font-size: 12px; margin-right: 4px; }
+.marcador.fb td { font-size: 16px; }
+.marcador.fb tbody tr.nos th { color: #8a6a12; }
+.marcador.fb tbody tr.nada th, .marcador.fb tbody tr.nada td { opacity: .45; }
+.marcador.fb td.pts { font-size: 19px; border-left: 2px solid var(--border-subtle); }
+.marcador.fb td.pts.gano { color: var(--green-500); }
+.marcador.fb td.pts.pierdo { color: var(--red); }
+.marcador.fb tr.par1 td, .marcador.fb tr.par1 th { border-top: 2px solid var(--border-subtle); }
+.marcador.fb tbody tr:first-child td.ahora, .marcador.fb tbody tr:last-child td.ahora { border-radius: 0; }
+.marcador.final.fb tbody th { height: 26px; font-size: 13px; }
+.marcador.final.fb td { font-size: 18px; }
+.marcador.final.fb tr.fbp th { font: 800 10px/1 var(--font-body); letter-spacing: .1em; color: var(--text-muted); }
+.marcador.final.fb tr.fbp td { font-size: 17px; background: rgba(20, 64, 42, .06); }
+.marcador.final.fb tr.fbp td.gano { color: var(--green-500); background: rgba(46, 125, 79, .16); }
+.marcador.final.fb tr.fbp td.pierde { color: var(--red); }
+.marcador.final.fb tr.fbp.gano th { color: var(--green-500); }
+.marcador.final.fb tr.fbj.yo th { color: var(--green-900); }
+.marcador.final.fb tr.sep td { height: 8px; }
+.marcador.final.fb td.tot small { font-size: 10px; }
+.fb-tiempos { margin: 4px 0 0; font: 600 12px/1.35 var(--font-body); color: var(--text-muted); text-align: center; }
+.fb-tiempos b { color: var(--green-900); }
+.fb-tiempos.decide b { color: var(--red); }
+.fb-reglas { margin: 6px 0 0; font: 600 11px/1.35 var(--font-body); color: var(--text-muted); text-align: center; }
 .marcador.final thead th.t.decide { color: var(--green-900); }
 .marcador.final td.t.decide { color: var(--green-900); background: rgba(232, 195, 74, .4); }
 .marcador.final tbody tr:first-child td.t.decide { border-radius: 8px 8px 0 0; }
@@ -2675,13 +2727,23 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   <div class="card tarjeta ranking">
     <header>
       <span class="teja" aria-hidden="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M7.5 4.5L22 23.5M24.5 4.5L10 23.5"/><path d="M7.5 4.5l2 2.6M24.5 4.5l-2 2.6" stroke-width="5"/><rect x="19.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><rect x="4.5" y="22" width="8" height="4" rx="2" style="fill:var(--gi-a)"/><circle cx="16" cy="24.5" r="2.5" style="fill:var(--gi-f)"/></g></svg></span>
-      <div><span class="kicker" style="color: var(--text-muted)">Uno contra uno · mismo clima, viento y banderas</span><div class="quien" id="mt-tit">MATCH</div></div>
+      <div><span class="kicker" style="color: var(--text-muted)" id="mt-kicker">Uno contra uno · mismo clima, viento y banderas</span><div class="quien" id="mt-tit">MATCH</div></div>
     </header>
+    <div class="rk-modo mt-modo" id="mt-modo" role="tablist" aria-label="Modalidad">
+      <button type="button" role="tab" data-modo="1v1" aria-selected="true">1 VS 1<small>desafío</small></button>
+      <button type="button" role="tab" data-modo="2v2" aria-selected="false">2 VS 2<small>fourball</small><b class="aviso" id="fb-aviso-modo" hidden></b></button>
+    </div>
     <div class="rk-ambito" id="mt-tabs" role="tablist" aria-label="Match">
       <button type="button" role="tab" data-mt="desafiar" aria-selected="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="14" cy="18" r="10" style="fill:var(--gi-f)"/><circle cx="14" cy="18" r="5.5" style="fill:var(--gi-a)"/><circle cx="14" cy="18" r="1.8" style="fill:var(--gi-s)" stroke="none"/><path d="M14 18L25 7"/><path d="M25 3.5V7h3.5"/></g></svg>Desafiar</button>
       <button type="button" role="tab" data-mt="mios" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M16 5.5v2"/><path d="M13.5 25a2.7 2.7 0 0 0 5 0"/><path d="M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z" style="fill:var(--gi-a)"/></g></svg>Pendientes<b class="aviso" id="mt-aviso" hidden></b></button>
       <button type="button" role="tab" data-mt="historial" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="5" y="7" width="22" height="20" rx="3" style="fill:var(--gi-f)"/><path d="M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z" style="fill:var(--gi-a)"/><path d="M11 4.5v5M21 4.5v5"/><rect x="9.5" y="17" width="4.5" height="4" rx="1" style="fill:var(--gi-s)" stroke="none"/></g></svg>Historial</button>
       <button type="button" role="tab" data-mt="ranking" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="4.5" y="15.5" width="7.5" height="11.5" rx="1" style="fill:var(--gi-f)"/><rect x="20" y="18.5" width="7.5" height="8.5" rx="1" style="fill:var(--gi-f)"/><rect x="12" y="9.5" width="8" height="17.5" rx="1" style="fill:var(--gi-a)"/><path d="M14.8 14l1.7-1.2v6" stroke-width="2.2"/></g></svg>Ranking</button>
+    </div>
+    <div class="rk-ambito" id="fb-tabs" role="tablist" aria-label="Fourball" hidden>
+      <button type="button" role="tab" data-fb="armar" aria-selected="true"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="21" cy="10.5" r="4.5" style="fill:var(--gi-a)"/><path d="M14 25a7.5 7.5 0 0 1 15 0z" style="fill:var(--gi-a)"/><circle cx="12" cy="12.5" r="5" style="fill:var(--gi-f)"/><path d="M3.5 27a8.5 8.5 0 0 1 17 0z" style="fill:var(--gi-f)"/></g></svg>Armar</button>
+      <button type="button" role="tab" data-fb="buscan" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><circle cx="14" cy="18" r="10" style="fill:var(--gi-f)"/><circle cx="14" cy="18" r="5.5" style="fill:var(--gi-a)"/><circle cx="14" cy="18" r="1.8" style="fill:var(--gi-s)" stroke="none"/><path d="M14 18L25 7"/><path d="M25 3.5V7h3.5"/></g></svg>Buscan rival</button>
+      <button type="button" role="tab" data-fb="mios" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M16 5.5v2"/><path d="M13.5 25a2.7 2.7 0 0 0 5 0"/><path d="M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z" style="fill:var(--gi-a)"/></g></svg>Tus fourball<b class="aviso" id="fb-aviso" hidden></b></button>
+      <button type="button" role="tab" data-fb="ranking" aria-selected="false"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><rect x="4.5" y="15.5" width="7.5" height="11.5" rx="1" style="fill:var(--gi-f)"/><rect x="20" y="18.5" width="7.5" height="8.5" rx="1" style="fill:var(--gi-f)"/><rect x="12" y="9.5" width="8" height="17.5" rx="1" style="fill:var(--gi-a)"/><path d="M14.8 14l1.7-1.2v6" stroke-width="2.2"/></g></svg>Ranking</button>
     </div>
     <p class="mt-prueba" id="mt-prueba" hidden>🧪 <b>MATCH DE PRUEBA</b> · rivales y bananas de mentira, en este teléfono. Los rivales contestan solos al ratito. <button type="button" id="mt-prueba-borrar">Empezar de cero</button></p>
     <button class="bn-barra" id="bn-barra" type="button" hidden></button>
@@ -6303,7 +6365,7 @@ function dibujar() {
   dibujarLlevados()
   dibujarMarcasTiro()
   dibujarDestello()
-  if (ronda?.duelo?.fantasma) dibujarFantasma()
+  if (ronda?.duelo) dibujarFantasma()
   if (replay) dibujarReplay()
   if (ronda && !ronda.terminada) {
     if (anim) dibujarAnim()
@@ -6340,11 +6402,16 @@ function dibujar3d() {
   const aJ = estado === 'apuntar' && drag ? apunte() : null
   const m = medirHud()
   const enPutt = !!ronda && !ronda.terminada && (tiro ? tiro.modo === 'putt' : M.enModoPutt(campo, ronda))
-  let fant = null
-  if (ronda?.duelo?.fantasma && ronda.t0 != null && !ronda.terminada) { const f = M.fantasmaEn(ronda.duelo.fantasma, ronda.ms ?? performance.now() - ronda.t0); if (f && !f.fin && f.idx === ronda.idx) fant = f }
+  // las pelotas ajenas del match (en el fourball, hasta tres), las que van en tu hoyo
+  const fants = []
+  if (ronda?.duelo && ronda.t0 != null && !ronda.terminada) {
+    const ms = ronda.ms ?? performance.now() - ronda.t0
+    for (const x of fantasmasVivos()) { const f = M.fantasmaEn(x.g, ms); if (f && !f.fin && f.idx === ronda.idx) fants.push({ ...f, color: x.color3d ?? null, quien: x }) }
+  }
+  const fant = fants[0] ?? null
   try {
     r3d.cuadro(dtCuadro, {
-      estado, ronda, tiro, anim, drag: !!drag, enPutt, apunte: aJ, golfista: estadoGolfista(aJ), fantasma: fant,
+      estado, ronda, tiro, anim, drag: !!drag, enPutt, apunte: aJ, golfista: estadoGolfista(aJ), fantasma: fant, fantasmas: fants,
       pancho: pancho && comenPancho().length ? pancho.hasta : null, // 🌭 mientras comen, la cámara se abre para verlo
       // 🪄 el Dibuje maestro: hasta dónde le da el carry (en yardas del dibujo), para que la cámara lo muestre entero
       dibuje: esDibuje() && (estado === 'apuntar' || estado === 'cambio') ? { max: maxDibuje(), dibujando: !!trazo } : null,
@@ -6355,6 +6422,7 @@ function dibujar3d() {
   dibujarMarcasTiro()
   dibujarDestello()
   monos3dHud()
+  fantasmas3dHud(fants)
   // la habilidad que Rorro le copió a otro: lo que en el juego de siempre se dibuja arriba de la cancha
   dibujarPancho()
   dibujarLlevados()
@@ -6385,6 +6453,24 @@ function dibujar3d() {
     const ang = tiro && estado === 'tiro' ? r3d.anguloEnBola(ronda.viento.ang) : angPantalla(ronda.pelota, ronda.viento.ang) // (en la pelota: la que vuela, si vuela)
     const f = $('#v-flecha')
     if (Math.abs((f._ang ?? 99) - ang) > 0.01) { f.style.transform = `rotate(${ang}rad)`; f._ang = ang }
+  }
+}
+/** En la cancha 3D, arriba de cada pelota ajena que se ve: su cartelito (emoji y nombre), apilados si caen juntas. */
+function fantasmas3dHud(fants) {
+  if (!fants.length || r3d.enIntro()) return
+  const puestos = [], marcas = [], arriba = medirHud().card ?? 20, v = visible()
+  for (const f of fants) {
+    const [x, y, adelante] = r3d.aPantalla(f.pos, f.alt ?? 0)
+    if (!adelante || x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1) {
+      // fuera de cuadro: la marca en el borde, para el lado donde está (como los monos)
+      const [bx, by] = w2s(ronda.pelota), d = Math.max(1e-6, M.dist(f.pos, ronda.pelota)), k = 2 / d
+      const [qx, qy] = w2s([ronda.pelota[0] + (f.pos[0] - ronda.pelota[0]) * k, ronda.pelota[1] + (f.pos[1] - ronda.pelota[1]) * k])
+      indicadorFantasma(f, bx + (qx - bx) * 1e3, by + (qy - by) * 1e3, v, f.quien, marcas)
+      continue
+    }
+    const sube = puestos.filter(([px, py]) => Math.abs(px - x) < 60 && Math.abs(py - y) < 22).length * 22
+    puestos.push([x, y])
+    cartelPelota(x, y, 7, f.quien.emoji ?? '👻', f.quien.alias ?? '', false, arriba, H - 90, '#f4eeda', 0.85, sube)
   }
 }
 /**
@@ -9247,6 +9333,8 @@ function tablaMatch(filas) {
 // (matchModo se declara arriba, con el secreto) lo que sigue al elegir player: { tipo: 'reto', rival, semilla } | { tipo: 'respuesta', desafio, fantasma }
 let mtTab = 'desafiar'
 let mtRivales = null, mtDesafios = null, mtError = null
+// ⚔️ el fourball (2 VS 2): más abajo, con su pantalla
+let mtModo = '1v1', fbTab = 'armar', fbMios = null, fbAbiertos = null, fbError = null, fbElige = null
 const VISTOS = 'sdga-trampa-match-vistos-v1'
 const vistos = () => new Set(leerJSON(VISTOS) ?? [])
 function leerJSON(k) { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } }
@@ -9257,13 +9345,13 @@ function pendientesMatch(ds = mtDesafios) {
   if (!ds) return 0
   const v = vistos()
   const n = ds.filter((d) => (d.estado === 'pendiente' && d.rival.uid === yoUid()) || (d.estado === 'jugado' && d.retador.uid === yoUid() && !v.has(d.id))).length
-  // 🔌 y el que quedó por la mitad (si no es uno de esos)
+  // 🔌 y el que quedó por la mitad (si no es uno de esos; el del fourball va con los del fourball)
   const vivo = leerVivo()?.ronda?.duelo
-  return n + (vivo && !ds.some((d) => d.estado === 'pendiente' && d.id === vivo.desafio?.id) ? 1 : 0)
+  return n + (vivo && vivo.tipo !== 'fourball' && !ds.some((d) => d.estado === 'pendiente' && d.id === vivo.desafio?.id) ? 1 : 0)
 }
 function pintarAvisoMatch() {
-  const n = pendientesMatch()
-  for (const el of [$('#match-aviso'), $('#mt-aviso')]) { el.hidden = !n; el.textContent = n }
+  const n = pendientesMatch(), nf = pendientesFb()
+  for (const [el, k] of [[$('#match-aviso'), n + nf], [$('#mt-aviso'), n], [$('#fb-aviso'), nf], [$('#fb-aviso-modo'), mtModo === '2v2' ? 0 : nf]]) { el.hidden = !k; el.textContent = k }
 }
 async function cargarDesafios() {
   try { mtDesafios = await R.leerDesafios(); mtError = null } catch (e) { mtError = e; mtDesafios ??= null }
@@ -9661,7 +9749,7 @@ $('#mt-lista').addEventListener('keydown', (e) => {
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
   const { crearPrueba } = await import('./prueba.js')
-  pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs })
+  pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs, pines: (semilla) => M.condicionesMatch(semilla).pines.map((x) => x.pin) })
   R.usarPrueba(pruebaApp, entrar ? yo : null)
   $('#mt-prueba').hidden = false
 }
@@ -9707,7 +9795,7 @@ async function mostrarMatch(tab = mtTab) {
   mtRankingError = null
   $('#match').hidden = false
   pintarMatch()
-  const [rv] = await Promise.allSettled([mtRivales ? Promise.resolve(mtRivales) : R.leerRivales(), cargarDesafios(), cargarBananas(), R.leerCamisetas().then((m) => { camisetasDe = m })])
+  const [rv] = await Promise.allSettled([mtRivales ? Promise.resolve(mtRivales) : R.leerRivales(), cargarDesafios(), cargarBananas(), cargarFourballs(), R.leerCamisetas().then((m) => { camisetasDe = m })])
   if (rv.status === 'fulfilled') mtRivales = rv.value
   else mtError = rv.reason
   pintarMatch()
@@ -9722,8 +9810,16 @@ function resultadoPara(d) {
 }
 const golpesTxt = (x) => (x.golpes == null || x.lp ? 'LP 💅' : `${x.golpes} (${M.formatoPar(x.vsPar)})`)
 function pintarMatch() {
-  for (const b of $('#mt-tabs').children) b.setAttribute('aria-selected', String(b.dataset.mt === mtTab))
+  for (const b of $('#mt-modo').children) b.setAttribute('aria-selected', String(b.dataset.modo === mtModo))
+  const fb = mtModo === '2v2'
+  $('#mt-tabs').hidden = fb
+  $('#fb-tabs').hidden = !fb
+  $('#mt-kicker').textContent = fb ? 'Dos contra dos · mejor pelota y suma' : 'Uno contra uno · mismo clima, viento y banderas'
+  $('#mt-buscar').placeholder = fb ? 'Buscar compañero…' : 'Buscar rival…'
   pintarAvisoMatch()
+  if (fb) { pintarFourball($('#mt-lista')); return }
+  $('#bn-barra').hidden = !hayBananas || !bananas
+  for (const b of $('#mt-tabs').children) b.setAttribute('aria-selected', String(b.dataset.mt === mtTab))
   const lista = $('#mt-lista')
   $('#mt-buscar').hidden = mtTab !== 'desafiar'
   $('#mt-pro').hidden = mtTab !== 'desafiar'
@@ -9987,6 +10083,8 @@ const tabConAviso = () => {
  */
 async function entrarPorAviso({ replayId = null, desdeLink = false } = {}) {
   if (replayId || desdeLink) await cargarDesafios()
+  if (!replayId && !pendientesMatch() && pendientesFb()) { mtModo = '2v2'; fbTab = 'mios'; fbElige = null; await mostrarMatch(); return } // ⚔️
+  if (replayId || pendientesMatch()) mtModo = '1v1'
   const tab = replayId ? 'historial' : tabConAviso()
   const yo = yoUid(), v = vistos()
   const jugados = (mtDesafios ?? []).filter((d) => d.estado === 'jugado')
@@ -9998,7 +10096,7 @@ async function entrarPorAviso({ replayId = null, desdeLink = false } = {}) {
   if (d && !$('#match').hidden && !replay) abrirReplay(mtDesafios?.find((x) => x.id === d.id) ?? d)
 }
 $('#ver-match').addEventListener('click', () => entrarPorAviso())
-$('#mt-volver').addEventListener('click', () => { $('#match').hidden = true; pintarAvisoMatch() })
+$('#mt-volver').addEventListener('click', () => { $('#match').hidden = true; fbElige = null; pintarAvisoMatch() })
 $('#mt-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('[data-mt]')
   if (!b) return
@@ -10074,6 +10172,931 @@ $('#mt-lista').addEventListener('click', async (e) => {
   }
 })
 
+// ── el FOURBALL ⚔️ (19/10/2026, pedido de Rorro): 2 contra 2 a distancia, mejor pelota y suma ──
+// El que arma elige compañero y juega su vuelta; después lo manda por WhatsApp (el link abre el fourball) y queda en
+// "Buscan rival", la lista de la app (para los que tienen la SDGApp instalada como web app y el link no se les abre
+// adentro). Otra pareja lo toma y desde ahí los cuatro tienen 48 h. Cada uno juega su vuelta cuando puede, contra los
+// fantasmas de los que ya jugaron (tu compañero en dorado, los rivales en celeste). Por hoyo, 2 puntos: 1 la mejor
+// pelota y 1 la suma de los dos (½ y ½ si empatan); 3 a 3, el menor tiempo sumado. Por el honor.
+// (20/10/2026, "sí a los 9") Los cuatro juegan con el MISMO player, el que eligió el que lo armó (el player cambia la
+// puntería); el compañero puede decir "No puedo" antes de jugar (y el que lo armó, o el que lo tomó, elige otro); el que
+// lo armó lo puede bajar mientras nadie lo tomó; se puede desafiar a una pareja puntual (solo ellos lo toman: lo aceptan
+// o lo rechazan) y pedir la revancha de uno jugado; el ranking de jugadores y parejas; el apuro (6 h o menos, en rojo) y
+// las novedades al entrar ("Lechu jugó su vuelta"). La foto de quién había jugado la lee también la SDGApp, para su aviso.
+// Las reglas: motor.js `resultadoFourball` y `rankingFourball`; los datos: ranking.js (la base de la SDGApp, "el FOURBALL").
+const LUGARES_FB = M.LUGARES_FOURBALL
+const parejaDe = (l) => (l?.[0] === 'b' ? ['b1', 'b2'] : ['a1', 'a2'])
+const rivalesDe = (l) => (l?.[0] === 'b' ? ['a1', 'a2'] : ['b1', 'b2'])
+const companeroLugar = (l) => ({ a1: 'a2', a2: 'a1', b1: 'b2', b2: 'b1' })[l]
+const nombreFb = (f, l) => (l === f.lugar ? 'Vos' : f[l]?.uid || f[l]?.vuelta ? nombreCorto(f[l].alias) : '¿?')
+const parejaTxt = (f, ls) => yoPrimero(f, ls).map((l) => nombreFb(f, l)).join(' y ')
+const yoPrimero = (f, ls) => (ls[1] === f.lugar ? [ls[1], ls[0]] : ls)
+const listaY = (xs) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} y ${xs[xs.length - 1]}`)
+const yaJugo = (f, l) => !!f[l]?.vuelta
+/** De la pareja que lo armó, quién ya jugó: "Ya jugó Lechu · El Mono todavía no". */
+function jugaronTxt(f, ls = ['a1', 'a2']) {
+  const si = ls.filter((l) => yaJugo(f, l)), no = ls.filter((l) => f[l] && !yaJugo(f, l))
+  return !si.length ? 'Todavía no jugaron' : !no.length ? 'Ya jugaron los dos' : `Ya jugó ${nombreFb(f, si[0])} · ${nombreFb(f, no[0])} todavía no`
+}
+/** ¿Me toca jugar? (al compañero del que lo armó, apenas lo arma; a la otra pareja, cuando lo toma) */
+const meTocaFb = (f) => !!f.lugar && !yaJugo(f, f.lugar) && (f.estado === 'tomado' || (f.estado === 'abierto' && f.lugar[0] === 'a'))
+const proTagFb = (f) => (M.esPro(f.semilla) ? `<span class="pro-tag">${gi('pro')}PRO</span>` : '')
+/** El player de los cuatro: el del que lo armó ("🦉 Lechu"), o null si todavía no se sabe. */
+const playerFb = (f) => { const v = f?.a1?.vuelta; return v?.apodo ? `${v.emoji ?? ''} ${apodoLimpio(v.apodo)}`.trim() : null }
+/** Las horas que le quedan a uno tomado (48 desde que lo tomaron), o null si todavía no corre el reloj. */
+function horasFb(f) {
+  const t = f.estado === 'tomado' ? Date.parse(f.tomadoFecha) : NaN
+  return t ? Math.max(0, Math.ceil((t + M.FOURBALL.venceTomado - Date.now()) / 3600e3)) : null
+}
+/** El apuro: con 6 h o menos para jugar, en rojo. */
+const URGENTE_FB = 6
+const urgenteFb = (f) => { const h = horasFb(f); return h != null && h <= URGENTE_FB }
+/** Un desafío a tu pareja que todavía no aceptaron (solo ustedes lo pueden tomar). */
+const desafioAmiFb = (f) => f.estado === 'abierto' && !f.lugar && !!f.para?.some((p) => p.uid === yoUid())
+/** El otro de la pareja desafiada: tu compañero, si lo aceptás. */
+const otroParaFb = (f) => f.para?.find((p) => p.uid !== yoUid()) ?? null
+/** "El Mono y Lechu": la pareja desafiada. */
+const paraTxt = (f) => (f.para ?? []).map((p) => nombreCorto(p.alias)).join(' y ')
+/** Te quedaste sin compañero (dijo que no puede): lo armaste o lo tomaste y su lugar está vacío. */
+const sinCompaneroFb = (f) => ['abierto', 'tomado'].includes(f.estado) && (f.lugar === 'a1' || f.lugar === 'b1') && !f[companeroLugar(f.lugar)]?.uid
+/** El que lo armó o lo tomó y te eligió de compañero (si sos a2 o b2). */
+const teEligioFb = (f) => (f.lugar === 'a2' ? f.a1 : f.lugar === 'b2' ? f.b1 : null)
+/** Tu compañero en el fourball que estás por jugar (matchModo / ronda.duelo). */
+const companeroFb = (m) => m.companero?.nombre ?? m.fb?.[companeroLugar(m.lugar)]?.alias ?? 'tu compañero'
+/** Contra quién (para los avisos): la otra pareja o, si todavía nadie lo tomó, la que lo tome. */
+function contraFb(d) {
+  const f = d.fb, ls = rivalesDe(d.lugar)
+  if (f?.[ls[0]]) return ls.map((l) => nombreCorto(f[l]?.alias)).join(' y ')
+  const para = d.rivales ?? f?.para?.map((p) => ({ nombre: p.alias }))
+  return para ? para.map((r) => nombreCorto(r.nombre)).join(' y ') : 'la pareja que lo tome'
+}
+/** Cuánto le queda: sin tomar, 7 días para que lo tomen; tomado, 48 h para que jueguen los cuatro. */
+function venceFb(f) {
+  const tomado = f.estado === 'tomado'
+  const desde = Date.parse(tomado ? f.tomadoFecha : f.fecha)
+  if (!desde) return ''
+  const h = Math.max(1, Math.ceil((desde + (tomado ? M.FOURBALL.venceTomado : M.FOURBALL.venceAbierto) - Date.now()) / 3600e3))
+  return h > 48 ? `vence en ${Math.ceil(h / 24)} días` : `vence en ${h} h`
+}
+/** La cuenta (motor.js), vista por mí: `i` el índice de mi pareja en `puntos` y `tiempos`; `gano` 1 / −1 / 0 para ella. */
+function cuentaFb(f) {
+  const j = (l) => M.jugadorFourball(f[l]?.vuelta)
+  const res = M.resultadoFourball([j('a1'), j('a2')], [j('b1'), j('b2')])
+  const i = f.lugar?.[0] === 'b' ? 1 : 0
+  return { ...res, i, gano: i ? -res.ganador : res.ganador }
+}
+// los que tengo que mirar: los que me toca jugar y los jugados que todavía no vi (y el que quedó por la mitad)
+const VISTOS_FB = 'sdga-trampa-fourball-vistos-v1'
+const vistosFb = () => new Set(leerJSON(VISTOS_FB) ?? [])
+function marcarVistosFb(ids) {
+  const v = vistosFb()
+  if (ids.every((id) => v.has(id))) return
+  try { localStorage.setItem(VISTOS_FB, JSON.stringify([...new Set([...v, ...ids])].slice(-300))) } catch {}
+}
+function pendientesFb() {
+  const v = vistosFb(), vivo = leerVivo()?.ronda?.duelo
+  const vivoFb = vivo?.tipo === 'fourball' ? vivo : null
+  // (20/10/2026) también los desafíos a tu pareja y los que se quedaron sin tu compañero (elegí otro)
+  const n = (fbMios ?? []).filter((f) => (meTocaFb(f) && f.id !== vivoFb?.fb?.id) || (f.estado === 'jugado' && !v.has(f.id)) || desafioAmiFb(f) || sinCompaneroFb(f)).length
+  return n + (vivoFb ? 1 : 0)
+}
+// 📸 la foto: quién había jugado cada uno de tus fourball la última vez que miraste ({ [id]: ['a1', 'b2', …] }). De ahí
+// salen las novedades al entrar ("Lechu jugó su vuelta") y el aviso del Inicio de la SDGApp (lee este mismo localStorage)
+const FOTO_FB = 'sdga-trampa-fourball-foto-v1'
+const quienesJugaronFb = (f) => LUGARES_FB.filter((l) => yaJugo(f, l))
+function sacarFotoFb(lista = fbMios) {
+  if (lista) escribirJSON(FOTO_FB, Object.fromEntries(lista.map((f) => [f.id, quienesJugaronFb(f)])))
+}
+let fbCargando = null
+async function cargarFourballs() {
+  fbCargando ??= Promise.allSettled([R.leerFourballs(), R.leerFourballsAbiertos()]).then(([m, a]) => {
+    if (m.status === 'fulfilled') { fbMios = m.value; fbError = null } else fbError = m.reason
+    if (a.status === 'fulfilled') fbAbiertos = a.value
+    else fbError ??= a.reason
+  }).finally(() => { fbCargando = null })
+  await fbCargando
+  pintarAvisoMatch()
+  if (mtModo === '2v2' && !$('#match').hidden) pintarMatch()
+}
+/** La pestaña con la que se abre el 2 VS 2: lo que te toca, si hay; si no, las parejas que buscan rival; si no, armar. */
+const tabFb = () => (pendientesFb() ? 'mios' : fbAbiertos?.length ? 'buscan' : fbMios?.some((f) => ['abierto', 'tomado'].includes(f.estado)) ? 'mios' : 'armar')
+function pintarFourball(lista) {
+  for (const b of $('#fb-tabs').children) b.setAttribute('aria-selected', String(b.dataset.fb === fbTab))
+  $('#bn-barra').hidden = true
+  // elegir de la lista: tu compañero (armar), con quién lo tomás (buscan), la pareja que desafiás (armar, `rival`) u otro
+  // compañero porque el tuyo no puede (tus fourball, `cambiar`)
+  const elige = fbTab === 'armar' || (fbTab === 'buscan' && !!fbElige) || (fbTab === 'mios' && fbElige?.modo === 'cambiar')
+  $('#mt-buscar').hidden = !elige
+  $('#mt-pro').hidden = fbTab !== 'armar' || fbElige?.modo === 'rival'
+  $('#mt-pro').setAttribute('aria-pressed', String(mtPro))
+  if (fbError?.pronto) {
+    $('#mt-buscar').hidden = $('#mt-pro').hidden = true
+    $('#mt-nota').textContent = 'Dos parejas, a distancia: cada uno juega su vuelta cuando puede. Por hoyo, la mejor pelota y la suma.'
+    lista.innerHTML = '<li class="rk-vacio">El fourball llega con la próxima actualización de la SDGApp. 🏗️</li>'
+    return
+  }
+  if (elige) pintarCompaneros(lista)
+  else if (fbTab === 'buscan') pintarBuscanRival(lista)
+  else if (fbTab === 'ranking') pintarRankingFb(lista)
+  else pintarMisFourball(lista)
+}
+const miniRival = (uid, nombre) => {
+  const ce = camisetasDe.get(uid)
+  return ce ? `<span class="mini cam${ce === 'e5' ? ' e5' : ''}" aria-hidden="true"><img src="${EQUIPOS[ce].logo}" alt="" draggable="false"></span>` : `<span class="mini" aria-hidden="true">${esc(String(nombre).charAt(0).toUpperCase())}</span>`
+}
+/**
+ * Elegir de la lista: tu compañero para armar uno; con quién tomás el de otra pareja (`fbElige.fb`); los dos de la pareja
+ * que desafiás (`fbElige.modo === 'rival'`, después del compañero) u otro compañero porque el tuyo no puede
+ * (`fbElige.modo === 'cambiar'`).
+ */
+function pintarCompaneros(lista) {
+  const modo = fbElige?.modo ?? null
+  const f = fbTab === 'buscan' || modo === 'cambiar' ? fbElige?.fb : null
+  const pl = f && playerFb(f) ? `con ${playerFb(f)} (el player de los cuatro)` : 'con el player de los cuatro'
+  $('#mt-nota').textContent = modo === 'cambiar'
+    ? `Tu compañero no puede: elegí otro. Juega su vuelta cuando pueda, ${pl}, viendo en vivo las pelotas de los que ya jugaron.`
+    : modo === 'rival'
+      ? `Elegí la pareja que desafiás: ${fbElige.rivales.length ? 'ahora el otro' : 'primero uno y después el otro'}. Solo ellos lo pueden tomar: lo aceptan o lo rechazan.`
+      : f
+        ? `Elegí con quién lo tomás. Juegan contra ${parejaTxt(f, ['a1', 'a2'])}: cada uno su vuelta, cuando pueda, ${pl}. Tienen 48 h; el que no juega, LP.`
+        : 'Elegí tu compañero; después, si lo dejás abierto o desafiás a una pareja. Elegís el player de los cuatro (los otros juegan con el mismo) y jugás tu vuelta. Cada uno juega cuando puede y ve en vivo las pelotas de los que ya jugaron. Por hoyo, 2 puntos: 1 la mejor pelota y 1 la suma. Si empatan, el menor tiempo sumado. Por el honor.'
+  if (!mtRivales) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudo cargar la lista. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; return }
+  const q = $('#mt-buscar').value.trim().toLowerCase()
+  const fuera = new Set(modo === 'rival' ? [fbElige.comp.uid, ...fbElige.rivales.map((r) => r.uid)]
+    : modo === 'cambiar' ? [...LUGARES_FB.map((l) => f[l]?.uid), ...(f.para ?? []).map((p) => p.uid)]
+      : f ? [f.a1?.uid, f.a2?.uid] : [])
+  const rs = mtRivales.filter((r) => !fuera.has(r.uid) && (!q || r.nombre.toLowerCase().includes(q)))
+  const cab = modo === 'rival'
+    ? `<li class="fb-toma"><button class="mt-btn chico" type="button" data-fb-cancelar>‹ Volver</button><span>Vos y <b>${esc(nombreCorto(fbElige.comp.nombre))}</b> contra <b>${esc([...fbElige.rivales.map((r) => nombreCorto(r.nombre)), '¿?'].slice(0, 2).join(' y '))}</b></span></li>`
+    : modo === 'cambiar'
+      ? `<li class="fb-toma"><button class="mt-btn chico" type="button" data-fb-cancelar>‹ Volver</button><span>Otro compañero contra <b>${f[rivalesDe(f.lugar)[0]] ? esc(parejaTxt(f, rivalesDe(f.lugar))) : f.para ? esc(paraTxt(f)) : 'la pareja que lo tome'}</b>${proTagFb(f)}</span></li>`
+      : f ? `<li class="fb-toma"><button class="mt-btn chico" type="button" data-fb-cancelar>‹ Volver</button><span>Tomás el fourball de <b>${esc(parejaTxt(f, ['a1', 'a2']))}</b>${proTagFb(f)}</span></li>` : ''
+  const txt = modo === 'rival' ? 'Desafiar' : 'Elegir'
+  lista.innerHTML = cab + (rs.length ? rs.map((r) => {
+    const ce = camisetasDe.get(r.uid)
+    const datosFila = [ce ? (ce === 'dicky' ? 'Dicky' : 'Equipo&nbsp;5') : '', r.sdga ? '⛳&nbsp;SDGA' : ''].filter(Boolean)
+    return `<li class="rk-fila mt-fila">
+      ${miniRival(r.uid, r.nombre)}
+      <span class="rk-nombre"><b>${esc(r.nombre)}</b>${datosFila.length ? `<small class="mt-datos">${datosFila.join(' · ')}</small>` : ''}</span>
+      <button class="mt-btn${!f && mtPro ? ' pro' : ''}" type="button" data-fb-con="${esc(r.uid)}">${!f && mtPro ? `${gi('pro')}${txt}` : txt}</button>
+    </li>`
+  }).join('') : `<li class="rk-vacio">${q ? 'Nadie con ese nombre.' : 'Todavía no hay con quién armar pareja.'}</li>`)
+}
+function pintarBuscanRival(lista) {
+  $('#mt-nota').textContent = 'Parejas que ya armaron su fourball y buscan rival. Tocá TOMAR, elegí tu compañero y jueguen su vuelta, con el player de los cuatro: tienen 48 h. El primero que lo toma se lo queda.'
+  if (!fbAbiertos) { lista.innerHTML = `<li class="rk-vacio">${fbError ? 'No se pudo cargar la lista. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; if (!fbError) cargarFourballs(); return }
+  const emoji = (f) => `<span class="mini" aria-hidden="true">${esc(f.a1?.vuelta?.emoji ?? f.a2?.vuelta?.emoji ?? '⛳')}</span>`
+  const sec = (t, filas) => (filas.length ? `${t ? `<li class="mt-sec">${t}</li>` : ''}${filas.join('')}` : '')
+  // arriba, los desafíos a tu pareja (solo ustedes lo pueden tomar: aceptar o rechazar)
+  const retos = fbAbiertos.filter(desafioAmiFb), otros = fbAbiertos.filter((f) => !f.para)
+  const html = sec('Te desafiaron', retos.map((f) => `<li class="rk-fila mt-fila">${emoji(f)}
+      <span class="rk-nombre"><b class="fb-parejas">${esc(parejaTxt(f, ['a1', 'a2']))}<i class="fb-vs">vs</i>vos y ${esc(nombreCorto(otroParaFb(f)?.alias))}${proTagFb(f)}</b><small>${venceFb(f).replace(/^v/, 'V')}${playerFb(f) ? ` · con ${esc(playerFb(f))}` : ''}</small></span>
+      <span class="mt-acc"><button class="mt-btn oro" type="button" data-fb-aceptar="${esc(f.id)}">Aceptar</button><button class="mt-btn chico" type="button" data-fb-rechazar="${esc(f.id)}">Rechazar</button></span>
+    </li>`)) + sec(retos.length && otros.length ? 'Buscan rival' : '', otros.map((f) => `<li class="rk-fila mt-fila">${emoji(f)}
+      <span class="rk-nombre"><b class="fb-parejas">${esc(parejaTxt(f, ['a1', 'a2']))}${proTagFb(f)}</b><small>${esc(jugaronTxt(f))}${playerFb(f) ? ` · con ${esc(playerFb(f))}` : ''} · ${venceFb(f)}</small></span>
+      <button class="mt-btn oro" type="button" data-fb-tomar="${esc(f.id)}">Tomar</button>
+    </li>`))
+  lista.innerHTML = html || '<li class="rk-vacio">Ninguna pareja busca rival ahora. Armá uno vos (en Armar) y mandalo por WhatsApp.</li>'
+}
+/**
+ * Tus fourball: sin terminar, los desafíos a tu pareja, los que se quedaron sin tu compañero, los que te toca jugar, los
+ * tuyos que buscan rival, los que esperan a otros y los jugados (con tu récord arriba). Pintarlos saca la foto (📸).
+ */
+function pintarMisFourball(lista) {
+  $('#mt-nota').textContent = 'Por hoyo, 2 puntos: 1 la mejor pelota de la pareja y 1 la suma de los dos (½ y ½ si empatan). 3 a 3: gana el menor tiempo sumado. Los cuatro juegan con el mismo player. Sin tomar, vence a los 7 días; tomado, tienen 48 h (el que no juega, LP). Tocá un jugado para ver el hoyo a hoyo y pedir la revancha.'
+  if (!fbMios) { lista.innerHTML = `<li class="rk-vacio">${fbError ? 'No se pudieron cargar tus fourball. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; if (!fbError) cargarFourballs(); return }
+  const vivo = leerVivo()?.ronda
+  const vd = vivo?.duelo?.tipo === 'fourball' ? vivo.duelo : null
+  const sec = (t, filas) => (filas.length ? `<li class="mt-sec">${t}</li>${filas.join('')}` : '')
+  const contra = (f) => (f[rivalesDe(f.lugar)[0]] ? esc(parejaTxt(f, rivalesDe(f.lugar))) : f.para ? esc(paraTxt(f)) : '¿?')
+  const parejas = (f) => `<b class="fb-parejas">${esc(parejaTxt(f, parejaDe(f.lugar)))}<i class="fb-vs">vs</i>${contra(f)}${proTagFb(f)}</b>`
+  const emoji = (f) => `<span class="mini" aria-hidden="true">${esc(f[f.lugar]?.vuelta?.emoji ?? f.a1?.vuelta?.emoji ?? '⛳')}</span>`
+  const wa = (f, que) => `<button class="wa-mini" type="button" data-fb-wa="${esc(f.id)}" aria-label="${que}">${ICONO_WA}</button>`
+  const faltan = (f) => LUGARES_FB.filter((l) => l !== f.lugar && f[l] && !yaJugo(f, l)).map((l) => nombreCorto(f[l].alias))
+  const con = (f) => (playerFb(f) ? `Con ${esc(playerFb(f))} · ` : '')
+  const vence = (f) => (urgenteFb(f) ? `<em class="fb-urgente">¡Te quedan ${horasFb(f)} h!</em>` : venceFb(f).replace(/^v/, 'V'))
+  const retos = fbMios.filter(desafioAmiFb)
+  const solos = fbMios.filter(sinCompaneroFb)
+  const toca = fbMios.filter((f) => meTocaFb(f) && !sinCompaneroFb(f))
+  const buscando = fbMios.filter((f) => f.estado === 'abierto' && f.lugar && !meTocaFb(f) && !sinCompaneroFb(f))
+  const esperando = fbMios.filter((f) => f.estado === 'tomado' && !meTocaFb(f) && !sinCompaneroFb(f))
+  // los jugados y vencidos; de los bajados, solo los que no bajaste vos (el desafío que no aceptaron)
+  const jugados = fbMios.filter((f) => f.estado === 'jugado' || f.estado === 'vencido' || (f.estado === 'cancelado' && f.bajadoPor && f.bajadoPor !== yoUid()))
+    .sort((a, b) => String(b.jugadoFecha ?? b.fecha).localeCompare(String(a.jugadoFecha ?? a.fecha)))
+  const v = vistosFb()
+  const rec = M.rankingFourball(jugados.filter((f) => f.estado === 'jugado')).jugadores.find((x) => x.uid === yoUid())
+  const html = [
+    sec('Sin terminar', vd && !vd.fb ? [`<li class="rk-fila mt-fila">
+        <span class="mini" aria-hidden="true">${esc(vivo.carta.emoji)}</span>
+        <span class="rk-nombre"><b class="fb-parejas">Vos y ${esc(nombreCorto(companeroFb(vd)))}<i class="fb-vs">vs</i>${vd.rivales ? esc(contraFb(vd)) : '¿?'}</b><small>Quedó por la mitad: hoyo ${M.hoyoActual(vivo).n}</small></span>
+        <span class="mt-acc"><button class="mt-btn oro" type="button" data-reconectar>🔌 Reconectar</button></span>
+      </li>`] : []),
+    sec('Te desafiaron', retos.map((f) => `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre"><b class="fb-parejas">${esc(parejaTxt(f, ['a1', 'a2']))}<i class="fb-vs">vs</i>vos y ${esc(nombreCorto(otroParaFb(f)?.alias))}${proTagFb(f)}</b><small>${f.revanchaDe ? 'Quieren la revancha · ' : ''}${f.revanchaDe ? venceFb(f) : venceFb(f).replace(/^v/, 'V')}${playerFb(f) ? ` · con ${esc(playerFb(f))}` : ''}</small></span>
+        <span class="mt-acc"><button class="mt-btn oro" type="button" data-fb-aceptar="${esc(f.id)}">Aceptar</button><button class="mt-btn chico" type="button" data-fb-rechazar="${esc(f.id)}">Rechazar</button></span></li>`)),
+    sec('Sin compañero', solos.map((f) => `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small class="fb-urgente">Tu compañero no puede: elegí otro</small></span>
+        <span class="mt-acc"><button class="mt-btn oro" type="button" data-fb-otro="${esc(f.id)}">Elegir otro</button>${meTocaFb(f) ? `<button class="mt-btn chico" type="button" data-fb-jugar="${esc(f.id)}">Jugar mi vuelta</button>` : ''}</span></li>`)),
+    sec('Te toca jugar', toca.map((f) => {
+      const vive = vd?.fb?.id === f.id
+      const jugaron = LUGARES_FB.filter((l) => l !== f.lugar && yaJugo(f, l)).map((l) => nombreCorto(f[l].alias))
+      const txt = vive ? `Quedó por la mitad: hoyo ${M.hoyoActual(vivo).n}` : f.estado === 'abierto' ? `${con(f)}te eligió ${esc(nombreCorto(f.a1.alias))}`
+        : `${vence(f)} · ${jugaron.length ? `ya ${jugaron.length === 1 ? 'jugó' : 'jugaron'} ${esc(listaY(jugaron))}` : 'todavía no jugó nadie'}${playerFb(f) ? ` · con ${esc(playerFb(f))}` : ''}`
+      const noPuedo = !vive && (f.lugar === 'a2' || f.lugar === 'b2') ? `<button class="mt-btn chico" type="button" data-fb-nopuedo="${esc(f.id)}">No puedo</button>` : ''
+      return `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small${urgenteFb(f) ? ' class="fb-urgente"' : ''}>${txt}</small></span>
+        <span class="mt-acc"><button class="mt-btn oro" type="button" data-fb-jugar="${esc(f.id)}">${vive ? '🔌 Reconectar' : 'Jugar'}</button>${noPuedo}</span></li>`
+    })),
+    sec('Buscando rival', buscando.map((f) => {
+      const txt = f.para ? 'Esperando que acepten' : faltan(f).length ? `Falta ${esc(listaY(faltan(f)))}` : 'Jugaron los dos'
+      const bajar = f.lugar === 'a1' ? `<span class="mt-acc"><button class="mt-btn chico" type="button" data-fb-bajar="${esc(f.id)}">Bajarlo</button></span>` : ''
+      return `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small>${txt} · ${venceFb(f)}</small></span>${bajar}${wa(f, f.para ? 'Mandarles el desafío por WhatsApp' : 'Mandar por WhatsApp: a otras parejas o a tu compañero')}</li>`
+    })),
+    sec('Esperando que jueguen', esperando.map((f) => `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small>Faltan ${esc(listaY(faltan(f)))} · ${venceFb(f)}</small></span>${wa(f, 'Avisarles por WhatsApp a los que faltan')}</li>`)),
+    rec ? `<li class="fb-record"><span>Tu récord en el fourball</span>${wdlMatch(rec.ganados, rec.empatados, rec.perdidos)}<b>${pctGanados(rec)}%</b></li>` : '',
+    sec('Jugados', jugados.map((f) => {
+      if (f.estado === 'vencido') return `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small>Venció: ninguna pareja lo tomó</small></span><span class="mt-estado">${gi('calendar')}</span></li>`
+      if (f.estado === 'cancelado') {
+        const quien = f.para?.find((p) => p.uid === f.bajadoPor)
+        return `<li class="rk-fila mt-fila">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small>${quien ? `${esc(nombreCorto(quien.alias))} no lo aceptó` : 'Lo bajaron'}</small></span><span class="mt-estado">${gi('close', 'pierde')}</span></li>`
+      }
+      const c = cuentaFb(f), [pn, pe] = c.i ? [c.puntos[1], c.puntos[0]] : c.puntos
+      return `<li class="rk-fila mt-fila tocable" data-fb-detalle="${esc(f.id)}" tabindex="0" aria-label="Ver el fourball hoyo a hoyo">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small class="${c.gano > 0 ? 'gana' : c.gano < 0 ? 'pierde' : ''}">${c.gano > 0 ? 'Ganaron' : c.gano < 0 ? 'Perdieron' : 'Empate'} ${M.formatoPuntos(pn)} a ${M.formatoPuntos(pe)}${c.porTiempo ? ' · por tiempo sumado' : ''}</small></span>
+        <span class="mt-estado">${!v.has(f.id) ? gi('bell', 'nuevo') : c.gano > 0 ? gi('trophy') : c.gano < 0 ? gi('close', 'pierde') : gi('friends')}</span>${wa(f, 'Mandar el resultado por WhatsApp')}</li>`
+    })),
+  ].join('')
+  lista.innerHTML = html || '<li class="rk-vacio">Todavía no tenés fourball. Armá uno (en Armar) o tomá el de una pareja que busca rival.</li>'
+  marcarVistosFb(jugados.filter((f) => f.estado === 'jugado').map((f) => f.id))
+  sacarFotoFb()
+}
+/** Armás uno con `comp`: ¿contra cualquiera (queda en Buscan rival) o desafiás a una pareja? */
+async function armarFb(comp) {
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">⚔️ ¿Contra quién?</p>
+    <p>Vos y <b>${esc(comp.nombre)}</b>. ¿Lo dejás abierto, para la primera pareja que lo tome, o desafiás a una pareja? Al desafío lo pueden tomar solo ellos: lo aceptan o lo rechazan.</p>
+    <button class="carta-jugar oro" type="button" data-bn="cualquiera">Contra cualquiera</button>
+    <button class="carta-jugar" type="button" data-bn="pareja">Contra una pareja</button>
+    <button class="carta-jugar" type="button" data-bn="no">Cancelar</button>`)
+  if (v === 'pareja') {
+    fbElige = { modo: 'rival', comp: { uid: comp.uid, nombre: comp.nombre }, rivales: [] }
+    $('#mt-buscar').value = ''
+    pintarMatch()
+  } else if (v === 'cualquiera') confirmarArmarFb(comp, null)
+}
+/** Elegiste uno de la pareja que desafiás: con el segundo, a confirmar. */
+function elegirRivalFb(r) {
+  const e = fbElige
+  e.rivales = [...e.rivales, { uid: r.uid, nombre: r.nombre }]
+  $('#mt-buscar').value = ''
+  if (e.rivales.length === 2) fbElige = null
+  pintarMatch()
+  if (!fbElige) confirmarArmarFb(e.comp, e.rivales)
+}
+/**
+ * El último paso de armar uno (o la revancha, `revanchaDe`): lo explica y al mazo, a elegir el player de los cuatro y
+ * jugar tu vuelta. `rivales` = la pareja que desafiás ([{ uid, nombre }] o null, contra cualquiera).
+ */
+async function confirmarArmarFb(comp, rivales, revanchaDe = null, pro = mtPro) {
+  const n = esc(nombreCorto(comp.nombre))
+  const contra = rivales ? esc(rivales.map((r) => nombreCorto(r.nombre)).join(' y ')) : null
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">⚔️ ${revanchaDe ? '¿La revancha?' : `Fourball con ${n}`}</p>
+    <p>Vos y <b>${esc(comp.nombre)}</b> contra <b>${contra ?? 'la pareja que lo tome'}</b>${rivales ? ', y solo ellos lo pueden tomar' : ''}${revanchaDe ? ', otra vez' : ''}.</p>
+    <p>1. Elegís el player <b>de los cuatro</b> (cambia la puntería: los otros tres juegan con el mismo) y jugás tu vuelta${pro ? ', en MODO PRO' : ''}.<br>2. ${rivales ? `Les mandás el desafío a ${contra} por WhatsApp (también les aparece en el juego): lo aceptan o lo rechazan.` : 'Lo mandás por WhatsApp para que lo tome otra pareja (y queda en <b>Buscan rival</b>).'}<br>3. ${n} juega la suya cuando le llegue, viendo tu pelota en vivo 👻.</p>
+    <p class="extras">Por hoyo, 2 puntos: la mejor pelota y la suma. Si empatan, el menor tiempo sumado. Por el honor.</p>
+    <button class="carta-jugar oro" type="button" data-bn="si">Elegir el player</button>
+    <button class="carta-jugar" type="button" data-bn="no">Cancelar</button>`)
+  if (v !== 'si') return
+  const semilla = crypto.getRandomValues(new Uint32Array(1))[0]
+  matchModo = { tipo: 'fourball', fb: null, lugar: 'a1', companero: { uid: comp.uid, nombre: comp.nombre }, rivales, revanchaDe, semilla: pro ? M.semillaPro(semilla) : semilla, fantasmas: [] }
+  mostrarElegir()
+}
+/** ⚔️ La revancha de uno jugado: el mismo compañero contra la misma pareja (reservado para ellos). */
+async function revanchaFb(f) {
+  const comp = f[companeroLugar(f.lugar)], ellos = rivalesDe(f.lugar).map((l) => f[l])
+  if (!$('#rk-resumen').hidden) cerrarResumen()
+  if (!comp?.uid || ellos.some((x) => !x?.uid)) { await avisoBananas('Sin revancha', 'Alguno de los cuatro no jugó ese fourball (quedó su lugar vacío). Armá uno nuevo desde Armar.'); return }
+  confirmarArmarFb({ uid: comp.uid, nombre: comp.alias }, ellos.map((x) => ({ uid: x.uid, nombre: x.alias })), f.id, M.esPro(f.semilla))
+}
+/**
+ * Tomás el de otra pareja con `comp`. El primero que lo toma se lo queda (lo dice la base). Sin `comp`, es un desafío a
+ * tu pareja: lo aceptás (tu compañero es el otro desafiado) o lo rechazás.
+ */
+async function tomarFb(f, comp, boton) {
+  const reto = !comp
+  const con = comp?.nombre ?? otroParaFb(f)?.alias ?? ''
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">⚔️ ${reto ? `${esc(parejaTxt(f, ['a1', 'a2']))} te desafiaron` : '¿Lo toman?'}</p>
+    <p>${reto ? `A vos y a <b>${esc(con)}</b>${f.revanchaDe ? ': quieren la revancha' : ''}` : `Vos y <b>${esc(con)}</b> contra <b>${esc(parejaTxt(f, ['a1', 'a2']))}</b>`}${proTagFb(f)}. ${esc(jugaronTxt(f).replace(' · ', '; '))}.</p>
+    <p>Juegan con <b>${esc(playerFb(f) ?? 'el player de ellos')}</b>: los cuatro, el mismo. Desde que lo ${reto ? 'aceptan' : 'toman'} tienen <b>48 h</b> los cuatro (también el que todavía no jugó de ellos): cada uno juega su vuelta viendo en vivo las pelotas de los que ya jugaron. El que no juega, LP.</p>
+    <button class="carta-jugar oro" type="button" data-bn="si">${reto ? 'Aceptar' : 'Tomarlo'}</button>
+    ${reto ? '<button class="carta-jugar rojo" type="button" data-bn="rechazar">Rechazar</button>' : ''}
+    <button class="carta-jugar" type="button" data-bn="no">${reto ? 'Después' : 'Cancelar'}</button>`)
+  if (v === 'rechazar') { rechazarFb(f, false); return }
+  if (v !== 'si') return
+  if (boton) boton.disabled = true
+  let g
+  try { g = await R.tomarFourball(f.id, comp) } catch (e) {
+    if (boton) boton.disabled = false
+    const t = errTxt(e)
+    if (/ya lo tomó|venció|no existe|bajaron|otra pareja|compañero/.test(t)) { fbElige = null; fbAbiertos = null; fbMios = null; cargarFourballs() }
+    await avisoBananas('No se pudo', `${esc(t)}.`)
+    return
+  }
+  fbElige = null
+  fbTab = 'mios'
+  $('#mt-buscar').value = ''
+  if (g) fbMios = [g, ...(fbMios ?? []).filter((x) => x.id !== g.id)]
+  fbAbiertos = (fbAbiertos ?? []).filter((x) => x.id !== f.id)
+  pintarMatch()
+  cargarFourballs()
+  if (g) despuesDeTomar(g)
+}
+async function despuesDeTomar(f) {
+  const comp = f[companeroLugar(f.lugar)]
+  for (;;) {
+    const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">⚔️ ¡Es de ustedes!</p>
+      <p>Vos y <b>${esc(comp?.alias ?? '')}</b> contra <b>${esc(parejaTxt(f, rivalesDe(f.lugar)))}</b>, con ${esc(playerFb(f) ?? 'el player de los cuatro')}. Tienen 48 h: avisale a ${esc(nombreCorto(comp?.alias))} que le toca.</p>
+      <button class="carta-jugar oro" type="button" data-bn="jugar">Jugar mi vuelta</button>
+      <button class="btn-wa" type="button" data-bn="wa">${ICONO_WA}Avisale a ${esc(nombreCorto(comp?.alias))}</button>
+      <button class="carta-jugar" type="button" data-bn="no">Después</button>`)
+    if (v === 'wa') { await compartirTexto(mensajeFbCompanero(f)); continue }
+    if (v === 'jugar') jugarFb(f)
+    return
+  }
+}
+const quitarFb = (id) => { fbMios = fbMios?.filter((x) => x.id !== id) ?? null; fbAbiertos = fbAbiertos?.filter((x) => x.id !== id) ?? null }
+/** Rechazás el desafío a tu pareja (queda cancelado: por el honor, no cuesta nada). */
+async function rechazarFb(f, confirmar = true) {
+  if (confirmar) {
+    const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">¿Lo rechazás?</p>
+      <p>El desafío de <b>${esc(parejaTxt(f, ['a1', 'a2']))}</b> a vos y a ${esc(nombreCorto(otroParaFb(f)?.alias))}. Es por el honor: no cuesta nada, pero ya no lo puede aceptar ninguno de los dos.</p>
+      <button class="carta-jugar rojo" type="button" data-bn="si">Rechazar</button>
+      <button class="carta-jugar" type="button" data-bn="no">Cancelar</button>`)
+    if (v !== 'si') return
+  }
+  try { await R.noPuedoFourball(f.id) } catch (e) { await avisoBananas('No se pudo', `${esc(errTxt(e))}.`); fbMios = fbAbiertos = null; cargarFourballs(); return }
+  quitarFb(f.id)
+  pintarMatch()
+  cargarFourballs()
+}
+/** "No puedo": tu lugar queda libre y el que te eligió elige otro (y le avisás por WhatsApp). */
+async function noPuedoFb(f) {
+  const quien = nombreCorto(teEligioFb(f)?.alias ?? '')
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">🙋 ¿No podés?</p>
+    <p>Tu lugar en el fourball con <b>${esc(quien)}</b> queda libre y ${esc(quien)} elige otro compañero.${f.estado === 'tomado' ? ' Ya lo tomó otra pareja: el reloj de las 48 h sigue corriendo.' : ''}</p>
+    <button class="carta-jugar rojo" type="button" data-bn="si">No puedo</button>
+    <button class="carta-jugar" type="button" data-bn="no">Sí puedo</button>`)
+  if (v !== 'si') return
+  try { await R.noPuedoFourball(f.id) } catch (e) { await avisoBananas('No se pudo', `${esc(errTxt(e))}.`); fbMios = null; cargarFourballs(); return }
+  quitarFb(f.id)
+  pintarMatch()
+  cargarFourballs()
+  const w = await hojaBananas(`<p class="bn-tit" id="bn-tit">Listo</p><p>Ya no estás en ese fourball. Avisale a ${esc(quien)}, así elige otro.</p>
+    <button class="btn-wa" type="button" data-bn="wa">${ICONO_WA}Avisale a ${esc(quien)}</button>
+    <button class="carta-jugar" type="button" data-bn="no">Ok</button>`)
+  if (w === 'wa') compartirTexto(mensajeFbNoPuedo(f))
+}
+/** Tu compañero no puede: a elegir otro de la lista (Tus fourball). */
+function elegirOtroFb(f) {
+  mtModo = '2v2'
+  fbTab = 'mios'
+  fbElige = { modo: 'cambiar', fb: f }
+  $('#mt-buscar').value = ''
+  pintarMatch()
+}
+/** Elegiste otro compañero: se anota y le avisás. */
+async function cambiarCompaneroFb(f, comp, boton) {
+  if (boton) boton.disabled = true
+  let g
+  try { g = await R.companeroFourball(f.id, comp) } catch (e) {
+    if (boton) boton.disabled = false
+    await avisoBananas('No se pudo', `${esc(errTxt(e))}.`)
+    fbElige = null; fbMios = null; cargarFourballs(); pintarMatch()
+    return
+  }
+  fbElige = null
+  $('#mt-buscar').value = ''
+  if (g) fbMios = [g, ...(fbMios ?? []).filter((x) => x.id !== g.id)]
+  pintarMatch()
+  cargarFourballs()
+  if (!g) return
+  const n = esc(nombreCorto(comp.nombre))
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">⚔️ ¡${n} es tu compañero!</p>
+    <p>Avisale que le toca: juega su vuelta con ${esc(playerFb(g) ?? 'el player de los cuatro')}, viendo en vivo las pelotas de los que ya jugaron 👻.</p>
+    <button class="btn-wa" type="button" data-bn="wa">${ICONO_WA}Avisale a ${n}</button>
+    <button class="carta-jugar" type="button" data-bn="no">Después</button>`)
+  if (v === 'wa') compartirTexto(mensajeFbCompanero(g))
+}
+/** Bajarlo: el que lo armó, mientras nadie lo tomó. */
+async function bajarFb(f, boton) {
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">¿Lo bajás?</p>
+    <p>${f.para ? `Tu desafío a <b>${esc(paraTxt(f))}</b>` : `Tu fourball${f.a2?.uid ? ` con <b>${esc(nombreCorto(f.a2.alias))}</b>` : ''}`}: todavía nadie lo tomó. Se borra de la lista y el link deja de andar.</p>
+    <button class="carta-jugar rojo" type="button" data-bn="si">Bajarlo</button>
+    <button class="carta-jugar" type="button" data-bn="no">Cancelar</button>`)
+  if (v !== 'si') return
+  if (boton) boton.disabled = true
+  try { await R.bajarFourball(f.id) } catch (e) {
+    if (boton) boton.disabled = false
+    await avisoBananas('No se pudo', `${esc(errTxt(e))}.`)
+    fbMios = null; cargarFourballs()
+    return
+  }
+  quitarFb(f.id)
+  pintarMatch()
+  cargarFourballs()
+}
+/** Te toca: con las grabaciones de los que ya jugaron (sus fantasmas), al mazo. */
+async function jugarFb(f, boton = null) {
+  const v = vivoDe(f.id)
+  if (v) { reconectar(v); return }
+  const txt = boton?.innerHTML
+  if (boton) { boton.disabled = true; boton.textContent = '…' }
+  let gs = null
+  try { gs = await R.leerFantasmasFourball(f.id) } catch {}
+  if (boton) { boton.disabled = false; boton.innerHTML = gs ? txt : 'Reintentar' }
+  if (!gs) { if (!boton) await avisoBananas('No se pudo', 'No llegaron las vueltas de los otros. Probá de nuevo en un rato.'); return }
+  matchModo = { tipo: 'fourball', fb: f, lugar: f.lugar, semilla: f.semilla, fecha: f.fecha, fantasmas: fantasmasFb(f, gs) }
+  // (20/10/2026) con el player de los cuatro: el del que lo armó (como el que responde un desafío); si no está, el mazo
+  const j = TODOS.find((x) => x.apodo === f.a1?.vuelta?.apodo)
+  if (j) empezar(j)
+  else mostrarElegir()
+}
+/** Los fantasmas del fourball: los que ya jugaron (tu compañero en dorado, los rivales en celeste). */
+function fantasmasFb(f, gs) {
+  const nos = parejaDe(f.lugar)
+  return LUGARES_FB.filter((l) => l !== f.lugar && f[l] && Array.isArray(gs?.[l]) && gs[l].length).map((l) => {
+    const de = nos.includes(l) ? 'nos' : 'el'
+    return { lugar: l, g: gs[l], alias: nombreCorto(f[l].alias), emoji: f[l].vuelta?.emoji ?? '👻', nos: de === 'nos', color: COLOR_FANTASMA[de], color3d: COLOR_FANTASMA3D[de] }
+  })
+}
+async function ofrecerJugarFb(f) {
+  const jugaron = LUGARES_FB.filter((l) => l !== f.lugar && yaJugo(f, l)).map((l) => nombreCorto(f[l].alias))
+  const rivales = f[rivalesDe(f.lugar)[0]] ? esc(parejaTxt(f, rivalesDe(f.lugar))) : f.para ? esc(paraTxt(f)) : 'la pareja que lo tome'
+  const companero = f.lugar === 'a2' || f.lugar === 'b2'
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">⚔️ Te toca el fourball</p>
+    <p><b>${esc(parejaTxt(f, parejaDe(f.lugar)))}</b> contra <b>${rivales}</b>${proTagFb(f)}.</p>
+    <p>Jugás tu vuelta con <b>${esc(playerFb(f) ?? 'el player de los cuatro')}</b>, el player de los cuatro${jugaron.length ? `, viendo en vivo las pelotas de ${esc(listaY(jugaron))} 👻` : ''}.${f.estado === 'tomado' ? ` <span${urgenteFb(f) ? ' class="fb-urgente"' : ''}>${urgenteFb(f) ? `¡Te quedan ${horasFb(f)} h!` : venceFb(f).replace(/^v/, 'V')}</span>: el que no juega, LP.` : ''}</p>
+    <button class="carta-jugar oro" type="button" data-bn="si">${vivoDe(f.id) ? '🔌 Reconectar' : 'Jugar mi vuelta'}</button>
+    ${companero && !vivoDe(f.id) ? '<button class="carta-jugar" type="button" data-bn="nopuedo">No puedo</button>' : ''}
+    <button class="carta-jugar" type="button" data-bn="no">Después</button>`)
+  if (v === 'si') jugarFb(f)
+  else if (v === 'nopuedo') noPuedoFb(f)
+}
+/** Entrar por el link de WhatsApp (?fourball=<id>): el tuyo, a jugarlo o verlo; el de otra pareja, a tomarlo; el desafío a tu pareja, a aceptarlo o rechazarlo. */
+async function entrarPorFourball(id) {
+  mtModo = '2v2'
+  let f = null, err = null
+  try { f = await R.leerFourball(id) } catch (e) { err = e }
+  fbElige = f && !f.lugar && f.estado === 'abierto' && !f.para ? { fb: f } : null
+  fbTab = f?.lugar || (f && desafioAmiFb(f)) ? 'mios' : 'buscan'
+  await mostrarMatch()
+  if (!f) {
+    if (err?.pronto) await avisoBananas('Todavía no', 'El fourball llega con la próxima actualización de la SDGApp. 🏗️')
+    else await avisoBananas('Ese fourball no está', `${esc(err ? errTxt(err) : 'no se encontró')}. Mirá las otras parejas que buscan rival.`)
+    return
+  }
+  if (f.estado === 'cancelado') { await avisoBananas('Ya no está', 'Ese fourball lo bajaron (o no lo aceptaron). Mirá las otras parejas que buscan rival.'); return }
+  if (!f.lugar && f.estado !== 'abierto') { await avisoBananas('Llegaste tarde', `${f.estado === 'vencido' ? 'Ese fourball ya venció' : 'Ese fourball ya lo tomó otra pareja'}. Mirá las otras que buscan rival.`); return }
+  if (desafioAmiFb(f)) { tomarFb(f, null); return }
+  if (f.lugar && sinCompaneroFb(f)) { elegirOtroFb(f); return }
+  if (f.lugar && meTocaFb(f)) { ofrecerJugarFb(f); return }
+  if (f.lugar && f.estado === 'jugado') abrirDetalleFourball(f)
+}
+// ── los mensajes de WhatsApp (con el link que abre el fourball y, por si no se abre, cómo llegar en la app) ──
+const AYUDA_FB = 'Si no se te abre: SDGApp → Juegos → MATCH ⚔️ → 2 VS 2'
+function mensajeFbCompanero(f) {
+  const comp = nombreCorto(f[companeroLugar(f.lugar)]?.alias ?? '')
+  const mia = f[f.lugar]?.vuelta
+  return [
+    `⚔️ ${comp}, te elegí de compañero para un FOURBALL en La Trampa del Mono 🐒`,
+    '',
+    f.lugar[0] === 'b' || f[rivalesDe(f.lugar)[0]] ? `Somos vos y yo contra ${parejaTxt(f, rivalesDe(f.lugar))}. Tenemos 48 h.` : f.para ? `Somos vos y yo contra ${paraTxt(f)} (los desafiamos: si lo aceptan, 48 h).` : 'Somos vos y yo contra la pareja que lo tome.',
+    mia ? `Yo ya jugué mi vuelta (con ${mia.emoji} ${apodoLimpio(mia.apodo)}, el player de los cuatro). ¿Cómo me fue? Lo vas a ver en vivo 👻` : `Jugá tu vuelta cuando puedas, con ${playerFb(f) ?? 'el player de los cuatro'} (los cuatro jugamos con el mismo).`,
+    'Por hoyo, 2 puntos: la mejor pelota y la suma de los dos. Si empatamos, el menor tiempo sumado.',
+    '',
+    `Te toca: ${R.linkFourball(f.id)}`,
+    `${AYUDA_FB} → Tus fourball.`,
+  ].join('\n')
+}
+function mensajeFbBuscar(f) {
+  const nos = parejaDe(f.lugar).map((l) => nombreCorto(f[l]?.alias ?? ''))
+  return [
+    '⚔️ FOURBALL ABIERTO · La Trampa del Mono 🐒',
+    '',
+    `${listaY(nos)} buscamos rival. ¿Quién se anima? Armen pareja y tómenlo.`,
+    ...(() => {
+      const yo = yaJugo(f, f.lugar), el = yaJugo(f, companeroLugar(f.lugar)), comp = nombreCorto(f[companeroLugar(f.lugar)]?.alias ?? '')
+      return [yo && el ? 'Ya jugamos los dos: ¿nos superan? 😏' : yo ? `Yo ya jugué; ${comp} juega la suya en estos días (lo pueden tomar igual).` : el ? `${comp} ya jugó; yo juego la mía en estos días (lo pueden tomar igual).` : null].filter(Boolean)
+    })(),
+    `Por hoyo, 2 puntos: la mejor pelota y la suma. Si empatan, el menor tiempo sumado.${M.esPro(f.semilla) ? ' En MODO PRO 🎯.' : ''}`,
+    `Cada uno juega su vuelta cuando puede, con ${playerFb(f) ?? 'el mismo player'} (los cuatro, el mismo; tienen 48 h desde que lo toman).`,
+    '',
+    `Tomalo acá: ${R.linkFourball(f.id)}`,
+    `${AYUDA_FB} → Buscan rival.`,
+  ].join('\n')
+}
+function mensajeFbDesafio(f) {
+  const nos = parejaDe(f.lugar).map((l) => nombreCorto(f[l]?.alias ?? ''))
+  const ellos = (f.para ?? []).map((p) => nombreCorto(p.alias))
+  return [
+    `⚔️ ${listaY(ellos)}: ${f.revanchaDe ? 'queremos la REVANCHA del fourball' : 'los desafiamos a un FOURBALL'} · La Trampa del Mono 🐒`,
+    '',
+    `${listaY(nos)} contra ustedes dos.${playerFb(f) ? ` Jugamos con ${playerFb(f)} (los cuatro, el mismo player).` : ''}`,
+    `Por hoyo, 2 puntos: la mejor pelota y la suma. Si empatan, el menor tiempo sumado.${M.esPro(f.semilla) ? ' En MODO PRO 🎯.' : ''}`,
+    'Lo aceptan o lo rechazan; desde que lo aceptan, 48 h para jugar.',
+    '',
+    `Acá: ${R.linkFourball(f.id)}`,
+    `${AYUDA_FB} → Tus fourball.`,
+  ].join('\n')
+}
+function mensajeFbNoPuedo(f) {
+  const quien = nombreCorto(teEligioFb(f)?.alias ?? '')
+  return [`🙋 ${quien}, no puedo jugar el fourball en estos días: elegí otro compañero (en Tus fourball te sale "Elegir otro").`, '', R.linkFourball(f.id)].join('\n')
+}
+function mensajeFbFaltan(f, ls = rivalesDe(f.lugar)) {
+  const faltan = ls.filter((l) => l !== f.lugar && f[l] && !yaJugo(f, l)).map((l) => nombreCorto(f[l].alias))
+  return [
+    '⏰ FOURBALL · La Trampa del Mono 🐒',
+    '',
+    `${listaY(faltan)}: ${faltan.length === 1 ? 'falta tu vuelta' : 'faltan sus vueltas'}. ${venceFb(f).replace(/^v/, 'V')}; el que no juega, LP 💅.`,
+    '',
+    R.linkFourball(f.id),
+    `${AYUDA_FB} → Tus fourball.`,
+  ].join('\n')
+}
+function mensajeFbResultado(f) {
+  const c = cuentaFb(f), [pn, pe] = c.i ? [c.puntos[1], c.puntos[0]] : c.puntos
+  const comp = nombreCorto(f[companeroLugar(f.lugar)]?.alias ?? '')
+  const contra = rivalesDe(f.lugar).map((l) => nombreCorto(f[l]?.alias ?? '')).join(' y ')
+  const titulo = c.gano > 0 ? `🏆 Con ${comp} le ganamos el fourball a ${contra}` : c.gano < 0 ? `😵 ${contra} nos ganaron el fourball (a ${comp} y a mí)` : `🤝 Empatamos el fourball con ${contra} (${comp} y yo)`
+  const hoyos = c.hoyos.map((h) => `${h.n}: ${h.puntos ? `${M.formatoPuntos(h.puntos[c.i])}–${M.formatoPuntos(h.puntos[1 - c.i])}` : '—'}`).join(' · ')
+  return ['⚔️ FOURBALL · La Trampa del Mono 🐒', '', titulo, `${M.formatoPuntos(pn)} a ${M.formatoPuntos(pe)}${c.porTiempo ? ' · lo definió el tiempo sumado' : ''}`, `Hoyo a hoyo: ${hoyos}`, '', `¿Revancha? SDGApp → Juegos → MATCH ⚔️ → 2 VS 2 ${R.linkMatch()}`].join('\n')
+}
+/**
+ * Lo que se puede mandar por WhatsApp de un fourball tuyo, según cómo está: el resultado; a tu compañero, si todavía no
+ * jugó (con el link, "te toca"); a otras parejas, si busca rival; a los rivales que faltan. [{ txt, msg }]
+ */
+function avisosFb(f) {
+  if (f.estado === 'jugado') return [{ txt: 'Compartir', msg: () => mensajeFbResultado(f) }]
+  if (f.estado !== 'abierto' && f.estado !== 'tomado') return []
+  const out = [], cl = companeroLugar(f.lugar)
+  if (f[cl] && !yaJugo(f, cl)) out.push({ txt: `Avisale a ${nombreCorto(f[cl].alias)}`, msg: () => mensajeFbCompanero(f) })
+  if (f.estado === 'abierto') out.push(f.para ? { txt: 'Mandales el desafío', msg: () => mensajeFbDesafio(f) } : { txt: 'Buscar rival', msg: () => mensajeFbBuscar(f) })
+  else {
+    const faltan = rivalesDe(f.lugar).filter((l) => f[l] && !yaJugo(f, l))
+    if (faltan.length) out.push({ txt: faltan.length === 1 ? `Avisale a ${nombreCorto(f[faltan[0]].alias)}` : 'Avisales a los rivales', msg: () => mensajeFbFaltan(f, faltan) })
+  }
+  return out
+}
+/** Un texto para mandar: el menú de compartir del teléfono; si no hay, WhatsApp; si no se abre, copiado. */
+async function compartirTexto(texto) {
+  if (navigator.share) {
+    try { await navigator.share({ text: texto }); return } catch (e) { if (e?.name === 'AbortError') return }
+  }
+  const w = window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank')
+  if (w) { try { w.opener = null } catch {} return }
+  try { await navigator.clipboard.writeText(texto); await avisoBananas('Copiado', 'Pegalo en WhatsApp.') } catch { await avisoBananas('Mandalo por WhatsApp', `<textarea class="fb-copiar" readonly rows="8">${esc(texto)}</textarea>`) }
+}
+// ── el resultado: la tabla, el veredicto y el detalle ──
+/** El hoyo a hoyo: cada pareja con sus dos jugadores (sus golpes) y abajo sus puntos de cada hoyo; al final, el tiempo sumado. */
+function tablaFourball(f, c) {
+  const pars = M.HOYOS.map((h) => h.par)
+  const nos = parejaDe(f.lugar), ellos = rivalesDe(f.lugar)
+  const celda = (v, k) => `<td class="${v === undefined ? 'vacio' : v === null ? 'lp' : v < pars[k] ? 'bajo' : v > pars[k] ? 'sobre' : ''}">${v === undefined ? '·' : v === null ? 'LP' : v}</td>`
+  const fila = (l) => {
+    const x = f[l], v = x?.vuelta && !x.vuelta.oculta ? x.vuelta : null
+    const hoyos = M.HOYOS.map((_, k) => (v ? (Array.isArray(v.hoyos) ? v.hoyos[k] ?? null : null) : undefined))
+    const tot = !v ? '<td class="tot vacio">·</td>' : v.lp || v.golpes == null ? '<td class="tot lp">LP</td>' : `<td class="tot">${v.golpes}<small>${v.ms != null ? M.formatoTiempo(v.ms) : ''}</small></td>`
+    return `<tr class="fbj${l === f.lugar ? ' yo' : ''}"><th><span class="e">${esc(x?.vuelta?.emoji ?? '·')}</span>${esc(l === f.lugar ? 'VOS' : nombreCorto(x?.alias ?? '?'))}</th>${hoyos.map(celda).join('')}${tot}</tr>`
+  }
+  const hay = c.hoyos.some((h) => h.puntos)
+  const pts = (ls) => {
+    const i = ls[0][0] === 'a' ? 0 : 1, gano = c.completo && (i === 0 ? c.ganador > 0 : c.ganador < 0)
+    return `<tr class="fbp${gano ? ' gano' : ''}"><th>${ls === nos ? 'Nosotros' : 'Ellos'}</th>${c.hoyos.map((h) => `<td class="${!h.puntos ? 'vacio' : h.puntos[i] > h.puntos[1 - i] ? 'gano' : h.puntos[i] < h.puntos[1 - i] ? 'pierde' : ''}">${h.puntos ? M.formatoPuntos(h.puntos[i]) : '·'}</td>`).join('')}<td class="tot${hay ? '' : ' vacio'}">${hay ? `${M.formatoPuntos(c.puntos[i])}<small>pts</small>` : '·'}</td></tr>`
+  }
+  const tomado = !!f[ellos[0]]
+  const filas = [...yoPrimero(f, nos).map(fila), pts(nos), '<tr class="sep"><td colspan="5"></td></tr>', ...(tomado ? [...ellos.map(fila), pts(ellos)] : ['<tr class="fbj nada"><th>Rivales</th><td colspan="4">la pareja que lo tome</td></tr>'])]
+  const tn = c.tiempos[c.i], te = c.tiempos[1 - c.i]
+  const tiempos = c.completo ? `<p class="fb-tiempos${c.porTiempo ? ' decide' : ''}">Tiempo sumado: nosotros <b>${tn != null ? M.formatoTiempo(tn) : 'sin tiempo'}</b> · ellos <b>${te != null ? M.formatoTiempo(te) : 'sin tiempo'}</b>${c.porTiempo ? ' · definió el tiempo' : ''}</p>` : ''
+  return `<div class="marcador final fb"><table><thead><tr><th>Hoyo a hoyo</th>${M.HOYOS.map((h) => `<th>${h.n}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th></tr></thead><tbody>${filas.join('')}</tbody></table></div>${tiempos}<p class="fb-reglas">Por hoyo: 1 punto la mejor pelota y 1 la suma de la pareja (½ y ½ si empatan)</p>`
+}
+function veredictoFb(c, clase = 'tm-veredicto') {
+  const g = c.gano, pn = c.puntos[c.i], pe = c.puntos[1 - c.i]
+  return `<p class="${clase} ${g > 0 ? 'gana' : g < 0 ? 'pierde' : 'empate'}">${gi(g > 0 ? 'trophy' : g < 0 ? 'close' : 'friends')}<span>${g > 0 ? 'Ganaron' : g < 0 ? 'Perdieron' : 'Empate'}<small>${M.formatoPuntos(pn)} a ${M.formatoPuntos(pe)}${c.porTiempo ? ' · por tiempo sumado' : ''}</small></span></p>`
+}
+function abrirDetalleFourball(f) {
+  const c = cuentaFb(f)
+  $('.rs-caja').classList.remove('bloqueado')
+  const fe = fechaLarga(f.jugadoFecha ?? f.fecha)
+  $('#rs-cuerpo').innerHTML = `
+    <p class="rs-kicker">Fourball${fe ? ` · ${esc(fe.dia)}` : ''}</p>
+    <h3 class="rs-quien" id="rs-quien">${esc(parejaTxt(f, parejaDe(f.lugar)))} vs ${f[rivalesDe(f.lugar)[0]] ? esc(parejaTxt(f, rivalesDe(f.lugar))) : '¿?'}</h3>
+    <div class="mt-tabla">${tablaFourball(f, c)}</div>
+    ${f.estado === 'jugado' ? veredictoFb(c, 'mt-veredicto') : ''}
+    ${f.estado === 'jugado' && f.lugar ? `<div class="tm-acciones uno fb-revancha"><button class="btn-replay" type="button" data-fb-revancha>⚔️ Revancha</button></div>` : ''}`
+  $('#rs-cuerpo [data-fb-revancha]')?.addEventListener('click', () => revanchaFb(f))
+  $('#rk-resumen').hidden = false
+  $('#rk-resumen .hab-x').focus({ preventScroll: true })
+}
+/** Terminó tu vuelta del fourball: se anota y, si lo armaste, a buscar rival; si no, cómo va (o cómo terminó). */
+function cerrarFourball(r, f, el) {
+  const d = r.duelo, mia = f.mia, lp = !!r.lp
+  const anotar = async () => {
+    el.className = 't-match'
+    el.innerHTML = `${gi('match', 'linea')}Anotando tu vuelta del fourball…`
+    let res
+    try { res = await mandarFin(f) } catch (e) {
+      const t = errTxt(e), fin = /ya terminó|ya jugaste|no existe|no estás|venció/.test(t)
+      if (fin) borrarVivo()
+      el.innerHTML = `No se pudo anotar tu vuelta: ${esc(t)}.${fin ? '' : ' <br><button class="mt-btn" type="button">Reintentar</button>'}`
+      el.querySelector('button')?.addEventListener('click', anotar)
+      return
+    }
+    el.className = 't-match res'
+    if (d.fb) { pintarResultadoFb(el, res); return }
+    // lo armaste: que lo tome otra pareja y que juegue tu compañero
+    const para = d.rivales?.length === 2 ? d.rivales.map((x) => ({ uid: x.uid, alias: x.nombre })) : null
+    const fb = { id: res.id, semilla: d.semilla, estado: 'abierto', fecha: new Date().toISOString(), lugar: 'a1', para, revanchaDe: d.revanchaDe ?? null, a1: { uid: yoUid(), alias: R.puente.identidad?.alias ?? datos.usuario ?? 'Yo', vuelta: { ...mia, hoyos: f.hoyos } }, a2: { uid: d.companero.uid, alias: d.companero.nombre, vuelta: null }, b1: null, b2: null }
+    const comp = esc(nombreCorto(d.companero.nombre))
+    if (para) {
+      // el desafío (o la revancha): le llega a esa pareja, que lo acepta o lo rechaza
+      el.innerHTML = `<p class="tm-veredicto enviado">${gi('match')}<span>${d.revanchaDe ? 'Revancha pedida' : 'Desafío enviado'}<small>vos y ${comp} contra ${esc(paraTxt(fb))}</small></span></p>
+        <div class="tm-datos">
+          <div><small>Tu vuelta</small><b>${lp ? 'LP' : mia.golpes}</b><em>${lp ? 'levantaste' : `${M.formatoPar(mia.vsPar)} · ${M.formatoTiempo(mia.ms)}`}</em></div>
+          <div><small>Los cuatro con</small><b>${esc(r.carta.emoji)}</b><em>${esc(apodoLimpio(r.carta.apodo))}</em></div>
+          <div><small>Va por</small><b>🤝</b><em>el honor</em></div>
+        </div>
+        <p class="tm-nota">Les aparece en el juego: lo aceptan o lo rechazan (vence en 7 días) · avisale a ${comp} que le toca</p>
+        <div class="tm-acciones"><button class="btn-wa" type="button" data-wa="comp">${ICONO_WA}Avisale a ${comp}</button><button class="btn-wa" type="button" data-wa="rival">${ICONO_WA}Mandales el desafío</button></div>`
+      el.querySelector('[data-wa="comp"]').addEventListener('click', () => compartirTexto(mensajeFbCompanero(fb)))
+      el.querySelector('[data-wa="rival"]').addEventListener('click', () => compartirTexto(mensajeFbDesafio(fb)))
+      return
+    }
+    el.innerHTML = `<p class="tm-veredicto enviado">${gi('match')}<span>Fourball armado<small>vos y ${esc(d.companero.nombre)}</small></span></p>
+      <div class="tm-datos">
+        <div><small>Tu vuelta</small><b>${lp ? 'LP' : mia.golpes}</b><em>${lp ? 'levantaste' : `${M.formatoPar(mia.vsPar)} · ${M.formatoTiempo(mia.ms)}`}</em></div>
+        <div><small>Los cuatro con</small><b>${esc(r.carta.emoji)}</b><em>${esc(apodoLimpio(r.carta.apodo))}</em></div>
+        <div><small>Va por</small><b>🤝</b><em>el honor</em></div>
+      </div>
+      <p class="tm-nota">Ya está en Buscan rival (vence en 7 días si nadie lo toma) · avisale a ${comp} que le toca</p>
+      <div class="tm-acciones"><button class="btn-wa" type="button" data-wa="comp">${ICONO_WA}Avisale a ${comp}</button><button class="btn-wa" type="button" data-wa="rival">${ICONO_WA}Buscar rival</button></div>`
+    el.querySelector('[data-wa="comp"]').addEventListener('click', () => compartirTexto(mensajeFbCompanero(fb)))
+    el.querySelector('[data-wa="rival"]').addEventListener('click', () => compartirTexto(mensajeFbBuscar(fb)))
+  }
+  anotar()
+}
+/** Tu vuelta, ya anotada en `f` (con los golpes de todos: los ves porque jugaste). Jugado: quién ganó; si no, cómo va. */
+function pintarResultadoFb(el, f) {
+  const c = cuentaFb(f)
+  const tabla = tablaFourball(f, c)
+  if (f.estado === 'jugado') {
+    marcarVistosFb([f.id])
+    el.innerHTML = `${veredictoFb(c)}${tabla}<div class="tm-acciones"><button class="btn-wa" type="button">${ICONO_WA}Compartir</button><button class="btn-replay" type="button" data-fb-revancha>⚔️ Revancha</button></div>`
+    el.querySelector('.btn-wa').addEventListener('click', () => compartirTexto(mensajeFbResultado(f)))
+    el.querySelector('[data-fb-revancha]').addEventListener('click', () => revanchaFb(f))
+    if (c.gano > 0) S.embocada()
+    return
+  }
+  const faltan = [companeroLugar(f.lugar), ...rivalesDe(f.lugar)].filter((l) => f[l] && !yaJugo(f, l)).map((l) => nombreCorto(f[l].alias)) // (tu compañero, primero)
+  const sinRival = !f[rivalesDe(f.lugar)[0]]
+  const tomen = f.para ? `que lo acepten ${paraTxt(f)}` : 'que lo tome otra pareja'
+  // los avisos: a tu compañero si todavía no jugó y, aparte, a otras parejas (si busca rival) o a los rivales que faltan
+  const avisos = avisosFb(f)
+  el.innerHTML = `<p class="tm-veredicto enviado">${gi('match')}<span>Vuelta anotada<small>${sinRival ? (faltan.length ? `falta ${esc(listaY(faltan))} y ${esc(tomen)}` : `falta ${esc(tomen)}`) : `faltan ${esc(listaY(faltan))}`}</small></span></p>${tabla}
+    <p class="tm-nota">${sinRival ? `${f.para ? 'Esperando que lo acepten' : 'Está en Buscan rival'} · ${venceFb(f)}` : `${venceFb(f).replace(/^v/, 'V')} · el que no juega, LP · el resultado te llega a MATCH › 2 VS 2`}</p>
+    <div class="tm-acciones${avisos.length === 1 ? ' uno' : ''}">${avisos.map((a, k) => `<button class="btn-wa" type="button" data-aviso="${k}">${ICONO_WA}${esc(a.txt)}</button>`).join('')}</div>`
+  el.querySelectorAll('[data-aviso]').forEach((b) => b.addEventListener('click', () => compartirTexto(avisos[+b.dataset.aviso].msg())))
+}
+/** El botón de WhatsApp de una fila de Tus fourball: si hay un solo aviso, directo; si hay más, cuál. */
+async function avisarFb(f) {
+  const avisos = avisosFb(f)
+  if (avisos.length < 2) { if (avisos[0]) compartirTexto(avisos[0].msg()); return }
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">💬 ¿A quién se lo mandás?</p>
+    <p>${esc(parejaTxt(f, parejaDe(f.lugar)))} contra ${f[rivalesDe(f.lugar)[0]] ? esc(parejaTxt(f, rivalesDe(f.lugar))) : 'la pareja que lo tome'}.</p>
+    ${avisos.map((a, k) => `<button class="btn-wa" type="button" data-bn="${k}">${ICONO_WA}${esc(a.txt)}</button>`).join('')}
+    <button class="carta-jugar" type="button" data-bn="no">Cancelar</button>`)
+  if (v != null && avisos[+v]) compartirTexto(avisos[+v].msg())
+}
+/**
+ * ⚔️ El marcador del fourball en vivo: vos, tu compañero y los rivales que ya jugaron (sus golpes salen de su fantasma) y
+ * los puntos de cada pareja en los hoyos que ya terminaron los cuatro. El hoyo que se está jugando se ve en dorado, pero
+ * no cuenta hasta que se termina. Solo se reescribe cuando cambia algo.
+ */
+function pintarMarcadorFb(ms) {
+  const d = ronda.duelo
+  const yoAhora = ronda.terminada ? -1 : ronda.idx
+  const mios = M.HOYOS.map((h, k) => { const f = ronda.tarjeta[k]; return f ? (f.lp ? null : f.golpes) : ronda.terminada ? null : undefined })
+  const filas = [{ l: d.lugar, yo: true, nombre: 'VOS', emoji: ronda.carta?.emoji ?? ronda.jugador.emoji, hoyos: mios, ver: mios.map((v, k) => (v === undefined && k === yoAhora ? ronda.golpes : v)), ahora: yoAhora }]
+  for (const x of d.fantasmas ?? []) {
+    const m = M.marcadorFantasma(x.g, ms)
+    if (x.lpEn === undefined) x.lpEn = lpDelFantasma(x.g)
+    const hoyos = M.HOYOS.map((h, k) => (m.fin ? (x.lpEn != null && k >= x.lpEn ? null : m.porHoyo[k]) : k < m.idx ? m.porHoyo[k] : undefined))
+    filas.push({ l: x.lugar, nos: x.nos, nombre: x.alias, emoji: `👻${x.emoji ?? ''}`, hoyos, ver: hoyos.map((v, k) => (v === undefined && !m.fin && k === m.idx ? m.porHoyo[k] : v)), ahora: m.fin ? -1 : m.idx })
+  }
+  const de = (l) => filas.find((f) => f.l === l)
+  const nos = parejaDe(d.lugar), ellos = rivalesDe(d.lugar)
+  const res = M.resultadoFourball(nos.map((l) => de(l) ?? null), ellos.map((l) => de(l) ?? null))
+  const cuenta = res.hoyos.some((h) => h.puntos), [pn, pe] = res.puntos
+  const cab = cuenta ? `${pn > pe ? 'Ganan' : pn < pe ? 'Pierden' : 'Iguales'} ${M.formatoPuntos(pn)}–${M.formatoPuntos(pe)}` : `Con ${nombreCorto(companeroFb(d))}`
+  const grupo = (ls, i) => {
+    const fs = (i ? ls : [d.lugar, companeroLugar(d.lugar)]).map(de).filter(Boolean)
+    return fs.map((f, k) => `<tr class="${[f.yo ? 'yo' : i ? 'el' : 'nos', k === 0 && i ? 'par1' : ''].join(' ').trim()}"><th><span class="e">${esc(f.emoji)}</span>${esc(f.nombre)}</th>${
+      f.ver.map((v, h) => `<td class="${[h === f.ahora ? 'ahora' : '', v === undefined ? 'vacio' : '', v === null ? 'lp' : ''].join(' ').trim()}">${v === undefined ? '·' : v === null ? 'LP' : v}</td>`).join('')
+    }${k === 0 ? `<td class="pts${cuenta && pn !== pe ? ((i ? pe > pn : pn > pe) ? ' gano' : ' pierdo') : ''}" rowspan="${fs.length}">${cuenta ? M.formatoPuntos(res.puntos[i]) : '·'}</td>` : ''}</tr>`).join('')
+  }
+  const html = `<table><thead><tr><th class="${cuenta && pn !== pe ? (pn > pe ? 'gano' : 'pierdo') : ''}">${esc(cab)}</th>${M.HOYOS.map((h, k) => `<th class="${k === yoAhora ? 'ahora' : ''}">${h.n}</th>`).join('')}<th class="tot">PTS</th></tr></thead><tbody>${grupo(nos, 0)}${grupo(ellos, 1)}</tbody></table>`
+  if (html === marcadorPintado) return
+  marcadorPintado = html
+  const el = $('#marcador')
+  el.classList.add('fb')
+  el.innerHTML = html
+  el.title = cuenta ? `Nosotros ${M.formatoPuntos(pn)}, ellos ${M.formatoPuntos(pe)}, en los hoyos que terminaron los cuatro` : ''
+  el.hidden = false
+}
+/** El hoyo en que levantó el del fantasma (null si la terminó): la última muestra lleva el hoyo y dónde quedó la pelota. */
+function lpDelFantasma(g) {
+  const u = g?.[g.length - 1]
+  if (!u) return null
+  const k = u[1], ult = M.HOYOS.length - 1
+  if (k < ult) return k
+  const pin = M.hoyoActual({ ...ronda, idx: k }).pin
+  return Math.hypot(u[2] - pin[0], u[3] - pin[1]) < 0.5 ? null : k
+}
+$('#mt-modo').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-modo]')
+  if (!b || b.dataset.modo === mtModo) return
+  mtModo = b.dataset.modo
+  fbElige = null
+  $('#mt-buscar').value = ''
+  if (mtModo === '2v2') { fbTab = tabFb(); cargarFourballs() }
+  pintarMatch()
+})
+$('#fb-tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-fb]')
+  if (!b) return
+  fbTab = b.dataset.fb
+  fbElige = null
+  $('#mt-buscar').value = ''
+  if (fbTab === 'ranking') { fbJugados = null; fbJugadosError = null }
+  else if (fbTab !== 'armar') cargarFourballs()
+  pintarMatch()
+})
+$('#mt-lista').addEventListener('click', async (e) => {
+  if (mtModo !== '2v2') return
+  const con = e.target.closest('[data-fb-con]')
+  if (con) {
+    const comp = mtRivales?.find((r) => r.uid === con.dataset.fbCon)
+    if (!comp) return
+    if (fbElige?.modo === 'cambiar') { cambiarCompaneroFb(fbElige.fb, comp, con); return }
+    if (fbElige?.modo === 'rival') { elegirRivalFb(comp); return }
+    const f = fbTab === 'buscan' ? fbElige?.fb : null
+    if (f) tomarFb(f, comp, con)
+    else armarFb(comp)
+    return
+  }
+  // (20/10/2026) el desafío a tu pareja, "No puedo", elegir otro compañero, bajarlo
+  const delFb = (id) => fbMios?.find((x) => x.id === id) ?? fbAbiertos?.find((x) => x.id === id)
+  const acc = e.target.closest('[data-fb-aceptar], [data-fb-rechazar], [data-fb-nopuedo], [data-fb-otro], [data-fb-bajar]')
+  if (acc) {
+    const d = acc.dataset, f = delFb(d.fbAceptar ?? d.fbRechazar ?? d.fbNopuedo ?? d.fbOtro ?? d.fbBajar)
+    if (!f) return
+    if (d.fbAceptar) tomarFb(f, null, acc)
+    else if (d.fbRechazar) rechazarFb(f)
+    else if (d.fbNopuedo) noPuedoFb(f)
+    else if (d.fbOtro) elegirOtroFb(f)
+    else bajarFb(f, acc)
+    return
+  }
+  // 🏆 el ranking: jugadores o parejas, y el récord de uno
+  const rkv = e.target.closest('[data-fbrk]')
+  if (rkv) { fbRkVista = rkv.dataset.fbrk; pintarMatch(); return }
+  const rkf = e.target.closest('[data-fbr]')
+  if (rkf) { abrirRecordFb(fbRkFilas[+rkf.dataset.fbr]); return }
+  const toma = e.target.closest('[data-fb-tomar]')
+  if (toma) {
+    const f = fbAbiertos?.find((x) => x.id === toma.dataset.fbTomar)
+    if (!f) return
+    fbElige = { fb: f }
+    $('#mt-buscar').value = ''
+    pintarMatch()
+    return
+  }
+  if (e.target.closest('[data-fb-cancelar]')) { fbElige = null; $('#mt-buscar').value = ''; pintarMatch(); return }
+  const juega = e.target.closest('[data-fb-jugar]')
+  if (juega) { const f = fbMios?.find((x) => x.id === juega.dataset.fbJugar); if (f) jugarFb(f, juega); return }
+  const wa = e.target.closest('[data-fb-wa]')
+  if (wa) {
+    const f = fbMios?.find((x) => x.id === wa.dataset.fbWa)
+    if (f) avisarFb(f)
+    return
+  }
+  const det = !e.target.closest('button') && e.target.closest('[data-fb-detalle]')
+  if (det) { const f = fbMios?.find((x) => x.id === det.dataset.fbDetalle); if (f) abrirDetalleFourball(f) }
+})
+$('#mt-lista').addEventListener('keydown', (e) => {
+  if (mtModo !== '2v2' || (e.key !== 'Enter' && e.key !== ' ')) return
+  const rk = e.target.closest('[data-fbr]')
+  if (rk && e.target === rk) { e.preventDefault(); abrirRecordFb(fbRkFilas[+rk.dataset.fbr]); return }
+  const li = e.target.closest('[data-fb-detalle]')
+  const f = li && e.target === li && fbMios?.find((x) => x.id === li.dataset.fbDetalle)
+  if (f) { e.preventDefault(); abrirDetalleFourball(f) }
+})
+// ── 🏆 el ranking del fourball (20/10/2026): con los jugados de todos, por jugador y por pareja (G/E/P y %) ──
+// Lo cuenta el juego (motor.js `rankingFourball`). El Clásico no lo mira, por ahora.
+let fbJugados = null, fbJugadosError = null, fbRkVista = 'jugadores', fbRkFilas = []
+async function cargarJugadosFb() {
+  try { fbJugados = await R.leerFourballsJugados(); fbJugadosError = null } catch (e) { fbJugadosError = e }
+  if (mtModo === '2v2' && fbTab === 'ranking' && !$('#match').hidden) pintarMatch()
+}
+const nombreRkFb = (x) => (x.uid ? x.nombre : x.nombres.map(nombreCorto).join(' y '))
+const ordenRkFb = (a, b) => M.ordenFourball(a, b) || nombreRkFb(a).localeCompare(nombreRkFb(b))
+function pintarRankingFb(lista) {
+  $('#mt-nota').textContent = `Todos los fourball jugados: arriba ${fbRkVista === 'parejas' ? 'la pareja que' : 'el que'} más ganó; a igual, ${fbRkVista === 'parejas' ? 'la' : 'el'} que menos perdió. Cuenta igual armen o tomen.${fbRkVista === 'jugadores' ? ' Tocá un jugador para ver su récord y con quién ganó.' : ''}`
+  if (!fbJugados) {
+    if (!fbJugadosError) { lista.innerHTML = '<li class="rk-vacio">Cargando…</li>'; cargarJugadosFb(); return }
+    lista.innerHTML = `<li class="rk-vacio">${fbJugadosError.pronto ? 'El ranking del fourball llega con la próxima actualización de la SDGApp. 🏗️' : 'No se pudo cargar el ranking. Probá de nuevo en un rato.'}</li>`
+    return
+  }
+  const { jugadores, parejas } = M.rankingFourball(fbJugados)
+  const vistas = `<li class="bn-vistas"><button type="button" data-fbrk="jugadores" aria-pressed="${fbRkVista === 'jugadores'}">Jugadores</button><button type="button" data-fbrk="parejas" aria-pressed="${fbRkVista === 'parejas'}">Parejas</button></li>`
+  const filas = [...(fbRkVista === 'parejas' ? parejas : jugadores)].sort(ordenRkFb)
+  fbRkFilas = filas
+  const yo = yoUid()
+  let pos = 0, prev = null
+  lista.innerHTML = vistas + (filas.length ? filas.map((x, k) => {
+    if (!prev || M.ordenFourball(prev, x) !== 0) pos = k + 1
+    prev = x
+    const soy = x.uid ? x.uid === yo : x.uids.includes(yo)
+    const nombre = esc(nombreRkFb(x))
+    const toca = x.uid ? ` data-fbr="${k}" tabindex="0" role="button" aria-label="Ver el récord de ${nombre}"` : ''
+    return `<li class="rk-fila mtr-fila${x.uid ? ' tocable' : ''}${soy ? ' yo' : ''}"${toca}>
+      <span class="rk-pos">${pos}</span>
+      <span class="rk-nombre"><span class="linea"><b>${nombre}</b></span><small class="rk-sellos">${x.uid ? camisetaMini(x.uid) : ''}<span>${x.jugados} ${x.jugados === 1 ? 'fourball' : 'fourballs'}</span></small></span>
+      ${wdlMatch(x.ganados, x.empatados, x.perdidos)}
+      <span class="mtr-pct">${pctGanados(x)}%<small>ganados</small></span>
+    </li>`
+  }).join('') : '<li class="rk-vacio">Todavía no se jugó ningún fourball. ¡Armá uno!</li>')
+}
+/** El récord de un jugador en el fourball: G/E/P, el % y con cada compañero. */
+function abrirRecordFb(x) {
+  if (!x?.uid) return
+  $('.rs-caja').classList.remove('bloqueado')
+  const todos = [...M.rankingFourball(fbJugados ?? []).jugadores].sort(ordenRkFb)
+  const pos = todos.findIndex((y) => y.uid === x.uid) + 1
+  const f = fechaLarga(x.ultimo)
+  const con = [...x.con].sort((a, b) => M.ordenFourball(a, b) || a.nombre.localeCompare(b.nombre))
+  const socio = con.find((c) => c.ganados > 0)
+  $('#rs-cuerpo').innerHTML = `
+    <p class="rs-kicker">Ranking del fourball${pos ? ` · ${pos}° puesto` : ''}</p>
+    <h3 class="rs-quien" id="rs-quien">${esc(x.nombre)}</h3>
+    <div class="rs-record">${cajasRecord(x.ganados, x.empatados, x.perdidos)}</div>
+    <dl class="rs-datos">
+      <div><dt>Jugados</dt><dd>${x.jugados}</dd></div>
+      <div><dt>Ganados</dt><dd>${pctGanados(x)}%<small>de los fourball</small></dd></div>
+      ${socio ? `<div class="ancho"><dt>Su mejor socio</dt><dd>${esc(socio.nombre)}<small>ganaron ${socio.ganados} ${socio.ganados === 1 ? 'vez' : 'veces'} juntos</small></dd></div>` : ''}
+      <div class="ancho"><dt>Último fourball</dt><dd>${f ? `${esc(f.dia)}<small>a las ${f.hora} h</small>` : '—'}</dd></div>
+    </dl>
+    ${con.length ? `<p class="rs-titulo">Con cada compañero</p><ul class="rs-rivales">${con.map((c) => `<li><span>${esc(c.nombre)}</span>${wdlMatch(c.ganados, c.empatados, c.perdidos)}</li>`).join('')}</ul>` : ''}`
+  $('#rk-resumen').hidden = false
+  $('#rk-resumen .hab-x').focus({ preventScroll: true })
+}
+// ── 📸 las novedades al entrar (20/10/2026): lo que pasó en tus fourball desde la última vez que miraste ──
+// Alguien jugó su vuelta (con el puntaje si vos ya jugaste: si no, sus golpes están ocultos hasta que juegues), terminó
+// uno, te desafiaron, te eligieron de compañero; y el apuro (6 h o menos), una vez por fourball. Después, la foto nueva.
+const URGENTES_FB = 'sdga-trampa-fourball-apuro-v1'
+async function novedadesFb() {
+  const foto = leerJSON(FOTO_FB)
+  if (!fbMios) return
+  if (!foto) { sacarFotoFb(); return } // (la primera vez no hay con qué comparar)
+  const avisados = new Set(leerJSON(URGENTES_FB) ?? [])
+  const lineas = [], apuro = []
+  for (const f of fbMios) {
+    const antes = foto[f.id], contra = f[rivalesDe(f.lugar)[0]] ? parejaTxt(f, rivalesDe(f.lugar)) : f.para ? paraTxt(f) : null
+    if (!antes) {
+      if (desafioAmiFb(f)) lineas.push(`⚔️ <b>${esc(parejaTxt(f, ['a1', 'a2']))}</b> te ${f.revanchaDe ? 'pidieron la revancha' : 'desafiaron'} (a vos y a ${esc(nombreCorto(otroParaFb(f)?.alias))})`)
+      else if (teEligioFb(f) && meTocaFb(f)) lineas.push(`🤝 <b>${esc(nombreCorto(teEligioFb(f).alias))}</b> te eligió de compañero${contra ? ` contra ${esc(contra)}` : ''}`)
+      continue
+    }
+    if (!f.lugar) continue // (un desafío a tu pareja: sale cuando llega, no cuando juegan los que lo mandaron)
+    const nuevos = LUGARES_FB.filter((l) => l !== f.lugar && yaJugo(f, l) && !antes.includes(l) && !f[l].vuelta.noJugo)
+    if (!nuevos.length) continue
+    const quien = esc(listaY(nuevos.map((l) => nombreFb(f, l))))
+    const jugo = nuevos.length > 1 ? 'jugaron' : 'jugó'
+    if (f.estado === 'jugado') {
+      const c = cuentaFb(f)
+      lineas.push(`🏁 <b>${quien}</b> ${jugo} y terminó el fourball${contra ? ` contra ${esc(contra)}` : ''}: <b>${c.gano > 0 ? '¡ganaron' : c.gano < 0 ? 'perdieron' : 'empataron'} ${M.formatoPuntos(c.puntos[c.i])} a ${M.formatoPuntos(c.puntos[1 - c.i])}${c.gano > 0 ? '!' : ''}</b>`)
+    } else if (yaJugo(f, f.lugar)) {
+      const g = nuevos.map((l) => f[l].vuelta).map((v) => (v.lp || v.golpes == null ? 'LP' : `${v.golpes} (${M.formatoPar(v.vsPar)})`))
+      lineas.push(`⛳ <b>${quien}</b> ${jugo} su vuelta: ${esc(listaY(g))}${contra ? ` · contra ${esc(contra)}` : ''}`)
+    } else lineas.push(`⛳ <b>${quien}</b> ${jugo} su vuelta${contra ? ` (contra ${esc(contra)})` : ''}. Te toca: lo ves cuando juegues 👻`)
+  }
+  for (const f of fbMios) if (meTocaFb(f) && urgenteFb(f) && !avisados.has(f.id)) apuro.push(f)
+  sacarFotoFb()
+  if (apuro.length) escribirJSON(URGENTES_FB, [...avisados, ...apuro.map((f) => f.id)].slice(-100))
+  for (const f of apuro) lineas.unshift(`<span class="fb-urgente">⏰ ¡Te quedan ${horasFb(f)} h para tu fourball con ${esc(nombreCorto(f[companeroLugar(f.lugar)]?.alias ?? ''))}!</span> El que no juega, LP.`)
+  if (!lineas.length) return
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">⚔️ Novedades del fourball</p>
+    <ul class="fb-novedades">${lineas.slice(0, 6).map((l) => `<li>${l}</li>`).join('')}</ul>
+    <button class="carta-jugar oro" type="button" data-bn="ver">Ver mis fourball</button>
+    <button class="carta-jugar" type="button" data-bn="no">Después</button>`)
+  if (v === 'ver') { mtModo = '2v2'; fbTab = 'mios'; fbElige = null; mostrarMatch() }
+}
+
 /** Cada cuadro de un match: grabo mi vuelta (los dos: es lo que después se ve en el replay) y, si respondo, el marcador en vivo. */
 function cuadroDuelo() {
   const d = ronda.duelo
@@ -10082,7 +11105,8 @@ function cuadroDuelo() {
   if (ronda.ms == null && !ronda.terminada) {
     M.grabar(d.grabacion, ms, ronda.idx, tiro ? tiro.pos : ronda.pelota, tiro ? tiro.alt : 0, golpesVan(ronda))
   }
-  if (d.fantasma) pintarMarcador(ms)
+  if (d.tipo === 'fourball') pintarMarcadorFb(ms)
+  else if (d.fantasma) pintarMarcador(ms)
   vivoCuadro()
 }
 
@@ -10107,8 +11131,8 @@ function leerVivo() {
   return v
 }
 /** ¿Es la vuelta guardada de este desafío? (el que desafía con bananas: su `desafioId`; el que responde: el del desafío) */
-const vivoDe = (id) => { const v = leerVivo(); const d = v?.ronda?.duelo; return d && (d.desafioId === id || d.desafio?.id === id) ? v : null }
-const contraQuien = (d) => (d.tipo === 'reto' ? d.rival?.nombre : d.desafio?.retador?.alias) ?? 'tu rival'
+const vivoDe = (id) => { const v = leerVivo(); const d = v?.ronda?.duelo; return d && (d.desafioId === id || d.desafio?.id === id || d.fb?.id === id) ? v : null }
+const contraQuien = (d) => (d.tipo === 'fourball' ? contraFb(d) : d.tipo === 'reto' ? d.rival?.nombre : d.desafio?.retador?.alias) ?? 'tu rival'
 /** La Ruleta del match sale de la semilla: la tanda, contada (para seguirla desde donde iba al reconectar). */
 function contarRuleta(r, n = 0) {
   const base = M.aplicarMatch({ idx: 0, ruleta: {} }, r.match).ruleta.rng
@@ -10127,7 +11151,7 @@ function vivoCuadro() {
   if ((estado === 'apuntar' || r.idx !== vivoIdx) && clave !== vivoClave) {
     vivoClave = clave
     vivoIdx = r.idx
-    escribirJSON(VIVO, { v: 1, uid: yoUid() ?? null, desde: d.desde, ms, ronda: { ...r, t0: null, duelo: { ...d, fantasma: null } } })
+    escribirJSON(VIVO, { v: 1, uid: yoUid() ?? null, desde: d.desde, ms, ronda: { ...r, t0: null, duelo: { ...d, fantasma: null, ...(d.fantasmas ? { fantasmas: [] } : {}) } } })
   }
   // el reloj, cada segundo; los golpes, al toque (si te vas con la pelota en el aire, se sabe)
   if (van !== vivoVan || ms - vivoReloj >= 1000) {
@@ -10142,6 +11166,9 @@ function finMatch(r) {
   if (d.fin) return d.fin
   const t = M.totales(r.tarjeta)
   const lp = !!r.lp
+  // ⚔️ en el fourball cuenta cada hoyo: el total es la suma de los hoyos (sin el −1 de los monos ni la apuesta de Marcos)
+  const hoyos = d.tipo === 'fourball' ? M.hoyosDeTarjeta(r.tarjeta) : null
+  if (hoyos && !lp) { t.golpes = hoyos.reduce((a, x) => a + x, 0); t.vsPar = t.golpes - M.HOYOS.reduce((a, h) => a + h.par, 0) }
   // si levantó, el tiempo hasta que levantó (si los dos levantan, gana el que aguantó más)
   const mia = { apodo: r.carta.apodo, emoji: r.carta.emoji, golpes: lp ? null : t.golpes, vsPar: lp ? null : t.vsPar, ms: lp ? (r.msLP ?? null) : r.ms == null ? null : Math.round(r.ms), lp }
   // la última muestra de la grabación: dónde terminó y con cuántos golpes
@@ -10150,14 +11177,29 @@ function finMatch(r) {
   const pin = M.hoyoActual({ ...r, idx: Math.min(r.idx, M.HOYOS.length - 1) }).pin
   // (si levantó, la pelota queda donde la levantó)
   const donde = lp && u ? [u[1], u[2], u[3]] : [Math.min(r.idx, M.HOYOS.length - 1), Math.round(pin[0] * 10) / 10, Math.round(pin[1] * 10) / 10]
-  if (!u || u[0] < fin) d.grabacion.push([fin, ...donde, 0, lp ? golpesVan(r) : t.golpes])
-  d.fin = { tipo: d.tipo, apuesta: (d.tipo === 'reto' ? d.apuesta : d.desafio.apuesta) ?? 0, desafioId: d.desafioId ?? null, desId: d.desafio?.id ?? null, rival: d.rival ?? null, semilla: d.semilla, quien: contraQuien(d), mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r) }
+  // (en el fourball, siempre: así el que la ve sabe si la terminó —la última, en la bandera— o levantó)
+  if (!u || u[0] < fin || hoyos) d.grabacion.push([Math.max(fin, (u?.[0] ?? -1) + 1), ...donde, 0, lp ? golpesVan(r) : t.golpes])
+  d.fin = { tipo: d.tipo, apuesta: (d.tipo === 'reto' ? d.apuesta : d.desafio?.apuesta) ?? 0, desafioId: d.desafioId ?? null, desId: d.desafio?.id ?? null, rival: d.rival ?? null, semilla: d.semilla, quien: contraQuien(d), mia, fantasma: d.grabacion, ruleta: ruletaParaMatch(r),
+    ...(hoyos ? { hoyos, fbId: d.fb?.id ?? null, companero: d.companero ?? null, rivales: d.rivales ?? null, revanchaDe: d.revanchaDe ?? null } : {}) }
   escribirJSON(VIVO, { v: 1, uid: yoUid() ?? null, desde: d.desde, fin: d.fin })
   escribirJSON(VIVO_RELOJ, null)
   return d.fin
 }
 /** Manda la vuelta de un match terminado (desafío nuevo, el de bananas o la respuesta). Mandada, ya no hay nada que reconectar. */
 async function mandarFin(f) {
+  // ⚔️ el fourball: si lo armaste, se crea (y queda buscando rival); si no, tu vuelta se anota en el que ya existe.
+  // Devuelve { id } o el fourball, ya con los golpes de todos (los ves porque jugaste)
+  if (f.tipo === 'fourball') {
+    const vuelta = { ...f.mia, hoyos: f.hoyos }
+    const res = f.fbId ? await R.jugarFourball(f.fbId, { vuelta, fantasma: f.fantasma })
+      : { id: await R.crearFourball({ companero: f.companero, semilla: f.semilla, vuelta, fantasma: f.fantasma, rivales: f.rivales ?? null, revanchaDe: f.revanchaDe ?? null }) }
+    if (!res?.id) throw new Error('no se pudo anotar el fourball')
+    const g = leerJSON(VIVO)
+    if (!g || g.fin?.semilla === f.semilla) borrarVivo()
+    fbMios = null
+    cargarFourballs()
+    return res
+  }
   const vuelta = { ...f.mia, fantasma: f.fantasma, ruleta: f.ruleta }
   if (f.tipo === 'reto') {
     if (f.apuesta > 0) await R.enviarApuesta(f.desafioId, vuelta)
@@ -10185,6 +11227,13 @@ async function reconectar(v) {
     if (!Array.isArray(f)) { await avisoBananas('No se pudo reconectar', 'No llegó la vuelta de tu rival. Probá de nuevo en un rato (desde MATCH › Pendientes).'); return }
     r.duelo.fantasma = f
   }
+  // ⚔️ en el fourball, las de los que ya jugaron (ahora pueden ser más que cuando empezaste)
+  if (r.duelo.tipo === 'fourball' && r.duelo.fb) {
+    let gs = null
+    try { gs = await R.leerFantasmasFourball(r.duelo.fb.id) } catch {}
+    if (!gs) { await avisoBananas('No se pudo reconectar', 'No llegaron las vueltas de los otros. Probá de nuevo en un rato (desde MATCH › 2 VS 2).'); return }
+    r.duelo.fantasmas = fantasmasFb(r.duelo.fb, gs)
+  }
   if (r.ruleta && r.match) contarRuleta(r, r.ruleta.rngN ?? 0)
   if (r.llevados) r.tarjeta.monos = -Math.floor(r.llevados / M.LLEVAR.premio) || undefined // 🐒 (la tarjeta se guarda sin él)
   const { ms, gyd } = comoQuedo(v)
@@ -10206,9 +11255,11 @@ async function ofrecerReconectar() {
       await mandarFin(v.fin)
       mtDesafios = null
       cargarDesafios()
-      await avisoBananas('🔌 Match anotado', `Tu vuelta del match con <b>${esc(v.fin.quien)}</b> no se había llegado a mandar. Ya está: mirala en MATCH › Historial.`)
+      await avisoBananas(v.fin.tipo === 'fourball' ? '🔌 Fourball anotado' : '🔌 Match anotado', v.fin.tipo === 'fourball'
+        ? `Tu vuelta del fourball contra <b>${esc(v.fin.quien)}</b> no se había llegado a mandar. Ya está: miralo en MATCH › 2 VS 2 › Tus fourball.`
+        : `Tu vuelta del match con <b>${esc(v.fin.quien)}</b> no se había llegado a mandar. Ya está: mirala en MATCH › Historial.`)
     } catch (e) {
-      if (/ya no está/.test(errTxt(e))) { borrarVivo(); await avisoBananas('El match ya no está', `Tu vuelta con <b>${esc(v.fin.quien)}</b> llegó tarde: ${esc(errTxt(e))}.`) }
+      if (/ya no está|ya terminó|ya jugaste|no existe|no estás/.test(errTxt(e))) { borrarVivo(); await avisoBananas(v.fin.tipo === 'fourball' ? 'El fourball ya no está' : 'El match ya no está', `Tu vuelta con <b>${esc(v.fin.quien)}</b> llegó tarde: ${esc(errTxt(e))}.`) }
     }
     return
   }
@@ -10265,24 +11316,42 @@ function pintarMarcador(ms) {
   }${fila('el', ret.alias, `👻${ret.emoji ?? ''}`, elLp ? el.porHoyo.map((v, k) => (k >= el.idx ? 'LP' : v)) : el.porHoyo, elAhora, elTotal, elLp)}</tbody></table>`
   if (html === marcadorPintado) return
   marcadorPintado = html
+  $('#marcador').classList.remove('fb')
   $('#marcador').innerHTML = html
   $('#marcador').title = n ? `${gana > 0 ? 'Vas ganando' : gana < 0 ? 'Vas perdiendo' : 'Van iguales'} en ${n === 1 ? 'el hoyo' : `los ${n} hoyos`} que terminaron los dos` : ''
   $('#marcador').hidden = false
 }
-/** La pelota del que te desafió, semitransparente, con su emoji y su nombre (solo si va en tu mismo hoyo).
- *  Si está fuera de la pantalla, el cartelito queda en el borde con una flechita que apunta para donde va. */
+/**
+ * Las pelotas ajenas del match en vivo: la del que te desafió o, en el fourball, las de los que ya jugaron (tu
+ * compañero en dorado, los rivales en celeste). [{ g (la grabación), emoji, alias, color, color3d }]
+ */
+const COLOR_FANTASMA = { el: '#dfe9ff', nos: '#ffe39a' }, COLOR_FANTASMA3D = { el: '#9fd3f7', nos: '#f2c94c' }
+function fantasmasVivos() {
+  const d = ronda?.duelo
+  if (!d) return []
+  if (d.tipo === 'fourball') return d.fantasmas ?? []
+  const ret = d.desafio?.retador
+  return d.fantasma && ret ? [{ g: d.fantasma, emoji: ret.emoji, alias: ret.alias, color: COLOR_FANTASMA.el, color3d: COLOR_FANTASMA3D.el }] : []
+}
+/** Las pelotas ajenas, semitransparentes, con su emoji y su nombre. Si alguna está fuera de la pantalla, su cartelito
+ *  queda en el borde con una flechita que apunta para donde va. Si caen juntas (el tee), los carteles se apilan. */
 function dibujarFantasma() {
   if (ronda.t0 == null || ronda.terminada) return
-  const d = ronda.duelo
-  const f = M.fantasmaEn(d.fantasma, ronda.ms ?? performance.now() - ronda.t0)
-  if (!f || f.fin) return
+  const ms = ronda.ms ?? performance.now() - ronda.t0
+  const puestos = []
+  for (const x of fantasmasVivos()) {
+    const f = M.fantasmaEn(x.g, ms)
+    if (f && !f.fin) dibujarUnFantasma(f, x, puestos)
+  }
+}
+function dibujarUnFantasma(f, quien, puestos) {
   const [x, y0] = w2s(f.pos)
   const r = Math.max(4.5, radioPelota()) * (1 + f.alt / 50)
   const y = y0 - f.alt * levante()
   const v = visible()
   const fuera = x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1
   // fuera de la pantalla (en este hoyo o en otro): una marca en el borde, como los monos, que apunta adonde está
-  if (fuera) return indicadorFantasma(f, x, y, v)
+  if (fuera) return indicadorFantasma(f, x, y, v, quien, puestos)
   {
     ctx.globalAlpha = 0.22
     ctx.fillStyle = '#000'
@@ -10290,7 +11359,7 @@ function dibujarFantasma() {
     ctx.ellipse(x + 1, y0 + 1, r * 0.9, r * 0.6, 0, 0, 7)
     ctx.fill()
     ctx.globalAlpha = 0.25 + 0.1 * Math.sin(performance.now() / 300) // un halo que respira
-    ctx.fillStyle = '#dfe9ff'
+    ctx.fillStyle = quien.color ?? COLOR_FANTASMA.el
     ctx.beginPath()
     ctx.arc(x, y, r + 4, 0, 7)
     ctx.fill()
@@ -10304,15 +11373,16 @@ function dibujarFantasma() {
     ctx.stroke()
     ctx.setLineDash([])
   }
-  // el cartelito: emoji + nombre
-  const ret = d.desafio.retador
-  cartelPelota(x, y, r, ret.emoji, ret.alias, false, v.y0)
+  // el cartelito: emoji + nombre (si ya hay otro ahí, arriba del otro)
+  const sube = puestos.filter(([px, py]) => Math.abs(px - x) < 60 && Math.abs(py - y) < 22).length * 22
+  puestos.push([x, y])
+  cartelPelota(x, y, r, quien.emoji ?? '👻', quien.alias ?? '', false, v.y0, H - 90, '#f4eeda', 0.85, sube)
 }
 /**
  * El fantasma fuera de la pantalla: en el borde, sobre la línea de tu pelota a la suya, un círculo celeste (el color del
  * fantasma) con su emoji y una flecha para donde está. Abajo, a cuántas yardas (si va en tu hoyo) o en qué hoyo va.
  */
-function indicadorFantasma(f, gx, gy, v) {
+function indicadorFantasma(f, gx, gy, v, quien, puestos = []) {
   let [bx, by] = w2s(ronda.pelota)
   if (bx < v.x0 || bx > v.x1 || by < v.y0 || by > v.y1) [bx, by] = [(v.x0 + v.x1) / 2, (v.y0 + v.y1) / 2]
   const dx = gx - bx, dy = gy - by
@@ -10323,9 +11393,12 @@ function indicadorFantasma(f, gx, gy, v) {
   if (dy > 0) k = Math.min(k, (v.y1 - m - by) / dy)
   if (dy < 0) k = Math.min(k, (v.y0 + m - by) / dy)
   if (!isFinite(k) || k <= 0) return
-  const x = bx + dx * k, y = by + dy * k
+  let x = bx + dx * k, y = by + dy * k
+  // (en el fourball, si ya hay otro marcado ahí: al lado, a lo largo del borde)
+  const n = puestos.filter(([px, py]) => Math.hypot(px - x, py - y) < 50).length
+  if (n) { if (Math.abs(y - (v.y0 + m)) < 2 || Math.abs(y - (v.y1 - m)) < 2) x += (x > (v.x0 + v.x1) / 2 ? -54 : 54) * n; else y += (y > (v.y0 + v.y1) / 2 ? -54 : 54) * n }
+  puestos.push([bx + dx * k, by + dy * k])
   const ang = Math.atan2(dy, dx)
-  const ret = ronda.duelo.desafio.retador
   const etiqueta = f.idx === ronda.idx ? `${Math.round(M.dist(f.pos, ronda.pelota) * M.hoyoActual(ronda).escala)} YD` : `HOYO ${M.HOYOS[f.idx]?.n ?? ''}`
   ctx.save()
   ctx.translate(x, y)
@@ -10340,7 +11413,7 @@ function indicadorFantasma(f, gx, gy, v) {
   ctx.fill()
   ctx.beginPath()
   ctx.arc(0, 0, 20, 0, 7)
-  ctx.fillStyle = '#dfe9ff'
+  ctx.fillStyle = quien.color ?? COLOR_FANTASMA.el
   ctx.fill()
   ctx.lineWidth = 2.5
   ctx.strokeStyle = '#0c2b1c'
@@ -10349,14 +11422,14 @@ function indicadorFantasma(f, gx, gy, v) {
   ctx.font = `19px ${EMOJI}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(ret.emoji || '👻', 0, 1)
+  ctx.fillText(quien.emoji || '👻', 0, 1)
   ctx.font = `11px ${EMOJI}`
   ctx.fillText('👻', 14, -14)
   // la etiqueta, del lado de adentro de la pantalla
   ctx.font = '13px Anton, "Arial Narrow", sans-serif'
   const w = ctx.measureText(etiqueta).width + 12
   const lx = -Math.cos(ang) * 38, ly = -Math.sin(ang) * 34
-  ctx.fillStyle = '#dfe9ff'
+  ctx.fillStyle = quien.color ?? COLOR_FANTASMA.el
   ctx.beginPath()
   ctx.roundRect(lx - w / 2, ly - 9, w, 18, 9)
   ctx.fill()
@@ -11038,6 +12111,7 @@ async function cerrarMatch(r) {
   const el = $('#t-match')
   el.className = 't-match'
   el.hidden = false
+  if (d.tipo === 'fourball') { cerrarFourball(r, f, el); return }
   if (d.tipo === 'reto') {
     const mandar = async () => {
       el.innerHTML = `${gi('match', 'linea')}Mandando el desafío a <b>${esc(d.rival.nombre)}</b>…`
@@ -11991,7 +13065,8 @@ function mostrarElegir() {
   S.viento(0)
   S.lluvia(0)
   for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'stats', 'resumen', 'match']) $('#' + id).hidden = true
-  $('.mazo-tit').innerHTML = matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}${(matchModo.tipo === 'reto' ? matchModo.apuesta : matchModo.desafio.apuesta) > 0 ? ` · ${matchModo.tipo === 'reto' ? matchModo.apuesta : matchModo.desafio.apuesta}${BN}` : ''}` : 'Elegí tu nivel de dificultad'
+  $('.mazo-tit').innerHTML = matchModo?.tipo === 'fourball' ? `${gi('match', 'linea')}Fourball con ${esc(nombreCorto(companeroFb(matchModo)))} · el player de los cuatro`
+    : matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}${(matchModo.tipo === 'reto' ? matchModo.apuesta : matchModo.desafio.apuesta) > 0 ? ` · ${matchModo.tipo === 'reto' ? matchModo.apuesta : matchModo.desafio.apuesta}${BN}` : ''}` : 'Elegí tu nivel de dificultad'
   pintarProMazo()
   $('#hud-top').hidden = true
   $('#pancho').hidden = true
@@ -12044,11 +13119,20 @@ R.alEntrar(async (yo) => {
   if (R.hayMatch()) {
     $('#ver-match').hidden = false
     cargarDesafios()
-    cargarBananas().then(async (hay) => { if (hay) { await cobrarClasico(); await verRegalos() } })
+    const hojitas = cargarBananas().then(async (hay) => { if (hay) { await cobrarClasico(); await verRegalos() } })
     // ?match=1 (el aviso de la SDGApp, el link de WhatsApp); con &replay=<id>, directo al replay de ese match
     const q = new URLSearchParams(location.search)
-    if (q.has('match')) entrarPorAviso({ replayId: q.get('replay') || null, desdeLink: true })
+    if (q.has('fourball')) entrarPorFourball(q.get('fourball')) // ⚔️ el link del fourball (?match=1&fourball=<id>)
+    else if (q.has('match')) entrarPorAviso({ replayId: q.get('replay') || null, desdeLink: true })
+    const fourballs = cargarFourballs() // (el aviso: los fourball que te toca jugar)
     ofrecerReconectar() // 🔌
+    // 📸 las novedades del fourball (alguien jugó, te desafiaron, el apuro): en la portada, sin otra hojita abierta
+    if (!q.has('fourball') && !q.has('match')) {
+      Promise.all([hojitas, fourballs]).then(async () => {
+        for (let i = 0; i < 20 && !$('#bananas-modal').hidden; i++) await new Promise((r) => setTimeout(r, 500))
+        if (estado === 'portada' && $('#bananas-modal').hidden && $('#match').hidden) await novedadesFb()
+      }).catch(() => {})
+    }
   }
 })
 // suelto, con el ranking de la SDGApp: se entra con Google (la misma cuenta que en la app), no con un nombre

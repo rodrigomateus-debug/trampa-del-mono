@@ -599,3 +599,98 @@ export async function donarBananas(uid, cantidad) {
   const n = (x) => Math.floor(+x || 0)
   return { cantidad: n(r.cantidad), para: r.para ?? uid, nombre: r.nombre ?? null, saldo: n(r.saldo), donadasHoy: n(r.donadasHoy), tope: n(r.tope) }
 }
+
+// ── el FOURBALL ⚔️ (19/10/2026): 2 contra 2, mejor y suma ────────────────────────────────────────────────────────
+// Dos parejas, a distancia como el match. Todo lo hacen funciones de la base de la SDGApp ("el FOURBALL" en
+// supabase/migration.sql): quién puede tomarlo, una vuelta por lugar, quién ve los golpes de quién y los vencimientos.
+// El juego pide y cuenta los puntos (motor.js `resultadoFourball`). Adentro de la app, por el puente; suelto, por REST
+// (/rpc). Si la app o la base todavía no lo tienen, el error lleva `pronto = true` (la pestaña dice que ya viene).
+// (20/10/2026) Un lugar puede quedar vacío ("No puedo", hasta que se elige otro): llega sin `uid`. Si el que no pudo
+// nunca fue reemplazado y venció, llega con `uid` null y su vuelta de LP: cuenta como que no jugó.
+const ladoFb = (x) => {
+  const vuelta = x?.vuelta && typeof x.vuelta === 'object' ? x.vuelta : null
+  return x && (x.uid || vuelta) ? { uid: x.uid ?? null, alias: x.alias ?? '—', vuelta } : null
+}
+/** Un fourball de la base (visto por vos) → el del juego. `para` = la pareja desafiada (solo ellos lo pueden tomar). */
+export const deFilaFourball = (f) => (f && f.id ? {
+  id: f.id, semilla: Number(f.semilla) >>> 0, estado: f.estado, fecha: f.fecha ?? null, tomadoFecha: f.tomadoFecha ?? null, jugadoFecha: f.jugadoFecha ?? null,
+  lugar: ['a1', 'a2', 'b1', 'b2'].includes(f.lugar) ? f.lugar : null, a1: ladoFb(f.a1), a2: ladoFb(f.a2), b1: ladoFb(f.b1), b2: ladoFb(f.b2),
+  para: Array.isArray(f.para) && f.para.length === 2 && f.para.every((p) => p?.uid) ? f.para.map((p) => ({ uid: p.uid, alias: p.alias ?? '—' })) : null,
+  revanchaDe: f.revanchaDe ?? null, bajadoPor: f.bajadoPor ?? null,
+} : null)
+function prontoFb(e) {
+  if (/desconocida|HTTP 404|HTTP 400|Could not find|sin respuesta/.test(String(e?.message ?? ''))) e.pronto = true
+  throw e
+}
+async function fb(accion, fn, datos = {}, args = {}) {
+  try { return puente.enApp ? await porApp(accion, datos) : await rpc(fn, args) } catch (e) { return prontoFb(e) }
+}
+/** Tus fourball (los que armaste, en los que te eligieron y los que tomaste), sin grabaciones. */
+export async function leerFourballs() {
+  const r = await fb('fourballMios', 'trampa_fourball_mios')
+  return (Array.isArray(r) ? r : []).map(deFilaFourball).filter(Boolean)
+}
+/** Los que buscan rival (de otros), sin los golpes. */
+export async function leerFourballsAbiertos() {
+  const r = await fb('fourballAbiertos', 'trampa_fourball_abiertos')
+  return (Array.isArray(r) ? r : []).map(deFilaFourball).filter(Boolean)
+}
+/** Uno solo (el del link de WhatsApp). */
+export async function leerFourball(id) {
+  return deFilaFourball(await fb('fourballUno', 'trampa_fourball_uno', { fourballId: id }, { p_id: id }))
+}
+/**
+ * Armás uno: con `companero` ({ uid, nombre }), la semilla y tu vuelta ya jugada: `vuelta` = { apodo, emoji, hoyos:
+ * [g15, g16, g17] (null = no lo terminaste), golpes, vsPar, ms, lp }. Devuelve el id. (20/10/2026) Con `rivales`
+ * ([{ uid }, { uid }]) es un desafío a esa pareja (solo ellos lo pueden tomar); con `revanchaDe`, la revancha de ese.
+ */
+export async function crearFourball({ companero, semilla, vuelta, fantasma, rivales = null, revanchaDe = null }) {
+  const reto = rivales?.length === 2 ? [rivales[0].uid, rivales[1].uid] : null
+  const r = await fb('fourballCrear', 'trampa_fourball_crear',
+    { companeroId: companero.uid, semilla, vuelta, fantasma: fantasma ?? [], ...(reto ? { rivalesIds: reto } : {}), ...(revanchaDe ? { revanchaDe } : {}) },
+    { p_companero: companero.uid, p_alias: puente.identidad?.alias ?? null, p_semilla: semilla, p_vuelta: vuelta, p_fantasma: fantasma ?? [],
+      ...(reto ? { p_rival1: reto[0], p_rival2: reto[1] } : {}), ...(revanchaDe ? { p_revancha: revanchaDe } : {}) })
+  return puente.enApp ? r?.id ?? null : r ?? null
+}
+/**
+ * Lo tomás con tu compañero (el primero que lo toma se lo queda). Devuelve el fourball. En un desafío a tu pareja,
+ * `companero` = null: es el otro de la pareja (lo pone la base).
+ */
+export async function tomarFourball(id, companero) {
+  return deFilaFourball(await fb('fourballTomar', 'trampa_fourball_tomar', { fourballId: id, companeroId: companero?.uid ?? null },
+    { p_id: id, p_companero: companero?.uid ?? null, p_alias: puente.identidad?.alias ?? null }))
+}
+/**
+ * "No puedo" (antes de jugar): tu lugar queda vacío y el que lo armó (o el que lo tomó) elige otro. Si es un desafío a
+ * tu pareja y todavía no lo aceptaron, lo rechaza (queda cancelado). Devuelve el fourball.
+ */
+export async function noPuedoFourball(id) {
+  return deFilaFourball(await fb('fourballNoPuedo', 'trampa_fourball_no_puedo', { fourballId: id }, { p_id: id }))
+}
+/** Otro compañero ({ uid, nombre }), porque el tuyo no pudo. Devuelve el fourball. */
+export async function companeroFourball(id, companero) {
+  return deFilaFourball(await fb('fourballCompanero', 'trampa_fourball_companero', { fourballId: id, companeroId: companero.uid },
+    { p_id: id, p_companero: companero.uid, p_alias: puente.identidad?.alias ?? null }))
+}
+/** Bajarlo: el que lo armó, mientras nadie lo tomó (queda cancelado). Devuelve el fourball. */
+export async function bajarFourball(id) {
+  return deFilaFourball(await fb('fourballBajar', 'trampa_fourball_bajar', { fourballId: id }, { p_id: id }))
+}
+/** Los jugados de todos (los últimos 500, con las vueltas): para el ranking del fourball (motor.js `rankingFourball`). */
+export async function leerFourballsJugados() {
+  const r = await fb('fourballJugados', 'trampa_fourball_jugados')
+  return (Array.isArray(r) ? r : []).filter((f) => f?.id).map((f) => ({ id: f.id, fecha: f.fecha ?? null, a1: ladoFb(f.a1), a2: ladoFb(f.a2), b1: ladoFb(f.b1), b2: ladoFb(f.b2) }))
+}
+/** Jugaste tu vuelta: se anota (cuando jugaron los cuatro, queda jugado). Devuelve el fourball (ya con los golpes de todos). */
+export async function jugarFourball(id, { vuelta, fantasma }) {
+  return deFilaFourball(await fb('fourballJugar', 'trampa_fourball_jugar', { fourballId: id, vuelta, fantasma: Array.isArray(fantasma) ? fantasma : [] },
+    { p_id: id, p_vuelta: vuelta, p_fantasma: Array.isArray(fantasma) ? fantasma : null }))
+}
+/** Las grabaciones de los que ya jugaron: { a1, a2, b1, b2 } (null el que no jugó). */
+export async function leerFantasmasFourball(id) {
+  const r = await fb('fourballFantasmas', 'trampa_fourball_fantasmas', { fourballId: id }, { p_id: id })
+  const g = (x) => (Array.isArray(x) ? x : null)
+  return { a1: g(r?.a1), a2: g(r?.a2), b1: g(r?.b1), b2: g(r?.b2) }
+}
+/** El link para el fourball (tomarlo o jugar tu vuelta): adentro de la app, la pantalla del juego de la app; suelto, el juego. */
+export const linkFourball = (id) => `${linkMatch()}&fourball=${encodeURIComponent(id)}`
