@@ -1240,6 +1240,57 @@ export function resultadoFourball(A, B) {
 export const formatoPuntos = (x) => { const e = Math.floor(x + 1e-9), m = x - e > 0.25; return e || !m ? `${e}${m ? '½' : ''}` : '½' }
 /** Los golpes de cada hoyo de una vuelta terminada (la tarjeta): null en los que levantó. */
 export const hoyosDeTarjeta = (tarjeta) => HOYOS.map((h, k) => { const f = tarjeta?.[k]; return f && !f.lp && f.golpes != null ? f.golpes : null })
+/** Una vuelta del fourball como la guarda la base → el jugador de `resultadoFourball` (null si no jugó o no la ves). */
+export const jugadorFourball = (v) => (v && !v.oculta ? { hoyos: HOYOS.map((_, k) => (Array.isArray(v.hoyos) ? v.hoyos[k] ?? null : null)), ms: v.ms ?? null, lp: !!v.lp } : null)
+/**
+ * 🏆 El ranking del fourball (2026-10-20, pedido de Rorro): con los jugados de todos ([{ id, fecha, a1, a2, b1, b2 }],
+ * cada lugar { uid, alias, vuelta }), cada jugador y cada pareja con sus jugados, ganados, empatados y perdidos (y el
+ * último). El lugar que quedó vacío (uid null: el que dijo "No puedo" y nadie lo reemplazó) no suma para nadie; su
+ * vuelta es un LP. Sin ordenar (ver `ordenFourball`).
+ * → { jugadores: [{ uid, nombre, jugados, ganados, empatados, perdidos, ultimo, con: [{ uid, nombre, ganados, … }] }],
+ *     parejas: [{ uids: [u1, u2], nombres: [n1, n2], jugados, ganados, empatados, perdidos, ultimo }] }
+ */
+export function rankingFourball(jugados) {
+  const jug = new Map(), par = new Map()
+  const record = (base) => ({ ...base, jugados: 0, ganados: 0, empatados: 0, perdidos: 0, ultimo: null })
+  const sumar = (x, g, fecha) => {
+    x.jugados++
+    if (g > 0) x.ganados++
+    else if (g < 0) x.perdidos++
+    else x.empatados++
+    if (fecha && (!x.ultimo || fecha > x.ultimo)) x.ultimo = fecha
+  }
+  const LP = { hoyos: [null, null, null], ms: null, lp: true }
+  for (const f of jugados ?? []) {
+    const j = (l) => jugadorFourball(f[l]?.vuelta) ?? LP
+    const r = resultadoFourball([j('a1'), j('a2')], [j('b1'), j('b2')])
+    for (const [ls, g] of [[['a1', 'a2'], r.ganador], [['b1', 'b2'], -r.ganador]]) {
+      const [p, q] = ls.map((l) => (f[l]?.uid ? f[l] : null))
+      for (const [x, y] of [[p, q], [q, p]]) {
+        if (!x) continue
+        if (!jug.has(x.uid)) jug.set(x.uid, record({ uid: x.uid, nombre: x.alias ?? '—', conMap: new Map() }))
+        const yo = jug.get(x.uid)
+        sumar(yo, g, f.fecha)
+        if (y) {
+          if (!yo.conMap.has(y.uid)) yo.conMap.set(y.uid, record({ uid: y.uid, nombre: y.alias ?? '—' }))
+          sumar(yo.conMap.get(y.uid), g, f.fecha)
+        }
+      }
+      if (p && q) {
+        const [u, v] = p.uid < q.uid ? [p, q] : [q, p]
+        const k = `${u.uid}|${v.uid}`
+        if (!par.has(k)) par.set(k, record({ uids: [u.uid, v.uid], nombres: [u.alias ?? '—', v.alias ?? '—'] }))
+        sumar(par.get(k), g, f.fecha)
+      }
+    }
+  }
+  return {
+    jugadores: [...jug.values()].map(({ conMap, ...x }) => ({ ...x, con: [...conMap.values()] })),
+    parejas: [...par.values()],
+  }
+}
+/** El orden del ranking del fourball (como el de matches): más ganados; después menos perdidos; después más jugados. */
+export const ordenFourball = (a, b) => b.ganados - a.ganados || a.perdidos - b.perdidos || b.jugados - a.jugados
 
 // ── banderas ──
 // La bandera cambia de lugar en cada ronda: en cualquier parte del green a `margen` yardas o más del borde. Esa zona

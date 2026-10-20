@@ -2656,4 +2656,37 @@ ok('⚔️ fourball: mejor y suma (2 puntos por hoyo, ½ en empate), LP por hoyo
   assert.deepEqual(M.hoyosDeTarjeta([{ golpes: 5 }, { golpes: 4, lp: true }]), [5, null, null])
 })
 
+ok('⚔️ fourball: el ranking de jugadores y parejas (G/E/P), sin el lugar vacío y con la vuelta oculta como LP', () => {
+  const v = (hoyos, ms = 60000) => ({ apodo: 'LG', emoji: '📺', hoyos, golpes: hoyos.reduce((a, b) => a + (b ?? 0), 0), vsPar: 0, ms, lp: hoyos.includes(null) })
+  const l = (uid, alias, vuelta) => ({ uid, alias, vuelta })
+  const noJugo = { apodo: null, emoji: null, hoyos: [null, null, null], golpes: null, vsPar: null, ms: null, lp: true, noJugo: true }
+  const jugados = [
+    // Rorro y Lechu le ganan a Mono y Patmig (5½ a ½)
+    { id: '1', fecha: '2026-10-20T10:00:00Z', a1: l('r', 'Rorro', v([3, 3, 3])), a2: l('l', 'Lechu', v([4, 4, 3])), b1: l('m', 'El Mono', v([4, 4, 3])), b2: l('p', 'Patmig', v([5, 5, 4])) },
+    // la revancha: Mono y Patmig arman, Lechu y Rorro (al revés) pierden
+    { id: '2', fecha: '2026-10-21T10:00:00Z', a1: l('m', 'El Mono', v([3, 3, 2])), a2: l('p', 'Patmig', v([4, 4, 3])), b1: l('l', 'Lechu', v([4, 4, 3])), b2: l('r', 'Rorro', v([5, 5, 4])) },
+    // Rorro con Fito contra el Mono y un lugar vacío que venció (no suma para nadie): 3 a 3 y, sin tiempo la pareja
+    // del vacío, ganan Rorro y Fito
+    { id: '3', fecha: '2026-10-19T10:00:00Z', a1: l('r', 'Rorro', v([4, 4, 3])), a2: l('f', 'Fito', v([4, 4, 3])), b1: l('m', 'El Mono', v([3, 3, 2])), b2: { uid: null, alias: '—', vuelta: noJugo } },
+  ]
+  const { jugadores, parejas } = M.rankingFourball(jugados)
+  const de = (uid) => jugadores.find((x) => x.uid === uid)
+  assert.deepEqual([de('r').jugados, de('r').ganados, de('r').empatados, de('r').perdidos], [3, 2, 0, 1])
+  assert.equal(de('r').ultimo, '2026-10-21T10:00:00Z')
+  assert.deepEqual(de('r').con.map((c) => [c.uid, c.ganados, c.perdidos]).sort(), [['f', 1, 0], ['l', 1, 1]])
+  assert.deepEqual([de('m').jugados, de('m').ganados, de('m').perdidos], [3, 1, 2])
+  assert.equal(jugadores.length, 5) // r, l, m, p, f: el vacío no está
+  assert.ok(!jugadores.some((x) => x.uid == null))
+  // la pareja es la misma armen o tomen, y sin importar quién es a1: Rorro y Lechu, 1-1
+  const rl = parejas.find((x) => x.uids.join() === 'l,r')
+  assert.deepEqual([rl.jugados, rl.ganados, rl.perdidos], [2, 1, 1])
+  // el Mono con el lugar vacío no es pareja
+  assert.equal(parejas.length, 3)
+  // el orden: más ganados, menos perdidos, más jugados
+  assert.deepEqual([...jugadores].sort(M.ordenFourball).map((x) => x.uid).slice(0, 2), ['r', 'f'])
+  // la vuelta que no se ve (oculta) o que falta cuenta como LP
+  assert.equal(M.jugadorFourball({ apodo: 'LG', emoji: '📺', oculta: true }), null)
+  assert.deepEqual(M.jugadorFourball(v([4, 4, 3])), { hoyos: [4, 4, 3], ms: 60000, lp: false })
+})
+
 console.log('\nTodo verde.')
