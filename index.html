@@ -1925,6 +1925,12 @@ input { -webkit-user-select: text; user-select: text; }
 #draft.cayo .dr-op.elegida { transform: translateY(-6px) scale(1.04); box-shadow: 3px 4px 0 var(--game-ink), 0 0 0 4px var(--gold), 0 0 30px rgba(232, 195, 74, .9); }
 @keyframes dr-entra { from { opacity: 0; transform: translateY(18px) rotate(-3deg); } }
 @media (prefers-reduced-motion: reduce) { .dr-op, #draft .dr-cab, .dr-op.glitch .dr-foto img { animation: none; } }
+/* mientras elegís, los que hablan después del tiro (el Dicky, Lucas, el Equipo 5) y el ABRAZO / ¡FUERA, DICKY! quedan
+   parados arriba del panel y más chicos (--draft-alto: lo que ocupa, lo mide abrirDraft): no tapan las cartas y el
+   botón se puede tocar */
+body.eligiendo #dicky, body.eligiendo #lucas { bottom: var(--draft-alto, 0px); width: min(30vw, 132px); }
+body.eligiendo #dicky .globo, body.eligiendo #lucas .globo { font-size: 14px; }
+body.eligiendo #contra-btn { bottom: calc(var(--draft-alto, 0px) + 12px); }
 /* la carta del mazo: tres naipes en abanico con las caras que van pasando (el del medio, dorado), y el mosaico atrás */
 .carta.draft .dr-abanico { --dr-v: clamp(40px, 27cqh, 104px); position: absolute; z-index: 1; left: 50%; top: 44%; width: var(--dr-v); height: calc(var(--dr-v) * 1.3); transform: translate(-50%, -50%); }
 @supports not (height: 1cqh) { .carta.draft .dr-abanico { --dr-v: clamp(54px, 11vh, 104px); } }
@@ -2662,7 +2668,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 66e2dd7 · 21/10, 04:46 p. m.</span>
+  <span class="version" id="version">v 57f4cd4 · 21/10, 06:02 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -4179,7 +4185,6 @@ function abrirDraft(luego) {
   estado = 'ruleta'
   drag = null
   draftLuego = luego
-  obj = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin) // que se vea desde dónde se pega
   velCam = 3.5
   hud()
   $('#dr-cartel').textContent = `🃏 TIRO ${ronda.ruleta.tiros.length + 1} · ¿QUIÉN PEGA?`
@@ -4187,6 +4192,13 @@ function abrirDraft(luego) {
   $('#dr-ops').innerHTML = ops.map(cartaDraft).join('')
   $('#draft').classList.remove('cayo')
   $('#draft').hidden = false
+  // lo que ocupa el panel (sin la entrada animada: offsetTop no mira el transform): los que hablan se paran arriba y
+  // la pelota queda en el lugar libre, entre el marcador y el panel
+  const arriba = $('#draft .dr-cab').offsetTop
+  document.body.style.setProperty('--draft-alto', `${Math.round(H - arriba + 6)}px`)
+  document.body.classList.add('eligiendo')
+  const v = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin), sy = Math.min(v.sy, v.techo + (arriba - v.techo) * 0.55)
+  obj = { ...v, sy, esc: Math.max(1.1, v.esc * Math.max(0.4, (sy - v.techo - 10) / Math.max(1, v.sy - v.techo - 10))) }
   S.ruletaTic()
 }
 $('#dr-ops').addEventListener('click', (e) => {
@@ -4203,6 +4215,8 @@ $('#dr-ops').addEventListener('click', (e) => {
   const x = publico(j), hab = M.habilidadDe(j)
   voz = { lg: `🃏 Pega ${x.emoji} ${sinD(x.apodo)}`, extra: x.misterio ? '¿Quién será?' : hab ? `✨ ${hab.nombre}: ${DRAFT_TXT[hab.id] ?? hab.corto ?? hab.texto}` : hcpEtiqueta(j), hasta: performance.now() + 5500 }
   document.body.classList.toggle('retro', !!j.retro) // Demetrio: su tiro, en 1960 (sepia)
+  document.body.classList.remove('eligiendo')
+  obj = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin) // (al empezar el hoyo no pasa por aApuntar)
   setTimeout(() => {
     $('#draft').hidden = true
     luego()
@@ -13263,7 +13277,8 @@ $('#el-pro').addEventListener('click', () => { datos.pro = !datos.pro; guardar(d
 function mostrarElegir() {
   estado = 'elegir'
   fondoDelClima(null) // en el mazo, la cancha de siempre
-  document.body.classList.remove('retro', 'modo-ruleta')
+  document.body.classList.remove('retro', 'modo-ruleta', 'eligiendo')
+  $('#draft').hidden = true
   S.musica(null)
   S.viento(0)
   S.lluvia(0)
