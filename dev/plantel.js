@@ -365,8 +365,10 @@ export const DESBLOQUEO_RORRO = {
 export const DESBLOQUEOS = [DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO]
 
 // 🎰 La Ruleta (2026-10-05): no es un player, es una carta del mazo. Cada tiro lo pega uno del mazo al azar, con su
-// handicap y su habilidad, y nunca el mismo dos veces seguidas (`turnoRuleta` en motor.js). `pool`: los que pueden salir
-// (los del mazo; Demetrio, que es secreto, no).
+// handicap y su habilidad, y nunca el mismo dos veces seguidas (`turnoRuleta` en motor.js). `pool`: los que pueden salir.
+// Desde el 2026-10-21, como en el Draft: Taiu con o sin candado (y también en un match) y Demetrio, que es raro (sale
+// poco y una vez por vuelta; al que no lo desbloqueó, le sale como el jugador misterioso).
+const MAZO = PLANTEL.filter((j) => EN_PRUEBA.includes(j.apodo) && !j.pase && !j.cancha3d) // (Rorro no: su cancha es otra)
 export const RULETA = {
   "apodo": "La Ruleta",
   "emoji": "🎰",
@@ -376,7 +378,7 @@ export const RULETA = {
   "foto": null,
   "stats": null,
   "ruleta": true,
-  "pool": PLANTEL.filter((j) => EN_PRUEBA.includes(j.apodo) && !j.pase && !j.cancha3d) // (Rorro no: su cancha es otra)
+  "pool": [...MAZO, DEMETRIO]
 }
 PLANTEL.push(RULETA)
 
@@ -394,7 +396,7 @@ export const DRAFT = {
   "stats": null,
   "ruleta": true, // una carta-modo: cada tiro lo pega otro (lo que vale para la Ruleta vale acá)
   "draft": true,
-  "pool": [...RULETA.pool, PLANTEL.find((j) => j.apodo === 'Rorro'), DEMETRIO]
+  "pool": [...MAZO, PLANTEL.find((j) => j.apodo === 'Rorro'), DEMETRIO]
 }
 PLANTEL.push(DRAFT)
 

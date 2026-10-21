@@ -1883,7 +1883,7 @@ ok('🤫 Demetrio López: sin monos; cada tiro queda exactamente donde apuntó; 
 
 ok('🎰 La Ruleta: cada tiro otro player del mazo, nunca el mismo dos seguidos; gira solo si pegaste', () => {
   assert.equal(M.esRuleta(RULETA), true)
-  assert.ok(RULETA.pool.length >= 10 && !RULETA.pool.includes(RULETA) && RULETA.pool.every((j) => !j.secreto))
+  assert.ok(RULETA.pool.length >= 10 && !RULETA.pool.includes(RULETA))
   const rng = M.rngDesde(42)
   const r = M.nuevaRonda(RULETA, rng)
   assert.equal(r.tee, 'blanca')
@@ -1921,6 +1921,35 @@ ok('🎰 La Ruleta: cada tiro otro player del mazo, nunca el mismo dos seguidos;
   M.levantar(r)
   assert.equal(r.ruleta.tiros.length, total + 1)
   assert.equal(M.tirosRuleta(r).reduce((s, h) => s + h.tiros.length, 0), total)
+})
+
+ok('🎰 La Ruleta también tiene a Taiu y a Demetrio: Demetrio es raro (sale poco) y una sola vez por vuelta', () => {
+  const apodos = RULETA.pool.map((j) => j.apodo)
+  for (const a of ['Taiu (Đ)', 'Demetrio López']) assert.ok(apodos.includes(a), a)
+  for (const a of ['La Ruleta', 'El Draft', 'Fito (5)', 'Rorro']) assert.ok(!apodos.includes(a), a)
+  assert.equal(new Set(apodos).size, apodos.length)
+  // el Draft: los mismos, más Rorro (y en el mismo orden que antes: el sorteo de un match no cambia)
+  assert.deepEqual(DRAFT.pool.map((j) => j.apodo), [...apodos.filter((a) => a !== 'Demetrio López'), 'Rorro', 'Demetrio López'])
+  // muchas vueltas de 11 tiros: Demetrio sale en una de cada cinco o seis, nunca dos veces en la misma
+  const rng = M.rngDesde(2026)
+  let conDemetrio = 0
+  const V = 3000
+  for (let v = 0; v < V; v++) {
+    const r = M.nuevaRonda(RULETA, rng)
+    let veces = 0
+    for (let t = 0; t < 11; t++) { r.ruletaToca = true; if (M.turnoRuleta(r, rng).apodo === 'Demetrio López') veces++ }
+    assert.ok(veces <= 1)
+    if (veces) conDemetrio++
+  }
+  assert.ok(conDemetrio / V > 0.12 && conDemetrio / V < 0.24, String(conDemetrio / V))
+  // sale Demetrio: pega él (golf de 1960) y la ronda no deja de ser de la Ruleta
+  const r = M.nuevaRonda(RULETA, M.rngDesde(1))
+  const j = M.turnoRuleta(r, M.rngDesde(1), (x) => x.apodo === 'Demetrio López')
+  assert.equal(j.apodo, 'Demetrio López')
+  assert.equal(M.habilidadDe(r.jugador).id, 'retro')
+  assert.equal(M.cartaDe(r), RULETA)
+  r.ruletaToca = true
+  assert.notEqual(M.turnoRuleta(r, M.rngDesde(1), (x) => x.apodo === 'Demetrio López').apodo, 'Demetrio López') // una vez por vuelta
 })
 
 ok('🎰 La Ruleta deja la ronda lista para el que pega (Mago, Mugre, Marcos, Maxi) y la limpia para el siguiente', () => {

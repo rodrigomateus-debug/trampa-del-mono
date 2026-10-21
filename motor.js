@@ -135,7 +135,7 @@ export const HABILIDADES = {
   LG: { id: 'calma', nombre: 'El que se enoja pierde', texto: 'Después de un mal tiro no se enoja: el próximo sale sin error.' },
   'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (la goma llega más lejos; en el sweet spot, perfecta) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
   Rorro: { id: 'codigo', corto: 'Su cancha en 3D, que se rehace cada 10 segundos.', nombre: 'La cancha en código', texto: 'Rorro juega en su cancha, hecha en código y en 3D, y cada 10 segundos la cancha se rehace (un deploy; el reloj avisa). Si el último tiro lo soltaste en el latido, se aprueba: se abre la calle y se arreglan los bugs. Si no, cambios del cliente: todo se mueve, otra skin y algún bug. Los greens no se mueven, pero en el green el hoyo se puede mudar. Dos poderes de dev por hoyo: ⏸ DEBUG en el aire (congela la pelota y le corrés el destino) y ↩ REVERT (vuelve a la cancha anterior). Y en cada vuelta se copia una habilidad de otro: elegís entre tres al azar.' },
-  'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
+  'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega. Puede salir Taiu, aunque no lo tengas. Y de vez en cuando, una carta rara que pega perfecto: una sola vez por vuelta.' },
   'El Draft': { id: 'draft', corto: 'Cada tiro, elegís quién pega entre tres.', nombre: 'Elegí quién pega', texto: 'Antes de cada tiro salen tres players del mazo al azar y elegís cuál pega, con su handicap y su habilidad. El que pegó recién no sale. Pueden salir Taiu y Rorro (con su ⏸️ DEBUG: con la pelota en el aire, la congelás y le corrés el destino), aunque no los tengas. Y de vez en cuando, una carta rara que pega perfecto: una sola vez por vuelta. El reloj corre mientras elegís.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
@@ -2459,18 +2459,32 @@ export const cartaDe = (r) => r.carta ?? r.jugador
  * antes de pegar o el LP del Ninja no cuentan como tiro). Sale cualquiera del mazo menos el que pegó el
  * anterior, y la ronda queda lista para él: el golpe del Mago, los panchos de la Mugre, el carrito de Marcos
  * (estacionado donde pegó el anterior: maneja hasta la pelota) y el Deme de Maxi (uno por vuelta, de cualquiera).
- * En un match la Ruleta sale de la semilla (`r.ruleta.rng`): los dos juegan con la misma tanda.
- * Devuelve el que pega, o null si no giró.
+ * Los raros (`RULETA_RAROS`) salen poco y una sola vez por vuelta. Una sola tirada por giro: en un match la Ruleta
+ * sale de la semilla (`r.ruleta.rng`) y los dos juegan con la misma tanda. `quiero` (solo para probar): si alguno de
+ * los que pueden salir lo cumple, sale ese. Devuelve el que pega, o null si no giró.
  */
-export function turnoRuleta(r, rng) {
+export function turnoRuleta(r, rng, quiero = null) {
   if (!r.ruleta || r.ruleta.draft || !r.ruletaToca || r.terminada) return null
   r.ruletaToca = false
   const antes = r.jugador
-  const pool = r.ruleta.pool.filter((j) => j.apodo !== antes?.apodo)
+  const ya = new Set(r.ruleta.tiros.map((t) => t.apodo))
+  const pool = r.ruleta.pool.filter((j) => j.apodo !== antes?.apodo && !(RULETA_RAROS[j.apodo] && ya.has(j.apodo)))
   if (!pool.length) return null
-  const j = elegir(r.ruleta.rng ?? rng, pool)
+  const sale = elegirConPeso(r.ruleta.rng ?? rng, pool, (j) => RULETA_RAROS[j.apodo] ?? 1)
+  const j = (quiero && pool.find(quiero)) || sale
   ponerEnTurno(r, j)
   return j
+}
+/**
+ * 🎰 Los raros de la Ruleta (2026-10-21): su peso en el giro (los demás pesan 1). Demetrio pega perfecto y, si es el
+ * tiro para par, la mete: con este peso sale en una de cada cinco o seis vueltas, como entre las tres del Draft.
+ */
+export const RULETA_RAROS = { 'Demetrio López': 0.25 }
+/** Uno de la lista al azar, cada uno con su peso. Con todos de peso 1 es `elegir` (y con la misma tirada). */
+function elegirConPeso(rng, lista, peso) {
+  let u = rng() * lista.reduce((t, x) => t + peso(x), 0)
+  for (const x of lista) if ((u -= peso(x)) < 0) return x
+  return lista.at(-1)
 }
 /** El que pega ahora, en la Ruleta y en el Draft: la ronda queda lista para él (y anotado en quién pegó cada tiro). */
 function ponerEnTurno(r, j) {

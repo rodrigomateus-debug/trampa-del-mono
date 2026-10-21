@@ -4059,7 +4059,9 @@ const caraRuleta = (j) => (j.foto ? `<img src="${j.foto}" alt="" draggable="fals
 const reducido = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 function girarRuleta(luego) {
   if (ronda?.ruleta?.draft) { abrirDraft(luego); return } // 🃏 el Draft: no gira, elegís vos
-  const j = ronda?.ruleta ? M.turnoRuleta(ronda, rng) : null
+  // para probar (solo en dev/, sin match): ?ruleta=demetrio,taiu hace salir a esos cada vez que pueden
+  const forzar = PRUEBA && !ronda?.match && PARAMS.get('ruleta')?.toLowerCase().split(',').map((f) => f.trim())
+  const j = ronda?.ruleta ? M.turnoRuleta(ronda, rng, forzar && ((x) => forzar.some((f) => sinD(x.apodo).toLowerCase().startsWith(f)))) : null
   if (!j) { luego(); return }
   estado = 'ruleta'
   drag = null
@@ -4068,22 +4070,26 @@ function girarRuleta(luego) {
   const el = $('#ruleta')
   const tiros = ronda.ruleta.tiros
   const antes = tiros.at(-2)
-  $('#rl-cartel').textContent = `🎰 TIRO ${tiros.length} · ¿QUIÉN PEGA?`
-  $('#rl-quien').innerHTML = `<small>PEGA</small>${esc(j.apodo.toUpperCase())}`
+  // (lo que se ve: Demetrio, para el que no lo tiene, es el misterioso)
+  const pool = ronda.ruleta.pool, x = publico(j), raro = !!M.RULETA_RAROS[j.apodo]
+  const antesX = antes && publico(pool.find((p) => p.apodo === antes.apodo) ?? antes)
+  $('#rl-cartel').textContent = raro ? `🎰 TIRO ${tiros.length} · ✨ ¡CARTA RARA!` : `🎰 TIRO ${tiros.length} · ¿QUIÉN PEGA?`
+  $('#rl-quien').innerHTML = `<small>PEGA</small>${esc((x.misterio ? 'Misterioso' : x.apodo).toUpperCase())}`
   const hab = M.habilidadDe(j)
-  $('#rl-hab').innerHTML = `${hab ? `<b>✨ ${esc(hab.nombre)}</b> · ` : ''}${esc(hcpEtiqueta(j))}${antes ? ` · ya no pega ${esc(antes.emoji)}` : ''}`
-  $('#rl-emo').textContent = j.emoji
-  // la tira: arranca en el que pegó recién (si hay), pasan caras al azar y cae en el que pega (nunca dos iguales juntas)
-  const pool = ronda.ruleta.pool
-  const caras = antes ? [pool.find((x) => x.apodo === antes.apodo) ?? j] : []
+  $('#rl-hab').innerHTML = `${x.misterio ? '<b>¿?</b> · Nadie sabe quién es. Dicen que no falla' : `${hab ? `<b>✨ ${esc(hab.nombre)}</b> · ` : ''}${esc(hcpEtiqueta(j))}${bloqueado(j) ? ' · prestado' : ''}`}${antesX ? ` · ya no pega ${esc(antesX.emoji)}` : ''}`
+  $('#rl-emo').textContent = x.emoji
+  // la tira: arranca en el que pegó recién (si hay), pasan caras al azar y cae en el que pega (nunca dos iguales juntas;
+  // las raras no pasan: que salga una es una sorpresa)
+  const pasan = pool.filter((p) => !M.RULETA_RAROS[p.apodo])
+  const caras = antes ? [pool.find((p) => p.apodo === antes.apodo) ?? j] : []
   while (caras.length < 13) {
-    const x = M.elegir(Math.random, pool)
-    if (x !== caras.at(-1)) caras.push(x)
+    const p = M.elegir(Math.random, pasan)
+    if (p !== caras.at(-1)) caras.push(p)
   }
   if (caras.at(-1) === j) caras.pop()
   caras.push(j)
   const tira = $('#rl-tira')
-  tira.innerHTML = caras.map(caraRuleta).join('')
+  tira.innerHTML = caras.map((p) => caraRuleta(publico(p))).join('')
   el.classList.remove('cayo')
   el.hidden = false
   const alto = $('#ruleta .rl-vent').offsetHeight || 150 // el alto de verdad (la caja entra con zoom: el rect da menos)
@@ -4113,9 +4119,10 @@ function terminarRuleta() {
     el.querySelector('.rl-caja').animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${b.left + b.width / 2 - (a.left + a.width / 2)}px, ${b.top + b.height / 2 - (a.top + a.height / 2)}px) scale(${b.width / a.width})`, opacity: 0.2 }], { duration: 300, easing: 'cubic-bezier(.5,0,.8,.4)' })
       .finished.catch(() => {}).then(() => { el.hidden = true })
   } else el.hidden = true
-  const j = ronda.jugador
+  const j = ronda.jugador, x = publico(j)
   const hab = M.habilidadDe(j)
-  voz = { lg: `🎰 Pega ${j.emoji} ${j.apodo}`, extra: hab ? `✨ ${hab.nombre}: ${hab.texto}` : hcpEtiqueta(j), hasta: performance.now() + 5500 }
+  voz = { lg: `🎰 Pega ${x.emoji} ${x.misterio ? 'Misterioso' : x.apodo}`, extra: x.misterio ? '¿Quién será?' : hab ? `✨ ${hab.nombre}: ${hab.id === 'retro' ? DRAFT_TXT.retro : hab.texto}` : hcpEtiqueta(j), hasta: performance.now() + 5500 }
+  document.body.classList.toggle('retro', !!j.retro) // Demetrio: su tiro, en 1960 (sepia; los monos siguen: la cancha es la de hoy)
   luego()
   hud()
   const cara = $('#hud-top .cara')
@@ -4917,13 +4924,8 @@ function empezar(jugador) {
   if (usa3d(jugador) && !r3d && !r3dFallo) { esperar3d(() => empezar(jugador)); return } // 🥃 la cancha 3D, antes
   if (usa3d(jugador) && jugador !== rorroListo) { elegirHabilidadRorro(jugador); return } // 🥃 y la habilidad que se copia
   rorroListo = null
-  // la Ruleta: el bloqueado no sale. En un match, los dos con el MISMO mazo (sin los que se desbloquean, así nadie tiene
-  // uno que el otro no): con la semilla del match, tiro por tiro les salen los mismos players a los dos
-  // (el Draft, no: salen todos, con o sin candado, y en un match es el mismo mazo para los dos)
-  if (jugador.ruleta && !jugador.draft) {
-    const pool = matchModo ? jugador.pool.filter((x) => x.apodo !== DESBLOQUEO_TAIU.apodo) : jugador.pool.filter((x) => !bloqueado(x))
-    if (pool.length !== jugador.pool.length) jugador = { ...jugador, pool }
-  }
+  // la Ruleta y el Draft: el mazo entero, con o sin candado (Taiu, Demetrio): en un match, los dos con el MISMO mazo y,
+  // con la semilla del match, tiro por tiro les salen los mismos players
   aplicarHandicaps() // si la app mandó handicaps mientras se jugaba la vuelta anterior
   ronda = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // la bandera, en otro lugar del green cada ronda
   // el match: las banderas y el viento salen de la semilla (los dos juegan lo mismo); se usa una vez
@@ -11688,6 +11690,7 @@ async function reconectar(v) {
   matchModo = null
   for (const id of ['bananas-modal', 'match']) $('#' + id).hidden = true
   ponerEnEscena(r.carta)
+  if (r.ruleta && !r.ruletaToca) document.body.classList.toggle('retro', !!r.jugador?.retro) // (Demetrio, en la Ruleta o el Draft: 1960)
 }
 /** Al entrar: si quedó un match a medio jugar, te ofrece reconectar; si quedó uno terminado sin mandar, lo manda. */
 async function ofrecerReconectar() {
@@ -13272,9 +13275,9 @@ function fotoDraft(j) {
 }
 
 // ── 🎰 la carta de la Ruleta: un tragamonedas con las caras del mazo, y todas las caras subiendo atrás ──
-const keyframesRuleta = new Set() // una animación por cantidad de caras (cambia al desbloquear a Taiu)
+const keyframesRuleta = new Set() // una animación por cantidad de caras
 function fotoRuleta(j) {
-  const pool = j.pool.filter((x) => !bloqueado(x)) // el bloqueado (Taiu) no gira hasta desbloquearlo
+  const pool = j.pool.map(publico) // todas, con o sin candado (Demetrio, para el que no lo tiene: el misterioso)
   const n = pool.length
   if (!keyframesRuleta.has(n)) {
     // la tira para cada cara: quieta un rato, la palanca baja y rueda a la siguiente (con rebote); al final vuelve a la primera
@@ -13344,7 +13347,7 @@ function cartaDe(j) {
         <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span>${dif.prom != null ? `<span class="sub">${M.formatoPar(Math.round(dif.prom))} prom.</span>` : ''}</dd></div>
         <div><dt>Récord</dt><dd>${rec === undefined ? '—' : M.formatoPar(rec)}</dd></div>
         ${j.draft ? `<div><dt>Players</dt><dd>${j.pool.length}</dd></div>
-        <div><dt>Opciones</dt><dd>${M.DRAFT.opciones}<span class="sub">por tiro</span></dd></div>` : j.ruleta ? `<div><dt>Players</dt><dd>${j.pool.filter((x) => !bloqueado(x)).length}</dd></div>
+        <div><dt>Opciones</dt><dd>${M.DRAFT.opciones}<span class="sub">por tiro</span></dd></div>` : j.ruleta ? `<div><dt>Players</dt><dd>${j.pool.length}</dd></div>
         <div><dt>Repite</dt><dd>Nunca</dd></div>
         <div><dt>Tees</dt><dd>Blancas</dd></div>` : `<div><dt>Rondas</dt><dd>${s ? s.tarjetas : '—'}</dd></div>
         <div><dt>Prom. neto</dt><dd>${fmtNeto(s?.netoPromedio)}</dd></div>
@@ -13640,7 +13643,7 @@ function verHabilidad(j) {
   $('#hab-texto').textContent = hab.texto
   // el Mago: los 4 golpes para elegir y los 2 putts
   const extra = hab.id === 'comba' ? [...M.GOLPES_MAGO, ...M.PUTTS_MAGO].map((g) => `<li>${g.emoji} <b>${esc(g.nombre)}</b> · ${esc(g.texto)}</li>`).join('')
-    : hab.id === 'ruleta' ? j.pool.filter((x) => !bloqueado(x)).map((x) => `<li>${x.emoji} <b>${esc(x.apodo)}</b> · ${esc(hcpEtiqueta(x))}${M.habilidadDe(x) ? ` · ${esc(M.habilidadDe(x).nombre)}` : ''}</li>`).join('')
+    : hab.id === 'ruleta' ? j.pool.map(publico).map((x) => `<li>${x.emoji} <b>${esc(x.apodo)}</b>${x.misterio ? ' · carta rara, sale poco' : ` · ${esc(hcpEtiqueta(x))}${M.habilidadDe(x) ? ` · ${esc(M.habilidadDe(x).nombre)}` : ''}${M.RULETA_RAROS[x.apodo] ? ' · carta rara, sale poco' : ''}`}</li>`).join('')
     : hab.id === 'draft' ? j.pool.map(publico).map((x) => `<li>${x.emoji} <b>${esc(x.apodo)}</b>${x.misterio ? ' · carta rara, sale poco' : ` · ${esc(hcpEtiqueta(x))}${M.habilidadDe(x) ? ` · ${esc(M.habilidadDe(x).id === 'codigo' ? '⏸️ DEBUG' : M.habilidadDe(x).nombre)}` : ''}${M.DRAFT.raros[x.apodo] ? ' · carta rara, sale poco' : ''}`}</li>`).join('') : ''
   $('#hab-extra').innerHTML = extra
   $('#hab-extra').hidden = !extra
