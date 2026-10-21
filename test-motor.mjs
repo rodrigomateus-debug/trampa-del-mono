@@ -1979,6 +1979,56 @@ ok('🎰 La Ruleta en un match: los dos juegan con la misma tanda de players', (
   assert.deepEqual(tanda(1), tanda(99))
 })
 
+ok('🏹 La flecha del Sueco pincha al mono que se cruza, se lo lleva hasta donde pica (un golpe menos) y ese mono no juega más en el hoyo', () => {
+  const sueco = { apodo: 'El Sueco', emoji: '🇸🇪', hcp: 1.5 }
+  const desde = [h15.pin[0], h15.pin[1] + 160]
+  const ang = angulo(desde, h15.pin)
+  // un mono que cruza la cancha por la línea del tiro, a 10 yd de la salida, caminando para el lado del que pega (bajo
+  // ahí, a cualquier tiro se lo roba)
+  const enLinea = [desde[0] + Math.cos(ang) * 10, desde[1] + Math.sin(ang) * 10]
+  const mono = () => ({ m: { a: [desde[0] + Math.cos(ang) * 60, desde[1] + Math.sin(ang) * 60], b: [...desde], fase: 0 }, hoyo: 15, pos: [...enLinea], hacia: 'b', espera: 0, modo: 'ronda', reaccion: 0 })
+  const tirar = (jugador) => {
+    const r = { ...M.nuevaRonda(jugador, fijo(0.5)), monos: [mono()], viento: calma, pelota: [...desde], lie: 'fairway' }
+    const t = M.golpear(quieto, r, ang, 0.9, sinRuido())
+    let pico = null
+    for (let i = 0; i < 20000 && t.fase !== 'quieta'; i++) { M.avanzar(quieto, t, 1 / 120, h15.pin); if (!pico && t.fase !== 'vuelo') pico = [...t.pos] }
+    return { r, t, pico }
+  }
+  // la flecha: no se la roban; el mono queda pinchado donde picó (no donde paró la pelota)
+  const { r, t, pico } = tirar(sueco)
+  assert.ok(t.flecha && !t.robada)
+  assert.equal(t.pinchados, 1)
+  assert.ok(t.eventos.some((e) => e.tipo === 'pinchado'))
+  const s = r.monos[0]
+  assert.equal(s.modo, 'pinchado')
+  assert.equal(s.volando, false)
+  assert.equal(s.alt, 0)
+  assert.ok(M.dist(s.pos, pico) < 1.5, `quedó a ${M.dist(s.pos, pico).toFixed(2)} yd de donde picó`)
+  assert.ok(M.dist(s.pos, enLinea) > 20) // viajó con la flecha
+  assert.ok(M.monoFuera(s) && !M.monoActivo(s))
+  // un golpe menos por el mono (en la tarjeta: `flecha`, que suma `totales`)
+  r.tarjeta = [{ n: 15, par: 4, golpes: 4 }, { n: 16, par: 4, golpes: 4 }, { n: 17, par: 3, golpes: 3 }]
+  M.resolverReposo(quieto, r, t, fijo(0.5))
+  assert.equal(r.pinchados, 1)
+  assert.equal(r.tarjeta.flecha, -1)
+  assert.deepEqual(M.totales(r.tarjeta), { golpes: 10, par: 11, vsPar: -1, lp: false })
+  assert.match(M.textoCompartir({ ...r, ms: 90000 }, true), /🏹 −1/)
+  r.tarjeta = []
+  // ya no caza: aunque la pelota esté quieta al lado, no viene
+  const antes = [...s.pos]
+  assert.equal(M.moverMonos(r.monos, 1, r.pelota), null)
+  assert.deepEqual(s.pos, antes)
+  // otro, con el mismo tiro, se la roban (como siempre)
+  const otro = tirar({ apodo: 'Rorro', emoji: '🥃', hcp: 1.5 })
+  assert.ok(otro.t.robada && otro.r.monos[0].modo !== 'pinchado')
+  // en el hoyo que sigue, vuelve a sus pinos
+  r.golpes = 4
+  M.cerrarHoyo(r, fijo(0.5))
+  assert.equal(s.modo, 'ronda')
+  assert.deepEqual(s.pos, s.m.a)
+  assert.equal(s.volando, false)
+})
+
 ok('🃏 El Draft: tres opciones distintas, sin el que pegó recién; elegís y pega ese (Taiu, Rorro y Demetrio también)', () => {
   assert.equal(M.esDraft(DRAFT), true)
   assert.equal(M.esRuleta(DRAFT), false)

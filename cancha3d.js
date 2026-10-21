@@ -1064,7 +1064,7 @@ function moverMonos3d(dt, st) {
   const lista = st.ronda?.monos ?? []
   monos3d.forEach((m, i) => {
     const s = lista[i]
-    if (!s || s.modo === 'aplastado' || s.modo === 'llevado' || !st.ronda || intro) { m.g.visible = false; return }
+    if (!s || s.modo === 'aplastado' || s.modo === 'llevado' || s.modo === 'pinchado' || !st.ronda || intro) { m.g.visible = false; return } // (el que pinchó la flecha lo dibuja el juego arriba)
     const p = s.pos
     if (m.ultimo) { const v = [p[0] - m.ultimo[0], p[1] - m.ultimo[1]]; if (Math.hypot(...v) > 1e-3) m.dir = Math.atan2(v[0], v[1]) }
     m.ultimo = [...p]
