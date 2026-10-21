@@ -406,7 +406,7 @@ PLANTEL.push(DRAFT)
 // con el suyo real (sdga:plantel), así que el nivel de la carta es una referencia.
 export const DIFICULTAD_REAL = {
   // 2026-10-08: recalibrado (80 vueltas) con los chips menos fáciles, el palo de la bandera y la bomba con el latido
-  'El Sueco': { prom: -0.2, lp: 0 }, // el drive con el pulso de Fito, después la flecha (2026-10-21: en el par 3, la flecha desde el tee, y −1 por cada mono que pincha; antes +0,26 en las mismas 80)
+  'El Sueco': { prom: -0.42, lp: 0 }, // el drive con el pulso de Fito, después la flecha (2026-10-21: en el par 3, la flecha desde el tee, y −1 en el hoyo por cada mono que pincha, a cualquier altura y también al que espera en los pinos; antes −0,20 y +0,26 en las mismas 80)
   Grandpa: { prom: -1.1, lp: 1 }, // Maxi: el bot llama a Deme en el primer tiro que puede (a más de 30 yd)
   'El Perro': { prom: -0.74, lp: 0 },
   'Mike Queboni (Đ)': { prom: 1.4, lp: 4 }, // con la furia; la bomba (405) con el latido: el bot nunca la saca perfecta, la gente sí

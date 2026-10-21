@@ -122,7 +122,7 @@ export const HABILIDADES = {
   'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'Desde el tee, la bomba: la goma llega mucho más lejos (405 yd). Soltá en el sweet spot del latido y sale perfecta: al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
   Tito: { id: 'viento', corto: 'Maneja el viento en vivo.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza maneja el viento en vivo: mientras la pelota vuela, cada swipe en la pantalla es una ráfaga para ese lado (más largo, más fuerte) y la pelota se va para ahí. Las ráfagas se suman y se calman solas. Eso sí: en el green el putt es ultra sensible, un milímetro del dedo cambia la línea y la fuerza.' },
   Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá. Antes de pegar ves lo que se viene (y para qué lado), y después de una sorpresa el próximo sale limpio. Y cuando la está por meter (también en el green), a veces sale un mapache del hoyo, la frena y se va rajando: la deja casi dada.' },
-  'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después (y en el par 3), la flecha.', nombre: 'La flecha', texto: 'El drive de los par 4, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro (y en el par 3, desde el tee), una flecha: va derecho y atraviesa todo, hasta los árboles. Al mono que se cruza lo pincha y se lo lleva: cada uno, un golpe menos. El putt, derecho.' },
+  'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después (y en el par 3), la flecha.', nombre: 'La flecha', texto: 'El drive de los par 4, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro (y en el par 3, desde el tee), una flecha: va derecho y atraviesa todo, hasta los árboles. Al mono que se cruza lo pincha y se lo lleva: cada uno, un golpe menos en ese hoyo, al toque. El putt, derecho.' },
   'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
   // del chat del SDGA:
   Lechu: { id: 'dadas', nombre: 'Contando todas las dadas', texto: 'Joaco no falla los putts de 15 metros o menos: le pegues como le pegues, entra.' },
@@ -320,7 +320,7 @@ export function climaTrasTiro(campo, r, rng) {
 }
 
 // la flecha de El Sueco (del segundo tiro en adelante): vuela más bajo y más rápido que un tiro normal
-export const FLECHA = { alto: 0.35, tiempo: 0.6 }
+export const FLECHA = { alto: 0.35, tiempo: 0.6, pincha: 4 } // `pincha`: a cuántas yardas de su línea pincha al mono
 export const PUTTS_MAGO = [
   { id: 'draw', emoji: '↩️', nombre: 'Putt con draw', texto: 'Dobla a la izquierda mientras rueda: apuntá a la derecha del hoyo', lado: -1 },
   { id: 'fade', emoji: '↪️', nombre: 'Putt con fade', texto: 'Dobla a la derecha mientras rueda: apuntá a la izquierda del hoyo', lado: 1 },
@@ -2008,11 +2008,14 @@ function robo(tiro) {
 }
 
 /**
- * 🏹 La flecha del Sueco no se la dejan robar: al mono que se cruza en el vuelo (bajo, donde a otro tiro se lo robaría) lo
- * pincha y se lo lleva colgado (`volando`, a la altura de la flecha) hasta donde pica; ahí queda, mareado. No juega más en
- * el hoyo (como el que se llevó la Mugre: en el que sigue vuelve a sus pinos).
+ * 🏹 La flecha del Sueco no se la dejan robar: al mono que se cruza en el vuelo lo pincha y se lo lleva colgado
+ * (`volando`, a la altura de la flecha) hasta donde pica; ahí queda, mareado. No juega más en el hoyo (como el que se llevó
+ * la Mugre: en el que sigue vuelve a sus pinos). La flecha va chata y atraviesa todo: pincha a cualquiera a menos de
+ * `FLECHA.pincha` yardas del tramo que recorrió en el paso (de `antes` a donde está), a la altura que vaya, también al que
+ * espera entre los pinos. Cada uno, un golpe menos en el hoyo: se ve en el contador al pincharlo (`golpesALaVista`) y
+ * se descuenta de `r.golpes` cuando la pelota queda quieta (`resolverReposo`).
  */
-function pincharMonos(tiro) {
+function pincharMonos(tiro, antes) {
   const vuela = tiro.fase === 'vuelo'
   for (const s of tiro.monos) {
     if (s.modo === 'pinchado' && s.volando) {
@@ -2021,17 +2024,30 @@ function pincharMonos(tiro) {
       if (!vuela) s.volando = false // picó: queda ahí
       continue
     }
-    if (!vuela || tiro.alt >= MONO.altura || !monoActivo(s) || dist(s.pos, tiro.pos) >= MONO.radio) continue
+    if (!vuela || monoFuera(s) || distSegmento(s.pos, antes, tiro.pos) >= FLECHA.pincha) continue
+    const donde = [...s.pos]
     Object.assign(s, { modo: 'pinchado', volando: true, pos: [...tiro.pos], alt: tiro.alt, pancho: null, panchoEn: null })
     tiro.pinchados = (tiro.pinchados ?? 0) + 1
-    tiro.eventos.push({ tipo: 'pinchado' })
+    tiro.eventos.push({ tipo: 'pinchado', pos: donde })
   }
 }
+/** La distancia de `p` al segmento de `a` a `b`. */
+function distSegmento(p, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy
+  const u = l2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0
+  return dist(p, [a[0] + dx * u, a[1] + dy * u])
+}
+/**
+ * 🏹 Los golpes del hoyo como se ven: con la flecha todavía en el aire, ya sin los monos que pinchó (al quedar quieta se
+ * descuentan de `r.golpes`). Va 2, pega el tercero y pincha uno: 3 y, al toque, 2.
+ */
+export const golpesALaVista = (r, tiro) => Math.max(0, r.golpes - ((tiro?.pinchados ?? 0) - (tiro?.descontados ?? 0)))
 
 /** Un paso de física. Muta `tiro`; devuelve la fase ('vuelo' | 'rodando' | 'quieta'). */
 export function avanzar(campo, tiro, dt, pin) {
+  const antes = tiro.flecha && tiro.monos ? [...tiro.pos] : null
   const fase = pasoFisica(campo, tiro, dt, pin)
-  if (tiro.flecha && tiro.monos) pincharMonos(tiro) // (después del paso: si picó y quedó quieta de una, el mono queda ahí)
+  if (antes) pincharMonos(tiro, antes) // (después del paso: si picó y quedó quieta de una, el mono queda ahí)
   return fase
 }
 function pasoFisica(campo, tiro, dt, pin) {
@@ -2798,9 +2814,9 @@ export function dropMono(campo, p, pin) {
  */
 export function resolverReposo(campo, r, tiro, rng) {
   const res = resolver(campo, r, tiro, rng)
-  // 🏹 cada mono que pinchó la flecha del Sueco, un golpe menos (`tarjeta.flecha`, que `totales` suma; la cuenta, en
-  // `r.pinchados`)
-  if (tiro.pinchados) { r.pinchados = (r.pinchados ?? 0) + tiro.pinchados; r.tarjeta.flecha = -r.pinchados; r.menosHoyo = (r.menosHoyo ?? 0) + tiro.pinchados }
+  // 🏹 cada mono que pinchó la flecha del Sueco, un golpe menos en este hoyo, ahí mismo (el contador ya lo mostró al
+  // pincharlo; la cuenta de la vuelta, en `r.pinchados`). El hoyo nunca baja de 1 (ver cerrarHoyo)
+  if (tiro.pinchados && !tiro.descontados) { r.pinchados = (r.pinchados ?? 0) + tiro.pinchados; r.golpes = Math.max(0, r.golpes - tiro.pinchados); r.pinchadosHoyo = (r.pinchadosHoyo ?? 0) + tiro.pinchados; tiro.descontados = tiro.pinchados }
   // LG: si fue un mal tiro, el próximo sale sin error
   // (si LG pegó prestado —atendió la Dickyllamada—, su calma no queda para el que juega; ofendido —la interna—, sin calma)
   if (habilidadDe(r.jugador)?.id === 'calma') r.calma = !r.prestado && !r.ofendido && esMalo(res, tiro)
@@ -2941,6 +2957,7 @@ export function levantar(r) {
   calmarMonos(r.monos)
   r.lp = hoyoActual(r).n
   r.menosHoyo = 0
+  r.pinchadosHoyo = 0
   for (const h of HOYOS.slice(r.idx)) r.tarjeta.push({ n: h.n, par: h.par, golpes: null, lp: true })
   r.idx = HOYOS.length
   r.terminada = true
@@ -2951,12 +2968,15 @@ export function levantar(r) {
 export function cerrarHoyo(r, rng) {
   const h = hoyoActual(r)
   calmarMonos(r.monos)
-  // Demetrio no hace más que par (ni con una multa). Con su carta: en el Draft, si la mete él, cuentan todos los golpes
-  const fila = { n: h.n, par: h.par, golpes: habilidadDe(cartaDe(r))?.id === 'retro' ? Math.min(r.golpes, h.par) : r.golpes, lp: false }
-  // los golpes menos que se ganaron en este hoyo (el quinto mono de la Mugre, los que pinchó la flecha): el total ya los
-  // tiene (`tarjeta.monos`, `tarjeta.flecha`); acá quedan para el fourball, que cuenta hoyo por hoyo
+  // Demetrio no hace más que par (ni con una multa). Con su carta: en el Draft, si la mete él, cuentan todos los golpes.
+  // Nunca menos de 1 (los monos que pinchó la flecha ya bajaron `r.golpes`: con el tiro que la mete, podría quedar en 0)
+  const fila = { n: h.n, par: h.par, golpes: Math.max(1, habilidadDe(cartaDe(r))?.id === 'retro' ? Math.min(r.golpes, h.par) : r.golpes), lp: false }
+  // el golpe menos que se ganó en este hoyo con el quinto mono de la Mugre: el total ya lo tiene (`tarjeta.monos`); acá
+  // queda para el fourball, que cuenta hoyo por hoyo
   if (r.menosHoyo) fila.menos = r.menosHoyo
   r.menosHoyo = 0
+  if (r.pinchadosHoyo) fila.pinchados = r.pinchadosHoyo // 🏹 (ya están en `golpes`: para que la tarjeta diga por qué)
+  r.pinchadosHoyo = 0
   r.tarjeta.push(fila)
   // Miguelón: bogey o peor, media barra de furia
   if (habilidadDe(r.jugador)?.id === 'bomba' && fila.golpes - fila.par >= 1) sumarFuria(r, 'bogey')
@@ -2987,8 +3007,8 @@ export function totales(tarjeta) {
   const par = tarjeta.reduce((s, f) => s + f.par, 0)
   const lp = tarjeta.some((f) => f.lp)
   // Marcos: la apuesta de "¿jugaste con Rorro?" (−1 o +1 al total; ver apostarRorro). La Mugre: −1 cada 5 monos que se
-  // llevó (ver llevarMono). El Sueco: −1 por cada mono que pinchó la flecha (ver resolverReposo)
-  const golpes = lp ? null : tarjeta.reduce((s, f) => s + f.golpes, 0) + (tarjeta.rorro ?? 0) + (tarjeta.monos ?? 0) + (tarjeta.flecha ?? 0)
+  // llevó (ver llevarMono). (Los monos que pinchó la flecha del Sueco ya están en los golpes de su hoyo: ver resolverReposo)
+  const golpes = lp ? null : tarjeta.reduce((s, f) => s + f.golpes, 0) + (tarjeta.rorro ?? 0) + (tarjeta.monos ?? 0)
   return { golpes, par, vsPar: lp ? null : golpes - par, lp }
 }
 /**
@@ -3806,7 +3826,7 @@ export function textoCompartir(r, firmada) {
   const { vsPar } = totales(r.tarjeta)
   const j = cartaDe(r)
   const score = r.lp ? `LP 💅 (levantó en el ${r.lp})` : firmada ? formatoPar(vsPar) : `${NETO_SIN_FIRMA} neto (no firmó la tarjeta)`
-  const hoyos = r.tarjeta.map((f) => (f.lp ? 'LP' : f.golpes)).join(' · ') + (r.tarjeta.rorro ? ` · 🥃 Rorro ${r.tarjeta.rorro > 0 ? '+1' : '−1'}` : '') + (r.tarjeta.flecha ? ` · 🏹 −${-r.tarjeta.flecha}` : '')
+  const hoyos = r.tarjeta.map((f) => (f.lp ? 'LP' : f.golpes)).join(' · ') + (r.tarjeta.rorro ? ` · 🥃 Rorro ${r.tarjeta.rorro > 0 ? '+1' : '−1'}` : '') + (r.pinchados ? ` · 🏹 ${r.pinchados} ${r.pinchados === 1 ? 'mono pinchado' : 'monos pinchados'}` : '')
   return [
     '⛳ LA TRAMPA DEL MONO · SDGA',
     j.ruleta ? `${j.emoji} ${j.apodo} (${j.draft ? 'elegí quién pega cada tiro' : 'un player por tiro'}): ${score} (${hoyos})` : `${j.emoji} ${j.apodo} (HCP ${j.hcp ?? '—'}): ${score} (${hoyos})`,

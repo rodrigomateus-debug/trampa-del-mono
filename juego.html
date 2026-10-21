@@ -607,6 +607,11 @@ tr.total td { font-size: 26px; border-top: 2px solid var(--green-900); }
 #g-mas b { font: 34px/1 var(--font-display); color: var(--cream); background: var(--red); border: var(--game-stroke) solid var(--game-ink); border-radius: 14px; padding: 6px 12px 4px; box-shadow: var(--game-shadow-md); transform: rotate(-4deg); margin: 0; }
 #g-mas i { font: normal 14px/1 var(--font-display); letter-spacing: .06em; color: var(--game-ink); background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); padding: 5px 8px 4px; transform: rotate(3deg); white-space: nowrap; }
 #g-mas.reset b { background: var(--game-ink); color: var(--gold); font-size: 24px; }
+/* 🏹 un golpe menos (la flecha pinchó un mono): baja en dorado */
+#golpes.resta { animation: g-resta .9s ease-out; }
+#golpes.resta b { animation: g-suma .5s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes g-resta { 0%, 55% { background: var(--gold); } 100% { background: var(--cream); } }
+#g-mas.menos b { background: var(--gold); color: var(--game-ink); }
 #g-mas.ve { animation: g-mas 2.6s cubic-bezier(.2, 1.4, .4, 1) forwards; }
 @keyframes g-mas { 0% { opacity: 0; transform: translate(-30px, -50%) scale(.4); } 12% { opacity: 1; transform: translate(0, -50%) scale(1.1); } 20% { transform: translate(0, -50%) scale(1); } 82% { opacity: 1; transform: translate(0, -50%); } 100% { opacity: 0; transform: translate(0, -110%); } }
 #h-golpe { visibility: hidden; } /* el golpe ahora se ve grande en #golpes */
@@ -1051,6 +1056,8 @@ body.retro #retro::after { content: ''; position: absolute; inset: 0; background
 #multa small { display: block; margin-top: 6px; font: 800 15px/1.1 var(--font-body); color: var(--green-900); }
 @keyframes multa-sello { 0% { opacity: 0; transform: scale(2.8) rotate(-14deg); } 14% { opacity: 1; transform: scale(.94) rotate(-6deg); } 22% { transform: scale(1.04) rotate(-7deg); } 30%, 78% { opacity: 1; transform: scale(1) rotate(-6deg); } 100% { opacity: 0; transform: scale(.9) translateY(-30px) rotate(-6deg); } }
 #cancha.sacudida { animation: sacudida 380ms linear; }
+#cancha.pinchazo { animation: pinchazo 240ms linear; } /* 🏹 la flecha pinchó un mono: un sacudón cortito */
+@keyframes pinchazo { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-4px, 2px); } 50% { transform: translate(3px, -3px); } 75% { transform: translate(-2px, -1px); } }
 @keyframes sacudida { 0%, 100% { transform: translate(0, 0); } 15% { transform: translate(-7px, 4px); } 30% { transform: translate(6px, -5px); } 45% { transform: translate(-5px, -3px); } 60% { transform: translate(4px, 5px); } 80% { transform: translate(-2px, 2px); } }
 /* Deme, el mentor (Maxi / Grandpa): el botón para llamarlo y él, en persona, con su consejo */
 /* Deme y el pancho: los botones de ícono grandes de la cancha (lg, con su sombra dura de 5×6) */
@@ -3720,6 +3727,8 @@ const TAPAN = ['#elegir', '#todos', '#resumen'].map($)
 const introApp = $('#intro-app')
 // (con ?sinintro o sin WebGL la intro se borra del DOM: ahí no tapa nada)
 const tapada = () => (introApp?.isConnected && !introApp.hidden && !introApp.classList.contains('cerrando')) || TAPAN.some((el) => !el.hidden)
+let lentoHasta = 0 // 🏹 el instante en cámara lenta del pinchazo
+let impactos = [] // 🏹 los estallidos de los pinchazos (dibujarImpactos)
 function cuadro(t) {
   const dt = Math.min(PRUEBA && PARAMS.has('rapido') ? 0.25 : 0.05, (t - ultimo) / 1000)
   // (la 3D de Rorro, en las pruebas sin placa de video, ?rapido: sigue al reloj aunque haya pocos cuadros)
@@ -3739,7 +3748,7 @@ function actualizar(dt) {
   S.rodar(estado === 'tiro' && tiro?.fase === 'rodando' && !tiro.vuelta ? Math.hypot(tiro.v[0], tiro.v[1]) : 0) // el susurro de la pelota que rueda
   if (estado === 'tiro' && tiro) {
     const h = M.hoyoActual(ronda)
-    acc += dt
+    acc += performance.now() < lentoHasta ? dt * 0.15 : dt // (el pinchazo: un instante en cámara lenta)
     while (acc >= PASO && tiro.fase !== 'quieta') { M.avanzar(campo, tiro, PASO, h.pin); acc -= PASO }
     sonarEventos(tiro)
     estela.push([tiro.pos[0], tiro.pos[1], tiro.alt])
@@ -3834,6 +3843,24 @@ function dibujarMarcasTiro() {
   }
   ctx.restore()
 }
+/**
+ * 🏹 La flecha pinchó un mono: un instante en cámara lenta, el estallido donde le pegó (y el polvo de donde lo arrancó), el
+ * sacudón, el ¡pum! con el chillido y, al toque, el golpe menos en el contador.
+ */
+function pinchazo(t, e) {
+  const ahora = performance.now()
+  S.monoPinchado()
+  tic()
+  if (!reducido()) {
+    lentoHasta = ahora + 170
+    lienzo.classList.remove('pinchazo'); void lienzo.offsetWidth; lienzo.classList.add('pinchazo')
+  }
+  impactos.push({ p: [...t.pos], alt: t.alt, de: e.pos ? [...e.pos] : null, t0: ahora, giro: Math.random() * 6.3 })
+  marcarTiro('🐒 ¡PINCHADO!', t.pos, 'oro')
+  motivoResta = '🏹 MONO PINCHADO'
+  contarGolpes()
+  relatar({ lg: '🏹 ¡Pinchó un mono! Un golpe menos', verso: 'Se lo lleva la flecha hasta donde caiga' })
+}
 /** Lo que pasó en el tiro desde el último cuadro (pique, palo, labio, robo al vuelo) suena una vez. */
 function sonarEventos(t) {
   t._oidos ??= 0
@@ -3845,7 +3872,7 @@ function sonarEventos(t) {
     else if (e.tipo === 'labio') S.labio()
     else if (e.tipo === 'vuelta') S.vuelta()
     else if (e.tipo === 'robo') S.robo()
-    else if (e.tipo === 'pinchado') { S.monoPinchado(); marcarTiro('🐒 ¡PINCHADO! · −1', t.pos, 'oro'); relatar({ lg: '🏹 ¡Pinchó un mono! Un golpe menos', verso: 'Se lo lleva la flecha hasta donde caiga' }) }
+    else if (e.tipo === 'pinchado') pinchazo(t, e)
     else if (e.tipo === 'mapache') S.mapache()
     else if (e.tipo === 'charco') { S.charco(); fxClima.push({ tipo: 'splash', pos: [...t.pos], t0: performance.now() }) }
     else if (e.tipo === 'resbalon') S.resbalon()
@@ -6117,7 +6144,7 @@ function hud() {
   const h = M.hoyoActual(ronda)
   $('#h-num').textContent = `HOYO ${h.n}`
   $('#h-par').textContent = `PAR ${h.par}`
-  $('#h-golpe').textContent = `Golpe ${ronda.golpes + (estado === 'tiro' || estado === 'pausa' ? 0 : 1)}`
+  $('#h-golpe').textContent = `Golpe ${M.golpesALaVista(ronda, tiro) + (estado === 'tiro' || estado === 'pausa' ? 0 : 1)}`
   const alPin = M.dist(ronda.pelota, h.pin) * h.escala // yardas reales
   // cerca del hoyo, con decimales: nunca "0 yd" con la pelota afuera
   $('#h-dist').textContent = alPin < 1 ? `${Math.round(alPin * 91)} cm al hoyo` : alPin < 10 ? `${alPin.toFixed(1).replace('.', ',')} yd al pin` : `${Math.round(alPin)} yd al pin`
@@ -6287,8 +6314,9 @@ function revolearPalo() {
 // ── los golpes del hoyo, grandes: suben con cada tiro; las multas (+1) se muestran con el motivo ──
 let golpesVistos = null // { r, idx, n }: lo que muestra el contador (de qué ronda y qué hoyo)
 let motivoGolpe = null // por qué es el próximo +1 que no es un tiro (lo pone quien suma la multa)
+let motivoResta = null // 🏹 por qué baja (lo pone el pinchazo de la flecha)
 function contarGolpes() {
-  const n = ronda.golpes, idx = ronda.idx
+  const n = M.golpesALaVista(ronda, tiro), idx = ronda.idx
   $('#g-par').textContent = `PAR ${M.hoyoActual(ronda).par}`
   if (!golpesVistos || golpesVistos.r !== ronda || golpesVistos.idx !== idx) {
     golpesVistos = { r: ronda, idx, n }
@@ -6305,16 +6333,18 @@ function contarGolpes() {
   motivoGolpe = null
   caja.classList.remove('suma', 'multa')
   void caja.offsetWidth
+  if (n < antes && motivoResta) { const m = motivoResta; motivoResta = null; caja.classList.add('resta'); mostrarMas(`−${antes - n}`, m, false, true); return } // 🏹
   if (n < antes) { mostrarMas('RESET', '🥷 DE NUEVO A 0', true); caja.classList.add('multa'); return } // el reset del Ninja
   if (!motivo) { caja.classList.add('suma'); return } // un tiro
   caja.classList.add('multa')
   mostrarMas('+1', motivo)
   S.multa()
 }
-function mostrarMas(grande, chico, reset = false) {
+function mostrarMas(grande, chico, reset = false, menos = false) {
   const el = $('#g-mas')
   el.innerHTML = `<b>${esc(grande)}</b><i>${esc(chico)}</i>`
   el.classList.toggle('reset', reset)
+  el.classList.toggle('menos', menos)
   el.classList.remove('ve')
   void el.offsetWidth
   el.classList.add('ve')
@@ -6528,6 +6558,7 @@ function dibujar() {
     pelotaDescartada()
   }
   dibujarHojas()
+  dibujarImpactos()
   const a = estado === 'apuntar' ? apunte() : null
   if (drag) drag.visto = a // lo que se ve es lo que sale al soltar
   if (a) dibujarApunte(a)
@@ -6608,6 +6639,7 @@ function dibujar3d() {
     else if (ronda.deme?.listo && estado === 'apuntar') auraDeme(ronda.pelota)
   }
   dibujarHojas()
+  dibujarImpactos()
   dibujarFxJuanpa()
   dibujarRafagasTito()
   alcanceDibuje3d()
@@ -8291,8 +8323,9 @@ function dibujarRastrosFlecha() {
 function dibujarPinchados() {
   if (!ronda?.monos) return
   const tam = tamMono(), ahora = performance.now()
+  const enLaFlecha = tiro?.flecha && tiro.fase === 'vuelo'
   for (const s of ronda.monos) {
-    if (s.modo !== 'pinchado') continue
+    if (s.modo !== 'pinchado' || (s.volando && enLaFlecha)) continue
     if (s.volando) s.clavadoT = null
     else s.clavadoT ??= ahora
     const u = s.clavadoT ? (ahora - s.clavadoT) / 1000 : 0
@@ -8332,6 +8365,46 @@ function dibujarHojas() {
   }
   ctx.restore()
 }
+/**
+ * 🏹 Donde la flecha pinchó al mono: un fogonazo blanco, un aro dorado que se abre, rayas que salen disparadas y un 💥; y
+ * donde estaba parado, el polvo que dejó al arrancarlo.
+ */
+const IMPACTO_MS = 560
+function dibujarImpactos() {
+  if (!impactos.length) return
+  const ahora = performance.now(), tam = tamMono()
+  impactos = impactos.filter((m) => ahora - m.t0 < IMPACTO_MS)
+  ctx.save()
+  ctx.lineCap = 'round'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  for (const m of impactos) {
+    const u = (ahora - m.t0) / IMPACTO_MS, sale = 1 - (1 - u) ** 3
+    if (m.de) {
+      // el polvo de donde lo arrancó: tres bocanadas que se abren y se apagan
+      const [dx, dy] = enPantalla(m.de, 0)
+      ctx.fillStyle = `rgba(222,208,170,${0.5 * (1 - u)})`
+      for (let k = 0; k < 3; k++) { const a = m.giro + k * 2.1; ctx.beginPath(); ctx.arc(dx + Math.cos(a) * tam * 0.35 * sale, dy + Math.sin(a) * tam * 0.2 * sale, tam * (0.18 + 0.22 * sale), 0, 7); ctx.fill() }
+    }
+    const [x, y] = enPantalla(m.p, m.alt)
+    if (u < 0.22) { ctx.fillStyle = `rgba(255,252,236,${0.85 * (1 - u / 0.22)})`; ctx.beginPath(); ctx.arc(x, y, tam * (0.55 + u * 1.6), 0, 7); ctx.fill() } // el fogonazo
+    ctx.strokeStyle = `rgba(232,195,74,${0.95 * (1 - u)})`; ctx.lineWidth = 5 * (1 - u) + 1
+    ctx.beginPath(); ctx.arc(x, y, tam * (0.45 + sale * 1.5), 0, 7); ctx.stroke() // el aro
+    ctx.strokeStyle = `rgba(255,248,220,${0.9 * (1 - u)})`; ctx.lineWidth = 3 * (1 - u) + 0.8
+    for (let k = 0; k < 8; k++) {
+      const a = m.giro + (k * Math.PI) / 4, r1 = tam * (0.5 + sale * 1.1), r2 = r1 + tam * (0.55 - 0.4 * u) * (k % 2 ? 0.6 : 1)
+      segmento([x + Math.cos(a) * r1, y + Math.sin(a) * r1], [x + Math.cos(a) * r2, y + Math.sin(a) * r2]) // las rayas
+    }
+    if (u < 0.45) {
+      const e = u < 0.12 ? 0.6 + (u / 0.12) * 0.7 : 1.3 - ((u - 0.12) / 0.33) * 0.3
+      ctx.globalAlpha = u < 0.3 ? 1 : 1 - (u - 0.3) / 0.15
+      ctx.font = `${Math.round(tam * 0.9 * e)}px ${EMOJI}`
+      ctx.fillText('💥', x + tam * 0.45, y - tam * 0.45)
+      ctx.globalAlpha = 1
+    }
+  }
+  ctx.restore()
+}
 /** La flecha en el aire: culebrea al salir y se acomoda, con la estela dorada atrás y la sombra en el piso. */
 function flechaSueco(t) {
   const n = estela.length
@@ -8342,7 +8415,9 @@ function flechaSueco(t) {
   const d = Math.hypot(cab[0] - ant[0], cab[1] - ant[1])
   if (d < 0.5) return
   const ux = (cab[0] - ant[0]) / d, uy = (cab[1] - ant[1]) / d, nx = -uy, ny = ux
-  const L = Math.max(30, Math.min(48, radioPelota() * 7))
+  const ensartados = ronda?.monos?.filter((s) => s.modo === 'pinchado' && s.volando) ?? []
+  const tam = tamMono()
+  const L = Math.max(30, Math.min(48, radioPelota() * 7), ensartados.length ? tam * (0.6 + 0.55 * ensartados.length) + 14 : 0)
   const culebra = reducido() ? 0 : Math.sin((t.t ?? 0) * 44) * 5.5 * Math.exp(-(t.t ?? 0) * 5)
   const cola = [cab[0] - ux * L + nx * culebra, cab[1] - uy * L + ny * culebra]
   const cx = cab[0] - cola[0], cy = cab[1] - cola[1], cl = Math.hypot(cx, cy) || 1
@@ -8370,6 +8445,25 @@ function flechaSueco(t) {
   ctx.strokeStyle = C.g950; ctx.lineWidth = 6; segmento(cola, cab)
   ctx.strokeStyle = C.gold; ctx.lineWidth = 3; segmento(cola, cab)
   plumas(cola, cx / cl, cy / cl, 1)
+  if (ensartados.length) {
+    // 🐒 ensartados en el asta, uno atrás del otro, pataleando; el asta
+    // les sale por la panza y la punta asoma adelante
+    const ahora = performance.now(), ang = Math.atan2(uy, ux)
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.font = `${Math.round(tam * 0.95)}px ${EMOJI}`
+    const ks = ensartados.map((_, i) => tam * (0.6 + 0.55 * (ensartados.length - 1 - i)))
+    ensartados.forEach((s, i) => {
+      ctx.save()
+      ctx.translate(cab[0] - ux * ks[i], cab[1] - uy * ks[i])
+      ctx.rotate(ang - Math.PI / 2 + (reducido() ? 0 : Math.sin(ahora / 45 + i * 1.7) * 0.28))
+      ctx.fillText('🐒', 0, 0)
+      ctx.restore()
+    })
+    const k0 = ks.at(-1)
+    ctx.strokeStyle = C.g950; ctx.lineWidth = 6; segmento([cab[0] - ux * k0, cab[1] - uy * k0], cab)
+    ctx.strokeStyle = C.gold; ctx.lineWidth = 3; segmento([cab[0] - ux * k0, cab[1] - uy * k0], cab)
+  }
   puntaFlecha(cab, ux, uy, 1)
   ctx.restore()
 }
@@ -9206,10 +9300,9 @@ function tarjetaFinal() {
   const filas = ronda.tarjeta.map((f) => {
     const nombre = M.nombreResultado(f.golpes, f.par, f.lp)
     const marca = f.lp || f.golpes > f.par ? 'sobre' : f.golpes < f.par ? 'bajo' : ''
-    return `<tr><td>${f.n}</td><td class="num">${f.par}</td><td class="num">${f.golpes ?? '—'}</td><td class="res"><i class="${marca}"></i>${nombre === 'LP' ? 'LP 💅' : nombre}</td></tr>`
+    return `<tr><td>${f.n}</td><td class="num">${f.par}</td><td class="num">${f.golpes ?? '—'}</td><td class="res"><i class="${marca}"></i>${nombre === 'LP' ? 'LP 💅' : nombre}${f.pinchados ? ` · 🏹 −${f.pinchados}` : ''}</td></tr>`
   })
   if (ronda.tarjeta.monos) filas.push(`<tr><td>🐒</td><td class="num">—</td><td class="num">−${-ronda.tarjeta.monos}</td><td class="res"><i class="bajo"></i>Te llevaste ${ronda.llevados} monos</td></tr>`)
-  if (ronda.tarjeta.flecha) filas.push(`<tr><td>🏹</td><td class="num">—</td><td class="num">−${-ronda.tarjeta.flecha}</td><td class="res"><i class="bajo"></i>La flecha pinchó ${ronda.pinchados} ${ronda.pinchados === 1 ? 'mono' : 'monos'}</td></tr>`)
   if (ronda.tarjeta.rorro) filas.push(`<tr><td>🥃</td><td class="num">—</td><td class="num">${ronda.tarjeta.rorro > 0 ? '+1' : '−1'}</td><td class="res"><i class="${ronda.tarjeta.rorro > 0 ? 'sobre' : 'bajo'}"></i>Rorro anotó mal</td></tr>`)
   const t = M.totales(ronda.tarjeta)
   filas.push(`<tr class="total"><td>TOTAL</td><td class="num">${t.par}</td><td class="num">${t.golpes ?? '—'}</td><td class="res"><span class="band" style="font-family: var(--font-display); font-size: 22px; font-weight: 400">${M.formatoPar(t.vsPar)}</span></td></tr>`)
@@ -9776,7 +9869,7 @@ function leerJSON(k) { try { return JSON.parse(localStorage.getItem(k)) } catch 
 const yoUid = () => R.puente.identidad?.uid
 // (con los golpes menos que se ganaron en cada hoyo: así la grabación —el fantasma, el replay, el hoyo a hoyo— los cuenta
 // en el hoyo en que pasaron, como el fourball)
-const golpesVan = (r) => r.tarjeta.reduce((t, f) => t + (f.golpes == null ? 0 : f.golpes - (f.menos ?? 0)), 0) + r.golpes - (r.menosHoyo ?? 0)
+const golpesVan = (r) => r.tarjeta.reduce((t, f) => t + (f.golpes == null ? 0 : f.golpes - (f.menos ?? 0)), 0) + M.golpesALaVista(r, r === ronda ? tiro : null) - (r.menosHoyo ?? 0)
 /** Lo que me toca mirar: desafíos para jugar y resultados de los que mandé que todavía no vi. */
 function pendientesMatch(ds = mtDesafios) {
   if (!ds) return 0
@@ -10212,6 +10305,11 @@ if (PARAMS.get('probar') === 'match') activarPrueba({ uid: 'prueba:yo', alias: d
     setTimeout(() => {
       empezar(j)
       if (ronda && desde?.length === 2 && desde.every(Number.isFinite)) { ronda.pelota = [...desde]; ronda.desde = [...desde]; ronda.lie = ronda.lieDesde = M.terreno(campo, desde).tipo }
+      window.__juego = { ronda: () => ronda, tiro: () => tiro } // (para las pruebas: la ronda y el tiro de ahora)
+      // y ?mono=x,y: un mono del hoyo queda ahí, quieto (para apuntarle con la flecha)
+      const mono = PARAMS.get('mono')?.split(',').map(Number)
+      const s = ronda && mono?.length === 2 && mono.every(Number.isFinite) && ronda.monos.find((x) => x.hoyo === M.hoyoActual(ronda).n)
+      if (s) Object.assign(s, { pos: [...mono], m: { ...s.m, a: [...mono], b: [...mono] }, espera: 1e6, modo: 'ronda' })
     }, 0)
   }
 }
@@ -11324,7 +11422,7 @@ function pintarMarcadorFb(ms) {
   const d = ronda.duelo
   const yoAhora = ronda.terminada ? -1 : ronda.idx
   const mios = M.HOYOS.map((h, k) => { const f = ronda.tarjeta[k]; return f ? (f.lp ? null : M.golpesDelHoyo(f)) : ronda.terminada ? null : undefined })
-  const filas = [{ l: d.lugar, yo: true, nombre: 'VOS', emoji: ronda.carta?.emoji ?? ronda.jugador.emoji, hoyos: mios, ver: mios.map((v, k) => (v === undefined && k === yoAhora ? Math.max(0, ronda.golpes - (ronda.menosHoyo ?? 0)) : v)), ahora: yoAhora }]
+  const filas = [{ l: d.lugar, yo: true, nombre: 'VOS', emoji: ronda.carta?.emoji ?? ronda.jugador.emoji, hoyos: mios, ver: mios.map((v, k) => (v === undefined && k === yoAhora ? Math.max(0, M.golpesALaVista(ronda, tiro) - (ronda.menosHoyo ?? 0)) : v)), ahora: yoAhora }]
   for (const x of d.fantasmas ?? []) {
     const m = M.marcadorFantasma(x.g, ms)
     if (x.lpEn === undefined) x.lpEn = lpDelFantasma(x.g)
@@ -11680,7 +11778,6 @@ async function reconectar(v) {
   }
   if (r.ruleta && r.match) contarRuleta(r, r.ruleta.rngN ?? 0)
   if (r.llevados) r.tarjeta.monos = -Math.floor(r.llevados / M.LLEVAR.premio) || undefined // 🐒 (la tarjeta se guarda sin él)
-  if (r.pinchados) r.tarjeta.flecha = -r.pinchados // 🏹 (igual)
   const { ms, gyd } = comoQuedo(v)
   if (gyd) r.golpes += 2
   r.t0 = null
@@ -11742,7 +11839,7 @@ function pintarMarcador(ms) {
   const mios = M.HOYOS.map((h, k) => {
     const f = ronda.tarjeta[k]
     if (f) return f.lp ? 'LP' : M.golpesDelHoyo(f) // (con el golpe menos de ese hoyo, como el fantasma)
-    return k === ronda.idx && !ronda.terminada ? Math.max(0, ronda.golpes - (ronda.menosHoyo ?? 0)) : null
+    return k === ronda.idx && !ronda.terminada ? Math.max(0, M.golpesALaVista(ronda, tiro) - (ronda.menosHoyo ?? 0)) : null
   })
   const yoLp = mios.includes('LP')
   const yoTotal = golpesVan(ronda)

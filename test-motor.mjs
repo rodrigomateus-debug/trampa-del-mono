@@ -2014,7 +2014,7 @@ ok('🎰 La Ruleta en un match: los dos juegan con la misma tanda de players', (
   assert.deepEqual(tanda(1), tanda(99))
 })
 
-ok('🏹 La flecha del Sueco pincha al mono que se cruza, se lo lleva hasta donde pica (un golpe menos) y ese mono no juega más en el hoyo', () => {
+ok('🏹 La flecha del Sueco pincha al mono que se cruza, se lo lleva hasta donde pica (un golpe menos en el hoyo, al toque) y ese mono no juega más en el hoyo', () => {
   const sueco = { apodo: 'El Sueco', emoji: '🇸🇪', hcp: 1.5 }
   const desde = [h15.pin[0], h15.pin[1] + 160]
   const ang = angulo(desde, h15.pin)
@@ -2041,15 +2041,37 @@ ok('🏹 La flecha del Sueco pincha al mono que se cruza, se lo lleva hasta dond
   assert.ok(M.dist(s.pos, pico) < 1.5, `quedó a ${M.dist(s.pos, pico).toFixed(2)} yd de donde picó`)
   assert.ok(M.dist(s.pos, enLinea) > 20) // viajó con la flecha
   assert.ok(M.monoFuera(s) && !M.monoActivo(s))
-  // un golpe menos por el mono (en la tarjeta: `flecha`, que suma `totales`)
-  r.tarjeta = [{ n: 15, par: 4, golpes: 4 }, { n: 16, par: 4, golpes: 4 }, { n: 17, par: 3, golpes: 3 }]
-  M.resolverReposo(quieto, r, t, fijo(0.5))
+  // un golpe menos en el hoyo, al toque: va 2, pega el tercero y pincha uno → 3 y, apenas lo pincha, 2 (el contador lo
+  // muestra con la flecha en el aire; al quedar quieta se descuenta de `r.golpes`, una sola vez)
+  r.golpes = 3
+  assert.equal(M.golpesALaVista(r, t), 2)
+  assert.equal(M.golpesALaVista(r, null), 3)
+  const res = M.resolverReposo(quieto, r, t, fijo(0.5))
+  const multa = res.tipo === 'afuera' ? 1 : 0 // (en esta cancha de prueba, la flecha termina afuera: +1)
+  assert.equal(r.golpes, 2 + multa)
+  assert.equal(M.golpesALaVista(r, t), 2 + multa)
   assert.equal(r.pinchados, 1)
-  assert.equal(r.tarjeta.flecha, -1)
-  assert.equal(r.menosHoyo, 1) // en el fourball, del hoyo en que lo pinchó
-  assert.deepEqual(M.totales(r.tarjeta), { golpes: 10, par: 11, vsPar: -1, lp: false })
-  assert.match(M.textoCompartir({ ...r, ms: 90000 }, true), /🏹 −1/)
-  r.tarjeta = []
+  assert.ok(!r.menosHoyo) // ya está en los golpes del hoyo (el fourball cuenta `golpes`)
+  assert.equal(r.tarjeta.flecha, undefined)
+  // ya descontado, no lo descuenta otra vez
+  const q2 = { ...M.nuevaRonda(sueco, fijo(0.5)), golpes: 2 }
+  M.resolverReposo(quieto, q2, { ...t, embocada: true, eventos: [], pinchados: 1, descontados: 1 }, fijo(0.5))
+  assert.equal(q2.golpes, 2)
+  // cierra el hoyo con el putt: 3 golpes en la tarjeta (4 pegados, uno menos por el mono), con el 🏹 anotado
+  r.golpes = 3
+  M.cerrarHoyo(r, fijo(0.5))
+  assert.deepEqual([r.tarjeta[0].golpes, r.tarjeta[0].pinchados], [3, 1])
+  assert.equal(M.hoyosDeTarjeta(r.tarjeta)[0], 3)
+  const toda = [r.tarjeta[0], { n: 16, par: 4, golpes: 4 }, { n: 17, par: 3, golpes: 3 }]
+  assert.match(M.textoCompartir({ ...r, tarjeta: toda, ms: 90000 }, true), /3 · 4 · 3 · 🏹 1 mono pinchado/)
+  assert.deepEqual(M.totales(toda), { golpes: 10, par: 11, vsPar: -1, lp: false })
+  // nunca menos de 1 en el hoyo: con el primer tiro pinchó dos y la metió
+  const q = { ...M.nuevaRonda(sueco, fijo(0.5)), golpes: 1 }
+  M.resolverReposo(quieto, q, { ...t, pinchados: 2, descontados: 0, embocada: true, eventos: [] }, fijo(0.5))
+  assert.equal(q.golpes, 0)
+  M.cerrarHoyo(q, fijo(0.5))
+  assert.equal(q.tarjeta[0].golpes, 1)
+  r.tarjeta = []; r.idx = 0
   // ya no caza: aunque la pelota esté quieta al lado, no viene
   const antes = [...s.pos]
   assert.equal(M.moverMonos(r.monos, 1, r.pelota), null)
@@ -2063,6 +2085,36 @@ ok('🏹 La flecha del Sueco pincha al mono que se cruza, se lo lleva hasta dond
   assert.equal(s.modo, 'ronda')
   assert.deepEqual(s.pos, s.m.a)
   assert.equal(s.volando, false)
+})
+
+ok('🏹 La flecha pincha aunque vaya alta, al que espera entre los pinos y sin saltearse a nadie entre un paso y otro', () => {
+  const sueco = { apodo: 'El Sueco', emoji: '🇸🇪', hcp: 1.5 }
+  const desde = [h15.pin[0], h15.pin[1] + 230]
+  const ang = angulo(desde, h15.pin)
+  const tirar = (monos, dt) => {
+    const r = { ...M.nuevaRonda(sueco, fijo(0.5)), monos, viento: calma, pelota: [...desde], lie: 'fairway' }
+    const t = M.golpear(quieto, r, ang, 1, sinRuido())
+    const ruta = []
+    for (let i = 0; i < 20000 && t.fase !== 'quieta'; i++) { M.avanzar(quieto, t, dt, h15.pin); if (t.fase === 'vuelo') ruta.push([...t.pos, t.alt]) }
+    return { t, ruta }
+  }
+  // el punto más alto del vuelo: más alto que un mono (a otro tiro no se lo robaría)
+  const { ruta } = tirar([], 1 / 120)
+  const alto = ruta.reduce((a, b) => (b[2] > a[2] ? b : a))
+  assert.ok(alto[2] > M.MONO.altura, `la flecha llega a ${alto[2].toFixed(1)}`)
+  // ahí, uno esperando entre los pinos (quieto, sin cazar): lo pincha igual
+  const mono = (pos) => ({ m: { a: [...pos], b: [pos[0] + 40, pos[1]], fase: 0 }, hoyo: 15, pos: [...pos], hacia: 'b', espera: 99, modo: 'ronda', reaccion: 0 })
+  const espera = mono([alto[0] + 2.5, alto[1]])
+  assert.ok(!M.monoActivo(espera))
+  assert.equal(tirar([espera], 1 / 120).t.pinchados, 1)
+  // a los saltos (un cuadro lento: 15 por segundo), el que queda entre un paso y otro también
+  const lento = tirar([], 1 / 15).ruta
+  const k = lento.findIndex((p, i) => i > 0 && M.dist(p, lento[i - 1]) > 2 * M.FLECHA.pincha)
+  assert.ok(k > 0, 'algún paso más largo que el radio')
+  const medio = [(lento[k][0] + lento[k - 1][0]) / 2, (lento[k][1] + lento[k - 1][1]) / 2]
+  assert.equal(tirar([mono(medio)], 1 / 15).t.pinchados, 1)
+  // el que está lejos de la línea, no
+  assert.ok(!tirar([mono([alto[0] + 12, alto[1]])], 1 / 120).t.pinchados)
 })
 
 ok('🃏 El Draft: tres opciones distintas, sin el que pegó recién; elegís y pega ese (Taiu, Rorro y Demetrio también)', () => {

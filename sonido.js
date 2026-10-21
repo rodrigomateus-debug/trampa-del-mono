@@ -386,10 +386,13 @@ export function flechaPino() {
   ruido(0.4, { f: 900, f2: 2600, q: 1.2, vol: 0.12, at: 0.03, ataque: 0.01 }) // las hojas
   tono(1300, 0.04, { vol: 0.06, tipo: 'square', at: 0.008 }) // la ramita que se quiebra
 }
-/** La flecha pincha a un mono: el ¡zas! y el chillido. */
+/** La flecha pincha a un mono: el ¡zas!, el golpe seco, el chillido y el tin-tin del golpe menos. */
 export function monoPinchado() {
   ruido(0.1, { filtro: 'highpass', f: 2400, vol: 0.2, ataque: 0.002 })
+  tono(180, 0.09, { vol: 0.3, f2: 110, tipo: 'triangle', ataque: 0.002 }) // ¡pum!
   chillido(0.03, 3, 1.6)
+  tono(988, 0.08, { vol: 0.08, tipo: 'square', at: 0.3 })
+  tono(1319, 0.16, { vol: 0.08, tipo: 'square', at: 0.38 })
 }
 /** La flecha se clava en el pasto: el golpe seco y el asta que vibra (boiiing, cada vez más bajito). */
 export function flechaClava() {
