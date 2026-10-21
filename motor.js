@@ -1266,12 +1266,11 @@ export function resultadoFourball(A, B) {
 /** Los puntos del fourball con medios: 3½, ½, 4. */
 export const formatoPuntos = (x) => { const e = Math.floor(x + 1e-9), m = x - e > 0.25; return e || !m ? `${e}${m ? '½' : ''}` : '½' }
 /**
- * Los golpes de un hoyo terminado para el fourball: con el golpe menos que se ganó en ese hoyo (el quinto mono de la
- * Mugre, cada mono que pinchó la flecha del Sueco), y nunca menos de 1 (un hoyo no se hace en 0).
+ * Los golpes de cada hoyo de una vuelta terminada (la tarjeta), como cuenta el fourball: null en los que levantó. Los
+ * golpes menos que se ganaron en un hoyo (el quinto mono de la Mugre, cada mono que pinchó la flecha) ya están en sus
+ * golpes, y un hoyo nunca baja de 1 (`cerrarHoyo`).
  */
-export const golpesDelHoyo = (f) => Math.max(1, f.golpes - (f.menos ?? 0))
-/** Los golpes de cada hoyo de una vuelta terminada (la tarjeta), como cuenta el fourball: null en los que levantó. */
-export const hoyosDeTarjeta = (tarjeta) => HOYOS.map((h, k) => { const f = tarjeta?.[k]; return f && !f.lp && f.golpes != null ? golpesDelHoyo(f) : null })
+export const hoyosDeTarjeta = (tarjeta) => HOYOS.map((h, k) => { const f = tarjeta?.[k]; return f && !f.lp && f.golpes != null ? f.golpes : null })
 /** Una vuelta del fourball como la guarda la base → el jugador de `resultadoFourball` (null si no jugó o no la ves). */
 export const jugadorFourball = (v) => (v && !v.oculta ? { hoyos: HOYOS.map((_, k) => (Array.isArray(v.hoyos) ? v.hoyos[k] ?? null : null)), ms: v.ms ?? null, lp: !!v.lp } : null)
 /**
@@ -1551,7 +1550,7 @@ export function calmarMonos(monos) {
 }
 
 /** El tiro de salida de cada hoyo: ahí los monos no salen a cazar (te dejan pegar tranquilo desde el tee). */
-export const esSalida = (r) => r.golpes === 0 && r.lie === 'tee'
+export const esSalida = (r) => r.golpes + totalMenos(r.menosHoyo) === 0 && r.lie === 'tee' // (sin contar los golpes menos del hoyo: la Mugre puede ganar uno antes de salir)
 /**
  * ¿Pega desde el tee del hoyo que se juega? (la bomba de Miguelón, el drive de Liberty, "drive" en el relato).
  * La pelota que quedó en el tee de OTRO hoyo se juega como cualquier otra, no como salida.
@@ -1610,8 +1609,9 @@ export function tirarPancho(r) {
 /**
  * 🐒 La Mugre se los lleva (2026-10-12, pedido de Rorro): mientras comen el pancho (ya en su lugar de la ronda), a los
  * monos los podés agarrar tocándolos y te los llevás: no vuelven en lo que queda del hoyo (en el que sigue salen otra vez
- * de sus pinos: son 6 en toda la cancha). Cada `premio` que te llevás en la vuelta, un golpe menos en la tarjeta
- * (`tarjeta.monos`, que `totales` suma, como la apuesta de Rorro; la cuenta, en `r.llevados`).
+ * de sus pinos: son 6 en toda la cancha). Cada `premio` que te llevás en la vuelta (la cuenta, en `r.llevados`), un golpe
+ * menos en el hoyo en que juntaste el último, al toque (2026-10-21; antes iba al total: `tarjeta.monos`): baja `r.golpes`,
+ * como la flecha del Sueco (`golpesMenos`).
  */
 export const LLEVAR = { premio: 5 }
 export const sePuedeLlevar = (s) => !!s?.pancho && (s.modo === 'caza' || s.modo === 'come') && dist(s.pos, s.pancho) < 0.05
@@ -1623,10 +1623,20 @@ export function llevarMono(r, s) {
   s.panchoEn = null
   r.llevados = (r.llevados ?? 0) + 1
   const premio = r.llevados % LLEVAR.premio === 0
-  r.tarjeta.monos = -Math.floor(r.llevados / LLEVAR.premio) || undefined
-  if (premio) r.menosHoyo = (r.menosHoyo ?? 0) + 1 // (en el fourball, el golpe menos es de este hoyo: ver golpesDelHoyo)
+  if (premio) golpesMenos(r, 'mugre', 1)
   return { n: r.llevados, premio }
 }
+/**
+ * Los golpes menos que se ganan en el hoyo (el quinto mono de la Mugre, `mugre`; cada mono que pinchó la flecha del
+ * Sueco, `pinchados`): bajan `r.golpes` ahí mismo (en el medio del hoyo pueden quedar en 0 o menos: el hoyo cierra en 1
+ * o más, ver cerrarHoyo) y quedan anotados en el hoyo (`r.menosHoyo` → la fila de la tarjeta), para que diga por qué y
+ * para que el reset del Ninja no los borre.
+ */
+function golpesMenos(r, de, n) {
+  r.golpes -= n
+  r.menosHoyo = { ...r.menosHoyo, [de]: (r.menosHoyo?.[de] ?? 0) + n }
+}
+const totalMenos = (m) => (m?.mugre ?? 0) + (m?.pinchados ?? 0)
 
 // ── tiro ────────────────────────────────────────────────────────────────
 /** Desvío estándar del tiro (lo que dibuja la zona de pique). */
@@ -2041,7 +2051,7 @@ function distSegmento(p, a, b) {
  * 🏹 Los golpes del hoyo como se ven: con la flecha todavía en el aire, ya sin los monos que pinchó (al quedar quieta se
  * descuentan de `r.golpes`). Va 2, pega el tercero y pincha uno: 3 y, al toque, 2.
  */
-export const golpesALaVista = (r, tiro) => Math.max(0, r.golpes - ((tiro?.pinchados ?? 0) - (tiro?.descontados ?? 0)))
+export const golpesALaVista = (r, tiro) => r.golpes - ((tiro?.pinchados ?? 0) - (tiro?.descontados ?? 0))
 
 /** Un paso de física. Muta `tiro`; devuelve la fase ('vuelo' | 'rodando' | 'quieta'). */
 export function avanzar(campo, tiro, dt, pin) {
@@ -2816,7 +2826,7 @@ export function resolverReposo(campo, r, tiro, rng) {
   const res = resolver(campo, r, tiro, rng)
   // 🏹 cada mono que pinchó la flecha del Sueco, un golpe menos en este hoyo, ahí mismo (el contador ya lo mostró al
   // pincharlo; la cuenta de la vuelta, en `r.pinchados`). El hoyo nunca baja de 1 (ver cerrarHoyo)
-  if (tiro.pinchados && !tiro.descontados) { r.pinchados = (r.pinchados ?? 0) + tiro.pinchados; r.golpes = Math.max(0, r.golpes - tiro.pinchados); r.pinchadosHoyo = (r.pinchadosHoyo ?? 0) + tiro.pinchados; tiro.descontados = tiro.pinchados }
+  if (tiro.pinchados && !tiro.descontados) { r.pinchados = (r.pinchados ?? 0) + tiro.pinchados; golpesMenos(r, 'pinchados', tiro.pinchados); tiro.descontados = tiro.pinchados }
   // LG: si fue un mal tiro, el próximo sale sin error
   // (si LG pegó prestado —atendió la Dickyllamada—, su calma no queda para el que juega; ofendido —la interna—, sin calma)
   if (habilidadDe(r.jugador)?.id === 'calma') r.calma = !r.prestado && !r.ofendido && esMalo(res, tiro)
@@ -2938,12 +2948,12 @@ export const necesitaLP = (r) => r.golpes >= MAX_GOLPES
  * El Ninja: su LP no levanta, resetea el hoyo (uno por vuelta). Vuelve al tee del hoyo que se juega con cero golpes,
  * sin multa (y los monos que venían, a su recorrido). Solo si ya pegó algo en este hoyo: desde el tee no tiene sentido.
  */
-export const puedeResetNinja = (r) => habilidadDe(r.jugador)?.id === 'tradicion' && !r.resetNinja && r.golpes > 0 && !r.terminada
+export const puedeResetNinja = (r) => habilidadDe(r.jugador)?.id === 'tradicion' && !r.resetNinja && ((r.tirosHoyo ?? 0) > 0 || r.golpes > 0) && !r.terminada
 export function resetNinja(r) {
   const h = hoyoActual(r)
   calmarMonos(r.monos)
   r.resetNinja = h.n
-  r.golpes = 0
+  r.golpes = 0 - totalMenos(r.menosHoyo) // (los golpes menos que ya ganó en el hoyo, la Mugre o la flecha, no se pierden)
   r.tirosHoyo = 0
   r.pelota = [...teeDe(r, h)]
   r.desde = [...r.pelota]
@@ -2956,8 +2966,7 @@ export function resetNinja(r) {
 export function levantar(r) {
   calmarMonos(r.monos)
   r.lp = hoyoActual(r).n
-  r.menosHoyo = 0
-  r.pinchadosHoyo = 0
+  r.menosHoyo = null
   for (const h of HOYOS.slice(r.idx)) r.tarjeta.push({ n: h.n, par: h.par, golpes: null, lp: true })
   r.idx = HOYOS.length
   r.terminada = true
@@ -2969,14 +2978,12 @@ export function cerrarHoyo(r, rng) {
   const h = hoyoActual(r)
   calmarMonos(r.monos)
   // Demetrio no hace más que par (ni con una multa). Con su carta: en el Draft, si la mete él, cuentan todos los golpes.
-  // Nunca menos de 1 (los monos que pinchó la flecha ya bajaron `r.golpes`: con el tiro que la mete, podría quedar en 0)
+  // Nunca menos de 1 (los golpes menos del hoyo, la Mugre o la flecha, ya bajaron `r.golpes`: podría quedar en 0 o menos)
   const fila = { n: h.n, par: h.par, golpes: Math.max(1, habilidadDe(cartaDe(r))?.id === 'retro' ? Math.min(r.golpes, h.par) : r.golpes), lp: false }
-  // el golpe menos que se ganó en este hoyo con el quinto mono de la Mugre: el total ya lo tiene (`tarjeta.monos`); acá
-  // queda para el fourball, que cuenta hoyo por hoyo
-  if (r.menosHoyo) fila.menos = r.menosHoyo
-  r.menosHoyo = 0
-  if (r.pinchadosHoyo) fila.pinchados = r.pinchadosHoyo // 🏹 (ya están en `golpes`: para que la tarjeta diga por qué)
-  r.pinchadosHoyo = 0
+  // los golpes menos que se ganó en este hoyo (ya están en `golpes`): para que la tarjeta diga por qué
+  if (r.menosHoyo?.mugre) fila.mugre = r.menosHoyo.mugre
+  if (r.menosHoyo?.pinchados) fila.pinchados = r.menosHoyo.pinchados
+  r.menosHoyo = null
   r.tarjeta.push(fila)
   // Miguelón: bogey o peor, media barra de furia
   if (habilidadDe(r.jugador)?.id === 'bomba' && fila.golpes - fila.par >= 1) sumarFuria(r, 'bogey')
@@ -3006,9 +3013,9 @@ export function cerrarHoyo(r, rng) {
 export function totales(tarjeta) {
   const par = tarjeta.reduce((s, f) => s + f.par, 0)
   const lp = tarjeta.some((f) => f.lp)
-  // Marcos: la apuesta de "¿jugaste con Rorro?" (−1 o +1 al total; ver apostarRorro). La Mugre: −1 cada 5 monos que se
-  // llevó (ver llevarMono). (Los monos que pinchó la flecha del Sueco ya están en los golpes de su hoyo: ver resolverReposo)
-  const golpes = lp ? null : tarjeta.reduce((s, f) => s + f.golpes, 0) + (tarjeta.rorro ?? 0) + (tarjeta.monos ?? 0)
+  // Marcos: la apuesta de "¿jugaste con Rorro?" (−1 o +1 al total; ver apostarRorro). (Los golpes menos de la Mugre y de la
+  // flecha del Sueco ya están en los golpes de su hoyo: ver golpesMenos)
+  const golpes = lp ? null : tarjeta.reduce((s, f) => s + f.golpes, 0) + (tarjeta.rorro ?? 0)
   return { golpes, par, vsPar: lp ? null : golpes - par, lp }
 }
 /**

@@ -4688,7 +4688,7 @@ function dibujarPancho() {
   ctx.textBaseline = 'alphabetic'
 }
 // 🐒 la Mugre se los lleva: tocando un mono que come, lo agarra una mano, salta y vuela al botón del pancho (el contador
-// salta); cada 5 en la vuelta, un golpe menos (motor.js `llevarMono`)
+// salta); cada 5 en la vuelta, un golpe menos en ese hoyo, al toque (motor.js `llevarMono`)
 let llevando = [] // { x, y, t0, tam } — los que van volando al botón (en la pantalla)
 const LLEVAR_MS = 750
 function agarrarMono(px, py) {
@@ -4718,8 +4718,9 @@ function agarrarMono(px, py) {
     if (res.premio) S.perfecto()
   }, LLEVAR_MS - 80)
   if (res.premio) {
-    relatar({ lg: M.elegir(rng, ['¡LURRRRPIN! Cinco monos en la bolsa', 'Se los llevó a todos. Un golpe menos', 'La Mugre pagó el tercer tiempo con monos']), verso: `🐒 ${res.n} monos: un golpe menos en la tarjeta` })
+    relatar({ lg: M.elegir(rng, ['¡LURRRRPIN! Cinco monos en la bolsa', 'Se los llevó a todos. Un golpe menos', 'La Mugre pagó el tercer tiempo con monos']), verso: `🐒 ${res.n} monos: un golpe menos en este hoyo` })
     marcarTiro('🐒 −1 GOLPE', ronda.pelota)
+    motivoResta = '🐒 CINCO MONOS' // (el contador baja al toque: ver contarGolpes, en el hud de abajo)
   } else relatar({ lg: M.elegir(rng, ['¡Te lo llevaste!', 'Uno menos que roba', 'A la bolsa, mono']), verso: `🐒 ${res.n} de ${M.LLEVAR.premio}: con ${M.LLEVAR.premio}, un golpe menos` })
   hud()
   return true
@@ -6181,7 +6182,7 @@ function hud() {
     $('#pancho-n').textContent = ronda.panchos
     $('#pancho').disabled = !ronda.panchos || estado !== 'apuntar'
   }
-  const n = ronda.llevados ?? 0, menos = -(ronda.tarjeta.monos ?? 0)
+  const n = ronda.llevados ?? 0, menos = Math.floor(n / M.LLEVAR.premio)
   const cont = $('#pancho-monos')
   cont.hidden = !n
   const txt = menos ? `🐒 ${n} · −${menos}` : `🐒 ${n}/${M.LLEVAR.premio}`
@@ -6320,14 +6321,14 @@ function contarGolpes() {
   $('#g-par').textContent = `PAR ${M.hoyoActual(ronda).par}`
   if (!golpesVistos || golpesVistos.r !== ronda || golpesVistos.idx !== idx) {
     golpesVistos = { r: ronda, idx, n }
-    $('#g-num').textContent = n
+    $('#g-num').textContent = String(n).replace('-', '−') // (con los golpes menos puede quedar abajo de 0)
     motivoGolpe = null
     return
   }
   if (n === golpesVistos.n) return
   const antes = golpesVistos.n
   golpesVistos.n = n
-  $('#g-num').textContent = n
+  $('#g-num').textContent = String(n).replace('-', '−')
   const caja = $('#golpes')
   const motivo = motivoGolpe
   motivoGolpe = null
@@ -9300,9 +9301,8 @@ function tarjetaFinal() {
   const filas = ronda.tarjeta.map((f) => {
     const nombre = M.nombreResultado(f.golpes, f.par, f.lp)
     const marca = f.lp || f.golpes > f.par ? 'sobre' : f.golpes < f.par ? 'bajo' : ''
-    return `<tr><td>${f.n}</td><td class="num">${f.par}</td><td class="num">${f.golpes ?? '—'}</td><td class="res"><i class="${marca}"></i>${nombre === 'LP' ? 'LP 💅' : nombre}${f.pinchados ? ` · 🏹 −${f.pinchados}` : ''}</td></tr>`
+    return `<tr><td>${f.n}</td><td class="num">${f.par}</td><td class="num">${f.golpes ?? '—'}</td><td class="res"><i class="${marca}"></i>${nombre === 'LP' ? 'LP 💅' : nombre}${f.mugre ? ` · 🐒 −${f.mugre}` : ''}${f.pinchados ? ` · 🏹 −${f.pinchados}` : ''}</td></tr>`
   })
-  if (ronda.tarjeta.monos) filas.push(`<tr><td>🐒</td><td class="num">—</td><td class="num">−${-ronda.tarjeta.monos}</td><td class="res"><i class="bajo"></i>Te llevaste ${ronda.llevados} monos</td></tr>`)
   if (ronda.tarjeta.rorro) filas.push(`<tr><td>🥃</td><td class="num">—</td><td class="num">${ronda.tarjeta.rorro > 0 ? '+1' : '−1'}</td><td class="res"><i class="${ronda.tarjeta.rorro > 0 ? 'sobre' : 'bajo'}"></i>Rorro anotó mal</td></tr>`)
   const t = M.totales(ronda.tarjeta)
   filas.push(`<tr class="total"><td>TOTAL</td><td class="num">${t.par}</td><td class="num">${t.golpes ?? '—'}</td><td class="res"><span class="band" style="font-family: var(--font-display); font-size: 22px; font-weight: 400">${M.formatoPar(t.vsPar)}</span></td></tr>`)
@@ -9869,7 +9869,7 @@ function leerJSON(k) { try { return JSON.parse(localStorage.getItem(k)) } catch 
 const yoUid = () => R.puente.identidad?.uid
 // (con los golpes menos que se ganaron en cada hoyo: así la grabación —el fantasma, el replay, el hoyo a hoyo— los cuenta
 // en el hoyo en que pasaron, como el fourball)
-const golpesVan = (r) => r.tarjeta.reduce((t, f) => t + (f.golpes == null ? 0 : f.golpes - (f.menos ?? 0)), 0) + M.golpesALaVista(r, r === ronda ? tiro : null) - (r.menosHoyo ?? 0)
+const golpesVan = (r) => r.tarjeta.reduce((t, f) => t + (f.golpes ?? 0), 0) + M.golpesALaVista(r, r === ronda ? tiro : null)
 /** Lo que me toca mirar: desafíos para jugar y resultados de los que mandé que todavía no vi. */
 function pendientesMatch(ds = mtDesafios) {
   if (!ds) return 0
@@ -10305,7 +10305,7 @@ if (PARAMS.get('probar') === 'match') activarPrueba({ uid: 'prueba:yo', alias: d
     setTimeout(() => {
       empezar(j)
       if (ronda && desde?.length === 2 && desde.every(Number.isFinite)) { ronda.pelota = [...desde]; ronda.desde = [...desde]; ronda.lie = ronda.lieDesde = M.terreno(campo, desde).tipo }
-      window.__juego = { ronda: () => ronda, tiro: () => tiro } // (para las pruebas: la ronda y el tiro de ahora)
+      window.__juego = { ronda: () => ronda, tiro: () => tiro, pantalla: (p) => w2s(p) } // (para las pruebas: la ronda, el tiro de ahora y dónde se ve un punto)
       // y ?mono=x,y: un mono del hoyo queda ahí, quieto (para apuntarle con la flecha)
       const mono = PARAMS.get('mono')?.split(',').map(Number)
       const s = ronda && mono?.length === 2 && mono.every(Number.isFinite) && ronda.monos.find((x) => x.hoyo === M.hoyoActual(ronda).n)
@@ -11421,8 +11421,8 @@ async function avisarFb(f) {
 function pintarMarcadorFb(ms) {
   const d = ronda.duelo
   const yoAhora = ronda.terminada ? -1 : ronda.idx
-  const mios = M.HOYOS.map((h, k) => { const f = ronda.tarjeta[k]; return f ? (f.lp ? null : M.golpesDelHoyo(f)) : ronda.terminada ? null : undefined })
-  const filas = [{ l: d.lugar, yo: true, nombre: 'VOS', emoji: ronda.carta?.emoji ?? ronda.jugador.emoji, hoyos: mios, ver: mios.map((v, k) => (v === undefined && k === yoAhora ? Math.max(0, M.golpesALaVista(ronda, tiro) - (ronda.menosHoyo ?? 0)) : v)), ahora: yoAhora }]
+  const mios = M.HOYOS.map((h, k) => { const f = ronda.tarjeta[k]; return f ? (f.lp ? null : f.golpes) : ronda.terminada ? null : undefined })
+  const filas = [{ l: d.lugar, yo: true, nombre: 'VOS', emoji: ronda.carta?.emoji ?? ronda.jugador.emoji, hoyos: mios, ver: mios.map((v, k) => (v === undefined && k === yoAhora ? M.golpesALaVista(ronda, tiro) : v)), ahora: yoAhora }]
   for (const x of d.fantasmas ?? []) {
     const m = M.marcadorFantasma(x.g, ms)
     if (x.lpEn === undefined) x.lpEn = lpDelFantasma(x.g)
@@ -11777,7 +11777,6 @@ async function reconectar(v) {
     r.duelo.fantasmas = fantasmasFb(r.duelo.fb, gs)
   }
   if (r.ruleta && r.match) contarRuleta(r, r.ruleta.rngN ?? 0)
-  if (r.llevados) r.tarjeta.monos = -Math.floor(r.llevados / M.LLEVAR.premio) || undefined // 🐒 (la tarjeta se guarda sin él)
   const { ms, gyd } = comoQuedo(v)
   if (gyd) r.golpes += 2
   r.t0 = null
@@ -11838,8 +11837,8 @@ function pintarMarcador(ms) {
   // mis golpes: los hoyos cerrados de la tarjeta y el que estoy jugando
   const mios = M.HOYOS.map((h, k) => {
     const f = ronda.tarjeta[k]
-    if (f) return f.lp ? 'LP' : M.golpesDelHoyo(f) // (con el golpe menos de ese hoyo, como el fantasma)
-    return k === ronda.idx && !ronda.terminada ? Math.max(0, M.golpesALaVista(ronda, tiro) - (ronda.menosHoyo ?? 0)) : null
+    if (f) return f.lp ? 'LP' : f.golpes // (con los golpes menos de ese hoyo ya adentro, como el fantasma)
+    return k === ronda.idx && !ronda.terminada ? M.golpesALaVista(ronda, tiro) : null
   })
   const yoLp = mios.includes('LP')
   const yoTotal = golpesVan(ronda)

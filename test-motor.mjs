@@ -1544,6 +1544,11 @@ ok('El Ninja: reset del hoyo (uno por vuelta): al tee con cero golpes, sin multa
   assert.ok(M.puedeResetNinja(r))
   assert.equal(M.resetNinja(r), 15)
   assert.equal(r.golpes, 0)
+  // los golpes menos que ganó en el hoyo (en la Ruleta, la flecha del Sueco o la Mugre) no los borra el reset
+  const g = { ...M.nuevaRonda({ apodo: 'El Ninja (Đ)', emoji: '🥷' }, fijo(0.5)), monos: [], golpes: 1, tirosHoyo: 2, menosHoyo: { pinchados: 1 } }
+  assert.ok(M.puedeResetNinja(g)) // (pegó: aunque el contador diga 1… o 0)
+  M.resetNinja(g)
+  assert.equal(g.golpes, -1)
   assert.equal(r.lie, 'tee')
   assert.deepEqual(r.pelota, M.teeDe(r))
   assert.ok(!r.terminada)
@@ -1592,28 +1597,37 @@ ok('🐒 la Mugre se los lleva: comiendo el pancho los agarrás y cada 5, un gol
   assert.deepEqual(a.pos, donde)
   assert.equal(M.despertarMonos([a], a.pos, 999), 0)
   assert.equal(M.llevarMono(r, a), null)
-  // cada 5, un golpe menos en la tarjeta (lo suma totales, como la apuesta de Rorro)
-  r.tarjeta.push({ n: 15, par: 4, golpes: 5, lp: false }, { n: 16, par: 4, golpes: 4, lp: false }, { n: 17, par: 3, golpes: 3, lp: false })
-  assert.equal(M.totales(r.tarjeta).golpes, 12)
+  // cada 5, un golpe menos en el hoyo en que juntó el quinto, al toque: va 2 y, con el quinto, 1
+  r.golpes = 2
   const otro = () => ({ modo: 'come', pos: [0, 0], pancho: [0, 0] })
   for (let i = 0; i < 3; i++) assert.equal(M.llevarMono(r, otro()).premio, false)
-  r.menosHoyo = 0
+  assert.equal(r.golpes, 2)
   assert.deepEqual(M.llevarMono(r, otro()), { n: 5, premio: true })
-  assert.equal(r.tarjeta.monos, -1)
-  assert.equal(r.menosHoyo, 1, 'el golpe menos es del hoyo en que juntó el quinto (para el fourball)')
-  assert.equal(M.totales(r.tarjeta).golpes, 11)
-  assert.equal(M.totales(r.tarjeta).vsPar, 0)
+  assert.equal(r.golpes, 1)
+  assert.equal(M.golpesALaVista(r, null), 1)
+  assert.equal(r.tarjeta.monos, undefined) // (ya no va aparte al total)
+  // pega dos más y la mete (4 pegados): 3 en la tarjeta, con el 🐒 anotado; el total y el fourball cuentan eso
+  r.golpes += 2
+  M.cerrarHoyo(r, fijo(0.5))
+  assert.deepEqual([r.tarjeta[0].golpes, r.tarjeta[0].mugre], [3, 1])
+  assert.equal(r.menosHoyo, null)
+  r.tarjeta.push({ n: 16, par: 4, golpes: 4, lp: false }, { n: 17, par: 3, golpes: 3, lp: false })
+  assert.deepEqual(M.totales(r.tarjeta), { golpes: 10, par: 11, vsPar: -1, lp: false })
+  assert.deepEqual(M.hoyosDeTarjeta(r.tarjeta), [3, 4, 3])
+  // con el quinto en el tee, antes de salir: el contador queda en −1 y la salida sigue siendo la salida
+  const r3 = M.nuevaRonda({ apodo: 'Mugre', emoji: '💩' }, fijo(0.5))
+  r3.llevados = 4
+  M.llevarMono(r3, otro())
+  assert.equal(r3.golpes, -1)
+  assert.ok(M.esSalida(r3))
   // en el hoyo que sigue, el que te llevaste vuelve a sus pinos
   const r2 = M.nuevaRonda({ apodo: 'Mugre', emoji: '💩' }, fijo(0.5))
   const s2 = r2.monos[0]
   Object.assign(s2, { modo: 'come', pancho: [...s2.pos], panchoEn: [...s2.pos] })
   M.llevarMono(r2, s2)
   r2.golpes = 4
-  r2.menosHoyo = 1
   M.cerrarHoyo(r2, fijo(0.5))
-  assert.equal(r2.tarjeta[0].menos, 1)
-  assert.equal(r2.menosHoyo, 0)
-  assert.deepEqual(M.hoyosDeTarjeta(r2.tarjeta), [3, null, null])
+  assert.deepEqual(M.hoyosDeTarjeta(r2.tarjeta), [4, null, null])
   assert.equal(s2.modo, 'ronda')
   assert.deepEqual(s2.pos, s2.m.a)
   assert.equal(r2.llevados, 1, 'la cuenta es de toda la vuelta')
@@ -2051,7 +2065,7 @@ ok('🏹 La flecha del Sueco pincha al mono que se cruza, se lo lleva hasta dond
   assert.equal(r.golpes, 2 + multa)
   assert.equal(M.golpesALaVista(r, t), 2 + multa)
   assert.equal(r.pinchados, 1)
-  assert.ok(!r.menosHoyo) // ya está en los golpes del hoyo (el fourball cuenta `golpes`)
+  assert.deepEqual(r.menosHoyo, { pinchados: 1 }) // ya está en los golpes del hoyo (el fourball cuenta `golpes`); anotado para la tarjeta
   assert.equal(r.tarjeta.flecha, undefined)
   // ya descontado, no lo descuenta otra vez
   const q2 = { ...M.nuevaRonda(sueco, fijo(0.5)), golpes: 2 }
@@ -2068,7 +2082,7 @@ ok('🏹 La flecha del Sueco pincha al mono que se cruza, se lo lleva hasta dond
   // nunca menos de 1 en el hoyo: con el primer tiro pinchó dos y la metió
   const q = { ...M.nuevaRonda(sueco, fijo(0.5)), golpes: 1 }
   M.resolverReposo(quieto, q, { ...t, pinchados: 2, descontados: 0, embocada: true, eventos: [] }, fijo(0.5))
-  assert.equal(q.golpes, 0)
+  assert.equal(q.golpes, -1) // (en el medio del hoyo puede quedar en 0 o menos)
   M.cerrarHoyo(q, fijo(0.5))
   assert.equal(q.tarjeta[0].golpes, 1)
   r.tarjeta = []; r.idx = 0
@@ -2940,8 +2954,6 @@ ok('⚔️ fourball: mejor y suma (2 puntos por hoyo, ½ en empate), LP por hoyo
   // los puntos con medios y los golpes de la tarjeta
   assert.deepEqual([0, 0.5, 3, 3.5, 6].map(M.formatoPuntos), ['0', '½', '3', '3½', '6'])
   assert.deepEqual(M.hoyosDeTarjeta([{ golpes: 5 }, { golpes: 4, lp: true }]), [5, null, null])
-  // con los golpes menos del hoyo (la Mugre, la flecha), y nunca menos de 1
-  assert.deepEqual(M.hoyosDeTarjeta([{ golpes: 5, menos: 1 }, { golpes: 4 }, { golpes: 1, menos: 2 }]), [4, 4, 1])
 })
 
 ok('⚔️ fourball: el ranking de jugadores y parejas (G/E/P), sin el lugar vacío y con la vuelta oculta como LP', () => {
