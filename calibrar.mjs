@@ -3,7 +3,7 @@
 // ni viento y elige el mejor) pero no compensa el viento, y en las habilidades con timing (el embudo de Fito,
 // el latido de Miguelón) acierta a veces, como una persona. Con los monos que salen a cazar, siempre llega a pegar.
 import * as M from './motor.js'
-import { PLANTEL, EN_PRUEBA } from './plantel.js'
+import { PLANTEL, EN_PRUEBA, DIFICULTAD_REAL } from './plantel.js'
 
 const campo = M.crearCampo()
 const vacio = { ...campo, hoyos: M.HOYOS.map((h) => ({ ...h, monos: [] })) }
@@ -93,6 +93,9 @@ export function jugarVuelta(jugador, seed) {
   while (!r.terminada) {
     if (M.necesitaLP(r)) { M.levantar(r); break }
     M.turnoRuleta(r, rng) // la Ruleta: antes de cada tiro, otro player
+    // el Draft: de los tres, el bot elige siempre el más fácil (el de mejor promedio medido; Demetrio, si sale)
+    const of = M.ofertaDraft(r, rng)
+    if (of) M.elegirDraft(r, of.reduce((a, b) => ((DIFICULTAD_REAL[b.apodo]?.prom ?? -9) < (DIFICULTAD_REAL[a.apodo]?.prom ?? -9) ? b : a)).apodo)
     // Maxi: llama a Deme en el primer tiro que puede y que no sea un putt corto (a más de 30 yd)
     if (M.puedeInvocarDeme(r) && M.dist(r.pelota, M.hoyoActual(r).pin) > 30) M.invocarDeme(r)
     // Tito: apaga el viento antes de cada tiro (el bot apunta sin viento)

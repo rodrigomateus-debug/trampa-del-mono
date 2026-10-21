@@ -1853,28 +1853,17 @@ export const poderes = () => ({ bp: juego.poder.bp, revert: juego.poder.revert, 
 export function breakpoint(tiro) {
   if (!puedeDebug()) return false
   juego.poder.bp--
-  tiro.destinoOrig = [tiro.desde[0] + tiro.carryVec[0] + (tiro.deriva?.[0] ?? 0), tiro.desde[1] + tiro.carryVec[1] + (tiro.deriva?.[1] ?? 0)]
-  tiro.nuevo = [...tiro.destinoOrig]
+  M.congelarTiro(tiro)
   C.pausa()
   return true
 }
-/** Arrastrando la cancha: el destino nuevo (hasta un 38% de lo que le falta). */
+/** Arrastrando la cancha: el destino nuevo (hasta un 38% de lo que le falta: M.correrDestino). */
 export function arrastrarDestino(tiro, x, y) {
-  const p = aPiso(x, y)
-  if (!p || !tiro?.destinoOrig) return
-  const resta = dist(tiro.pos, tiro.destinoOrig)
-  const maxR = Math.max(10, resta * 0.38)
-  const d = [p[0] - tiro.destinoOrig[0], p[1] - tiro.destinoOrig[1]], l = Math.hypot(...d)
-  tiro.nuevo = l > maxR ? [tiro.destinoOrig[0] + (d[0] / l) * maxR, tiro.destinoOrig[1] + (d[1] / l) * maxR] : p
+  M.correrDestino(tiro, aPiso(x, y))
 }
-/** Sigue el vuelo al destino nuevo: el final de la curva del motor se corre y el control se acomoda para que no salte. */
+/** Sigue el vuelo al destino nuevo (M.seguirTiro: el final de la curva se corre sin que salte). */
 export function continuar(t) {
-  const u = t.t / t.T, b1 = 2 * u * (1 - u), b2 = u * u
-  const dv = t.deriva ?? [0, 0]
-  const Cn = [t.nuevo[0] - t.desde[0] - dv[0], t.nuevo[1] - t.desde[1] - dv[1]]
-  if (b1 > 0.04) t.controlVec = [t.controlVec[0] + ((t.carryVec[0] - Cn[0]) * b2) / b1, t.controlVec[1] + ((t.carryVec[1] - Cn[1]) * b2) / b1]
-  t.carryVec = Cn
-  t.carry = Math.hypot(...Cn)
+  M.seguirTiro(t)
   C.seguir()
 }
 
@@ -1951,7 +1940,7 @@ export function trazarOvalo(ctx, c, largo, ancho, ang) {
 export function dibujarDepurador(ctx, t) {
   if (!t?.nuevo) return
   const D = t.destinoOrig, Nn = t.nuevo
-  const maxR = Math.max(10, dist(t.pos, D) * 0.38)
+  const maxR = M.radioDebug(t)
   const anillo = (c, r) => { ctx.beginPath(); for (let i = 0; i <= 48; i++) { const a = (i / 48) * Math.PI * 2, [x, y] = aPantalla([c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r], 0.05); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) } }
   ctx.save()
   ctx.lineCap = 'round'

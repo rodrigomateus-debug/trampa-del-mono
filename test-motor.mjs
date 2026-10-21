@@ -1,7 +1,7 @@
 // node test-motor.mjs — chequeos del motor de La Trampa del Mono.
 import assert from 'node:assert/strict'
 import * as M from './motor.js'
-import { RULETA, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS, PLANTEL, EN_PRUEBA } from './plantel.js'
+import { RULETA, DRAFT, DEMETRIO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS, PLANTEL, EN_PRUEBA } from './plantel.js'
 import * as C3 from './campo3d.js' // 🥃 la cancha de Rorro (sin three)
 
 const campo = M.crearCampo()
@@ -1969,6 +1969,146 @@ ok('🎰 La Ruleta en un match: los dos juegan con la misma tanda de players', (
     return lista
   }
   assert.deepEqual(tanda(1), tanda(99))
+})
+
+ok('🃏 El Draft: tres opciones distintas, sin el que pegó recién; elegís y pega ese (Taiu, Rorro y Demetrio también)', () => {
+  assert.equal(M.esDraft(DRAFT), true)
+  assert.equal(M.esRuleta(DRAFT), false)
+  const apodos = DRAFT.pool.map((j) => j.apodo)
+  for (const a of ['Taiu (Đ)', 'Rorro', 'Demetrio López']) assert.ok(apodos.includes(a), a)
+  for (const a of ['La Ruleta', 'El Draft', 'Fito (5)']) assert.ok(!apodos.includes(a), a)
+  assert.equal(new Set(apodos).size, apodos.length)
+  assert.ok(EN_PRUEBA.includes('El Draft') && !DESBLOQUEO_RORRO.con.includes('El Draft') && M.SIN_PRESTAR.includes('draft'))
+  const rng = M.rngDesde(5)
+  const r = M.nuevaRonda(DRAFT, rng)
+  assert.equal(r.tee, 'blanca')
+  assert.equal(r.ruleta.draft, true)
+  assert.equal(M.cartaDe(r), DRAFT)
+  assert.equal(M.turnoRuleta(r, rng), null) // el Draft no gira solo
+  const of = M.ofertaDraft(r, rng)
+  assert.equal(of.length, M.DRAFT.opciones)
+  assert.equal(new Set(of.map((j) => j.apodo)).size, 3)
+  assert.equal(M.ofertaDraft(r, rng), of) // pedirla de nuevo no vuelve a sortear
+  assert.equal(M.elegirDraft(r, 'Nadie'), null)
+  const j = M.elegirDraft(r, of[1].apodo)
+  assert.equal(j, of[1])
+  assert.equal(r.jugador, of[1])
+  assert.equal(r.ruletaToca, false)
+  assert.equal(M.ofertaDraft(r, rng), null) // hasta que pegue, no hay otra
+  assert.deepEqual(M.tirosRuleta(r)[0].tiros.map((t) => t.apodo), [of[1].apodo])
+  // muchos tiros: nunca sale el que pegó recién, y Demetrio a lo sumo una vez por vuelta
+  const vistos = new Set()
+  for (let i = 0; i < 40; i++) {
+    r.ruletaToca = true
+    const o = M.ofertaDraft(r, rng)
+    assert.ok(!o.some((x) => x.apodo === r.jugador.apodo))
+    const elegido = o[i % 3]
+    M.elegirDraft(r, elegido.apodo)
+    vistos.add(elegido.apodo)
+  }
+  assert.ok(r.ruleta.tiros.filter((t) => t.apodo === 'Demetrio López').length <= 1)
+  assert.ok(vistos.size >= 10)
+  // la carta de la vuelta sigue siendo el Draft (ranking, récord, lo que se comparte)
+  Object.assign(r, { tarjeta: [{ n: 15, par: 4, golpes: 4 }, { n: 16, par: 4, golpes: 5 }, { n: 17, par: 3, golpes: 3 }], terminada: true, ms: 95000 })
+  assert.equal(M.marcaDe(r, 'yo').apodo, 'El Draft')
+  assert.match(M.textoCompartir(r, true), /El Draft \(elegí quién pega cada tiro\)/)
+})
+
+ok('🃏 El Draft en un match: eligiendo lo mismo, las mismas tres cada tiro; eligiendo distinto, el sorteo no se corre', () => {
+  const cond = M.condicionesMatch(4242)
+  const jugar = (seed, cual) => {
+    const r = M.aplicarMatch(M.nuevaRonda(DRAFT, M.rngDesde(seed)), cond)
+    const rng = M.rngDesde(seed + 1)
+    const ofertas = []
+    for (let i = 0; i < 12; i++) {
+      const o = M.ofertaDraft(r, rng)
+      ofertas.push(o.map((x) => x.apodo))
+      M.elegirDraft(r, o[cual].apodo)
+      r.ruletaToca = true
+    }
+    return ofertas
+  }
+  assert.deepEqual(jugar(1, 0), jugar(99, 0))
+  // uno elige siempre la primera y el otro la última: la primera oferta es la misma y después difieren solo cuando el
+  // que pegó recién estaba entre las tres (entra el que sigue): siempre comparten al menos una
+  const a = jugar(1, 0), b = jugar(99, 2)
+  assert.deepEqual(a[0], b[0])
+  for (let i = 0; i < a.length; i++) assert.ok(a[i].some((x) => b[i].includes(x)), `tiro ${i + 1}`)
+  assert.ok(a.filter((o, i) => o.join() === b[i].join()).length >= 4)
+})
+
+ok('🃏 Demetrio en el Draft: raro, una vez por vuelta, y si la mete él cuentan todos los golpes', () => {
+  // raro: en las ofertas de vueltas nuevas, poco (los demás, ~3 de 16 cada uno)
+  let con = 0, n = 0
+  for (let s = 0; s < 3000; s++) {
+    const r = M.nuevaRonda(DRAFT, M.rngDesde(s))
+    if (M.ofertaDraft(r, M.rngDesde(s + 7)).some((x) => x.apodo === DEMETRIO.apodo)) con++
+    n++
+  }
+  assert.ok(con / n > 0.005 && con / n < 0.05, `${con}/${n}`)
+  // una vez por vuelta: después de pegar, no vuelve a salir
+  const r = M.nuevaRonda(DRAFT, M.rngDesde(3))
+  const chico = DRAFT.pool.filter((j) => ['Demetrio López', 'Lechu', 'LG', 'Mugre', 'Tito'].includes(j.apodo))
+  r.ruleta.pool = chico
+  for (let i = 0; i < 30 && !r.ruleta.tiros.some((t) => t.apodo === DEMETRIO.apodo); i++) {
+    const o = M.ofertaDraft(r, M.rngDesde(i))
+    M.elegirDraft(r, (o.find((x) => x.apodo === DEMETRIO.apodo) ?? o[0]).apodo)
+    r.ruletaToca = true
+  }
+  assert.ok(r.ruleta.tiros.some((t) => t.apodo === DEMETRIO.apodo))
+  for (let i = 0; i < 20; i++) {
+    const o = M.ofertaDraft(r, M.rngDesde(100 + i))
+    assert.ok(!o.some((x) => x.apodo === DEMETRIO.apodo))
+    M.elegirDraft(r, o[0].apodo)
+    r.ruletaToca = true
+  }
+  // la mete Demetrio en el 6.º golpe del 15: en el Draft cuentan los 6 (en su carta, nunca más que par)
+  const d = M.nuevaRonda(DRAFT, M.rngDesde(1))
+  d.jugador = DEMETRIO
+  d.golpes = 6
+  M.cerrarHoyo(d, M.rngDesde(2))
+  assert.equal(d.tarjeta[0].golpes, 6)
+  const solo = M.nuevaRonda(DEMETRIO, M.rngDesde(1))
+  solo.golpes = 6
+  M.cerrarHoyo(solo, M.rngDesde(2))
+  assert.equal(solo.tarjeta[0].golpes, 4)
+})
+
+ok('⏸ El DEBUG (Rorro en su cancha y en el Draft): congela, corre el destino hasta un 38% y la pelota pica ahí', () => {
+  // Rorro en el Draft: un DEBUG para su tiro; el que sigue, ninguno
+  const r = M.nuevaRonda(DRAFT, M.rngDesde(8))
+  r.ruleta.pool = DRAFT.pool.filter((j) => ['Rorro', 'Lechu', 'LG', 'Mugre'].includes(j.apodo))
+  let o = M.ofertaDraft(r, M.rngDesde(1))
+  M.elegirDraft(r, (o.find((x) => x.apodo === 'Rorro') ?? o[0]).apodo)
+  if (r.jugador.apodo !== 'Rorro') { r.ruletaToca = true; o = M.ofertaDraft(r, M.rngDesde(2)); M.elegirDraft(r, 'Rorro') }
+  assert.equal(r.jugador.apodo, 'Rorro')
+  assert.equal(r.ruleta.bp, 1)
+  r.ruletaToca = true
+  o = M.ofertaDraft(r, M.rngDesde(3))
+  M.elegirDraft(r, o[0].apodo)
+  assert.equal(r.ruleta.bp, 0)
+  // un tiro de verdad, congelado a mitad de vuelo
+  const lechu = PLANTEL.find((j) => j.apodo === 'Lechu')
+  const rr = M.nuevaRonda(lechu, sinRuido())
+  rr.viento = { ...calma }
+  const t = M.golpear(quieto, rr, angulo(rr.pelota, h15.pin), 0.8, sinRuido())
+  while (t.fase === 'vuelo' && t.t < t.T * 0.5) M.avanzar(quieto, t, 1 / 120, h15.pin)
+  assert.equal(t.fase, 'vuelo')
+  M.congelarTiro(t)
+  assert.deepEqual(t.nuevo, t.destinoOrig)
+  const lejos = [t.destinoOrig[0] + 500, t.destinoOrig[1]]
+  M.correrDestino(t, lejos)
+  assert.ok(Math.abs(M.dist(t.nuevo, t.destinoOrig) - M.radioDebug(t)) < 1e-6) // hasta el borde, no más
+  assert.ok(M.radioDebug(t) >= M.DEBUG.minimo)
+  const cerca = [t.destinoOrig[0] + 3, t.destinoOrig[1] - 2]
+  M.correrDestino(t, cerca)
+  assert.deepEqual(t.nuevo, cerca)
+  const antes = [...t.pos]
+  M.seguirTiro(t)
+  M.avanzar(quieto, t, 1 / 120, h15.pin)
+  assert.ok(M.dist(t.pos, antes) < 3) // sigue de donde estaba, sin saltar
+  while (t.fase === 'vuelo') M.avanzar(quieto, t, 1 / 120, h15.pin)
+  assert.ok(M.dist(t.pos, cerca) < 2, `picó a ${M.dist(t.pos, cerca).toFixed(2)} yd`)
 })
 
 ok('🐸 Taiu (la Rana): bombas desde el tee como Miguelón, approach perfectos y los controles al revés', () => {

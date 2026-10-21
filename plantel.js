@@ -338,7 +338,7 @@ export const DEMETRIO = {
 export const MISTERIOSO = { "apodo": "Jugador misterioso", "emoji": "❓", "hcp": null, "foto": null, "misterio": true }
 
 // Por ahora, para probar, solo los que tienen habilidad (pedido de Rorro, 2026-10-03).
-export const EN_PRUEBA = ['Tito', 'Mapache', 'El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'Fito (5)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta', 'Rorro']
+export const EN_PRUEBA = ['Tito', 'Mapache', 'El Sueco', 'El Ninja (Đ)', 'El Perro', 'Mike Queboni (Đ)', 'Lechu', 'Mugre', 'El Mago Rodal', 'LG', 'Liberty', 'Fito (Đ)', 'Fito (5)', 'El Flaco Ordoñez', 'Grandpa', 'Taiu (Đ)', 'La Ruleta', 'El Draft', 'Rorro']
 
 // 🔒 Taiu se desbloquea (2026-10-06): con una tarjeta firmada de −1 o mejor con cada uno de estos Dicky
 // (vale el récord del teléfono y, con tu usuario, tus vueltas del ranking). Hasta entonces, su carta va con candado.
@@ -358,7 +358,7 @@ export const DESBLOQUEO_FITO = { apodo: 'Fito (5)', con: ['Lechu', 'LG'], vsPar:
 export const DESBLOQUEO_RORRO = {
   apodo: 'Rorro',
   jugar: true,
-  con: EN_PRUEBA.filter((a) => !['La Ruleta', 'Fito (5)', 'Rorro'].includes(a)),
+  con: EN_PRUEBA.filter((a) => !['La Ruleta', 'El Draft', 'Fito (5)', 'Rorro'].includes(a)),
   alias: { 'Fito (Đ)': ['Fito (Đ)', 'Fito (5)'] },
 }
 /** Los que arrancan con candado. */
@@ -379,6 +379,24 @@ export const RULETA = {
   "pool": PLANTEL.filter((j) => EN_PRUEBA.includes(j.apodo) && !j.pase && !j.cancha3d) // (Rorro no: su cancha es otra)
 }
 PLANTEL.push(RULETA)
+
+// 🃏 El Draft (2026-10-21): otra carta-modo, como la Ruleta, pero en cada tiro elegís quién pega entre tres al azar
+// (`ofertaDraft` en motor.js). Salen los de la Ruleta y también Rorro (en la cancha de siempre, con su ⏸ DEBUG) y
+// Demetrio, que es raro (sale poco y una vez por vuelta): con o sin candado, todos con el mismo mazo (así, en un
+// match, nadie tiene uno que el otro no). Al que no desbloqueó a Demetrio, le sale como el jugador misterioso.
+export const DRAFT = {
+  "apodo": "El Draft",
+  "emoji": "🃏",
+  "hcp": null,
+  "hcpTexto": "HCP c/u",
+  "frase": "Tres caras, un tiro. Elegí bien",
+  "foto": null,
+  "stats": null,
+  "ruleta": true, // una carta-modo: cada tiro lo pega otro (lo que vale para la Ruleta vale acá)
+  "draft": true,
+  "pool": [...RULETA.pool, PLANTEL.find((j) => j.apodo === 'Rorro'), DEMETRIO]
+}
+PLANTEL.push(DRAFT)
 
 // La dificultad real de cada uno con su habilidad: promedio vs. par y % de LP de un bot que juega 60 vueltas
 // (`node calibrar.mjs 60`, 2026-10-05, con la dispersión que sale solo del handicap: 0 con HCP 0, en línea recta hasta HCP 25).
@@ -404,6 +422,9 @@ export const DIFICULTAD_REAL = {
   'Fito (5)': { prom: 2.35, lp: 4, nivel: 5 }, // el mismo Fito (el bot no usa la Mejor pelota)
   // el bot no sufre el cambio (apunta perfecto con cualquiera); la gente sí: cada tiro es otra habilidad y otro handicap
   'La Ruleta': { prom: 0.29, lp: 3, nivel: 4 },
+  // 2026-10-21 (80 vueltas): el bot elige siempre el más fácil de los tres (Demetrio, si sale); la gente no tanto, y
+  // cada tiro es otra habilidad: fijada en Difícil (la Ruleta, en las mismas 80, dio +0,32)
+  'El Draft': { prom: -0.44, lp: 0, nivel: 3 },
   // Taiu: el bot no sufre los controles al revés (juega bárbaro: bombas y approach perfectos); la gente sí
   'Taiu (Đ)': { prom: -0.79, lp: 6, nivel: 3 },
   // Rorro: sin medir con el bot (su cancha cambia en cada tiro); a ojo, como su handicap
