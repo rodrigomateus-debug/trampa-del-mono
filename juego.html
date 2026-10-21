@@ -1388,6 +1388,13 @@ input { -webkit-user-select: text; user-select: text; }
 .rp-marcador td.t.decide { color: var(--gold); font-weight: 800; }
 .rp-marcador tr.gano th, .rp-marcador tr.gano td.tot { color: var(--gold); }
 .rp-marcador tr.gano th::after { content: ' 🏆'; font-size: 12px; }
+/* ⚔️ el replay del fourball: los cuatro, más apretados, con una raya entre las parejas */
+#replay.fb .rp-jug { padding: 5px 8px; }
+#replay.fb .rp-jugadores { gap: 6px; }
+#replay.fb .rp-marcador tbody th { height: 22px; font-size: 14px; }
+#replay.fb .rp-marcador td { font-size: 16px; }
+#replay.fb .rp-marcador td.tot { font-size: 17px; }
+#replay.fb .rp-marcador tr.otra > * { border-top: 1.5px solid rgba(244, 238, 218, .22); }
 @media (max-width: 359px) { .rp-fin { font-size: 18px; text-align: center; } .rp-mc-estado span:not(:only-child) { display: none; } .rp-marcador td.t { font-size: 11px; } .rp-marcador thead th:first-child { width: 31%; } .rp-marcador thead th.t { width: 21%; } }
 /* el clima que hubo en el match, al lado del título (el mismo chip que en la vuelta) */
 .rp-titulo .clima-chip { align-self: center; margin-left: 2px; cursor: default; font-size: 12px; }
@@ -10960,7 +10967,7 @@ function pintarMisFourball(lista) {
       }
       const c = cuentaFb(f), [pn, pe] = c.i ? [c.puntos[1], c.puntos[0]] : c.puntos
       return `<li class="rk-fila mt-fila tocable" data-fb-detalle="${esc(f.id)}" tabindex="0" aria-label="Ver el fourball hoyo a hoyo">${emoji(f)}<span class="rk-nombre">${parejas(f)}<small class="${c.gano > 0 ? 'gana' : c.gano < 0 ? 'pierde' : ''}">${c.gano > 0 ? 'Ganaron' : c.gano < 0 ? 'Perdieron' : 'Empate'} ${M.formatoPuntos(pn)} a ${M.formatoPuntos(pe)}${c.porTiempo ? ' · por tiempo sumado' : ''}</small></span>
-        <span class="mt-estado">${!v.has(f.id) ? gi('bell', 'nuevo') : c.gano > 0 ? gi('trophy') : c.gano < 0 ? gi('close', 'pierde') : gi('friends')}</span>${wa(f, 'Mandar el resultado por WhatsApp')}</li>`
+        <span class="mt-estado">${!v.has(f.id) ? gi('bell', 'nuevo') : c.gano > 0 ? gi('trophy') : c.gano < 0 ? gi('close', 'pierde') : gi('friends')}</span><button class="rp-mini" type="button" data-fb-replay="${esc(f.id)}" aria-label="Ver el replay del fourball">${ICONO_REPLAY}</button>${wa(f, 'Mandar el resultado por WhatsApp')}</li>`
     })),
   ].join('')
   lista.innerHTML = html || '<li class="rk-vacio">Todavía no tenés fourball. Armá uno (en Armar) o tomá el de una pareja que busca rival.</li>'
@@ -11329,8 +11336,9 @@ function abrirDetalleFourball(f) {
     <h3 class="rs-quien" id="rs-quien">${esc(parejaTxt(f, parejaDe(f.lugar)))} vs ${f[rivalesDe(f.lugar)[0]] ? esc(parejaTxt(f, rivalesDe(f.lugar))) : '¿?'}</h3>
     <div class="mt-tabla">${tablaFourball(f, c)}</div>
     ${f.estado === 'jugado' ? veredictoFb(c, 'mt-veredicto') : ''}
-    ${f.estado === 'jugado' && f.lugar ? `<div class="tm-acciones uno fb-revancha"><button class="btn-replay" type="button" data-fb-revancha>⚔️ Revancha</button></div>` : ''}`
+    ${f.estado === 'jugado' && f.lugar ? `<div class="tm-acciones fb-revancha"><button class="btn-replay" type="button" data-fb-replay>${ICONO_REPLAY}Replay</button><button class="btn-replay" type="button" data-fb-revancha>⚔️ Revancha</button></div>` : ''}`
   $('#rs-cuerpo [data-fb-revancha]')?.addEventListener('click', () => revanchaFb(f))
+  $('#rs-cuerpo [data-fb-replay]')?.addEventListener('click', (e) => abrirReplayFb(f, e.currentTarget))
   $('#rk-resumen').hidden = false
   $('#rk-resumen .hab-x').focus({ preventScroll: true })
 }
@@ -11387,8 +11395,9 @@ function pintarResultadoFb(el, f) {
   const tabla = tablaFourball(f, c)
   if (f.estado === 'jugado') {
     marcarVistosFb([f.id])
-    el.innerHTML = `${veredictoFb(c)}${tabla}<div class="tm-acciones"><button class="btn-wa" type="button">${ICONO_WA}Compartir</button><button class="btn-replay" type="button" data-fb-revancha>⚔️ Revancha</button></div>`
+    el.innerHTML = `${veredictoFb(c)}${tabla}<div class="tm-acciones"><button class="btn-wa" type="button">${ICONO_WA}Compartir</button><button class="btn-replay" type="button" data-fb-replay>${ICONO_REPLAY}Replay</button></div><div class="tm-acciones uno fb-revancha"><button class="btn-replay" type="button" data-fb-revancha>⚔️ Revancha</button></div>`
     el.querySelector('.btn-wa').addEventListener('click', () => compartirTexto(mensajeFbResultado(f)))
+    el.querySelector('[data-fb-replay]').addEventListener('click', (e) => abrirReplayFb(f, e.currentTarget))
     el.querySelector('[data-fb-revancha]').addEventListener('click', () => revanchaFb(f))
     if (c.gano > 0) S.embocada()
     return
@@ -11520,6 +11529,8 @@ $('#mt-lista').addEventListener('click', async (e) => {
   if (e.target.closest('[data-fb-cancelar]')) { fbElige = null; $('#mt-buscar').value = ''; pintarMatch(); return }
   const juega = e.target.closest('[data-fb-jugar]')
   if (juega) { const f = fbMios?.find((x) => x.id === juega.dataset.fbJugar); if (f) jugarFb(f, juega); return }
+  const rpb = e.target.closest('[data-fb-replay]')
+  if (rpb) { const f = fbMios?.find((x) => x.id === rpb.dataset.fbReplay); if (f) abrirReplayFb(f, rpb); return }
   const wa = e.target.closest('[data-fb-wa]')
   if (wa) {
     const f = fbMios?.find((x) => x.id === wa.dataset.fbWa)
@@ -12033,13 +12044,15 @@ const ICONO_DE_NUEVO = '<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><
 const REPLAY_SALTO = 10000 // ms de los botones de atrás / adelante
 // los dos colores del replay: el que desafió en dorado, el desafiado en celeste (el aro de la pelota, su cartel y su fila)
 const REPLAY_COLORES = ['#e8c34a', '#8fd0ff']
+// ⚔️ en el fourball, por pareja: la tuya en cálidos (dorado y naranja), la otra en fríos (celeste y lila)
+const REPLAY_COLORES_FB = { nos: ['#e8c34a', '#f59f4c'], el: ['#8fd0ff', '#c4a8ff'] }
 let replay = null // { d, cond, clima, viento, hoyos, pistas, t, dur, vel, play, sigue, arrastra, limpio, zona, guardado }
 // el clima del match se juega desde que se publicó (7/10/2026, 18:22 UTC): los de antes se jugaron sin clima y el replay
 // no les inventa uno (condicionesMatch igual lo sortea con la semilla)
 const CLIMA_EN_MATCH_DESDE = Date.parse('2026-10-07T18:22:00Z')
 
 /** Lo que hay que saber de una grabación para el replay: cuándo cambia de hoyo (las marcas de la barra) y cada golpe. */
-function pistaReplay(g, x, k, conDebug = false) {
+function pistaReplay(g, x, k, conDebug = false, color = REPLAY_COLORES[k]) {
   const hoyos = [], golpes = [], tramos = []
   let idx = -1, gol = null, desde = 0
   g.forEach((m, i) => {
@@ -12054,7 +12067,7 @@ function pistaReplay(g, x, k, conDebug = false) {
     }
   })
   // ⏸ con Rorro, las veces que congeló la pelota en el aire con el DEBUG (no es un golpe: que se vea en el replay)
-  return { g, x, k, color: REPLAY_COLORES[k], hoyos, golpes, tramos, debugs: conDebug ? M.pausasDebug(g) : [], fin: g[g.length - 1][0] }
+  return { g, x, k, color, hoyos, golpes, tramos, debugs: conDebug ? M.pausasDebug(g) : [], fin: g[g.length - 1][0] }
 }
 
 /** Abre el replay de un match jugado. `grabs` ({ retador, rival }) si ya están acá; si no, se piden. */
@@ -12066,9 +12079,34 @@ async function abrirReplay(d, grabs = null, boton = null) {
     if (boton) { boton.disabled = false; boton.classList.remove('cargando') }
     if (!grabs?.retador?.length) { avisoReplay('No se pudo cargar el replay. Probá de nuevo en un rato.'); return }
   }
-  const conDebug = ['codigo', 'draft'].includes(M.habilidadDe({ apodo: d.retador.apodo })?.id) // (los dos juegan con el mismo player; en el Draft, si sale Rorro)
-  const pistas = [pistaReplay(grabs.retador, d.retador, 0, conDebug)]
-  if (grabs.rival?.length) pistas.push(pistaReplay(grabs.rival, d.rival, 1, conDebug))
+  verReplay(d, [{ x: d.retador, g: grabs.retador, color: REPLAY_COLORES[0] }, { x: d.rival, g: grabs.rival, color: REPLAY_COLORES[1] }])
+}
+/**
+ * ⚔️ El replay de un fourball (2026-10-21, "no puedo ver el replay de los match 2v2"): las cuatro pelotas (las que tienen
+ * grabación), tu pareja primero y con colores cálidos, la otra con fríos; el hoyo a hoyo de los cuatro y quién va ganando
+ * por puntos (mejor pelota y suma, como el fourball). Las grabaciones las ven los cuatro del fourball.
+ */
+async function abrirReplayFb(f, boton = null) {
+  if (replay) return
+  if (boton) { boton.disabled = true; boton.classList.add('cargando') }
+  let gs = null
+  try { gs = await R.leerFantasmasFourball(f.id) } catch { gs = null }
+  if (boton) { boton.disabled = false; boton.classList.remove('cargando') }
+  if (!LUGARES_FB.some((l) => gs?.[l]?.length)) { avisoReplay('No se pudo cargar el replay. Probá de nuevo en un rato.'); return }
+  const nos = parejaDe(f.lugar), ellos = rivalesDe(f.lugar)
+  const jugadores = [...yoPrimero(f, nos), ...ellos].filter((l) => f[l]).map((l) => {
+    const v = f[l].vuelta && !f[l].vuelta.oculta ? f[l].vuelta : null, de = nos.includes(l) ? 'nos' : 'el'
+    const x = { alias: nombreFb(f, l), emoji: v?.emoji ?? f.a1?.vuelta?.emoji, golpes: v && !v.lp ? v.golpes ?? null : null, vsPar: v?.vsPar ?? null, ms: v?.ms ?? null, lp: !v || !!v.lp }
+    return { x, g: gs?.[l], color: REPLAY_COLORES_FB[de][(de === 'nos' ? yoPrimero(f, nos) : ellos).indexOf(l)], lugar: l, de, vuelta: v }
+  })
+  const v0 = f.a1?.vuelta
+  verReplay({ id: f.id, semilla: f.semilla, fecha: f.fecha, retador: { apodo: v0?.apodo, emoji: v0?.emoji }, rival: null }, jugadores, f)
+}
+/** Lo que tienen en común los dos: arma las pistas de los que tienen grabación y abre el replay. */
+function verReplay(d, jugadores, fb = null) {
+  const conDebug = ['codigo', 'draft'].includes(M.habilidadDe({ apodo: d.retador.apodo })?.id) // (todos juegan con el mismo player; en el Draft, si sale Rorro)
+  for (const [k, j] of jugadores.entries()) j.pista = j.g?.length ? pistaReplay(j.g, j.x, k, conDebug, j.color) : null
+  const pistas = jugadores.map((j) => j.pista).filter(Boolean)
   const cond = M.condicionesMatch(d.semilla, d.fecha ? Date.parse(d.fecha) : Date.now()) // el clima, con la chance de nieve de su fecha
   const hoyos = M.HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera }))
   // el clima que hubo: el de la semilla, con los mismos charcos que vieron los dos (ponerClima, como en la ronda)
@@ -12085,7 +12123,7 @@ async function abrirReplay(d, grabs = null, boton = null) {
   const firma = firmaHasta ? Math.max(0, firmaHasta - performance.now()) : 0
   if (firma) clearTimeout(firmaTimer)
   replay = {
-    d, pistas, cond, clima, hoyos, viento: M.vientoDelMatch(cond, clima, 0), vientoClave: '0:0',
+    d, fb, jugadores, pistas, cond, clima, hoyos, viento: M.vientoDelMatch(cond, clima, 0), vientoClave: '0:0',
     t: 0, dur: Math.max(...pistas.map((p) => p.fin)) + 600, vel: 1, play: true, sigue: null, arrastra: false, limpio: false, zona: null, pintado: {},
     guardado: { ronda, tiro, anim, estado, estela, obj: { ...obj }, retro: document.body.classList.contains('retro'), ocultas, firma, fondo: fondo.getAttribute('src') },
   }
@@ -12140,16 +12178,18 @@ function cerrarReplay() {
 /** Los jugadores de arriba (tocar uno lo sigue con la cámara) y las marcas de la barra, una vez al abrir. */
 function armarReplay() {
   const r = replay
-  $('#rp-jugadores').innerHTML = [0, 1].map((k) => {
-    const p = r.pistas[k]
-    const x = p ? p.x : r.d.rival
-    return `<button class="rp-jug${p ? '' : ' sin'}" type="button" data-sigue="${k}" style="--c: ${REPLAY_COLORES[k]}" aria-pressed="false"${p ? '' : ' disabled'}>
+  // los jugadores de arriba (en el fourball, una fila por pareja): tocando uno, la cámara lo sigue (`data-sigue`: su pista)
+  $('#rp-jugadores').innerHTML = r.jugadores.map((j, i) => {
+    const k = r.pistas.indexOf(j.pista), x = j.x
+    return `<button class="rp-jug${j.pista ? '' : ' sin'}" type="button" data-sigue="${k}" style="--c: ${j.color}" aria-pressed="false"${j.pista ? '' : ' disabled'}>
       <span class="rp-punto" aria-hidden="true"></span>
-      <span class="rp-emoji" aria-hidden="true">${esc(x.emoji ?? r.d.retador.emoji ?? '⛳')}</span>
-      <span class="rp-quien"><b>${esc(x.alias ?? '—')}</b><small id="rp-estado-${k}">${p ? '' : 'Sin grabación'}</small></span>
-      <span class="rp-gana" id="rp-gana-${k}" hidden aria-label="Ganó">🏆</span>
+      <span class="rp-emoji" aria-hidden="true">${esc(x?.emoji ?? r.d.retador.emoji ?? '⛳')}</span>
+      <span class="rp-quien"><b>${esc(x?.alias ?? '—')}</b><small id="rp-estado-${i}">${j.pista ? '' : 'Sin grabación'}</small></span>
+      <span class="rp-gana" id="rp-gana-${i}" hidden aria-label="Ganó">🏆</span>
     </button>`
   }).join('')
+  $('#replay .rp-titulo small').textContent = r.fb ? 'del fourball' : 'del match'
+  $('#replay').classList.toggle('fb', !!r.fb)
   // el clima que hubo (los matches de antes del clima, sin chip)
   const c = r.clima ? M.CLIMAS[r.clima.id] : null
   const chip = $('#rp-clima')
@@ -12159,8 +12199,9 @@ function armarReplay() {
     chip.querySelector('.cc-txt').textContent = c.nombre.replace(/[¡!]/g, '').replace(' en San Diego', '').toUpperCase()
     chip.setAttribute('aria-label', `Clima: ${c.nombre}`)
   }
-  $('#rp-nota').hidden = r.pistas.length > 1
-  $('#rp-nota').textContent = `De este match solo está grabada la pelota de ${r.d.retador.alias}.`
+  const sin = r.jugadores.filter((j) => !j.pista)
+  $('#rp-nota').hidden = !sin.length
+  $('#rp-nota').textContent = r.fb ? `Sin grabación: ${listaY(sin.map((j) => j.x.alias))}.` : `De este match solo está grabada la pelota de ${r.d.retador.alias}.`
   $('#rp-marcas').innerHTML = r.pistas.flatMap((p) => [
     ...p.hoyos.slice(1).map((h) => `<i style="left: ${(100 * h.ms) / r.dur}%; --c: ${p.color}" title="Hoyo ${h.n}"></i>`),
     ...p.debugs.map((b) => `<i class="dbg" style="left: ${(100 * b.desde) / r.dur}%; --c: ${p.color}" title="DEBUG"></i>`),
@@ -12271,6 +12312,7 @@ function cuadroReplay(dt) {
  * terminaron los dos (con uno a medio jugar, los totales engañan); cuando terminaron los dos, quién ganó y cómo.
  */
 function htmlMarcadorReplay(r) {
+  if (r.fb) return htmlMarcadorReplayFb(r)
   const pars = M.HOYOS.map((h) => h.par)
   const filas = r.pistas.map((p) => {
     const m = M.marcadorFantasma(p.g, r.t)
@@ -12310,6 +12352,58 @@ function htmlMarcadorReplay(r) {
     <th><span class="rp-punto" aria-hidden="true"></span>${esc(f.p.x.alias ?? '—')}</th>${f.golpes.map((v, k) => celda(f, v, k)).join('')}<td class="tot${f.lp ? ' lp' : ''}">${f.total}</td><td class="t${tiempo && i === gana ? ' decide' : ''}">${f.tiempo}</td>
   </tr>`).join('')}</tbody></table>`
 }
+/**
+ * ⚔️ El hoyo a hoyo del replay del fourball: los cuatro (tu pareja arriba), cada uno con los golpes de cada hoyo hasta el
+ * momento que se ve, su total y su tiempo; arriba, cómo va por puntos (mejor pelota y suma) con los hoyos que ya
+ * terminaron los cuatro. Al final, lo oficial (las vueltas como las anotó la base).
+ */
+function htmlMarcadorReplayFb(r) {
+  const pars = M.HOYOS.map((h) => h.par), f = r.fb
+  const filas = r.jugadores.map((j) => {
+    const oficial = M.jugadorFourball(j.vuelta)?.hoyos ?? M.HOYOS.map(() => null)
+    const m = j.pista ? M.marcadorFantasma(j.pista.g, r.t) : null
+    const fin = !m || m.fin
+    return {
+      j, fin, lp: fin && j.x.lp,
+      golpes: fin ? oficial.map((g) => g ?? 'LP') : m.porHoyo,
+      jugador: { hoyos: fin ? oficial : M.HOYOS.map((_, k) => (k < m.idx ? m.porHoyo[k] : undefined)), ms: j.x.ms, lp: j.x.lp },
+      total: fin ? (j.x.lp || j.x.golpes == null ? 'LP' : j.x.golpes) : m.total,
+      cerrados: fin ? M.HOYOS.length : m.idx,
+      ahora: fin ? -1 : m.idx,
+      tiempo: !fin ? tiempoReplay(Math.min(r.t, j.pista.fin)) : j.x.lp ? '—' : j.x.ms != null ? M.formatoTiempo(j.x.ms) : '—',
+    }
+  })
+  const de = (l) => filas.find((x) => x.j.lugar === l)?.jugador ?? null
+  const terminaron = filas.every((x) => x.fin)
+  const c = terminaron ? cuentaFb(f) : (() => { const res = M.resultadoFourball([de('a1'), de('a2')], [de('b1'), de('b2')]); const i = f.lugar?.[0] === 'b' ? 1 : 0; return { ...res, i, gano: i ? -res.ganador : res.ganador } })()
+  const pn = c.puntos[c.i], pe = c.puntos[1 - c.i], nos = parejaTxt(f, parejaDe(f.lugar)), ellos = parejaTxt(f, rivalesDe(f.lugar))
+  const pts = `${M.formatoPuntos(Math.max(pn, pe))} a ${M.formatoPuntos(Math.min(pn, pe))}`
+  const estado = terminaron
+    ? (c.gano ? `${c.gano > 0 ? `Ganaron ${nos}` : `Ganaron ${ellos}`} ${pts}` : `Empate ${pts}`) + (c.porTiempo ? ' · por tiempo' : '')
+    : !c.hoyos.some((h) => h.puntos) ? 'En vivo' : pn === pe ? `Van iguales ${pts}` : `Va ganando ${pn > pe ? nos : ellos} ${pts}`
+  const ganan = terminaron && c.gano ? (c.gano > 0 ? parejaDe(f.lugar) : rivalesDe(f.lugar)) : []
+  const celda = (x, v, k) => `<td class="${[
+    k === x.ahora ? 'ahora' : '', v == null ? 'vacio' : '', v === 'LP' ? 'lp' : '',
+    typeof v === 'number' && k < x.cerrados ? (v < pars[k] ? 'bajo' : v > pars[k] ? 'sobre' : '') : '',
+  ].join(' ').trim()}">${v ?? '·'}</td>`
+  const enJuego = new Set(filas.map((x) => x.ahora))
+  return `<p class="rp-mc-estado"><span>Hoyo a hoyo</span>${estado ? `<b>${esc(estado)}</b>` : ''}</p><table><thead><tr><th></th>${
+    M.HOYOS.map((h, k) => `<th class="${enJuego.has(k) ? 'ahora' : ''}">${h.n}<br><small>PAR ${h.par}</small></th>`).join('')
+  }<th class="tot">TOT</th><th class="t">Tiempo</th></tr></thead><tbody>${filas.map((x, i) => `<tr class="${[ganan.includes(x.j.lugar) ? 'gano' : '', i && x.j.de !== filas[i - 1].j.de ? 'otra' : ''].join(' ').trim()}" style="--c: ${x.j.color}">
+    <th><span class="rp-punto" aria-hidden="true"></span>${esc(x.j.x.alias ?? '—')}</th>${x.golpes.map((v, k) => celda(x, v, k)).join('')}<td class="tot${x.lp ? ' lp' : ''}">${x.total}</td><td class="t">${x.tiempo}</td>
+  </tr>`).join('')}</tbody></table>`
+}
+/** Quién ganó el replay (cuando terminó): los índices de `replay.jugadores` que ganaron ([] empate) y el cartel. */
+function ganadoresReplay(r) {
+  if (r.fb) {
+    const c = cuentaFb(r.fb), gana = c.gano > 0 ? parejaDe(r.fb.lugar) : c.gano < 0 ? rivalesDe(r.fb.lugar) : []
+    const quien = gana.length ? parejaTxt(r.fb, gana) : ''
+    return { quienes: r.jugadores.flatMap((j, i) => (gana.includes(j.lugar) ? [i] : [])), cartel: quien ? `🏆 GANARON ${quien.toUpperCase()}${c.porTiempo ? ' POR TIEMPO' : ''}` : '🤝 EMPATE' }
+  }
+  const g = M.ganadorMatch(r.d.retador, r.d.rival)
+  const x = g < 0 ? r.d.rival : r.d.retador
+  return { quienes: g > 0 ? [0] : g < 0 ? [1] : [], cartel: !g ? '🤝 EMPATE' : `🏆 GANÓ ${String(x.alias).toUpperCase()}${M.porTiempo(r.d.retador, r.d.rival) ? ' POR TIEMPO' : M.porAguante(r.d.retador, r.d.rival) ? ' · AGUANTÓ MÁS' : ''}` }
+}
 /** Escribe en la pantalla lo que cambió (cada texto, solo si es distinto del que ya está). */
 function pintarReplay(todo = false) {
   const r = replay, pp = r.pintado
@@ -12322,24 +12416,24 @@ function pintarReplay(todo = false) {
   poner('t', $('#rp-t'), tiempoReplay(r.t), (el, v) => { el.textContent = v })
   if (!r.arrastra) poner('barra', $('#rp-barra'), Math.round(r.t / 100) * 100, (el, v) => { el.value = String(v) })
   $('#rp-barra').style.setProperty('--p', `${(100 * r.t) / r.dur}%`)
-  const ganador = M.ganadorMatch(r.d.retador, r.d.rival)
-  r.pistas.forEach((p, k) => {
+  r.jugadores.forEach((j, i) => {
+    const p = j.pista
+    if (!p) return
     const f = M.fantasmaEn(p.g, r.t)
     const txt = !f ? '' : f.fin
       ? `Terminó · ${p.x.lp || p.x.golpes == null ? 'LP 💅' : `${p.x.golpes} (${M.formatoPar(p.x.vsPar)})`}`
       : p.debugs.some((b) => r.t >= b.desde && r.t < b.hasta) ? '⏸ DEBUG · no es golpe'
       : `Hoyo ${M.HOYOS[f.idx]?.n ?? ''} · ${f.golpes} ${f.golpes === 1 ? 'golpe' : 'golpes'}`
-    poner(`e${k}`, $(`#rp-estado-${k}`), txt, (el, v) => { el.textContent = v })
+    poner(`e${i}`, $(`#rp-estado-${i}`), txt, (el, v) => { el.textContent = v })
   })
   poner('marcador', $('#rp-marcador'), htmlMarcadorReplay(r), (el, v) => { el.innerHTML = v })
-  const gana = fin && r.pistas.length > 1 ? (ganador > 0 ? 0 : ganador < 0 ? 1 : -1) : -2
-  poner('gana', null, gana, () => {
-    for (const k of [0, 1]) $(`#rp-gana-${k}`).hidden = gana !== k
+  // al final (con más de una pelota): el 🏆 de los que ganaron y el cartel
+  const g = fin && r.pistas.length > 1 ? ganadoresReplay(r) : null
+  poner('gana', null, g ? `${g.quienes}|${g.cartel}` : '', () => {
+    r.jugadores.forEach((_, i) => { $(`#rp-gana-${i}`).hidden = !g?.quienes.includes(i) })
     const el = $('#rp-fin')
-    el.hidden = gana === -2
-    if (gana === -2) return
-    const x = gana === 1 ? r.d.rival : r.d.retador
-    el.textContent = gana === -1 ? '🤝 EMPATE' : `🏆 GANÓ ${String(x.alias).toUpperCase()}${M.porTiempo(r.d.retador, r.d.rival) ? ' POR TIEMPO' : M.porAguante(r.d.retador, r.d.rival) ? ' · AGUANTÓ MÁS' : ''}`
+    el.hidden = !g
+    if (g) el.textContent = g.cartel
   })
   poner('sigue', null, r.sigue, () => { for (const b of $('#rp-jugadores').children) b.setAttribute('aria-pressed', String(+b.dataset.sigue === r.sigue)) })
 }
@@ -12391,11 +12485,27 @@ function dibujarReplay() {
     }
     carteles.push({ x, y, rad, fuera, p })
   }
-  carteles.forEach((c, i) => {
-    const o = carteles[i - 1]
-    const sube = o && !c.fuera && !o.fuera && Math.abs(o.x - c.x) < 110 && Math.abs(o.y - c.y) < 24 ? Math.max(0, 24 + c.y - o.y) : 0
-    cartelPelota(c.x, c.y, c.rad, c.p.x.emoji ?? r.d.retador.emoji ?? '⛳', String(c.p.x.alias ?? ''), c.fuera, top - 20, bot, c.p.color, 0.92, sube)
-  })
+  cartelesReplay(carteles, top, bot)
+}
+/**
+ * Los carteles de las pelotas del replay: si se pisan (las dos, o las cuatro del fourball en el tee), cada uno sube arriba
+ * de los que ya se pusieron.
+ */
+function cartelesReplay(carteles, top, bot) {
+  const r = replay, puestos = []
+  for (const c of carteles) {
+    let sube = 0
+    if (!c.fuera) {
+      for (let vuelta = 0; vuelta < carteles.length; vuelta++) {
+        const o = puestos.find((o) => !o.fuera && Math.abs(o.x - c.x) < 110 && Math.abs(o.y - o.sube - (c.y - sube)) < 24)
+        if (!o) break
+        sube = 24 + c.y - (o.y - o.sube)
+      }
+    }
+    c.sube = Math.max(0, sube)
+    puestos.push(c)
+    cartelPelota(c.x, c.y, c.rad, c.p.x.emoji ?? r.d.retador.emoji ?? '⛳', String(c.p.x.alias ?? ''), c.fuera, top - 20, bot, c.p.color, 0.92, c.sube)
+  }
 }
 // ── 🎬 el replay en 3D (2026-10-12, pedido de Rorro): la cancha 3D de Rorro (la base, sin los deploys) con las dos
 // pelotas, la cámara del juego siguiendo a una y arriba lo mismo que en 2D (el aro de cada uno, el cartel, el ⏸ DEBUG).
@@ -12447,13 +12557,13 @@ function dibujarReplay3d() {
   // hasta que termina: ahí le deja la cámara al que sigue jugando
   if (r.sigue != null && ya[r.sigue]) r.sigue3d = r.sigue
   else if (!(ya[r.sigue3d] && !ya[r.sigue3d].fin)) { const j = ya.findIndex((x) => x && !x.fin); if (j >= 0) r.sigue3d = j }
-  const k = ya[r.sigue3d] ? r.sigue3d : 0, f = ya[k], o = ya[1 - k]
+  const k = ya[r.sigue3d] ? r.sigue3d : 0, f = ya[k]
   if (!f) return
+  const otras = ya.flatMap((o, j) => (j !== k && o && !o.fin ? [{ idx: o.idx, pos: o.pos, alt: o.alt ?? 0, color: r.pistas[j].color }] : []))
   try {
     r3d.replayCuadro(dtCuadro, {
       sigue: { k, idx: f.idx, pos: f.pos, alt: f.alt ?? 0, golpes: f.golpes, tramo: f.tramo },
-      otra: o && !o.fin ? { idx: o.idx, pos: o.pos, alt: o.alt ?? 0, color: r.pistas[1 - k].color } : null,
-      viento: r.viento, zona: { top, bot },
+      otras, viento: r.viento, zona: { top, bot },
     })
   } catch (e) { console.error(e) }
   // arriba de la 3D: el aro de cada golpe, el de cada pelota, el ⏸ DEBUG y los carteles (los del hoyo que se ve)
@@ -12489,11 +12599,7 @@ function dibujarReplay3d() {
     }
     carteles.push({ x: sx, y: sy, rad, fuera, p })
   })
-  carteles.forEach((c, i) => {
-    const o2 = carteles[i - 1]
-    const sube = o2 && !c.fuera && !o2.fuera && Math.abs(o2.x - c.x) < 110 && Math.abs(o2.y - c.y) < 24 ? Math.max(0, 24 + c.y - o2.y) : 0
-    cartelPelota(c.x, c.y, c.rad, c.p.x.emoji ?? r.d.retador.emoji ?? '⛳', String(c.p.x.alias ?? ''), c.fuera, top - 20, bot, c.p.color, 0.92, sube)
-  })
+  cartelesReplay(carteles, top, bot)
 }
 /** ⏸ La pelota congelada con el DEBUG de Rorro: un aro rojo que late y el cartelito abajo (arriba va el del nombre). */
 function debugEnReplay(x, y, rad) {

@@ -1805,16 +1805,16 @@ export function replayEmpezar({ hoyos, clima = null, imagenCancha = null }) {
 export function replayTerminar(ronda = null) {
   rp = null
   trazoPts = []; trazoApaga = null
-  for (const m of fantasmas) m.visible = false
-  fantasma.material.color.set(FANTASMA_COLOR); fantasma.material.opacity = 0.55
+  for (const m of fantasmas) { m.visible = false; m.material.color.set(FANTASMA_COLOR); m.material.opacity = 0.55 }
   if (ronda) aplicarClima(ronda)
 }
 export const enReplay = () => !!rp
 /**
  * Un cuadro del replay. `sigue`: la pelota que sigue la cámara { k, idx, pos, alt, golpes, tramo } (`tramo` = { a, b }:
- * está viajando de `a` a `b`); `otra`: la del otro { idx, pos, alt, color } o null; `viento`: el del hoyo.
+ * está viajando de `a` a `b`); `otras`: las de los demás [{ idx, pos, alt, color }] (en el fourball, hasta tres; `otra`,
+ * una sola, como antes); `viento`: el del hoyo.
  */
-export function replayCuadro(dtR, { sigue, otra = null, viento = null, zona: z = null }) {
+export function replayCuadro(dtR, { sigue, otra = null, otras = null, viento = null, zona: z = null }) {
   if (!rp || !sigue) return
   const r = rp.ronda
   if (sigue.idx !== r.idx) { r.idx = sigue.idx; empezarHoyo(r) }
@@ -1835,9 +1835,9 @@ export function replayCuadro(dtR, { sigue, otra = null, viento = null, zona: z =
     tiro.alt = sigue.alt ?? 0
     tiro.fase = tiro.alt > 0 ? 'vuelo' : 'rodando'
   }
-  const ver = otra && otra.idx === sigue.idx ? otra : null
-  if (ver?.color) { fantasma.material.color.set(ver.color); fantasma.material.opacity = 0.95 }
-  cuadro(dtR, { estado: tiro ? 'tiro' : 'apuntar', ronda: r, tiro, anim: null, drag: false, enPutt: !tiro && enGreen(sigue.pos), apunte: null, golfista: null, fantasma: ver, dibuje: null, zona: z })
+  const ver = (otras ?? (otra ? [otra] : [])).filter((o) => o.idx === sigue.idx) // (las del hoyo que se ve)
+  ver.forEach((o, i) => { if (o.color) mallaFantasma(i).material.opacity = 0.95 })
+  cuadro(dtR, { estado: tiro ? 'tiro' : 'apuntar', ronda: r, tiro, anim: null, drag: false, enPutt: !tiro && enGreen(sigue.pos), apunte: null, golfista: null, fantasmas: ver, dibuje: null, zona: z })
 }
 /** Algo de la cancha está cambiando (un deploy, un revert, el hoyo que se muda): el reloj espera. */
 export const ocupado = () => !!barrido || !!mudanza || !!intro
