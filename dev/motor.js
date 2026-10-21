@@ -136,14 +136,15 @@ export const HABILIDADES = {
   'Taiu (Đ)': { id: 'reves', corto: 'Bombas y approach perfectos… empujando al revés.',  nombre: 'Al revés', texto: 'Taiu juega bárbaro: bombas desde el tee como Miguelón (la goma llega más lejos; en el sweet spot, perfecta) y approach perfectos (de 30 a 100 yd, sin error). Lo único: tiene los controles al revés. En vez de tirar para atrás, empujás para adelante (dedo para arriba, sale para arriba)… pero izquierda y derecha, cruzadas: dedo a la derecha, sale a la izquierda. La fuerza, como siempre. El putt también.' },
   Rorro: { id: 'codigo', corto: 'Su cancha en 3D, que se rehace cada 10 segundos.', nombre: 'La cancha en código', texto: 'Rorro juega en su cancha, hecha en código y en 3D, y cada 10 segundos la cancha se rehace (un deploy; el reloj avisa). Si el último tiro lo soltaste en el latido, se aprueba: se abre la calle y se arreglan los bugs. Si no, cambios del cliente: todo se mueve, otra skin y algún bug. Los greens no se mueven, pero en el green el hoyo se puede mudar. Dos poderes de dev por hoyo: ⏸ DEBUG en el aire (congela la pelota y le corrés el destino) y ↩ REVERT (vuelve a la cancha anterior). Y en cada vuelta se copia una habilidad de otro: elegís entre tres al azar.' },
   'La Ruleta': { id: 'ruleta', nombre: 'Un player por tiro', texto: 'Cada tiro lo pega un player del mazo al azar, con su handicap y su habilidad. Nunca el mismo dos veces seguidas: antes de cada golpe gira la ruleta y te dice quién pega.' },
+  'El Draft': { id: 'draft', corto: 'Cada tiro, elegís quién pega entre tres.', nombre: 'Elegí quién pega', texto: 'Antes de cada tiro salen tres players del mazo al azar y elegís cuál pega, con su handicap y su habilidad. El que pegó recién no sale. Pueden salir Taiu y Rorro (con su ⏸️ DEBUG: con la pelota en el aire, la congelás y le corrés el destino), aunque no los tengas. Y de vez en cuando, una carta rara que pega perfecto: una sola vez por vuelta. El reloj corre mientras elegís.' },
   'Demetrio López': { id: 'retro', nombre: 'Golf de 1960', texto: 'Juega en la cancha de cuando era pro, sin monos. Cada tiro va exactamente adonde apuntás: sin dispersión, sin viento, sin árboles, sin caída, sin labios. Birdie, águila u hoyo en uno, como cualquiera; pero nunca más que par: el tiro para par entra siempre, esté donde esté.' },
 }
 // 🦅 Fito de pase en el Equipo 5 (2026-10-09): la misma habilidad que Fito
 HABILIDADES['Fito (5)'] = HABILIDADES['Fito (Đ)']
 /** La habilidad del que pega. Rorro, en cada vuelta, juega con la de otro (`prestada`: el apodo de quién la copió). */
 export const habilidadDe = (jugador) => HABILIDADES[jugador?.prestada ?? jugador?.apodo] ?? null
-/** Las que Rorro no puede copiar: la suya, la Ruleta, la de Demetrio (otra cancha) y el carrito de Marcos (no hay en 3D). */
-export const SIN_PRESTAR = ['codigo', 'ruleta', 'retro', 'carrito']
+/** Las que Rorro no puede copiar: la suya, la Ruleta y el Draft, la de Demetrio (otra cancha) y el carrito de Marcos (no hay en 3D). */
+export const SIN_PRESTAR = ['codigo', 'ruleta', 'draft', 'retro', 'carrito']
 /** Taiu (la Rana): los controles al revés (lo resuelve la página al leer el arrastre; el motor recibe el tiro que sale). */
 export const alReves = (jugador) => habilidadDe(jugador)?.id === 'reves'
 /**
@@ -1134,6 +1135,32 @@ export function fantasmaEn(g, ms) {
   if (b[1] !== a[1] || b[0] - a[0] > MATCH.muestraMs * 2.5) return { idx: a[1], pos: [a[2], a[3]], alt: a[4], golpes: a[5], fin: false }
   const u = (ms - a[0]) / (b[0] - a[0])
   return { idx: a[1], pos: [a[2] + (b[2] - a[2]) * u, a[3] + (b[3] - a[3]) * u], alt: a[4] + (b[4] - a[4]) * u, golpes: a[5], fin: false }
+}
+// ── ⏸ el DEBUG de Rorro: con la pelota en el aire, la congela y le corrés el destino (hasta un 38% de lo que le falta),
+// y sigue. En su cancha 3D (cancha3d.js) y, cuando sale en el Draft, en la de siempre ──
+export const DEBUG = { corre: 0.38, minimo: 10 }
+/** La congela: a dónde iba (con la deriva de Tito, si la hay) y a dónde va ahora (al principio, lo mismo). */
+export function congelarTiro(tiro) {
+  tiro.destinoOrig = [tiro.desde[0] + tiro.carryVec[0] + (tiro.deriva?.[0] ?? 0), tiro.desde[1] + tiro.carryVec[1] + (tiro.deriva?.[1] ?? 0)]
+  tiro.nuevo = [...tiro.destinoOrig]
+}
+/** Hasta dónde se puede correr el destino (yardas, alrededor del de antes). */
+export const radioDebug = (tiro) => Math.max(DEBUG.minimo, dist(tiro.pos, tiro.destinoOrig) * DEBUG.corre)
+/** Arrastrando: el destino nuevo es `p`, o lo más cerca de `p` dentro del radio. */
+export function correrDestino(tiro, p) {
+  if (!p || !tiro?.destinoOrig) return
+  const maxR = radioDebug(tiro)
+  const d = [p[0] - tiro.destinoOrig[0], p[1] - tiro.destinoOrig[1]], l = Math.hypot(...d)
+  tiro.nuevo = l > maxR ? [tiro.destinoOrig[0] + (d[0] / l) * maxR, tiro.destinoOrig[1] + (d[1] / l) * maxR] : [p[0], p[1]]
+}
+/** Sigue el vuelo al destino nuevo: el final de la curva se corre y el control se acomoda para que no salte. */
+export function seguirTiro(t) {
+  const u = t.t / t.T, b1 = 2 * u * (1 - u), b2 = u * u
+  const dv = t.deriva ?? [0, 0]
+  const Cn = [t.nuevo[0] - t.desde[0] - dv[0], t.nuevo[1] - t.desde[1] - dv[1]]
+  if (b1 > 0.04) t.controlVec = [t.controlVec[0] + ((t.carryVec[0] - Cn[0]) * b2) / b1, t.controlVec[1] + ((t.carryVec[1] - Cn[1]) * b2) / b1]
+  t.carryVec = Cn
+  t.carry = Math.hypot(...Cn)
 }
 /**
  * ⏸ El DEBUG de Rorro en una grabación: la pelota congelada en el aire (la última muestra antes de la pausa va en el aire
@@ -2336,8 +2363,8 @@ export function simular(campo, tiro, pin, dt = 1 / 60) {
 
 // ── ronda ───────────────────────────────────────────────────────────────
 export function nuevaRonda(jugador, rng) {
-  const ruleta = esRuleta(jugador)
-  const tee = ruleta ? 'blanca' : colorTee(jugador) // en la Ruleta pega cada uno, de las blancas para todos
+  const ruleta = esRuleta(jugador) || esDraft(jugador)
+  const tee = ruleta ? 'blanca' : colorTee(jugador) // en la Ruleta (y el Draft) pega cada uno, de las blancas para todos
   const r = {
     jugador, // el que pega (en la Ruleta, cambia en cada tiro; ver turnoRuleta)
     carta: jugador, // la que elegiste en el mazo: la de la tarjeta, el ranking y el récord
@@ -2366,8 +2393,9 @@ export function nuevaRonda(jugador, rng) {
   if (habilidadDe(jugador)?.id === 'carrito') r.carro = carroAlLado(r.pelota)
   if (habilidadDe(jugador)?.id === 'deme') r.deme = { usado: false, listo: false }
   if (habilidadDe(jugador)?.id === 'retro') r.monos = [] // 1960: en la cancha de Demetrio no hay monos
-  // la Ruleta: hasta que gire por primera vez, "pega" la carta de la Ruleta (sin habilidad)
-  if (ruleta) { r.ruleta = { pool: jugador.pool ?? [], tiros: [], rng: null }; r.ruletaToca = true }
+  // la Ruleta: hasta que gire por primera vez, "pega" la carta de la Ruleta (sin habilidad). El Draft va con lo mismo
+  // (`r.ruleta`: el pool, quién pegó cada tiro, el azar del match), más las opciones del tiro (`oferta`)
+  if (ruleta) { r.ruleta = { pool: jugador.pool ?? [], tiros: [], rng: null, ...(esDraft(jugador) ? { draft: true, oferta: null, bp: 0 } : {}) }; r.ruletaToca = true }
   return r
 }
 
@@ -2399,19 +2427,59 @@ export const cartaDe = (r) => r.carta ?? r.jugador
  * Devuelve el que pega, o null si no giró.
  */
 export function turnoRuleta(r, rng) {
-  if (!r.ruleta || !r.ruletaToca || r.terminada) return null
+  if (!r.ruleta || r.ruleta.draft || !r.ruletaToca || r.terminada) return null
   r.ruletaToca = false
   const antes = r.jugador
   const pool = r.ruleta.pool.filter((j) => j.apodo !== antes?.apodo)
   if (!pool.length) return null
   const j = elegir(r.ruleta.rng ?? rng, pool)
+  ponerEnTurno(r, j)
+  return j
+}
+/** El que pega ahora, en la Ruleta y en el Draft: la ronda queda lista para él (y anotado en quién pegó cada tiro). */
+function ponerEnTurno(r, j) {
   r.jugador = j
   const id = habilidadDe(j)?.id
   r.golpeMago = id === 'comba' ? r.golpeMagoRuleta ?? GOLPE_MAGO_INICIAL : null
   r.panchos = id === 'panchitos' ? MUGRE.panchos : 0
   r.carro = id === 'carrito' ? carroAlLado(r.desde) : null
   if (id === 'deme') r.deme ??= { usado: false, listo: false }
+  if (r.ruleta.draft) r.ruleta.bp = id === 'codigo' ? 1 : 0 // 🥃 Rorro en el Draft: un ⏸ DEBUG para su tiro
   r.ruleta.tiros.push({ n: hoyoActual(r).n, apodo: j.apodo, emoji: j.emoji })
+}
+
+// ── 🃏 El Draft (2026-10-21): como la Ruleta, cada tiro lo pega otro, pero lo elegís vos entre tres ──
+/**
+ * `opciones`: cuántas caras salen por tiro. `raros`: los que salen menos (su peso en el sorteo; los demás pesan 1) y una
+ * sola vez por vuelta: Demetrio pega perfecto y, si es el tiro para par, la mete.
+ */
+export const DRAFT = { opciones: 3, raros: { 'Demetrio López': 0.08 } }
+export const esDraft = (j) => habilidadDe(j)?.id === 'draft'
+/**
+ * Las opciones del próximo tiro (al empezar y después de cada golpe, cuando la Ruleta giraría). Sale de un sorteo con
+ * peso de todo el pool, siempre con la misma cantidad de tiradas: en un match, a los dos les salen las mismas opciones
+ * aunque hayan elegido distinto. Después se sacan el que pegó recién y los raros que ya pegaron en la vuelta (si alguno
+ * estaba entre los primeros, entra el que sigue). Queda guardada hasta que elegís (`r.ruleta.oferta`, también para
+ * reconectar): pedirla de nuevo no vuelve a sortear. null si no toca.
+ */
+export function ofertaDraft(r, rng) {
+  if (!r.ruleta?.draft || !r.ruletaToca || r.terminada) return null
+  if (r.ruleta.oferta) return r.ruleta.oferta.length ? r.ruleta.oferta : null
+  const azar = r.ruleta.rng ?? rng
+  // (Efraimidis–Spirakis: cada uno con su llave u^(1/peso); primero, las llaves más altas)
+  const orden = r.ruleta.pool.map((j) => ({ j, k: azar() ** (1 / (DRAFT.raros[j.apodo] ?? 1)) })).sort((a, b) => b.k - a.k)
+  const ya = new Set(r.ruleta.tiros.map((t) => t.apodo))
+  const puede = (j) => j.apodo !== r.jugador?.apodo && !(DRAFT.raros[j.apodo] && ya.has(j.apodo))
+  r.ruleta.oferta = orden.map((x) => x.j).filter(puede).slice(0, DRAFT.opciones)
+  return r.ruleta.oferta.length ? r.ruleta.oferta : null
+}
+/** Elegiste quién pega (por apodo, uno de la oferta): queda listo como en la Ruleta. Devuelve el que pega, o null. */
+export function elegirDraft(r, apodo) {
+  const j = r.ruleta?.draft && r.ruletaToca ? r.ruleta.oferta?.find((x) => x.apodo === apodo) : null
+  if (!j) return null
+  r.ruleta.oferta = null
+  r.ruletaToca = false
+  ponerEnTurno(r, j)
   return j
 }
 /** Quién pegó cada tiro, por hoyo: [{ n, tiros: [{ apodo, emoji }] }] (para la tarjeta y lo que se comparte). */
@@ -2829,8 +2897,8 @@ export function levantar(r) {
 export function cerrarHoyo(r, rng) {
   const h = hoyoActual(r)
   calmarMonos(r.monos)
-  // Demetrio no hace más que par (ni con una multa)
-  const fila = { n: h.n, par: h.par, golpes: habilidadDe(r.jugador)?.id === 'retro' ? Math.min(r.golpes, h.par) : r.golpes, lp: false }
+  // Demetrio no hace más que par (ni con una multa). Con su carta: en el Draft, si la mete él, cuentan todos los golpes
+  const fila = { n: h.n, par: h.par, golpes: habilidadDe(cartaDe(r))?.id === 'retro' ? Math.min(r.golpes, h.par) : r.golpes, lp: false }
   r.tarjeta.push(fila)
   // Miguelón: bogey o peor, media barra de furia
   if (habilidadDe(r.jugador)?.id === 'bomba' && fila.golpes - fila.par >= 1) sumarFuria(r, 'bogey')
@@ -3683,7 +3751,7 @@ export function textoCompartir(r, firmada) {
   const hoyos = r.tarjeta.map((f) => (f.lp ? 'LP' : f.golpes)).join(' · ') + (r.tarjeta.rorro ? ` · 🥃 Rorro ${r.tarjeta.rorro > 0 ? '+1' : '−1'}` : '')
   return [
     '⛳ LA TRAMPA DEL MONO · SDGA',
-    j.ruleta ? `${j.emoji} ${j.apodo} (un player por tiro): ${score} (${hoyos})` : `${j.emoji} ${j.apodo} (HCP ${j.hcp ?? '—'}): ${score} (${hoyos})`,
+    j.ruleta ? `${j.emoji} ${j.apodo} (${j.draft ? 'elegí quién pega cada tiro' : 'un player por tiro'}): ${score} (${hoyos})` : `${j.emoji} ${j.apodo} (HCP ${j.hcp ?? '—'}): ${score} (${hoyos})`,
     ...tirosRuleta(r).map((h) => `   ${h.n}: ${h.tiros.map((t) => t.emoji).join(' → ')}`),
     ...(r.ms != null && !r.lp ? [`⏱ ${formatoTiempo(r.ms)}`] : []),
     `🐒 Monos: ${r.monosMalos} malos, ${r.monosBuenos} buenos, ${r.robos} robos`,

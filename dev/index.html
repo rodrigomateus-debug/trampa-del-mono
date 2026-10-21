@@ -1898,6 +1898,48 @@ input { -webkit-user-select: text; user-select: text; }
 #ruleta.cayo .rl-quien, #ruleta.cayo .rl-hab { opacity: 1; transition: opacity 200ms; }
 @keyframes rl-cae { 40% { transform: scale(1.14); } }
 
+/* ── 🃏 El Draft: antes de cada tiro, tres caras abajo y elegís quién pega (arriba se ve desde dónde) ── */
+#draft[hidden] { display: none; }
+#draft { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 8px; padding: 0 12px calc(var(--safe-bot) + 16px); box-sizing: border-box; background: linear-gradient(to top, rgba(12, 43, 28, .94), rgba(12, 43, 28, .82) 30%, rgba(12, 43, 28, 0) 50%); -webkit-tap-highlight-color: transparent; }
+#draft .dr-cab { display: flex; flex-direction: column; align-items: center; gap: 5px; animation: rl-entra 260ms cubic-bezier(.2, 1.3, .4, 1) both; }
+#draft .dr-donde { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--cream); text-shadow: 0 1px 2px rgba(0, 0, 0, .5); }
+.dr-ops { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; max-width: 440px; }
+.dr-op { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; padding: 10px 6px 9px; text-align: center; background: var(--cream); color: var(--green-900); border: 2.5px solid var(--game-ink); border-radius: 14px; box-shadow: 3px 4px 0 var(--game-ink); cursor: pointer; font: inherit; -webkit-tap-highlight-color: transparent; animation: dr-entra .42s cubic-bezier(.2, 1.4, .4, 1) both; animation-delay: calc(var(--i) * 80ms); transition: transform .14s, box-shadow .14s, opacity .2s; }
+.dr-op:active { transform: translate(2px, 3px); box-shadow: 1px 1px 0 var(--game-ink); }
+.dr-op:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.dr-foto { width: 58px; height: 58px; flex: none; box-sizing: border-box; border-radius: 50%; overflow: hidden; border: 2px solid var(--game-ink); background: var(--green-700); display: grid; place-items: center; font-size: 30px; }
+.dr-foto img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.dr-op b { max-width: 100%; margin-top: 3px; font: 15px/1.05 var(--font-display); font-weight: 400; letter-spacing: .02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dr-op small { font-size: 10px; font-weight: 800; letter-spacing: .06em; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; }
+.dr-hab { margin-top: 3px; font-size: 11px; line-height: 1.22; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.dr-hab em { display: block; margin-bottom: 1px; font-style: normal; font-weight: 800; color: #9c7b1d; }
+.dr-chip { position: absolute; top: -10px; left: 50%; transform: translateX(-50%) rotate(-3deg); padding: 3px 7px 2px; border-radius: 6px; border: 1.5px solid var(--game-ink); background: var(--green-900); color: var(--cream); font: 10px/1 var(--font-display); font-style: normal; letter-spacing: .06em; white-space: nowrap; }
+.dr-chip.oro { background: var(--gold); color: var(--green-900); }
+/* la carta rara (Demetrio): dorada y con brillo */
+.dr-op.rara { background: linear-gradient(160deg, #f6dc8d, #e8c34a 50%, #c9a23a); box-shadow: 3px 4px 0 var(--game-ink), 0 0 22px rgba(232, 195, 74, .85); }
+.dr-op.rara small, .dr-op.rara .dr-hab em { color: var(--green-900); }
+/* 🥃 Rorro: la cara, glitcheada de a ratos */
+.dr-op.glitch .dr-foto img { animation: dr-glitch 2.4s steps(1) infinite; }
+@keyframes dr-glitch { 0%, 84%, 100% { transform: none; filter: none; } 86% { transform: translateX(-3px); filter: hue-rotate(90deg) saturate(2); } 90% { transform: translateX(2px); filter: invert(.15); } }
+#draft.cayo .dr-op:not(.elegida) { opacity: .25; }
+#draft.cayo .dr-op.elegida { transform: translateY(-6px) scale(1.04); box-shadow: 3px 4px 0 var(--game-ink), 0 0 0 4px var(--gold), 0 0 30px rgba(232, 195, 74, .9); }
+@keyframes dr-entra { from { opacity: 0; transform: translateY(18px) rotate(-3deg); } }
+@media (prefers-reduced-motion: reduce) { .dr-op, #draft .dr-cab, .dr-op.glitch .dr-foto img { animation: none; } }
+/* la carta del mazo: tres naipes en abanico con las caras que van pasando (el del medio, dorado), y el mosaico atrás */
+.carta.draft .dr-abanico { --dr-v: clamp(40px, 27cqh, 104px); position: absolute; z-index: 1; left: 50%; top: 44%; width: var(--dr-v); height: calc(var(--dr-v) * 1.3); transform: translate(-50%, -50%); }
+@supports not (height: 1cqh) { .carta.draft .dr-abanico { --dr-v: clamp(54px, 11vh, 104px); } }
+.dr-abanico .dr-naipe { position: absolute; inset: 0; overflow: hidden; border-radius: 12px; border: 3px solid var(--game-ink); background: var(--green-700); box-shadow: 4px 5px 0 var(--game-ink); transform-origin: 50% 135%; }
+.dr-abanico .dr-naipe:nth-child(1) { transform: rotate(-20deg); }
+.dr-abanico .dr-naipe:nth-child(2) { z-index: 1; transform: translateY(-8%); border-color: var(--gold); box-shadow: 4px 5px 0 var(--game-ink), 0 0 24px rgba(232, 195, 74, .85); }
+.dr-abanico .dr-naipe:nth-child(3) { transform: rotate(20deg); }
+.dr-naipe .dr-tira { display: flex; flex-direction: column; height: calc(var(--n) * 100%); animation: dr-tira calc(var(--n) * 1.7s) steps(var(--n)) infinite; animation-delay: var(--d); }
+.dr-naipe .dr-cara { flex: 1 1 0; min-height: 0; display: grid; place-items: center; font-size: calc(var(--dr-v) * .5); }
+.carta-foto .dr-naipe .dr-cara img { position: static; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+@keyframes dr-tira { to { transform: translateY(-100%); } }
+.carta.draft .dr-cartel { position: absolute; z-index: 2; left: 50%; bottom: 12%; transform: translateX(-50%) rotate(-2deg); }
+@container (max-height: 300px) { .carta.draft .dr-cartel { display: none; } }
+@media (prefers-reduced-motion: reduce) { .dr-naipe .dr-tira { animation: none; } }
+
 /* en el marcador: en qué tiro de la Ruleta vas, y la cara nueva late cuando cae */
 #hud-top .cara .rl-tiro { position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%); white-space: nowrap; border-radius: 999px; background: var(--gold); color: var(--green-900); font-size: 9px; font-weight: 800; letter-spacing: .06em; padding: 2px 6px 1px; box-shadow: 0 0 0 2px var(--green-900); }
 body.modo-ruleta #hud-top .cara .foto { box-shadow: 0 0 0 3px var(--gold); }
@@ -2427,6 +2469,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
 </div>
 
+<div id="draft" hidden>
+  <div class="dr-cab"><span class="rl-cartel" id="dr-cartel">🃏 TIRO 1 · ¿QUIÉN PEGA?</span><p class="dr-donde" id="dr-donde"></p></div>
+  <div class="dr-ops" id="dr-ops" role="group" aria-label="Elegí quién pega este tiro"></div>
+</div>
+
 <div id="hud-bot" hidden></div>
 <div id="mandos" aria-label="Manejar el carrito">
   <!-- RESET: solo aparece si te trabaste (late) -->
@@ -2615,7 +2662,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 6bb3224 · 20/10, 03:36 p. m.</span>
+  <span class="version" id="version">v 66e2dd7 · 21/10, 04:46 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2847,11 +2894,11 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </section>
 
 <script type="module">
-import * as M from './motor.js?v=e61d2a118c'
-import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS } from './plantel.js?v=e61d2a118c'
+import * as M from './motor.js?v=c09badb810'
+import { PLANTEL as TODOS, EN_PRUEBA, DIFICULTAD_REAL, DEMETRIO, MISTERIOSO, DESBLOQUEO_TAIU, DESBLOQUEO_FITO, DESBLOQUEO_RORRO, DESBLOQUEOS } from './plantel.js?v=c09badb810'
 import { CANCHA } from './cancha-grid.js'
-import * as R from './ranking.js?v=e61d2a118c'
-import * as S from './sonido.js?v=e61d2a118c'
+import * as R from './ranking.js?v=c09badb810'
+import * as S from './sonido.js?v=c09badb810'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
 const GI = {"banana": "<path d=\"M21 6C28.6 9.4 30 20 22.8 25.4C17.4 29.4 9.4 29 3.8 24.6C10.2 24.4 14.8 21.4 16.9 17.4C18.9 13.6 18.8 9.8 16.8 6.6Z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.2 8.2C21.6 13.8 19.9 20.4 12.2 24.8\" stroke-width=\"1.5\"/><path d=\"M24.4 11.6C25.8 16 24.3 20.8 20.3 23.8\" style=\"stroke:var(--gi-f)\" stroke-width=\"2.4\"/><path d=\"M16.8 6.6L17.3 2.8L21.1 2.4L21 6\" style=\"fill:var(--gi-s)\"/><path d=\"M3.8 24.6L2.6 26.5\" stroke-width=\"3\"/>", "match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
@@ -3067,7 +3114,7 @@ const usa3d = (j) => !!j?.cancha3d // (Rorro, aunque esta vuelta juegue con la h
 const modo3d = () => !!r3d?.estaActivo() && !replay && !!ronda && usa3d(ronda.carta)
 function cargar3d() {
   if (r3d) return Promise.resolve(r3d)
-  r3dCarga ??= import('./cancha3d.js?v=e61d2a118c').then((m) => {
+  r3dCarga ??= import('./cancha3d.js?v=c09badb810').then((m) => {
     m.iniciar({ lienzo: $('#cancha3d'), alCampo: (filas) => { campo = filas ? { ...campoBase, cancha: { ...campoBase.cancha, filas } } : campoBase } })
     m.sonido(S.prendido())
     r3d = m
@@ -3293,6 +3340,8 @@ lienzo.addEventListener('pointerdown', (e) => {
     if (r3d.enIntro()) { r3d.saltarIntro(); return }
     if (estado === 'pausa' && tiro) { pausaDedo = e.pointerId; r3d.arrastrarDestino(tiro, e.clientX, e.clientY); lienzo.setPointerCapture(e.pointerId); return }
   }
+  // 🃏 Rorro en el Draft (2D): en la pausa del DEBUG, el dedo corre el destino
+  if (estado === 'pausa' && tiro && !modo3d()) { pausaDedo = e.pointerId; M.correrDestino(tiro, s2w(e.clientX, e.clientY)); lienzo.setPointerCapture(e.pointerId); return }
   if (replay) { toqueReplay = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now() }; return }
   // Tito: con la pelota en el aire, el swipe es una ráfaga
   if (titoVolando() && !swipeTito) { swipeTito = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; lienzo.setPointerCapture(e.pointerId); return }
@@ -3321,7 +3370,7 @@ lienzo.addEventListener('pointerdown', (e) => {
   if (!datos.vistoTip) { datos.vistoTip = true; guardar(datos) }
 })
 lienzo.addEventListener('pointermove', (e) => {
-  if (pausaDedo === e.pointerId && estado === 'pausa' && tiro) { r3d.arrastrarDestino(tiro, e.clientX, e.clientY); return }
+  if (pausaDedo === e.pointerId && estado === 'pausa' && tiro) { if (modo3d()) r3d.arrastrarDestino(tiro, e.clientX, e.clientY); else M.correrDestino(tiro, s2w(e.clientX, e.clientY)); return }
   if (swipeTito && e.pointerId === swipeTito.id) { swipeTito.x = e.clientX; swipeTito.y = e.clientY; return }
   if (trazo && e.pointerId === trazo.id) {
     for (const ev of e.getCoalescedEvents?.() ?? [e]) {
@@ -4018,6 +4067,7 @@ let ruletaLuego = null, ruletaTimers = [], ruletaAnim = null
 const caraRuleta = (j) => (j.foto ? `<img src="${j.foto}" alt="" draggable="false">` : `<span class="rl-emo-sola">${j.emoji}</span>`)
 const reducido = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 function girarRuleta(luego) {
+  if (ronda?.ruleta?.draft) { abrirDraft(luego); return } // 🃏 el Draft: no gira, elegís vos
   const j = ronda?.ruleta ? M.turnoRuleta(ronda, rng) : null
   if (!j) { luego(); return }
   estado = 'ruleta'
@@ -4083,6 +4133,86 @@ function terminarRuleta() {
   cara.classList.add('nuevo')
 }
 $('#ruleta').addEventListener('click', terminarRuleta)
+
+// ── 🃏 el Draft: antes de cada tiro salen tres caras (M.ofertaDraft) y elegís quién pega. Como en la Ruleta, el marcador
+// espera y los monos no vienen mientras elegís; el reloj, sí corre ──
+let draftLuego = null
+// lo corto de cada habilidad, para que entre en la carta (las que no tienen `corto`, o lo que cambia en el Draft)
+const DRAFT_TXT = {
+  comba: 'Nunca derecho: elegís la comba de cada golpe.',
+  dadas: 'De 15 metros o menos, la mete siempre.',
+  perro: 'Greens sin caída; del bosque te la trae.',
+  panchitos: '3 panchos por hoyo para los monos.',
+  approach: 'Drive derecho; el approach, triple de error.',
+  deme: 'Una vez por vuelta (no del tee) llama a Deme: entra de una.',
+  carrito: 'La racha: tiro bueno, el próximo con menos error.',
+  calma: 'Después de un mal tiro, el próximo sale sin error.',
+  codigo: 'Con la pelota en el aire, la congelás y le corrés el destino.',
+  retro: 'Golf de 1960: va adonde apuntás. Si es el tiro para par, entra.',
+}
+/** Desde dónde se pega: la salida (hoyo, par y yardas) o cuánto falta y de dónde. */
+function dondeDraft() {
+  const h = M.hoyoActual(ronda)
+  const yd = Math.round(M.dist(ronda.pelota, h.pin) * (h.escala ?? 1))
+  return ronda.lie === 'tee' ? `Salida del ${h.n} · par ${h.par} · ${yd} yd` : `${yd} yd al hoyo · ${(LIES[ronda.lie] ?? ronda.lie).toLowerCase()}`
+}
+/** Una de las tres: la cara, el nombre, el handicap y lo que hace. Demetrio, si no lo desbloqueaste, es el misterioso. */
+function cartaDraft(j, i) {
+  const x = publico(j)
+  const hab = M.habilidadDe(j)
+  const raro = !!M.DRAFT.raros[j.apodo]
+  const cara = x.foto ? `<img src="${esc(x.foto)}" alt="" draggable="false">` : `<span aria-hidden="true">${x.emoji}</span>`
+  const nombre = x.misterio ? '¿?' : hab?.id === 'codigo' ? '⏸️ DEBUG' : hab ? `✨ ${hab.nombre}` : ''
+  const texto = x.misterio ? 'Nadie sabe quién es. Dicen que no falla.' : DRAFT_TXT[hab?.id] ?? hab?.corto ?? hab?.texto ?? ''
+  const chip = raro ? '<i class="dr-chip oro">✨ RARA</i>' : bloqueado(j) ? '<i class="dr-chip">PRESTADO</i>' : ''
+  return `<button class="dr-op${raro ? ' rara' : ''}${j.cancha3d ? ' glitch' : ''}" type="button" data-apodo="${esc(j.apodo)}" style="--i:${i}">${chip}<span class="dr-foto">${cara}</span><b>${x.misterio ? 'Misterioso' : esc(sinD(x.apodo))}</b><small>${esc(x.misterio ? 'HCP ¿?' : hcpEtiqueta(x))}</small>${nombre ? `<span class="dr-hab"><em>${esc(nombre)}</em>${esc(texto)}</span>` : ''}</button>`
+}
+function abrirDraft(luego) {
+  let ops = M.ofertaDraft(ronda, rng)
+  if (!ops) { luego(); return }
+  // para probar (solo en dev/, sin match): ?draft=rorro,demetrio pone a esos entre las tres, cada tiro que puedan salir
+  const forzar = PRUEBA && !ronda.match && PARAMS.get('draft')?.toLowerCase().split(',')
+  if (forzar) {
+    const van = ronda.ruleta.pool.filter((x) => forzar.some((f) => sinD(x.apodo).toLowerCase().startsWith(f.trim())) && x.apodo !== ronda.jugador?.apodo)
+    ops = ronda.ruleta.oferta = [...van, ...ops.filter((x) => !van.includes(x))].slice(0, M.DRAFT.opciones)
+  }
+  estado = 'ruleta'
+  drag = null
+  draftLuego = luego
+  obj = vistaApuntar(ronda.pelota, M.hoyoActual(ronda).pin) // que se vea desde dónde se pega
+  velCam = 3.5
+  hud()
+  $('#dr-cartel').textContent = `🃏 TIRO ${ronda.ruleta.tiros.length + 1} · ¿QUIÉN PEGA?`
+  $('#dr-donde').textContent = dondeDraft()
+  $('#dr-ops').innerHTML = ops.map(cartaDraft).join('')
+  $('#draft').classList.remove('cayo')
+  $('#draft').hidden = false
+  S.ruletaTic()
+}
+$('#dr-ops').addEventListener('click', (e) => {
+  const b = e.target.closest('.dr-op')
+  if (!b || !draftLuego || estado !== 'ruleta') return
+  const j = M.elegirDraft(ronda, b.dataset.apodo)
+  if (!j) return
+  const luego = draftLuego
+  draftLuego = null
+  b.classList.add('elegida')
+  $('#draft').classList.add('cayo')
+  S.ruletaCae()
+  tic()
+  const x = publico(j), hab = M.habilidadDe(j)
+  voz = { lg: `🃏 Pega ${x.emoji} ${sinD(x.apodo)}`, extra: x.misterio ? '¿Quién será?' : hab ? `✨ ${hab.nombre}: ${DRAFT_TXT[hab.id] ?? hab.corto ?? hab.texto}` : hcpEtiqueta(j), hasta: performance.now() + 5500 }
+  document.body.classList.toggle('retro', !!j.retro) // Demetrio: su tiro, en 1960 (sepia)
+  setTimeout(() => {
+    $('#draft').hidden = true
+    luego()
+    hud()
+    const cara = $('#hud-top .cara')
+    cara.classList.remove('nuevo')
+    void cara.offsetWidth
+    cara.classList.add('nuevo')
+  }, reducido() ? 0 : 280)
+})
 function aApuntar() {
   estado = 'apuntar'
   apuntarDesde = performance.now()
@@ -4790,7 +4920,8 @@ function empezar(jugador) {
   rorroListo = null
   // la Ruleta: el bloqueado no sale. En un match, los dos con el MISMO mazo (sin los que se desbloquean, así nadie tiene
   // uno que el otro no): con la semilla del match, tiro por tiro les salen los mismos players a los dos
-  if (jugador.ruleta) {
+  // (el Draft, no: salen todos, con o sin candado, y en un match es el mismo mazo para los dos)
+  if (jugador.ruleta && !jugador.draft) {
     const pool = matchModo ? jugador.pool.filter((x) => x.apodo !== DESBLOQUEO_TAIU.apodo) : jugador.pool.filter((x) => !bloqueado(x))
     if (pool.length !== jugador.pool.length) jugador = { ...jugador, pool }
   }
@@ -5999,17 +6130,19 @@ function hud() {
   // el cartel del clima, la primera vez que se apunta en la vuelta (el primer tiro no pasa por aApuntar)
   if (climaPorAnunciar && estado === 'apuntar') { climaPorAnunciar = false; mostrarCartelClima() }
   // la Ruleta: mientras gira (o todavía no giró para el próximo tiro) el marcador muestra la carta, sin adelantar quién pega
-  const oculto = !!ronda.ruleta && (estado === 'ruleta' || (ronda.ruletaToca && estado !== 'tiro' && estado !== 'anim'))
+  const oculto = !!ronda.ruleta && (estado === 'ruleta' || (ronda.ruletaToca && estado !== 'tiro' && estado !== 'anim' && estado !== 'pausa'))
   const j = oculto ? ronda.carta : ronda.jugador
+  const jv = publico(j) // (lo que se ve: Demetrio en el Draft, para el que no lo tiene, es el misterioso)
+  const ico = ronda.ruleta?.draft ? '🃏' : '🎰'
   $('#j-ruleta').hidden = !ronda.ruleta
-  if (ronda.ruleta) $('#j-ruleta').textContent = oculto ? '🎰 GIRA…' : `🎰 TIRO ${ronda.ruleta.tiros.length}`
-  $('#j-emoji').textContent = j.emoji
-  $('#j-sinfoto').textContent = j.foto ? '' : j.emoji
-  $('#j-sinfoto').hidden = !!j.foto
-  $('#j-foto').hidden = !j.foto
-  if (j.foto && $('#j-foto').getAttribute('src') !== j.foto) { $('#j-foto').src = j.foto; $('#j-foto').alt = j.apodo }
-  $('#j-apodo').textContent = j.apodo.toUpperCase()
-  $('#j-hcp').textContent = hcpEtiqueta(j)
+  if (ronda.ruleta) $('#j-ruleta').textContent = oculto ? (ronda.ruleta.draft ? '🃏 ELEGÍ…' : '🎰 GIRA…') : `${ico} TIRO ${ronda.ruleta.tiros.length}`
+  $('#j-emoji').textContent = jv.emoji
+  $('#j-sinfoto').textContent = jv.foto ? '' : jv.emoji
+  $('#j-sinfoto').hidden = !!jv.foto
+  $('#j-foto').hidden = !jv.foto
+  if (jv.foto && $('#j-foto').getAttribute('src') !== jv.foto) { $('#j-foto').src = jv.foto; $('#j-foto').alt = jv.apodo }
+  $('#j-apodo').textContent = jv.apodo.toUpperCase()
+  $('#j-hcp').textContent = jv.misterio ? 'HCP ¿?' : hcpEtiqueta(jv)
   $('#j-total').textContent = M.formatoPar(M.totales(ronda.tarjeta).vsPar)
   $('#lp').disabled = estado !== 'apuntar' || !!ronda.mejorPelota?.fase // en la Mejor pelota, no
   if (!lpArmado) $('#lp').textContent = oculto ? 'LP 💅' : textoLP()
@@ -6405,12 +6538,34 @@ function dibujar() {
   dibujarFxJuanpa()
   dibujarRafagasTito()
   dibujarClima()
+  if (estado === 'pausa' && tiro) depurador2d(tiro)
+  pintarPoderRorro() // (🃏 el DEBUG de Rorro cuando sale en el Draft)
 
   if (ronda && !ronda.terminada) {
     const ang = ronda.viento.ang + cam.rot
     const f = $('#v-flecha')
     if (Math.abs((f._ang ?? 99) - ang) > 0.01) { f.style.transform = `rotate(${ang}rad)`; f._ang = ang }
   }
+}
+/**
+ * ⏸ El depurador en la cancha de siempre (Rorro en el Draft), como el de la 3D: hasta dónde se puede correr el destino,
+ * a dónde iba, la mira del destino nuevo y el resto del vuelo desde la pelota congelada.
+ */
+function depurador2d(t) {
+  if (!t?.nuevo) return
+  const D = t.destinoOrig, Nn = t.nuevo, maxR = M.radioDebug(t)
+  const anillo = (c, r) => { ctx.beginPath(); for (let i = 0; i <= 48; i++) { const a = (i / 48) * Math.PI * 2, [x, y] = w2s([c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) } }
+  const [bx, by] = w2s(t.pos), [nx, ny] = w2s(Nn), [dx, dy] = w2s(D)
+  ctx.save()
+  ctx.lineCap = 'round'
+  anillo(D, maxR); ctx.fillStyle = 'rgba(255,138,122,.1)'; ctx.fill()
+  ctx.setLineDash([6, 7]); ctx.strokeStyle = 'rgba(255,138,122,.8)'; ctx.lineWidth = 2; ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(bx, by - t.alt * levante()); ctx.lineTo(nx, ny); ctx.strokeStyle = 'rgba(244,238,218,.8)'; ctx.stroke(); ctx.setLineDash([])
+  ctx.beginPath(); ctx.arc(dx, dy, 4, 0, 7); ctx.strokeStyle = 'rgba(244,238,218,.6)'; ctx.lineWidth = 2; ctx.stroke()
+  ctx.strokeStyle = C.gold; ctx.lineWidth = 2.5
+  ctx.beginPath(); ctx.arc(nx, ny, 9, 0, 7); ctx.moveTo(nx - 15, ny); ctx.lineTo(nx - 4, ny); ctx.moveTo(nx + 4, ny); ctx.lineTo(nx + 15, ny); ctx.moveTo(nx, ny - 15); ctx.lineTo(nx, ny - 4); ctx.moveTo(nx, ny + 4); ctx.lineTo(nx, ny + 15); ctx.stroke()
+  ctx.restore()
+  $('#depura p').innerHTML = `<span class="r">● pausado</span> <span class="c">· motor.js · avanzar()</span> tiro.destino = [<span class="y">${Nn[0].toFixed(1)}</span>, <span class="y">${Nn[1].toFixed(1)}</span>] <span class="c">// arrastrá la cancha</span>`
 }
 /** 🥃 Con Rorro: la cancha 3D (cancha3d.js) y, arriba, lo del juego (la goma, el latido, la línea, el óvalo, los cartelitos). */
 function dibujar3d() {
@@ -6560,17 +6715,21 @@ const giRorro = (n) => `<svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><
  * REVERT: apuntando, vuelve la versión de antes de la cancha (la cinta dice de cuál a cuál).
  */
 let poderPintado = ''
+/** 🃏 Rorro pega en el Draft: su ⏸ DEBUG en la cancha de siempre (uno por tiro suyo; sin REVERT: acá no hay versiones). */
+const debugEnDraft = () => !modo3d() && !!ronda?.ruleta?.draft && !ronda.terminada && estado !== 'ruleta' && M.habilidadDe(ronda.jugador)?.id === 'codigo' && !$('#hud-top').hidden
 function pintarPoderRorro() {
   const bd = $('#rorro-debug'), br = $('#rorro-revert')
-  const ver = modo3d() && !ronda.terminada && !$('#hud-top').hidden && !r3d.enIntro()
-  const p = ver ? r3d.poderes() : null
+  const enDraft = debugEnDraft()
+  const ver = enDraft || (modo3d() && !ronda.terminada && !$('#hud-top').hidden && !r3d.enIntro())
+  const p = enDraft ? { bp: ronda.ruleta.bp, revert: 0, ver: null, antes: null } : ver ? r3d.poderes() : null
   const enVuelo = estado === 'tiro' && tiro?.modo === 'full' && tiro.fase === 'vuelo'
   const debug = !ver ? '' : estado === 'pausa' ? 'pausa' : !p.bp ? 'gastado' : enVuelo ? 'vivo' : 'espera'
   const revert = !ver ? '' : !p.revert ? 'gastado' : estado === 'apuntar' && r3d.puedeRevert() ? 'listo' : 'espera'
   const clave = `${debug}|${revert}|${p?.ver}|${p?.antes}`
   if (clave === poderPintado) return
   poderPintado = clave
-  bd.hidden = br.hidden = !ver
+  bd.hidden = !ver
+  br.hidden = !ver || enDraft
   if (!ver) return
   bd.className = `rorro-poder ${debug}`
   bd.querySelector('.ico').innerHTML = giRorro(debug === 'pausa' ? 'seguir' : 'debug')
@@ -6653,20 +6812,28 @@ function deployRorro() {
   hud()
 }
 $('#rorro-debug').addEventListener('click', () => {
-  if (!modo3d()) return
-  r3d.despertar()
+  const enDraft = debugEnDraft() // 🃏 en la cancha de siempre: la cuenta del motor, sin la 3D
+  if (!modo3d() && !enDraft) return
+  if (!enDraft) r3d.despertar()
   if (estado === 'pausa' && tiro) {
-    r3d.continuar(tiro)
+    if (enDraft) { M.seguirTiro(tiro); S.tap() } else r3d.continuar(tiro)
     estado = 'tiro'
     $('#depura').hidden = true
     hud()
   } else if (estado === 'tiro' && tiro?.modo === 'full' && tiro.fase === 'vuelo') {
-    if (!r3d.breakpoint(tiro)) return
+    if (enDraft) {
+      if (!ronda.ruleta.bp) return
+      ronda.ruleta.bp--
+      M.congelarTiro(tiro)
+      obj = encuadre(tiro.pos, tiro.destinoOrig) // que se vea la pelota y a dónde iba
+      velCam = 4
+      S.tap()
+    } else if (!r3d.breakpoint(tiro)) return
     estado = 'pausa'
     $('#depura').hidden = false
     relatar({ lg: M.elegir(rng, LG_RORRO.bp) })
     hud()
-  } else if (r3d.poderes().bp) { relatar({ lg: M.elegir(rng, LG_RORRO.bpAntes) }); return }
+  } else if (enDraft ? ronda.ruleta.bp : r3d.poderes().bp) { relatar({ lg: M.elegir(rng, LG_RORRO.bpAntes) }); return }
   else return
   poderPintado = ''
 })
@@ -7025,7 +7192,7 @@ function dibujarGuia() {
 }
 /** La Ruleta: arriba de la pelota, quién pega este tiro (aparece al llegar a apuntar; se va al arrastrar). */
 function etiquetaRuleta() {
-  const j = ronda.jugador
+  const j = publico(ronda.jugador)
   const [x, y] = w2s(ronda.pelota)
   const t = (performance.now() - apuntarDesde) / 1000
   const alfa = Math.min(1, t / 0.25)
@@ -8800,7 +8967,7 @@ function tarjetaFinal() {
   // la Ruleta: cada hoyo con las caras de los que pegaron, en orden
   const porHoyo = M.tirosRuleta(ronda)
   $('#t-ruleta').hidden = !porHoyo.length
-  $('#t-ruleta').innerHTML = htmlRuleta(porHoyo.map((h) => h.tiros.map((t) => t.apodo)), 'Quién pegó cada tiro', porHoyo.map((h) => h.n))
+  $('#t-ruleta').innerHTML = htmlRuleta(porHoyo.map((h) => h.tiros.map((t) => t.apodo)), 'Quién pegó cada tiro', porHoyo.map((h) => h.n), ronda.carta.emoji)
   $('#t-ranking').hidden = true
   $('#t-bananas').hidden = true
   $('#t-match').hidden = true
@@ -8961,7 +9128,7 @@ async function imagenVuelta() {
   const cx = W2 / 2, cy = 345, rad = 122
   // la Ruleta: los que pegaron (cada uno una vez, en el orden en que salieron)
   const tirosRl = M.tirosRuleta(r).flatMap((h) => h.tiros)
-  const pegaron = [...new Map(tirosRl.map((t) => [t.apodo, r.ruleta.pool.find((p) => p.apodo === t.apodo) ?? t])).values()]
+  const pegaron = [...new Map(tirosRl.map((t) => [t.apodo, publico(r.ruleta.pool.find((p) => p.apodo === t.apodo) ?? t)])).values()]
   const fotos = await Promise.all(pegaron.map((x) => cargarImg(x.foto)))
   const fotoDe = new Map(pegaron.map((x, i) => [x.apodo, fotos[i]]))
   g.save(); g.beginPath(); g.arc(cx, cy, rad, 0, 7); g.closePath(); g.fillStyle = '#1c5638'; g.fill(); g.clip()
@@ -8990,7 +9157,7 @@ async function imagenVuelta() {
   // quién sos y con quién jugaste
   const yo = (datos.usuario || 'Alguien').toUpperCase()
   g.fillStyle = '#f4eeda'; g.font = D(84); g.fillText(yo, W2 / 2, 560)
-  g.font = B(34, 600); g.fillStyle = 'rgba(244,238,218,.85)'; g.fillText(r.ruleta ? `jugó con La Ruleta: ${tirosRl.length} tiros, ${pegaron.length} players` : `jugó con ${j.apodo}`, W2 / 2, 608)
+  g.font = B(34, 600); g.fillStyle = 'rgba(244,238,218,.85)'; g.fillText(r.ruleta ? `jugó con ${j.apodo}: ${tirosRl.length} tiros, ${pegaron.length} players` : `jugó con ${j.apodo}`, W2 / 2, 608)
   // la tarjeta crema con el score
   // con la Ruleta, cada hoyo lleva abajo las caras de los que pegaron sus tiros: los cuadros son más altos
   const porHoyoRl = M.tirosRuleta(r)
@@ -9312,14 +9479,14 @@ const ruletaParaMatch = (r) => (r.ruleta ? M.HOYOS.map((h) => (M.tirosRuleta(r).
  * "Quién pegó cada tiro": una fila por hoyo con las caras en orden. `apodos` = [["El Sueco","LG"],["Lechu"],…] (de la
  * vuelta propia o de la que guardó el match); la cara y el emoji salen del plantel por apodo.
  */
-function htmlRuleta(apodos, titulo, hoyos = M.HOYOS.map((h) => h.n)) {
+function htmlRuleta(apodos, titulo, hoyos = M.HOYOS.map((h) => h.n), ico = '🎰') {
   const filas = apodos.map((tiros, k) => ({ n: hoyos[k], tiros })).filter((h) => h.tiros.length)
   if (!filas.length) return ''
   const cara = (apodo) => {
-    const x = TODOS.find((p) => p.apodo === apodo) ?? { apodo, emoji: '⛳' }
-    return `<span class="tiro-rl" title="${esc(apodo)}">${x.foto ? `<img src="${x.foto}" alt="${esc(apodo)}">` : `<span>${x.emoji}</span>`}<i aria-hidden="true">${x.emoji}</i></span>`
+    const x = publico(apodo === DEMETRIO.apodo ? DEMETRIO : TODOS.find((p) => p.apodo === apodo) ?? { apodo, emoji: '⛳' })
+    return `<span class="tiro-rl" title="${esc(x.apodo)}">${x.foto ? `<img src="${x.foto}" alt="${esc(x.apodo)}">` : `<span>${x.emoji}</span>`}<i aria-hidden="true">${x.emoji}</i></span>`
   }
-  return `<span class="kicker">🎰 ${esc(titulo)}</span>${filas.map((h) => `<div class="fila-rl"><b>${h.n}</b>${h.tiros.map(cara).join('<span class="flecha-rl" aria-hidden="true">›</span>')}</div>`).join('')}`
+  return `<span class="kicker">${ico} ${esc(titulo)}</span>${filas.map((h) => `<div class="fila-rl"><b>${h.n}</b>${h.tiros.map(cara).join('<span class="flecha-rl" aria-hidden="true">›</span>')}</div>`).join('')}`
 }
 /** Los golpes de cada hoyo de una vuelta del match, sacados de su grabación (null si no hay grabación). */
 function golpesPorHoyo(g, x) {
@@ -9765,7 +9932,7 @@ $('#mt-lista').addEventListener('keydown', (e) => {
 /** El MATCH de prueba (prueba.js): rivales y bananas de mentira, en el teléfono. `entrar`: suelto, entra con esa identidad. */
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
-  const { crearPrueba } = await import('./prueba.js?v=e61d2a118c')
+  const { crearPrueba } = await import('./prueba.js?v=c09badb810')
   pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs, pines: (semilla) => M.condicionesMatch(semilla).pines.map((x) => x.pin) })
   R.usarPrueba(pruebaApp, entrar ? yo : null)
   $('#mt-prueba').hidden = false
@@ -10036,8 +10203,8 @@ async function abrirDetalleMatch(id) {
     <h3 class="rs-quien" id="rs-quien">vs ${esc(el.alias)}</h3>
     <p class="mt-player">Jugaron con <b>${esc(yo.emoji ?? '')} ${esc(String(yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}</b></p>
     <div class="mt-tabla" data-match="${esc(d.id)}">${tabla(null)}</div>
-    ${yo.ruleta ? `<div class="t-ruleta">${htmlRuleta(yo.ruleta, 'Con quién pegaste')}</div>` : ''}
-    ${el.ruleta ? `<div class="t-ruleta rival">${htmlRuleta(el.ruleta, `Con quién pegó ${el.alias}`)}</div>` : ''}
+    ${yo.ruleta ? `<div class="t-ruleta">${htmlRuleta(yo.ruleta, 'Con quién pegaste', undefined, yo.emoji)}</div>` : ''}
+    ${el.ruleta ? `<div class="t-ruleta rival">${htmlRuleta(el.ruleta, `Con quién pegó ${el.alias}`, undefined, yo.emoji)}</div>` : ''}
     <p class="mt-veredicto ${clase || 'empate'}">${gi(g > 0 ? 'trophy' : g < 0 ? 'close' : 'friends')}<span>${g > 0 ? 'Ganaste' : g < 0 ? 'Perdiste' : 'Empate'}${tiempo ? '<small>por tiempo</small>' : ''}</span></p>`
   $('#rk-resumen').hidden = false
   $('#rk-resumen .hab-x').focus({ preventScroll: true })
@@ -11541,7 +11708,7 @@ async function abrirReplay(d, grabs = null, boton = null) {
     if (boton) { boton.disabled = false; boton.classList.remove('cargando') }
     if (!grabs?.retador?.length) { avisoReplay('No se pudo cargar el replay. Probá de nuevo en un rato.'); return }
   }
-  const conDebug = M.habilidadDe({ apodo: d.retador.apodo })?.id === 'codigo' // (los dos juegan con el mismo player)
+  const conDebug = ['codigo', 'draft'].includes(M.habilidadDe({ apodo: d.retador.apodo })?.id) // (los dos juegan con el mismo player; en el Draft, si sale Rorro)
   const pistas = [pistaReplay(grabs.retador, d.retador, 0, conDebug)]
   if (grabs.rival?.length) pistas.push(pistaReplay(grabs.rival, d.rival, 1, conDebug))
   const cond = M.condicionesMatch(d.semilla, d.fecha ? Date.parse(d.fecha) : Date.now()) // el clima, con la chance de nieve de su fecha
@@ -12056,7 +12223,7 @@ function mensajeDesafio(r, rival, mia) {
     `Ya jugué mi vuelta con ${j.emoji} ${j.apodo}.`,
     pique,
     '',
-    `Te toca: mismo player (${j.emoji} ${j.apodo}), mismo viento y mismas banderas.${j.ruleta ? ' Y la misma Ruleta: tiro por tiro te salen los mismos players que a mí 🎰.' : ''} Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
+    `Te toca: mismo player (${j.emoji} ${j.apodo}), mismo viento y mismas banderas.${j.draft ? ' Y el mismo Draft: tiro por tiro te salen las mismas tres caras que a mí 🃏 (elegís vos).' : j.ruleta ? ' Y la misma Ruleta: tiro por tiro te salen los mismos players que a mí 🎰.' : ''} Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
     'Menos golpes gana; si empatamos, el más rápido. LP pierde.',
     ...(r.duelo?.apuesta > 0 ? [`Hay ${r.duelo.apuesta} 🍌 en juego: el que gana se lleva ${2 * r.duelo.apuesta - 1} (una es del mono 🐒).`] : []),
     '',
@@ -12079,7 +12246,7 @@ function textoResultadoMatch(yo, el, id, apuesta = 0) {
     titulo,
     linea(yo, 'Yo'),
     linea(el, el.alias),
-    `Los dos con ${emoji} ${apodo}, mismo viento y mismas banderas${apodo === 'La Ruleta' ? ' (y tiro por tiro, los mismos players)' : ''}.`,
+    `Los dos con ${emoji} ${apodo}, mismo viento y mismas banderas${apodo === 'La Ruleta' ? ' (y tiro por tiro, los mismos players)' : apodo === 'El Draft' ? ' (y tiro por tiro, las mismas tres caras para elegir)' : ''}.`,
     ...(apuesta > 0 ? [g > 0 ? `🍌 Me llevé ${2 * apuesta - 1} bananas.` : g < 0 ? `🍌 Me sacó ${apuesta} bananas.` : `🍌 Las ${apuesta} bananas vuelven.`] : []),
     '',
     cierre,
@@ -12170,7 +12337,7 @@ async function cerrarMatch(r) {
       { emoji: r.carta?.emoji ?? r.jugador.emoji, nombre: 'VOS', golpes: mios, vuelta: mia, gano: g > 0 },
       { emoji: `👻${ret.emoji ?? ''}`, nombre: ret.alias, golpes: golpesPorHoyo(d.fantasma, ret), vuelta: ret, gano: g < 0, el: true },
     ])
-    const suRuleta = ret.ruleta ? htmlRuleta(ret.ruleta, `Con quién pegó ${ret.alias}`) : ''
+    const suRuleta = ret.ruleta ? htmlRuleta(ret.ruleta, `Con quién pegó ${ret.alias}`, undefined, r.carta?.emoji) : ''
     return tabla + (suRuleta ? `<div class="t-ruleta rival">${suRuleta}</div>` : '')
   }
   const anotar = async () => {
@@ -12820,9 +12987,29 @@ function previewHab(id) {
     ruleta: linea('M8 26 L40 30 L72 22 L96 27') + bola('M8 26 L40 30 L72 22 L96 27', { kt: '0;0.18;0.33;0.51;0.66;0.84;1', kp: '0;0.36;0.36;0.73;0.73;1;1' })
       + [['🇸🇪', 8, 0, 0.18], ['🥛', 40, 0.18, 0.51], ['🦉', 72, 0.51, 0.84]].map(([e, x, a, b]) => `<text x="${x}" y="${x === 72 ? 13 : 17}" font-size="10" text-anchor="middle" opacity="0">${e}<animate attributeName="opacity" dur="${D}s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;${a};${a + 0.02};${b};${Math.min(1, b + 0.03)};1"/></text>`).join('')
       + txt('🎰 CADA TIRO, OTRO', 56, 48, 0),
+    // el Draft: tres caras arriba, la del medio se elige (las otras se apagan) y pega
+    draft: [['🇸🇪', 34], ['🥛', 58], ['🦉', 82]].map(([e, x], i) => `<g transform="translate(${x} 12)"><rect x="-8" y="-9" width="16" height="18" rx="3" fill="#f4eeda" stroke="${i === 1 ? '#e8c34a' : '#0c2b1c'}" stroke-width="${i === 1 ? 1.8 : 0.8}"/><text font-size="10" text-anchor="middle" dominant-baseline="central">${e}</text>${i === 1 ? '' : `<animate attributeName="opacity" dur="${D}s" repeatCount="indefinite" values="1;1;.25;.25;1" keyTimes="0;0.25;0.3;0.92;1"/>`}</g>`).join('')
+      + linea('M8 34 L96 28') + bola('M8 34 L96 28', { kt: '0;0.32;0.85;1', kp: '0;0;1;1' }) + txt('🃏 ELEGÍ QUIÉN PEGA', 56, 48, 0),
     calma: arboles(40, 6) + bola('M8 26 Q20 8 38 9 L38 9 L96 26', { kt: '0;0.3;0.45;1', kp: '0;0.35;0.35;1' }) + txt('NO SE ENOJA', 66, 47, 0.45),
   }
   return `<svg viewBox="0 0 112 52" aria-hidden="true">${fondo}${id === 'dadas' ? '' : bandera}${escenas[id] ?? ''}</svg>`
+}
+
+/** Atrás de la carta de la Ruleta y del Draft: todas las caras del mazo, subiendo en cuatro columnas. */
+function mosaicoCaras(pool) {
+  const cara = (x) => (x.foto ? `<img src="${x.foto}" alt="" draggable="false">` : `<span>${x.emoji}</span>`)
+  const columnas = [0, 1, 2, 3].map((c) => { const l = pool.filter((_, i) => i % 4 === c); return `<div class="rl-col">${[...l, ...l, ...l, ...l].map(cara).join('')}</div>` }).join('')
+  return `<div class="rl-mosaico" aria-hidden="true">${columnas}</div>`
+}
+/** 🃏 La carta del Draft: tres naipes en abanico, cada uno con las caras del mazo pasando (empiezan en distintas). */
+function fotoDraft(j) {
+  const pool = j.pool.map(publico) // (Demetrio, para el que no lo tiene: el misterioso)
+  const cara = (x) => `<span class="dr-cara">${x.foto ? `<img src="${x.foto}" alt="" draggable="false">` : x.emoji}</span>`
+  const naipe = (k) => {
+    const l = [...pool.slice(k * 6), ...pool.slice(0, k * 6)]
+    return `<div class="dr-naipe"><div class="dr-tira" style="--n: ${l.length}; --d: ${-k * 0.55}s">${l.map(cara).join('')}</div></div>`
+  }
+  return `${mosaicoCaras(pool)}<div class="dr-abanico" aria-hidden="true">${[0, 1, 2].map(naipe).join('')}</div><span class="rl-cartel dr-cartel">ELEGÍ VOS</span>`
 }
 
 // ── 🎰 la carta de la Ruleta: un tragamonedas con las caras del mazo, y todas las caras subiendo atrás ──
@@ -12847,9 +13034,7 @@ function fotoRuleta(j) {
     document.head.append(st)
     keyframesRuleta.add(n)
   }
-  const cara = (x) => (x.foto ? `<img src="${x.foto}" alt="" draggable="false">` : `<span>${x.emoji}</span>`)
-  const columnas = [0, 1, 2, 3].map((c) => { const l = pool.filter((_, i) => i % 4 === c); return `<div class="rl-col">${[...l, ...l, ...l, ...l].map(cara).join('')}</div>` }).join('')
-  return `<div class="rl-mosaico" aria-hidden="true">${columnas}</div>
+  return `${mosaicoCaras(pool)}
     <div class="rl-maquina" aria-hidden="true">
       <span class="rl-cartel">CADA TIRO, OTRO</span>
       <div class="rl-cuerpo"><div class="rl-vent"><div class="rl-tira" data-n="${n}">${[...pool, pool[0]].map(caraRuleta).join('')}</div></div><span class="rl-palanca"></span></div>
@@ -12877,9 +13062,9 @@ function cartaDe(j) {
   const glitch = !!j.cancha3d // 🥃 Rorro: la carta glitcheada, y la habilidad no se dice
   const el = document.createElement('div')
   el.className = 'envoltorio'
-  el.innerHTML = `<article class="carta${j.retro ? ' dorada' : ''}${j.ruleta ? ' ruleta' : ''}${glitch ? ' glitch' : ''}${lock ? ' bloqueada' : ''}">
+  el.innerHTML = `<article class="carta${j.retro ? ' dorada' : ''}${j.ruleta ? ' ruleta' : ''}${j.draft ? ' draft' : ''}${glitch ? ' glitch' : ''}${lock ? ' bloqueada' : ''}">
     <div class="carta-foto">
-      ${j.ruleta ? fotoRuleta(j) : glitch ? fotoGlitch(j) : j.foto ? `<img src="${j.foto}" alt="${esc(j.apodo)}" draggable="false">` : `<div class="carta-emoji" aria-hidden="true">${j.emoji}</div>`}
+      ${j.draft ? fotoDraft(j) : j.ruleta ? fotoRuleta(j) : glitch ? fotoGlitch(j) : j.foto ? `<img src="${j.foto}" alt="${esc(j.apodo)}" draggable="false">` : `<div class="carta-emoji" aria-hidden="true">${j.emoji}</div>`}
       <div class="carta-degrade"></div>
       <div class="carta-marcas">
         <span class="carta-nivel">Nivel ${nivel} · ${hcpEtiqueta(j)}</span>
@@ -12899,7 +13084,8 @@ function cartaDe(j) {
         <div><dt>HCP</dt><dd>${j.ruleta ? 'C/U<span class="sub">el suyo</span>' : dif.cargado ? hcpTxt(j) : `—<span class="sub">juega ${dif.hcp}</span>`}</dd></div>
         <div><dt>Dificultad</dt><dd><span class="barras d${dif.nivel}" aria-label="${dif.nombre}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= dif.nivel ? 'on' : ''}"></i>`).join('')}</span>${dif.prom != null ? `<span class="sub">${M.formatoPar(Math.round(dif.prom))} prom.</span>` : ''}</dd></div>
         <div><dt>Récord</dt><dd>${rec === undefined ? '—' : M.formatoPar(rec)}</dd></div>
-        ${j.ruleta ? `<div><dt>Players</dt><dd>${j.pool.filter((x) => !bloqueado(x)).length}</dd></div>
+        ${j.draft ? `<div><dt>Players</dt><dd>${j.pool.length}</dd></div>
+        <div><dt>Opciones</dt><dd>${M.DRAFT.opciones}<span class="sub">por tiro</span></dd></div>` : j.ruleta ? `<div><dt>Players</dt><dd>${j.pool.filter((x) => !bloqueado(x)).length}</dd></div>
         <div><dt>Repite</dt><dd>Nunca</dd></div>
         <div><dt>Tees</dt><dd>Blancas</dd></div>` : `<div><dt>Rondas</dt><dd>${s ? s.tarjetas : '—'}</dd></div>
         <div><dt>Prom. neto</dt><dd>${fmtNeto(s?.netoPromedio)}</dd></div>
@@ -13194,7 +13380,8 @@ function verHabilidad(j) {
   $('#hab-texto').textContent = hab.texto
   // el Mago: los 4 golpes para elegir y los 2 putts
   const extra = hab.id === 'comba' ? [...M.GOLPES_MAGO, ...M.PUTTS_MAGO].map((g) => `<li>${g.emoji} <b>${esc(g.nombre)}</b> · ${esc(g.texto)}</li>`).join('')
-    : hab.id === 'ruleta' ? j.pool.filter((x) => !bloqueado(x)).map((x) => `<li>${x.emoji} <b>${esc(x.apodo)}</b> · ${esc(hcpEtiqueta(x))}${M.habilidadDe(x) ? ` · ${esc(M.habilidadDe(x).nombre)}` : ''}</li>`).join('') : ''
+    : hab.id === 'ruleta' ? j.pool.filter((x) => !bloqueado(x)).map((x) => `<li>${x.emoji} <b>${esc(x.apodo)}</b> · ${esc(hcpEtiqueta(x))}${M.habilidadDe(x) ? ` · ${esc(M.habilidadDe(x).nombre)}` : ''}</li>`).join('')
+    : hab.id === 'draft' ? j.pool.map(publico).map((x) => `<li>${x.emoji} <b>${esc(x.apodo)}</b>${x.misterio ? ' · carta rara, sale poco' : ` · ${esc(hcpEtiqueta(x))}${M.habilidadDe(x) ? ` · ${esc(M.habilidadDe(x).id === 'codigo' ? '⏸️ DEBUG' : M.habilidadDe(x).nombre)}` : ''}${M.DRAFT.raros[x.apodo] ? ' · carta rara, sale poco' : ''}`}</li>`).join('') : ''
   $('#hab-extra').innerHTML = extra
   $('#hab-extra').hidden = !extra
   $('#hab-modal').hidden = false
