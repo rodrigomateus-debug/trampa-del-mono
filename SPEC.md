@@ -325,6 +325,7 @@ Sonido, fotos (van emojis; en la app usa `PlayerAvatar`), match en el mismo celu
 - Desde el segundo tiro (fuera del green), una flecha: sale derecho (sin error de dirección), vuela más bajo y más rápido (`FLECHA`) y atraviesa todo: los pinos y los monos que se cruzan en el vuelo (`tiro.flecha`). Si cae en el bosque, igual es bosque. Mientras vuela se dibuja una flecha (asta dorada, plumas rojas) detrás de la pelota. La línea de apuntar no se corta en los árboles.
 - El putt, derecho como siempre. La habilidad se llama "La flecha".
 - Dificultad remedida (20 vueltas): −0,45 (antes −1,35). Sigue en Paseo.
+- **En el par 3, la flecha desde el tee** (2026-10-21): el drive con pulso es la salida de los par 4; en el 17 no hay drive, así que del tee ya sale la flecha (`driveSueco` en `planTiro`). Remedido (80 vueltas, las mismas): −0,14 (antes +0,26); el 17 pasa de 3,66 a 3,26 golpes y el 15 y el 16 no cambian.
 
 ## 😤 La furia de Miguelón (2026-10-07)
 

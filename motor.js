@@ -122,7 +122,7 @@ export const HABILIDADES = {
   'Mike Queboni (Đ)': { id: 'bomba', corto: 'Desde el tee, la bomba al green.',  nombre: 'Drive al green', texto: 'Desde el tee, la bomba: la goma llega mucho más lejos (405 yd). Soltá en el sweet spot del latido y sale perfecta: al green. Ojo con la furia: si no pega la calle con el primero, no llega al green con el segundo o hace bogey, la barra se llena de a media. Llena, revolea el palo y el próximo tiro sale para cualquier lado.' },
   Tito: { id: 'viento', corto: 'Maneja el viento en vivo.', nombre: 'Tranqui, yo lo suspendo', texto: 'Tito Esperanza maneja el viento en vivo: mientras la pelota vuela, cada swipe en la pantalla es una ráfaga para ese lado (más largo, más fuerte) y la pelota se va para ahí. Las ráfagas se suman y se calman solas. Eso sí: en el green el putt es ultra sensible, un milímetro del dedo cambia la línea y la fuerza.' },
   Mapache: { id: 'caos', corto: 'Le pega increíble… si no aparece algo.', nombre: 'Tiros increíbles (y la mala suerte)', texto: 'Juanpa Pielach le pega increíble: la mitad del error. Pero cada tiro fuera del green, una de dos veces aparece algo: un árbol que la frena en el aire, una ráfaga que la corre o un carrito que viene de costado, se la lleva y la deja más allá. Antes de pegar ves lo que se viene (y para qué lado), y después de una sorpresa el próximo sale limpio. Y cuando la está por meter (también en el green), a veces sale un mapache del hoyo, la frena y se va rajando: la deja casi dada.' },
-  'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después, la flecha.', nombre: 'La flecha', texto: 'El drive, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro, una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
+  'El Sueco': { id: 'derecho', corto: 'El drive con pulso; después (y en el par 3), la flecha.', nombre: 'La flecha', texto: 'El drive de los par 4, con el pulso de Fito: la línea se sacude y si soltás en el embudo sale derecha. Desde el segundo tiro (y en el par 3, desde el tee), una flecha: va derecho y atraviesa todo, hasta los árboles. El putt, derecho.' },
   'Fito (Đ)': { id: 'aguila', corto: 'El embudo y el chip in: cerca del green, la mete.',  nombre: 'Chip in', texto: 'Drive y hierros con el pulso a mil: soltá en el embudo y sale derecha. Cerca del green, imán: si la chipeás al green, entra.' },
   // del chat del SDGA:
   Lechu: { id: 'dadas', nombre: 'Contando todas las dadas', texto: 'Joaco no falla los putts de 15 metros o menos: le pegues como le pegues, entra.' },
@@ -1702,9 +1702,12 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
   if (hab?.id === 'caos') plan.disp = { ...plan.disp, ang: plan.disp.ang * SORPRESA.error, carry: plan.disp.carry * SORPRESA.error }
   // Marcos: con racha, menos error (cada tiro bueno seguido, un poco menos)
   if (hab?.id === 'carrito' && r.racha) { const k = factorRacha(r); plan.disp = { ...plan.disp, ang: plan.disp.ang * k, carry: plan.disp.carry * k }; plan.racha = r.racha }
-  if (hab?.id === 'derecho' && !tee) {
-    // El Sueco, desde el segundo tiro: una flecha. Derecho (sin error de dirección), bajo y rápido, y atraviesa
-    // todo: los pinos y los monos que se cruzan en el vuelo (2026-10-07, antes era "siempre derecho" también el drive)
+  // El Sueco: el drive con el pulso es la salida de los par 4; en el par 3 (el 17) no hay drive: del tee, la flecha
+  const driveSueco = hab?.id === 'derecho' && tee && par !== 3
+  if (hab?.id === 'derecho' && !driveSueco) {
+    // El Sueco, desde el segundo tiro (y en el par 3, desde el tee): una flecha. Derecho (sin error de dirección), bajo
+    // y rápido, y atraviesa todo: los pinos y los monos que se cruzan en el vuelo (2026-10-07, antes era "siempre
+    // derecho" también el drive)
     plan.disp = { ...plan.disp, ang: 0 }
     plan.flecha = true
   }
@@ -1729,7 +1732,7 @@ export function planTiro(campo, r, angulo, potencia, precision = 0, tiempo = 0, 
     plan.control = [b[0] + Math.cos(angulo) * l, b[1] + Math.sin(angulo) * l]
     plan.disp = { ...plan.disp, ang: plan.disp.ang * COMBA.error }
   }
-  if (hab?.id === 'aguila' || (hab?.id === 'derecho' && tee)) {
+  if (hab?.id === 'aguila' || driveSueco) {
     // la línea de tiro se sacude; `tiempo` = segundos desde que empezó a apuntar (Fito siempre; El Sueco, en el drive)
     const desvio = AGUILA.amplitud * Math.sin((2 * Math.PI * tiempo) / AGUILA.periodo)
     const enVentana = Math.abs(desvio) <= AGUILA.ventana

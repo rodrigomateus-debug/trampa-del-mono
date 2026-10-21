@@ -351,7 +351,7 @@ ok('Rodal: Lucas solo lo adula, pegue como pegue, y con frases del tiro que peg�
   assert.ok(otro.lg && !otro.lucas)
 })
 
-ok('Mati (El Sueco): el drive con el pulso de Fito; después, la flecha que atraviesa los árboles', () => {
+ok('Mati (El Sueco): el drive con el pulso de Fito; después (y en el tee del par 3), la flecha que atraviesa los árboles', () => {
   const r = { ...M.nuevaRonda({ apodo: 'El Sueco', emoji: '🇸🇪', hcp: 1.5 }, fijo(0.5)), monos: [], viento: calma }
   const linea = angulo(r.pelota, h15.pin)
   // el drive: la línea se sacude como la de Fito; en el embudo sale derecha (y sin imán)
@@ -367,6 +367,14 @@ ok('Mati (El Sueco): el drive con el pulso de Fito; después, la flecha que atra
   const largo = M.simular(quieto, M.golpear(quieto, { ...r, pelota: [...t0], lie: 'tee' }, linea, 1, sinRuido(), 0, 0), h15.pin)
   const yd = M.dist(t0, largo.pos) * h15.escala
   assert.ok(yd > 280 && yd < 310, `anduvo ${yd.toFixed(0)} yd`)
+  // en el par 3 (el 17) no hay drive: del tee ya sale la flecha (sin sacudón); en el 16, el drive con pulso
+  const r17 = { ...r, idx: 2, pelota: [...M.teeDe(r, h17)], lie: 'tee' }
+  const p17 = M.planTiro(quieto, r17, angulo(r17.pelota, h17.pin), 0.8, 0, M.AGUILA.periodo / 4)
+  assert.equal(h17.par, 3)
+  assert.ok(p17.flecha && !p17.aguila && p17.cuerda === angulo(r17.pelota, h17.pin))
+  const r16 = { ...r, idx: 1, pelota: [...M.teeDe(r, h16)], lie: 'tee' }
+  const p16 = M.planTiro(quieto, r16, angulo(r16.pelota, h16.pin), 1, 0, M.AGUILA.periodo / 4)
+  assert.ok(p16.aguila && !p16.flecha)
   // del segundo tiro en adelante: la flecha. Derecho, sin sacudón, y atraviesa los pinos
   const desde = [h15.tee[0] - 18, h15.tee[1] - 60] // en el bosque de la izquierda, con pinos adelante
   const rr = { ...r, pelota: [...desde], lie: 'rough' }
