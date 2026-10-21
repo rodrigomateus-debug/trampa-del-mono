@@ -1851,6 +1851,32 @@ input { -webkit-user-select: text; user-select: text; }
 
 /* ── 🎰 La Ruleta: la carta del mazo, la ruleta antes de cada tiro y quién pegó cada uno ── */
 .carta.ruleta .carta-foto { background: radial-gradient(circle at 50% 42%, #2e7d4f, #0c2b1c 78%); overflow: hidden; container-type: size; }
+/* ✦ los modos especiales (la Ruleta y el Draft): no son players. En violeta, con un aro que brilla, y al final del mazo */
+.carta.modo { background: linear-gradient(180deg, #2c1656, #1b0c35); color: #f3ecff; box-shadow: inset 0 0 0 3px #a77bff, 0 10px 30px rgba(20, 6, 40, .6), 0 0 28px rgba(167, 123, 255, .5); }
+.carta.modo .carta-foto { background: radial-gradient(circle at 50% 42%, #7046c9, #1b0c35 78%); margin: 3px 3px 0; border-radius: 21px 21px 0 0; }
+.carta.modo .carta-foto .rl-col img, .carta.modo .carta-foto .rl-col span { background: #4b2a86; box-shadow: 0 0 0 2px rgba(201, 167, 255, .5); }
+.carta.modo .carta-degrade { background: linear-gradient(to top, rgba(27, 12, 53, .95), transparent); }
+.carta.modo .carta-nivel { background: #b58cff; color: #1b0c35; box-shadow: 0 0 14px rgba(181, 140, 255, .8); }
+.carta.modo .carta-hab, .carta.modo .carta-dif { background: rgba(27, 12, 53, .88); color: #d9c8ff; }
+.carta.modo .carta-nombre .teja { background: #f3ecff; box-shadow: 0 0 0 2px #b58cff; }
+.carta.modo .carta-frase { color: #e9dcff; }
+.carta.modo dt, .carta.modo dd .sub { color: #b9a3e6; }
+.carta.modo dd { color: #fff; }
+.carta.modo .carta-prev { background: #3d2073; }
+.carta.modo .carta-prev b { color: #d9c8ff; }
+.carta.modo .carta-prev .mas { background: #b58cff; color: #1b0c35; }
+.carta.modo .carta-jugar { background: #b58cff; color: #1b0c35; }
+.puntos span.modo { background: rgba(181, 140, 255, .55); }
+.puntos span.modo:not(.modo + .modo) { margin-left: 7px; }
+.puntos span.modo.activo { background: #b58cff; }
+.todo-sec { list-style: none; margin: 10px 2px 0; font: 22px/1.1 var(--font-display); letter-spacing: .03em; color: #d9c8ff; }
+.todo-sec small { display: block; margin-top: 2px; font: 700 12px/1.3 var(--font-body); letter-spacing: .02em; color: rgba(217, 200, 255, .8); }
+.todo.modo { background: linear-gradient(160deg, #3a1d6e, #1f0e3d); color: #f3ecff; box-shadow: 0 0 0 2px #a77bff, 0 0 22px rgba(167, 123, 255, .4); }
+.todo.modo .todo-nombre span { color: #d9c8ff; }
+.todo.modo .carta-jugar { background: #b58cff; color: #1b0c35; }
+.todo.modo .carta-prev { background: #2a1450; }
+.todo.modo .carta-prev b { color: #d9c8ff; }
+.todo.modo .carta-frase { color: #e9dcff; }
 /* el tragamonedas se achica con la foto (en los teléfonos chicos la foto es bajita): sin cartel ni chip si no entran */
 .carta.ruleta .rl-maquina { --rl-v: clamp(48px, 34cqh, 132px); }
 @supports not (height: 1cqh) { .carta.ruleta .rl-maquina { --rl-v: clamp(56px, 13vh, 132px); } }
@@ -1931,8 +1957,8 @@ body.eligiendo #dicky, body.eligiendo #lucas { bottom: var(--draft-alto, 0px); w
 body.eligiendo #dicky .globo, body.eligiendo #lucas .globo { font-size: 14px; }
 body.eligiendo #contra-btn { bottom: calc(var(--draft-alto, 0px) + 12px); }
 /* la carta del mazo: tres naipes en abanico con las caras que van pasando (el del medio, dorado), y el mosaico atrás */
-.carta.draft .dr-abanico { --dr-v: clamp(40px, 27cqh, 104px); position: absolute; z-index: 1; left: 50%; top: 44%; width: var(--dr-v); height: calc(var(--dr-v) * 1.3); transform: translate(-50%, -50%); }
-@supports not (height: 1cqh) { .carta.draft .dr-abanico { --dr-v: clamp(54px, 11vh, 104px); } }
+.carta.draft .dr-abanico { --dr-v: clamp(52px, 39cqh, 146px); position: absolute; z-index: 1; left: 50%; top: 45%; width: var(--dr-v); height: calc(var(--dr-v) * 1.3); transform: translate(-50%, -50%); }
+@supports not (height: 1cqh) { .carta.draft .dr-abanico { --dr-v: clamp(64px, 15vh, 146px); } }
 .dr-abanico .dr-naipe { position: absolute; inset: 0; overflow: hidden; border-radius: 12px; border: 3px solid var(--game-ink); background: var(--green-700); box-shadow: 4px 5px 0 var(--game-ink); transform-origin: 50% 135%; }
 .dr-abanico .dr-naipe:nth-child(1) { transform: rotate(-20deg); }
 .dr-abanico .dr-naipe:nth-child(2) { z-index: 1; transform: translateY(-8%); border-color: var(--gold); box-shadow: 4px 5px 0 var(--game-ink), 0 0 24px rgba(232, 195, 74, .85); }
@@ -2908,8 +2934,9 @@ const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBo
 for (const el of document.querySelectorAll('[data-ico]')) el.innerHTML = gi(el.dataset.ico) // los íconos fijos del HTML
 // por ahora, para probar, solo los de EN_PRUEBA
 // ordenados por la dificultad real (con su habilidad, medida con calibrar.mjs); sin medir, por handicap al final
-// el nivel fijado a mano manda (Fito, Trampa total, va al final)
-const promReal = (j) => (DIFICULTAD_REAL[j.apodo]?.nivel ? 9 : 0) + (DIFICULTAD_REAL[j.apodo]?.prom ?? 10 + (j.hcp ?? M.HCP_SIN_CARGAR) / 10)
+// el nivel fijado a mano manda (Fito, Trampa total, va al final). Los modos especiales (la Ruleta y el Draft) no son
+// players: van después de todos, uno atrás del otro (en el orden de EN_PRUEBA), en violeta y sin nivel (2026-10-21)
+const promReal = (j) => (j.ruleta ? 1000 + EN_PRUEBA.indexOf(j.apodo) : (DIFICULTAD_REAL[j.apodo]?.nivel ? 9 : 0) + (DIFICULTAD_REAL[j.apodo]?.prom ?? 10 + (j.hcp ?? M.HCP_SIN_CARGAR) / 10))
 const PLANTEL = TODOS.filter((j) => EN_PRUEBA.includes(j.apodo) && !j.pase).sort((a, b) => promReal(a) - promReal(b)) // Fito de pase, secreto: ver sincronizarSecreto
 // Los handicaps reales: adentro de la SDGApp, la app manda el HCP index de cada uno en la FedE Cup (sdga:plantel)
 // y pisa el de plantel.js (también en la Ruleta: es el mismo objeto). Nunca en medio de una vuelta: si llega
@@ -13395,8 +13422,10 @@ let mazoDrag = null
 const cartasDom = new Map()
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 // handicap aproximado (lo pasó Rorro, no está en la base): con ≈
-// el nivel es el lugar entre los de siempre (de más fácil a más difícil); Demetrio, que va primero, es ★
-const nivelDe = (j) => (j.secreto ? '★' : PLANTEL.filter((x) => !x.secreto).indexOf(j) + 1)
+// el nivel es el lugar entre los de siempre (de más fácil a más difícil); Demetrio, que va primero, es ★. Los modos
+// especiales no tienen: dicen "Modo especial"
+const nivelDe = (j) => (j.secreto ? '★' : PLANTEL.filter((x) => !x.secreto && !x.ruleta).indexOf(j) + 1)
+const nivelTxt = (j) => (j.ruleta ? 'Modo especial' : `Nivel ${nivelDe(j)}`)
 const hcpTxt = (j) => j.hcpTexto ?? (j.hcp == null ? '—' : `${j.aprox ? '≈' : ''}${j.hcp}`)
 // "HCP 12", o lo que diga en su lugar (Demetrio: "Pro Player")
 const hcpEtiqueta = (j) => j.hcpTexto ?? `HCP ${hcpTxt(j)}`
@@ -13526,12 +13555,12 @@ function cartaDe(j) {
   const glitch = !!j.cancha3d // 🥃 Rorro: la carta glitcheada, y la habilidad no se dice
   const el = document.createElement('div')
   el.className = 'envoltorio'
-  el.innerHTML = `<article class="carta${j.retro ? ' dorada' : ''}${j.ruleta ? ' ruleta' : ''}${j.draft ? ' draft' : ''}${glitch ? ' glitch' : ''}${lock ? ' bloqueada' : ''}">
+  el.innerHTML = `<article class="carta${j.retro ? ' dorada' : ''}${j.ruleta ? ' ruleta modo' : ''}${j.draft ? ' draft' : ''}${glitch ? ' glitch' : ''}${lock ? ' bloqueada' : ''}">
     <div class="carta-foto">
       ${j.draft ? fotoDraft(j) : j.ruleta ? fotoRuleta(j) : glitch ? fotoGlitch(j) : j.foto ? `<img src="${j.foto}" alt="${esc(j.apodo)}" draggable="false">` : `<div class="carta-emoji" aria-hidden="true">${j.emoji}</div>`}
       <div class="carta-degrade"></div>
       <div class="carta-marcas">
-        <span class="carta-nivel">Nivel ${nivel} · ${hcpEtiqueta(j)}</span>
+        <span class="carta-nivel">${j.ruleta ? '✦ Modo especial' : `Nivel ${nivel} · ${hcpEtiqueta(j)}`}</span>
         ${glitch ? '<span class="carta-hab">✨ ▒▒▓░▒ ▓▒░</span>' : hab ? `<span class="carta-hab">✨ ${esc(hab.nombre)}</span>` : ''}
       </div>
       <span class="carta-dif d${dif.nivel}">${dif.nombre}</span>
@@ -13594,8 +13623,9 @@ function pintarMazo() {
   for (const el of [top, back]) if (el) el.style.transition = 'none'
   pintarArrastre(0)
   const i = ((mazoI % n) + n) % n
-  $('#mazo-sub').textContent = `${i + 1} de ${n} · ↔ pasar · de más fácil a más difícil`
-  $('#mazo-puntos').innerHTML = PLANTEL.map((_, k) => `<span class="${k === i ? 'activo' : ''}"></span>`).join('')
+  const modos = PLANTEL.filter((x) => x.ruleta), m = modos.indexOf(actual)
+  $('#mazo-sub').textContent = m >= 0 ? `Modo especial ${m + 1} de ${modos.length} · ↔ pasar · no son players` : `${i + 1} de ${n - modos.length} · ↔ pasar · de más fácil a más difícil`
+  $('#mazo-puntos').innerHTML = PLANTEL.map((x, k) => `<span class="${[k === i ? 'activo' : '', x.ruleta ? 'modo' : ''].join(' ').trim()}"></span>`).join('')
 }
 function cartasActivas() {
   const cont = $('#mazo-cartas')
@@ -13874,10 +13904,11 @@ function mostrarTodos() {
       ${requisitos(desbloqueoDe(j))}
     </li>`
     }
-    return `<li class="todo${j.retro ? ' dorado' : ''}">
+    const sec = j.ruleta && !PLANTEL[i - 1]?.ruleta ? '<li class="todo-sec">✦ Modos especiales<small>No son players: cada tiro pega otro</small></li>' : ''
+    return `${sec}<li class="todo${j.retro ? ' dorado' : ''}${j.ruleta ? ' modo' : ''}">
       <div class="todo-cab">
         <div class="cara" aria-hidden="true">${cara}<span class="emo">${j.emoji}</span></div>
-        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>NIVEL ${nivelDe(j)} · ${hcpEtiqueta(j).toUpperCase()} · ${dif.nombre.toUpperCase()}</span></div>
+        <div class="todo-nombre"><b>${esc(j.apodo)}</b><span>${nivelTxt(j).toUpperCase()} · ${hcpEtiqueta(j).toUpperCase()} · ${dif.nombre.toUpperCase()}</span></div>
         ${j.dicky ? '<img class="todo-dicky" src="dicky-toons.svg" alt="Dicky Toons" title="Dicky Toons" draggable="false">' : ''}${j.equipo === 5 ? '<img class="todo-dicky" src="equipo-5.svg" alt="Equipo 5" title="Equipo 5" draggable="false">' : ''}
         <button class="carta-jugar" type="button" data-jugar="${i}">Jugar</button>
       </div>
