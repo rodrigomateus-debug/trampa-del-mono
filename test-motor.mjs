@@ -1597,8 +1597,10 @@ ok('🐒 la Mugre se los lleva: comiendo el pancho los agarrás y cada 5, un gol
   assert.equal(M.totales(r.tarjeta).golpes, 12)
   const otro = () => ({ modo: 'come', pos: [0, 0], pancho: [0, 0] })
   for (let i = 0; i < 3; i++) assert.equal(M.llevarMono(r, otro()).premio, false)
+  r.menosHoyo = 0
   assert.deepEqual(M.llevarMono(r, otro()), { n: 5, premio: true })
   assert.equal(r.tarjeta.monos, -1)
+  assert.equal(r.menosHoyo, 1, 'el golpe menos es del hoyo en que juntó el quinto (para el fourball)')
   assert.equal(M.totales(r.tarjeta).golpes, 11)
   assert.equal(M.totales(r.tarjeta).vsPar, 0)
   // en el hoyo que sigue, el que te llevaste vuelve a sus pinos
@@ -1607,7 +1609,11 @@ ok('🐒 la Mugre se los lleva: comiendo el pancho los agarrás y cada 5, un gol
   Object.assign(s2, { modo: 'come', pancho: [...s2.pos], panchoEn: [...s2.pos] })
   M.llevarMono(r2, s2)
   r2.golpes = 4
+  r2.menosHoyo = 1
   M.cerrarHoyo(r2, fijo(0.5))
+  assert.equal(r2.tarjeta[0].menos, 1)
+  assert.equal(r2.menosHoyo, 0)
+  assert.deepEqual(M.hoyosDeTarjeta(r2.tarjeta), [3, null, null])
   assert.equal(s2.modo, 'ronda')
   assert.deepEqual(s2.pos, s2.m.a)
   assert.equal(r2.llevados, 1, 'la cuenta es de toda la vuelta')
@@ -2011,6 +2017,7 @@ ok('🏹 La flecha del Sueco pincha al mono que se cruza, se lo lleva hasta dond
   M.resolverReposo(quieto, r, t, fijo(0.5))
   assert.equal(r.pinchados, 1)
   assert.equal(r.tarjeta.flecha, -1)
+  assert.equal(r.menosHoyo, 1) // en el fourball, del hoyo en que lo pinchó
   assert.deepEqual(M.totales(r.tarjeta), { golpes: 10, par: 11, vsPar: -1, lp: false })
   assert.match(M.textoCompartir({ ...r, ms: 90000 }, true), /🏹 −1/)
   r.tarjeta = []
@@ -2852,6 +2859,8 @@ ok('⚔️ fourball: mejor y suma (2 puntos por hoyo, ½ en empate), LP por hoyo
   // los puntos con medios y los golpes de la tarjeta
   assert.deepEqual([0, 0.5, 3, 3.5, 6].map(M.formatoPuntos), ['0', '½', '3', '3½', '6'])
   assert.deepEqual(M.hoyosDeTarjeta([{ golpes: 5 }, { golpes: 4, lp: true }]), [5, null, null])
+  // con los golpes menos del hoyo (la Mugre, la flecha), y nunca menos de 1
+  assert.deepEqual(M.hoyosDeTarjeta([{ golpes: 5, menos: 1 }, { golpes: 4 }, { golpes: 1, menos: 2 }]), [4, 4, 1])
 })
 
 ok('⚔️ fourball: el ranking de jugadores y parejas (G/E/P), sin el lugar vacío y con la vuelta oculta como LP', () => {

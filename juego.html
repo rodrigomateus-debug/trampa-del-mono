@@ -9772,7 +9772,9 @@ const VISTOS = 'sdga-trampa-match-vistos-v1'
 const vistos = () => new Set(leerJSON(VISTOS) ?? [])
 function leerJSON(k) { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } }
 const yoUid = () => R.puente.identidad?.uid
-const golpesVan = (r) => r.tarjeta.reduce((t, f) => t + (f.golpes ?? 0), 0) + r.golpes
+// (con los golpes menos que se ganaron en cada hoyo: así la grabación —el fantasma, el replay, el hoyo a hoyo— los cuenta
+// en el hoyo en que pasaron, como el fourball)
+const golpesVan = (r) => r.tarjeta.reduce((t, f) => t + (f.golpes == null ? 0 : f.golpes - (f.menos ?? 0)), 0) + r.golpes - (r.menosHoyo ?? 0)
 /** Lo que me toca mirar: desafíos para jugar y resultados de los que mandé que todavía no vi. */
 function pendientesMatch(ds = mtDesafios) {
   if (!ds) return 0
@@ -11319,8 +11321,8 @@ async function avisarFb(f) {
 function pintarMarcadorFb(ms) {
   const d = ronda.duelo
   const yoAhora = ronda.terminada ? -1 : ronda.idx
-  const mios = M.HOYOS.map((h, k) => { const f = ronda.tarjeta[k]; return f ? (f.lp ? null : f.golpes) : ronda.terminada ? null : undefined })
-  const filas = [{ l: d.lugar, yo: true, nombre: 'VOS', emoji: ronda.carta?.emoji ?? ronda.jugador.emoji, hoyos: mios, ver: mios.map((v, k) => (v === undefined && k === yoAhora ? ronda.golpes : v)), ahora: yoAhora }]
+  const mios = M.HOYOS.map((h, k) => { const f = ronda.tarjeta[k]; return f ? (f.lp ? null : M.golpesDelHoyo(f)) : ronda.terminada ? null : undefined })
+  const filas = [{ l: d.lugar, yo: true, nombre: 'VOS', emoji: ronda.carta?.emoji ?? ronda.jugador.emoji, hoyos: mios, ver: mios.map((v, k) => (v === undefined && k === yoAhora ? Math.max(0, ronda.golpes - (ronda.menosHoyo ?? 0)) : v)), ahora: yoAhora }]
   for (const x of d.fantasmas ?? []) {
     const m = M.marcadorFantasma(x.g, ms)
     if (x.lpEn === undefined) x.lpEn = lpDelFantasma(x.g)
@@ -11605,7 +11607,8 @@ function finMatch(r) {
   if (d.fin) return d.fin
   const t = M.totales(r.tarjeta)
   const lp = !!r.lp
-  // ⚔️ en el fourball cuenta cada hoyo: el total es la suma de los hoyos (sin el −1 de los monos ni la apuesta de Marcos)
+  // ⚔️ en el fourball cuenta cada hoyo: el total es la suma de los hoyos, con el −1 de los monos (la Mugre, la flecha del
+  // Sueco) en el hoyo en que pasó; sin la apuesta de Marcos
   const hoyos = d.tipo === 'fourball' ? M.hoyosDeTarjeta(r.tarjeta) : null
   if (hoyos && !lp) { t.golpes = hoyos.reduce((a, x) => a + x, 0); t.vsPar = t.golpes - M.HOYOS.reduce((a, h) => a + h.par, 0) }
   // si levantó, el tiempo hasta que levantó (si los dos levantan, gana el que aguantó más)
@@ -11735,8 +11738,8 @@ function pintarMarcador(ms) {
   // mis golpes: los hoyos cerrados de la tarjeta y el que estoy jugando
   const mios = M.HOYOS.map((h, k) => {
     const f = ronda.tarjeta[k]
-    if (f) return f.lp ? 'LP' : f.golpes
-    return k === ronda.idx && !ronda.terminada ? ronda.golpes : null
+    if (f) return f.lp ? 'LP' : M.golpesDelHoyo(f) // (con el golpe menos de ese hoyo, como el fantasma)
+    return k === ronda.idx && !ronda.terminada ? Math.max(0, ronda.golpes - (ronda.menosHoyo ?? 0)) : null
   })
   const yoLp = mios.includes('LP')
   const yoTotal = golpesVan(ronda)
