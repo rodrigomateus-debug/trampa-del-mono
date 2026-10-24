@@ -2417,6 +2417,40 @@ ok('🚩 el Marshall (el Sueco en la Final): No la vi, Amarilla al mono y Lie me
   assert.ok(!M.puedeMarshall(otro, 'nolavi', quieto))
 })
 
+ok('🏆 el match de la Final: dos vueltas (15, 16, 17 dos veces), las dos marcas del ranking y la grabación de 6', () => {
+  const uno = M.condicionesMatch(77, Date.parse('2026-10-24T15:00:00Z'))
+  const dos = M.condicionesMatch(77, Date.parse('2026-10-24T15:00:00Z'), 2)
+  assert.equal(uno.pines.length, 3)
+  assert.equal(dos.pines.length, 6)
+  assert.deepEqual(dos.pines.slice(0, 3), uno.pines) // la primera vuelta, como un match de siempre
+  assert.deepEqual(dos.vientos.slice(0, 3), uno.vientos)
+  const sueco = RULETA.pool.find((j) => j.apodo === 'El Sueco')
+  const r = M.aplicarMatch({ ...M.nuevaRonda(sueco, fijo(0.5)), monos: [] }, dos)
+  assert.equal(M.nHoyos(r), 6)
+  assert.deepEqual(r.hoyos.map((h) => `${h.n}.${h.vuelta}`), ['15.1', '16.1', '17.1', '15.2', '16.2', '17.2'])
+  // seis hoyos: 4, 4, 3 y 5, 4, 2
+  for (const g of [4, 4, 3, 5, 4, 2]) { r.golpes = g; if (r.idx === 2) r.ms1 = 90000; M.cerrarHoyo(r, fijo(0.5)) }
+  assert.ok(r.terminada)
+  assert.equal(r.tarjeta.length, 6)
+  r.ms = 200000
+  assert.equal(M.totales(r.tarjeta).golpes, 22)
+  const vs = M.vueltasDe(r)
+  assert.deepEqual(vs.map((v) => [v.golpes, v.vsPar, v.ms]), [[11, 0, 90000], [11, 0, 110000]])
+  const ms = M.marcasDe(r, 'Rorro')
+  assert.equal(ms.length, 2)
+  assert.deepEqual(ms.map((m) => [m.golpes, m.vsPar, m.ms, m.tarjeta.length]), [[11, 0, 90000, 3], [11, 0, 110000, 3]])
+  // una de 3, como siempre
+  const r3 = { ...M.nuevaRonda(sueco, fijo(0.5)), monos: [] }
+  for (const g of [4, 4, 3]) { r3.golpes = g; M.cerrarHoyo(r3, fijo(0.5)) }
+  r3.ms = 80000
+  assert.equal(M.marcasDe(r3, 'Rorro').length, 1)
+  // la grabación: de cuántos hoyos es
+  assert.equal(M.hoyosGrabados([[0, 0, 1, 1, 0, 0], [9000, 3, 7, 7, 0, 11]]), 3)
+  assert.equal(M.hoyosGrabados([[0, 0, 1, 1, 0, 0], [9000, 3, 7, 7, 0, 11], [9500, 3, 8, 8, 0, 12], [20000, 6, 7, 7, 0, 22]]), 6)
+  const g6 = [[0, 0, 1, 1, 0, 0], [1000, 0, 1, 1, 0, 4], [2000, 1, 1, 1, 0, 8], [3000, 2, 1, 1, 0, 11], [4000, 3, 1, 1, 0, 16], [5000, 4, 1, 1, 0, 20], [6000, 5, 1, 1, 0, 22], [7000, 6, 1, 1, 0, 22]]
+  assert.deepEqual(M.marcadorFantasma(g6, Infinity).porHoyo, [4, 4, 3, 5, 4, 2])
+})
+
 ok('🦉📺 el Equipo 5: chicanas a los Dicky, la respuesta con amor y el aliento entre ellos (Joaco y Lucas, sin "(Đ)")', () => {
   const por = (a) => RULETA.pool.find((j) => j.apodo === a)
   const lechu = por('Lechu'), lg = por('LG'), fito = por('Fito (Đ)')

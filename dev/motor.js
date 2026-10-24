@@ -417,7 +417,11 @@ export const colorTee = (jugador) => {
 /** El tee de la ronda en el hoyo actual (o en `h`). */
 export const teeDe = (r, h = HOYOS[r.idx]) => h.tees[r.tee ?? 'blanca']
 /** Yardas reales de una distancia del dibujo, en el hoyo que se juega. */
-export const aYardas = (r, d) => d * (HOYOS[Math.min(r.idx, HOYOS.length - 1)].escala)
+export const aYardas = (r, d) => d * ((r.hoyos ?? HOYOS)[Math.min(r.idx, nHoyos(r) - 1)].escala)
+/** Cuántos hoyos tiene la vuelta: 3 (15, 16 y 17); en los matches de la Final, 6 (dos vueltas: `aplicarMatch`). */
+export const nHoyos = (r) => (r?.hoyos ?? HOYOS).length
+/** Los hoyos de la vuelta (1.ª o 2.ª) que se está jugando: los otros greens que se ven son los de esta. */
+const hoyosDeLaVuelta = (r) => { const hs = r.hoyos ?? HOYOS, v = hs[Math.min(r.idx, hs.length - 1)]?.vuelta ?? 1; return hs.filter((h) => (h.vuelta ?? 1) === v) }
 
 // El drive (carry máximo, en yardas reales) según el handicap: ~273 con HCP 0 (con el rodaje, ~300) y ~241 con HCP 22
 // (~265 con el rodaje; a fondo y con error, promedian 230–250).
@@ -1084,19 +1088,32 @@ export function chocarRacha(r, impacto) {
 // semilla (no del player que elija cada uno). El error de los tiros y los monos, no: eso es de cada uno.
 export const MATCH = { muestraMs: 100, maxMuestras: 6000 }
 /** El viento de cada hoyo, las banderas y el clima de un match, a partir de su semilla (y la fecha del desafío: NIEVE). */
-export function condicionesMatch(semilla, fecha = Date.now()) {
+export function condicionesMatch(semilla, fecha = Date.now(), vueltas = 1) {
   const rv = rngDesde(semilla), rb = rngDesde((semilla ^ 0x5bd1e995) >>> 0)
   const vientos = HOYOS.map(() => vientoAleatorio(rv))
   const conBanderas = sortearBanderas({}, rb)
   const rc = rngDesde((semilla ^ 0x27d4eb2f) >>> 0) // el clima: otra tirada, así el viento y las banderas no cambian
   const clima = sortearClima(rc, fecha)
-  return { semilla, vientos, pines: conBanderas.hoyos.map((h) => ({ pin: [...h.pin], bandera: h.bandera })), clima, semillaClima: Math.floor(rc() * 4294967296) }
+  const pines = conBanderas.hoyos.map((h) => ({ pin: [...h.pin], bandera: h.bandera }))
+  // 🏆 la Final: dos vueltas (15, 16, 17, 15, 16, 17), la segunda con otras banderas y otro viento (de las mismas tiradas)
+  for (let v = 1; v < vueltas; v++) {
+    vientos.push(...HOYOS.map(() => vientoAleatorio(rv)))
+    pines.push(...sortearBanderas({}, rb).hoyos.map((h) => ({ pin: [...h.pin], bandera: h.bandera })))
+  }
+  return { semilla, vientos, pines, clima, semillaClima: Math.floor(rc() * 4294967296), vueltas }
 }
 // el MODO PRO del match: sin líneas punteadas ni zona de pique (no ves dónde cae). Va marcado en la semilla del
 // desafío (los 16 bits de abajo = `marca`), así viaja con el match sin tocar la base: el que responde juega igual
 export const PRO = { marca: 0xb0ca }
 export const esPro = (semilla) => ((semilla >>> 0) & 0xffff) === PRO.marca
 export const semillaPro = (semilla) => (((semilla >>> 0) & 0xffff0000) | PRO.marca) >>> 0
+/** Los hoyos de un match con sus banderas (en la Final, seis: `vuelta` 1 o 2). */
+export const hoyosDelMatch = (cond) => cond.pines.map((p, i) => ({ ...HOYOS[i % HOYOS.length], pin: [...p.pin], bandera: p.bandera, ...(cond.pines.length > HOYOS.length && { vuelta: 1 + Math.floor(i / HOYOS.length) }) }))
+/** De cuántos hoyos es la vuelta grabada: 3, o 6 si llegó a la segunda vuelta (un match de la Final). */
+// (la vuelta de 3 termina con una muestra en el "hoyo 3", la bandera del 17: una sola; la de 6 tiene muchas ahí y más)
+export const hoyosGrabados = (g) => (Array.isArray(g) && (g.some((m) => m[1] > HOYOS.length) || g.filter((m) => m[1] === HOYOS.length).length > 1) ? 2 * HOYOS.length : HOYOS.length)
+/** Los hoyos de una vuelta de `n` hoyos (sin banderas: para las tablas). */
+export const hoyosDeN = (n) => Array.from({ length: n }, (_, i) => ({ ...HOYOS[i % HOYOS.length], ...(n > HOYOS.length && { vuelta: 1 + Math.floor(i / HOYOS.length) }) }))
 /**
  * Pone las condiciones del match en la ronda (banderas y el viento del primer hoyo; los siguientes, en cerrarHoyo).
  * El clima lo pone la página después (ponerClima con cond.clima y cond.semillaClima): necesita la cancha.
@@ -1104,7 +1121,7 @@ export const semillaPro = (semilla) => (((semilla >>> 0) & 0xffff0000) | PRO.mar
 export function aplicarMatch(r, cond) {
   r.match = cond
   r.pro = esPro(cond.semilla)
-  r.hoyos = HOYOS.map((h, i) => ({ ...h, pin: [...cond.pines[i].pin], bandera: cond.pines[i].bandera }))
+  r.hoyos = hoyosDelMatch(cond)
   r.viento = { ...cond.vientos[r.idx] }
   if (r.ruleta) r.ruleta.rng = rngDesde((cond.semilla ^ 0x2545f491) >>> 0) // la Ruleta: la misma tanda de players para los dos
   return r
@@ -1181,8 +1198,8 @@ export function pausasDebug(g) {
  * así que los de un hoyo = el acumulado al terminarlo − el del hoyo anterior). `porHoyo[k]` es null si todavía no llegó
  * a ese hoyo; el del hoyo que está jugando va contando en vivo. `idx` = el hoyo que juega, `fin` = ya terminó.
  */
-export function marcadorFantasma(g, ms) {
-  const porHoyo = HOYOS.map(() => null)
+export function marcadorFantasma(g, ms, n = hoyosGrabados(g)) {
+  const porHoyo = Array.from({ length: n }, () => null)
   if (!g?.length || ms < g[0][0]) return { porHoyo, idx: g?.[0]?.[1] ?? 0, total: 0, fin: false }
   let lo = 0, hi = g.length - 1
   while (lo < hi) { const m = (lo + hi + 1) >> 1; if (g[m][0] <= ms) lo = m; else hi = m - 1 }
@@ -2717,7 +2734,7 @@ export function golpear(campo, r, angulo, potencia, rng, precision = 0, tiempo =
     const [a0, a1] = BACKSPIN.azar
     tiro.backspin = { d: (yardasBackspin(tiro.carry * hb.escala) * (a0 + (a1 - a0) * u)) / hb.escala, desvio: (w - 0.5) * 2 * BACKSPIN.desvio }
   }
-  tiro.ajenos = (r.hoyos ?? HOYOS).filter((h) => h.n !== hoyoActual(r).n).map((h) => ({ n: h.n, pin: h.pin }))
+  tiro.ajenos = hoyosDeLaVuelta(r).filter((h) => h.n !== hoyoActual(r).n).map((h) => ({ n: h.n, pin: h.pin }))
   tiro.greenPlano = hab?.id === 'perro' || retro // a Demetrio la caída del green tampoco le hace nada
   tiro.calma = !!r.calma
   r.calma = false
@@ -2878,7 +2895,7 @@ function resolver(campo, r, tiro, rng) {
   if (tiro.embocada) return { tipo: 'embocada' }
   if (tiro.ajena) {
     // en el hoyo de OTRO: el golpe cuenta y se sigue jugando el propio. Alivio sin multa, afuera de ese green
-    const otro = (r.hoyos ?? HOYOS).find((h) => h.n === tiro.ajena)
+    const otro = hoyosDeLaVuelta(r).find((h) => h.n === tiro.ajena)
     r.ajenas = (r.ajenas ?? 0) + 1
     r.pelota = alivioDeGreen(campo, otro.pin, hoyo.pin) ?? [...r.desde]
     r.lie = terreno(campo, r.pelota).tipo
@@ -2968,8 +2985,8 @@ export function levantar(r) {
   calmarMonos(r.monos)
   r.lp = hoyoActual(r).n
   r.menosHoyo = null
-  for (const h of HOYOS.slice(r.idx)) r.tarjeta.push({ n: h.n, par: h.par, golpes: null, lp: true })
-  r.idx = HOYOS.length
+  for (const h of (r.hoyos ?? HOYOS).slice(r.idx)) r.tarjeta.push({ n: h.n, par: h.par, golpes: null, lp: true })
+  r.idx = nHoyos(r)
   r.terminada = true
   return r.lp
 }
@@ -2990,7 +3007,7 @@ export function cerrarHoyo(r, rng) {
   if (habilidadDe(r.jugador)?.id === 'bomba' && fila.golpes - fila.par >= 1) sumarFuria(r, 'bogey')
   r.tirosHoyo = 0
   r.idx += 1
-  if (r.idx >= HOYOS.length) {
+  if (r.idx >= nHoyos(r)) {
     r.terminada = true
   } else {
     const sig = hoyoActual(r)
@@ -3087,6 +3104,29 @@ export function marcaDe(r, usuario) {
   if (t.lp || r.ms == null || !r.terminada) return null
   const j = cartaDe(r)
   return { usuario: String(usuario ?? '').trim(), apodo: j.apodo, emoji: j.emoji, golpes: t.golpes, vsPar: t.vsPar, ms: Math.round(r.ms) }
+}
+
+/**
+ * 🏆 Las vueltas de la tarjeta, de a 3 hoyos (en un match de la Final, dos). Cada una con sus totales y su tiempo
+ * (`r.ms1`: el reloj al terminar el 17 de la primera, lo pone la página). La apuesta de Rorro va en la última.
+ */
+export function vueltasDe(r) {
+  const n = HOYOS.length, out = []
+  for (let k = 0; k * n < r.tarjeta.length; k++) {
+    const t = r.tarjeta.slice(k * n, (k + 1) * n)
+    if (k === Math.ceil(r.tarjeta.length / n) - 1 && r.tarjeta.rorro) t.rorro = r.tarjeta.rorro
+    const ms = r.ms == null ? null : r.tarjeta.length <= n ? r.ms : k === 0 ? r.ms1 ?? null : r.ms1 != null ? r.ms - r.ms1 : null
+    out.push({ tarjeta: t, ...totales(t), ms })
+  }
+  return out
+}
+/** Las marcas del ranking de la vuelta: una (o, en un match de la Final, una por cada vuelta de 3 hoyos). */
+export function marcasDe(r, usuario) {
+  if (r.tarjeta.length <= HOYOS.length) { const m = marcaDe(r, usuario); return m ? [m] : [] }
+  if (!r.terminada || r.ms == null) return []
+  const j = cartaDe(r)
+  return vueltasDe(r).filter((v) => !v.lp && v.ms != null && v.tarjeta.length === HOYOS.length)
+    .map((v) => ({ usuario: String(usuario ?? '').trim(), apodo: j.apodo, emoji: j.emoji, golpes: v.golpes, vsPar: v.vsPar, ms: Math.max(1, Math.round(v.ms)), tarjeta: v.tarjeta }))
 }
 
 /** ¿La vuelta se jugó en MODO PRO? (va marcada en el detalle: compite solo en el ranking PRO) */
@@ -3373,14 +3413,14 @@ export function momentoDicky(res) {
 // (con el handicap y la habilidad del que atiende: la bomba de Miguelón, el embudo de Fito, el revés de Taiu…)
 // 🏆 Taiu en la Final (`dickyPorHoyo`, lo pone la página): una por hoyo, y cada vez a otro Dicky (una vez a cada uno).
 export const puedeDickyllamar = (r) => !!r.jugador?.dicky && !r.prestado && !r.terminada &&
-  (r.jugador.dickyPorHoyo ? !(r.dickyllamadas ?? []).some((l) => l.n === hoyoActual(r).n) : !r.dickyllamada)
+  (r.jugador.dickyPorHoyo ? !(r.dickyllamadas ?? []).some((l) => l.i === r.idx) : !r.dickyllamada)
 /** Los Dicky que ya atendieron en esta vuelta (con `dickyPorHoyo`, no se repiten). */
 export const yaLlamados = (r) => (r.dickyllamadas ?? []).map((l) => l.apodo)
 /** Llama a `dicky`: el próximo golpe lo pega él. Devuelve false si no se puede (ya la usó, no es Dicky, es él mismo). */
 export function dickyllamar(r, dicky, atiende = dicky) {
   if (!puedeDickyllamar(r) || !dicky?.dicky || dicky.apodo === r.jugador.apodo || yaLlamados(r).includes(dicky.apodo)) return false
   // `atiende`: el que atiende de verdad (la interna: a veces te atiende el Equipo 5 y pega él)
-  r.dickyllamada = { apodo: dicky.apodo, atendio: atiende.apodo, n: hoyoActual(r).n }
+  r.dickyllamada = { apodo: dicky.apodo, atendio: atiende.apodo, n: hoyoActual(r).n, i: r.idx }
   r.dickyllamadas = [...(r.dickyllamadas ?? []), r.dickyllamada]
   r.prestado = { antes: r.jugador, golpeMago: r.golpeMago }
   r.jugador = atiende
@@ -3408,14 +3448,14 @@ const multaDe = (tipo) => (['afuera', 'mono-malo', 'mono-ladron'].includes(tipo)
 function anotarParaMarshall(r, tiro, res) {
   r.marshall ??= { usadas: {}, ultimo: null }
   r.marshall.ultimo = res.tipo === 'embocada' ? null : {
-    n: hoyoActual(r).n, tiros: r.tirosHoyo, desde: [...r.desde], lieDesde: r.lieDesde, tipo: res.tipo,
+    i: r.idx, tiros: r.tirosHoyo, desde: [...r.desde], lieDesde: r.lieDesde, tipo: res.tipo,
     malo: esMalo(res, tiro), multa: multaDe(res.tipo), pos: res.desde ? [...res.desde] : null, mono: tiro.robada ?? null,
   }
 }
 /** El último tiro, si es el de recién (en este hoyo y sin otro tiro en el medio). */
 function ultimoTiro(r) {
   const u = r.marshall?.ultimo
-  return u && u.n === hoyoActual(r).n && u.tiros === (r.tirosHoyo ?? 0) ? u : null
+  return u && u.i === r.idx && u.tiros === (r.tirosHoyo ?? 0) ? u : null
 }
 /** Las opciones del Lie mejorado: el fairway del hoyo a la misma altura que la pelota (de un lado al otro, sin árboles). */
 export function opcionesLie(campo, r) {
@@ -3439,7 +3479,7 @@ export function opcionesLie(campo, r) {
 export function puedeMarshall(r, que, campo) {
   if (!esMarshall(r) || r.terminada || r.prestado || !FALLOS.includes(que)) return false
   const usadas = r.marshall?.usadas ?? {}
-  if (usadas[que] != null || Object.values(usadas).includes(hoyoActual(r).n)) return false
+  if (usadas[que] != null || Object.values(usadas).includes(r.idx)) return false
   const u = ultimoTiro(r)
   if (que === 'nolavi') return !!u?.malo
   if (que === 'amarilla') return !!u && (u.tipo === 'mono-malo' || u.tipo === 'mono-ladron')
@@ -3469,7 +3509,7 @@ export function fallar(campo, r, que, p = null) {
     r.pelota = [...mejor]
     r.lie = 'fairway'
   }
-  r.marshall.usadas[que] = h.n
+  r.marshall.usadas[que] = r.idx
   r.marshall.ultimo = null
   return true
 }
