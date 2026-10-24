@@ -2755,7 +2755,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
   </div>
   <button class="volver-app entra" id="volver-app" type="button" hidden style="--i: 4"><svg class="gi" viewBox="0 0 32 32" aria-hidden="true"><g><path d="M26 16H7.5M14.5 8.5L7 16l7.5 7.5" stroke-width="3"/></g></svg>Volver a la SDGApp</button>
   <span id="frase"></span>
-  <span class="version" id="version">v 5a02e3a · 24/10, 02:46 p. m.</span>
+  <span class="version" id="version">v b0d08fc · 24/10, 03:53 p. m.</span>
 </section>
 
 <section class="mazo" id="elegir" hidden aria-label="Elegí tu nivel de dificultad">
@@ -2904,6 +2904,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
     </div>
     <p class="mt-prueba" id="mt-prueba" hidden>🧪 <b>MATCH DE PRUEBA</b> · rivales y bananas de mentira, en este teléfono. Los rivales contestan solos al ratito. <button type="button" id="mt-prueba-borrar">Empezar de cero</button></p>
     <button class="bn-barra" id="bn-barra" type="button" hidden></button>
+    <button class="mt-pro" id="mt-final" type="button" aria-pressed="true" hidden><span class="mp-sw" aria-hidden="true"><i></i></span><span class="mp-ico" aria-hidden="true" data-ico="trophy"></span><span class="mp-txt"><b>LA FINAL</b><small id="mt-final-txt">Sueco contra Taiu, a 6 hoyos. Apagalo para un match normal</small></span></button>
     <button class="mt-pro" id="mt-pro" type="button" aria-pressed="false"><span class="mp-sw" aria-hidden="true"><i></i></span><span class="mp-ico" aria-hidden="true" data-ico="pro"></span><span class="mp-txt"><b>MODO PRO</b><small>Sin líneas punteadas: no ves dónde cae la bocha</small></span></button>
     <input class="mt-buscar" id="mt-buscar" type="search" placeholder="Buscar rival…" autocomplete="off" spellcheck="false">
     <ol class="rk-lista" id="mt-lista"></ol>
@@ -5071,7 +5072,7 @@ function empezar(jugador) {
   if (duelo) {
     // el clima, según la fecha del desafío (la nieve cambió de chance: M.NIEVE); el que desafía, el de ahora
     const fechaMatch = duelo.desafio?.fecha ?? duelo.fecha
-    M.aplicarMatch(ronda, M.condicionesMatch(duelo.semilla, fechaMatch ? Date.parse(fechaMatch) : Date.now(), vueltasMatch(duelo, fechaMatch)))
+    M.aplicarMatch(ronda, M.condicionesMatch(duelo.semilla, fechaMatch ? Date.parse(fechaMatch) : Date.now(), vueltasMatch(duelo)))
     if (ronda.ruleta) contarRuleta(ronda) // 🔌 (para reconectar: la tanda de la Ruleta, adelantada a donde iba)
     ronda.duelo = { ...duelo, grabacion: [], desde: Date.now() }
   }
@@ -6724,7 +6725,7 @@ function dibujar() {
 
   // ── encima, derecho ──
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-  for (const h of ronda?.hoyos ?? replay?.hoyos ?? M.HOYOS) {
+  for (const h of hoyosAlaVista()) {
     const [tx, ty] = w2s(atrasDelTee(h, 9))
     ctx.fillStyle = fondoNevado() ? 'rgba(20,64,42,.78)' : 'rgba(244,238,218,.85)' // sobre la nieve, verde oscuro
     ctx.font = '13px Anton, "Arial Narrow", sans-serif'
@@ -10201,6 +10202,16 @@ async function cargarBananas() {
   return hayBananas
 }
 const bananasDe = (uid) => bananasRk?.find((f) => f.uid === uid) ?? null
+/** El desafío con bananas que ya tienen abierto con `rival` (uno por pareja a la vez), contado: cuál es y qué falta. */
+function abiertoTxt(rival) {
+  const d = mtDesafios?.find((x) => x.apuesta > 0 && ['jugando', 'pendiente', 'respondiendo'].includes(x.estado) && (x.retador.uid === rival.uid || x.rival.uid === rival.uid))
+  if (!d) return 'Ya tienen un desafío con bananas abierto.'
+  const quien = esc(nombreCorto(rival.nombre)), n = `${d.apuesta}${BN}`
+  const mio = d.retador.uid !== rival.uid
+  if (d.estado === 'jugando') return mio ? `Empezaste uno con ${n} contra ${quien} y no lo terminaste: seguilo en MATCH (si no, le llega como LP).` : `${quien} empezó uno con ${n} contra vos y todavía no lo terminó.`
+  if (d.estado === 'respondiendo') return mio ? `${quien} está jugando el de ${n} que le mandaste.` : `Estás jugando el de ${n} que te mandó ${quien}: terminalo en MATCH.`
+  return mio ? `Ya le mandaste uno con ${n}: falta que lo juegue ${quien}.` : `${quien} te desafió con ${n}: jugalo (o rechazalo) en MATCH.`
+}
 const conBananasAbierto = (uid) => !!mtDesafios?.some((d) => d.apuesta > 0 && ['jugando', 'pendiente', 'respondiendo'].includes(d.estado) && (d.retador.uid === uid || d.rival.uid === uid))
 /** Lo que te queda de un match con bananas (visto por vos): ganaste → todo menos 1; perdiste → lo que pusiste. */
 const netoBananas = (g, n) => (g > 0 ? n - 1 : g < 0 ? -n : 0)
@@ -10240,7 +10251,7 @@ async function elegirApuesta(rival) {
   const abierto = conBananasAbierto(rival.uid)
   const puede = tope >= 2 && !abierto
   const corto = nombreCorto(rival.nombre)
-  const nota = abierto ? 'Ya tienen un desafío con bananas abierto: hasta que se juegue, este va por el honor.'
+  const nota = abierto ? `${abiertoTxt(rival)} Hasta que se juegue, este va por el honor.`
     : tope < 2 ? `Para apostar hacen falta 2 cada uno${bananas.saldo < 2 ? '' : ` y ${esc(corto)} tiene ${suyas}`}.` : ''
   let leer = () => 2
   const espera = hojaBananas(`
@@ -10610,12 +10621,15 @@ function pintarMatch() {
   $('#mt-buscar').hidden = mtTab !== 'desafiar'
   $('#mt-pro').hidden = mtTab !== 'desafiar'
   $('#mt-pro').setAttribute('aria-pressed', String(mtPro))
+  $('#mt-final').hidden = mtTab !== 'desafiar' || !finalViva()
+  $('#mt-final').setAttribute('aria-pressed', String(mtFinal))
+  $('#mt-final-txt').textContent = mtFinal ? 'Sueco contra Taiu, a 6 hoyos. Apagalo para un match normal' : 'Apagado: match normal, con el player que quieras y contra cualquiera'
   if (mtTab === 'desafiar') {
     $('#mt-nota').textContent = `Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma. Mismo clima, viento y banderas para los dos.${hayBananas ? ' Antes de jugar elegís si va con bananas o por el honor.' : ''}${camiseta.equipo ? ' ⚔️ CLÁSICO: es de la otra camiseta; si le ganás, suma 3 para tu equipo.' : ''}`
     if (!mtRivales) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudo cargar la lista. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; return }
     const q = $('#mt-buscar').value.trim().toLowerCase()
     // 🏆 La Final: solo contra el otro bando (el player con el que más firmó durante la Final) o el que todavía no la jugó
-    const fin = finalViva(), otro = fin && esDeLaFinal(datos.final) ? (datos.final === FINAL.a ? FINAL.b : FINAL.a) : null
+    const fin = finalViva() && mtFinal, otro = fin && esDeLaFinal(datos.final) ? (datos.final === FINAL.a ? FINAL.b : FINAL.a) : null
     if (fin) $('#mt-nota').textContent = `LA FINAL: todos los matches son El Sueco contra Taiu, a dos vueltas (15, 16 y 17, dos veces: 6 hoyos). ${otro ? `Vos jugás con ${apodoLimpio(datos.final)}; desafiás a los que bancan a ${apodoLimpio(otro)}${finalBase ? '. El que gana le suma 3 a su player' : ` (o a los que todavía no jugaron la Final, que juegan con ${apodoLimpio(otro)})`}.` : 'Antes de desafiar elegís a quién bancás.'} Nivelados al mismo hándicap.`
     // (con la base, solo los que eligieron al otro; sin ella, el bando sale de sus vueltas y el que no jugó, también)
     const rs = mtRivales.filter((r) => (!q || r.nombre.toLowerCase().includes(q)) && !(otro && (finalBase ? bandoFinal(r.uid) !== otro : bandoFinal(r.uid) === datos.final)))
@@ -10898,6 +10912,9 @@ $('#mt-buscar').addEventListener('input', pintarMatch)
 // el MODO PRO: el desafío sale sin líneas punteadas (para los dos)
 let mtPro = false
 $('#mt-pro').addEventListener('click', () => { mtPro = !mtPro; pintarMatch() })
+// 🏆 durante la Final, el desafío es de la Final (6 hoyos, uno contra el otro) o, apagándolo, un match normal
+let mtFinal = true
+$('#mt-final').addEventListener('click', () => { mtFinal = !mtFinal; pintarMatch() })
 // el resultado de un match del historial, por WhatsApp
 $('#mt-lista').addEventListener('click', (e) => {
   const b = e.target.closest('[data-wa]')
@@ -10911,17 +10928,18 @@ $('#mt-lista').addEventListener('click', async (e) => {
   if (reto) {
     const rival = mtRivales?.find((r) => r.uid === reto.dataset.desafiar)
     if (!rival) return
-    // 🏆 La Final: para desafiar hay que bancar a uno (el match es con él)
-    if (finalViva() && !cartaFinal() && !(await elegirFinal())) return
+    // 🏆 La Final: para desafiar hay que bancar a uno (el match es con él); con el interruptor apagado, un match normal
+    const deLaFinal = finalViva() && mtFinal
+    if (deLaFinal && !cartaFinal() && !(await elegirFinal())) return
     // con bananas: cuánto, antes de jugar (por el honor = 0)
     reto.disabled = true
     const apuesta = await elegirApuesta(rival)
     reto.disabled = false
     if (apuesta == null) return
     const semilla = crypto.getRandomValues(new Uint32Array(1))[0]
-    matchModo = { tipo: 'reto', rival, semilla: mtPro ? M.semillaPro(semilla) : semilla, apuesta }
+    matchModo = { tipo: 'reto', rival, semilla: mtPro ? M.semillaPro(semilla) : semilla, apuesta, final: deLaFinal }
     // 🏆 La Final: desafiás con el que bancás (sin mazo)
-    if (cartaFinal()) jugarCon(cartaFinal())
+    if (deLaFinal && cartaFinal()) jugarCon(cartaFinal())
     else mostrarElegir()
     return
   }
@@ -10940,7 +10958,8 @@ $('#mt-lista').addEventListener('click', async (e) => {
     const v = vivoDe(d.id)
     if (v) { reconectar(v); return }
     // la vuelta no está en este teléfono (otro teléfono, o se borró): la jugás de nuevo, con el mismo desafío y su player
-    matchModo = { tipo: 'reto', rival: { uid: d.rival.uid, nombre: d.rival.alias }, semilla: d.semilla, apuesta: d.apuesta, desafioId: d.id, fecha: d.fecha }
+    const enFinal = esDeLaFinal(d.retador.apodo) && Date.parse(d.fecha) >= FINAL.desde && Date.parse(d.fecha) < FINAL.hasta
+    matchModo = { tipo: 'reto', rival: { uid: d.rival.uid, nombre: d.rival.alias }, semilla: d.semilla, apuesta: d.apuesta, desafioId: d.id, fecha: d.fecha, final: enFinal }
     const j = TODOS.find((x) => x.apodo === d.retador.apodo)
     if (j) empezar(j)
     else mostrarElegir()
@@ -10961,7 +10980,9 @@ $('#mt-lista').addEventListener('click', async (e) => {
     if (!Array.isArray(fantasma)) { resp.disabled = false; resp.textContent = 'Reintentar'; return }
     matchModo = { tipo: 'respuesta', desafio, fantasma, semilla: desafio.semilla }
     // se juega con el mismo player que usó el que desafió; 🏆 en La Final, si te desafiaron con uno de los dos, con el tuyo
-    const j = (finalViva() && esDeLaFinal(desafio.retador.apodo) && cartaDeFinal(desafio.retador.apodo === FINAL.a ? FINAL.b : FINAL.a)) || TODOS.find((x) => x.apodo === desafio.retador.apodo)
+    // (de la Final es el de 6 hoyos: se ve en su grabación; si no, un match normal, con el mismo player)
+    const deLaFinal = esDeLaFinal(desafio.retador.apodo) && M.hoyosGrabados(fantasma) > M.HOYOS.length
+    const j = (deLaFinal && cartaDeFinal(desafio.retador.apodo === FINAL.a ? FINAL.b : FINAL.a)) || TODOS.find((x) => x.apodo === desafio.retador.apodo)
     if (j) empezar(j)
     else mostrarElegir()
   }
@@ -11083,6 +11104,7 @@ function pintarFourball(lista) {
   const elige = fbTab === 'armar' || (fbTab === 'buscan' && !!fbElige) || (fbTab === 'mios' && fbElige?.modo === 'cambiar')
   $('#mt-buscar').hidden = !elige
   $('#mt-pro').hidden = fbTab !== 'armar' || fbElige?.modo === 'rival'
+  $('#mt-final').hidden = true
   $('#mt-pro').setAttribute('aria-pressed', String(mtPro))
   if (fbError?.pronto) {
     $('#mt-buscar').hidden = $('#mt-pro').hidden = true
@@ -12939,7 +12961,7 @@ function mensajeDesafio(r, rival, mia) {
     `Ya jugué mi vuelta con ${j.emoji} ${j.apodo}.`,
     pique,
     '',
-    ...(esDeLaFinal(j.apodo) && finalViva() ? [`Es LA FINAL: yo con ${j.emoji} ${apodoLimpio(j.apodo)}, vos con ${apodoLimpio(j.apodo === FINAL.a ? FINAL.b : FINAL.a)} (nivelados al mismo hándicap). A dos vueltas: 6 hoyos.`] : []),
+    ...(esDeLaFinal(j.apodo) && M.nHoyos(r) > M.HOYOS.length ? [`Es LA FINAL: yo con ${j.emoji} ${apodoLimpio(j.apodo)}, vos con ${apodoLimpio(j.apodo === FINAL.a ? FINAL.b : FINAL.a)} (nivelados al mismo hándicap). A dos vueltas: 6 hoyos.`] : []),
     `Te toca: ${esDeLaFinal(j.apodo) && finalViva() ? 'mismo' : `mismo player (${j.emoji} ${j.apodo}), mismo`} viento y mismas banderas.${j.draft ? ' Y el mismo Draft: tiro por tiro te salen las mismas tres caras que a mí 🃏 (elegís vos).' : j.ruleta ? ' Y la misma Ruleta: tiro por tiro te salen los mismos players que a mí 🎰.' : ''} Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
     'Menos golpes gana; si empatamos, el más rápido. LP pierde.',
     ...(r.duelo?.apuesta > 0 ? [`Hay ${r.duelo.apuesta} 🍌 en juego: el que gana se lleva ${2 * r.duelo.apuesta - 1} (una es del mono 🐒).`] : []),
@@ -14161,13 +14183,24 @@ $('#todos-lista').addEventListener('click', (e) => {
 const cartaDeFinal = (apodo) => TODOS.find((x) => x.apodo === apodo) ?? null
 /**
  * 🏆 Los matches de la Final son de dos vueltas (15, 16, 17 y otra vez: 6 hoyos). El que responde, como el que lo
- * desafió (se ve en su grabación); el que desafía, si es durante la Final. El fourball, siempre de una.
+ * desafió (se ve en su grabación); el que desafía, si eligió que sea de la Final (el interruptor de Desafiar,
+ * `mtFinal`). Un match normal y el fourball, de una.
  */
-function vueltasMatch(duelo, fecha) {
+/**
+ * Los hoyos que se dibujan: los tres de siempre; en un match de la Final (6 hoyos), los de la vuelta que se juega (en
+ * el replay, la del que va más adelante): si no, cada green tenía las dos banderas.
+ */
+function hoyosAlaVista() {
+  const hs = ronda?.hoyos ?? replay?.hoyos ?? M.HOYOS
+  if (hs.length <= M.HOYOS.length) return hs
+  const idx = ronda ? ronda.idx : Math.max(0, ...(replay?.pistas ?? []).map((p) => M.marcadorFantasma(p.g, replay.t, hs.length).idx))
+  const v = hs[Math.min(idx, hs.length - 1)]?.vuelta ?? 1
+  return hs.filter((h) => (h.vuelta ?? 1) === v)
+}
+function vueltasMatch(duelo) {
   if (duelo.tipo === 'fourball') return 1
   if (duelo.tipo === 'respuesta' && duelo.fantasma?.length) return M.hoyosGrabados(duelo.fantasma) / M.HOYOS.length
-  const t = fecha ? Date.parse(fecha) : Date.now()
-  return (t >= FINAL.desde && t < FINAL.hasta) || (PRUEBA && PARAMS.has('final')) ? 2 : 1
+  return duelo.final ? 2 : 1
 }
 /** El player que bancás (si la Final está viva y ya elegiste). */
 const cartaFinal = () => (finalViva() && esDeLaFinal(datos.final) ? cartaDeFinal(datos.final) : null)
