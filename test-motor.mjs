@@ -2359,6 +2359,64 @@ ok('🏆 Taiu en la Final (dickyPorHoyo): la Dickyllamada una por hoyo, y a cada
   assert.deepEqual(M.yaLlamados(r), ['Mike Queboni (Đ)', 'Fito (Đ)'])
 })
 
+ok('🚩 el Marshall (el Sueco en la Final): No la vi, Amarilla al mono y Lie mejorado, uno por hoyo y cada uno una vez', () => {
+  const sueco = { ...RULETA.pool.find((j) => j.apodo === 'El Sueco'), marshall: true }
+  // un punto de `tipo` cerca de la calle del 15 (para dejar la pelota ahí)
+  const buscar = (tipo, h = h15) => {
+    for (let k = 1; k < h.calle.length; k++) for (let s = -60; s <= 60; s += 1) {
+      const a = h.calle[k - 1], b = h.calle[k], l = M.dist(a, b), p = [b[0] - ((b[1] - a[1]) / l) * s, b[1] + ((b[0] - a[0]) / l) * s]
+      if (M.terreno(quieto, p).tipo === tipo && !M.pinoEn(quieto, p)) return p
+    }
+  }
+  const pegar = (r, pos, extra = {}) => { // un tiro que termina en `pos` (como lo deja golpear + simular)
+    r.desde = [...r.pelota]; r.lieDesde = r.lie; r.golpes += 1; r.tirosHoyo = (r.tirosHoyo ?? 0) + 1
+    return M.resolverReposo(quieto, r, { pos, eventos: [], ...extra }, fijo(0.99))
+  }
+  const r = { ...M.nuevaRonda(sueco, fijo(0.5)), monos: [] }
+  assert.ok(!M.puedeMarshall(r, 'nolavi', quieto) && !M.puedeMarshall(r, 'lie', quieto)) // en el tee, nada
+  const rough = buscar('rough'), tee = [...r.pelota]
+  pegar(r, rough)
+  assert.equal(r.lie, 'rough')
+  assert.ok(M.puedeMarshall(r, 'nolavi', quieto) && M.puedeMarshall(r, 'lie', quieto) && !M.puedeMarshall(r, 'amarilla', quieto))
+  assert.ok(M.fallar(quieto, r, 'nolavi'))
+  assert.deepEqual(r.pelota, tee) // vuelve a pegar desde donde salió
+  assert.equal(r.golpes, 0)
+  assert.equal(r.lie, 'tee')
+  pegar(r, rough)
+  assert.ok(!M.puedeMarshall(r, 'lie', quieto)) // uno por hoyo
+  // el hoyo que viene: el Lie mejorado (en el fairway, a la misma altura; lo más cerca de donde tocó)
+  M.cerrarHoyo(r, fijo(0.5))
+  pegar(r, buscar('rough', h16))
+  assert.ok(!M.puedeMarshall(r, 'nolavi', quieto)) // ya la usó
+  const ops = M.opcionesLie(quieto, r)
+  assert.ok(ops.length > 3 && ops.every((p) => M.terreno(quieto, p).tipo === 'fairway'))
+  const golpes = r.golpes
+  assert.ok(M.fallar(quieto, r, 'lie', ops.at(-1)))
+  assert.deepEqual(r.pelota, ops.at(-1))
+  assert.equal(r.lie, 'fairway')
+  assert.equal(r.golpes, golpes) // sin multa
+  // el último: la amarilla al mono que te la robó (sin multa, y el mono expulsado)
+  M.cerrarHoyo(r, fijo(0.5))
+  const mono = { modo: 'caza', espera: 0, pos: buscar('fairway', h17) }
+  r.monos = [mono]
+  const res = pegar(r, mono.pos, { robada: mono })
+  assert.equal(res.tipo, 'mono-ladron')
+  assert.equal(r.golpes, 2)
+  assert.ok(M.puedeMarshall(r, 'amarilla', quieto))
+  assert.ok(M.fallar(quieto, r, 'amarilla'))
+  assert.equal(r.golpes, 1)
+  assert.equal(r.robos, 0)
+  assert.equal(mono.modo, 'expulsado')
+  assert.ok(M.monoFuera(mono))
+  // con la pelota en el green, el lie no
+  r.lie = 'green'
+  assert.ok(!M.puedeMarshall(r, 'lie', quieto))
+  // y el que no es el Marshall, nada
+  const otro = { ...M.nuevaRonda(RULETA.pool.find((j) => j.apodo === 'El Sueco'), fijo(0.5)), monos: [] }
+  pegar(otro, rough)
+  assert.ok(!M.puedeMarshall(otro, 'nolavi', quieto))
+})
+
 ok('🦉📺 el Equipo 5: chicanas a los Dicky, la respuesta con amor y el aliento entre ellos (Joaco y Lucas, sin "(Đ)")', () => {
   const por = (a) => RULETA.pool.find((j) => j.apodo === a)
   const lechu = por('Lechu'), lg = por('LG'), fito = por('Fito (Đ)')
