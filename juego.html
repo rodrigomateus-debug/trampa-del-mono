@@ -347,6 +347,25 @@ body.vuela #lie, body.vuela #lp, body.vuela #sonido, body.vuela #clima-chip, bod
 #cam.sellado .cam-caja { animation: cam-tiembla .4s .25s both; }
 @keyframes cam-tiembla { 20% { transform: translate(-6px, 3px) } 40% { transform: translate(5px, -4px) } 60% { transform: translate(-4px, 2px) } 80% { transform: translate(3px, -1px) } }
 /* el escudo en el home: flota, le pasa el brillo; tocándolo, el pase */
+/* 🏆 La Final: el marcador en el home (Sueco contra Taiu) y la hojita para elegir a quién bancás */
+.final-home { display: grid; gap: 3px; justify-items: center; width: min(340px, 92%); margin: 8px auto 2px; padding: 9px 12px 8px; border: var(--game-stroke) solid var(--game-ink); border-radius: 16px; background: linear-gradient(135deg, #1d3f8f, #0c2b1c 55%, #1f5f3e); color: var(--cream); box-shadow: var(--game-shadow-md); cursor: pointer; font: inherit; -webkit-tap-highlight-color: transparent; }
+.final-home[hidden] { display: none; }
+.fh-kicker { font: 800 10px/1 var(--font-body); letter-spacing: .16em; color: var(--gold); }
+.fh-marcador { display: flex; align-items: center; gap: 8px; font: 20px/1 var(--font-display); letter-spacing: .03em; }
+.fh-marcador i { font-style: normal; min-width: 2ch; padding: 2px 6px; border-radius: 7px; background: rgba(244, 238, 218, .14); }
+.fh-marcador i.gana { background: var(--gold); color: var(--green-900); }
+.fh-marcador em { font-style: normal; opacity: .6; }
+.final-home small { font: 600 11px/1.2 var(--font-body); opacity: .85; }
+.final-ops { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0 4px; }
+.final-op { display: grid; justify-items: center; gap: 6px; padding: 10px 6px; border: var(--game-stroke) solid var(--game-ink); border-radius: 16px; background: var(--cream); color: var(--green-900); cursor: pointer; font: inherit; box-shadow: var(--game-shadow-sm); }
+.final-op img { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; border: 3px solid var(--game-ink); background: #e7dfc2; }
+.final-op b { font: 18px/1 var(--font-display); letter-spacing: .03em; }
+.final-op small { font: 700 11px/1 var(--font-body); opacity: .7; }
+.final-op.tuyo { background: var(--gold); }
+.final-tabla { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin: 6px 0; text-align: center; }
+.final-tabla b { font: 40px/1 var(--font-display); }
+.final-tabla span { font: 800 12px/1.2 var(--font-body); }
+.final-hinchas { margin: 4px 0 8px; font: 600 12px/1.45 var(--font-body); color: var(--text-muted); }
 .cam-home { position: absolute; top: calc(var(--safe-top) + 12px); right: 12px; z-index: 3; display: grid; justify-items: center; gap: 4px; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .cam-home[hidden] { display: none; }
 .cam-home-escudo { --fondo: #1d1a5c; position: relative; display: block; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: var(--fondo); border: var(--game-stroke) solid var(--game-ink); box-shadow: 3px 4px 0 var(--game-ink); animation: cam-flota 3s ease-in-out infinite alternate; }
@@ -2668,6 +2687,7 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 </svg></div>
   <button class="cam-home" id="cam-home" type="button" hidden aria-label="Tu camiseta. Tocá para cambiarla"><span class="cam-home-escudo"><img alt="" draggable="false"><i class="cam-brillo"></i></span><span class="cam-home-txt">TU CAMISETA</span></button>
   <span class="kicker">SDGA Tour · hoyos 15 · 16 · 17</span>
+  <button class="final-home" id="final-home" type="button" hidden></button>
   <h1 class="logo-trampa" aria-label="La Trampa del Mono"><span class="l1" aria-hidden="true">LA TRAMPA</span><span class="l2" aria-hidden="true">DEL<i class="esp"></i>M<svg class="ojo" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda"/><g fill="#e7dfc2"><circle cx="22" cy="40" r="6"/><circle cx="48" cy="22" r="6"/><circle cx="76" cy="38" r="6"/><circle cx="16" cy="78" r="6"/><circle cx="84" cy="80" r="6"/><circle cx="24" cy="118" r="6"/><circle cx="50" cy="136" r="6"/><circle cx="77" cy="118" r="6"/></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a"/><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c"/><circle cx="58" cy="74" r="6" fill="#fff"/></g></g></svg>N<svg class="ojo" viewBox="0 0 100 158" aria-hidden="true"><g class="parpado"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda"/><g fill="#e7dfc2"><circle cx="22" cy="40" r="6"/><circle cx="48" cy="22" r="6"/><circle cx="76" cy="38" r="6"/><circle cx="16" cy="78" r="6"/><circle cx="84" cy="80" r="6"/><circle cx="24" cy="118" r="6"/><circle cx="50" cy="136" r="6"/><circle cx="77" cy="118" r="6"/></g><g class="pupila"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a"/><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c"/><circle cx="58" cy="74" r="6" fill="#fff"/></g></g></svg></span></h1>
   <span class="band">DONDE TODO SE VA</span>
   <p class="bajada">Mientras Gonza cierra con Nintendo los derechos del Mario Golf, jugá los tres hoyos que más tarjetas rompieron en San Diego.</p>
@@ -3088,7 +3108,15 @@ function tiene(d) {
   return true
 }
 const tieneTaiu = () => tiene(DESBLOQUEO_TAIU)
-const bloqueado = (j) => { const d = desbloqueoDe(j); return !!d && !tiene(d) }
+// ── 🏆 LA FINAL del club (24 y 25/10/2026, pedido de Rorro): El Sueco contra Taiu ──
+// Elegís a quién bancás y jugás con él; cada vuelta firmada con uno de los dos le suma (y más si es bajo par). Los dos,
+// nivelados al mismo hándicap (el promedio de los dos: el hándicap cambia la puntería); cada uno con su habilidad. En
+// los matches, cada uno juega con el suyo. Taiu, sin candado mientras dura. Sin base nueva: el marcador sale de las
+// vueltas del ranking (el player y la fecha) y a quién bancás queda en el teléfono. Para probar fuera de fecha: ?final
+const FINAL = { a: 'El Sueco', b: 'Taiu (Đ)', desde: Date.parse('2026-10-24T00:00:00-03:00'), hasta: Date.parse('2026-10-26T00:00:00-03:00'), puntos: { vuelta: 1, bajoPar: 1 } }
+const finalViva = () => (PRUEBA && PARAMS.has('final')) || (Date.now() >= FINAL.desde && Date.now() < FINAL.hasta)
+const esDeLaFinal = (apodo) => apodo === FINAL.a || apodo === FINAL.b
+const bloqueado = (j) => { if (finalViva() && j?.apodo === FINAL.b) return false; const d = desbloqueoDe(j); return !!d && !tiene(d) }
 /** Tus vueltas firmadas del ranking (con tu usuario) también son récord: así el desbloqueo no se pierde al reinstalar. */
 function recuperarRecords(marcas) {
   const uid = R.puente.identidad?.uid
@@ -4989,6 +5017,7 @@ function empezar(jugador) {
   // la Ruleta y el Draft: el mazo entero, con o sin candado (Taiu, Demetrio): en un match, los dos con el MISMO mazo y,
   // con la semilla del match, tiro por tiro les salen los mismos players
   aplicarHandicaps() // si la app mandó handicaps mientras se jugaba la vuelta anterior
+  jugador = nivelarFinal(jugador) // 🏆 La Final: el Sueco y Taiu, con el mismo hándicap
   ronda = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // la bandera, en otro lugar del green cada ronda
   // el match: las banderas y el viento salen de la semilla (los dos juegan lo mismo); se usa una vez
   const duelo = matchModo
@@ -10365,6 +10394,7 @@ async function premiosDeLaVuelta(antes) {
   if (unos > 0) fiestaBananas({ total: unos, pozo: !!pozo })
 }
 async function mostrarMatch(tab = mtTab) {
+  if (finalViva()) cargarFinal().then(() => { if (!$('#match').hidden) pintarMatch() })
   mtTab = tab
   mtRanking = null
   mtRankingError = null
@@ -10403,18 +10433,22 @@ function pintarMatch() {
     $('#mt-nota').textContent = `Jugás tu vuelta una sola vez y le llega el desafío. Cuando juegue, ve tu pelota en vivo, como un fantasma. Mismo clima, viento y banderas para los dos.${hayBananas ? ' Antes de jugar elegís si va con bananas o por el honor.' : ''}${camiseta.equipo ? ' ⚔️ CLÁSICO: es de la otra camiseta; si le ganás, suma 3 para tu equipo.' : ''}`
     if (!mtRivales) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudo cargar la lista. Probá de nuevo en un rato.' : 'Cargando…'}</li>`; return }
     const q = $('#mt-buscar').value.trim().toLowerCase()
-    const rs = mtRivales.filter((r) => !q || r.nombre.toLowerCase().includes(q))
+    // 🏆 La Final: solo contra el otro bando (el player con el que más firmó durante la Final) o el que todavía no la jugó
+    const fin = finalViva(), otro = fin && esDeLaFinal(datos.final) ? (datos.final === FINAL.a ? FINAL.b : FINAL.a) : null
+    if (fin) $('#mt-nota').textContent = `🏆 LA FINAL: todos los matches son El Sueco contra Taiu. ${otro ? `Vos jugás con ${apodoLimpio(datos.final)}; desafiás a los que bancan a ${apodoLimpio(otro)} (o a los que todavía no jugaron la Final, que juegan con ${apodoLimpio(otro)}).` : 'Antes de desafiar elegís a quién bancás.'} Nivelados al mismo hándicap.`
+    const rs = mtRivales.filter((r) => (!q || r.nombre.toLowerCase().includes(q)) && !(otro && bandoFinal(r.uid) === datos.final))
     lista.innerHTML = rs.length ? rs.map((r) => {
       // 👕 su camiseta (el escudo y el nombre del equipo) y, si es la otra, el match es un CLÁSICO (vale 3 para tu equipo)
       const ce = camisetasDe.get(r.uid)
       const clasico = ce && camiseta.equipo && ce !== camiseta.equipo
-      const datosFila = [clasico ? '<span class="mt-clasico">⚔️ CLÁSICO</span>' : '', ce ? (ce === 'dicky' ? 'Dicky' : 'Equipo&nbsp;5') : '', r.sdga ? '⛳&nbsp;SDGA' : '', hayBananas && bananasDe(r.uid) ? `${BN}${bananasDe(r.uid).saldo}` : ''].filter(Boolean)
+      const bf = fin ? bandoFinal(r.uid) : null
+      const datosFila = [bf ? `<span class="mt-clasico">🏆 ${cartaDeFinal(bf)?.emoji ?? ''} ${esc(apodoLimpio(bf))}</span>` : '', clasico ? '<span class="mt-clasico">⚔️ CLÁSICO</span>' : '', ce ? (ce === 'dicky' ? 'Dicky' : 'Equipo&nbsp;5') : '', r.sdga ? '⛳&nbsp;SDGA' : '', hayBananas && bananasDe(r.uid) ? `${BN}${bananasDe(r.uid).saldo}` : ''].filter(Boolean)
       return `<li class="rk-fila mt-fila">
         ${ce ? `<span class="mini cam${ce === 'e5' ? ' e5' : ''}" aria-hidden="true"><img src="${EQUIPOS[ce].logo}" alt="" draggable="false"></span>` : `<span class="mini" aria-hidden="true">${esc(r.nombre.charAt(0).toUpperCase())}</span>`}
         <span class="rk-nombre"><b>${esc(r.nombre)}</b>${datosFila.length ? `<small class="mt-datos">${datosFila.join(' · ')}</small>` : ''}</span>
         <button class="mt-btn${mtPro ? ' pro' : ''}" type="button" data-desafiar="${esc(r.uid)}">${mtPro ? `${gi('pro')}Desafiar` : 'Desafiar'}</button>
       </li>`
-    }).join('') : `<li class="rk-vacio">${q ? 'Nadie con ese nombre.' : 'Todavía no hay a quién desafiar.'}</li>`
+    }).join('') : `<li class="rk-vacio">${q ? 'Nadie con ese nombre.' : otro ? `Todavía no hay nadie del lado de ${esc(apodoLimpio(otro))}.` : 'Todavía no hay a quién desafiar.'}</li>`
     return
   }
   $('#mt-nota').textContent = 'Gana el que hace menos golpes; si empatan, el más rápido. LP pierde. Los dos juegan con el mismo player.'
@@ -10695,6 +10729,8 @@ $('#mt-lista').addEventListener('click', async (e) => {
   if (reto) {
     const rival = mtRivales?.find((r) => r.uid === reto.dataset.desafiar)
     if (!rival) return
+    // 🏆 La Final: para desafiar hay que bancar a uno (el match es con él)
+    if (finalViva() && !cartaFinal() && !(await elegirFinal())) return
     // con bananas: cuánto, antes de jugar (por el honor = 0)
     reto.disabled = true
     const apuesta = await elegirApuesta(rival)
@@ -10702,7 +10738,9 @@ $('#mt-lista').addEventListener('click', async (e) => {
     if (apuesta == null) return
     const semilla = crypto.getRandomValues(new Uint32Array(1))[0]
     matchModo = { tipo: 'reto', rival, semilla: mtPro ? M.semillaPro(semilla) : semilla, apuesta }
-    mostrarElegir()
+    // 🏆 La Final: desafiás con el que bancás (sin mazo)
+    if (cartaFinal()) jugarCon(cartaFinal())
+    else mostrarElegir()
     return
   }
   const rechazo = e.target.closest('[data-rechazar]')
@@ -10740,8 +10778,8 @@ $('#mt-lista').addEventListener('click', async (e) => {
     try { fantasma = await R.leerFantasma(desafio.id) } catch {}
     if (!Array.isArray(fantasma)) { resp.disabled = false; resp.textContent = 'Reintentar'; return }
     matchModo = { tipo: 'respuesta', desafio, fantasma, semilla: desafio.semilla }
-    // se juega con el mismo player que usó el que desafió
-    const j = TODOS.find((x) => x.apodo === desafio.retador.apodo)
+    // se juega con el mismo player que usó el que desafió; 🏆 en La Final, si te desafiaron con uno de los dos, con el tuyo
+    const j = (finalViva() && esDeLaFinal(desafio.retador.apodo) && cartaDeFinal(desafio.retador.apodo === FINAL.a ? FINAL.b : FINAL.a)) || TODOS.find((x) => x.apodo === desafio.retador.apodo)
     if (j) empezar(j)
     else mostrarElegir()
   }
@@ -12714,7 +12752,8 @@ function mensajeDesafio(r, rival, mia) {
     `Ya jugué mi vuelta con ${j.emoji} ${j.apodo}.`,
     pique,
     '',
-    `Te toca: mismo player (${j.emoji} ${j.apodo}), mismo viento y mismas banderas.${j.draft ? ' Y el mismo Draft: tiro por tiro te salen las mismas tres caras que a mí 🃏 (elegís vos).' : j.ruleta ? ' Y la misma Ruleta: tiro por tiro te salen los mismos players que a mí 🎰.' : ''} Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
+    ...(esDeLaFinal(j.apodo) && finalViva() ? [`🏆 Es LA FINAL: yo con ${j.emoji} ${apodoLimpio(j.apodo)}, vos con ${apodoLimpio(j.apodo === FINAL.a ? FINAL.b : FINAL.a)} (los dos nivelados al mismo hándicap).`] : []),
+    `Te toca: ${esDeLaFinal(j.apodo) && finalViva() ? 'mismo' : `mismo player (${j.emoji} ${j.apodo}), mismo`} viento y mismas banderas.${j.draft ? ' Y el mismo Draft: tiro por tiro te salen las mismas tres caras que a mí 🃏 (elegís vos).' : j.ruleta ? ' Y la misma Ruleta: tiro por tiro te salen los mismos players que a mí 🎰.' : ''} Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
     'Menos golpes gana; si empatamos, el más rápido. LP pierde.',
     ...(r.duelo?.apuesta > 0 ? [`Hay ${r.duelo.apuesta} 🍌 en juego: el que gana se lleva ${2 * r.duelo.apuesta - 1} (una es del mono 🐒).`] : []),
     '',
@@ -13763,7 +13802,8 @@ function mostrarElegir() {
   S.viento(0)
   S.lluvia(0)
   for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'stats', 'resumen', 'match']) $('#' + id).hidden = true
-  $('.mazo-tit').innerHTML = matchModo?.tipo === 'fourball' ? `${gi('match', 'linea')}Fourball con ${esc(nombreCorto(companeroFb(matchModo)))} · el player de los cuatro`
+  $('.mazo-tit').innerHTML = !matchModo && cartaFinal() ? `🏆 La Final: jugá con ${cartaFinal().emoji} ${esc(apodoLimpio(datos.final))} y le sumás`
+    : matchModo?.tipo === 'fourball' ? `${gi('match', 'linea')}Fourball con ${esc(nombreCorto(companeroFb(matchModo)))} · el player de los cuatro`
     : matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}${(matchModo.tipo === 'reto' ? matchModo.apuesta : matchModo.desafio.apuesta) > 0 ? ` · ${matchModo.tipo === 'reto' ? matchModo.apuesta : matchModo.desafio.apuesta}${BN}` : ''}` : 'Elegí tu nivel de dificultad'
   pintarProMazo()
   $('#hud-top').hidden = true
@@ -13928,6 +13968,107 @@ $('#todos-lista').addEventListener('click', (e) => {
   jugarCon(PLANTEL[+b.dataset.jugar])
 })
 
+// ── 🏆 LA FINAL (ver FINAL, arriba): a quién bancás, el marcador y la hojita ──
+const cartaDeFinal = (apodo) => TODOS.find((x) => x.apodo === apodo) ?? null
+/** El player que bancás (si la Final está viva y ya elegiste). */
+const cartaFinal = () => (finalViva() && esDeLaFinal(datos.final) ? cartaDeFinal(datos.final) : null)
+/** El Sueco y Taiu, nivelados: los dos con el promedio de sus hándicaps (cada uno con su habilidad). */
+function nivelarFinal(j) {
+  if (!finalViva() || !esDeLaFinal(j?.apodo)) return j
+  const h = Math.round((((cartaDeFinal(FINAL.a)?.hcp ?? 0) + (cartaDeFinal(FINAL.b)?.hcp ?? 0)) / 2) * 10) / 10
+  return { ...j, hcp: h, aprox: false, hcpTexto: `HCP ${String(h).replace('.', ',')} · nivelado` }
+}
+/** Los puntos de cada uno: de las vueltas firmadas del ranking (de todos) con ese player, desde que empezó la Final. */
+let finalMarcas = null, finalLeida = 0
+function puntosFinal(marcas) {
+  const p = { [FINAL.a]: 0, [FINAL.b]: 0 }, hinchas = { [FINAL.a]: new Map(), [FINAL.b]: new Map() }
+  for (const m of marcas ?? []) {
+    if (!esDeLaFinal(m.apodo) || m.golpes == null) continue
+    const t = Date.parse(m.fecha)
+    if (!(t >= FINAL.desde && t < FINAL.hasta) && !(PRUEBA && PARAMS.has('final'))) continue
+    const n = FINAL.puntos.vuelta + Math.max(0, -(m.vsPar ?? 0)) * FINAL.puntos.bajoPar
+    p[m.apodo] += n
+    const quien = m.usuario || 'alguien'
+    hinchas[m.apodo].set(quien, (hinchas[m.apodo].get(quien) ?? 0) + n)
+  }
+  return { p, hinchas }
+}
+/** El bando de alguien: el de la Final con el que más vueltas firmó durante la Final (null si ninguna). Vos: el que elegiste. */
+function bandoFinal(uid) {
+  if (uid && uid === yoUid() && esDeLaFinal(datos.final)) return datos.final
+  const n = { [FINAL.a]: 0, [FINAL.b]: 0 }
+  for (const m of finalMarcas ?? []) {
+    if (m.uid !== uid || !esDeLaFinal(m.apodo)) continue
+    const t = Date.parse(m.fecha)
+    if ((t >= FINAL.desde && t < FINAL.hasta) || (PRUEBA && PARAMS.has('final'))) n[m.apodo]++
+  }
+  return n[FINAL.a] > n[FINAL.b] ? FINAL.a : n[FINAL.b] > n[FINAL.a] ? FINAL.b : null
+}
+async function cargarFinal(forzar = false) {
+  if (!finalViva()) return
+  if (forzar || !finalMarcas || Date.now() - finalLeida > 60e3) {
+    finalLeida = Date.now()
+    try { finalMarcas = (await R.leerMarcas())?.marcas ?? finalMarcas } catch {}
+  }
+  pintarFinal()
+}
+const nombreFinal = (apodo) => (apodo === FINAL.a ? 'SUECO' : 'TAIU')
+function pintarFinal() {
+  const el = $('#final-home')
+  el.hidden = !finalViva()
+  if (el.hidden) return
+  const { p } = puntosFinal(finalMarcas)
+  const a = cartaDeFinal(FINAL.a), b = cartaDeFinal(FINAL.b), pa = p[FINAL.a], pb = p[FINAL.b]
+  el.innerHTML = `<span class="fh-kicker">🏆 LA FINAL DEL CLUB</span>
+    <span class="fh-marcador"><span>${a?.emoji ?? ''} SUECO</span><i class="${pa > pb ? 'gana' : ''}">${pa}</i><em>–</em><i class="${pb > pa ? 'gana' : ''}">${pb}</i><span>TAIU ${b?.emoji ?? ''}</span></span>
+    <small>${esDeLaFinal(datos.final) ? `Bancás a ${nombreFinal(datos.final) === 'SUECO' ? 'El Sueco' : 'Taiu'} · tocá para ver` : '¿A quién bancás? Tocá y elegí'}</small>`
+}
+/** Elegir a quién bancás (la primera vez sale sola; después, tocando el marcador). */
+async function elegirFinal() {
+  const op = (apodo) => {
+    const j = cartaDeFinal(apodo)
+    return `<button class="final-op${datos.final === apodo ? ' tuyo' : ''}" type="button" data-bn="${esc(apodo)}"><img src="${esc(j?.foto ?? '')}" alt=""><b>${j?.emoji ?? ''} ${esc(apodoLimpio(apodo))}</b><small>${datos.final === apodo ? 'tu player' : 'bancarlo'}</small></button>`
+  }
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">🏆 La Final: ¿a quién bancás?</p>
+    <p>El Sueco contra Taiu, la final del club. Jugás con el que bancás y cada vuelta que firmás con él le suma: 1 punto por vuelta y 1 más por cada golpe bajo par. En los matches, cada uno con el suyo.</p>
+    <div class="final-ops">${op(FINAL.a)}${op(FINAL.b)}</div>
+    <p class="extras">Los dos con el mismo hándicap (nivelados); cada uno con su habilidad.</p>
+    <button class="carta-jugar" type="button" data-bn="no">Ahora no</button>`)
+  if (!esDeLaFinal(v)) return false
+  datos.final = v
+  datos.ultimo = v // el mazo abre en él
+  guardar(datos)
+  pintarFinal()
+  return true
+}
+async function verFinal() {
+  if (!esDeLaFinal(datos.final)) { await elegirFinal(); return }
+  await cargarFinal(true)
+  const { p, hinchas } = puntosFinal(finalMarcas)
+  const top = (apodo) => [...hinchas[apodo]].sort((x, y) => y[1] - x[1]).slice(0, 3).map(([q, n]) => `${esc(q)} ${n}`).join(' · ') || 'todavía nadie'
+  const mio = cartaDeFinal(datos.final), otro = datos.final === FINAL.a ? FINAL.b : FINAL.a
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">🏆 La Final del club</p>
+    <div class="final-tabla"><span>${cartaDeFinal(FINAL.a)?.emoji ?? ''} El Sueco</span><span></span><span>Taiu ${cartaDeFinal(FINAL.b)?.emoji ?? ''}</span><b>${p[FINAL.a]}</b><span>–</span><b>${p[FINAL.b]}</b></div>
+    <p class="final-hinchas">🇸🇪 Los que más sumaron: ${top(FINAL.a)}<br>🐸 Los que más sumaron: ${top(FINAL.b)}</p>
+    <p class="extras">1 punto por vuelta firmada con él y 1 más por cada golpe bajo par. Nivelados al mismo hándicap.</p>
+    <button class="carta-jugar oro" type="button" data-bn="jugar">Jugar con ${mio?.emoji ?? ''} ${esc(apodoLimpio(datos.final))}</button>
+    <button class="carta-jugar crema" type="button" data-bn="cambiar">Pasarme a ${esc(apodoLimpio(otro))}</button>
+    <button class="carta-jugar" type="button" data-bn="ok">Listo</button>`)
+  if (v === 'jugar' && mio) { datos.ultimo = mio.apodo; guardar(datos); $('#jugar').click() }
+  else if (v === 'cambiar') { datos.final = otro; datos.ultimo = otro; guardar(datos); pintarFinal() }
+}
+$('#final-home').addEventListener('click', verFinal)
+// al entrar, si la Final está viva y todavía no elegiste: la hojita (cuando no hay otra cosa encima)
+if (finalViva()) {
+  cargarFinal()
+  setInterval(() => { if (!$('#portada').hidden) cargarFinal() }, 60e3)
+  let intentos = 0
+  const ofrecer = setInterval(() => {
+    if (esDeLaFinal(datos.final) || ++intentos > 40) { clearInterval(ofrecer); return }
+    const libre = !$('#portada').hidden && $('#bananas-modal').hidden && ($('#cam')?.hidden ?? true) && $('#intro-app')?.hidden !== false
+    if (libre) { clearInterval(ofrecer); elegirFinal() }
+  }, 1500)
+}
 $('#jugar').addEventListener('click', () => {
   // suelto con el ranking de la SDGApp: primero entrar con Google
   if (R.pideLogin() && !R.puente.activo) {
