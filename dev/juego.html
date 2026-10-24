@@ -365,6 +365,8 @@ body.vuela #lie, body.vuela #lp, body.vuela #sonido, body.vuela #clima-chip, bod
 .final-tabla { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin: 6px 0; text-align: center; }
 .final-tabla b { font: 40px/1 var(--font-display); }
 .final-tabla span { font: 800 12px/1.2 var(--font-body); }
+.final-premio { display: flex; align-items: center; gap: 10px; margin: 4px 0 2px; padding: 10px 12px; border-radius: 14px; background: var(--gold); border: 2.5px solid var(--game-ink); box-shadow: 3px 3px 0 var(--game-ink); color: var(--green-900); font: 600 14px/1.3 var(--font-body); text-align: left; }
+.final-premio .gi { flex: none; width: 34px; height: 34px; }
 .final-hinchas { margin: 4px 0 8px; font: 600 12px/1.45 var(--font-body); color: var(--text-muted); }
 .cam-home { position: absolute; top: calc(var(--safe-top) + 12px); right: 12px; z-index: 3; display: grid; justify-items: center; gap: 4px; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .cam-home[hidden] { display: none; }
@@ -14265,6 +14267,7 @@ function ponerFinal(lado) {
   datos.final = lado
   datos.ultimo = lado // el mazo abre en él
   datos.finalPend = true
+  datos.vistoPremioFinal = true // (la hoja de elegir ya dice el premio)
   guardar(datos)
   pintarFinal()
   subirFinal(true)
@@ -14278,6 +14281,9 @@ function subirFinal(recargar = false) {
     if (recargar) cargarFinal(true)
   }).catch(() => {})
 }
+/** 🏆 El premio (pedido de Rorro, 24/10): 100 bananas para cada uno que bancó al player que gana La Final. */
+const PREMIO_FINAL = 100
+const premioFinalTxt = () => `<p class="final-premio">${BN}<span><b>Premio: ${PREMIO_FINAL} bananas</b> para cada uno que haya bancado al player que gane La Final.</span></p>`
 const nombreFinal = (apodo) => (apodo === FINAL.a ? 'SUECO' : 'TAIU')
 function pintarFinal() {
   const el = $('#final-home')
@@ -14287,7 +14293,7 @@ function pintarFinal() {
   const a = cartaDeFinal(FINAL.a), b = cartaDeFinal(FINAL.b), pa = p[FINAL.a], pb = p[FINAL.b]
   el.innerHTML = `<span class="fh-kicker">${gi('trophy')}LA FINAL DEL CLUB</span>
     <span class="fh-marcador"><span>${a?.emoji ?? ''} SUECO</span><i class="${pa > pb ? 'gana' : ''}">${pa}</i><em>–</em><i class="${pb > pa ? 'gana' : ''}">${pb}</i><span>TAIU ${b?.emoji ?? ''}</span></span>
-    <small>${esDeLaFinal(datos.final) ? `Bancás a ${nombreFinal(datos.final) === 'SUECO' ? 'El Sueco' : 'Taiu'} · tocá para ver` : '¿A quién bancás? Tocá y elegí'}</small>`
+    <small>${esDeLaFinal(datos.final) ? `Bancás a ${nombreFinal(datos.final) === 'SUECO' ? 'El Sueco' : 'Taiu'} · si gana, ${PREMIO_FINAL} bananas` : `¿A quién bancás? Si gana, ${PREMIO_FINAL} bananas`}</small>`
 }
 /** Elegir a quién bancás (la primera vez sale sola; después, tocando el marcador). */
 async function elegirFinal() {
@@ -14298,6 +14304,7 @@ async function elegirFinal() {
   const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">${gi('trophy')}La Final: ¿a quién bancás?</p>
     <p>El Sueco contra Taiu, la final del club. Jugás con el que bancás y cada vuelta que firmás con él le suma: 1 punto por vuelta y 1 más por cada golpe bajo par. En los matches, cada uno con el suyo${finalBase ? ', y el que gana le suma 3' : ''}.</p>
     <div class="final-ops">${op(FINAL.a)}${op(FINAL.b)}</div>
+    ${premioFinalTxt()}
     <p class="extras">Los dos con el mismo hándicap (nivelados); cada uno con su habilidad.</p>
     <button class="carta-jugar" type="button" data-bn="no">Ahora no</button>`)
   if (!esDeLaFinal(v)) return false
@@ -14312,6 +14319,7 @@ async function verFinal() {
   const mio = cartaDeFinal(datos.final), otro = datos.final === FINAL.a ? FINAL.b : FINAL.a
   const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">${gi('trophy')}La Final del club</p>
     <div class="final-tabla"><span>${cartaDeFinal(FINAL.a)?.emoji ?? ''} El Sueco</span><span></span><span>Taiu ${cartaDeFinal(FINAL.b)?.emoji ?? ''}</span><b>${p[FINAL.a]}</b><span>–</span><b>${p[FINAL.b]}</b></div>
+    ${premioFinalTxt()}
     <p class="final-hinchas">🇸🇪 Los que más sumaron: ${top(FINAL.a)}<br>🐸 Los que más sumaron: ${top(FINAL.b)}</p>
     <p class="extras">1 punto por vuelta firmada con él y 1 más por cada golpe bajo par${finalBase ? '; 3 por cada match ganado contra el otro' : ''}. Nivelados al mismo hándicap.<br>🐸 Taiu: la Dickyllamada en cada hoyo, una vez a cada Dicky.<br>🇸🇪 El Sueco: el Marshall (No la vi, Amarilla al mono y Lie mejorado), uno por hoyo.</p>
     <button class="carta-jugar oro" type="button" data-bn="jugar">Jugar con ${mio?.emoji ?? ''} ${esc(apodoLimpio(datos.final))}</button>
@@ -14327,7 +14335,21 @@ if (finalViva()) {
   setInterval(() => { if (!$('#portada').hidden) cargarFinal() }, 60e3)
   let intentos = 0
   const ofrecer = setInterval(() => {
-    if (esDeLaFinal(datos.final) || ++intentos > 40) { clearInterval(ofrecer); return }
+    if (++intentos > 40) { clearInterval(ofrecer); return }
+    if (esDeLaFinal(datos.final)) {
+      if (datos.vistoPremioFinal) { clearInterval(ofrecer); return }
+      const libre = !$('#portada').hidden && $('#bananas-modal').hidden && ($('#cam')?.hidden ?? true) && $('#intro-app')?.hidden !== false
+      if (!libre) return
+      clearInterval(ofrecer)
+      datos.vistoPremioFinal = true
+      guardar(datos)
+      const j = cartaDeFinal(datos.final)
+      hojaBananas(`<p class="bn-tit" id="bn-tit">${gi('trophy')}Premio de La Final</p>
+        ${premioFinalTxt()}
+        <p>Vos bancás a <b>${j?.emoji ?? ''} ${esc(apodoLimpio(datos.final))}</b>: si gana, te llevás ${PREMIO_FINAL} bananas. Todavía te podés pasar al otro tocando el marcador del inicio.</p>
+        <button class="carta-jugar oro" type="button" data-bn="ok">Dale</button>`)
+      return
+    }
     const libre = !$('#portada').hidden && $('#bananas-modal').hidden && ($('#cam')?.hidden ?? true) && $('#intro-app')?.hidden !== false
     if (libre) { clearInterval(ofrecer); elegirFinal() }
   }, 1500)
