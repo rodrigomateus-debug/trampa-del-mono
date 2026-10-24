@@ -2353,7 +2353,9 @@ ok('🏆 Taiu en la Final (dickyPorHoyo): la Dickyllamada una por hoyo, y a cada
   assert.ok(M.puedeDickyllamar(r))
   assert.deepEqual(M.yaLlamados(r), ['Mike Queboni (Đ)'])
   assert.equal(M.dickyllamar(r, migue), false) // a Miguelón ya lo llamó
-  assert.equal(M.dickyllamar(r, fito), true)
+  // la interna: llamó a Fito y atendió Joaco (le pega él), pero Fito queda gastado igual
+  assert.equal(M.dickyllamar(r, fito, por('Lechu')), true)
+  assert.equal(r.jugador.apodo, 'Lechu')
   assert.deepEqual(M.yaLlamados(r), ['Mike Queboni (Đ)', 'Fito (Đ)'])
 })
 
