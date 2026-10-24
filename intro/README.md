@@ -28,6 +28,12 @@ con "Caminás tranquilo por el fairway…".
   La arma `armar-presentacion.mjs` a partir de `compositions/vertical.html` (si se toca la intro, volver a correrlo); `escena-presentacion.js`
   remapea el tiempo de la escena 3D. Las capturas del juego están en `assets/capturas/` y el ícono en `assets/icono-app.png`.
   Video: `trampa-del-mono-presentacion.mp4`.
+- `compositions/final.html` — **el anuncio de LA FINAL del club 🏆** (9:16, 29,2 s, 24/10/2026): El Sueco contra Taiu, a quién bancás y cómo suma, los matches a dos vueltas, la Dickyllamada de Taiu y el Marshall del Sueco, con la canción desde que vuelve la banda. Los emojis, solo los de los players; el resto, íconos del set SDGA (los `GI` del juego). Fotos en `assets/final/`. Video: `trampa-del-mono-la-final.mp4` (render y después `ffmpeg -crf 24`).
+- `compositions/fourball.html` — **el anuncio del FOURBALL ⚔️** (9:16, 32,2 s): la canción desde que vuelve la banda (c(24))
+  hasta el final del estribillo, con las 7 novedades (armar pareja, el desafío a una pareja, el player de los cuatro, los
+  fantasmas en vivo, mejor y suma, los avisos y el ranking) sobre capturas reales del juego (`assets/capturas/fourball/`,
+  sacadas con el fourball de mentira de `prueba.js` y nombres del grupo). Video: `trampa-del-mono-fourball.mp4` (liviano,
+  para WhatsApp).
 
 ## Mapa de la canción (0–36,8 s)
 
@@ -73,6 +79,7 @@ npx hyperframes@0.8.114 preview                   # Studio con el timeline (abre
 npx hyperframes@0.8.114 render --output trampa-del-mono-intro.mp4                              # 16:9
 npx hyperframes@0.8.114 render -c compositions/vertical.html --output trampa-del-mono-intro-vertical.mp4   # 9:16
 node armar-presentacion.mjs && npx hyperframes@0.8.114 render -c compositions/presentacion.html --output trampa-del-mono-presentacion.mp4
+npx hyperframes@0.8.114 render -c compositions/fourball.html --output trampa-del-mono-fourball.mp4   # (después, ffmpeg -crf 24 para que pese ~8 MB)
 ```
 
 El render usa WebGL por software si no hay GPU: tarda ~1 s por cuadro. `snapshot` y `preview` miran `index.html`;

@@ -21,6 +21,8 @@ const RIVALES = [
 ]
 // 👕 las camisetas de los rivales de mentira (la tuya, la que elijas)
 const CAMISETAS = { 'prueba:mono': 'dicky', 'prueba:patmig': 'e5', 'prueba:lechu': 'e5' }
+// 🏆 la Final: a quién bancan los rivales de mentira (el Mono, a Taiu; Patmig y Lechu, al Sueco)
+const HINCHAS_FINAL = { 'prueba:mono': 'Taiu (Đ)', 'prueba:patmig': 'El Sueco', 'prueba:lechu': 'El Sueco' }
 const PARES = [4, 4, 3]
 const H = 3600e3
 const MONO = 'mono'
@@ -376,6 +378,27 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null }) {
         return { equipo: e, costo, saldo: saldo(yo.uid) }
       }
       case 'camisetas': return [...RIVALES.map((r) => ({ user_id: r.user_id, equipo: CAMISETAS[r.user_id] })), ...(st.camiseta ? [{ user_id: yo.uid, equipo: st.camiseta }] : [])]
+      // ── 🏆 la Final (como `trampa_final_tablero` / `_elegir`): de mentira, 6 a 4 más lo tuyo (3 por bancar) ──
+      case 'finalElegir': {
+        const l = d.lado
+        if (l !== 'El Sueco' && l !== 'Taiu (Đ)') throw new No('lado inválido')
+        st.final = l
+        guardar()
+        return { lado: l }
+      }
+      case 'final': {
+        const ap = (lado) => [...RIVALES.filter((r) => HINCHAS_FINAL[r.user_id] === lado).map((r, i) => ({ uid: r.user_id, nombre: r.nombre, pts: lado === 'El Sueco' ? 3 - i : 4, matches: i ? 0 : 1 })),
+          ...(st.final === lado ? [{ uid: yo.uid, nombre: yo.alias, pts: 3, matches: 0 }] : [])]
+        const aportes = { 'El Sueco': ap('El Sueco'), 'Taiu (Đ)': ap('Taiu (Đ)') }
+        const suma = (l) => aportes[l].reduce((a, x) => a + x.pts, 0)
+        return {
+          desde: '2026-10-24T03:00:00Z', hasta: '2026-10-26T03:00:00Z',
+          puntos: { 'El Sueco': suma('El Sueco'), 'Taiu (Đ)': suma('Taiu (Đ)') }, aportes,
+          matches: [{ lado: 'Taiu (Đ)', gano: 'El Mono (prueba)', perdio: 'Patmig (prueba)', fecha: iso(ahora() - H) }],
+          hinchas: [...RIVALES.map((r) => ({ uid: r.user_id, lado: HINCHAS_FINAL[r.user_id] })), ...(st.final ? [{ uid: yo.uid, lado: st.final }] : [])],
+          mio: st.final ?? null,
+        }
+      }
       case 'clasicoSemana': {
         // de mentira: esta semana va 9 a 8 (con vos, si tenés camiseta, sumando 4: 3 de un match clásico); la pasada, 11 a 14
         const atras = Math.max(0, Math.floor(+d.atras || 0))

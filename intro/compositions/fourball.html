@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>La Trampa del Mono — El FOURBALL</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Anton";
+        src: url("assets/fonts/anton-400.woff2") format("woff2");
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: "Archivo";
+        src: url("assets/fonts/archivo-600.woff2") format("woff2");
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: "Archivo";
+        src: url("assets/fonts/archivo-700.woff2") format("woff2");
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: "Archivo";
+        src: url("assets/fonts/archivo-800.woff2") format("woff2");
+        font-weight: 800;
+      }
+      :root {
+        --green-950: #0c2b1c;
+        --green-900: #14402a;
+        --green-700: #1c5638;
+        --green-500: #2e7d4f;
+        --cream: #f4eeda;
+        --cream-dark: #e7dfc2;
+        --gold: #e8c34a;
+        --sky: #9fd3f7;
+        --red: #c8442f;
+        --display: "Anton", "Arial Narrow", sans-serif;
+        --body: "Archivo", "Helvetica Neue", sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--green-950);
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--green-950);
+        font-family: var(--body);
+        color: var(--cream);
+      }
+      .capa {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      /* el pasto cortado (como afuera de la cancha en el juego), que corre despacio */
+      #pasto {
+        inset: -400px;
+        background: repeating-linear-gradient(135deg, rgba(244, 238, 218, 0.035) 0 90px, rgba(244, 238, 218, 0) 90px 180px);
+      }
+      #grano {
+        background-image: url("assets/grano.png");
+        background-size: 256px 256px;
+        mix-blend-mode: overlay;
+        opacity: 0.16;
+      }
+      #vineta {
+        background: radial-gradient(120% 95% at 50% 46%, rgba(5, 18, 11, 0) 52%, rgba(5, 18, 11, 0.6) 100%);
+      }
+      #flash {
+        background: var(--cream);
+        opacity: 0;
+      }
+      #fundido {
+        background: var(--green-950);
+        opacity: 0;
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+      }
+      /* (aire arriba: con el recorte de la animación, sin esto se comen los acentos y la tilde de la Ñ) */
+      .linea {
+        display: block;
+        overflow: hidden;
+        padding-top: 0.16em;
+        margin-top: -0.16em;
+        padding-bottom: 0.04em;
+      }
+      .pal {
+        display: inline-block;
+      }
+      .banda {
+        position: relative;
+        display: inline-block;
+        padding: 8px 22px 6px;
+        overflow: hidden;
+      }
+      .banda i {
+        position: absolute;
+        inset: 0;
+        background: var(--gold);
+      }
+      .banda span {
+        position: relative;
+        display: block;
+        font: 400 42px/1 var(--display);
+        letter-spacing: 0.05em;
+        color: var(--green-900);
+        white-space: nowrap;
+      }
+      /* los palos cruzados del MATCH (el ícono del juego) */
+      .palos {
+        display: block;
+        overflow: visible;
+      }
+
+      /* ---------- la apertura: NUEVO · FOURBALL · 2 VS 2 ---------- */
+      #apertura {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding-bottom: 140px;
+      }
+      #ap-kicker {
+        font: 800 26px/1 var(--body);
+        letter-spacing: 0.32em;
+        color: var(--cream);
+        background: var(--green-900);
+        border-radius: 6px;
+        padding: 11px 16px 10px 22px;
+      }
+      #ap-kicker b {
+        color: var(--gold);
+        margin-right: 0.5em;
+      }
+      #ap-palos {
+        width: 230px;
+        height: 230px;
+        margin: 46px 0 6px;
+      }
+      #ap-tit {
+        font: 400 250px/0.9 var(--display);
+        letter-spacing: 0.01em;
+        color: var(--cream);
+        filter: drop-shadow(0 12px 34px rgba(5, 18, 11, 0.55));
+      }
+      #ap-tit .lt {
+        display: inline-block;
+      }
+      #ap-banda {
+        margin-top: 26px;
+      }
+      #ap-banda span {
+        font-size: 64px;
+        padding: 0 10px;
+      }
+      #ap-sub {
+        margin-top: 30px;
+        font: 700 34px/1.3 var(--body);
+        color: var(--cream);
+        letter-spacing: 0.02em;
+      }
+      /* dos pares de ojos de mono: una pareja contra la otra */
+      .par {
+        position: absolute;
+        display: flex;
+        gap: 0.1em;
+        filter: drop-shadow(0 0 0.3em rgba(232, 195, 74, 0.3));
+      }
+      .par svg {
+        display: block;
+        width: 0.465em;
+        height: 0.735em;
+      }
+
+      /* ---------- las funciones: el título arriba y el teléfono abajo ---------- */
+      .feat-cab {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        top: 92px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .feat-kicker {
+        display: block;
+        font: 800 22px/1 var(--body);
+        letter-spacing: 0.3em;
+        color: var(--cream);
+        background: var(--green-900);
+        border-radius: 6px;
+        padding: 9px 14px 8px 16px;
+        margin-bottom: 18px;
+      }
+      .feat-kicker b {
+        color: var(--gold);
+        font-weight: 800;
+        margin-right: 0.6em;
+      }
+      .feat-tit {
+        font: 400 112px/1.02 var(--display);
+        letter-spacing: 0.01em;
+        color: var(--cream);
+        filter: drop-shadow(0 6px 22px rgba(5, 18, 11, 0.5));
+      }
+      .feat-cab .banda {
+        margin-top: 16px;
+      }
+      .feat-txt {
+        display: block;
+        max-width: 900px;
+        margin-top: 16px;
+        font: 600 26px/1.35 var(--body);
+        color: var(--cream);
+        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.9));
+      }
+      #tel {
+        position: absolute;
+        left: 260px;
+        top: 668px;
+        width: 560px;
+        height: 1179px;
+        padding: 14px;
+        border-radius: 72px;
+        background: #07140d;
+        box-shadow: 0 34px 90px rgba(0, 0, 0, 0.55), inset 0 0 0 3px rgba(244, 238, 218, 0.16);
+      }
+      #tel-pantalla {
+        position: relative;
+        width: 532px;
+        height: 1151px;
+        border-radius: 58px;
+        overflow: hidden;
+        background: #14402a;
+      }
+      #tel-pantalla img {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 532px;
+        height: 1151px;
+        opacity: 0;
+      }
+      /* los chips que señalan algo de la pantalla */
+      .chip {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 28px 14px 16px;
+        border-radius: 999px;
+        background: var(--cream);
+        color: var(--green-900);
+        box-shadow: 0 8px 26px rgba(12, 43, 28, 0.45);
+        white-space: nowrap;
+        opacity: 0;
+      }
+      .chip em {
+        display: grid;
+        place-items: center;
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: #d9e8dc;
+        font: normal 36px/1 system-ui, "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+      }
+      .chip b {
+        display: block;
+        font: 800 27px/1.1 var(--body);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .chip small {
+        display: block;
+        font: 600 20px/1.25 var(--body);
+        color: #5e6e5f;
+      }
+      .chip.oro {
+        background: var(--gold);
+      }
+      .chip.oro em {
+        background: rgba(255, 255, 255, 0.45);
+      }
+      .chip.rojo b {
+        color: var(--red);
+      }
+
+      /* ---------- el estribillo: ARMÁ PAREJA Y DESAFIÁ ---------- */
+      #coro {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 72px 120px;
+      }
+      #coro .cap-grande {
+        font: 400 190px/0.88 var(--display);
+        color: var(--cream);
+        filter: drop-shadow(0 10px 30px rgba(5, 18, 11, 0.5));
+      }
+      #coro .cap-grande .oro {
+        color: var(--gold);
+      }
+      #coro .banda {
+        align-self: flex-start;
+        margin-top: 30px;
+      }
+      #coro .banda span {
+        font-size: 52px;
+      }
+
+      /* ---------- el cierre ---------- */
+      #cierre {
+        display: block;
+      }
+      #cl-caja {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      #cl-juego {
+        font: 400 64px/1 var(--display);
+        letter-spacing: 0.04em;
+        color: var(--cream);
+      }
+      #cl-tit {
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        margin-top: 8px;
+        font: 400 200px/0.95 var(--display);
+        color: var(--gold);
+        filter: drop-shadow(0 10px 30px rgba(5, 18, 11, 0.5));
+      }
+      #cl-tit .palos {
+        width: 150px;
+        height: 150px;
+      }
+      #cl-banda {
+        margin-top: 24px;
+      }
+      #cl-banda span {
+        font-size: 50px;
+      }
+      #cl-tag {
+        display: block;
+        margin-top: 26px;
+        font: 800 22px/1.6 var(--body);
+        letter-spacing: 0.2em;
+        color: var(--cream);
+        background: var(--green-900);
+        border-radius: 6px;
+        padding: 6px 12px 5px 16px;
+      }
+      #cl-app {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 1260px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      #cl-icono {
+        display: block;
+        width: 170px;
+        height: 170px;
+        border-radius: 40px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(244, 238, 218, 0.25);
+      }
+      #cl-boton {
+        display: block;
+        margin-top: 30px;
+        padding: 22px 64px 18px;
+        border-radius: 999px;
+        background: var(--gold);
+        color: var(--green-900);
+        font: 400 64px/1 var(--display);
+        letter-spacing: 0.05em;
+        box-shadow: 0 10px 30px rgba(12, 43, 28, 0.45);
+      }
+      #cl-como {
+        display: block;
+        margin-top: 28px;
+        font: 800 27px/1.3 var(--body);
+        letter-spacing: 0.03em;
+        color: var(--cream);
+        filter: drop-shadow(0 2px 10px rgba(5, 18, 11, 0.9));
+      }
+      #cl-como b {
+        color: var(--gold);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="fourball" data-start="0" data-width="1080" data-height="1920" data-duration="32.2">
+      <div id="pasto" class="capa"></div>
+
+      <!-- 0 · la apertura -->
+      <section id="apertura" class="clip" data-start="0" data-duration="2.657" data-track-index="1">
+        <span id="ap-kicker"><b>NUEVO</b>LA TRAMPA DEL MONO</span>
+        <svg id="ap-palos" class="palos" viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="#f4eeda" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4.5L22 23.5M24.5 4.5L10 23.5" /><path d="M7.5 4.5l2 2.6M24.5 4.5l-2 2.6" stroke-width="4.6" /><rect x="19.5" y="22" width="8" height="4" rx="2" fill="#e8c34a" /><rect x="4.5" y="22" width="8" height="4" rx="2" fill="#e8c34a" /><circle cx="16" cy="24.5" r="2.5" fill="#f4eeda" /></g></svg>
+        <div id="ap-tit"><span class="lt">F</span><span class="lt">O</span><span class="lt">U</span><span class="lt">R</span><span class="lt">B</span><span class="lt">A</span><span class="lt">L</span><span class="lt">L</span></div>
+        <span id="ap-banda" class="banda"><i></i><span>2 VS 2 · A DISTANCIA</span></span>
+        <span id="ap-sub">Mejor pelota y suma. Con tu compañero, contra otra pareja.</span>
+      </section>
+
+      <!-- 1 a 7 · las funciones (los títulos) -->
+      <section id="f1" class="clip" data-start="2.657" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>01</b>ARMÁ PAREJA</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">ELEGÍ</span></span><span class="linea"><span class="pal">TU COMPAÑERO</span></span></div>
+          <span class="banda"><i></i><span>Y CONTRA QUIÉN</span></span>
+          <span class="feat-txt">Abierto para la primera pareja que lo tome, o un desafío a una pareja puntual.</span>
+        </div>
+      </section>
+      <section id="f2" class="clip" data-start="5.314" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>02</b>EL DESAFÍO</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">DESAFIÁ A</span></span><span class="linea"><span class="pal">UNA PAREJA</span></span></div>
+          <span class="banda"><i></i><span>SOLO ELLOS LO PUEDEN TOMAR</span></span>
+          <span class="feat-txt">Les llega en el juego y por WhatsApp: lo aceptan o lo rechazan.</span>
+        </div>
+      </section>
+      <section id="f3" class="clip" data-start="7.971" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>03</b>EL PLAYER</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">UNO PARA</span></span><span class="linea"><span class="pal">LOS CUATRO</span></span></div>
+          <span class="banda"><i></i><span>LO ELIGE EL QUE LO ARMA</span></span>
+          <span class="feat-txt">El player cambia la puntería: los cuatro juegan con el mismo.</span>
+        </div>
+      </section>
+      <section id="f4" class="clip" data-start="10.628" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>04</b>EN VIVO</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">JUGÁS CONTRA</span></span><span class="linea"><span class="pal">3 FANTASMAS</span></span></div>
+          <span class="banda"><i></i><span>CADA UNO CUANDO PUEDE</span></span>
+          <span class="feat-txt">Mismo viento, banderas y clima. Ves en vivo las pelotas de los que ya jugaron.</span>
+        </div>
+      </section>
+      <section id="f5" class="clip" data-start="13.285" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>05</b>LA CUENTA</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">MEJOR PELOTA</span></span><span class="linea"><span class="pal">Y SUMA</span></span></div>
+          <span class="banda"><i></i><span>2 PUNTOS POR HOYO</span></span>
+          <span class="feat-txt">½ y ½ si empatan. 3 a 3, gana el menor tiempo sumado.</span>
+        </div>
+      </section>
+      <section id="f6" class="clip" data-start="15.942" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>06</b>QUE NO SE TE PASE</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">TE AVISA</span></span><span class="linea"><span class="pal">TODO</span></span></div>
+          <span class="banda"><i></i><span>¡TE QUEDAN 5 H!</span></span>
+          <span class="feat-txt">Quién jugó, cómo terminó, quién te desafió. ¿No podés? Avisás y eligen otro.</span>
+        </div>
+      </section>
+      <section id="f7" class="clip" data-start="18.599" data-duration="2.657" data-track-index="2">
+        <div class="feat-cab">
+          <span class="feat-kicker"><b>07</b>EL RANKING</span>
+          <div class="feat-tit"><span class="linea"><span class="pal">¿LA MEJOR</span></span><span class="linea"><span class="pal">DUPLA?</span></span></div>
+          <span class="banda"><i></i><span>JUGADORES Y PAREJAS</span></span>
+          <span class="feat-txt">Ganados, empatados y perdidos de todos los fourball.</span>
+        </div>
+      </section>
+
+      <!-- el teléfono, con las pantallas de verdad, y los chips -->
+      <section id="p-tel" class="clip" data-start="2.657" data-duration="18.599" data-track-index="3">
+        <div id="tel">
+          <div id="tel-pantalla">
+            <img id="pt-armar" src="assets/capturas/fourball/armar.webp" alt="" />
+            <img id="pt-contra" src="assets/capturas/fourball/contra.webp" alt="" />
+            <img id="pt-rival" src="assets/capturas/fourball/rival.webp" alt="" />
+            <img id="pt-confirmar" src="assets/capturas/fourball/confirmar.webp" alt="" />
+            <img id="pt-mazo" src="assets/capturas/fourball/mazo.webp" alt="" />
+            <img id="pt-juego-06" src="assets/capturas/fourball/juego-06.webp" alt="" />
+            <img id="pt-juego-22" src="assets/capturas/fourball/juego-22.webp" alt="" />
+            <img id="pt-detalle" src="assets/capturas/fourball/detalle.webp" alt="" />
+            <img id="pt-novedades" src="assets/capturas/fourball/novedades.webp" alt="" />
+            <img id="pt-mios" src="assets/capturas/fourball/mios.webp" alt="" />
+            <img id="pt-ranking" src="assets/capturas/fourball/ranking.webp" alt="" />
+            <img id="pt-parejas" src="assets/capturas/fourball/parejas.webp" alt="" />
+          </div>
+        </div>
+        <div class="chip oro" id="chip-pareja" style="left: 40px; top: 1180px"><em>⚔️</em><span><b>Contra una pareja</b><small>o contra cualquiera</small></span></div>
+        <div class="chip" id="chip-acepta" style="left: 560px; top: 1500px"><em>✅</em><span><b>Aceptar</b><small>o rechazar</small></span></div>
+        <div class="chip oro" id="chip-player" style="left: 40px; top: 1420px"><em>🦝</em><span><b>El de los cuatro</b><small>Mapache, para todos</small></span></div>
+        <div class="chip" id="chip-nos" style="left: 40px; top: 1270px"><em>👻</em><span><b>Tu compañero</b><small>en dorado</small></span></div>
+        <div class="chip" id="chip-ellos" style="left: 600px; top: 1430px"><em>👻</em><span><b>Los rivales</b><small>en celeste</small></span></div>
+        <div class="chip oro" id="chip-gano" style="left: 40px; top: 1560px"><em>🏆</em><span><b>Ganaron 5 a 1</b><small>hoyo a hoyo</small></span></div>
+        <div class="chip" id="chip-revancha" style="left: 600px; top: 1660px"><em>🔁</em><span><b>Revancha</b><small>a la misma pareja</small></span></div>
+        <div class="chip rojo" id="chip-apuro" style="left: 40px; top: 1240px"><em>⏰</em><span><b>¡Te quedan 5 h!</b><small>el que no juega, LP</small></span></div>
+        <div class="chip" id="chip-nopuedo" style="left: 620px; top: 1560px"><em>🙋</em><span><b>No puedo</b><small>y eligen otro</small></span></div>
+      </section>
+
+      <!-- el estribillo -->
+      <section id="coro" class="clip" data-start="21.256" data-duration="5.314" data-track-index="2">
+        <div class="cap-grande"><span class="linea"><span class="pal">ARMÁ</span></span><span class="linea"><span class="pal oro">PAREJA</span></span><span class="linea"><span class="pal">Y</span> <span class="pal oro">DESAFIÁ</span></span></div>
+        <span class="banda"><i></i><span>¿QUIÉNES SON LOS MEJORES DEL SDGA?</span></span>
+      </section>
+
+      <!-- el cierre -->
+      <section id="cierre" class="clip" data-start="26.57" data-duration="5.63" data-track-index="4">
+        <div id="cl-caja">
+          <span id="cl-juego">LA TRAMPA DEL MONO</span>
+          <div id="cl-tit"><svg class="palos" viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="#f4eeda" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4.5L22 23.5M24.5 4.5L10 23.5" /><path d="M7.5 4.5l2 2.6M24.5 4.5l-2 2.6" stroke-width="4.6" /><rect x="19.5" y="22" width="8" height="4" rx="2" fill="#e8c34a" /><rect x="4.5" y="22" width="8" height="4" rx="2" fill="#e8c34a" /><circle cx="16" cy="24.5" r="2.5" fill="#f4eeda" /></g></svg><span>FOURBALL</span></div>
+          <span id="cl-banda" class="banda"><i></i><span>MATCH › 2 VS 2</span></span>
+          <span id="cl-tag">POR EL HONOR · YA ESTÁ EN LA APP</span>
+        </div>
+        <div id="cl-app">
+          <img id="cl-icono" src="assets/icono-app.png" alt="La Trampa del Mono" />
+          <span id="cl-boton">ARMÁ TU PAREJA</span>
+          <span id="cl-como">SDGApp → Juegos → La Trampa del Mono → <b>MATCH → 2 VS 2</b></span>
+        </div>
+      </section>
+
+      <!-- dos pares de ojos: una pareja contra la otra (en la apertura y en el cierre) -->
+      <div id="pares" class="capa">
+        <div class="par" id="par-0" style="left: 110px; top: 250px; font-size: 92px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div>
+        <div class="par" id="par-1" style="left: 270px; top: 120px; font-size: 70px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div>
+        <div class="par" id="par-2" style="left: 870px; top: 250px; font-size: 92px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div>
+        <div class="par" id="par-3" style="left: 730px; top: 120px; font-size: 70px"><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg><svg viewBox="0 0 100 158" aria-hidden="true"><ellipse cx="50" cy="79" rx="49" ry="78" fill="#f4eeda" /><g fill="#e7dfc2"><circle cx="22" cy="40" r="6" /><circle cx="48" cy="22" r="6" /><circle cx="76" cy="38" r="6" /><circle cx="16" cy="78" r="6" /><circle cx="84" cy="80" r="6" /><circle cx="24" cy="118" r="6" /><circle cx="50" cy="136" r="6" /><circle cx="77" cy="118" r="6" /></g><g class="pu"><ellipse cx="50" cy="84" rx="27" ry="31" fill="#e8c34a" /><ellipse cx="50" cy="84" rx="17" ry="21" fill="#0c2b1c" /><circle cx="58" cy="74" r="6" fill="#ffffff" /></g></svg></div>
+      </div>
+
+      <div id="grano" class="capa"></div>
+      <div id="vineta" class="capa"></div>
+      <div id="flash" class="capa"></div>
+      <div id="fundido" class="capa"></div>
+
+      <!-- la canción: desde que vuelve la banda (c(24) de cues.js), hasta el final del estribillo -->
+      <audio
+        id="musica"
+        src="assets/trampa-del-mono.mp3"
+        data-start="0"
+        data-duration="32.2"
+        data-media-start="32.804"
+        data-track-index="10"
+        data-volume="1"
+        data-timeline-role="music"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":30.6,"v":1},{"t":32.2,"v":0}]}]}'
+      ></audio>
+    </div>
+
+    <script>
+      (function () {
+        // un compás de la canción (4 negras a 180,7 bpm): todo cae en el compás
+        var B = 1.3285;
+        var N = B / 4;
+        var b = function (n) {
+          return Math.round(n * B * 1000) / 1000;
+        };
+        var FIN = 32.2;
+        var tl = gsap.timeline({ paused: true });
+
+        // el pasto corre todo el video
+        tl.fromTo("#pasto", { x: 0, y: 0 }, { x: -254, y: 254, duration: FIN, ease: "none" }, 0);
+
+        function palabras(sel, t, cada) {
+          gsap.utils.toArray(sel).forEach(function (el, i) {
+            tl.fromTo(el, { yPercent: 108, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.34, ease: "back.out(1.6)" }, t + i * cada);
+          });
+        }
+        function banda(sel, t) {
+          tl.fromTo(sel + " i", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.3, ease: "power3.inOut" }, t);
+          tl.fromTo(sel + " span", { yPercent: 110 }, { yPercent: 0, duration: 0.26, ease: "power3.out" }, t + 0.16);
+        }
+
+        // ---------- 0 · la apertura ----------
+        tl.fromTo("#flash", { opacity: 0.9 }, { opacity: 0, duration: 0.35, ease: "power2.out" }, 0);
+        tl.fromTo("#ap-kicker", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 0.02);
+        tl.fromTo("#ap-palos", { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.42, ease: "back.out(2.4)" }, N);
+        tl.fromTo("#ap-tit .lt", { scale: 2.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "power4.out", stagger: 0.045, transformOrigin: "50% 80%" }, N * 2);
+        banda("#ap-banda", N * 4);
+        tl.fromTo("#ap-sub", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, N * 5);
+        tl.to("#apertura", { opacity: 0, scale: 0.96, duration: 0.2, ease: "power2.in" }, b(2) - 0.2);
+
+        // ---------- los ojos: los dos pares de cada lado se abren, se miran (pareja contra pareja) y parpadean ----------
+        var pares = ["#par-0", "#par-1", "#par-2", "#par-3"];
+        function ojos(t0, t1) {
+          pares.forEach(function (el, i) {
+            var izq = i < 2;
+            tl.set(el, { opacity: 1 }, t0);
+            tl.fromTo(el, { scaleY: 0.04 }, { scaleY: 1, duration: 0.18, ease: "back.out(3)" }, t0 + i * N * 0.5);
+            tl.fromTo(el + " .pu", { x: 0, y: 0 }, { x: izq ? 15 : -15, y: 4, duration: 0.2, ease: "power3.out" }, t0 + 0.3 + i * 0.05);
+            tl.to(el + " .pu", { x: 0, y: 14, duration: 0.2, ease: "power3.out" }, t0 + (t1 - t0) * 0.55);
+            tl.to(el, { scaleY: 0.06, duration: 0.06, ease: "power2.in" }, t0 + (t1 - t0) * 0.7 + i * 0.03);
+            tl.to(el, { scaleY: 1, duration: 0.1, ease: "power2.out" }, t0 + (t1 - t0) * 0.7 + i * 0.03 + 0.06);
+            tl.to(el, { scaleY: 0.04, duration: 0.12, ease: "power2.in" }, t1 - 0.14);
+            tl.set(el, { opacity: 0 }, t1);
+          });
+        }
+        pares.forEach(function (el) {
+          tl.set(el, { opacity: 0 }, 0);
+        });
+        ojos(N * 3, b(2) - 0.05);
+
+        // ---------- 1 a 7 · las funciones, una cada dos compases ----------
+        var F = [
+          ["#f1", b(2)],
+          ["#f2", b(4)],
+          ["#f3", b(6)],
+          ["#f4", b(8)],
+          ["#f5", b(10)],
+          ["#f6", b(12)],
+          ["#f7", b(14)],
+        ];
+        F.forEach(function (f) {
+          var id = f[0],
+            t = f[1];
+          tl.fromTo(id + " .feat-kicker", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t);
+          palabras(id + " .feat-tit .pal", t + 0.04, N * 0.5);
+          banda(id + " .banda", t + N);
+          tl.fromTo(id + " .feat-txt", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, t + N * 1.5);
+          tl.to(id + " .feat-cab", { opacity: 0, y: -24, duration: 0.18, ease: "power2.in" }, t + b(2) - 0.2);
+        });
+
+        // el teléfono entra con peso, flota y se va
+        tl.fromTo("#tel", { y: 900, rotation: 8 }, { y: 0, rotation: 0, duration: 0.7, ease: "back.out(1.2)" }, b(2));
+        tl.fromTo("#tel", { scale: 1 }, { scale: 1.02, duration: b(14) - 1, ease: "sine.inOut" }, b(2) + 0.7);
+        tl.to("#tel", { y: 1300, rotation: -10, duration: 0.45, ease: "power3.in" }, b(16) - 0.5);
+
+        // las pantallas, cada una en su compás (y algunos zooms a lo que importa)
+        var P = [
+          ["armar", b(2)],
+          ["contra", b(3)],
+          ["rival", b(4)],
+          ["confirmar", b(5)],
+          ["mazo", b(6)],
+          ["juego-06", b(8)],
+          ["juego-22", b(9)],
+          ["detalle", b(10)],
+          ["novedades", b(12)],
+          ["mios", b(13)],
+          ["ranking", b(14)],
+          ["parejas", b(15)],
+        ];
+        P.forEach(function (s, i) {
+          var el = "#pt-" + s[0];
+          tl.fromTo(el, { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 0.22, ease: "power2.out" }, s[1]);
+          var sig = P[i + 1];
+          if (sig) tl.set(el, { opacity: 0 }, sig[1] + 0.22);
+        });
+        // el marcador en vivo: zoom arriba, a los cuatro con sus golpes
+        tl.to("#pt-juego-22", { scale: 1.75, transformOrigin: "50% 9%", duration: 0.55, ease: "power3.inOut" }, b(9) + N * 1.2);
+        // GANARON: zoom al veredicto
+        tl.to("#pt-detalle", { scale: 1.45, transformOrigin: "50% 62%", duration: 0.6, ease: "power3.inOut" }, b(10) + N * 3);
+        tl.to("#pt-detalle", { scale: 1, duration: 0.45, ease: "power3.inOut" }, b(11) + N * 2);
+        // las novedades: zoom al apuro en rojo
+        tl.to("#pt-novedades", { scale: 1.5, transformOrigin: "50% 36%", duration: 0.55, ease: "power3.inOut" }, b(12) + N * 1.5);
+
+        // los chips: uno o dos por función
+        var C = [
+          ["#chip-pareja", b(3) + N],
+          ["#chip-acepta", b(5) + N],
+          ["#chip-player", b(6) + N * 2],
+          ["#chip-nos", b(8) + N * 2],
+          ["#chip-ellos", b(8) + N * 3],
+          ["#chip-gano", b(10) + N * 2],
+          ["#chip-revancha", b(11) + N * 2],
+          ["#chip-apuro", b(12) + N * 2],
+          ["#chip-nopuedo", b(13) + N * 2],
+        ];
+        C.forEach(function (c, i) {
+          var fin = Math.ceil((c[1] + 0.01) / (2 * B)) * 2 * B - 0.2;
+          tl.fromTo(c[0], { scale: 0, opacity: 0, rotation: i % 2 ? 6 : -6 }, { scale: 1, opacity: 1, rotation: i % 2 ? 2 : -2, duration: 0.3, ease: "back.out(2.2)" }, c[1]);
+          tl.to(c[0], { scale: 0.6, opacity: 0, duration: 0.18, ease: "power2.in" }, fin);
+        });
+
+        // ---------- el estribillo: ARMÁ / PAREJA / Y DESAFIÁ ----------
+        var E = b(16);
+        tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.85, duration: 0.04, ease: "none" }, E - 0.02);
+        tl.to("#flash", { opacity: 0, duration: 0.3, ease: "power2.out" }, E + 0.03);
+        gsap.utils.toArray("#coro .pal").forEach(function (el, i) {
+          tl.fromTo(el, { scale: 2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.22, ease: "expo.out", transformOrigin: "0% 70%" }, E + i * N * 2);
+        });
+        banda("#coro .banda", E + N * 9);
+        tl.to("#coro .cap-grande", { scale: 1.04, duration: b(4) - N * 8, ease: "sine.inOut", transformOrigin: "0% 50%" }, E + N * 8);
+        tl.to("#coro", { opacity: 0, duration: 0.2, ease: "power2.in" }, b(20) - 0.2);
+
+        // ---------- el cierre ----------
+        var L = b(20);
+        tl.set("#flash", { opacity: 1 }, L - 0.01);
+        tl.to("#flash", { opacity: 0, duration: 0.4, ease: "power2.out" }, L + 0.02);
+        tl.fromTo("#cl-juego", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, L + 0.02);
+        tl.fromTo("#cl-tit .palos", { scale: 0, rotation: -60 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2.4)" }, L + N);
+        tl.fromTo("#cl-tit span", { scale: 1.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "power4.out", transformOrigin: "50% 80%" }, L + N * 1.5);
+        banda("#cl-banda", L + N * 3);
+        tl.fromTo("#cl-tag", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, L + N * 5);
+        tl.fromTo("#cl-icono", { scale: 0, rotation: -12 }, { scale: 1, rotation: 0, duration: 0.5, ease: "back.out(2)" }, L + N * 4);
+        tl.fromTo("#cl-boton", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2.4)" }, L + N * 6);
+        for (var k = 0; L + N * 8 + k * N < FIN - 0.8; k++) {
+          tl.fromTo("#cl-boton", { scale: 1.06 }, { scale: 1, duration: N * 0.9, ease: "power2.out" }, L + N * 8 + k * N);
+        }
+        tl.fromTo("#cl-como", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, L + N * 7);
+        ojos(L + N * 2, FIN - 0.7);
+        tl.to("#fundido", { opacity: 1, duration: 0.6, ease: "power2.in" }, FIN - 0.6);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines["fourball"] = tl;
+      })();
+    </script>
+  </body>
+</html>
