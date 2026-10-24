@@ -415,7 +415,7 @@ export const colorTee = (jugador) => {
   return h <= 5 ? 'azul' : h <= 14 ? 'blanca' : 'amarilla'
 }
 /** El tee de la ronda en el hoyo actual (o en `h`). */
-export const teeDe = (r, h = HOYOS[r.idx]) => h.tees[r.tee ?? 'blanca']
+export const teeDe = (r, h = hoyoActual(r)) => h.tees[r.tee ?? 'blanca']
 /** Yardas reales de una distancia del dibujo, en el hoyo que se juega. */
 export const aYardas = (r, d) => d * ((r.hoyos ?? HOYOS)[Math.min(r.idx, nHoyos(r) - 1)].escala)
 /** Cuántos hoyos tiene la vuelta: 3 (15, 16 y 17); en los matches de la Final, 6 (dos vueltas: `aplicarMatch`). */

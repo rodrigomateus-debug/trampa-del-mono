@@ -12680,7 +12680,7 @@ function pintarReplay(todo = false) {
     const txt = !f ? '' : f.fin
       ? `Terminó · ${p.x.lp || p.x.golpes == null ? 'LP 💅' : `${p.x.golpes} (${M.formatoPar(p.x.vsPar)})`}`
       : p.debugs.some((b) => r.t >= b.desde && r.t < b.hasta) ? '⏸ DEBUG · no es golpe'
-      : `Hoyo ${M.HOYOS[f.idx]?.n ?? ''} · ${f.golpes} ${f.golpes === 1 ? 'golpe' : 'golpes'}`
+      : `Hoyo ${M.HOYOS[f.idx % M.HOYOS.length]?.n ?? ''} · ${f.golpes} ${f.golpes === 1 ? 'golpe' : 'golpes'}`
     poner(`e${i}`, $(`#rp-estado-${i}`), txt, (el, v) => { el.textContent = v })
   })
   poner('marcador', $('#rp-marcador'), htmlMarcadorReplay(r), (el, v) => { el.innerHTML = v })
