@@ -28,6 +28,7 @@ con "Caminás tranquilo por el fairway…".
   La arma `armar-presentacion.mjs` a partir de `compositions/vertical.html` (si se toca la intro, volver a correrlo); `escena-presentacion.js`
   remapea el tiempo de la escena 3D. Las capturas del juego están en `assets/capturas/` y el ícono en `assets/icono-app.png`.
   Video: `trampa-del-mono-presentacion.mp4`.
+- `compositions/final.html` — **el anuncio de LA FINAL del club 🏆** (9:16, 29,2 s, 24/10/2026): El Sueco contra Taiu, a quién bancás y cómo suma, los matches a dos vueltas, la Dickyllamada de Taiu y el Marshall del Sueco, con la canción desde que vuelve la banda. Los emojis, solo los de los players; el resto, íconos del set SDGA (los `GI` del juego). Fotos en `assets/final/`. Video: `trampa-del-mono-la-final.mp4` (render y después `ffmpeg -crf 24`).
 - `compositions/fourball.html` — **el anuncio del FOURBALL ⚔️** (9:16, 32,2 s): la canción desde que vuelve la banda (c(24))
   hasta el final del estribillo, con las 7 novedades (armar pareja, el desafío a una pareja, el player de los cuatro, los
   fantasmas en vivo, mejor y suma, los avisos y el ranking) sobre capturas reales del juego (`assets/capturas/fourball/`,
