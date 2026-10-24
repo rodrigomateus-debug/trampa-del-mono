@@ -1473,7 +1473,7 @@ export function crearMonos() {
 export const monoActivo = (s) => !monoFuera(s) && (s.modo === 'caza' || s.espera <= 0)
 /** Ya no juega en esta vuelta: lo pisó el carrito de Marcos, te lo llevaste comiendo el pancho de la Mugre o lo pinchó
  *  la flecha del Sueco. */
-export const monoFuera = (s) => s.modo === 'aplastado' || s.modo === 'llevado' || s.modo === 'pinchado'
+export const monoFuera = (s) => s.modo === 'aplastado' || s.modo === 'llevado' || s.modo === 'pinchado' || s.modo === 'expulsado' // (expulsado: la amarilla del Marshall)
 
 function caminar(s, destino, vel, dt) {
   const d = dist(s.pos, destino)
@@ -2838,6 +2838,7 @@ export function resolverReposo(campo, r, tiro, rng) {
     res.racha = { antes, ahora: r.racha, bueno: esBueno(res) && !esMalo(res, tiro) }
   }
   cargarFuria(campo, r, tiro, res)
+  if (esMarshall(r)) anotarParaMarshall(r, tiro, res)
   devolverDicky(r) // la Dickyllamada: el Dicky que te pegó el tiro te devuelve el palo
   return res
 }
@@ -3392,6 +3393,85 @@ function devolverDicky(r) {
   r.jugador = r.prestado.antes
   r.golpeMago = r.prestado.golpeMago
   r.prestado = null
+}
+
+// ── 🚩 el Marshall (Mati, El Sueco, en la Final; `marshall` en la carta, lo pone la página): un botón con tres
+// fallos, cada uno una vez por vuelta y uno por hoyo como mucho. Corrige DESPUÉS del tiro (Taiu, con la Dickyllamada,
+// se ayuda antes). 🙈 No la vi: el mal tiro se repite desde donde salió y no cuenta. 🟨 Amarilla al mono: el mono que te
+// la robó o te la tiró se va expulsado y el golpe de multa no cuenta. 📏 Lie mejorado: dropeás en el fairway, a la misma
+// altura del hoyo, donde elijas (en el green no) ──
+export const MARSHALL = { ancho: 45, paso: 0.75 }
+export const FALLOS = ['nolavi', 'amarilla', 'lie']
+export const esMarshall = (r) => !!r.jugador?.marshall
+const multaDe = (tipo) => (['afuera', 'mono-malo', 'mono-ladron'].includes(tipo) ? 1 : 0)
+/** Después de cada tiro del Marshall: lo que hace falta para deshacerlo (No la vi) o para la amarilla. */
+function anotarParaMarshall(r, tiro, res) {
+  r.marshall ??= { usadas: {}, ultimo: null }
+  r.marshall.ultimo = res.tipo === 'embocada' ? null : {
+    n: hoyoActual(r).n, tiros: r.tirosHoyo, desde: [...r.desde], lieDesde: r.lieDesde, tipo: res.tipo,
+    malo: esMalo(res, tiro), multa: multaDe(res.tipo), pos: res.desde ? [...res.desde] : null, mono: tiro.robada ?? null,
+  }
+}
+/** El último tiro, si es el de recién (en este hoyo y sin otro tiro en el medio). */
+function ultimoTiro(r) {
+  const u = r.marshall?.ultimo
+  return u && u.n === hoyoActual(r).n && u.tiros === (r.tirosHoyo ?? 0) ? u : null
+}
+/** Las opciones del Lie mejorado: el fairway del hoyo a la misma altura que la pelota (de un lado al otro, sin árboles). */
+export function opcionesLie(campo, r) {
+  const h = hoyoActual(r)
+  let q = h.calle[0], i0 = 0
+  for (let i = 0; i < h.calle.length - 1; i++) {
+    const c = cercanoEnSegmento(r.pelota, h.calle[i], h.calle[i + 1])
+    if (dist(c, r.pelota) < dist(q, r.pelota)) { q = c; i0 = i }
+  }
+  const a = h.calle[i0], b = h.calle[i0 + 1] ?? h.calle[i0]
+  const l = dist(a, b) || 1, nx = -(b[1] - a[1]) / l, ny = (b[0] - a[0]) / l
+  const ops = []
+  for (let s = -MARSHALL.ancho; s <= MARSHALL.ancho; s += MARSHALL.paso) {
+    const p = [q[0] + nx * s, q[1] + ny * s]
+    const t = terreno(campo, p)
+    if (t.tipo === 'fairway' && (!t.hoyo || t.hoyo === h.n) && !pinoEn(campo, p)) ops.push(p)
+  }
+  return ops
+}
+/** ¿Puede usar `que` ahora? (con la pelota quieta, antes del próximo tiro) */
+export function puedeMarshall(r, que, campo) {
+  if (!esMarshall(r) || r.terminada || r.prestado || !FALLOS.includes(que)) return false
+  const usadas = r.marshall?.usadas ?? {}
+  if (usadas[que] != null || Object.values(usadas).includes(hoyoActual(r).n)) return false
+  const u = ultimoTiro(r)
+  if (que === 'nolavi') return !!u?.malo
+  if (que === 'amarilla') return !!u && (u.tipo === 'mono-malo' || u.tipo === 'mono-ladron')
+  return r.lie !== 'green' && r.lie !== 'tee' && (!campo || opcionesLie(campo, r).length > 0)
+}
+/** El Marshall falla. `p` (Lie mejorado): dónde lo dropeás (se ajusta a la opción más cerca). Devuelve false si no se puede. */
+export function fallar(campo, r, que, p = null) {
+  if (!puedeMarshall(r, que, campo)) return false
+  const h = hoyoActual(r), u = ultimoTiro(r)
+  if (que === 'nolavi') {
+    r.golpes -= 1 + u.multa // (los monos que pinchó la flecha en ese tiro, se los queda)
+    r.tirosHoyo -= 1
+    if (u.tipo === 'mono-ladron') r.robos -= 1
+    if (u.tipo === 'mono-malo') r.monosMalos -= 1
+    r.pelota = [...u.desde]
+    r.lie = u.lieDesde
+  } else if (que === 'amarilla') {
+    r.golpes -= 1
+    if (u.tipo === 'mono-ladron') { r.robos -= 1; if (u.mono) u.mono.modo = 'expulsado' } else r.monosMalos -= 1
+    // donde se la agarró el mono; si eso es bosque o afuera, al fairway de al lado
+    const t = u.pos && terreno(campo, u.pos).tipo
+    r.pelota = u.pos && t !== 'bosque' && t !== 'afuera' ? [...u.pos] : puntoEnCalle(h, u.pos ?? r.pelota)
+    r.lie = terreno(campo, r.pelota).tipo
+  } else {
+    const ops = opcionesLie(campo, r)
+    const mejor = ops.reduce((m, o) => (!m || dist(o, p ?? r.pelota) < dist(m, p ?? r.pelota) ? o : m), null)
+    r.pelota = [...mejor]
+    r.lie = 'fairway'
+  }
+  r.marshall.usadas[que] = h.n
+  r.marshall.ultimo = null
+  return true
 }
 
 // ── 🦉📺 el Equipo 5 (Joaco "Lechu" Castelli y Lucas "LG" Guarino): los rivales de siempre de los Dicky ──

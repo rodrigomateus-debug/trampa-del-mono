@@ -523,6 +523,31 @@ export async function leerCamisetas() {
   const filas = puente.enApp ? await porApp('camisetas') : await rpc('trampa_camisetas_todas')
   return new Map((Array.isArray(filas) ? filas : []).filter((f) => equipoOk(f?.equipo) && (f.user_id ?? f.uid)).map((f) => [f.user_id ?? f.uid, f.equipo]))
 }
+// ── 🏆 la Final del club (24/10/2026): El Sueco contra Taiu. A quién bancás y el tablero (las vueltas y los matches de
+// uno contra el otro), en la base. Sin la base nueva (o la app nueva), error: el juego sigue con lo del teléfono ──
+const ladoOk = (l) => (l === 'El Sueco' || l === 'Taiu (Đ)' ? l : null)
+const aportesOk = (a) => (Array.isArray(a) ? a : []).map((x) => ({ quien: x?.uid ?? null, nombre: x?.nombre ?? '?', pts: Math.floor(+x?.pts || 0), matches: Math.floor(+x?.matches || 0) }))
+/**
+ * { puntos: { 'El Sueco', 'Taiu (Đ)' }, aportes: { lado: [{ quien, nombre, pts, matches }] }, matches: [{ lado, gano,
+ * perdio, fecha }], hinchas: Map uid → lado, mio: tu lado o null }.
+ */
+export async function leerFinal() {
+  const t = puente.enApp ? await porApp('final') : await rpc('trampa_final_tablero')
+  if (!t || typeof t !== 'object' || !t.puntos) throw new Error('sin final')
+  return {
+    puntos: { 'El Sueco': Math.floor(+t.puntos['El Sueco'] || 0), 'Taiu (Đ)': Math.floor(+t.puntos['Taiu (Đ)'] || 0) },
+    aportes: { 'El Sueco': aportesOk(t.aportes?.['El Sueco']), 'Taiu (Đ)': aportesOk(t.aportes?.['Taiu (Đ)']) },
+    matches: (Array.isArray(t.matches) ? t.matches : []).filter((m) => ladoOk(m?.lado)),
+    hinchas: new Map((Array.isArray(t.hinchas) ? t.hinchas : []).filter((h) => h?.uid && ladoOk(h.lado)).map((h) => [h.uid, h.lado])),
+    mio: ladoOk(t.mio),
+  }
+}
+/** Elegir a quién bancás (gratis). Devuelve el lado. */
+export async function elegirFinalBase(lado) {
+  const r = puente.enApp ? await porApp('finalElegir', { lado }) : await rpc('trampa_final_elegir', { p_lado: lado })
+  if (!ladoOk(r?.lado)) throw new Error('sin final')
+  return r.lado
+}
 /**
  * ⚔️ El Clásico de una semana según la base (las vueltas y los matches clásicos): { semana, dicky, e5, ganador,
  * aportes: { dicky: [{ quien, nombre, pts, matches }], e5 }, clasicos: [{ equipo, gano, perdio, fecha }] }.

@@ -10574,8 +10574,9 @@ function pintarMatch() {
     const q = $('#mt-buscar').value.trim().toLowerCase()
     // 🏆 La Final: solo contra el otro bando (el player con el que más firmó durante la Final) o el que todavía no la jugó
     const fin = finalViva(), otro = fin && esDeLaFinal(datos.final) ? (datos.final === FINAL.a ? FINAL.b : FINAL.a) : null
-    if (fin) $('#mt-nota').textContent = `🏆 LA FINAL: todos los matches son El Sueco contra Taiu. ${otro ? `Vos jugás con ${apodoLimpio(datos.final)}; desafiás a los que bancan a ${apodoLimpio(otro)} (o a los que todavía no jugaron la Final, que juegan con ${apodoLimpio(otro)}).` : 'Antes de desafiar elegís a quién bancás.'} Nivelados al mismo hándicap.`
-    const rs = mtRivales.filter((r) => (!q || r.nombre.toLowerCase().includes(q)) && !(otro && bandoFinal(r.uid) === datos.final))
+    if (fin) $('#mt-nota').textContent = `🏆 LA FINAL: todos los matches son El Sueco contra Taiu. ${otro ? `Vos jugás con ${apodoLimpio(datos.final)}; desafiás a los que bancan a ${apodoLimpio(otro)}${finalBase ? '. El que gana le suma 3 a su player' : ` (o a los que todavía no jugaron la Final, que juegan con ${apodoLimpio(otro)})`}.` : 'Antes de desafiar elegís a quién bancás.'} Nivelados al mismo hándicap.`
+    // (con la base, solo los que eligieron al otro; sin ella, el bando sale de sus vueltas y el que no jugó, también)
+    const rs = mtRivales.filter((r) => (!q || r.nombre.toLowerCase().includes(q)) && !(otro && (finalBase ? bandoFinal(r.uid) !== otro : bandoFinal(r.uid) === datos.final)))
     lista.innerHTML = rs.length ? rs.map((r) => {
       // 👕 su camiseta (el escudo y el nombre del equipo) y, si es la otra, el match es un CLÁSICO (vale 3 para tu equipo)
       const ce = camisetasDe.get(r.uid)
@@ -14121,9 +14122,18 @@ function nivelarFinal(j) {
   // 🇸🇪 El Sueco: el Marshall (`marshall`: el botón 🚩 con sus tres fallos)
   return { ...j, hcp: h, aprox: false, hcpTexto: `HCP ${String(h).replace('.', ',')} · nivelado`, ...(j.apodo === FINAL.b && { dickyPorHoyo: true }), ...(j.apodo === FINAL.a && { marshall: true }) }
 }
-/** Los puntos de cada uno: de las vueltas firmadas del ranking (de todos) con ese player, desde que empezó la Final. */
-let finalMarcas = null, finalLeida = 0
+/**
+ * Los puntos de cada uno. Con la base de la Final (`R.leerFinal`: las vueltas y los matches de uno contra el otro, y a
+ * quién banca cada uno), de ahí. Sin ella (no se corrió el SQL, o la app es la de antes), de las vueltas firmadas del
+ * ranking (de todos) con ese player, desde que empezó la Final, y a quién bancás queda en el teléfono.
+ */
+let finalMarcas = null, finalLeida = 0, finalBase = null
 function puntosFinal(marcas) {
+  if (finalBase) {
+    const hinchas = { [FINAL.a]: new Map(), [FINAL.b]: new Map() }
+    for (const l of [FINAL.a, FINAL.b]) for (const x of finalBase.aportes[l]) hinchas[l].set(x.nombre + (x.matches ? ` (${x.matches} match${x.matches > 1 ? 'es' : ''})` : ''), x.pts)
+    return { p: { ...finalBase.puntos }, hinchas }
+  }
   const p = { [FINAL.a]: 0, [FINAL.b]: 0 }, hinchas = { [FINAL.a]: new Map(), [FINAL.b]: new Map() }
   for (const m of marcas ?? []) {
     if (!esDeLaFinal(m.apodo) || m.golpes == null) continue
@@ -14139,6 +14149,7 @@ function puntosFinal(marcas) {
 /** El bando de alguien: el de la Final con el que más vueltas firmó durante la Final (null si ninguna). Vos: el que elegiste. */
 function bandoFinal(uid) {
   if (uid && uid === yoUid() && esDeLaFinal(datos.final)) return datos.final
+  if (finalBase) return finalBase.hinchas.get(uid) ?? null // con la base: el que eligió cada uno
   const n = { [FINAL.a]: 0, [FINAL.b]: 0 }
   for (const m of finalMarcas ?? []) {
     if (m.uid !== uid || !esDeLaFinal(m.apodo)) continue
@@ -14149,11 +14160,38 @@ function bandoFinal(uid) {
 }
 async function cargarFinal(forzar = false) {
   if (!finalViva()) return
-  if (forzar || !finalMarcas || Date.now() - finalLeida > 60e3) {
+  // (sin la base, se reintenta seguido: al entrar, la app puede no estar lista todavía)
+  if (forzar || Date.now() - finalLeida > (finalBase ? 60e3 : 8e3)) {
     finalLeida = Date.now()
-    try { finalMarcas = (await R.leerMarcas())?.marcas ?? finalMarcas } catch {}
+    try {
+      finalBase = await R.leerFinal()
+      // a quién bancás: lo de la base manda, salvo que lo hayas elegido acá y todavía no se haya subido (ahí se sube)
+      if (esDeLaFinal(datos.final) && (datos.finalPend || !finalBase.mio)) subirFinal()
+      else if (finalBase.mio && finalBase.mio !== datos.final) { datos.final = finalBase.mio; guardar(datos) }
+    } catch {
+      finalBase = null
+      try { finalMarcas = (await R.leerMarcas())?.marcas ?? finalMarcas } catch {}
+    }
   }
   pintarFinal()
+}
+/** Elegir (o pasarse): en el teléfono y, si está, en la base (si no se puede, queda pendiente y se sube después). */
+function ponerFinal(lado) {
+  datos.final = lado
+  datos.ultimo = lado // el mazo abre en él
+  datos.finalPend = true
+  guardar(datos)
+  pintarFinal()
+  subirFinal(true)
+}
+function subirFinal(recargar = false) {
+  const lado = datos.final
+  R.elegirFinalBase(lado).then(() => {
+    if (datos.final === lado) { delete datos.finalPend; guardar(datos) }
+    finalBase?.hinchas.set(yoUid(), lado)
+    if (finalBase) finalBase.mio = lado
+    if (recargar) cargarFinal(true)
+  }).catch(() => {})
 }
 const nombreFinal = (apodo) => (apodo === FINAL.a ? 'SUECO' : 'TAIU')
 function pintarFinal() {
@@ -14173,15 +14211,12 @@ async function elegirFinal() {
     return `<button class="final-op${datos.final === apodo ? ' tuyo' : ''}" type="button" data-bn="${esc(apodo)}"><img src="${esc(j?.foto ?? '')}" alt=""><b>${j?.emoji ?? ''} ${esc(apodoLimpio(apodo))}</b><small>${datos.final === apodo ? 'tu player' : 'bancarlo'}</small></button>`
   }
   const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">🏆 La Final: ¿a quién bancás?</p>
-    <p>El Sueco contra Taiu, la final del club. Jugás con el que bancás y cada vuelta que firmás con él le suma: 1 punto por vuelta y 1 más por cada golpe bajo par. En los matches, cada uno con el suyo.</p>
+    <p>El Sueco contra Taiu, la final del club. Jugás con el que bancás y cada vuelta que firmás con él le suma: 1 punto por vuelta y 1 más por cada golpe bajo par. En los matches, cada uno con el suyo${finalBase ? ', y el que gana le suma 3' : ''}.</p>
     <div class="final-ops">${op(FINAL.a)}${op(FINAL.b)}</div>
     <p class="extras">Los dos con el mismo hándicap (nivelados); cada uno con su habilidad.</p>
     <button class="carta-jugar" type="button" data-bn="no">Ahora no</button>`)
   if (!esDeLaFinal(v)) return false
-  datos.final = v
-  datos.ultimo = v // el mazo abre en él
-  guardar(datos)
-  pintarFinal()
+  ponerFinal(v)
   return true
 }
 async function verFinal() {
@@ -14193,12 +14228,12 @@ async function verFinal() {
   const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">🏆 La Final del club</p>
     <div class="final-tabla"><span>${cartaDeFinal(FINAL.a)?.emoji ?? ''} El Sueco</span><span></span><span>Taiu ${cartaDeFinal(FINAL.b)?.emoji ?? ''}</span><b>${p[FINAL.a]}</b><span>–</span><b>${p[FINAL.b]}</b></div>
     <p class="final-hinchas">🇸🇪 Los que más sumaron: ${top(FINAL.a)}<br>🐸 Los que más sumaron: ${top(FINAL.b)}</p>
-    <p class="extras">1 punto por vuelta firmada con él y 1 más por cada golpe bajo par. Nivelados al mismo hándicap.<br>🐸 Taiu: la 📞 Dickyllamada en cada hoyo, una vez a cada Dicky.<br>🇸🇪 El Sueco: el 🚩 Marshall (No la vi, Amarilla al mono y Lie mejorado), uno por hoyo.</p>
+    <p class="extras">1 punto por vuelta firmada con él y 1 más por cada golpe bajo par${finalBase ? '; 3 por cada match ganado contra el otro' : ''}. Nivelados al mismo hándicap.<br>🐸 Taiu: la 📞 Dickyllamada en cada hoyo, una vez a cada Dicky.<br>🇸🇪 El Sueco: el 🚩 Marshall (No la vi, Amarilla al mono y Lie mejorado), uno por hoyo.</p>
     <button class="carta-jugar oro" type="button" data-bn="jugar">Jugar con ${mio?.emoji ?? ''} ${esc(apodoLimpio(datos.final))}</button>
     <button class="carta-jugar crema" type="button" data-bn="cambiar">Pasarme a ${esc(apodoLimpio(otro))}</button>
     <button class="carta-jugar" type="button" data-bn="ok">Listo</button>`)
   if (v === 'jugar' && mio) { datos.ultimo = mio.apodo; guardar(datos); $('#jugar').click() }
-  else if (v === 'cambiar') { datos.final = otro; datos.ultimo = otro; guardar(datos); pintarFinal() }
+  else if (v === 'cambiar') ponerFinal(otro)
 }
 $('#final-home').addEventListener('click', verFinal)
 // al entrar, si la Final está viva y todavía no elegiste: la hojita (cuando no hay otra cosa encima)
