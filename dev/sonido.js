@@ -380,6 +380,26 @@ export function flecha() {
   tono(392, 0.18, { vol: 0.15, f2: 370, ataque: 0.002 })
   ruido(0.75, { f: 3600, f2: 1400, q: 6, vol: 0.35, at: 0.04, ataque: 0.03 }) // fiuuu
 }
+/** La flecha del Sueco atraviesa un pino: el chasquido de las ramas y las hojas que se sacuden. */
+export function flechaPino() {
+  ruido(0.16, { filtro: 'highpass', f: 2800, vol: 0.22, ataque: 0.002 }) // ¡tshk!
+  ruido(0.4, { f: 900, f2: 2600, q: 1.2, vol: 0.12, at: 0.03, ataque: 0.01 }) // las hojas
+  tono(1300, 0.04, { vol: 0.06, tipo: 'square', at: 0.008 }) // la ramita que se quiebra
+}
+/** La flecha pincha a un mono: el ¡zas!, el golpe seco, el chillido y el tin-tin del golpe menos. */
+export function monoPinchado() {
+  ruido(0.1, { filtro: 'highpass', f: 2400, vol: 0.2, ataque: 0.002 })
+  tono(180, 0.09, { vol: 0.3, f2: 110, tipo: 'triangle', ataque: 0.002 }) // ¡pum!
+  chillido(0.03, 3, 1.6)
+  tono(988, 0.08, { vol: 0.08, tipo: 'square', at: 0.3 })
+  tono(1319, 0.16, { vol: 0.08, tipo: 'square', at: 0.38 })
+}
+/** La flecha se clava en el pasto: el golpe seco y el asta que vibra (boiiing, cada vez más bajito). */
+export function flechaClava() {
+  tono(150, 0.12, { vol: 0.35, f2: 90, tipo: 'triangle', ataque: 0.002 })
+  ruido(0.08, { filtro: 'lowpass', f: 700, vol: 0.25, ataque: 0.002 })
+  for (let i = 0; i < 6; i++) tono(250 - i * 5, 0.05, { vol: 0.09 * (1 - i / 6), tipo: 'triangle', at: 0.05 + i * 0.045 })
+}
 /** Juanpa: aparece un árbol de la nada (un "plop" que sube y las hojas). */
 export function arbolito() {
   tono(220, 0.16, { vol: 0.18, f2: 520, ataque: 0.004 })
