@@ -3,6 +3,8 @@
 Juego de golf SDGA sobre los hoyos 15, 16 y 17 de San Diego ("la Trampa del Mono").
 Prototipo aparte para probar; después entra a la FedE Cup como `/trampa` con ranking en Supabase.
 
+> **Regla de diseño (Rorro, 24/10/2026):** los emojis son de los players (🇸🇪 el Sueco, 🐸 Taiu, 🥷 el Ninja…). Para íconos, logos o lo que acompaña una pantalla, nada de emojis: se dibuja a medida, en el set SDGA (`GI` en juego.html, `gi(nombre)`).
+
 ## Cancha
 - **Desde 2026-10-03 la cancha es el dibujo de Rorro tal cual** (`cancha.webp`, 878×1791 px, 4 px = 1 yarda). El juego lo dibuja de fondo y lee el terreno de `cancha-grid.js`: una letra por yarda (x afuera · . rough · f fairway · g green · b bunker · t árbol · e tee), armada por color y textura (la copa es árbol, su sombra es rough). Tees: marca blanca en el 15 y el 16 (352 y 348 yd); en el 17, la roja (244 yd: el 17 del dibujo es largo para par 3).
 - Lo de abajo es historia de las versiones anteriores (polígonos y árboles generados).
