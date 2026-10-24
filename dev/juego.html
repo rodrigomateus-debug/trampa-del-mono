@@ -2160,7 +2160,7 @@ body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
 #ninja-btn[disabled] { animation: none; }
 /* 🚩 el Marshall (el Sueco en la Final): como el RESET del Ninja, en azul sueco; el número, los fallos que le quedan */
 #marshall-btn { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); z-index: 31; width: 88px; height: 88px; border-radius: 50%; background: #1f4f8f; color: var(--cream); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; font-family: var(--font-display); animation: g-wiggle 3.6s ease-in-out 1.2s infinite; }
-#marshall-btn .emo { font-size: 34px; line-height: 1; }
+#marshall-btn .emo .gi { width: 40px; height: 40px; --gi-s: var(--cream); --gi-f: rgba(244, 238, 218, .25); }
 #marshall-btn .txt { font-size: 12px; letter-spacing: .06em; line-height: 1.1; color: var(--gold); }
 #marshall-btn b { position: absolute; top: -8px; right: -8px; min-width: 30px; height: 30px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--gold); color: var(--game-ink); border: 2px solid var(--game-ink); font: 17px/1 var(--font-display); display: grid; place-items: center; transform: rotate(8deg); }
 #marshall-btn[disabled] { animation: none; }
@@ -2170,6 +2170,8 @@ body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
 /* el Lie mejorado: abajo, qué hacer y DROPEAR ACÁ */
 #lie-bar { position: fixed; left: 50%; bottom: calc(var(--safe-bot) + 18px); z-index: 32; transform: translateX(-50%); width: min(calc(100vw - 32px), 380px); box-sizing: border-box; display: grid; gap: 8px; padding: 12px 14px; background: var(--cream); color: var(--green-900); border: var(--game-stroke) solid var(--game-ink); border-radius: 18px; box-shadow: var(--game-shadow-md); text-align: center; }
 #lie-bar p { margin: 0; font: 700 14px/1.3 var(--font-body); }
+#lie-bar .lie-ico .gi { display: inline-block; width: 22px; height: 22px; margin: 0 6px -5px 0; }
+.marshall-op .gi, .bn-tit .gi, .fh-kicker .gi { display: inline-block; width: 22px; height: 22px; margin: 0 7px -4px 0; }
 #lie-bar .btn { width: 100%; }
 @media (prefers-reduced-motion: reduce) { #marshall-btn { animation: none; } }
 /* 🥃 los poderes de Rorro, uno por hoyo cada uno: DEBUG (el bicho con la pausa en el lomo: late rojo mientras vuela
@@ -2619,8 +2621,8 @@ body.apuntando #mago-golpes button { pointer-events: none; }
 <div id="reloj-rorro" hidden role="timer" aria-label="El deploy de la cancha: cada 10 segundos se rehace"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="rr-fondo" cx="32" cy="32" r="27"/><circle class="rr-arco" cx="32" cy="32" r="27" pathLength="100"/></svg><b class="rr-seg">10</b><small class="rr-txt">DEPLOY</small><i class="cinta">v1.0</i></div>
 <button id="rorro-revert" class="rorro-poder" type="button" hidden aria-label="Revert: vuelve a la cancha anterior"><span class="ico"></span><span class="txt">REVERT</span><b class="usos">×1</b><i class="cinta">git revert</i></button>
 <button id="rorro-debug" class="rorro-poder" type="button" hidden aria-label="Debug: congela la pelota en el aire para correrle el destino"><span class="ico"></span><span class="txt">DEBUG</span><b class="usos">×1</b><i class="cinta">breakpoint</i></button>
-<button id="marshall-btn" type="button" hidden aria-label="El Marshall: No la vi, Amarilla al mono o Lie mejorado"><span class="emo" aria-hidden="true">🚩</span><span class="txt">MARSHALL</span><b aria-hidden="true">3</b></button>
-<div id="lie-bar" hidden role="dialog" aria-label="Lie mejorado"><p>📏 Lie mejorado: tocá el fairway para elegir dónde dropeás, a la misma altura.</p><button class="btn verde" id="lie-ok" type="button">DROPEAR ACÁ</button><button class="link-chico" id="lie-no" type="button">Cancelar</button></div>
+<button id="marshall-btn" type="button" hidden aria-label="El Marshall: No la vi, Amarilla al mono o Lie mejorado"><span class="emo" data-ico="flag"></span><span class="txt">MARSHALL</span><b aria-hidden="true">3</b></button>
+<div id="lie-bar" hidden role="dialog" aria-label="Lie mejorado"><p><span class="lie-ico" data-ico="lie"></span>Lie mejorado: tocá el fairway para elegir dónde dropeás, a la misma altura.</p><button class="btn verde" id="lie-ok" type="button">DROPEAR ACÁ</button><button class="link-chico" id="lie-no" type="button">Cancelar</button></div>
 <button id="ninja-btn" type="button" hidden aria-label="Reset ninja: el hoyo de nuevo desde el tee, sin multa"><span class="emo" aria-hidden="true">🥷</span><span class="txt">RESET</span><b aria-hidden="true">1</b></button>
 <div id="mp-sel" hidden role="dialog" aria-label="Mejor pelota: elegí con cuál te quedás"><p class="mp-tit"><img src="equipo-5.svg" alt="" draggable="false"><span>MEJOR PELOTA<small>¿Con cuál te quedás?</small></span></p><div id="mp-ops"></div></div>
 <button id="contra-btn" type="button" hidden><span class="emo" aria-hidden="true"></span><span class="txt"></span><i class="tiempo" aria-hidden="true"></i></button>
@@ -2974,7 +2976,7 @@ import { CANCHA } from './cancha-grid.js'
 import * as R from './ranking.js'
 import * as S from './sonido.js'
 // los íconos del set SDGA (design system › GameIcon) que se arman desde JS: trazo, papel y acento por CSS (--gi-s/-f/-a)
-const GI = {"banana": "<path d=\"M21 6C28.6 9.4 30 20 22.8 25.4C17.4 29.4 9.4 29 3.8 24.6C10.2 24.4 14.8 21.4 16.9 17.4C18.9 13.6 18.8 9.8 16.8 6.6Z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.2 8.2C21.6 13.8 19.9 20.4 12.2 24.8\" stroke-width=\"1.5\"/><path d=\"M24.4 11.6C25.8 16 24.3 20.8 20.3 23.8\" style=\"stroke:var(--gi-f)\" stroke-width=\"2.4\"/><path d=\"M16.8 6.6L17.3 2.8L21.1 2.4L21 6\" style=\"fill:var(--gi-s)\"/><path d=\"M3.8 24.6L2.6 26.5\" stroke-width=\"3\"/>", "match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>"}
+const GI = {"banana": "<path d=\"M21 6C28.6 9.4 30 20 22.8 25.4C17.4 29.4 9.4 29 3.8 24.6C10.2 24.4 14.8 21.4 16.9 17.4C18.9 13.6 18.8 9.8 16.8 6.6Z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.2 8.2C21.6 13.8 19.9 20.4 12.2 24.8\" stroke-width=\"1.5\"/><path d=\"M24.4 11.6C25.8 16 24.3 20.8 20.3 23.8\" style=\"stroke:var(--gi-f)\" stroke-width=\"2.4\"/><path d=\"M16.8 6.6L17.3 2.8L21.1 2.4L21 6\" style=\"fill:var(--gi-s)\"/><path d=\"M3.8 24.6L2.6 26.5\" stroke-width=\"3\"/>", "match": "<path d=\"M7.5 4.5L22 23.5M24.5 4.5L10 23.5\"/><path d=\"M7.5 4.5l2 2.6M24.5 4.5l-2 2.6\" stroke-width=\"5\"/><rect x=\"19.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><rect x=\"4.5\" y=\"22\" width=\"8\" height=\"4\" rx=\"2\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"24.5\" r=\"2.5\" style=\"fill:var(--gi-f)\"/>", "challenge": "<circle cx=\"14\" cy=\"18\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"14\" cy=\"18\" r=\"5.5\" style=\"fill:var(--gi-a)\"/><circle cx=\"14\" cy=\"18\" r=\"1.8\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M14 18L25 7\"/><path d=\"M25 3.5V7h3.5\"/>", "bell": "<path d=\"M16 5.5v2\"/><path d=\"M13.5 25a2.7 2.7 0 0 0 5 0\"/><path d=\"M8 22.5c1.5-1.5 2-3.5 2-6.5v-2a6 6 0 0 1 12 0v2c0 3 .5 5 2 6.5z\" style=\"fill:var(--gi-a)\"/>", "calendar": "<rect x=\"5\" y=\"7\" width=\"22\" height=\"20\" rx=\"3\" style=\"fill:var(--gi-f)\"/><path d=\"M5 13V10a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v3z\" style=\"fill:var(--gi-a)\"/><path d=\"M11 4.5v5M21 4.5v5\"/><rect x=\"9.5\" y=\"17\" width=\"4.5\" height=\"4\" rx=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/>", "ranking": "<rect x=\"4.5\" y=\"15.5\" width=\"7.5\" height=\"11.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"20\" y=\"18.5\" width=\"7.5\" height=\"8.5\" rx=\"1\" style=\"fill:var(--gi-f)\"/><rect x=\"12\" y=\"9.5\" width=\"8\" height=\"17.5\" rx=\"1\" style=\"fill:var(--gi-a)\"/><path d=\"M14.8 14l1.7-1.2v6\" stroke-width=\"2.2\"/>", "trophy": "<path d=\"M10 8H6.5v1.5a4 4 0 0 0 4 4M22 8h3.5v1.5a4 4 0 0 1-4 4\"/><path d=\"M16 17.5v4\"/><path d=\"M11 26.5h10l-1-5h-8z\" style=\"fill:var(--gi-f)\"/><path d=\"M10 5.5h12v6a6 6 0 0 1-12 0z\" style=\"fill:var(--gi-a)\"/>", "friends": "<circle cx=\"21\" cy=\"10.5\" r=\"4.5\" style=\"fill:var(--gi-a)\"/><path d=\"M14 25a7.5 7.5 0 0 1 15 0z\" style=\"fill:var(--gi-a)\"/><circle cx=\"12\" cy=\"12.5\" r=\"5\" style=\"fill:var(--gi-f)\"/><path d=\"M3.5 27a8.5 8.5 0 0 1 17 0z\" style=\"fill:var(--gi-f)\"/>", "flag": "<ellipse cx=\"16\" cy=\"25.5\" rx=\"10\" ry=\"3\" style=\"fill:var(--gi-f)\"/><ellipse cx=\"12\" cy=\"25.5\" rx=\"2.4\" ry=\"1\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M12 25.5V4.5\"/><path d=\"M12 5l12 4.5L12 14z\" style=\"fill:var(--gi-a)\"/>", "close": "<path d=\"M9 9l14 14M23 9L9 23\" stroke-width=\"3.5\"/>", "star": "<path d=\"M16 4.5l3.4 7 7.6 1.1-5.5 5.3 1.3 7.6L16 21.9l-6.8 3.6 1.3-7.6L5 12.6l7.6-1.1z\" style=\"fill:var(--gi-a)\"/>", "user": "<circle cx=\"16\" cy=\"11\" r=\"5.5\" style=\"fill:var(--gi-f)\"/><path d=\"M6 27a10 10 0 0 1 20 0z\" style=\"fill:var(--gi-a)\"/>", "clima-soleado": "<path d=\"M16 3v3.5M16 25.5V29M3 16h3.5M25.5 16H29M6.8 6.8l2.5 2.5M22.7 22.7l2.5 2.5M25.2 6.8l-2.5 2.5M9.3 22.7l-2.5 2.5\"/><circle cx=\"16\" cy=\"16\" r=\"6.8\" style=\"fill:var(--gi-a)\"/>", "clima-nuboso": "<path d=\"M12 3.5v2.2M4.5 11h2.2M6.6 5.6l1.6 1.6M17.4 5.6l-1.6 1.6\"/><circle cx=\"12\" cy=\"11.5\" r=\"5\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 26h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 26z\" style=\"fill:var(--gi-f)\"/>", "clima-seco": "<circle cx=\"25\" cy=\"7\" r=\"3.2\" style=\"fill:var(--gi-a)\"/><path d=\"M13 27V9a3 3 0 0 1 6 0v18z\" style=\"fill:var(--gi-f)\"/><path d=\"M13 19.5H9.5A2.5 2.5 0 0 1 7 17v-4a1.5 1.5 0 0 1 3 0v3.5h3z\" style=\"fill:var(--gi-f)\"/><path d=\"M19 16.5h3.5V12.5a1.5 1.5 0 0 1 3 0V17a2.5 2.5 0 0 1-2.5 2.5H19z\" style=\"fill:var(--gi-f)\"/><path d=\"M4.5 27h23\"/>", "clima-mojado": "<ellipse cx=\"16\" cy=\"27\" rx=\"9.5\" ry=\"2.2\" style=\"fill:var(--gi-a)\"/><path d=\"M16 3.5c3.6 5 7.2 9 7.2 12.6a7.2 7.2 0 0 1-14.4 0c0-3.6 3.6-7.6 7.2-12.6z\" style=\"fill:var(--gi-f)\"/><path d=\"M12.4 16.6a3.6 3.6 0 0 0 2.6 3.6\" stroke-width=\"2.2\"/>", "clima-lluvia": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M11 21.5l-1.6 4.5M16.5 21.5l-1.6 4.5M22 21.5l-1.6 4.5\"/><path d=\"M15 28.5l-.4 1\" stroke-width=\"2.2\"/>", "clima-tormenta": "<path d=\"M8.5 18h15a4.6 4.6 0 0 0 .6-9.2 6.2 6.2 0 0 0-11.8-1.7A4.7 4.7 0 0 0 8.5 18z\" style=\"fill:var(--gi-f)\"/><path d=\"M17.5 15.5l-5 7.5h4l-2 6.5 7-9h-4.2l2.4-5z\" style=\"fill:var(--gi-a)\"/><path d=\"M9.5 21.5L8 25.5M25 21.5l-1.5 4\"/>", "clima-nieve": "<path d=\"M16 16L16.0 3.5M16 16L5.2 9.8M16 16L5.2 22.2M16 16L16.0 28.5M16 16L26.8 22.3M16 16L26.8 9.8\"/><path d=\"M16.0 7.7L13.5 4.9M16.0 7.7L18.5 4.9M8.8 11.9L5.1 12.6M8.8 11.9L7.6 8.2M8.8 20.2L7.6 23.8M8.8 20.2L5.1 19.4M16.0 24.3L18.5 27.1M16.0 24.3L13.5 27.1M23.2 20.2L26.9 19.4M23.2 20.2L24.4 23.8M23.2 11.8L24.4 8.2M23.2 11.8L26.9 12.6\" stroke-width=\"2.2\"/><circle cx=\"16\" cy=\"16\" r=\"3.4\" style=\"fill:var(--gi-a)\"/>", "pro": "<circle cx=\"16\" cy=\"16\" r=\"10\" style=\"fill:var(--gi-f)\"/><circle cx=\"16\" cy=\"16\" r=\"5\" style=\"fill:var(--gi-a)\"/><circle cx=\"16\" cy=\"16\" r=\"1.7\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M16 2.5v6.5M16 23v6.5M2.5 16H9M23 16h6.5\"/>", "barro": "<circle cx=\"16\" cy=\"16\" r=\"10.5\" style=\"fill:var(--gi-f)\"/><g style=\"fill:var(--gi-s)\" stroke=\"none\"><circle cx=\"11.5\" cy=\"10.5\" r=\"1.1\"/><circle cx=\"15.5\" cy=\"9\" r=\"1.1\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.1\"/><circle cx=\"13.5\" cy=\"13.5\" r=\"1.1\"/><circle cx=\"19.5\" cy=\"10.5\" r=\"1.1\"/></g><path d=\"M13.5 20.5c-.4-2.6 2.4-4.4 4.6-3.2 1.2-2 4.6-1.6 5 .8 2.2.4 2.6 3.2.6 4.2.8 1.6-.6 3.2-2.2 2.6-.4 2.4-3.4 2.4-3.8.6-2 .6-3.6-1.2-2.8-2.8-1.2-.4-1.4-1.6-1.4-2.2z\" style=\"fill:var(--gi-s)\" stroke=\"none\"/><path d=\"M17.5 26.5v2.2M21.5 26v1.6\" stroke-width=\"2.2\"/>", "telefono": "<path d=\"M8 5.5h4l2 6-3 2a14 14 0 0 0 7.5 7.5l2-3 6 2v4a2.5 2.5 0 0 1-2.5 2.5C13.5 26.5 5.5 18.5 5.5 8A2.5 2.5 0 0 1 8 5.5z\" style=\"fill:var(--gi-a)\"/><path d=\"M19.5 4.5a8 8 0 0 1 8 8M19.5 9a3.5 3.5 0 0 1 3.5 3.5\"/>", "nolavi": "<path d=\"M4.5 13c3.2 5 7.2 7.5 11.5 7.5S24.3 18 27.5 13\" style=\"fill:var(--gi-a)\"/><path d=\"M8.5 18.5l-2.2 3M16 20.5v3.8M23.5 18.5l2.2 3\"/>", "amarilla": "<rect x=\"9.5\" y=\"4.5\" width=\"13\" height=\"19\" rx=\"2\" transform=\"rotate(12 16 14)\" style=\"fill:var(--gi-a)\"/><path d=\"M7 27.5h18\"/>", "lie": "<ellipse cx=\"16\" cy=\"24\" rx=\"11\" ry=\"3.5\" style=\"fill:var(--gi-f)\"/><path d=\"M16 4.5v12\"/><path d=\"M11.5 12.5l4.5 4.5 4.5-4.5\"/><circle cx=\"16\" cy=\"22.8\" r=\"2.6\" style=\"fill:var(--gi-a)\"/>"}
 const gi = (n, clase = '') => `<svg class="gi${clase ? ' ' + clase : ''}" viewBox="0 0 32 32" aria-hidden="true"><g>${GI[n]}</g></svg>`
 for (const el of document.querySelectorAll('[data-ico]')) el.innerHTML = gi(el.dataset.ico) // los íconos fijos del HTML
 // por ahora, para probar, solo los de EN_PRUEBA
@@ -6018,7 +6020,7 @@ function abrirDickyllamada() {
   const yo = ronda.jugador
   const otros = dickysParaLlamar()
   const porHoyo = !!yo.dickyPorHoyo
-  $('#dicky-sel .dk-kicker').textContent = porHoyo ? `🏆 UNA POR HOYO · TE ${otros.length === 1 ? 'QUEDA 1' : `QUEDAN ${otros.length}`}` : '📞 DICKYLLAMADA · UNA POR VUELTA'
+  $('#dicky-sel .dk-kicker').textContent = porHoyo ? `LA FINAL · UNA POR HOYO · TE ${otros.length === 1 ? 'QUEDA 1' : `QUEDAN ${otros.length}`}` : '📞 DICKYLLAMADA · UNA POR VUELTA'
   $('#dicky-sel .dk-sub').textContent = porHoyo
     ? 'Es la Final: en cada hoyo podés llamar a uno, y a cada Dicky una sola vez. El que atiende te pega el próximo tiro, con su handicap y su habilidad. Ojo: a veces se cuela el #Equipo5 📺🦉'
     : 'El que atiende te pega el próximo tiro, con su handicap y su habilidad. Se ayudan entre Dickys. Ojo: a veces se cuela el #Equipo5 📺🦉'
@@ -6487,9 +6489,9 @@ function opsLie() {
 }
 const puedeFallar = (f) => M.puedeMarshall(ronda, f) && (f !== 'lie' || opsLie().length > 0)
 const FALLOS_UI = {
-  nolavi: { tit: '🙈 No la vi', txt: 'El mal tiro se repite desde donde salió y no cuenta.', cuando: 'Después de un mal tiro: rough, bunker, afuera, el palo o los monos.' },
-  amarilla: { tit: '🟨 Amarilla al mono', txt: 'El mono se va expulsado, la pelota vuelve y la multa no cuenta.', cuando: 'Cuando un mono te robó la pelota o te la tiró del bosque.' },
-  lie: { tit: '📏 Lie mejorado', txt: 'Dropeás en el fairway, a la misma altura, donde elijas. Sin multa.', cuando: 'Fuera del green y del tee, con fairway a esa altura. En el green no.' },
+  nolavi: { ico: 'nolavi', tit: 'No la vi', txt: 'El mal tiro se repite desde donde salió y no cuenta.', cuando: 'Después de un mal tiro: rough, bunker, afuera, el palo o los monos.' },
+  amarilla: { ico: 'amarilla', tit: 'Amarilla al mono', txt: 'El mono se va expulsado, la pelota vuelve y la multa no cuenta.', cuando: 'Cuando un mono te robó la pelota o te la tiró del bosque.' },
+  lie: { ico: 'lie', tit: 'Lie mejorado', txt: 'Dropeás en el fairway, a la misma altura, donde elijas. Sin multa.', cuando: 'Fuera del green y del tee, con fairway a esa altura. En el green no.' },
 }
 async function abrirMarshall() {
   if (!ronda || estado !== 'apuntar' || !M.esMarshall(ronda)) return
@@ -6499,12 +6501,12 @@ async function abrirMarshall() {
   estado = 'marshall'
   hud()
   S.marshall()
-  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">🚩 El Marshall</p>
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">${gi('flag')}El Marshall</p>
     <p>Uno por hoyo, y cada uno una sola vez en la vuelta. La decisión es inapelable.</p>
     ${M.FALLOS.map((f) => {
       const ok = puedeFallar(f), u = FALLOS_UI[f]
       const nota = usadas[f] != null ? 'Ya lo usaste en esta vuelta.' : ok ? u.txt : yaEnHoyo ? 'Ya falló en este hoyo: en el que viene.' : u.cuando
-      return `<button class="carta-jugar marshall-op ${ok ? 'oro' : 'crema'}" type="button" data-bn="${f}"${ok ? '' : ' disabled'}><span>${u.tit}</span><small>${esc(nota)}</small></button>`
+      return `<button class="carta-jugar marshall-op ${ok ? 'oro' : 'crema'}" type="button" data-bn="${f}"${ok ? '' : ' disabled'}><span>${gi(u.ico)}${u.tit}</span><small>${esc(nota)}</small></button>`
     }).join('')}
     <button class="carta-jugar" type="button" data-bn="no">Volver</button>`)
   if (!ronda || ronda.terminada || estado !== 'marshall') return
@@ -6513,8 +6515,8 @@ async function abrirMarshall() {
   if (v !== 'nolavi' && v !== 'amarilla') { hud(); return }
   if (!M.fallar(campo, ronda, v)) { hud(); return }
   voz = v === 'nolavi'
-    ? { lg: '🚩 El Marshall: «No la vi»', extra: 'Repetís desde donde saliste. Ese golpe no cuenta', hasta: performance.now() + 5000 }
-    : { lg: '🟨 ¡Amarilla al mono! Se va expulsado', extra: 'La pelota vuelve y la multa no cuenta. Inapelable', hasta: performance.now() + 5000 }
+    ? { lg: 'El Marshall: «No la vi»', extra: 'Repetís desde donde saliste. Ese golpe no cuenta', hasta: performance.now() + 5000 }
+    : { lg: '¡Amarilla al mono! Se va expulsado', extra: 'La pelota vuelve y la multa no cuenta. Inapelable', hasta: performance.now() + 5000 }
   S.ruletaCae()
   siguienteTiro()
 }
@@ -6543,7 +6545,7 @@ function salirLie(dropear) {
   $('#lie-bar').hidden = true
   estado = 'apuntar'
   if (dropear && M.fallar(campo, ronda, 'lie', lieSel)) {
-    voz = { lg: '📏 Lie mejorado: dropeás en el fairway', extra: 'A la misma altura, sin multa. Lo firma el Marshall', hasta: performance.now() + 5000 }
+    voz = { lg: 'Lie mejorado: dropeás en el fairway', extra: 'A la misma altura, sin multa. Lo firma el Marshall', hasta: performance.now() + 5000 }
     S.ruletaCae()
     lieOps = lieSel = null
     siguienteTiro()
@@ -10597,7 +10599,7 @@ function pintarMatch() {
     const q = $('#mt-buscar').value.trim().toLowerCase()
     // 🏆 La Final: solo contra el otro bando (el player con el que más firmó durante la Final) o el que todavía no la jugó
     const fin = finalViva(), otro = fin && esDeLaFinal(datos.final) ? (datos.final === FINAL.a ? FINAL.b : FINAL.a) : null
-    if (fin) $('#mt-nota').textContent = `🏆 LA FINAL: todos los matches son El Sueco contra Taiu, a dos vueltas (15, 16 y 17, dos veces: 6 hoyos). ${otro ? `Vos jugás con ${apodoLimpio(datos.final)}; desafiás a los que bancan a ${apodoLimpio(otro)}${finalBase ? '. El que gana le suma 3 a su player' : ` (o a los que todavía no jugaron la Final, que juegan con ${apodoLimpio(otro)})`}.` : 'Antes de desafiar elegís a quién bancás.'} Nivelados al mismo hándicap.`
+    if (fin) $('#mt-nota').textContent = `LA FINAL: todos los matches son El Sueco contra Taiu, a dos vueltas (15, 16 y 17, dos veces: 6 hoyos). ${otro ? `Vos jugás con ${apodoLimpio(datos.final)}; desafiás a los que bancan a ${apodoLimpio(otro)}${finalBase ? '. El que gana le suma 3 a su player' : ` (o a los que todavía no jugaron la Final, que juegan con ${apodoLimpio(otro)})`}.` : 'Antes de desafiar elegís a quién bancás.'} Nivelados al mismo hándicap.`
     // (con la base, solo los que eligieron al otro; sin ella, el bando sale de sus vueltas y el que no jugó, también)
     const rs = mtRivales.filter((r) => (!q || r.nombre.toLowerCase().includes(q)) && !(otro && (finalBase ? bandoFinal(r.uid) !== otro : bandoFinal(r.uid) === datos.final)))
     lista.innerHTML = rs.length ? rs.map((r) => {
@@ -10605,7 +10607,7 @@ function pintarMatch() {
       const ce = camisetasDe.get(r.uid)
       const clasico = ce && camiseta.equipo && ce !== camiseta.equipo
       const bf = fin ? bandoFinal(r.uid) : null
-      const datosFila = [bf ? `<span class="mt-clasico">🏆 ${cartaDeFinal(bf)?.emoji ?? ''} ${esc(apodoLimpio(bf))}</span>` : '', clasico ? '<span class="mt-clasico">⚔️ CLÁSICO</span>' : '', ce ? (ce === 'dicky' ? 'Dicky' : 'Equipo&nbsp;5') : '', r.sdga ? '⛳&nbsp;SDGA' : '', hayBananas && bananasDe(r.uid) ? `${BN}${bananasDe(r.uid).saldo}` : ''].filter(Boolean)
+      const datosFila = [bf ? `<span class="mt-clasico">${cartaDeFinal(bf)?.emoji ?? ''} ${esc(apodoLimpio(bf))}</span>` : '', clasico ? '<span class="mt-clasico">⚔️ CLÁSICO</span>' : '', ce ? (ce === 'dicky' ? 'Dicky' : 'Equipo&nbsp;5') : '', r.sdga ? '⛳&nbsp;SDGA' : '', hayBananas && bananasDe(r.uid) ? `${BN}${bananasDe(r.uid).saldo}` : ''].filter(Boolean)
       return `<li class="rk-fila mt-fila">
         ${ce ? `<span class="mini cam${ce === 'e5' ? ' e5' : ''}" aria-hidden="true"><img src="${EQUIPOS[ce].logo}" alt="" draggable="false"></span>` : `<span class="mini" aria-hidden="true">${esc(r.nombre.charAt(0).toUpperCase())}</span>`}
         <span class="rk-nombre"><b>${esc(r.nombre)}</b>${datosFila.length ? `<small class="mt-datos">${datosFila.join(' · ')}</small>` : ''}</span>
@@ -12920,7 +12922,7 @@ function mensajeDesafio(r, rival, mia) {
     `Ya jugué mi vuelta con ${j.emoji} ${j.apodo}.`,
     pique,
     '',
-    ...(esDeLaFinal(j.apodo) && finalViva() ? [`🏆 Es LA FINAL: yo con ${j.emoji} ${apodoLimpio(j.apodo)}, vos con ${apodoLimpio(j.apodo === FINAL.a ? FINAL.b : FINAL.a)} (nivelados al mismo hándicap). A dos vueltas: 6 hoyos.`] : []),
+    ...(esDeLaFinal(j.apodo) && finalViva() ? [`Es LA FINAL: yo con ${j.emoji} ${apodoLimpio(j.apodo)}, vos con ${apodoLimpio(j.apodo === FINAL.a ? FINAL.b : FINAL.a)} (nivelados al mismo hándicap). A dos vueltas: 6 hoyos.`] : []),
     `Te toca: ${esDeLaFinal(j.apodo) && finalViva() ? 'mismo' : `mismo player (${j.emoji} ${j.apodo}), mismo`} viento y mismas banderas.${j.draft ? ' Y el mismo Draft: tiro por tiro te salen las mismas tres caras que a mí 🃏 (elegís vos).' : j.ruleta ? ' Y la misma Ruleta: tiro por tiro te salen los mismos players que a mí 🎰.' : ''} Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
     'Menos golpes gana; si empatamos, el más rápido. LP pierde.',
     ...(r.duelo?.apuesta > 0 ? [`Hay ${r.duelo.apuesta} 🍌 en juego: el que gana se lleva ${2 * r.duelo.apuesta - 1} (una es del mono 🐒).`] : []),
@@ -13970,7 +13972,7 @@ function mostrarElegir() {
   S.viento(0)
   S.lluvia(0)
   for (const id of ['portada', 'fin', 'comunicado', 'ranking', 'stats', 'resumen', 'match']) $('#' + id).hidden = true
-  $('.mazo-tit').innerHTML = !matchModo && cartaFinal() ? `🏆 La Final: jugá con ${cartaFinal().emoji} ${esc(apodoLimpio(datos.final))} y le sumás`
+  $('.mazo-tit').innerHTML = !matchModo && cartaFinal() ? `${gi('trophy', 'linea')}La Final: jugá con ${cartaFinal().emoji} ${esc(apodoLimpio(datos.final))} y le sumás`
     : matchModo?.tipo === 'fourball' ? `${gi('match', 'linea')}Fourball con ${esc(nombreCorto(companeroFb(matchModo)))} · el player de los cuatro`
     : matchModo ? `${gi('match', 'linea')}Match vs ${esc(matchModo.tipo === 'reto' ? matchModo.rival.nombre : matchModo.desafio.retador.alias)}${(matchModo.tipo === 'reto' ? matchModo.apuesta : matchModo.desafio.apuesta) > 0 ? ` · ${matchModo.tipo === 'reto' ? matchModo.apuesta : matchModo.desafio.apuesta}${BN}` : ''}` : 'Elegí tu nivel de dificultad'
   pintarProMazo()
@@ -14238,7 +14240,7 @@ function pintarFinal() {
   if (el.hidden) return
   const { p } = puntosFinal(finalMarcas)
   const a = cartaDeFinal(FINAL.a), b = cartaDeFinal(FINAL.b), pa = p[FINAL.a], pb = p[FINAL.b]
-  el.innerHTML = `<span class="fh-kicker">🏆 LA FINAL DEL CLUB</span>
+  el.innerHTML = `<span class="fh-kicker">${gi('trophy')}LA FINAL DEL CLUB</span>
     <span class="fh-marcador"><span>${a?.emoji ?? ''} SUECO</span><i class="${pa > pb ? 'gana' : ''}">${pa}</i><em>–</em><i class="${pb > pa ? 'gana' : ''}">${pb}</i><span>TAIU ${b?.emoji ?? ''}</span></span>
     <small>${esDeLaFinal(datos.final) ? `Bancás a ${nombreFinal(datos.final) === 'SUECO' ? 'El Sueco' : 'Taiu'} · tocá para ver` : '¿A quién bancás? Tocá y elegí'}</small>`
 }
@@ -14248,7 +14250,7 @@ async function elegirFinal() {
     const j = cartaDeFinal(apodo)
     return `<button class="final-op${datos.final === apodo ? ' tuyo' : ''}" type="button" data-bn="${esc(apodo)}"><img src="${esc(j?.foto ?? '')}" alt=""><b>${j?.emoji ?? ''} ${esc(apodoLimpio(apodo))}</b><small>${datos.final === apodo ? 'tu player' : 'bancarlo'}</small></button>`
   }
-  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">🏆 La Final: ¿a quién bancás?</p>
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">${gi('trophy')}La Final: ¿a quién bancás?</p>
     <p>El Sueco contra Taiu, la final del club. Jugás con el que bancás y cada vuelta que firmás con él le suma: 1 punto por vuelta y 1 más por cada golpe bajo par. En los matches, cada uno con el suyo${finalBase ? ', y el que gana le suma 3' : ''}.</p>
     <div class="final-ops">${op(FINAL.a)}${op(FINAL.b)}</div>
     <p class="extras">Los dos con el mismo hándicap (nivelados); cada uno con su habilidad.</p>
@@ -14263,10 +14265,10 @@ async function verFinal() {
   const { p, hinchas } = puntosFinal(finalMarcas)
   const top = (apodo) => [...hinchas[apodo]].sort((x, y) => y[1] - x[1]).slice(0, 3).map(([q, n]) => `${esc(q)} ${n}`).join(' · ') || 'todavía nadie'
   const mio = cartaDeFinal(datos.final), otro = datos.final === FINAL.a ? FINAL.b : FINAL.a
-  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">🏆 La Final del club</p>
+  const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">${gi('trophy')}La Final del club</p>
     <div class="final-tabla"><span>${cartaDeFinal(FINAL.a)?.emoji ?? ''} El Sueco</span><span></span><span>Taiu ${cartaDeFinal(FINAL.b)?.emoji ?? ''}</span><b>${p[FINAL.a]}</b><span>–</span><b>${p[FINAL.b]}</b></div>
     <p class="final-hinchas">🇸🇪 Los que más sumaron: ${top(FINAL.a)}<br>🐸 Los que más sumaron: ${top(FINAL.b)}</p>
-    <p class="extras">1 punto por vuelta firmada con él y 1 más por cada golpe bajo par${finalBase ? '; 3 por cada match ganado contra el otro' : ''}. Nivelados al mismo hándicap.<br>🐸 Taiu: la 📞 Dickyllamada en cada hoyo, una vez a cada Dicky.<br>🇸🇪 El Sueco: el 🚩 Marshall (No la vi, Amarilla al mono y Lie mejorado), uno por hoyo.</p>
+    <p class="extras">1 punto por vuelta firmada con él y 1 más por cada golpe bajo par${finalBase ? '; 3 por cada match ganado contra el otro' : ''}. Nivelados al mismo hándicap.<br>🐸 Taiu: la Dickyllamada en cada hoyo, una vez a cada Dicky.<br>🇸🇪 El Sueco: el Marshall (No la vi, Amarilla al mono y Lie mejorado), uno por hoyo.</p>
     <button class="carta-jugar oro" type="button" data-bn="jugar">Jugar con ${mio?.emoji ?? ''} ${esc(apodoLimpio(datos.final))}</button>
     <button class="carta-jugar crema" type="button" data-bn="cambiar">Pasarme a ${esc(apodoLimpio(otro))}</button>
     <button class="carta-jugar" type="button" data-bn="ok">Listo</button>`)
