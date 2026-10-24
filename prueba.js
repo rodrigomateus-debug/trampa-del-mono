@@ -44,7 +44,7 @@ class No extends Error {}
  * La app de mentira para `yo` ({ uid, alias }). `hoyos` = los hoyos del juego (M.HOYOS: tee y pin, para grabar la
  * pelota de los rivales de mentira) y `muestraMs` cada cuánto va una muestra de la grabación.
  */
-export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null }) {
+export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null, final = false }) {
   const leer = () => { try { return JSON.parse(localStorage.getItem(CLAVE)) || null } catch { return null } }
   const st = leer() ?? { movs: [], desafios: [] }
   const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(st)) } catch {} }
@@ -92,7 +92,7 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null }) {
     const g = []
     let ms = 0, antes = 0
     porHoyo.forEach((golpes, idx) => {
-      const h = pin ? { ...hoyos[idx], pin: pin[idx] } : hoyos[idx]
+      const h = pin ? { ...hoyos[idx % hoyos.length], pin: pin[idx] ?? hoyos[idx % hoyos.length].pin } : hoyos[idx % hoyos.length] // (🏆 la Final: 6 hoyos, dos vueltas)
       for (let k = 0; k < golpes; k++) {
         const a = [h.tee[0] + ((h.pin[0] - h.tee[0]) * k) / golpes, h.tee[1] + ((h.pin[1] - h.tee[1]) * k) / golpes]
         const b = [h.tee[0] + ((h.pin[0] - h.tee[0]) * (k + 1)) / golpes, h.tee[1] + ((h.pin[1] - h.tee[1]) * (k + 1)) / golpes]
@@ -109,13 +109,17 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null }) {
     return { fantasma: g, ms }
   }
   // cómo juega un rival de mentira (cerca del par, a veces mejor)
-  function vueltaDe(rival, pin = null) {
+  function vueltaDe(rival, pin = null, vueltas = 1) {
     const nivel = RIVALES.find((r) => r.user_id === rival)?.nivel ?? 12
-    const porHoyo = PARES.map((p) => Math.max(2, p + azar(-1, 2) + (Math.random() < (nivel - 11) / 4 ? 1 : 0)))
+    const pares = Array.from({ length: vueltas }, () => PARES).flat()
+    const porHoyo = pares.map((p) => Math.max(2, p + azar(-1, 2) + (Math.random() < (nivel - 11) / 4 ? 1 : 0)))
     const golpes = porHoyo.reduce((a, b) => a + b, 0)
     const { fantasma, ms } = grabar(porHoyo, pin)
-    return { golpes, vs_par: golpes - 11, ms, fantasma, porHoyo }
+    return { golpes, vs_par: golpes - pares.reduce((a, b) => a + b, 0), ms, fantasma, porHoyo }
   }
+  // 🏆 la Final: un desafío de 6 hoyos (se ve en la grabación) y con uno de los dos players: el que responde juega con el otro
+  const FINALISTAS = { 'El Sueco': ['Taiu (Đ)', '🐸'], 'Taiu (Đ)': ['El Sueco', '🇸🇪'] }
+  const deSeis = (g) => Array.isArray(g) && (g.some((m) => m[1] > 3) || g.filter((m) => m[1] === 3).length > 1)
 
   // ── el FOURBALL ⚔️ de mentira (como "el fourball" de la base, con lo del 20/10): los de mentira juegan su parte solos a
   // los pocos segundos, con el player del que lo armó (los cuatro, el mismo); una pareja de mentira toma el que armaste (o
@@ -243,9 +247,10 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null }) {
       if (d.estado === 'respondiendo' && t - Date.parse(d.aceptado_at) > 2 * H) { Object.assign(d, { estado: 'jugado', rival_lp: true, rival_golpes: null, rival_vs_par: null, rival_ms: null, jugado_at: iso() }); pagar(d) }
       // un rival de mentira contesta lo que le mandaste
       if (d.estado === 'pendiente' && esRival(d.rival_id) && t - Date.parse(d.enviado_at ?? d.created_at) > RESPONDEN) {
-        const v = vueltaDe(d.rival_id)
+        const seis = deSeis(d.fantasma) && FINALISTAS[d.retador_apodo]
+        const v = vueltaDe(d.rival_id, seis && pines ? pines(d.semilla, 2) : null, seis ? 2 : 1)
         if (d.apuesta > 0) { alDia(d.rival_id); mover(d.rival_id, -d.apuesta, 'reserva', d.id) }
-        Object.assign(d, { estado: 'jugado', rival_apodo: d.retador_apodo, rival_emoji: d.retador_emoji, rival_golpes: v.golpes, rival_vs_par: v.vs_par, rival_ms: v.ms, rival_lp: false, rival_fantasma: v.fantasma, aceptado_at: iso(), jugado_at: iso() })
+        Object.assign(d, { estado: 'jugado', rival_apodo: seis ? seis[0] : d.retador_apodo, rival_emoji: seis ? seis[1] : d.retador_emoji, rival_golpes: v.golpes, rival_vs_par: v.vs_par, rival_ms: v.ms, rival_lp: false, rival_fantasma: v.fantasma, aceptado_at: iso(), jugado_at: iso() })
         pagar(d)
       }
     }
@@ -255,11 +260,14 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null }) {
       const apuesta = [3, 0, 5, 2][st.desafios.length % 4]
       alDia(r.user_id)
       if (apuesta > saldo(r.user_id)) return
-      const v = vueltaDe(r.user_id)
+      // (🏆 con ?final: un desafío de la Final, de 6 hoyos y con Taiu)
+      const semilla = azar(0, 4294967295)
+      const v = vueltaDe(r.user_id, final && pines ? pines(semilla, 2) : null, final ? 2 : 1)
+      const [apodo, emoji] = final ? ['Taiu (Đ)', '🐸'] : ['Lechu', '🦉']
       const d = {
-        id: id(), retador_id: r.user_id, retador_alias: r.nombre, retador_apodo: 'Lechu', retador_emoji: '🦉', retador_golpes: v.golpes, retador_vs_par: v.vs_par, retador_ms: v.ms, retador_lp: false,
+        id: id(), retador_id: r.user_id, retador_alias: r.nombre, retador_apodo: apodo, retador_emoji: emoji, retador_golpes: v.golpes, retador_vs_par: v.vs_par, retador_ms: v.ms, retador_lp: false,
         rival_id: yo.uid, rival_alias: yo.alias, rival_apodo: null, rival_emoji: null, rival_golpes: null, rival_vs_par: null, rival_ms: null, rival_lp: false,
-        semilla: azar(0, 4294967295), estado: 'pendiente', created_at: iso(), jugado_at: null, apuesta, enviado_at: iso(), aceptado_at: null, retador_ruleta: null, rival_ruleta: null, fantasma: v.fantasma, rival_fantasma: null,
+        semilla, estado: 'pendiente', created_at: iso(), jugado_at: null, apuesta, enviado_at: iso(), aceptado_at: null, retador_ruleta: null, rival_ruleta: null, fantasma: v.fantasma, rival_fantasma: null,
       }
       if (apuesta > 0) mover(r.user_id, -apuesta, 'reserva', d.id)
       st.desafios.push(d)

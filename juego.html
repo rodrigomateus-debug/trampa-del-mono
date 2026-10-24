@@ -1755,11 +1755,16 @@ input { -webkit-user-select: text; user-select: text; }
    resultado, cada pareja con sus dos jugadores y abajo sus puntos hoyo a hoyo (mejor pelota + suma) */
 /* 🏆 los matches de la Final: 6 hoyos (dos vueltas); la segunda, con una raya antes, y todo un poco más chico */
 .marcador th.v2, .marcador td.v2 { border-left: 2px solid rgba(20, 64, 42, .25); }
-.marcador.final.seis thead th:first-child { width: 24%; }
+.marcador.final.seis { padding: 6px 4px 8px; }
+.marcador.final.seis thead th:first-child { width: 19%; font-size: 9px; letter-spacing: .04em; }
+.marcador.final.seis thead th.tot { width: 11%; }
 .marcador.final.seis thead th.t { width: 17%; }
-.marcador.final.seis thead th small { font-size: 8px; letter-spacing: 0; }
-.marcador.final.seis td { font-size: 17px; }
-.marcador.final.seis tbody th { font-size: 14px; }
+.marcador.final.seis thead th small { font-size: 7.5px; letter-spacing: 0; }
+.marcador.final.seis td { font-size: 16px; }
+.marcador.final.seis td.tot { font-size: 18px; }
+.marcador.final.seis td.t { font-size: 12px; }
+.marcador.final.seis tbody th { font-size: 13px; }
+.marcador.final.seis tbody th .e { margin-right: 2px; font-size: 11px; }
 #t-filas tr.v2 td { border-top: 2px solid rgba(20, 64, 42, .3); }
 .marcador.fb tbody th { height: 21px; font-size: 13px; }
 .marcador.fb tbody th .e { font-size: 12px; margin-right: 4px; }
@@ -5047,7 +5052,8 @@ function empezar(jugador) {
   // la Ruleta y el Draft: el mazo entero, con o sin candado (Taiu, Demetrio): en un match, los dos con el MISMO mazo y,
   // con la semilla del match, tiro por tiro les salen los mismos players
   aplicarHandicaps() // si la app mandó handicaps mientras se jugaba la vuelta anterior
-  jugador = nivelarFinal(jugador) // 🏆 La Final: el Sueco y Taiu, con el mismo hándicap
+  // 🏆 La Final: el Sueco y Taiu, con el mismo hándicap (y en un match de la Final que se responde después, también)
+  jugador = nivelarFinal(jugador, !!matchModo && vueltasMatch(matchModo) > 1)
   ronda = M.sortearBanderas(M.nuevaRonda(jugador, rng), rng) // la bandera, en otro lugar del green cada ronda
   // el match: las banderas y el viento salen de la semilla (los dos juegan lo mismo); se usa una vez
   const duelo = matchModo
@@ -5815,7 +5821,7 @@ const hayOtroDicky = (j) => !!j?.dicky && dickysLibres().some((d) => d.apodo !==
 /** A quién podés llamar ahora: los otros Dicky (con Taiu en la Final, los que todavía no atendieron). */
 const dickysParaLlamar = () => dickysLibres().filter((d) => d.apodo !== ronda.jugador.apodo && !M.yaLlamados(ronda).includes(d.apodo))
 // con candado hasta tener a los cuatro Dicky; en la Final (Taiu está para todos), abierta
-const dickyllamadaCerrada = () => !tieneTaiu() && !finalViva()
+const dickyllamadaCerrada = () => !tieneTaiu() && !finalViva() && !ronda?.jugador?.dickyPorHoyo && !ronda?.prestado?.antes?.dickyPorHoyo
 const sinD = (apodo) => apodo.replace(/ \(Đ\)$/, '')
 let dickyTimer = 0, dickyUltimo = null
 /**
@@ -9810,7 +9816,7 @@ function bananaEnCanvas(g, x, y, tam, rot = -0.14) {
  * dos en el medio, y abajo el score de cada uno y quién ganó. Con `ganador` null es el desafío: sin scores (que el
  * otro no sepa cómo te fue). Con `apuesta`, las bananas en juego arriba y, abajo, cuántas se lleva el que gana.
  */
-async function imagenMatch({ izq, der, jugador, ganador, apuesta = 0, clasico = false }) {
+async function imagenMatch({ izq, der, jugador, ganador, apuesta = 0, clasico = false, final = false }) {
   try { await Promise.all(['56px Anton', '600 30px Archivo', '800 30px Archivo'].map((f) => document.fonts.load(f))) } catch {}
   const W2 = 1080, H2 = 1350
   const c = document.createElement('canvas')
@@ -9890,7 +9896,10 @@ async function imagenMatch({ izq, der, jugador, ganador, apuesta = 0, clasico = 
   const foto = await cargarImg(jugador.foto)
   const py = 770, ph = 120
   g.font = B(34, 800)
-  const txt = `LOS DOS CON ${jugador.apodo.replace(/ \(Đ\)$/, '').toUpperCase()}`
+  // 🏆 la Final: cada uno con el suyo (el que desafió con uno, el otro con el otro)
+  const deLaFinal = final || (izq.apodo && der.apodo && izq.apodo !== der.apodo && esDeLaFinal(izq.apodo) && esDeLaFinal(der.apodo))
+  const otroDe = (a) => (a === FINAL.a ? FINAL.b : FINAL.a)
+  const txt = deLaFinal ? `LA FINAL · ${apodoLimpio(jugador.apodo).toUpperCase()} VS ${apodoLimpio(otroDe(jugador.apodo)).toUpperCase()}` : `LOS DOS CON ${jugador.apodo.replace(/ \(Đ\)$/, '').toUpperCase()}`
   const pw = g.measureText(txt).width + 190
   g.fillStyle = '#f4eeda'; g.beginPath(); g.roundRect(W2 / 2 - pw / 2, py, pw, ph, ph / 2); g.fill()
   const fx = W2 / 2 - pw / 2 + 64, fy = py + ph / 2
@@ -10080,8 +10089,8 @@ function tablaMatch(filas) {
   const tiempo = (x) => (!conTiempo(x) ? '<td class="t vacio">—</td>'
     : `<td class="t${decide ? ' decide' : ''}">${M.formatoTiempo(x.ms)}${decide && x.ms > rapido ? `<small>${deltaTiempo(x.ms - rapido)}</small>` : ''}</td>`)
   const golpesDe = (f) => hs.map((_, k) => f.golpes[k] ?? null)
-  return `<div class="marcador final${hs.length > M.HOYOS.length ? ' seis' : ''}"><table><thead><tr><th>Hoyo a hoyo</th>${hs.map((h, k) => `<th class="${v2(k).trim()}">${h.n}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th><th class="t${decide ? ' decide' : ''}">Tiempo</th></tr></thead><tbody>${filas
-    .map((f) => `<tr class="${[f.gano ? 'gano' : '', f.el ? 'el' : ''].join(' ').trim()}"><th><span class="e">${esc(f.emoji ?? '⛳')}</span>${esc(f.nombre)}</th>${golpesDe(f).map(celda).join('')}${total(f.vuelta)}${tiempo(f.vuelta)}</tr>`)
+  return `<div class="marcador final${hs.length > M.HOYOS.length ? ' seis' : ''}"><table><thead><tr><th>Hoyo a hoyo</th>${hs.map((h, k) => `<th class="${v2(k).trim()}">${h.n}${h.vuelta === 2 ? '²' : ''}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th><th class="t${decide ? ' decide' : ''}">Tiempo</th></tr></thead><tbody>${filas
+    .map((f) => `<tr class="${[f.gano ? 'gano' : '', f.el ? 'el' : ''].join(' ').trim()}"><th><span class="e">${esc(hs.length > M.HOYOS.length ? String(f.emoji ?? '').replace('👻', '') : f.emoji ?? '⛳')}</span>${esc(f.nombre)}</th>${golpesDe(f).map(celda).join('')}${total(f.vuelta)}${tiempo(f.vuelta)}</tr>`)
     .join('')}</tbody></table></div>`
 }
 
@@ -10517,7 +10526,7 @@ $('#mt-lista').addEventListener('keydown', (e) => {
 let pruebaApp = null
 async function activarPrueba(yo, entrar = false) {
   const { crearPrueba } = await import('./prueba.js')
-  pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs, pines: (semilla) => M.condicionesMatch(semilla).pines.map((x) => x.pin) })
+  pruebaApp = crearPrueba({ yo: { uid: String(yo.uid), alias: String(yo.alias) }, hoyos: M.HOYOS, muestraMs: M.MATCH.muestraMs, pines: (semilla, vueltas = 1) => M.condicionesMatch(semilla, Date.now(), vueltas).pines.map((x) => x.pin), final: PARAMS.has('final') })
   R.usarPrueba(pruebaApp, entrar ? yo : null)
   $('#mt-prueba').hidden = false
 }
@@ -10630,7 +10639,7 @@ function pintarMatch() {
     }).join('') : `<li class="rk-vacio">${q ? 'Nadie con ese nombre.' : otro ? `Todavía no hay nadie del lado de ${esc(apodoLimpio(otro))}.` : 'Todavía no hay a quién desafiar.'}</li>`
     return
   }
-  $('#mt-nota').textContent = 'Gana el que hace menos golpes; si empatan, el más rápido. LP pierde. Los dos juegan con el mismo player.'
+  $('#mt-nota').textContent = `Gana el que hace menos golpes; si empatan, el más rápido. LP pierde. ${finalViva() ? 'En los de La Final, cada uno con su player y a 6 hoyos; en los normales, los dos con el mismo.' : 'Los dos juegan con el mismo player.'}`
   if (mtTab === 'ranking') { pintarRankingMatch(lista); return }
   if (!mtDesafios) { lista.innerHTML = `<li class="rk-vacio">${mtError ? 'No se pudieron cargar tus matches.' : 'Cargando…'}</li>`; return }
   if (mtTab === 'historial') { pintarHistorial(lista); return }
@@ -10805,7 +10814,7 @@ async function abrirDetalleMatch(id) {
   $('#rs-cuerpo').innerHTML = `
     <p class="rs-kicker">Match${f ? ` · ${esc(f.dia)}` : ''}</p>
     <h3 class="rs-quien" id="rs-quien">vs ${esc(el.alias)}</h3>
-    <p class="mt-player">Jugaron con <b>${esc(yo.emoji ?? '')} ${esc(String(yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}</b></p>
+    <p class="mt-player">${el.apodo && yo.apodo && el.apodo !== yo.apodo ? `La Final: vos con <b>${esc(yo.emoji ?? '')} ${esc(apodoLimpio(yo.apodo))}</b>, ${esc(nombreCorto(el.alias))} con <b>${esc(el.emoji ?? '')} ${esc(apodoLimpio(el.apodo))}</b> · 6 hoyos` : `Jugaron con <b>${esc(yo.emoji ?? '')} ${esc(String(yo.apodo ?? '').replace(/ \(Đ\)$/, ''))}</b>`}</p>
     <div class="mt-tabla" data-match="${esc(d.id)}">${tabla(null)}</div>
     ${yo.ruleta ? `<div class="t-ruleta">${htmlRuleta(yo.ruleta, 'Con quién pegaste', undefined, yo.emoji)}</div>` : ''}
     ${el.ruleta ? `<div class="t-ruleta rival">${htmlRuleta(el.ruleta, `Con quién pegó ${el.alias}`, undefined, yo.emoji)}</div>` : ''}
@@ -10849,7 +10858,7 @@ function pintarHistorial(lista) {
     <li class="mt-sec">Match por match</li>
     ${res.map((r) => `<li class="rk-fila mt-fila tocable" data-detalle="${esc(r.d.id)}" tabindex="0" aria-label="Ver el match contra ${esc(r.el.alias)} hoyo a hoyo">
       <span class="mini" aria-hidden="true">${esc(r.yo.emoji ?? '⛳')}</span>
-      <span class="rk-nombre"><b>vs ${esc(r.el.alias)}</b><small class="${r.clase}">${r.txt}${r.d.apuesta > 0 ? ` ${netoTxt(r.g, r.d.apuesta)}` : ''} · ${esc(golpesTxt(r.yo))} vs ${esc(golpesTxt(r.el))} · con ${esc(apodoLimpio(r.yo.apodo))}</small></span>
+      <span class="rk-nombre"><b>vs ${esc(r.el.alias)}</b><small class="${r.clase}">${r.txt}${r.d.apuesta > 0 ? ` ${netoTxt(r.g, r.d.apuesta)}` : ''} · ${esc(golpesTxt(r.yo))} vs ${esc(golpesTxt(r.el))} · ${r.el.apodo && r.yo.apodo && r.el.apodo !== r.yo.apodo ? `La Final: ${esc(apodoLimpio(r.yo.apodo))} vs ${esc(apodoLimpio(r.el.apodo))}` : `con ${esc(apodoLimpio(r.yo.apodo))}`}</small></span>
       <span class="mt-estado">${r.d.retador.uid === yo && !v.has(r.d.id) ? gi('bell', 'nuevo') : r.g > 0 ? gi('trophy') : r.g < 0 ? gi('close', 'pierde') : gi('friends')}</span>
       <button class="rp-mini" type="button" data-replay="${esc(r.d.id)}" aria-label="Ver el replay del match">${ICONO_REPLAY}</button>
       <button class="wa-mini" type="button" data-wa="${esc(r.d.id)}" aria-label="Mandar el resultado por WhatsApp">${ICONO_WA}</button>
@@ -12117,7 +12126,7 @@ function pintarMarcador(ms) {
   }<td class="tot${lp ? ' lp' : ''}">${lp ? 'LP' : total}</td></tr>`
   const yoAhora = ronda.terminada ? -1 : ronda.idx
   const elAhora = el.fin ? -1 : el.idx
-  const html = `<table><thead><tr><th class="${n && gana ? (gana > 0 ? 'gano' : 'pierdo') : ''}">${n && gana ? `${gana > 0 ? 'Vas ganando' : 'Vas perdiendo'} · ${Math.abs(suma(el.porHoyo) - suma(mios))}` : n ? 'Van iguales' : 'Match en vivo'}</th>${hs.map((h, k) => `<th class="${[k === yoAhora ? 'ahora' : '', h.vuelta === 2 && k === M.HOYOS.length ? 'v2' : ''].join(' ').trim()}">${h.n}</th>`).join('')}<th class="tot">TOT</th></tr></thead><tbody>${
+  const html = `<table><thead><tr><th class="${n && gana ? (gana > 0 ? 'gano' : 'pierdo') : ''}">${n && gana ? `${gana > 0 ? 'Vas ganando' : 'Vas perdiendo'} · ${Math.abs(suma(el.porHoyo) - suma(mios))}` : n ? 'Van iguales' : 'Match en vivo'}</th>${hs.map((h, k) => `<th class="${[k === yoAhora ? 'ahora' : '', h.vuelta === 2 && k === M.HOYOS.length ? 'v2' : ''].join(' ').trim()}">${h.n}${h.vuelta === 2 ? '²' : ''}</th>`).join('')}<th class="tot">TOT</th></tr></thead><tbody>${
     fila('yo', 'VOS', ronda.carta?.emoji ?? ronda.jugador.emoji, mios, yoAhora, yoTotal, yoLp)
   }${fila('el', ret.alias, `👻${ret.emoji ?? ''}`, elLp ? el.porHoyo.map((v, k) => (k >= el.idx ? 'LP' : v)) : el.porHoyo, elAhora, elTotal, elLp)}</tbody></table>`
   if (html === marcadorPintado) return
@@ -12604,7 +12613,7 @@ function htmlMarcadorReplay(r) {
   ].join(' ').trim()}">${v ?? '·'}</td>`
   const enJuego = new Set(filas.map((f) => f.ahora))
   return `<p class="rp-mc-estado"><span>Hoyo a hoyo</span>${estado ? `<b>${esc(estado)}</b>` : ''}</p><table><thead><tr><th></th>${
-    hs.map((h, k) => `<th class="${[enJuego.has(k) ? 'ahora' : '', hs.length > M.HOYOS.length && k === M.HOYOS.length ? 'v2' : ''].join(' ').trim()}">${h.n}<br><small>PAR ${h.par}</small></th>`).join('')
+    hs.map((h, k) => `<th class="${[enJuego.has(k) ? 'ahora' : '', hs.length > M.HOYOS.length && k === M.HOYOS.length ? 'v2' : ''].join(' ').trim()}">${h.n}${h.vuelta === 2 ? '²' : ''}<br><small>PAR ${h.par}</small></th>`).join('')
   }<th class="tot">TOT</th><th class="t">Tiempo</th></tr></thead><tbody>${filas.map((f, i) => `<tr class="${terminaron && i === gana ? 'gano' : ''}" style="--c: ${f.p.color}">
     <th><span class="rp-punto" aria-hidden="true"></span>${esc(f.p.x.alias ?? '—')}</th>${f.golpes.map((v, k) => celda(f, v, k)).join('')}<td class="tot${f.lp ? ' lp' : ''}">${f.total}</td><td class="t${tiempo && i === gana ? ' decide' : ''}">${f.tiempo}</td>
   </tr>`).join('')}</tbody></table>`
@@ -12945,7 +12954,7 @@ function mensajeDesafio(r, rival, mia) {
     pique,
     '',
     ...(esDeLaFinal(j.apodo) && M.nHoyos(r) > M.HOYOS.length ? [`Es LA FINAL: yo con ${j.emoji} ${apodoLimpio(j.apodo)}, vos con ${apodoLimpio(j.apodo === FINAL.a ? FINAL.b : FINAL.a)} (nivelados al mismo hándicap). A dos vueltas: 6 hoyos.`] : []),
-    `Te toca: ${esDeLaFinal(j.apodo) && finalViva() ? 'mismo' : `mismo player (${j.emoji} ${j.apodo}), mismo`} viento y mismas banderas.${j.draft ? ' Y el mismo Draft: tiro por tiro te salen las mismas tres caras que a mí 🃏 (elegís vos).' : j.ruleta ? ' Y la misma Ruleta: tiro por tiro te salen los mismos players que a mí 🎰.' : ''} Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
+    `Te toca: ${esDeLaFinal(j.apodo) && M.nHoyos(r) > M.HOYOS.length ? 'mismo' : `mismo player (${j.emoji} ${j.apodo}), mismo`} viento y mismas banderas.${j.draft ? ' Y el mismo Draft: tiro por tiro te salen las mismas tres caras que a mí 🃏 (elegís vos).' : j.ruleta ? ' Y la misma Ruleta: tiro por tiro te salen los mismos players que a mí 🎰.' : ''} Mi pelota va a estar ahí, en vivo, como un fantasma 👻.`,
     'Menos golpes gana; si empatamos, el más rápido. LP pierde.',
     ...(r.duelo?.apuesta > 0 ? [`Hay ${r.duelo.apuesta} 🍌 en juego: el que gana se lleva ${2 * r.duelo.apuesta - 1} (una es del mono 🐒).`] : []),
     '',
@@ -12968,7 +12977,10 @@ function textoResultadoMatch(yo, el, id, apuesta = 0) {
     titulo,
     linea(yo, 'Yo'),
     linea(el, el.alias),
-    `Los dos con ${emoji} ${apodo}, mismo viento y mismas banderas${apodo === 'La Ruleta' ? ' (y tiro por tiro, los mismos players)' : apodo === 'El Draft' ? ' (y tiro por tiro, las mismas tres caras para elegir)' : ''}.`,
+    // (🏆 en la Final cada uno juega con el suyo: yo con uno, el otro con el otro)
+    yo.apodo && el.apodo && yo.apodo !== el.apodo
+      ? `La Final: yo con ${yo.emoji ?? ''} ${apodoLimpio(yo.apodo)}, ${el.alias} con ${el.emoji ?? ''} ${apodoLimpio(el.apodo)}. Mismo viento y mismas banderas.`
+      : `Los dos con ${emoji} ${apodo}, mismo viento y mismas banderas${apodo === 'La Ruleta' ? ' (y tiro por tiro, los mismos players)' : apodo === 'El Draft' ? ' (y tiro por tiro, las mismas tres caras para elegir)' : ''}.`,
     ...(apuesta > 0 ? [g > 0 ? `🍌 Me llevé ${2 * apuesta - 1} bananas.` : g < 0 ? `🍌 Me sacó ${apuesta} bananas.` : `🍌 Las ${apuesta} bananas vuelven.`] : []),
     '',
     cierre,
@@ -13036,7 +13048,7 @@ async function cerrarMatch(r) {
           const b = e.currentTarget
           b.disabled = true
           const cr = camisetasDe.get(d.rival.uid)
-          const img = await imagenMatch({ izq: { alias: datos.usuario || 'Yo', oculto: true }, der: { alias: d.rival.nombre, pendiente: true }, jugador: r.carta, ganador: null, apuesta: d.apuesta ?? 0, clasico: !!(cr && camiseta.equipo && cr !== camiseta.equipo) })
+          const img = await imagenMatch({ izq: { alias: datos.usuario || 'Yo', oculto: true }, der: { alias: d.rival.nombre, pendiente: true }, jugador: r.carta, ganador: null, apuesta: d.apuesta ?? 0, final: esDeLaFinal(r.carta.apodo) && M.nHoyos(r) > M.HOYOS.length, clasico: !!(cr && camiseta.equipo && cr !== camiseta.equipo) })
           b.disabled = false
           compartirImagen(img, mensajeDesafio(r, d.rival, mia), 'desafio-trampa-del-mono.png')
         })
@@ -14188,8 +14200,8 @@ function vueltasMatch(duelo) {
 /** El player que bancás (si la Final está viva y ya elegiste). */
 const cartaFinal = () => (finalViva() && esDeLaFinal(datos.final) ? cartaDeFinal(datos.final) : null)
 /** El Sueco y Taiu, nivelados: los dos con el promedio de sus hándicaps (cada uno con su habilidad). */
-function nivelarFinal(j) {
-  if (!finalViva() || !esDeLaFinal(j?.apodo)) return j
+function nivelarFinal(j, forzar = false) {
+  if ((!finalViva() && !forzar) || !esDeLaFinal(j?.apodo)) return j
   const h = Math.round((((cartaDeFinal(FINAL.a)?.hcp ?? 0) + (cartaDeFinal(FINAL.b)?.hcp ?? 0)) / 2) * 10) / 10
   // 🐸 Taiu, en la Final: la Dickyllamada en cada hoyo (una vez a cada Dicky; el motor lo cuida con `dickyPorHoyo`).
   // 🇸🇪 El Sueco: el Marshall (`marshall`: el botón 🚩 con sus tres fallos)

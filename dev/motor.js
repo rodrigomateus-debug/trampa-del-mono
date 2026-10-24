@@ -3115,7 +3115,8 @@ export function vueltasDe(r) {
   for (let k = 0; k * n < r.tarjeta.length; k++) {
     const t = r.tarjeta.slice(k * n, (k + 1) * n)
     if (k === Math.ceil(r.tarjeta.length / n) - 1 && r.tarjeta.rorro) t.rorro = r.tarjeta.rorro
-    const ms = r.ms == null ? null : r.tarjeta.length <= n ? r.ms : k === 0 ? r.ms1 ?? null : r.ms1 != null ? r.ms - r.ms1 : null
+    // (si levantó en la segunda, la primera vale igual: tiene su tiempo)
+    const ms = r.tarjeta.length <= n ? r.ms ?? null : k === 0 ? r.ms1 ?? null : r.ms != null && r.ms1 != null ? r.ms - r.ms1 : null
     out.push({ tarjeta: t, ...totales(t), ms })
   }
   return out
@@ -3123,7 +3124,7 @@ export function vueltasDe(r) {
 /** Las marcas del ranking de la vuelta: una (o, en un match de la Final, una por cada vuelta de 3 hoyos). */
 export function marcasDe(r, usuario) {
   if (r.tarjeta.length <= HOYOS.length) { const m = marcaDe(r, usuario); return m ? [m] : [] }
-  if (!r.terminada || r.ms == null) return []
+  if (!r.terminada) return []
   const j = cartaDe(r)
   return vueltasDe(r).filter((v) => !v.lp && v.ms != null && v.tarjeta.length === HOYOS.length)
     .map((v) => ({ usuario: String(usuario ?? '').trim(), apodo: j.apodo, emoji: j.emoji, golpes: v.golpes, vsPar: v.vsPar, ms: Math.max(1, Math.round(v.ms)), tarjeta: v.tarjeta }))

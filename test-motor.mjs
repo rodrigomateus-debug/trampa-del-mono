@@ -2439,6 +2439,22 @@ ok('🏆 el match de la Final: dos vueltas (15, 16, 17 dos veces), las dos marca
   const ms = M.marcasDe(r, 'Rorro')
   assert.equal(ms.length, 2)
   assert.deepEqual(ms.map((m) => [m.golpes, m.vsPar, m.ms, m.tarjeta.length]), [[11, 0, 90000, 3], [11, 0, 110000, 3]])
+  // si levantó en la segunda vuelta, la primera va igual al ranking
+  const rl = M.aplicarMatch({ ...M.nuevaRonda(sueco, fijo(0.5)), monos: [] }, dos)
+  for (const g of [4, 4, 3, 5]) { rl.golpes = g; if (rl.idx === 2) rl.ms1 = 95000; M.cerrarHoyo(rl, fijo(0.5)) }
+  M.levantar(rl)
+  assert.ok(rl.terminada && rl.tarjeta.length === 6)
+  assert.deepEqual(M.marcasDe(rl, 'Rorro').map((m) => [m.golpes, m.ms]), [[11, 95000]])
+  // los poderes, por hoyo de la vuelta (no por el 15/16/17): en el 15 y en el 15² se pueden usar los dos
+  const taiu = { ...RULETA.pool.find((j) => j.apodo === 'Taiu (Đ)'), dickyPorHoyo: true }
+  const rt = M.aplicarMatch({ ...M.nuevaRonda(taiu, fijo(0.5)), monos: [] }, dos)
+  const dk = (a) => RULETA.pool.find((j) => j.apodo === a)
+  assert.ok(M.dickyllamar(rt, dk('Fito (Đ)')))
+  M.devolverDicky?.(rt); rt.jugador = taiu; rt.prestado = null
+  for (const g of [4, 4, 3]) { rt.golpes = g; M.cerrarHoyo(rt, fijo(0.5)) }
+  assert.equal(M.hoyoActual(rt).n, 15) // el 15²
+  assert.ok(M.puedeDickyllamar(rt))
+  assert.ok(M.dickyllamar(rt, dk('El Ninja (Đ)')))
   // una de 3, como siempre
   const r3 = { ...M.nuevaRonda(sueco, fijo(0.5)), monos: [] }
   for (const g of [4, 4, 3]) { r3.golpes = g; M.cerrarHoyo(r3, fijo(0.5)) }
