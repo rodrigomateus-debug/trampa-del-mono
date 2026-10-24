@@ -2339,6 +2339,24 @@ ok('📞 Dickyllamada: un Dicky te pega el próximo tiro (con su habilidad) y te
   assert.equal(M.momentoDicky({ tipo: 'normal', terreno: 'fairway' }), 'bien')
 })
 
+ok('🏆 Taiu en la Final (dickyPorHoyo): la Dickyllamada una por hoyo, y a cada Dicky una sola vez', () => {
+  const por = (a) => RULETA.pool.find((j) => j.apodo === a)
+  const taiu = { ...por('Taiu (Đ)'), dickyPorHoyo: true }, migue = por('Mike Queboni (Đ)'), fito = por('Fito (Đ)')
+  const r = { ...M.nuevaRonda(taiu, fijo(0.5)), monos: [] }
+  assert.equal(M.dickyllamar(r, migue), true)
+  const tiro = M.golpear(quieto, r, -Math.PI / 2, 1, sinRuido(), 1)
+  M.simular(quieto, tiro, h15.pin)
+  M.resolverReposo(quieto, r, tiro, fijo(0.5))
+  assert.equal(r.jugador, taiu)
+  assert.ok(!M.puedeDickyllamar(r)) // en este hoyo, ya está
+  r.idx++ // el hoyo que viene
+  assert.ok(M.puedeDickyllamar(r))
+  assert.deepEqual(M.yaLlamados(r), ['Mike Queboni (Đ)'])
+  assert.equal(M.dickyllamar(r, migue), false) // a Miguelón ya lo llamó
+  assert.equal(M.dickyllamar(r, fito), true)
+  assert.deepEqual(M.yaLlamados(r), ['Mike Queboni (Đ)', 'Fito (Đ)'])
+})
+
 ok('🦉📺 el Equipo 5: chicanas a los Dicky, la respuesta con amor y el aliento entre ellos (Joaco y Lucas, sin "(Đ)")', () => {
   const por = (a) => RULETA.pool.find((j) => j.apodo === a)
   const lechu = por('Lechu'), lg = por('LG'), fito = por('Fito (Đ)')

@@ -3370,12 +3370,17 @@ export function momentoDicky(res) {
 
 // ── la Dickyllamada: una vez por vuelta, el Dicky que juega llama a otro Dicky que le pega el próximo tiro ──
 // (con el handicap y la habilidad del que atiende: la bomba de Miguelón, el embudo de Fito, el revés de Taiu…)
-export const puedeDickyllamar = (r) => !!r.jugador?.dicky && !r.dickyllamada && !r.prestado && !r.terminada
+// 🏆 Taiu en la Final (`dickyPorHoyo`, lo pone la página): una por hoyo, y cada vez a otro Dicky (una vez a cada uno).
+export const puedeDickyllamar = (r) => !!r.jugador?.dicky && !r.prestado && !r.terminada &&
+  (r.jugador.dickyPorHoyo ? !(r.dickyllamadas ?? []).some((l) => l.n === hoyoActual(r).n) : !r.dickyllamada)
+/** Los Dicky que ya atendieron en esta vuelta (con `dickyPorHoyo`, no se repiten). */
+export const yaLlamados = (r) => (r.dickyllamadas ?? []).map((l) => l.apodo)
 /** Llama a `dicky`: el próximo golpe lo pega él. Devuelve false si no se puede (ya la usó, no es Dicky, es él mismo). */
 export function dickyllamar(r, dicky, atiende = dicky) {
-  if (!puedeDickyllamar(r) || !dicky?.dicky || dicky.apodo === r.jugador.apodo) return false
+  if (!puedeDickyllamar(r) || !dicky?.dicky || dicky.apodo === r.jugador.apodo || yaLlamados(r).includes(dicky.apodo)) return false
   // `atiende`: el que atiende de verdad (la interna: a veces te atiende el Equipo 5 y pega él)
   r.dickyllamada = { apodo: dicky.apodo, atendio: atiende.apodo, n: hoyoActual(r).n }
+  r.dickyllamadas = [...(r.dickyllamadas ?? []), r.dickyllamada]
   r.prestado = { antes: r.jugador, golpeMago: r.golpeMago }
   r.jugador = atiende
   r.golpeMago = null

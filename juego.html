@@ -5782,6 +5782,10 @@ function lucasDice(texto) {
 const DICKYS = TODOS.filter((j) => j.dicky && j.torso)
 const dickysLibres = () => DICKYS.filter((d) => !bloqueado(d)) // Taiu, bloqueado, ni aparece ni atiende
 const hayOtroDicky = (j) => !!j?.dicky && dickysLibres().some((d) => d.apodo !== j.apodo)
+/** A quién podés llamar ahora: los otros Dicky (con Taiu en la Final, los que todavía no atendieron). */
+const dickysParaLlamar = () => dickysLibres().filter((d) => d.apodo !== ronda.jugador.apodo && !M.yaLlamados(ronda).includes(d.apodo))
+// con candado hasta tener a los cuatro Dicky; en la Final (Taiu está para todos), abierta
+const dickyllamadaCerrada = () => !tieneTaiu() && !finalViva()
 const sinD = (apodo) => apodo.replace(/ \(Đ\)$/, '')
 let dickyTimer = 0, dickyUltimo = null
 /**
@@ -5973,7 +5977,7 @@ function compaDespues(res, tiro) {
 /** La Dickyllamada: el selector con los otros Dicky (el reloj corre; los monos no te alcanzan mientras elegís). */
 function abrirDickyllamada() {
   if (estado !== 'apuntar' || !M.puedeDickyllamar(ronda)) return
-  if (!tieneTaiu()) {
+  if (dickyllamadaCerrada()) {
     // con candado: se abre con los cuatro Dicky (desbloqueando a Taiu)
     const p = progresoTaiu()
     voz = { lg: '📞 La Dickyllamada todavía está cerrada', extra: `Se abre con los cuatro Dicky: desbloqueá a Taiu haciendo −1 (firmado) con Fito, Miguelón y el Ninja. Vas ${p.hechos} de 3`, hasta: performance.now() + 6000 }
@@ -5985,7 +5989,12 @@ function abrirDickyllamada() {
     return
   }
   const yo = ronda.jugador
-  const otros = dickysLibres().filter((d) => d.apodo !== yo.apodo)
+  const otros = dickysParaLlamar()
+  const porHoyo = !!yo.dickyPorHoyo
+  $('#dicky-sel .dk-kicker').textContent = porHoyo ? `🏆 UNA POR HOYO · TE ${otros.length === 1 ? 'QUEDA 1' : `QUEDAN ${otros.length}`}` : '📞 DICKYLLAMADA · UNA POR VUELTA'
+  $('#dicky-sel .dk-sub').textContent = porHoyo
+    ? 'Es la Final: en cada hoyo podés llamar a uno, y a cada Dicky una sola vez. El que atiende te pega el próximo tiro, con su handicap y su habilidad. Ojo: a veces se cuela el #Equipo5 📺🦉'
+    : 'El que atiende te pega el próximo tiro, con su handicap y su habilidad. Se ayudan entre Dickys. Ojo: a veces se cuela el #Equipo5 📺🦉'
   $('#dk-lista').innerHTML = otros.map((d) => {
     const hab = M.habilidadDe(d)
     return `<button class="dk-op" type="button" data-apodo="${esc(d.apodo)}"><span class="cara"><img src="${d.torso}" alt="" draggable="false"></span><span><b>${d.emoji} ${esc(sinD(d.apodo))}</b><small>${esc(hcpEtiqueta(d))}${hab ? ` · ✨ ${esc(hab.nombre)}` : ''}</small><span>${hab ? esc(hab.corto ?? hab.texto.split('. ')[0] + '.') : ''}</span></span></button>`
@@ -6253,13 +6262,13 @@ function hud() {
   cont.classList.toggle('premio', !!menos)
   // Maxi: el botón de Deme (una vez por vuelta; en el tee, apagado)
   // los Dicky: la Dickyllamada (una por vuelta: un Dicky te pega el próximo tiro)
-  const dicky = !oculto && hayOtroDicky(j) && M.puedeDickyllamar(ronda)
+  const dicky = !oculto && hayOtroDicky(j) && M.puedeDickyllamar(ronda) && (dickyllamadaCerrada() || dickysParaLlamar().length > 0)
   $('#dicky-btn').hidden = !dicky || $('#hud-top').hidden
   if (dicky) $('#dicky-btn').disabled = estado !== 'apuntar'
   // con candado hasta tener a los cuatro Dicky (Taiu desbloqueado): se ve, pero tocándolo te dice cómo se abre
-  const dkLock = !tieneTaiu()
+  const dkLock = dickyllamadaCerrada()
   $('#dicky-btn').classList.toggle('bloqueado', dkLock)
-  $('#dicky-btn b').innerHTML = dkLock ? candado() : '📞'
+  $('#dicky-btn b').innerHTML = dkLock ? candado() : j?.dickyPorHoyo && dicky ? String(dickysParaLlamar().length) : '📞'
   // el Ninja: RESET del hoyo (uno por vuelta; hasta que pegue algo en el hoyo, apagado)
   const ninja = !oculto && M.habilidadDe(j)?.id === 'tradicion' && !ronda.resetNinja
   $('#ninja-btn').hidden = !ninja || $('#hud-top').hidden
@@ -13976,7 +13985,8 @@ const cartaFinal = () => (finalViva() && esDeLaFinal(datos.final) ? cartaDeFinal
 function nivelarFinal(j) {
   if (!finalViva() || !esDeLaFinal(j?.apodo)) return j
   const h = Math.round((((cartaDeFinal(FINAL.a)?.hcp ?? 0) + (cartaDeFinal(FINAL.b)?.hcp ?? 0)) / 2) * 10) / 10
-  return { ...j, hcp: h, aprox: false, hcpTexto: `HCP ${String(h).replace('.', ',')} · nivelado` }
+  // 🐸 Taiu, en la Final: la Dickyllamada en cada hoyo (una vez a cada Dicky; el motor lo cuida con `dickyPorHoyo`)
+  return { ...j, hcp: h, aprox: false, hcpTexto: `HCP ${String(h).replace('.', ',')} · nivelado`, ...(j.apodo === FINAL.b && { dickyPorHoyo: true }) }
 }
 /** Los puntos de cada uno: de las vueltas firmadas del ranking (de todos) con ese player, desde que empezó la Final. */
 let finalMarcas = null, finalLeida = 0
@@ -14050,7 +14060,7 @@ async function verFinal() {
   const v = await hojaBananas(`<p class="bn-tit" id="bn-tit">🏆 La Final del club</p>
     <div class="final-tabla"><span>${cartaDeFinal(FINAL.a)?.emoji ?? ''} El Sueco</span><span></span><span>Taiu ${cartaDeFinal(FINAL.b)?.emoji ?? ''}</span><b>${p[FINAL.a]}</b><span>–</span><b>${p[FINAL.b]}</b></div>
     <p class="final-hinchas">🇸🇪 Los que más sumaron: ${top(FINAL.a)}<br>🐸 Los que más sumaron: ${top(FINAL.b)}</p>
-    <p class="extras">1 punto por vuelta firmada con él y 1 más por cada golpe bajo par. Nivelados al mismo hándicap.</p>
+    <p class="extras">1 punto por vuelta firmada con él y 1 más por cada golpe bajo par. Nivelados al mismo hándicap.<br>🐸 Taiu: la 📞 Dickyllamada en cada hoyo, una vez a cada Dicky.</p>
     <button class="carta-jugar oro" type="button" data-bn="jugar">Jugar con ${mio?.emoji ?? ''} ${esc(apodoLimpio(datos.final))}</button>
     <button class="carta-jugar crema" type="button" data-bn="cambiar">Pasarme a ${esc(apodoLimpio(otro))}</button>
     <button class="carta-jugar" type="button" data-bn="ok">Listo</button>`)
