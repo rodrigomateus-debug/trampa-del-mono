@@ -1064,7 +1064,7 @@ function moverMonos3d(dt, st) {
   const lista = st.ronda?.monos ?? []
   monos3d.forEach((m, i) => {
     const s = lista[i]
-    if (!s || s.modo === 'aplastado' || s.modo === 'llevado' || s.modo === 'pinchado' || !st.ronda || intro) { m.g.visible = false; return } // (el que pinchó la flecha lo dibuja el juego arriba)
+    if (!s || s.modo === 'aplastado' || s.modo === 'llevado' || !st.ronda || intro) { m.g.visible = false; return }
     const p = s.pos
     if (m.ultimo) { const v = [p[0] - m.ultimo[0], p[1] - m.ultimo[1]]; if (Math.hypot(...v) > 1e-3) m.dir = Math.atan2(v[0], v[1]) }
     m.ultimo = [...p]
@@ -1805,16 +1805,16 @@ export function replayEmpezar({ hoyos, clima = null, imagenCancha = null }) {
 export function replayTerminar(ronda = null) {
   rp = null
   trazoPts = []; trazoApaga = null
-  for (const m of fantasmas) { m.visible = false; m.material.color.set(FANTASMA_COLOR); m.material.opacity = 0.55 }
+  for (const m of fantasmas) m.visible = false
+  fantasma.material.color.set(FANTASMA_COLOR); fantasma.material.opacity = 0.55
   if (ronda) aplicarClima(ronda)
 }
 export const enReplay = () => !!rp
 /**
  * Un cuadro del replay. `sigue`: la pelota que sigue la cámara { k, idx, pos, alt, golpes, tramo } (`tramo` = { a, b }:
- * está viajando de `a` a `b`); `otras`: las de los demás [{ idx, pos, alt, color }] (en el fourball, hasta tres; `otra`,
- * una sola, como antes); `viento`: el del hoyo.
+ * está viajando de `a` a `b`); `otra`: la del otro { idx, pos, alt, color } o null; `viento`: el del hoyo.
  */
-export function replayCuadro(dtR, { sigue, otra = null, otras = null, viento = null, zona: z = null }) {
+export function replayCuadro(dtR, { sigue, otra = null, viento = null, zona: z = null }) {
   if (!rp || !sigue) return
   const r = rp.ronda
   if (sigue.idx !== r.idx) { r.idx = sigue.idx; empezarHoyo(r) }
@@ -1835,9 +1835,9 @@ export function replayCuadro(dtR, { sigue, otra = null, otras = null, viento = n
     tiro.alt = sigue.alt ?? 0
     tiro.fase = tiro.alt > 0 ? 'vuelo' : 'rodando'
   }
-  const ver = (otras ?? (otra ? [otra] : [])).filter((o) => o.idx === sigue.idx) // (las del hoyo que se ve)
-  ver.forEach((o, i) => { if (o.color) mallaFantasma(i).material.opacity = 0.95 })
-  cuadro(dtR, { estado: tiro ? 'tiro' : 'apuntar', ronda: r, tiro, anim: null, drag: false, enPutt: !tiro && enGreen(sigue.pos), apunte: null, golfista: null, fantasmas: ver, dibuje: null, zona: z })
+  const ver = otra && otra.idx === sigue.idx ? otra : null
+  if (ver?.color) { fantasma.material.color.set(ver.color); fantasma.material.opacity = 0.95 }
+  cuadro(dtR, { estado: tiro ? 'tiro' : 'apuntar', ronda: r, tiro, anim: null, drag: false, enPutt: !tiro && enGreen(sigue.pos), apunte: null, golfista: null, fantasma: ver, dibuje: null, zona: z })
 }
 /** Algo de la cancha está cambiando (un deploy, un revert, el hoyo que se muda): el reloj espera. */
 export const ocupado = () => !!barrido || !!mudanza || !!intro
@@ -1853,17 +1853,28 @@ export const poderes = () => ({ bp: juego.poder.bp, revert: juego.poder.revert, 
 export function breakpoint(tiro) {
   if (!puedeDebug()) return false
   juego.poder.bp--
-  M.congelarTiro(tiro)
+  tiro.destinoOrig = [tiro.desde[0] + tiro.carryVec[0] + (tiro.deriva?.[0] ?? 0), tiro.desde[1] + tiro.carryVec[1] + (tiro.deriva?.[1] ?? 0)]
+  tiro.nuevo = [...tiro.destinoOrig]
   C.pausa()
   return true
 }
-/** Arrastrando la cancha: el destino nuevo (hasta un 38% de lo que le falta: M.correrDestino). */
+/** Arrastrando la cancha: el destino nuevo (hasta un 38% de lo que le falta). */
 export function arrastrarDestino(tiro, x, y) {
-  M.correrDestino(tiro, aPiso(x, y))
+  const p = aPiso(x, y)
+  if (!p || !tiro?.destinoOrig) return
+  const resta = dist(tiro.pos, tiro.destinoOrig)
+  const maxR = Math.max(10, resta * 0.38)
+  const d = [p[0] - tiro.destinoOrig[0], p[1] - tiro.destinoOrig[1]], l = Math.hypot(...d)
+  tiro.nuevo = l > maxR ? [tiro.destinoOrig[0] + (d[0] / l) * maxR, tiro.destinoOrig[1] + (d[1] / l) * maxR] : p
 }
-/** Sigue el vuelo al destino nuevo (M.seguirTiro: el final de la curva se corre sin que salte). */
+/** Sigue el vuelo al destino nuevo: el final de la curva del motor se corre y el control se acomoda para que no salte. */
 export function continuar(t) {
-  M.seguirTiro(t)
+  const u = t.t / t.T, b1 = 2 * u * (1 - u), b2 = u * u
+  const dv = t.deriva ?? [0, 0]
+  const Cn = [t.nuevo[0] - t.desde[0] - dv[0], t.nuevo[1] - t.desde[1] - dv[1]]
+  if (b1 > 0.04) t.controlVec = [t.controlVec[0] + ((t.carryVec[0] - Cn[0]) * b2) / b1, t.controlVec[1] + ((t.carryVec[1] - Cn[1]) * b2) / b1]
+  t.carryVec = Cn
+  t.carry = Math.hypot(...Cn)
   C.seguir()
 }
 
@@ -1940,7 +1951,7 @@ export function trazarOvalo(ctx, c, largo, ancho, ang) {
 export function dibujarDepurador(ctx, t) {
   if (!t?.nuevo) return
   const D = t.destinoOrig, Nn = t.nuevo
-  const maxR = M.radioDebug(t)
+  const maxR = Math.max(10, dist(t.pos, D) * 0.38)
   const anillo = (c, r) => { ctx.beginPath(); for (let i = 0; i <= 48; i++) { const a = (i / 48) * Math.PI * 2, [x, y] = aPantalla([c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r], 0.05); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) } }
   ctx.save()
   ctx.lineCap = 'round'
