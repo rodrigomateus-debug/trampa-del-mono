@@ -9690,7 +9690,7 @@ async function imagenVuelta() {
   g.restore()
   // cabecera
   g.textAlign = 'center'
-  g.fillStyle = '#e8c34a'; g.font = B(26, 800); g.fillText('SDGA TOUR  ·  HOYOS 15 · 16 · 17', W2 / 2, 82)
+  g.fillStyle = '#e8c34a'; g.font = B(26, 800); g.fillText(`SDGA TOUR  ·  HOYOS 15 · 16 · 17${(r.tarjeta.length || 3) > M.HOYOS.length ? '  ·  DOS VUELTAS' : ''}`, W2 / 2, 82)
   g.fillStyle = '#f4eeda'; g.font = D(96); g.fillText('LA TRAMPA DEL MONO', W2 / 2, 182)
   // la cara del jugador
   const foto = await cargarImg(j.foto)
@@ -9745,14 +9745,17 @@ async function imagenVuelta() {
   // hoyo por hoyo
   const cols = r.tarjeta.length || 3
   const seis = cols > M.HOYOS.length // 🏆 un match de la Final: dos vueltas
-  const gap = seis ? 12 : 30, bw = seis ? Math.floor((W2 - 60 - (cols - 1) * gap) / cols) : 230, bx = W2 / 2 - (cols * bw + (cols - 1) * gap) / 2, by = y0 + 370
+  // con 6, los cuadros entran adentro de la tarjeta crema, y entre las dos vueltas va un poco más de aire
+  const gap = seis ? 10 : 30, corte = seis ? 22 : 0
+  const bw = seis ? Math.floor((w0 - 48 - (cols - 1) * gap - corte) / cols) : 230
+  const bx = W2 / 2 - (cols * bw + (cols - 1) * gap + corte) / 2, by = y0 + 370
   r.tarjeta.forEach((f, i) => {
-    const x = bx + i * (bw + gap)
+    const x = bx + i * (bw + gap) + (i >= M.HOYOS.length ? corte : 0)
     const sobre = f.lp || f.golpes > f.par, bajo = !f.lp && f.golpes < f.par
     g.fillStyle = bajo ? '#2e7d4f' : sobre ? '#bc4b3c' : '#e8c34a'
     g.beginPath(); g.roundRect(x, by, bw, altoHoyo, 20); g.fill()
     g.fillStyle = bajo || sobre ? '#f4eeda' : '#14402a'
-    g.font = B(seis ? 20 : 24, 800); g.fillText(seis ? `${f.n} · P${f.par}` : `HOYO ${f.n} · PAR ${f.par}`, x + bw / 2, by + 36)
+    g.font = B(seis ? 20 : 24, 800); g.fillText(seis ? `${f.n}${i >= M.HOYOS.length ? '²' : ''} · P${f.par}` : `HOYO ${f.n} · PAR ${f.par}`, x + bw / 2, by + 36)
     g.font = D(60); g.fillText(f.lp ? 'LP' : String(f.golpes), x + bw / 2, by + 98)
     // la Ruleta: quién pegó cada tiro de este hoyo, en orden (las caras se pisan un poco si son muchos)
     const tiros = porHoyoRl.find((h) => h.n === f.n)?.tiros ?? []
@@ -10437,7 +10440,7 @@ async function donarBananas(para = null) {
  * cuánto da cada cosa), el hoyo en uno (+10; en PRO, el pozo), la mesada (cuánto falta para que se renueve la semana:
  * el lunes a las 0, hora argentina) y las otras (el Clásico, el match).
  */
-const BN_REGLAS = { tope: 5, birdie: 1, aguila: 3, bajoPar: 2, hoyoEnUno: 10, mesada: 3, mesadaBajo: 10, clasico: 2 }
+const BN_REGLAS = { tope: 5, birdie: 1, aguila: 3, bajoPar: 2, hoyoEnUno: 10, mesada: 3, mesadaBajo: 10, clasico: M.CLASICO.premio }
 function lunesQueViene(ahora = Date.now()) {
   const ART = 3 * 3600e3 // Argentina, UTC−3 (sin horario de verano)
   const d = new Date(ahora - ART)

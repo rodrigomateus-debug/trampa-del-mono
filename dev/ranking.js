@@ -495,7 +495,7 @@ async function rpc(fn, args = {}) {
 }
 /**
  * ⚔️ El Clásico de la semana pasada (Dicky contra el Equipo 5) y, si jugaste para el que ganó y todavía no cobraste, tus
- * 2 bananas: { semana, dicky, e5, ganador: 'dicky' | 'e5' | null, cobraste }. Sin la base nueva (o sin la app nueva), error.
+ * 15 bananas: { semana, dicky, e5, ganador: 'dicky' | 'e5' | null, cobraste }. Sin la base nueva (o sin la app nueva), error.
  */
 export async function cobrarClasico() {
   const r = puente.enApp ? await porApp('clasico') : await rpc('trampa_clasico_cobrar')

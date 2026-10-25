@@ -3713,7 +3713,7 @@ export const fraseCompaE5 = (rng, que, j) => elegir(rng, que === 'espanta' ? ESP
 // SABADO); de cada uno, hasta 5 vueltas por día para cada equipo. La
 // semana, de lunes a domingo en hora argentina. Las mismas reglas que la base
 // (`trampa_clasico_puntos`), que con eso le paga 2 bananas a los que jugaron para el que ganó ──
-export const CLASICO = { porDia: 5, premio: 2, tz: -3 } // la hora argentina: UTC−3 (sin horario de verano)
+export const CLASICO = { porDia: 5, premio: 15, tz: -3 } // la hora argentina: UTC−3 (sin horario de verano)
 const DIA = 864e5
 /** El lunes 00:00 (hora argentina) de la semana de `t` (ms); con `atras`, de tantas semanas antes. En ms. */
 export function lunesDe(t, atras = 0) {
@@ -3962,7 +3962,8 @@ export function textoCompartir(r, firmada) {
   const { vsPar } = totales(r.tarjeta)
   const j = cartaDe(r)
   const score = r.lp ? `LP 💅 (levantó en el ${r.lp})` : firmada ? formatoPar(vsPar) : `${NETO_SIN_FIRMA} neto (no firmó la tarjeta)`
-  const hoyos = r.tarjeta.map((f) => (f.lp ? 'LP' : f.golpes)).join(' · ') + (r.tarjeta.rorro ? ` · 🥃 Rorro ${r.tarjeta.rorro > 0 ? '+1' : '−1'}` : '') + (r.pinchados ? ` · 🏹 ${r.pinchados} ${r.pinchados === 1 ? 'mono pinchado' : 'monos pinchados'}` : '')
+  // 🏆 con 6 hoyos (la Final), una raya entre las dos vueltas
+  const hoyos = r.tarjeta.map((f, i) => (i === HOYOS.length ? '| ' : '') + (f.lp ? 'LP' : f.golpes)).join(' · ').replace(' · |', ' |') + (r.tarjeta.rorro ? ` · 🥃 Rorro ${r.tarjeta.rorro > 0 ? '+1' : '−1'}` : '') + (r.pinchados ? ` · 🏹 ${r.pinchados} ${r.pinchados === 1 ? 'mono pinchado' : 'monos pinchados'}` : '')
   return [
     '⛳ LA TRAMPA DEL MONO · SDGA',
     j.ruleta ? `${j.emoji} ${j.apodo} (${j.draft ? 'elegí quién pega cada tiro' : 'un player por tiro'}): ${score} (${hoyos})` : `${j.emoji} ${j.apodo} (HCP ${j.hcp ?? '—'}): ${score} (${hoyos})`,
