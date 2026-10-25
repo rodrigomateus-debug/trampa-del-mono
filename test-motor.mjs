@@ -2455,6 +2455,9 @@ ok('🏆 el match de la Final: dos vueltas (15, 16, 17 dos veces), las dos marca
   assert.equal(M.hoyoActual(rt).n, 15) // el 15²
   assert.ok(M.puedeDickyllamar(rt))
   assert.ok(M.dickyllamar(rt, dk('El Ninja (Đ)')))
+  // la flecha del Sueco puede dejar un hoyo en 0 en el medio, pero cerrado vale 1 (y el golpe no pasa al hoyo siguiente)
+  const gf = [[0, 0, 1, 1, 0, 0], [1000, 0, 1, 1, 0, 1], [2000, 1, 1, 1, 0, 3], [3000, 2, 1, 1, 0, 3], [3500, 2, 1, 1, 0, 3], [4000, 3, 1, 1, 0, 8], [5000, 4, 1, 1, 0, 11], [6000, 5, 1, 1, 0, 12], [7000, 6, 1, 1, 0, 12]]
+  assert.deepEqual(M.marcadorFantasma(gf, Infinity).porHoyo, [1, 2, 1, 4, 3, 1])
   // una de 3, como siempre
   const r3 = { ...M.nuevaRonda(sueco, fijo(0.5)), monos: [] }
   for (const g of [4, 4, 3]) { r3.golpes = g; M.cerrarHoyo(r3, fijo(0.5)) }

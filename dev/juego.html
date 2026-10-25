@@ -10091,7 +10091,7 @@ function tablaMatch(filas) {
   const tiempo = (x) => (!conTiempo(x) ? '<td class="t vacio">—</td>'
     : `<td class="t${decide ? ' decide' : ''}">${M.formatoTiempo(x.ms)}${decide && x.ms > rapido ? `<small>${deltaTiempo(x.ms - rapido)}</small>` : ''}</td>`)
   const golpesDe = (f) => hs.map((_, k) => f.golpes[k] ?? null)
-  return `<div class="marcador final${hs.length > M.HOYOS.length ? ' seis' : ''}"><table><thead><tr><th>Hoyo a hoyo</th>${hs.map((h, k) => `<th class="${v2(k).trim()}">${h.n}${h.vuelta === 2 ? '²' : ''}<br><small>PAR ${h.par}</small></th>`).join('')}<th class="tot">TOT</th><th class="t${decide ? ' decide' : ''}">Tiempo</th></tr></thead><tbody>${filas
+  return `<div class="marcador final${hs.length > M.HOYOS.length ? ' seis' : ''}"><table><thead><tr><th>Hoyo a hoyo</th>${hs.map((h, k) => `<th class="${v2(k).trim()}">${h.n}${h.vuelta === 2 ? '²' : ''}<br><small>${hs.length > M.HOYOS.length ? `P${h.par}` : `PAR ${h.par}`}</small></th>`).join('')}<th class="tot">TOT</th><th class="t${decide ? ' decide' : ''}">Tiempo</th></tr></thead><tbody>${filas
     .map((f) => `<tr class="${[f.gano ? 'gano' : '', f.el ? 'el' : ''].join(' ').trim()}"><th><span class="e">${esc(hs.length > M.HOYOS.length ? String(f.emoji ?? '').replace('👻', '') : f.emoji ?? '⛳')}</span>${esc(f.nombre)}</th>${golpesDe(f).map(celda).join('')}${total(f.vuelta)}${tiempo(f.vuelta)}</tr>`)
     .join('')}</tbody></table></div>`
 }
@@ -12216,7 +12216,7 @@ function indicadorFantasma(f, gx, gy, v, quien, puestos = []) {
   if (n) { if (Math.abs(y - (v.y0 + m)) < 2 || Math.abs(y - (v.y1 - m)) < 2) x += (x > (v.x0 + v.x1) / 2 ? -54 : 54) * n; else y += (y > (v.y0 + v.y1) / 2 ? -54 : 54) * n }
   puestos.push([bx + dx * k, by + dy * k])
   const ang = Math.atan2(dy, dx)
-  const etiqueta = f.idx === ronda.idx ? `${Math.round(M.dist(f.pos, ronda.pelota) * M.hoyoActual(ronda).escala)} YD` : `HOYO ${(ronda.hoyos ?? M.HOYOS)[f.idx]?.n ?? ''}`
+  const etiqueta = f.idx === ronda.idx ? `${Math.round(M.dist(f.pos, ronda.pelota) * M.hoyoActual(ronda).escala)} YD` : `HOYO ${(ronda.hoyos ?? M.HOYOS)[f.idx]?.n ?? ''}${f.idx >= M.HOYOS.length ? '²' : ''}`
   ctx.save()
   ctx.translate(x, y)
   ctx.globalAlpha = 0.85 + 0.15 * Math.sin(performance.now() / 300) // respira, como el halo del fantasma
@@ -12615,7 +12615,7 @@ function htmlMarcadorReplay(r) {
   ].join(' ').trim()}">${v ?? '·'}</td>`
   const enJuego = new Set(filas.map((f) => f.ahora))
   return `<p class="rp-mc-estado"><span>Hoyo a hoyo</span>${estado ? `<b>${esc(estado)}</b>` : ''}</p><table><thead><tr><th></th>${
-    hs.map((h, k) => `<th class="${[enJuego.has(k) ? 'ahora' : '', hs.length > M.HOYOS.length && k === M.HOYOS.length ? 'v2' : ''].join(' ').trim()}">${h.n}${h.vuelta === 2 ? '²' : ''}<br><small>PAR ${h.par}</small></th>`).join('')
+    hs.map((h, k) => `<th class="${[enJuego.has(k) ? 'ahora' : '', hs.length > M.HOYOS.length && k === M.HOYOS.length ? 'v2' : ''].join(' ').trim()}">${h.n}${h.vuelta === 2 ? '²' : ''}<br><small>${hs.length > M.HOYOS.length ? `P${h.par}` : `PAR ${h.par}`}</small></th>`).join('')
   }<th class="tot">TOT</th><th class="t">Tiempo</th></tr></thead><tbody>${filas.map((f, i) => `<tr class="${terminaron && i === gana ? 'gano' : ''}" style="--c: ${f.p.color}">
     <th><span class="rp-punto" aria-hidden="true"></span>${esc(f.p.x.alias ?? '—')}</th>${f.golpes.map((v, k) => celda(f, v, k)).join('')}<td class="tot${f.lp ? ' lp' : ''}">${f.total}</td><td class="t${tiempo && i === gana ? ' decide' : ''}">${f.tiempo}</td>
   </tr>`).join('')}</tbody></table>`
@@ -12691,7 +12691,7 @@ function pintarReplay(todo = false) {
     const txt = !f ? '' : f.fin
       ? `Terminó · ${p.x.lp || p.x.golpes == null ? 'LP 💅' : `${p.x.golpes} (${M.formatoPar(p.x.vsPar)})`}`
       : p.debugs.some((b) => r.t >= b.desde && r.t < b.hasta) ? '⏸ DEBUG · no es golpe'
-      : `Hoyo ${M.HOYOS[f.idx % M.HOYOS.length]?.n ?? ''} · ${f.golpes} ${f.golpes === 1 ? 'golpe' : 'golpes'}`
+      : `Hoyo ${M.HOYOS[f.idx % M.HOYOS.length]?.n ?? ''}${f.idx >= M.HOYOS.length ? '²' : ''} · ${f.golpes} ${f.golpes === 1 ? 'golpe' : 'golpes'}`
     poner(`e${i}`, $(`#rp-estado-${i}`), txt, (el, v) => { el.textContent = v })
   })
   poner('marcador', $('#rp-marcador'), htmlMarcadorReplay(r), (el, v) => { el.innerHTML = v })

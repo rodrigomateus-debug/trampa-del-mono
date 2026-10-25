@@ -1205,11 +1205,14 @@ export function marcadorFantasma(g, ms, n = hoyosGrabados(g)) {
   while (lo < hi) { const m = (lo + hi + 1) >> 1; if (g[m][0] <= ms) lo = m; else hi = m - 1 }
   const ultimo = new Map() // hoyo → acumulado en su última muestra
   for (let i = 0; i <= lo; i++) ultimo.set(g[i][1], g[i][5] ?? 0)
+  // un hoyo terminado vale 1 o más (con los golpes menos —la flecha del Sueco, la Mugre— puede bajar de 1 en el medio
+  // del hoyo, pero la tarjeta lo cierra en 1 y el siguiente arranca de ahí): si no, ese golpe aparecía en el hoyo que sigue
   let antes = 0
   for (let k = 0; k < porHoyo.length; k++) {
     if (!ultimo.has(k)) break
-    porHoyo[k] = Math.max(0, ultimo.get(k) - antes)
-    antes = ultimo.get(k)
+    const cerrado = ultimo.has(k + 1)
+    porHoyo[k] = cerrado ? Math.max(1, ultimo.get(k) - antes) : Math.max(0, ultimo.get(k) - antes)
+    antes += porHoyo[k]
   }
   return { porHoyo, idx: Math.min(g[lo][1], porHoyo.length - 1), total: g[lo][5] ?? 0, fin: lo === g.length - 1 }
 }
