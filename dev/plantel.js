@@ -342,7 +342,9 @@ export const EN_PRUEBA = ['Tito', 'Mapache', 'El Sueco', 'El Ninja (Đ)', 'El Pe
 
 // 🔒 Taiu se desbloquea (2026-10-06): con una tarjeta firmada de −1 o mejor con cada uno de estos Dicky
 // (vale el récord del teléfono y, con tu usuario, tus vueltas del ranking). Hasta entonces, su carta va con candado.
-export const DESBLOQUEO_TAIU = { apodo: 'Taiu (Đ)', con: ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'], vsPar: -1 }
+// 🔓 Desde el 26/10 (pedido de Rorro, después de la Final) Taiu es de todos: `libre`, sin candado. Solo quedan escondidos
+// Demetrio y Rorro.
+export const DESBLOQUEO_TAIU = { apodo: 'Taiu (Đ)', con: ['Fito (Đ)', 'Mike Queboni (Đ)', 'El Ninja (Đ)'], vsPar: -1, libre: true }
 
 // 🦅 El pase de Fito (2026-10-09; del chat: "por un par de días Fito deja de ser Dicky", "salimos del mismo vientre"): una
 // carta de Fito en el Equipo 5, con el escudo del 5, la misma foto, handicap y habilidad (`pase`: de quién es), y la Mejor
@@ -351,7 +353,8 @@ export const DESBLOQUEO_TAIU = { apodo: 'Taiu (Đ)', con: ['Fito (Đ)', 'Mike Qu
 const FITO = PLANTEL.find((j) => j.apodo === 'Fito (Đ)')
 export const FITO_PASE = { ...FITO, apodo: 'Fito (5)', dicky: false, equipo: 5, pase: FITO.apodo, compa: 'LG', frase: 'Por un par de días Fito deja de ser Dicky' }
 PLANTEL.splice(PLANTEL.indexOf(FITO) + 1, 0, FITO_PASE)
-export const DESBLOQUEO_FITO = { apodo: 'Fito (5)', con: ['Lechu', 'LG'], vsPar: -1 }
+// 🔓 Desde el 26/10 también libre (solo quedan escondidos Demetrio y Rorro)
+export const DESBLOQUEO_FITO = { apodo: 'Fito (5)', con: ['Lechu', 'LG'], vsPar: -1, libre: true }
 // 🥃 Rorro (2026-10-10), el que hizo el juego: juega en su cancha, hecha en código y en 3D (cancha3d.js). Se desbloquea
 // jugando al menos una vuelta (terminada, firmada o no) con cada uno del mazo; Fito cuenta con cualquiera de sus dos
 // cartas. Sale en el ranking como cualquiera (no es secreto) y la carta con candado dice con quién te falta.

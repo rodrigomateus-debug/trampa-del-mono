@@ -3058,12 +3058,13 @@ function sincronizarSecreto() {
 }
 /** ¿Ya encontraste a Fito de pase? (como `tiene`, sin depender de lo que se arma más abajo en la página) */
 function tieneSecreto(d) {
-  if (datos.fito5) return true
+  if (d.libre || datos.fito5) return true
   if (!M.progresoDesbloqueo(d, datos.records).listo) return false
   datos.fito5 = { fecha: new Date().toISOString() }
   guardar(datos)
   return true
 }
+sincronizarSecreto() // 🔓 Fito del 5 es libre (26/10): en el mazo desde que abrís el juego
 /**
  * El desbloqueo vive en el teléfono (`datos.demetrio`), así que al borrar la app se perdía. Se recupera de la base:
  * si tu usuario ya jugó con Demetrio (una vuelta contada o firmada) o firmó alguna vuelta después de desbloquearlo
@@ -3135,6 +3136,7 @@ for (const d of DESBLOQUEOS) {
 }
 /** ¿Ya lo tenés? Apenas los récords alcanzan, queda guardado en el teléfono (`datos.taiu`, `datos.fito5`). */
 function tiene(d) {
+  if (d.libre) return true // 🔓 Taiu y Fito del 5, de todos desde el 26/10
   const k = DESBLOQUEO_UI[d.apodo].dato
   if (datos[k]) return true
   if (!progresoDe(d).listo) return false

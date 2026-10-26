@@ -820,3 +820,9 @@ Lo que cambia sobre el de arriba. Las reglas nuevas las pone la base (el bloque 
 - Lo demás de la Final se apaga solo: los matches vuelven a ser de 3 hoyos y los dos con el mismo player, cada uno con su hándicap; Taiu vuelve a tener candado para el que no lo desbloqueó.
 - Las descripciones de las cartas (`HABILIDADES` en motor.js) suman el Marshall y la Dickyllamada por hoyo; la hoja de la Dickyllamada ya no dice "Es la Final".
 - Probado en el navegador con el reloj de hoy (Final terminada): El Sueco con su HCP 1,5 y el botón MARSHALL; Taiu (desbloqueado) con su HCP 4 y el 📞 con 3 Dicky para llamar. `test-motor`: todo verde.
+
+## 🔓 Taiu, para todos (2026-10-26, pedido de Rorro: "desbloqueale a Taiu a todos… solo dejamos escondidos a Demetrio y a Rorro", publicado)
+- **Taiu sin candado para todos** (`libre` en `DESBLOQUEO_TAIU`, plantel.js; `tiene` da true): ya no hace falta el −1 con Fito, Miguelón y el Ninja. Con eso, la **Dickyllamada queda abierta para todos los Dicky** (era el premio de desbloquear a Taiu).
+- **Fito del Equipo 5, también libre** (`libre` en `DESBLOQUEO_FITO`; `tieneSecreto` da true): está en el mazo al lado de Fito desde que abrís el juego, sale con su nombre en el ranking y los Dicky ya no tiran la pista del pase.
+- **Quedan escondidos solo Demetrio** (el secreto de siempre) y **Rorro** (con candado: una vuelta con cada uno del mazo; Taiu y Fito del 5 no cambian esa cuenta).
+- Probado en el navegador con un usuario nuevo, sin récords: en el mazo están Taiu y Fito (5); con candado, solo Rorro; Demetrio, no está. Taiu juega con su 📞 por hoyo, Fito (Đ) con la Dickyllamada y Fito (5) con la Mejor pelota. `test-motor`: todo verde.
