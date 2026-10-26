@@ -2165,7 +2165,7 @@ body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
 #ninja-btn.armado { background: var(--red); animation: latePancho .45s ease-in-out infinite alternate; }
 #ninja-btn.armado .txt { color: var(--cream); }
 #ninja-btn[disabled] { animation: none; }
-/* 🚩 el Marshall (el Sueco en la Final): como el RESET del Ninja, en azul sueco; el número, los fallos que le quedan */
+/* 🚩 el Marshall (el Sueco): como el RESET del Ninja, en azul sueco; el número, los fallos que le quedan */
 #marshall-btn { --sh: var(--game-shadow-lg); --dx: 5px; --dy: 6px; position: fixed; right: 16px; bottom: calc(var(--safe-bot) + 22px); z-index: 31; width: 88px; height: 88px; border-radius: 50%; background: #1f4f8f; color: var(--cream); display: grid; place-items: center; align-content: center; gap: 0; padding: 0; font-family: var(--font-display); animation: g-wiggle 3.6s ease-in-out 1.2s infinite; }
 #marshall-btn .emo .gi { width: 40px; height: 40px; --gi-s: var(--cream); --gi-f: rgba(244, 238, 218, .25); }
 #marshall-btn .txt { font-size: 12px; letter-spacing: .06em; line-height: 1.1; color: var(--gold); }
@@ -6029,9 +6029,9 @@ function abrirDickyllamada() {
   const yo = ronda.jugador
   const otros = dickysParaLlamar()
   const porHoyo = !!yo.dickyPorHoyo
-  $('#dicky-sel .dk-kicker').textContent = porHoyo ? `LA FINAL · UNA POR HOYO · TE ${otros.length === 1 ? 'QUEDA 1' : `QUEDAN ${otros.length}`}` : '📞 DICKYLLAMADA · UNA POR VUELTA'
+  $('#dicky-sel .dk-kicker').textContent = porHoyo ? `UNA POR HOYO · TE ${otros.length === 1 ? 'QUEDA 1' : `QUEDAN ${otros.length}`}` : '📞 DICKYLLAMADA · UNA POR VUELTA'
   $('#dicky-sel .dk-sub').textContent = porHoyo
-    ? 'Es la Final: en cada hoyo podés llamar a uno, y a cada Dicky una sola vez. El que atiende te pega el próximo tiro, con su handicap y su habilidad. Ojo: a veces se cuela el #Equipo5 📺🦉'
+    ? 'En cada hoyo podés llamar a uno, y a cada Dicky una sola vez. El que atiende te pega el próximo tiro, con su handicap y su habilidad. Ojo: a veces se cuela el #Equipo5 📺🦉'
     : 'El que atiende te pega el próximo tiro, con su handicap y su habilidad. Se ayudan entre Dickys. Ojo: a veces se cuela el #Equipo5 📺🦉'
   $('#dk-lista').innerHTML = otros.map((d) => {
     const hab = M.habilidadDe(d)
@@ -6313,7 +6313,7 @@ function hud() {
   if (ninja) $('#ninja-btn').disabled = !M.puedeResetNinja(ronda) || estado !== 'apuntar'
   if (!ninja || $('#ninja-btn').disabled) { ninjaArmado = 0; $('#ninja-btn').classList.remove('armado'); $('#ninja-btn .txt').textContent = 'RESET' }
   document.body.classList.toggle('dos-botones', dicky && ninja && !$('#hud-top').hidden)
-  // 🚩 el Marshall (el Sueco en la Final): tres fallos, cada uno una vez y uno por hoyo; el número, los que le quedan
+  // 🚩 el Marshall (el Sueco): tres fallos, cada uno una vez y uno por hoyo; el número, los que le quedan
   const quedan = M.esMarshall(ronda) ? M.FALLOS.filter((f) => ronda.marshall?.usadas?.[f] == null).length : 0
   const marsh = !oculto && quedan > 0
   $('#marshall-btn').hidden = !marsh || $('#hud-top').hidden || estado === 'lie'
@@ -6488,7 +6488,7 @@ function resetDelNinja() {
   relatar({ lg: `🥷 ${M.elegir(rng, M.RELATO.ninjaReset)}`, verso: 'De nuevo en el tee, cero golpes. El reset era uno solo' })
   siguienteTiro()
 }
-// ── 🚩 el Marshall (el Sueco en la Final): el botón con los tres fallos (las reglas, en el motor: M.fallar) ──
+// ── 🚩 el Marshall (el Sueco): el botón con los tres fallos (las reglas, en el motor: M.fallar) ──
 let lieOps = null, lieSel = null, lieMemo = null
 /** Las opciones del Lie mejorado para donde está la pelota (se calculan una vez por lugar). */
 function opsLie() {
@@ -14206,11 +14206,15 @@ function vueltasMatch(duelo) {
 const cartaFinal = () => (finalViva() && esDeLaFinal(datos.final) ? cartaDeFinal(datos.final) : null)
 /** El Sueco y Taiu, nivelados: los dos con el promedio de sus hándicaps (cada uno con su habilidad). */
 function nivelarFinal(j, forzar = false) {
-  if ((!finalViva() && !forzar) || !esDeLaFinal(j?.apodo)) return j
-  const h = Math.round((((cartaDeFinal(FINAL.a)?.hcp ?? 0) + (cartaDeFinal(FINAL.b)?.hcp ?? 0)) / 2) * 10) / 10
-  // 🐸 Taiu, en la Final: la Dickyllamada en cada hoyo (una vez a cada Dicky; el motor lo cuida con `dickyPorHoyo`).
+  if (!esDeLaFinal(j?.apodo)) return j
+  // las habilidades de la Final se quedan para siempre (26/10, pedido de Rorro):
+  // 🐸 Taiu: la Dickyllamada en cada hoyo (una vez a cada Dicky; el motor lo cuida con `dickyPorHoyo`).
   // 🇸🇪 El Sueco: el Marshall (`marshall`: el botón 🚩 con sus tres fallos)
-  return { ...j, hcp: h, aprox: false, hcpTexto: `HCP ${String(h).replace('.', ',')} · nivelado`, ...(j.apodo === FINAL.b && { dickyPorHoyo: true }), ...(j.apodo === FINAL.a && { marshall: true }) }
+  const extra = { ...(j.apodo === FINAL.b && { dickyPorHoyo: true }), ...(j.apodo === FINAL.a && { marshall: true }) }
+  if (!finalViva() && !forzar) return { ...j, ...extra }
+  // nivelados al mismo hándicap, solo mientras dura la Final (y en sus matches)
+  const h = Math.round((((cartaDeFinal(FINAL.a)?.hcp ?? 0) + (cartaDeFinal(FINAL.b)?.hcp ?? 0)) / 2) * 10) / 10
+  return { ...j, hcp: h, aprox: false, hcpTexto: `HCP ${String(h).replace('.', ',')} · nivelado`, ...extra }
 }
 /**
  * Los puntos de cada uno. Con la base de la Final (`R.leerFinal`: las vueltas y los matches de uno contra el otro, y a
