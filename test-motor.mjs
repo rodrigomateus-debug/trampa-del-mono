@@ -2417,20 +2417,24 @@ ok('🚩 el Marshall (el Sueco): No la vi, Amarilla al mono y Lie mejorado, uno 
   assert.ok(!M.puedeMarshall(otro, 'nolavi', quieto))
   // desde el 26/10 es de la carta: el Sueco del mazo ya es el Marshall (sin que la página se lo ponga)
   assert.ok(RULETA.pool.find((j) => j.apodo === 'El Sueco').marshall && RULETA.pool.find((j) => j.apodo === 'Taiu (Đ)').dickyPorHoyo)
-  // 🎰 en la Ruleta (y el Draft): después de un tiro del Sueco gira y pega otro, pero el Marshall corrige ese tiro
+  // 🎰 en la Ruleta (y el Draft): solo cuando pega el Sueco. Cuando sale él, revisa el tiro anterior (de quien sea)
   const rl = { ...M.nuevaRonda(RULETA, fijo(0.5)), monos: [] }
   M.turnoRuleta(rl, fijo(0.5), (j) => j.apodo === 'El Sueco')
   assert.ok(M.esMarshall(rl) && !M.puedeMarshall(rl, 'lie', quieto)) // en el tee, nada
   pegar(rl, rough)
   rl.ruletaToca = true
   M.turnoRuleta(rl, fijo(0.5), (j) => j.apodo === 'Lechu')
-  assert.equal(rl.jugador.apodo, 'Lechu')
-  assert.ok(M.puedeMarshall(rl, 'nolavi', quieto))
+  assert.ok(!M.esMarshall(rl) && !M.puedeMarshall(rl, 'nolavi', quieto)) // pega Lechu: el Marshall no está
+  const antes = [...rl.pelota]
+  pegar(rl, buscar('bunker') ?? rough)
+  rl.ruletaToca = true
+  M.turnoRuleta(rl, fijo(0.5), (j) => j.apodo === 'El Sueco')
+  assert.ok(M.esMarshall(rl) && M.puedeMarshall(rl, 'nolavi', quieto)) // sale el Sueco: el tiro de Lechu, no la vi
+  assert.deepEqual(rl.ruleta.tiros.map((t) => t.apodo), ['El Sueco', 'Lechu', 'El Sueco'])
   assert.ok(M.fallar(quieto, rl, 'nolavi'))
-  assert.equal(rl.golpes, 0)
-  // un mal tiro de otro (Lechu), en cambio, no lo corrige
-  pegar(rl, rough)
-  assert.ok(!M.puedeMarshall(rl, 'amarilla', quieto) && !M.puedeMarshall(rl, 'lie', quieto) && !M.esMarshall(rl))
+  assert.deepEqual(rl.pelota, antes) // lo repite el Sueco desde donde pegó Lechu
+  assert.equal(rl.golpes, 1)
+  assert.deepEqual(rl.ruleta.tiros.map((t) => t.apodo), ['El Sueco', 'El Sueco'])
 })
 
 ok('🏆 el match de la Final: dos vueltas (15, 16, 17 dos veces), las dos marcas del ranking y la grabación de 6', () => {

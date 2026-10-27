@@ -2171,9 +2171,6 @@ body.dos-botones #contra-btn { bottom: calc(var(--safe-bot) + 262px); }
 #marshall-btn .txt { font-size: 12px; letter-spacing: .06em; line-height: 1.1; color: var(--gold); }
 #marshall-btn b { position: absolute; top: -8px; right: -8px; min-width: 30px; height: 30px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--gold); color: var(--game-ink); border: 2px solid var(--game-ink); font: 17px/1 var(--font-display); display: grid; place-items: center; transform: rotate(8deg); }
 #marshall-btn[disabled] { animation: none; }
-/* 🎰 en la Ruleta y el Draft, cuando ya pega otro (el Marshall corrige el tiro del Sueco): arriba de los botones del que pega */
-body.marshall-arriba #marshall-btn { bottom: calc(var(--safe-bot) + 132px); }
-body.marshall-arriba.dos-botones #marshall-btn { bottom: calc(var(--safe-bot) + 360px); }
 .marshall-op { display: grid; gap: 3px; text-align: left; height: auto !important; padding: 10px 14px !important; }
 .marshall-op small { font: 600 12.5px/1.3 var(--font-body); letter-spacing: 0; text-transform: none; opacity: .85; white-space: normal; }
 #lie-bar .link-chico { border: 0; background: transparent; color: var(--green-900); font: 700 14px var(--font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 4px 0 0; box-shadow: none; }
@@ -6322,7 +6319,6 @@ function hud() {
   const quedan = M.esMarshall(ronda) ? M.FALLOS.filter((f) => ronda.marshall?.usadas?.[f] == null).length : 0
   const marsh = !oculto && quedan > 0
   $('#marshall-btn').hidden = !marsh || $('#hud-top').hidden || estado === 'lie'
-  document.body.classList.toggle('marshall-arriba', marsh && !ronda.jugador?.marshall)
   if (marsh) { $('#marshall-btn b').textContent = quedan; $('#marshall-btn').disabled = estado !== 'apuntar' || !M.FALLOS.some(puedeFallar) }
   // el Equipo 5: la Mejor pelota (una por vuelta: el próximo tiro lo pegan los dos y queda la mejor)
   const compa = !oculto && M.puedeMejorPelota(ronda) && !ronda.mejorPelota?.fase ? M.compaE5(ronda.jugador, EQUIPO5) : null

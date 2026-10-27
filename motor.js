@@ -2858,7 +2858,8 @@ export function resolverReposo(campo, r, tiro, rng) {
     res.racha = { antes, ahora: r.racha, bueno: esBueno(res) && !esMalo(res, tiro) }
   }
   cargarFuria(campo, r, tiro, res)
-  if (r.jugador?.marshall && !r.prestado) anotarParaMarshall(r, tiro, res) // (solo sus tiros: no los de la Dickyllamada ni los de otro en la Ruleta)
+  // sus tiros (no los de la Dickyllamada); en la Ruleta y el Draft, todos: el Marshall revisa el anterior cuando sale él
+  if ((r.jugador?.marshall && !r.prestado) || r.ruleta) anotarParaMarshall(r, tiro, res)
   devolverDicky(r) // la Dickyllamada: el Dicky que te pegó el tiro te devuelve el palo
   return res
 }
@@ -3446,9 +3447,9 @@ function devolverDicky(r) {
 // altura del hoyo, donde elijas (en el green no) ──
 export const MARSHALL = { ancho: 45, paso: 0.75 }
 export const FALLOS = ['nolavi', 'amarilla', 'lie']
-// En la Ruleta y el Draft la ruleta gira antes del tiro siguiente: después de un tiro del Sueco, el que pega ya es otro,
-// pero el Marshall sigue pudiendo corregir ese tiro (No la vi, Amarilla). El Lie mejorado, cuando le toca pegar a él.
-export const esMarshall = (r) => !!r.jugador?.marshall || (!!r.ruleta && !!ultimoTiro(r))
+// Solo cuando pega él (27/10, pedido de Rorro). En la Ruleta y el Draft la ruleta gira antes de cada tiro: cuando sale el
+// Sueco, el Marshall revisa el tiro anterior (de quien sea: No la vi, Amarilla) o le mejora el lie para su tiro.
+export const esMarshall = (r) => !!r.jugador?.marshall
 const multaDe = (tipo) => (['afuera', 'mono-malo', 'mono-ladron'].includes(tipo) ? 1 : 0)
 /** Después de cada tiro del Marshall: lo que hace falta para deshacerlo (No la vi) o para la amarilla. */
 function anotarParaMarshall(r, tiro, res) {
@@ -3456,6 +3457,7 @@ function anotarParaMarshall(r, tiro, res) {
   r.marshall.ultimo = res.tipo === 'embocada' ? null : {
     i: r.idx, tiros: r.tirosHoyo, desde: [...r.desde], lieDesde: r.lieDesde, tipo: res.tipo,
     malo: esMalo(res, tiro), multa: multaDe(res.tipo), pos: res.desde ? [...res.desde] : null, mono: tiro.robada ?? null,
+    apodo: r.jugador?.apodo,
   }
 }
 /** El último tiro, si es el de recién (en este hoyo y sin otro tiro en el medio). */
@@ -3502,6 +3504,8 @@ export function fallar(campo, r, que, p = null) {
     if (u.tipo === 'mono-malo') r.monosMalos -= 1
     r.pelota = [...u.desde]
     r.lie = u.lieDesde
+    // en la Ruleta: ese tiro (de otro) no cuenta, tampoco en quién pegó cada tiro; lo repite el Sueco
+    if (r.ruleta && u.apodo !== r.jugador.apodo && r.ruleta.tiros.length > 1) r.ruleta.tiros.splice(-2, 1)
   } else if (que === 'amarilla') {
     r.golpes -= 1
     if (u.tipo === 'mono-ladron') { r.robos -= 1; if (u.mono) u.mono.modo = 'expulsado' } else r.monosMalos -= 1
