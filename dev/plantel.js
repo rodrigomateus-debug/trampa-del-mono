@@ -323,6 +323,13 @@ export const PLANTEL = [
 ]
 
 // 🤫 No está en el mazo: aparece cuando lo desbloqueás (no se dice cómo). Pro en 1960: carta dorada y cancha en sepia.
+// 🇸🇪🐸 Las habilidades que nacieron en la Final (26/10) son de la carta, no de la vuelta: así también las tienen cuando
+// pegan en la Ruleta y en el Draft (1 VS 1, fourball o solo). El Sueco es el Marshall (`marshall`); Taiu, la
+// Dickyllamada en cada hoyo (`dickyPorHoyo`).
+for (const j of PLANTEL) {
+  if (j.apodo === 'El Sueco') j.marshall = true
+  if (j.apodo === 'Taiu (Đ)') j.dickyPorHoyo = true
+}
 export const DEMETRIO = {
   "apodo": "Demetrio López",
   "emoji": "🏌️",

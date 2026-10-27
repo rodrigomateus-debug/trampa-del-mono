@@ -2359,7 +2359,7 @@ ok('🏆 Taiu en la Final (dickyPorHoyo): la Dickyllamada una por hoyo, y a cada
   assert.deepEqual(M.yaLlamados(r), ['Mike Queboni (Đ)', 'Fito (Đ)'])
 })
 
-ok('🚩 el Marshall (el Sueco en la Final): No la vi, Amarilla al mono y Lie mejorado, uno por hoyo y cada uno una vez', () => {
+ok('🚩 el Marshall (el Sueco): No la vi, Amarilla al mono y Lie mejorado, uno por hoyo y cada uno una vez', () => {
   const sueco = { ...RULETA.pool.find((j) => j.apodo === 'El Sueco'), marshall: true }
   // un punto de `tipo` cerca de la calle del 15 (para dejar la pelota ahí)
   const buscar = (tipo, h = h15) => {
@@ -2412,9 +2412,25 @@ ok('🚩 el Marshall (el Sueco en la Final): No la vi, Amarilla al mono y Lie me
   r.lie = 'green'
   assert.ok(!M.puedeMarshall(r, 'lie', quieto))
   // y el que no es el Marshall, nada
-  const otro = { ...M.nuevaRonda(RULETA.pool.find((j) => j.apodo === 'El Sueco'), fijo(0.5)), monos: [] }
+  const otro = { ...M.nuevaRonda(RULETA.pool.find((j) => j.apodo === 'Lechu'), fijo(0.5)), monos: [] }
   pegar(otro, rough)
   assert.ok(!M.puedeMarshall(otro, 'nolavi', quieto))
+  // desde el 26/10 es de la carta: el Sueco del mazo ya es el Marshall (sin que la página se lo ponga)
+  assert.ok(RULETA.pool.find((j) => j.apodo === 'El Sueco').marshall && RULETA.pool.find((j) => j.apodo === 'Taiu (Đ)').dickyPorHoyo)
+  // 🎰 en la Ruleta (y el Draft): después de un tiro del Sueco gira y pega otro, pero el Marshall corrige ese tiro
+  const rl = { ...M.nuevaRonda(RULETA, fijo(0.5)), monos: [] }
+  M.turnoRuleta(rl, fijo(0.5), (j) => j.apodo === 'El Sueco')
+  assert.ok(M.esMarshall(rl) && !M.puedeMarshall(rl, 'lie', quieto)) // en el tee, nada
+  pegar(rl, rough)
+  rl.ruletaToca = true
+  M.turnoRuleta(rl, fijo(0.5), (j) => j.apodo === 'Lechu')
+  assert.equal(rl.jugador.apodo, 'Lechu')
+  assert.ok(M.puedeMarshall(rl, 'nolavi', quieto))
+  assert.ok(M.fallar(quieto, rl, 'nolavi'))
+  assert.equal(rl.golpes, 0)
+  // un mal tiro de otro (Lechu), en cambio, no lo corrige
+  pegar(rl, rough)
+  assert.ok(!M.puedeMarshall(rl, 'amarilla', quieto) && !M.puedeMarshall(rl, 'lie', quieto) && !M.esMarshall(rl))
 })
 
 ok('🏆 el match de la Final: dos vueltas (15, 16, 17 dos veces), las dos marcas del ranking y la grabación de 6', () => {

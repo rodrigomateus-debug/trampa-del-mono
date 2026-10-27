@@ -2858,7 +2858,7 @@ export function resolverReposo(campo, r, tiro, rng) {
     res.racha = { antes, ahora: r.racha, bueno: esBueno(res) && !esMalo(res, tiro) }
   }
   cargarFuria(campo, r, tiro, res)
-  if (esMarshall(r)) anotarParaMarshall(r, tiro, res)
+  if (r.jugador?.marshall && !r.prestado) anotarParaMarshall(r, tiro, res) // (solo sus tiros: no los de la Dickyllamada ni los de otro en la Ruleta)
   devolverDicky(r) // la Dickyllamada: el Dicky que te pegó el tiro te devuelve el palo
   return res
 }
@@ -3446,7 +3446,9 @@ function devolverDicky(r) {
 // altura del hoyo, donde elijas (en el green no) ──
 export const MARSHALL = { ancho: 45, paso: 0.75 }
 export const FALLOS = ['nolavi', 'amarilla', 'lie']
-export const esMarshall = (r) => !!r.jugador?.marshall
+// En la Ruleta y el Draft la ruleta gira antes del tiro siguiente: después de un tiro del Sueco, el que pega ya es otro,
+// pero el Marshall sigue pudiendo corregir ese tiro (No la vi, Amarilla). El Lie mejorado, cuando le toca pegar a él.
+export const esMarshall = (r) => !!r.jugador?.marshall || (!!r.ruleta && !!ultimoTiro(r))
 const multaDe = (tipo) => (['afuera', 'mono-malo', 'mono-ladron'].includes(tipo) ? 1 : 0)
 /** Después de cada tiro del Marshall: lo que hace falta para deshacerlo (No la vi) o para la amarilla. */
 function anotarParaMarshall(r, tiro, res) {
