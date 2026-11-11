@@ -136,6 +136,7 @@ const U = {
   uColPlano: { value: col('#071a12') }, uColOro: { value: col('#e8c34a') }, uColAzul: { value: col('#7fc4ff') }, uColNeon: { value: col('#38f2c8') },
   uDibujo: { value: null }, uDibTam: { value: new THREE.Vector2(219.5, 447.75) }, uDibW: { value: -50 }, uDibVivo: { value: 0 },
   uCaida: { value: TEXC }, uGrilla: { value: 0 }, uAviso: { value: 0 },
+  uSombras: { value: null }, uSombra: { value: 0.5 }, // la sombra horneada de los árboles y cuánto oscurece (según el sol del clima)
   uViento: { value: new THREE.Vector3(1, 0, 0.25) }, // (xz: para dónde sopla; y: cuánto, de 0 a 1) las copas se hamacan
 }
 const GLSL_COMUN = /* glsl */ `
@@ -190,6 +191,7 @@ uniform float uNubes; uniform float uMojado; uniform float uSeco; uniform float 
 uniform vec3 uColPlano; uniform vec3 uColOro; uniform vec3 uColAzul; uniform vec3 uColNeon;
 uniform sampler2D uDibujo; uniform vec2 uDibTam; uniform float uDibW; uniform float uDibVivo;
 uniform sampler2D uCaida; uniform float uGrilla; uniform float uAviso;
+uniform sampler2D uSombras; uniform float uSombra;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float ruido(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y); }
@@ -274,8 +276,12 @@ vec3 colorTerreno(vec2 q) {
     else bug = floor(c * 3.0) / 3.0 + vec3(0.35, 0.0, 0.25) * step(0.5, fract(uT * 3.0));
     c = mix(c, bug, adentro);
   }
-  // el clima
+  // la sombra de los árboles (horneada): quita la luz del sol y deja la del cielo, un poco azulada. Aparece con el árbol
+  // (cuando la cancha se arma) y no cae en el vacío de afuera
   float fu = smoothstep(0.38, 0.62, b.r);
+  float sombra = texture(uSombras, uv).r * uSombra * smoothstep(0.5, 1.0, armado(q)) * (1.0 - fu);
+  c *= vec3(1.0) - sombra * vec3(1.0, 0.93, 0.8);
+  // el clima
   if (uNieve > 0.0) {
     float fwg = max(smoothstep(0.38, 0.62, a.r), smoothstep(0.38, 0.62, a.g));
     vec3 blanco = vec3(0.86, 0.9, 0.95) * (0.95 + 0.07 * ruido(q * 0.8));
@@ -404,6 +410,62 @@ const arboles = []
     const k = `${Math.floor(q[0] / CQ)},${Math.floor(q[1] / CQ)}`; if (!cuad.has(k)) cuad.set(k, []); cuad.get(k).push(a)
   }
 }
+// ── la luz horneada: la sombra de los árboles, pintada una sola vez en una textura ──
+// Antes, cada cuadro se dibujaban los 1.454 árboles una segunda vez, vistos desde el sol, solo para saber dónde caía su
+// sombra (la mitad de los triángulos del cuadro), y cada pixel del pasto la buscaba en ese mapa. El sol no se mueve y los
+// árboles tampoco (salvo en el deploy), así que la sombra se calcula acá, al cargar: por cada árbol, la mancha que deja
+// su copa en el piso, corrida para donde cae la luz, más el tronco. Va en el espacio de la cancha base, como las demás
+// capas: cuando un deploy deforma la cancha, la sombra se deforma con el pasto y con el árbol que la hace. Lo que se
+// mueve (Rorro, los monos, la pelota, la bandera, las bochas) sigue con sombra de verdad.
+const SOMBRA = { res: 3, copa: 1.08, alto: 0.62 } // (res: pixeles por yarda)
+const TEXS = (() => {
+  const RS = SOMBRA.res, SW = W * RS, SH = H * RS, a = new Float32Array(SW * SH)
+  // para dónde cae la sombra en el piso, por cada yarda de alto (el sol viene de arriba a la izquierda del dibujo)
+  const cx = -SOL_DIR.x / SOL_DIR.y, cz = -SOL_DIR.z / SOL_DIR.y, cl = Math.hypot(cx, cz), ux = cx / cl, uz = cz / cl
+  const mancha = (x0, z0, largo, ancho, fuerza) => {
+    // un óvalo estirado para donde cae la sombra, de borde blando
+    const R = Math.max(largo, ancho) + 1
+    for (let j = Math.max(0, Math.floor((z0 - R) * RS)); j <= Math.min(SH - 1, Math.ceil((z0 + R) * RS)); j++) for (let i = Math.max(0, Math.floor((x0 - R) * RS)); i <= Math.min(SW - 1, Math.ceil((x0 + R) * RS)); i++) {
+      const dx = (i + 0.5) / RS - x0, dz = (j + 0.5) / RS - z0
+      const u = (dx * ux + dz * uz) / largo, v = (-dx * uz + dz * ux) / ancho
+      const k = fuerza * (1 - ss(0.78, 1.04, Math.hypot(u, v)))
+      if (k > a[j * SW + i]) a[j * SW + i] = k
+    }
+  }
+  for (const t of arboles) {
+    const tronco = t.alto * t.r * 0.55, yc = tronco + t.r * SOMBRA.alto, r = t.r * SOMBRA.copa
+    mancha(t.q[0] + cx * yc, t.q[1] + cz * yc, r * Math.hypot(1, cl), r, 1) // la copa
+    for (let k = 1; k <= 3; k++) mancha(t.q[0] + cx * tronco * (k / 3), t.q[1] + cz * tronco * (k / 3), 0.42, 0.3, 0.85) // el tronco
+  }
+  // (un difuminado corto: la penumbra)
+  const b = new Float32Array(SW * SH)
+  for (let pasada = 0; pasada < 1; pasada++) {
+    for (let j = 0; j < SH; j++) for (let i = 0; i < SW; i++) b[j * SW + i] = (a[j * SW + Math.max(0, i - 1)] + a[j * SW + i] * 2 + a[j * SW + Math.min(SW - 1, i + 1)]) / 4
+    for (let j = 0; j < SH; j++) for (let i = 0; i < SW; i++) a[j * SW + i] = (b[Math.max(0, j - 1) * SW + i] + b[j * SW + i] * 2 + b[Math.min(SH - 1, j + 1) * SW + i]) / 4
+  }
+  // y la que se hacen entre ellos (antes, la sombra de verdad de un árbol sobre el de al lado): cada árbol queda más
+  // oscuro cuantos más vecinos tiene del lado del sol (`tapado`, de 0 a 1; va en su color)
+  {
+    const cuad = new Map(), CQ = 6
+    for (const t of arboles) { const k = `${Math.floor(t.q[0] / CQ)},${Math.floor(t.q[1] / CQ)}`; if (!cuad.has(k)) cuad.set(k, []); cuad.get(k).push(t) }
+    for (const t of arboles) {
+      let n = 0
+      for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) for (const o of cuad.get(`${Math.floor(t.q[0] / CQ) + dx},${Math.floor(t.q[1] / CQ) + dz}`) ?? []) {
+        if (o === t) continue
+        // (del lado del sol: de donde viene la luz, a menos de dos copas)
+        const ex = o.q[0] - t.q[0], ez = o.q[1] - t.q[1], contra = -(ex * ux + ez * uz), costado = Math.abs(-ex * uz + ez * ux)
+        if (contra > 0.3 && contra < 5.5 && costado < 2.6) n += (1 - contra / 5.5) * (1 - costado / 2.6) * (o.r / 1.8)
+      }
+      t.tapado = clamp(n / 1.6, 0, 1)
+    }
+  }
+  const d = new Uint8Array(SW * SH)
+  for (let i = 0; i < d.length; i++) d[i] = Math.round(clamp(a[i], 0, 1) * 255)
+  const t = new THREE.DataTexture(d, SW, SH, THREE.RedFormat, THREE.UnsignedByteType)
+  t.magFilter = t.minFilter = THREE.LinearFilter; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true
+  return t
+})()
+U.uSombras.value = TEXS
 function unir(...gs) {
   const ps = gs.map((g) => (g.index ? g.toNonIndexed() : g))
   const n = ps.reduce((s, g) => s + g.attributes.position.count, 0)
@@ -504,18 +566,18 @@ for (const tipo of TIPOS_ARBOL) {
   const mat = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: tipo === 'cristal' ? 0.25 : 0.85, metalness: tipo === 'cristal' ? 0.35 : 0 })
   nevable(mat, tipo === 'cubo' || tipo === 'cristal' ? 0.03 : tipo === 'cactus' ? 0.012 : 0.07)
   const m = new THREE.InstancedMesh(GEO_ARBOL[tipo], mat, arboles.length)
-  m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false
+  m.castShadow = false; m.receiveShadow = false; m.frustumCulled = false // (su sombra está horneada: TEXS)
   m.setColorAt(0, col('#3a6b24'))
   m.count = 0
   copas[tipo] = m
   escena.add(m)
 }
 const troncos = new THREE.InstancedMesh(sombrear(unir(new THREE.CylinderGeometry(0.15, 0.2, 0.86, 6).translate(0, 0.57, 0), new THREE.CylinderGeometry(0.2, 0.36, 0.14, 6).translate(0, 0.07, 0)), 0.72, 1.1, 0.06), new THREE.MeshStandardMaterial({ color: '#5b3f26', roughness: 1, flatShading: true, vertexColors: true }), arboles.length)
-troncos.castShadow = true; troncos.frustumCulled = false
+troncos.castShadow = false; troncos.frustumCulled = false
 troncos.count = 0
 escena.add(troncos)
 const tipoDe = (skin) => SKINS[skin].arbol
-function colorArbol(a, skin) { const v = SKINS[skin].verdes; return col(v[Math.floor(a.tono * v.length) % v.length]).offsetHSL(0, 0, (a.tono - 0.5) * 0.05) }
+function colorArbol(a, skin) { const v = SKINS[skin].verdes; return col(v[Math.floor(a.tono * v.length) % v.length]).offsetHSL(0, 0, (a.tono - 0.5) * 0.05).multiplyScalar(1 - 0.38 * (a.tapado ?? 0)) } // (`tapado`: la sombra de los vecinos, horneada)
 for (const a of arboles) { a.color = colorArbol(a, 'clasico'); a.colorDe = null }
 let energiaArboles = 0
 // los árboles se mueven solo cuando pasa algo (una versión, un revert, la intro, el cambio de hoyo); el resto del
@@ -1729,13 +1791,13 @@ function moverMonos3d(dt, st) {
 
 // ── el clima, en 3D: la luz, el cielo, las nubes, los charcos, la lluvia, los rayos y la nieve ──
 const CLIMA_VIS = {
-  soleado: { sol: 3.0, solCol: '#fff1cc', cielo: 1.05, fondo: '#0a2117', exp: 1.1, horizonte: '#2f7550', resplandor: 1, nubes: 0.22 }, // (unas nubes sueltas que pasan)
-  nuboso: { sol: 1.0, solCol: '#e9eef2', cielo: 1.55, fondo: '#18261f', exp: 0.98, horizonte: '#55665e', resplandor: 0.25, nubes: 0.9 },
-  seco: { sol: 3.1, solCol: '#ffe0aa', cielo: 1.0, fondo: '#1d1a0d', exp: 1.1, horizonte: '#7a6a2c', resplandor: 1, seco: 1, nubes: 0.1 },
-  mojado: { sol: 1.5, solCol: '#e6eef0', cielo: 1.3, fondo: '#0d1f1a', exp: 1.0, horizonte: '#35544c', resplandor: 0.35, mojado: 0.7, nubes: 0.3 },
-  lluvia: { sol: 0.8, solCol: '#cfd9e2', cielo: 1.15, fondo: '#0c1820', exp: 0.95, horizonte: '#2d4050', resplandor: 0.1, mojado: 1, nubes: 0.6, oscuro: 0.2, lluvia: 0.55 },
-  tormenta: { sol: 0.45, solCol: '#b8c6d6', cielo: 0.95, fondo: '#070d14', exp: 0.92, horizonte: '#1c2a38', resplandor: 0, mojado: 1, nubes: 0.9, oscuro: 0.45, lluvia: 1, rayos: true },
-  nieve: { sol: 1.9, solCol: '#eaf3ff', cielo: 1.35, fondo: '#1b2833', exp: 1.02, horizonte: '#6c8294', resplandor: 0.5, nieve: 1, copos: true },
+  soleado: { sol: 3.0, solCol: '#fff1cc', cielo: 1.05, fondo: '#0a2117', exp: 1.1, horizonte: '#2f7550', resplandor: 1, sombra: 0.7, nubes: 0.22 }, // (unas nubes sueltas que pasan)
+  nuboso: { sol: 1.0, solCol: '#e9eef2', cielo: 1.55, fondo: '#18261f', exp: 0.98, horizonte: '#55665e', resplandor: 0.25, sombra: 0.3, nubes: 0.9 },
+  seco: { sol: 3.1, solCol: '#ffe0aa', cielo: 1.0, fondo: '#1d1a0d', exp: 1.1, horizonte: '#7a6a2c', resplandor: 1, sombra: 0.7, seco: 1, nubes: 0.1 },
+  mojado: { sol: 1.5, solCol: '#e6eef0', cielo: 1.3, fondo: '#0d1f1a', exp: 1.0, horizonte: '#35544c', resplandor: 0.35, sombra: 0.42, mojado: 0.7, nubes: 0.3 },
+  lluvia: { sol: 0.8, solCol: '#cfd9e2', cielo: 1.15, fondo: '#0c1820', exp: 0.95, horizonte: '#2d4050', resplandor: 0.1, sombra: 0.2, mojado: 1, nubes: 0.6, oscuro: 0.2, lluvia: 0.55 },
+  tormenta: { sol: 0.45, solCol: '#b8c6d6', cielo: 0.95, fondo: '#070d14', exp: 0.92, horizonte: '#1c2a38', resplandor: 0, sombra: 0.12, mojado: 1, nubes: 0.9, oscuro: 0.45, lluvia: 1, rayos: true },
+  nieve: { sol: 1.9, solCol: '#eaf3ff', cielo: 1.35, fondo: '#1b2833', exp: 1.02, horizonte: '#6c8294', resplandor: 0.5, sombra: 0.5, nieve: 1, copos: true },
 }
 let climaId = 'soleado'
 const climaVis = () => CLIMA_VIS[climaId] ?? CLIMA_VIS.soleado
@@ -1747,6 +1809,7 @@ function aplicarClima(ronda) {
   escena.background.set(c.fondo); escena.fog.color.set(c.fondo)
   boveda.material.uniforms.uFondo.value.set(c.fondo); boveda.material.uniforms.uHorizonte.value.set(c.horizonte); boveda.material.uniforms.uSol.value.set(c.solCol); boveda.material.uniforms.uFuerza.value = c.resplandor
   if (renderer) renderer.toneMappingExposure = c.exp
+  U.uSombra.value = c.sombra ?? 0.5
   U.uNubes.value = c.nubes ?? 0; U.uMojado.value = c.mojado ?? 0; U.uSeco.value = c.seco ?? 0; U.uOscuro.value = c.oscuro ?? 0; U.uNieve.value = c.nieve ?? 0
   matTerreno.roughness = 0.92 - 0.4 * (c.mojado ?? 0)
   bola.material.color.set(c.nieve ? '#ff7a1a' : '#ffffff'); bola.material.emissive.set(c.nieve ? '#ff7a1a' : '#ffffff')
@@ -2889,4 +2952,4 @@ export function golpe(ronda) {
   if (ronda?.lie !== 'green') chispas(p, ronda?.lie === 'bunker' ? 18 : 8, ronda?.lie === 'bunker' ? ['#f4e6c4', '#e9d7a9'] : ['#6f9636', '#a2bc43', '#5d432c'], 1.2, 1.6, 0.7)
 }
 // para probar (window.__r3d en la copia dev/)
-export const _prueba = { juego, est, cancha, camara, cam, rorro, poseRorro, an, POSES, ponerModo, ponerSkins, SKINS, arboles, bola, pose: null, V3, ren: () => renderer, escena, caida, lento: 0 }
+export const _prueba = { sol, juego, est, cancha, camara, cam, rorro, poseRorro, an, POSES, ponerModo, ponerSkins, SKINS, arboles, bola, pose: null, V3, ren: () => renderer, escena, caida, lento: 0 }
