@@ -142,6 +142,45 @@ export const CAPA = {
   // la cancha no se mueve en los greens ni cerca (de 5 a 12 yardas del borde, se va soltando): el putt es el putt
   quieta: suavizar(RG.cerca.map((c) => ss(5, 12, c)), 1),
 }
+/**
+ * Las lomas: el relieve de la cancha afuera de los greens (solo se ve: la física del motor es la de siempre, en el
+ * plano). Los montes quedan arriba (un lomo ancho abajo de cada mancha de árboles) y las calles corren por el valle,
+ * con un ondulado suave encima. Cerca de los greens se apaga (su relieve es la caída del motor y no se toca) y en los
+ * cajones de salida casi: el tee es una mesa. En yardas, de 0 a `LOMA.max` (va al shader en 8 bits).
+ */
+export const LOMA = { max: 4, monte: 2.7, onda: 1.15, calle: 0.45 }
+/** Un difuminado ancho (tres pasadas de caja de radio `r`, con sumas corridas: casi una gaussiana). */
+function difuminar(a, r) {
+  let src = a
+  for (let p = 0; p < 3; p++) {
+    const tmp = new Float32Array(N), out = new Float32Array(N)
+    for (let y = 0; y < H; y++) {
+      let s = 0
+      for (let x = -r; x <= r; x++) s += src[y * W + clamp(x, 0, W - 1)]
+      for (let x = 0; x < W; x++) { tmp[y * W + x] = s / (2 * r + 1); s += src[y * W + Math.min(W - 1, x + r + 1)] - src[y * W + Math.max(0, x - r)] }
+    }
+    for (let x = 0; x < W; x++) {
+      let s = 0
+      for (let y = -r; y <= r; y++) s += tmp[clamp(y, 0, H - 1) * W + x]
+      for (let y = 0; y < H; y++) { out[y * W + x] = s / (2 * r + 1); s += tmp[Math.min(H - 1, y + r + 1) * W + x] - tmp[Math.max(0, y - r) * W + x] }
+    }
+    src = out
+  }
+  return src
+}
+function lomas() {
+  const monte = difuminar(capa('t'), 6), calle = difuminar(capa('f'), 4), tee = difuminar(cajonesTee(), 3)
+  const out = new Float32Array(N)
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x
+    // el ondulado: unas pocas ondas largas cruzadas (siempre las mismas: la cancha es una sola)
+    const o = 0.5 + 0.25 * (Math.sin(x * 0.071 + y * 0.043 + 1.3) + Math.sin(x * 0.037 - y * 0.058 + 4.1)) * (0.75 + 0.25 * Math.sin(x * 0.11 + y * 0.09))
+    const h = LOMA.monte * ss(0.08, 0.75, monte[i]) + LOMA.onda * o * lerp(1, LOMA.calle, ss(0.2, 0.8, calle[i]))
+    out[i] = clamp(h * ss(3, 17, RG.cerca[i]) * (1 - 0.9 * ss(0.15, 0.6, tee[i])), 0, LOMA.max)
+  }
+  return suavizar(out, 2)
+}
+CAPA.lomas = lomas()
 
 // ── la deformación ──
 // Componentes (`bumps`), cada uno con su amplitud de antes (`desde`) y la de la versión nueva (`hasta`):
@@ -189,14 +228,14 @@ export function alturaBase(q) {
   const fw = ss(0.3, 0.7, muestra(CAPA.calle, q[0], q[1])), te = ss(0.3, 0.7, muestra(CAPA.tee, q[0], q[1]))
   const bk = ss(0.25, 0.7, muestra(CAPA.bunker, q[0], q[1]))
   const fu = ss(0.3, 0.7, muestra(CAPA.afuera, q[0], q[1])), ar = muestra(CAPA.arbol, q[0], q[1])
-  return lerp(fw * 0.1 + te * 0.35 + muestra(CAPA.relieve, q[0], q[1]) - bk * 0.9 + ar * 0.2, -4.5, fu)
+  return lerp(fw * 0.1 + te * 0.35 + muestra(CAPA.relieve, q[0], q[1]) + muestra(CAPA.lomas, q[0], q[1]) - bk * 0.9 + ar * 0.2, -4.5, fu)
 }
 /** La altura del terreno en q (yardas), como el shader (con la ola de la versión y la cancha que se arma). */
 export function alturaEn(q) {
   const fw = ss(0.3, 0.7, muestra(CAPA.calle, q[0], q[1])), te = ss(0.3, 0.7, muestra(CAPA.tee, q[0], q[1]))
   const bk = ss(0.25, 0.7, muestra(CAPA.bunker, q[0], q[1]))
   const fu = ss(0.3, 0.7, muestra(CAPA.afuera, q[0], q[1])), ar = muestra(CAPA.arbol, q[0], q[1])
-  let h = fw * 0.1 + te * 0.35 + muestra(CAPA.relieve, q[0], q[1]) - bk * 0.9 + ar * 0.2
+  let h = fw * 0.1 + te * 0.35 + muestra(CAPA.relieve, q[0], q[1]) + muestra(CAPA.lomas, q[0], q[1]) - bk * 0.9 + ar * 0.2
   h = lerp(h, -4.5, fu)
   if (est.swVivo) h += est.swVivo * 0.9 * Math.exp(-(((dist(q, est.swO) - est.swW) / 3.2) ** 2)) * (1 - fu)
   return h * armado(q)

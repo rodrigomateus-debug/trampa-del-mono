@@ -11,7 +11,7 @@
 import * as THREE from './intro/assets/vendor/three.module.min.js'
 import * as M from './motor.js'
 import * as C from './ciber.js'
-import { campoBase, FILAS, W, H, N, clamp, lerp, ss, dist, norm, letraBase, CAPA, est, NB, avance, armado, adelante, adelanteQuieto, inversa, alturaEn, alturaBase, hornear, campoCon, SKINS, TIPOS_ARBOL, CAIDA_GREEN } from './campo3d.js'
+import { campoBase, FILAS, W, H, N, clamp, lerp, ss, dist, norm, letraBase, CAPA, LOMA, est, NB, avance, armado, adelante, adelanteQuieto, inversa, alturaEn, alturaBase, hornear, campoCon, SKINS, TIPOS_ARBOL, CAIDA_GREEN } from './campo3d.js'
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z)
 const col = (h) => new THREE.Color(h)
@@ -41,6 +41,29 @@ sol.shadow.bias = -0.0004
 sol.shadow.normalBias = 0.35
 sol.shadow.radius = 3
 escena.add(sol, sol.target)
+// el fondo: la mesa oscura de siempre, con el resplandor del horizonte (del color del clima) y el del sol. Abajo del
+// horizonte es el mismo color del fondo: la cancha sigue siendo una maqueta sobre la mesa
+const boveda = new THREE.Mesh(new THREE.SphereGeometry(1900, 32, 16), new THREE.ShaderMaterial({
+  side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false, toneMapped: false,
+  uniforms: { uFondo: { value: FONDO.clone() }, uHorizonte: { value: col('#2f6b4c') }, uSol: { value: col('#ffe9b0') }, uSolDir: { value: V3(-1, 0.35, -1).normalize() }, uFuerza: { value: 1 } },
+  vertexShader: 'varying vec3 vDir;\nvoid main() { vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: /* glsl */ `
+    uniform vec3 uFondo; uniform vec3 uHorizonte; uniform vec3 uSol; uniform vec3 uSolDir; uniform float uFuerza;
+    varying vec3 vDir;
+    void main() {
+      vec3 d = normalize(vDir);
+      float arriba = smoothstep(-0.03, 0.015, d.y);
+      float banda = exp(-pow(max(d.y, 0.0) / 0.2, 1.25)) * arriba;
+      vec3 c = mix(uFondo, uHorizonte, banda * 0.9);
+      float s = max(dot(normalize(vec3(d.x, max(d.y, 0.0), d.z)), uSolDir), 0.0);
+      c += uSol * (0.1 * pow(s, 4.0) + 0.3 * pow(s, 40.0)) * uFuerza * arriba * exp(-max(d.y, 0.0) / 0.35);
+      gl_FragColor = vec4(c, 1.0);
+      #include <colorspace_fragment>
+    }`,
+}))
+boveda.frustumCulled = false
+boveda.renderOrder = -100
+escena.add(boveda)
 function sombraEn(cx, cz, r) {
   sol.target.position.set(cx, 0, cz)
   sol.position.set(cx + SOL_DIR.x * 200, SOL_DIR.y * 200, cz + SOL_DIR.z * 200)
@@ -61,7 +84,7 @@ function textura(r, g, b, a) {
 const b255 = (a, k = 1) => (i) => Math.round(clamp(a[i] * k, 0, 1) * 255)
 const TEX1 = textura(b255(CAPA.calle), b255(CAPA.green), b255(CAPA.bunker), b255(CAPA.tee))
 const TEX2 = textura(b255(CAPA.afuera), b255(CAPA.arbol), b255(CAPA.relieve, 0.5), b255(CAPA.collar))
-const TEX3 = textura(b255(CAPA.quieta), () => 0, () => 0, () => 255)
+const TEX3 = textura(b255(CAPA.quieta), b255(CAPA.lomas, 1 / LOMA.max), () => 0, () => 255) // (g: las lomas)
 const TEXN = (() => {
   const nx = new Float32Array(N), nz = new Float32Array(N)
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
@@ -113,6 +136,7 @@ const U = {
   uColPlano: { value: col('#071a12') }, uColOro: { value: col('#e8c34a') }, uColAzul: { value: col('#7fc4ff') }, uColNeon: { value: col('#38f2c8') },
   uDibujo: { value: null }, uDibTam: { value: new THREE.Vector2(219.5, 447.75) }, uDibW: { value: -50 }, uDibVivo: { value: 0 },
   uCaida: { value: TEXC }, uGrilla: { value: 0 }, uAviso: { value: 0 },
+  uViento: { value: new THREE.Vector3(1, 0, 0.25) }, // (xz: para dónde sopla; y: cuánto, de 0 a 1) las copas se hamacan
 }
 const GLSL_COMUN = /* glsl */ `
 #define NB ${NB}
@@ -153,7 +177,7 @@ float alturaEn(vec2 q) {
   vec4 a = texture(uMask1, uv); vec4 b = texture(uMask2, uv);
   float fw = smoothstep(0.3, 0.7, a.r), bk = smoothstep(0.25, 0.7, a.b), te = smoothstep(0.3, 0.7, a.a);
   float fu = smoothstep(0.3, 0.7, b.r);
-  float h = fw * 0.1 + te * 0.35 + b.b * 2.0 - bk * 0.9 + b.g * 0.2;
+  float h = fw * 0.1 + te * 0.35 + b.b * 2.0 + texture(uMask3, uv).g * ${LOMA.max.toFixed(1)} - bk * 0.9 + b.g * 0.2;
   h = mix(h, -4.5, fu);
   h += uSwVivo * 0.9 * exp(-pow((distance(q, uSwO) - uSwW) / 3.2, 2.0)) * (1.0 - fu);
   return h * armado(q);
@@ -193,11 +217,22 @@ vec3 pinta(vec2 q, vec4 a, vec4 b, float arriba, vec3 P[11], float pat) {
   vec2 qn = (pat > 2.5 && pat < 3.5) ? floor(q / 2.5) * 2.5 : q;
   float n = ruido(qn * 0.3) * 0.55 + ruido(qn * 1.3) * 0.3 + ruido(qn * 6.0) * 0.15;
   float r = patron(q, pat);
-  // el rough: dos tonos con ruido, más oscuro abajo de los árboles
-  vec3 c = mix(P[0], P[1], n);
-  c *= 1.0 - 0.35 * ar;
-  // la calle: el corte en franjas
-  c = mix(c, mix(P[2], P[3], r) * (0.95 + 0.1 * n), fw);
+  // de cerca, el grano del pasto (matas de dos tamaños); de lejos se apaga solo, sin hormigueo
+  float cerca = 1.0 - smoothstep(0.1, 0.55, max(fwidth(q.x), fwidth(q.y)));
+  float mata = (ruido(qn * 3.1) * 0.6 + ruido(qn * 11.0) * 0.4 - 0.5) * cerca;
+  // el rough: dos tonos con ruido y matas; abajo de los árboles, más oscuro y con el colchón de hojas (la tierra)
+  vec3 c = mix(P[0], P[1], n) * (1.0 + 0.3 * mata);
+  c = mix(c, P[10] * 0.8, 0.42 * ar * ar);
+  c *= 1.0 - 0.3 * ar;
+  // flores sueltas en el rough abierto (del color de la arena de la skin: siempre se despegan del pasto)
+  vec2 celda = floor(q * 1.6);
+  float flor = step(0.972, hash(celda)) * (1.0 - smoothstep(0.1, 0.28, distance(fract(q * 1.6), vec2(0.3) + 0.4 * vec2(hash(celda + 3.1), hash(celda + 7.7))))) * smoothstep(0.55, 0.8, ruido(q * 0.045 + 9.0));
+  c = mix(c, mix(P[6], vec3(1.0, 0.86, 0.3), step(0.5, hash(celda + 1.7))), flor * cerca * (1.0 - ar) * (1.0 - smoothstep(0.02, 0.2, a.r + a.g + a.b + a.a)));
+  // el primer corte: una banda de pasto intermedio que acompaña a la calle
+  float semi = smoothstep(0.05, 0.3, a.r) * (1.0 - fw);
+  c = mix(c, mix(P[1], P[2], 0.42) * (0.94 + 0.1 * n + 0.14 * mata), semi * 0.85);
+  // la calle: el corte en franjas (más marcado mirando a lo largo) y un grano fino
+  c = mix(c, mix(P[2], P[3], r) * (0.95 + 0.1 * n + 0.1 * mata), fw);
   // el collar del green: el pasto un poco más largo, entre la calle y el green
   c = mix(c, mix(P[4], P[2], 0.45) * (0.9 + 0.08 * n), co);
   // el green: corte fino cruzado (como los de verdad), parejito
@@ -207,6 +242,10 @@ vec3 pinta(vec2 q, vec4 a, vec4 b, float arriba, vec3 P[11], float pat) {
   // el bunker: arena con grano y las marcas del rastrillo
   float rastrillo = 0.5 + 0.5 * sin(q.x * 3.1 + sin(q.y * 0.7) * 2.0);
   c = mix(c, P[6] * (0.9 + 0.06 * ruido(q * 7.0) + 0.05 * rastrillo), bk);
+  // el labio del bunker: una sombra de pasto alto del lado de afuera y la arena más clara pegada al borde
+  float labio = 4.0 * smoothstep(0.12, 0.62, a.b) * (1.0 - smoothstep(0.12, 0.62, a.b));
+  c = mix(c, P[0] * 0.62, labio * (1.0 - bk) * 0.7);
+  c *= 1.0 + 0.1 * labio * bk;
   float borde = max(4.0 * smoothstep(0.2, 0.8, a.r) * (1.0 - smoothstep(0.2, 0.8, a.r)), 4.0 * smoothstep(0.2, 0.8, a.g) * (1.0 - smoothstep(0.2, 0.8, a.g)));
   c *= 1.0 - 0.1 * borde;
   // los costados empinados (el borde del bunker, la losa): la tierra
@@ -371,23 +410,83 @@ function unir(...gs) {
   const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3)
   let o = 0
   for (const g of ps) { pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); o += g.attributes.position.count }
+  // (si alguna pieza trae color por vértice, va; las que no, en blanco)
+  if (ps.some((g) => g.attributes.color)) {
+    const c = new Float32Array(n * 3).fill(1)
+    o = 0
+    for (const g of ps) { if (g.attributes.color) c.set(g.attributes.color.array, o * 3); o += g.attributes.position.count }
+    const r = new THREE.BufferGeometry()
+    r.setAttribute('position', new THREE.BufferAttribute(pos, 3)); r.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); r.setAttribute('color', new THREE.BufferAttribute(c, 3))
+    return r
+  }
   const r = new THREE.BufferGeometry()
   r.setAttribute('position', new THREE.BufferAttribute(pos, 3)); r.setAttribute('normal', new THREE.BufferAttribute(nor, 3))
   return r
 }
+/**
+ * El volumen de la copa, pintado en la malla (un color por cara, que multiplica al del árbol): abajo y adentro más
+ * oscuro, arriba más claro, y cada cara con su tono. Con la luz de arriba, las copas dejan de ser una mancha pareja.
+ */
+function sombrear(g, abajo = 0.6, arriba = 1.14, grano = 0.07) {
+  const geo = g.index ? g.toNonIndexed() : g
+  const pos = geo.attributes.position, n = pos.count
+  let y0 = Infinity, y1 = -Infinity
+  for (let i = 0; i < n; i++) { y0 = Math.min(y0, pos.getY(i)); y1 = Math.max(y1, pos.getY(i)) }
+  const c = new Float32Array(n * 3)
+  for (let i = 0; i < n; i += 3) {
+    const y = (pos.getY(i) + pos.getY(i + 1) + pos.getY(i + 2)) / 3
+    const k = lerp(abajo, arriba, ss(0, 1, (y - y0) / Math.max(1e-6, y1 - y0))) + (rndFijo() - 0.5) * 2 * grano
+    for (let j = 0; j < 9; j++) c[i * 3 + j] = k
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(c, 3))
+  return geo
+}
+/** Una bocha de copa con las puntas corridas (cada vértice, siempre igual): facetada, pero no una pelota perfecta. */
+function bocha(r, x = 0, y = 0, z = 0, sy = 1) {
+  const g = new THREE.IcosahedronGeometry(r, 0), pos = g.attributes.position, visto = new Map()
+  for (let i = 0; i < pos.count; i++) {
+    const k = `${pos.getX(i).toFixed(3)},${pos.getY(i).toFixed(3)},${pos.getZ(i).toFixed(3)}`
+    if (!visto.has(k)) visto.set(k, 0.86 + rndFijo() * 0.3)
+    const f = visto.get(k)
+    pos.setXYZ(i, pos.getX(i) * f, pos.getY(i) * f * sy, pos.getZ(i) * f)
+  }
+  g.computeVertexNormals()
+  return g.translate(x, y, z)
+}
 const GEO_ARBOL = {
-  redondo: unir(new THREE.IcosahedronGeometry(1, 0), new THREE.IcosahedronGeometry(0.62, 0).translate(0.45, 0.42, 0.2), new THREE.IcosahedronGeometry(0.58, 0).translate(-0.42, 0.3, -0.28)),
-  pino: unir(new THREE.ConeGeometry(1.05, 1.9, 7).translate(0, -0.2, 0), new THREE.ConeGeometry(0.78, 1.5, 7).translate(0, 0.6, 0), new THREE.ConeGeometry(0.5, 1.1, 7).translate(0, 1.25, 0)),
-  cubo: new THREE.BoxGeometry(1.45, 1.45, 1.45),
-  chupetin: new THREE.IcosahedronGeometry(0.95, 1),
-  cristal: new THREE.OctahedronGeometry(1.05, 0).scale(0.8, 1.5, 0.8),
-  cactus: unir(new THREE.CylinderGeometry(0.42, 0.48, 2.6, 7), new THREE.CylinderGeometry(0.2, 0.22, 0.9, 5).rotateZ(Math.PI / 2).translate(0.55, 0.05, 0), new THREE.CylinderGeometry(0.21, 0.23, 0.9, 5).translate(0.98, 0.4, 0), new THREE.CylinderGeometry(0.19, 0.21, 0.75, 5).rotateZ(Math.PI / 2).translate(-0.5, -0.25, 0), new THREE.CylinderGeometry(0.19, 0.21, 0.75, 5).translate(-0.86, 0.08, 0)),
+  // la copa de siempre, con más cuerpo: la bocha grande, dos al costado y una arriba
+  redondo: sombrear(unir(bocha(1, 0, 0, 0, 0.92), bocha(0.66, 0.5, 0.34, 0.24), bocha(0.62, -0.46, 0.26, -0.3), bocha(0.52, 0.02, 0.7, 0.14))),
+  // el pino: cuatro pisos, cada uno con su vuelo
+  pino: sombrear(unir(new THREE.ConeGeometry(1.08, 1.5, 7).translate(0, -0.42, 0), new THREE.ConeGeometry(0.88, 1.35, 7).rotateY(0.45).translate(0, 0.2, 0), new THREE.ConeGeometry(0.66, 1.2, 7).rotateY(0.9).translate(0, 0.78, 0), new THREE.ConeGeometry(0.42, 1.05, 6).rotateY(1.3).translate(0, 1.36, 0)), 0.55, 1.12, 0.05),
+  cubo: sombrear(new THREE.BoxGeometry(1.45, 1.45, 1.45), 0.8, 1.08, 0.04),
+  chupetin: sombrear(new THREE.IcosahedronGeometry(0.95, 1), 0.72, 1.12, 0.05),
+  cristal: sombrear(new THREE.OctahedronGeometry(1.05, 0).scale(0.8, 1.5, 0.8), 0.75, 1.15, 0.08),
+  cactus: sombrear(unir(new THREE.CylinderGeometry(0.42, 0.48, 2.6, 7), new THREE.CylinderGeometry(0.2, 0.22, 0.9, 5).rotateZ(Math.PI / 2).translate(0.55, 0.05, 0), new THREE.CylinderGeometry(0.21, 0.23, 0.9, 5).translate(0.98, 0.4, 0), new THREE.CylinderGeometry(0.19, 0.21, 0.75, 5).rotateZ(Math.PI / 2).translate(-0.5, -0.25, 0), new THREE.CylinderGeometry(0.19, 0.21, 0.75, 5).translate(-0.86, 0.08, 0)), 0.78, 1.08, 0.04),
 }
 const PARAM_ARBOL = { redondo: { tronco: 1, alto: 0.62 }, pino: { tronco: 0.55, alto: 0.95 }, cubo: { tronco: 1, alto: 0.72 }, chupetin: { tronco: 1.7, alto: 0.95 }, cristal: { tronco: 0.35, alto: 1.25 }, cactus: { tronco: 0, alto: 1.3 } }
-/** Con nieve, las caras que miran para arriba quedan blancas (las copas y los techos). */
-function nevable(mat) {
+/**
+ * Con nieve, las caras que miran para arriba quedan blancas (las copas y los techos). `hamaca`: la copa se mece con el
+ * viento del hoyo (en el shader, sin tocar las matrices: los árboles dormidos también se mueven), más arriba que abajo
+ * y cada árbol a su tiempo.
+ */
+function nevable(mat, hamaca = 0) {
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uNieve = U.uNieve
+    if (hamaca) {
+      sh.uniforms.uT = U.uT; sh.uniforms.uViento = U.uViento
+      sh.vertexShader = 'uniform float uT; uniform vec3 uViento;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      #ifdef USE_INSTANCING
+        {
+          vec3 base = instanceMatrix[3].xyz;
+          float fase = base.x * 0.37 + base.z * 0.23;
+          float alto = clamp(position.y * 0.5 + 0.6, 0.0, 1.6);
+          float vaiven = sin(uT * 1.7 + fase) + 0.45 * sin(uT * 3.1 + fase * 1.7 + position.x * 2.0);
+          // (en el espacio del árbol: se deshace el giro y el tamaño de cada uno para que todos vayan con el viento)
+          vec3 dir = vec3(uViento.x, 0.0, uViento.z) * mat3(instanceMatrix);
+          transformed += dir / max(dot(instanceMatrix[0].xyz, instanceMatrix[0].xyz), 1e-4) * (${hamaca.toFixed(3)} * (0.35 + uViento.y) * alto * alto * (0.6 + vaiven)) * length(instanceMatrix[0].xyz);
+        }
+      #endif`)
+    }
     sh.vertexShader = 'varying float vNy;\n' + sh.vertexShader.replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
       #ifdef USE_INSTANCING
         vNy = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal).y;
@@ -402,8 +501,8 @@ function nevable(mat) {
 // (antes se dibujaban los 1.454 de los seis tipos, la mayoría achicados a cero: era lo que trababa)
 const copas = {}
 for (const tipo of TIPOS_ARBOL) {
-  const mat = new THREE.MeshStandardMaterial({ flatShading: true, roughness: tipo === 'cristal' ? 0.25 : 0.85, metalness: tipo === 'cristal' ? 0.35 : 0 })
-  nevable(mat)
+  const mat = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: tipo === 'cristal' ? 0.25 : 0.85, metalness: tipo === 'cristal' ? 0.35 : 0 })
+  nevable(mat, tipo === 'cubo' || tipo === 'cristal' ? 0.03 : tipo === 'cactus' ? 0.012 : 0.07)
   const m = new THREE.InstancedMesh(GEO_ARBOL[tipo], mat, arboles.length)
   m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false
   m.setColorAt(0, col('#3a6b24'))
@@ -411,7 +510,7 @@ for (const tipo of TIPOS_ARBOL) {
   copas[tipo] = m
   escena.add(m)
 }
-const troncos = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.26, 1, 6).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ color: '#5b3f26', roughness: 1 }), arboles.length)
+const troncos = new THREE.InstancedMesh(sombrear(unir(new THREE.CylinderGeometry(0.15, 0.2, 0.86, 6).translate(0, 0.57, 0), new THREE.CylinderGeometry(0.2, 0.36, 0.14, 6).translate(0, 0.07, 0)), 0.72, 1.1, 0.06), new THREE.MeshStandardMaterial({ color: '#5b3f26', roughness: 1, flatShading: true, vertexColors: true }), arboles.length)
 troncos.castShadow = true; troncos.frustumCulled = false
 troncos.count = 0
 escena.add(troncos)
@@ -798,10 +897,13 @@ function moverParticulas(dt) {
 }
 
 // ── Rorro: gorra negra, barba, chomba bordó, pantalón negro y zapatillas negras con suela blanca (como en la foto) ──
-// El muñeco es de verdad (1,80 m): de frente a +z, el objetivo hacia +x (es diestro). El swing es el del juego (`sv`
-// de la goma: atrás con la potencia, al soltar baja, pega y termina): las manos van por un círculo en el plano del
-// swing y el palo con la muñeca quebrada; los brazos, con IK. Con el palo en el piso (sv = 0), la cabeza del palo
-// queda justo atrás de la pelota.
+// El muñeco es de verdad (1,80 m, con la cabeza y las manos un poco más grandes: arcade): de frente a +z, el objetivo
+// hacia +x (es diestro). Tiene esqueleto: la cadera (se corre y gira), la columna en dos tramos (la panza gira la
+// mitad que el pecho), las piernas y los brazos con IK (los pies quedan plantados; el talón de atrás se levanta en el
+// final) y la cara (parpadea, las cejas, la boca). Todo sale de una POSE (unos números, las dos manos y el palo):
+// la del swing es la del juego (`sv` de la goma: atrás con la potencia, al soltar baja, pega y termina) y hay otras
+// sueltas (mira la pelota, festeja, se lamenta, hace equilibrio cuando pasa el deploy) que se mezclan con esa.
+// Con el palo en el piso (sv = 0), la cabeza del palo queda justo atrás de la pelota.
 function telaTextura(base, hilo, paso = 4, tipo = 'pique') {
   const c = document.createElement('canvas'); c.width = c.height = 128
   const g = c.getContext('2d')
@@ -827,18 +929,31 @@ function barbaTextura() {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 2)
   return t
 }
+/** El bordado de la gorra y de la chomba: SDGA, en blanco. */
+function logoTextura() {
+  const c = document.createElement('canvas'); c.width = 128; c.height = 64
+  const g = c.getContext('2d')
+  g.fillStyle = '#f2f2ee'; g.textAlign = 'center'; g.textBaseline = 'middle'
+  g.font = '900 44px "Arial Narrow", Arial, sans-serif'
+  g.fillText('SDGA', 64, 34)
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4
+  return t
+}
 const MAT = {
-  polo: new THREE.MeshStandardMaterial({ color: '#ffffff', map: telaTextura('#6b1f2b', 'rgba(40,6,14,.35)', 5), roughness: 0.9 }),
-  cuello: new THREE.MeshStandardMaterial({ color: '#5a1824', roughness: 0.85 }),
-  pantalon: new THREE.MeshStandardMaterial({ color: '#ffffff', map: telaTextura('#16171b', 'rgba(255,255,255,.035)', 3, 'sarga'), roughness: 0.82 }),
+  polo: new THREE.MeshStandardMaterial({ color: '#ffffff', map: telaTextura('#7d2433', 'rgba(40,6,14,.3)', 5), roughness: 0.9, emissive: '#7d2433', emissiveIntensity: 0.22 }),
+  cuello: new THREE.MeshStandardMaterial({ color: '#661b29', roughness: 0.85, side: THREE.DoubleSide, emissive: '#661b29', emissiveIntensity: 0.2 }),
+  pantalon: new THREE.MeshStandardMaterial({ color: '#ffffff', map: telaTextura('#23252c', 'rgba(255,255,255,.04)', 3, 'sarga'), roughness: 0.82, emissive: '#23252c', emissiveIntensity: 0.25 }),
   cinto: new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.45, metalness: 0.1 }),
   hebilla: new THREE.MeshStandardMaterial({ color: '#c9ccd1', roughness: 0.25, metalness: 0.9 }),
-  piel: new THREE.MeshStandardMaterial({ color: '#ffffff', map: pielTextura(), roughness: 0.62 }),
-  barba: new THREE.MeshStandardMaterial({ color: '#ffffff', map: barbaTextura(), roughness: 1 }),
+  piel: new THREE.MeshStandardMaterial({ color: '#ffffff', map: pielTextura(), roughness: 0.62, emissive: '#c98e6c', emissiveIntensity: 0.2 }), // (un poco de luz propia: de espaldas al sol no queda negro)
+  barba: new THREE.MeshStandardMaterial({ color: '#ffffff', map: barbaTextura(), roughness: 1, emissive: '#3a2a1f', emissiveIntensity: 0.25 }),
   pelo: new THREE.MeshStandardMaterial({ color: '#2b1f17', roughness: 0.95 }),
   ojo: new THREE.MeshStandardMaterial({ color: '#160e09', roughness: 0.3 }),
-  gorra: new THREE.MeshStandardMaterial({ color: '#141518', roughness: 0.7 }),
+  blanco: new THREE.MeshStandardMaterial({ color: '#f6f3ec', roughness: 0.4, emissive: '#f6f3ec', emissiveIntensity: 0.25 }),
+  boca: new THREE.MeshStandardMaterial({ color: '#3a1512', roughness: 0.7 }),
+  gorra: new THREE.MeshStandardMaterial({ color: '#1d1f24', roughness: 0.7, side: THREE.DoubleSide, emissive: '#1d1f24', emissiveIntensity: 0.3 }),
   logo: new THREE.MeshStandardMaterial({ color: '#e9e9e9', roughness: 0.6 }),
+  bordado: new THREE.MeshStandardMaterial({ map: logoTextura(), transparent: true, alphaTest: 0.35, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -2 }),
   zapa: new THREE.MeshStandardMaterial({ color: '#17181c', roughness: 0.55 }),
   suela: new THREE.MeshStandardMaterial({ color: '#f1f1ee', roughness: 0.7 }),
   media: new THREE.MeshStandardMaterial({ color: '#2a2b30', roughness: 0.9 }),
@@ -850,8 +965,17 @@ const MAT = {
   driver: new THREE.MeshStandardMaterial({ color: '#16171a', roughness: 0.18, metalness: 0.4 }),
   hierro: new THREE.MeshStandardMaterial({ color: '#d6d9de', roughness: 0.18, metalness: 0.95 }),
 }
+/**
+ * El trazo de tinta, como los dibujos del juego: cada pieza del muñeco se dibuja otra vez, un poco inflada, del revés
+ * y en tinta (se ve solo el borde). `GROSOR_TINTA`, en metros del muñeco.
+ */
+const GROSOR_TINTA = 0.011
+const matTinta = new THREE.MeshBasicMaterial({ color: '#0c2016', side: THREE.BackSide })
+matTinta.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\n  transformed += normalize(normal) * ${GROSOR_TINTA};`) }
 /** Una cápsula de `largo` entre 0 e y=largo (para ponerla entre dos puntos con `entre`). */
 const capsula = (r, largo, seg = 10) => new THREE.CapsuleGeometry(r, Math.max(0.001, largo), 4, seg).translate(0, largo / 2, 0)
+/** Un hueso: de radio `r0` en y = 0 a `r1` en y = 1 (se estira con `scale.y` al largo de cada cuadro). */
+const hueso = (r0, r1, seg = 14) => new THREE.CylinderGeometry(r1, r0, 1, seg, 1).translate(0, 0.5, 0)
 const _Y = V3(0, 1, 0), _eje = V3()
 function entre(obj, a, b) {
   obj.position.copy(a)
@@ -868,76 +992,105 @@ const PALOS = {
 }
 const CABEZA_PALO = 1.7
 const ESCALA_RORRO = 3.6 // arcade: más grande que de verdad (los palos con él), que se vea el swing
+const INCLINA = (34 * Math.PI) / 180 // parado a la pelota: la columna, hacia adelante
+// los huesos (en metros) y dónde va cada cosa
+const HUESO = { muslo: 0.46, canilla: 0.45, brazo: 0.3, ante: 0.27 }
+const CADERA = V3(0, 0.93, -0.06), ANCA = 0.1, HOMBRO = 0.53, ANCHO = 0.2
+const PIE = { x: 0.17, z: -0.03, yaw: 0.14, punta: 0.19, tobillo: V3(0, 0.09, -0.21) } // (la punta: donde pivotea al levantar el talón)
 const rorro = (() => {
   const g = new THREE.Group()
   g.visible = false
   escena.add(g)
-  const add = (geo, mat, padre = g) => { const m = new THREE.Mesh(geo, mat); m.castShadow = true; padre.add(m); return m }
-  // las piernas (quietas: el swing es de la cintura para arriba), con zapatillas
-  const cadera = V3(0, 0.95, -0.06)
-  const piernas = []
-  for (const s of [-1, 1]) {
-    const hip = V3(s * 0.1, 0.93, -0.06), rod = V3(s * 0.135, 0.5, 0.07), tob = V3(s * 0.165, 0.1, -0.01)
-    const muslo = add(capsula(0.078, hip.distanceTo(rod)), MAT.pantalon); entre(muslo, hip, rod)
-    const canilla = add(capsula(0.064, rod.distanceTo(tob)), MAT.pantalon); entre(canilla, rod, tob)
-    const media = add(new THREE.CylinderGeometry(0.045, 0.045, 0.05, 10), MAT.media); media.position.copy(tob).add(V3(0, -0.01, 0))
-    const zapa = new THREE.Group(); zapa.position.set(tob.x, 0, tob.z + 0.02); zapa.rotation.y = s * 0.12; g.add(zapa)
-    const capellada = add(new THREE.CapsuleGeometry(0.048, 0.2, 4, 10).rotateX(Math.PI / 2).scale(1.05, 0.85, 1), MAT.zapa, zapa); capellada.position.set(0, 0.058, 0.04)
-    const suela = add(new THREE.BoxGeometry(0.11, 0.028, 0.31), MAT.suela, zapa); suela.position.set(0, 0.014, 0.04)
-    piernas.push({ zapa })
+  const tinta = []
+  const add = (geo, mat, padre = g, borde = true) => {
+    const m = new THREE.Mesh(geo, mat); m.castShadow = true; padre.add(m)
+    if (borde) { const t = new THREE.Mesh(geo, matTinta); m.add(t); tinta.push(t) }
+    return m
   }
+  // las piernas (con IK: de la cadera al tobillo) y las zapatillas (cada una gira sobre la punta)
+  const piernas = [-1, 1].map((s) => {
+    const muslo = add(hueso(0.09, 0.068), MAT.pantalon), rodilla = add(new THREE.SphereGeometry(0.068, 14, 10), MAT.pantalon, g, false)
+    const canilla = add(hueso(0.066, 0.05), MAT.pantalon)
+    const pie = new THREE.Group(); g.add(pie)
+    const talon = new THREE.Group(); talon.position.set(0, 0, PIE.punta); pie.add(talon)
+    const media = add(new THREE.CylinderGeometry(0.048, 0.05, 0.07, 12), MAT.media, talon); media.position.copy(PIE.tobillo).add(V3(0, 0.0, 0))
+    const capellada = add(new THREE.CapsuleGeometry(0.052, 0.2, 5, 12).rotateX(Math.PI / 2).scale(1.08, 0.9, 1), MAT.zapa, talon); capellada.position.set(0, 0.062, -0.135)
+    const lengua = add(new THREE.BoxGeometry(0.05, 0.02, 0.09), MAT.suela, talon, false); lengua.position.set(0, 0.108, -0.1); lengua.rotation.x = -0.35
+    const suela = add(new THREE.BoxGeometry(0.118, 0.03, 0.32), MAT.suela, talon); suela.position.set(0, 0.015, -0.15)
+    return { s, muslo, rodilla, canilla, pie, talon }
+  })
   // la cadera y el cinto
-  const pelvis = new THREE.Group(); pelvis.position.copy(cadera); g.add(pelvis)
-  add(new THREE.SphereGeometry(0.17, 16, 12).scale(1.12, 0.78, 0.82), MAT.pantalon, pelvis)
-  const cinto = add(new THREE.CylinderGeometry(0.175, 0.175, 0.045, 18).scale(1.06, 1, 0.8), MAT.cinto, pelvis); cinto.position.y = 0.09
-  const hebilla = add(new THREE.BoxGeometry(0.05, 0.035, 0.012), MAT.hebilla, pelvis); hebilla.position.set(0, 0.09, 0.145)
-  // el torso: inclinado hacia la pelota y gira con el swing (alrededor de la columna)
-  const INCLINA = (34 * Math.PI) / 180
-  const columna = new THREE.Group(); columna.position.copy(cadera).add(V3(0, 0.06, 0)); columna.rotation.x = INCLINA; g.add(columna)
-  const torso = new THREE.Group(); columna.add(torso)
-  const perfil = [[0.0, 0.0], [0.168, 0.0], [0.172, 0.08], [0.168, 0.2], [0.18, 0.33], [0.2, 0.44], [0.19, 0.52], [0.14, 0.58], [0.07, 0.61], [0.0, 0.62]].map(([r, y]) => new THREE.Vector2(r, y))
-  const chomba = add(new THREE.LatheGeometry(perfil, 24).scale(1.18, 1, 0.8), MAT.polo, torso)
-  const cuello = add(new THREE.TorusGeometry(0.062, 0.022, 8, 18).rotateX(Math.PI / 2), MAT.cuello, torso); cuello.position.set(0, 0.6, 0.01)
-  const tapeta = add(new THREE.BoxGeometry(0.035, 0.13, 0.01), MAT.cuello, torso); tapeta.position.set(0, 0.52, 0.152); tapeta.rotation.x = -0.32
-  const HOMBRO = 0.53, ANCHO = 0.2
-  // el cuello y la cabeza (mira la pelota; después del impacto, sigue la pelota)
-  const nuca = add(capsula(0.05, 0.1), MAT.piel, torso); nuca.position.set(0, 0.58, 0)
-  const cabeza = new THREE.Group(); cabeza.position.set(0, 0.74, 0.02); torso.add(cabeza)
-  add(new THREE.SphereGeometry(0.105, 24, 18).scale(0.92, 1.12, 1), MAT.piel, cabeza)
-  // la barba, de oreja a oreja por adelante (antes daba toda la vuelta e inclinada: atrás dejaba una franja de piel)
-  const barba = add(new THREE.SphereGeometry(0.11, 24, 14, -0.15, Math.PI + 0.3, Math.PI * 0.52, Math.PI * 0.34).scale(0.95, 1.12, 1.04), MAT.barba, cabeza); barba.rotation.x = -0.18
+  const pelvis = new THREE.Group(); pelvis.position.copy(CADERA); g.add(pelvis)
+  add(new THREE.SphereGeometry(0.17, 18, 14).scale(1.12, 0.8, 0.84), MAT.pantalon, pelvis)
+  const cinto = add(new THREE.CylinderGeometry(0.176, 0.176, 0.045, 20).scale(1.07, 1, 0.82), MAT.cinto, pelvis, false); cinto.position.y = 0.09
+  const hebilla = add(new THREE.BoxGeometry(0.05, 0.035, 0.012), MAT.hebilla, pelvis, false); hebilla.position.set(0, 0.09, 0.148)
+  // la columna: inclinada hacia la pelota; la panza gira la mitad y el pecho, entero (los hombros)
+  const columna = new THREE.Group(); columna.position.copy(CADERA).add(V3(0, 0.06, 0)); columna.rotation.x = INCLINA; g.add(columna)
+  const lumbar = new THREE.Group(); columna.add(lumbar)
+  const pecho = new THREE.Group(); lumbar.add(pecho)
+  const perfil = (ps) => ps.map(([r, y]) => new THREE.Vector2(r, y))
+  add(new THREE.LatheGeometry(perfil([[0.0, 0.0], [0.168, 0.0], [0.174, 0.08], [0.17, 0.2], [0.172, 0.31], [0.0, 0.31]]), 24).scale(1.18, 1, 0.8), MAT.polo, lumbar)
+  add(new THREE.LatheGeometry(perfil([[0.0, 0.2], [0.166, 0.2], [0.182, 0.33], [0.202, 0.44], [0.192, 0.52], [0.14, 0.58], [0.07, 0.61], [0.0, 0.62]]), 24).scale(1.18, 1, 0.8), MAT.polo, pecho)
+  // el cuello de la chomba (abierto adelante), la tapeta con sus botones y el bordado
+  const cuello = add(new THREE.CylinderGeometry(0.066, 0.1, 0.055, 18, 1, true, 0.35, Math.PI * 2 - 0.7), MAT.cuello, pecho, false); cuello.position.set(0, 0.6, 0.008); cuello.rotation.x = 0.12
+  const tapeta = add(new THREE.BoxGeometry(0.036, 0.14, 0.01), MAT.cuello, pecho, false); tapeta.position.set(0, 0.515, 0.153); tapeta.rotation.x = -0.32
+  for (const y of [0.545, 0.495]) { const b = add(new THREE.SphereGeometry(0.007, 8, 6), MAT.cinto, pecho, false); b.position.set(0, y, 0.165 - (0.56 - y) * 0.33) }
+  const bordado = add(new THREE.PlaneGeometry(0.075, 0.0375), MAT.bordado, pecho, false); bordado.position.set(0.1, 0.47, 0.142); bordado.rotation.set(-0.2, 0.55, 0); bordado.castShadow = false
+  // el cuello y la cabeza (mira la pelota; después del impacto, la sigue)
+  const nuca = add(capsula(0.052, 0.1), MAT.piel, pecho); nuca.position.set(0, 0.58, 0)
+  const cabeza = new THREE.Group(); cabeza.position.set(0, 0.752, 0.02); cabeza.scale.setScalar(1.14); pecho.add(cabeza)
+  add(new THREE.SphereGeometry(0.105, 24, 18).scale(0.93, 1.1, 1), MAT.piel, cabeza)
+  const quijada = add(new THREE.SphereGeometry(0.088, 20, 14).scale(0.98, 0.86, 1), MAT.piel, cabeza); quijada.position.set(0, -0.052, 0.016)
+  // la barba: de oreja a oreja por adelante, y la de la quijada (un poco más afuera que la piel)
+  const barba = add(new THREE.SphereGeometry(0.11, 24, 14, -0.15, Math.PI + 0.3, Math.PI * 0.52, Math.PI * 0.34).scale(0.95, 1.12, 1.04), MAT.barba, cabeza, false); barba.rotation.x = -0.18
+  const barbaQ = add(new THREE.SphereGeometry(0.093, 24, 12, -0.2, Math.PI + 0.4, Math.PI * 0.46, Math.PI * 0.54).scale(1.0, 0.88, 1.03), MAT.barba, cabeza); barbaQ.position.copy(quijada.position)
   // atrás, el pelo hasta la nuca (abajo de la gorra)
-  add(new THREE.SphereGeometry(0.109, 24, 12, Math.PI - 0.25, Math.PI + 0.5, Math.PI * 0.4, Math.PI * 0.42).scale(0.95, 1.12, 1.03), MAT.pelo, cabeza)
-  const bigote = add(new THREE.CapsuleGeometry(0.012, 0.05, 3, 6).rotateZ(Math.PI / 2), MAT.barba, cabeza); bigote.position.set(0, -0.035, 0.1)
-  const nariz = add(new THREE.ConeGeometry(0.018, 0.045, 8).rotateX(Math.PI / 2 + 0.3), MAT.piel, cabeza); nariz.position.set(0, -0.005, 0.11)
+  add(new THREE.SphereGeometry(0.109, 24, 12, Math.PI - 0.25, Math.PI + 0.5, Math.PI * 0.4, Math.PI * 0.42).scale(0.95, 1.12, 1.03), MAT.pelo, cabeza, false)
+  for (const s of [-1, 1]) { const b = add(new THREE.CapsuleGeometry(0.011, 0.034, 3, 6).rotateZ(Math.PI / 2 - s * 0.38), MAT.barba, cabeza, false); b.position.set(s * 0.021, -0.04, 0.113) }
+  const nariz = add(new THREE.SphereGeometry(0.02, 12, 9).scale(0.85, 1.25, 1.05), MAT.piel, cabeza, false); nariz.position.set(0, -0.012, 0.106)
+  // la boca (se abre para festejar) y los dientes
+  const boca = add(new THREE.SphereGeometry(0.021, 14, 10).scale(1.15, 0.6, 0.45), MAT.boca, cabeza, false); boca.position.set(0, -0.064, 0.108)
+  const dientes = add(new THREE.BoxGeometry(0.03, 0.007, 0.006), MAT.blanco, cabeza, false); dientes.position.set(0, -0.058, 0.115)
+  // los ojos (el blanco y la pupila: parpadean) y las cejas
+  const ojos = [], cejas = []
   for (const s of [-1, 1]) {
-    const ojo = add(new THREE.SphereGeometry(0.011, 8, 6), MAT.ojo, cabeza); ojo.position.set(s * 0.037, 0.022, 0.093)
-    const ceja = add(new THREE.BoxGeometry(0.035, 0.008, 0.01), MAT.pelo, cabeza); ceja.position.set(s * 0.038, 0.045, 0.097); ceja.rotation.z = -s * 0.12
-    const oreja = add(new THREE.SphereGeometry(0.026, 10, 8).scale(0.5, 1, 0.8), MAT.piel, cabeza); oreja.position.set(s * 0.1, 0.0, 0.0)
+    const ojo = new THREE.Group(); ojo.position.set(s * 0.038, 0.022, 0.09); cabeza.add(ojo)
+    add(new THREE.SphereGeometry(0.0165, 12, 10).scale(1.15, 1, 0.62), MAT.blanco, ojo, false)
+    const pupila = add(new THREE.SphereGeometry(0.0092, 10, 8).scale(1, 1, 0.6), MAT.ojo, ojo, false); pupila.position.z = 0.0075
+    ojos.push({ s, ojo, pupila })
+    const ceja = add(new THREE.BoxGeometry(0.04, 0.0095, 0.012), MAT.pelo, cabeza, false); ceja.position.set(s * 0.039, 0.048, 0.097)
+    cejas.push({ s, ceja })
+    const oreja = add(new THREE.SphereGeometry(0.026, 10, 8).scale(0.5, 1, 0.8), MAT.piel, cabeza); oreja.position.set(s * 0.099, 0.0, 0.0)
   }
-  add(new THREE.SphereGeometry(0.108, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(0.95, 1, 1).translate(0, 0.004, -0.008), MAT.pelo, cabeza)
-  // la gorra: copa, visera curva y el logo
+  add(new THREE.SphereGeometry(0.108, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(0.95, 1, 1).translate(0, 0.004, -0.008), MAT.pelo, cabeza, false)
+  // la gorra: la copa, la visera curva (baja a los costados) con su bordado y el botón
   const gorra = new THREE.Group(); gorra.position.set(0, 0.035, 0); cabeza.add(gorra)
-  add(new THREE.SphereGeometry(0.114, 24, 12, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(0.97, 0.92, 1.03), MAT.gorra, gorra)
-  const visera = add(new THREE.CylinderGeometry(0.11, 0.115, 0.012, 24, 1, false, -Math.PI * 0.42, Math.PI * 0.84).scale(1, 1, 1.25), MAT.gorra, gorra); visera.position.set(0, 0.0, 0.035); visera.rotation.x = 0.12
-  const boton = add(new THREE.SphereGeometry(0.012, 8, 6), MAT.gorra, gorra); boton.position.set(0, 0.106, 0)
-  const logo = add(new THREE.BoxGeometry(0.03, 0.022, 0.004), MAT.logo, gorra); logo.position.set(0, 0.055, 0.106); logo.rotation.x = -0.45
+  add(new THREE.SphereGeometry(0.114, 24, 12, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(0.97, 0.95, 1.03), MAT.gorra, gorra)
+  const geoVisera = new THREE.CylinderGeometry(0.11, 0.114, 0.012, 24, 3, false, -Math.PI * 0.42, Math.PI * 0.84).scale(1, 1, 1.3)
+  { const p = geoVisera.attributes.position; for (let i = 0; i < p.count; i++) p.setY(i, p.getY(i) - 2.6 * p.getX(i) ** 2); geoVisera.computeVertexNormals() }
+  const visera = add(geoVisera, MAT.gorra, gorra); visera.position.set(0, 0.004, 0.034); visera.rotation.x = 0.14
+  const boton = add(new THREE.SphereGeometry(0.012, 8, 6), MAT.gorra, gorra, false); boton.position.set(0, 0.109, 0)
+  const logo = add(new THREE.PlaneGeometry(0.07, 0.035), MAT.bordado, gorra, false); logo.position.set(0, 0.052, 0.1085); logo.rotation.x = -0.5; logo.castShadow = false
   // los brazos (hombro → codo → mano, con IK) y las mangas cortas. El hombro es de la chomba (una bocha de tela en la
   // juntura) y la piel arranca adentro de la manga: si no, la punta del brazo asomaba arriba del hombro
   const brazos = [-1, 1].map((s) => {
-    const brazo = add(capsula(0.054, 0.3, 14), MAT.piel)
-    const hombro = add(new THREE.SphereGeometry(0.082, 16, 12).scale(1, 0.92, 1), MAT.polo)
-    const manga = add(new THREE.CylinderGeometry(0.08, 0.072, 0.2, 16).translate(0, 0.07, 0), MAT.polo)
-    const codo = add(new THREE.SphereGeometry(0.05, 12, 10), MAT.piel)
-    const ante = add(capsula(0.044, 0.28, 14), MAT.piel)
-    const mano = add(new THREE.SphereGeometry(0.045, 12, 9).scale(0.85, 1.15, 0.7), s > 0 ? MAT.guante : MAT.piel)
-    const reloj = s > 0 ? add(new THREE.CylinderGeometry(0.044, 0.044, 0.03, 12), MAT.reloj) : null
+    const brazo = add(hueso(0.052, 0.045), MAT.piel)
+    const hombro = add(new THREE.SphereGeometry(0.084, 16, 12).scale(1, 0.92, 1), MAT.polo)
+    const manga = add(new THREE.CylinderGeometry(0.076, 0.082, 0.19, 16).translate(0, 0.075, 0), MAT.polo)
+    const codo = add(new THREE.SphereGeometry(0.047, 12, 10), MAT.piel, g, false)
+    const ante = add(hueso(0.046, 0.036), MAT.piel)
+    // la mano: el puño y el pulgar (la izquierda, con guante)
+    const mano = new THREE.Group(); g.add(mano)
+    const mm = s > 0 ? MAT.guante : MAT.piel
+    add(new THREE.SphereGeometry(0.05, 14, 10).scale(0.86, 1.12, 0.74), mm, mano)
+    const pulgar = add(new THREE.CapsuleGeometry(0.014, 0.03, 3, 8), mm, mano, false); pulgar.position.set(0, 0.03, 0.036); pulgar.rotation.x = 0.5
+    const reloj = s > 0 ? add(new THREE.CylinderGeometry(0.041, 0.041, 0.03, 12), MAT.reloj, g, false) : null
     return { s, brazo, hombro, manga, codo, ante, mano, reloj }
   })
   // el palo: el grip, la vara y la cabeza (driver, hierro, wedge o putter)
   const palo = new THREE.Group(); g.add(palo)
-  const grip = add(new THREE.CylinderGeometry(0.014, 0.012, 0.26, 10).translate(0, -0.03, 0), MAT.grip, palo)
-  const vara = add(new THREE.CylinderGeometry(0.0085, 0.006, 1, 8).translate(0, 0.5, 0), MAT.vara, palo)
+  const grip = add(new THREE.CylinderGeometry(0.014, 0.012, 0.26, 10).translate(0, -0.03, 0), MAT.grip, palo, false)
+  const vara = add(new THREE.CylinderGeometry(0.0085, 0.006, 1, 8).translate(0, 0.5, 0), MAT.vara, palo, false)
   const cabezas = {
     driver: add(new THREE.SphereGeometry(0.06, 20, 14).scale(0.9, 0.55, 1.15), MAT.driver, palo),
     // (la cara mira al objetivo, +x: lo largo de la cabeza va de talón a punta, cruzado a la línea; antes iba a lo
@@ -946,24 +1099,257 @@ const rorro = (() => {
     wedge: add(new THREE.BoxGeometry(0.02, 0.055, 0.075), MAT.hierro, palo),
     putter: add(new THREE.BoxGeometry(0.032, 0.028, 0.11), MAT.hierro, palo),
   }
-  const lineaPutter = add(new THREE.BoxGeometry(0.026, 0.0012, 0.004), MAT.logo, cabezas.putter); lineaPutter.position.y = 0.0145 // (la línea de apuntar, a la pelota)
+  // (los detalles: la cara plateada y la marca del driver; el cuello de los hierros; la línea de apuntar del putter)
+  const caraDriver = add(new THREE.SphereGeometry(0.06, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.32).rotateZ(-Math.PI / 2).scale(0.905, 0.5, 1.08), MAT.hierro, cabezas.driver, false)
+  const marcaDriver = add(new THREE.BoxGeometry(0.03, 0.002, 0.006), MAT.logo, cabezas.driver, false); marcaDriver.position.set(0.012, 0.0325, 0)
+  for (const k of ['hierro', 'wedge', 'putter']) { const c = add(new THREE.CylinderGeometry(0.0075, 0.0075, 0.05, 8), MAT.hierro, cabezas[k], false); c.position.set(k === 'putter' ? 0 : -0.002, 0.04, k === 'putter' ? -0.04 : -0.03) }
+  const lineaPutter = add(new THREE.BoxGeometry(0.026, 0.0012, 0.004), MAT.logo, cabezas.putter, false); lineaPutter.position.y = 0.0145 // (la línea de apuntar, a la pelota)
   for (const m of Object.values(cabezas)) m.scale.multiplyScalar(CABEZA_PALO) // arcade: los palos con cabezas grandes, para la pelota grande
   g.scale.setScalar(ESCALA_RORRO)
-  return { g, pelvis, columna, torso, cabeza, brazos, palo, grip, vara, cabezas, HOMBRO, ANCHO, INCLINA, cadera }
+  return { g, pelvis, columna, lumbar, pecho, torso: pecho, cabeza, piernas, brazos, palo, grip, vara, cabezas, ojos, cejas, boca, dientes, tinta, HOMBRO, ANCHO, INCLINA, cadera: CADERA }
 })()
+
+// ── las poses ──
+// Una pose: la cadera (px, py, pz y cuánto gira, `hip`), la columna (`incl` hacia adelante, `lado`), los hombros
+// (`giro`, sobre la columna), la cabeza, los pies (cuánto se levanta el talón y cuánto gira sobre la punta: L el de
+// adelante, el izquierdo; R el de atrás), el salto, las dos manos (HL, HR, en el espacio del muñeco), el palo (Q: va
+// siempre en la mano izquierda; `agR`: cuánto lo agarra también la derecha) y la cara (`boca`, `ceja`).
+const NUMS = ['px', 'py', 'pz', 'hip', 'incl', 'lado', 'giro', 'cabX', 'cabY', 'cabZ', 'liftL', 'liftR', 'yawL', 'yawR', 'salto', 'agR', 'boca', 'ceja']
+const poseNueva = () => ({ px: 0, py: CADERA.y, pz: CADERA.z, hip: 0, incl: INCLINA, lado: 0, giro: 0, cabX: 0.24, cabY: 0, cabZ: 0, liftL: 0, liftR: 0, yawL: 0, yawR: 0, salto: 0, agR: 1, boca: 0, ceja: 0, HL: V3(), HR: V3(), Q: new THREE.Quaternion() })
+function copiarPose(a, out) { for (const k of NUMS) out[k] = a[k]; out.HL.copy(a.HL); out.HR.copy(a.HR); out.Q.copy(a.Q); return out }
+function mezclarPose(a, b, w, out) {
+  for (const k of NUMS) out[k] = a[k] + (b[k] - a[k]) * w
+  out.HL.lerpVectors(a.HL, b.HL, w); out.HR.lerpVectors(a.HR, b.HR, w); out.Q.slerpQuaternions(a.Q, b.Q, w)
+  return out
+}
 const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _mb = new THREE.Matrix4()
+const _X = V3(1, 0, 0)
+/** El palo apuntando para `dir` (del grip a la cabeza), con la cara mirando lo más posible al objetivo. */
+function paloHacia(dir, out) {
+  const y = dir.clone().normalize(), z = _X.clone().cross(y)
+  if (z.lengthSq() < 1e-6) z.set(0, 0, 1)
+  z.normalize()
+  return out.setFromRotationMatrix(_mb.makeBasis(y.clone().cross(z).normalize(), y, z))
+}
 /**
- * La pose de Rorro: `sv` el swing del juego (0 = en la pelota; > 0 atrás, < 0 el final), `putt`, `tipo` de palo.
+ * La pose del swing: `sv` el swing del juego (0 = en la pelota; > 0 atrás, < 0 el final), `putt`, `tipo` de palo;
+ * `extra`: un poco más de ángulo (el waggle de la espera). Las manos giran alrededor de los hombros en el plano del
+ * palo y la muñeca se quiebra; el peso va atrás en la subida y pasa adelante en la bajada; en el final, la cadera
+ * mira al objetivo, el talón de atrás se levanta y gira sobre la punta, y la columna se para.
+ */
+function poseSwing(P, sv, putt, tipo, extra = 0) {
+  const C = PALOS[tipo] ?? PALOS.hierro
+  const { L, lie } = C
+  // la pelota y las manos en el piso de referencia (la cabeza del palo apoyada atrás de la pelota)
+  const c0 = V3(0, -Math.sin(lie), Math.cos(lie))
+  const H0 = V3(C.x * 0.6, L * Math.sin(lie) + 0.022 * CABEZA_PALO, 0.3) // (la suela del palo apoyada en el piso)
+  const phi = (putt ? sv : sv >= 0 ? sv * 2.62 : sv * 2.97) + extra
+  const beta = putt ? 0 : phi >= 0 ? 1.45 * ss(0.25, 1.9, phi) : -1.25 * ss(0.4, 2.2, -phi)
+  const nrm = V3(1, 0, 0).cross(c0).normalize() // positivo: para atrás (lejos del objetivo)
+  const centro = V3(0, 1.42, 0.3)
+  const H = H0.clone().sub(centro).applyAxisAngle(nrm, phi * (putt ? 0.9 : 1)).add(centro)
+  const cdir = c0.clone().applyAxisAngle(nrm, phi + beta)
+  _mb.makeBasis(V3(1, 0, 0), c0, V3(1, 0, 0).cross(c0))
+  _qa.setFromRotationMatrix(_mb)
+  _qb.setFromAxisAngle(nrm, phi + beta)
+  P.Q.copy(_qb).multiply(_qa)
+  // (la izquierda arriba en el grip)
+  P.HL.copy(H).addScaledVector(cdir, -0.02); P.HR.copy(H).addScaledVector(cdir, 0.07)
+  P.agR = 1
+  // cuánto de subida (b) y cuánto de final (f)
+  const b = putt ? 0 : ss(0.1, 2.6, phi), f = putt ? 0 : ss(0.1, 2.7, -phi)
+  // el torso gira con el swing (los hombros, hasta 90°; la cadera, la mitad, y en el final casi todo)
+  const giro = clamp(-phi * 0.6, -1.75, 1.6)
+  P.giro = giro
+  P.hip = putt ? 0 : giro * lerp(0.45, 0.82, f)
+  // el peso: atrás en la subida, adelante (y arriba) en el final
+  P.px = -0.04 * b + 0.085 * f
+  P.py = CADERA.y - 0.012 * b + 0.03 * f - (putt ? 0.01 : 0)
+  P.pz = CADERA.z + 0.045 * f
+  P.incl = INCLINA - 0.36 * ss(1, 2.6, -phi) // en el final se para
+  P.lado = putt ? 0 : 0.07 * b - 0.1 * f
+  // la cabeza: quieta en la pelota; después del impacto, sigue la pelota
+  P.cabX = 0.24 + (phi < -0.6 ? -0.5 * ss(0.6, 2.2, -phi) : 0)
+  P.cabY = -giro + (phi < -0.6 ? 0.9 * ss(0.6, 2.4, -phi) : 0)
+  P.cabZ = 0
+  // los pies: en la subida, el talón de adelante se despega apenas; en el final, el de atrás queda en punta, girado
+  P.liftL = 0.16 * b; P.yawL = 0.1 * f
+  P.liftR = 1.2 * ss(0.25, 2.3, -phi); P.yawR = 1.05 * ss(0.4, 2.5, -phi)
+  P.salto = 0; P.boca = 0; P.ceja = 0
+  return P
+}
+/** La mano en la frente, de visera (para mirar lejos), con la cabeza de esta pose. */
+function enLaCabeza(P, adelante, arriba, alLado, out) {
+  const y = P.py + 0.06, c = Math.cos(P.incl), s = Math.sin(P.incl)
+  const yaw = P.giro + P.cabY
+  return out.set(P.px + Math.sin(yaw) * adelante - Math.cos(yaw) * alLado, y + 0.752 * c + arriba, P.pz + 0.752 * s + 0.02 + Math.cos(yaw) * adelante + Math.sin(yaw) * alLado)
+}
+/** Para dónde tiene que girar la cabeza para mirar el punto `p` (en el espacio del muñeco). */
+function mirarA(P, p, k = 1) {
+  const cx = P.px, cy = P.py + 0.06 + 0.752 * Math.cos(P.incl), cz = P.pz + 0.752 * Math.sin(P.incl)
+  const dx = p.x - cx, dy = p.y - cy, dz = p.z - cz
+  const yaw = clamp(difAng(Math.atan2(dx, dz), P.giro), -1.35, 1.35), pitch = clamp(-Math.atan2(dy, Math.hypot(dx, dz)) - P.incl, -0.6, 0.7)
+  P.cabY += (yaw - P.cabY) * k; P.cabX += (pitch - P.cabX) * k
+}
+/** El palo de baston, en la mano izquierda: la cabeza apoyada en el pasto. */
+function baston(P, L, x = 0.36, y = 0.86, z = 0.16) {
+  P.HL.set(x, y, z)
+  const dy = -clamp((y - 0.05) / L, 0.3, 0.98), h = Math.sqrt(1 - dy * dy)
+  paloHacia(V3(0.75 * h, dy, 0.66 * h), P.Q)
+  P.agR = 0
+}
+/**
+ * Las poses sueltas. `u`: los segundos desde que empezó; `t`: el reloj (para lo que respira); `L`: el largo del palo;
+ * `bola`: dónde está la pelota (en el espacio del muñeco), para seguirla con la cabeza.
+ */
+const POSES = {
+  // después de pegar: parado, el palo de baston, mirando la pelota (lejos: la mano de visera; cerca: en la cintura)
+  mira(P, { u, t, L, bola, lejos }) {
+    P.px = 0.03; P.py = 0.955 + Math.sin(t * 1.7) * 0.004; P.pz = -0.04; P.hip = 0.7; P.giro = 0.95; P.incl = 0.07; P.lado = 0
+    P.liftL = 0; P.yawL = 0.25; P.liftR = 0.5; P.yawR = 0.6; P.salto = 0; P.boca = 0; P.ceja = 0.3
+    P.cabX = 0; P.cabY = 0.2; P.cabZ = 0
+    if (bola) mirarA(P, bola)
+    baston(P, L)
+    if (lejos) enLaCabeza(P, 0.15, 0.085, 0.075, P.HR); else P.HR.set(-0.21, 1.0, 0.03)
+  },
+  // adentro: salta dos veces de frente a la cámara, el puño arriba y el palo en alto
+  festeja(P, { u, t, L }) {
+    const salto = u < 1.3 ? Math.abs(Math.sin(u * Math.PI / 0.65)) : 0, baja = u < 1.3 ? 1 - salto : 0
+    P.px = 0; P.py = 0.95 - 0.07 * baja * (u < 1.3 ? 1 : 0); P.pz = -0.04; P.hip = -0.85; P.giro = -1.15; P.incl = -0.06; P.lado = 0.05 * Math.sin(u * 9)
+    P.salto = 0.2 * salto; P.liftL = 0.7 * salto; P.liftR = 0.7 * salto; P.yawL = 0; P.yawR = -0.5
+    P.cabX = -0.22; P.cabY = -0.1; P.cabZ = 0.08 * Math.sin(u * 9); P.boca = 1; P.ceja = -0.6
+    const bombeo = u < 1.5 ? 0.5 + 0.5 * Math.sin(u * 14) : 1
+    P.HR.set(-0.34, 1.52 + 0.4 * bombeo, 0.16)
+    P.HL.set(0.3, 1.72, -0.02); paloHacia(V3(0.35, 0.9, -0.15), P.Q); P.agR = 0
+  },
+  // la dejó en el green: el puño corto, "¡vamos!"
+  bien(P, { u, t, L }) {
+    const golpe = Math.exp(-(((u - 0.32) / 0.13) ** 2))
+    P.px = 0.02; P.py = 0.95 - 0.05 * golpe; P.pz = -0.04; P.hip = -0.4; P.giro = -0.65; P.incl = 0.1 + 0.12 * golpe; P.lado = 0
+    P.liftL = 0; P.yawL = 0; P.liftR = 0.2; P.yawR = -0.2; P.salto = 0; P.boca = 0.75; P.ceja = -0.4
+    P.cabX = 0.05; P.cabY = -0.25; P.cabZ = 0
+    baston(P, L)
+    P.HR.set(-0.3, 1.36 - 0.22 * golpe, 0.24)
+  },
+  // al bunker o entre los pinos: se agarra la gorra y niega con la cabeza
+  lamenta(P, { u, t, L }) {
+    const cae = ss(0, 0.35, u)
+    P.px = -0.01; P.py = 0.95 - 0.04 * cae; P.pz = -0.05; P.hip = 0.2; P.giro = 0.3; P.incl = 0.1 + 0.2 * cae; P.lado = -0.05
+    P.liftL = 0; P.yawL = 0; P.liftR = 0; P.yawR = 0; P.salto = 0; P.boca = 0.35; P.ceja = 1
+    P.cabX = 0.42 * cae; P.cabY = 0.3 * Math.sin(u * 8.5) * Math.exp(-u * 1.1); P.cabZ = 0
+    baston(P, L, 0.34, 0.84, 0.2)
+    enLaCabeza(P, 0.04, 0.2, 0.06, P.HR)
+  },
+  // el deploy con la pelota quieta: la cancha se le mueve abajo de los pies y hace equilibrio, el palo de balancín
+  equilibrio(P, { u, t, L }) {
+    const v = Math.sin(t * 7.3), w = Math.sin(t * 4.1 + 1)
+    P.px = 0.03 * w; P.py = 0.86 + 0.015 * v; P.pz = -0.03; P.hip = 0.12 * w; P.giro = 0.25 * w; P.incl = 0.24; P.lado = 0.16 * v
+    P.liftL = 0.25 * Math.max(0, v); P.yawL = 0.2; P.liftR = 0.25 * Math.max(0, -v); P.yawR = -0.2; P.salto = 0; P.boca = 0.6; P.ceja = 0.8
+    P.cabX = 0.3; P.cabY = 0.5 * w; P.cabZ = -0.1 * v
+    P.HL.set(0.52, 1.28 + 0.14 * v, 0.14); paloHacia(V3(0.75, 0.55 + 0.25 * v, 0.2), P.Q); P.agR = 0
+    P.HR.set(-0.56, 1.3 - 0.16 * v, 0.1)
+  },
+}
+
+/** Dos huesos de `a` y `f` entre S y T, con el codo (o la rodilla) hacia `polo`. Deja el codo y la punta. */
+function ik2(S, T, a, f, polo, codo, fin) {
+  const dir = _ik1.subVectors(T, S), l = dir.length()
+  const d = clamp(l, Math.abs(a - f) + 1e-3, a + f - 1e-3)
+  dir.multiplyScalar(1 / Math.max(l, 1e-6))
+  const perp = _ik2.copy(polo).addScaledVector(dir, -polo.dot(dir))
+  if (perp.lengthSq() < 1e-8) perp.set(0, 0, 1)
+  perp.normalize()
+  const cosA = (a * a + d * d - f * f) / (2 * a * d)
+  codo.copy(S).addScaledVector(dir, a * cosA).addScaledVector(perp, a * Math.sqrt(Math.max(0, 1 - cosA * cosA)))
+  fin.copy(S).addScaledVector(dir, d)
+}
+const _ik1 = V3(), _ik2 = V3(), _S = V3(), _T = V3(), _K = V3(), _F = V3(), _polo = V3(), _cd = V3(), _lz = V3()
+const _mano = new THREE.Quaternion()
+/** Pone el muñeco en la pose: la cadera, la columna, la cabeza, los pies y las piernas, el palo, los brazos y la cara. */
+function aplicarPose(P, tipo, cara = null) {
+  const R = rorro, club = tipo in PALOS ? tipo : 'hierro', L = PALOS[club].L
+  R.pelvis.position.set(P.px, P.py, P.pz); R.pelvis.rotation.y = P.hip
+  R.columna.position.set(P.px, P.py + 0.06, P.pz); R.columna.rotation.set(P.incl, 0, P.lado)
+  const medio = lerp(P.hip, P.giro, 0.45)
+  R.lumbar.rotation.y = medio; R.pecho.rotation.y = P.giro - medio
+  R.cabeza.rotation.set(P.cabX, P.cabY, P.cabZ)
+  R.g.updateMatrixWorld(true)
+  const aLocal = (v) => R.g.worldToLocal(v)
+  // las piernas: de la cadera al tobillo, con la rodilla para adelante (para donde mira la cadera)
+  for (const p of R.piernas) {
+    const izq = p.s > 0, lift = izq ? P.liftL : P.liftR, yaw = p.s * PIE.yaw + (izq ? P.yawL : P.yawR)
+    p.pie.position.set(p.s * PIE.x, 0, PIE.z); p.pie.rotation.y = yaw; p.talon.rotation.x = lift
+    // el tobillo: sobre la punta, con el talón levantado
+    const ty = PIE.tobillo.y * Math.cos(lift) - PIE.tobillo.z * Math.sin(lift), tz = PIE.tobillo.y * Math.sin(lift) + PIE.tobillo.z * Math.cos(lift) + PIE.punta
+    _T.set(p.s * PIE.x + Math.sin(yaw) * tz, ty, PIE.z + Math.cos(yaw) * tz)
+    aLocal(R.pelvis.localToWorld(_S.set(p.s * ANCA, -0.02, 0)))
+    const a = P.hip * 0.8 + yaw * 0.5
+    _polo.set(Math.sin(a) + p.s * 0.16, 0.05, Math.cos(a))
+    ik2(_S, _T, HUESO.muslo, HUESO.canilla, _polo, _K, _F)
+    p.muslo.scale.y = entre(p.muslo, _S, _K)
+    p.rodilla.position.copy(_K)
+    p.canilla.scale.y = entre(p.canilla, _K, _T) // (hasta el tobillo de verdad: la zapatilla no se despega)
+  }
+  // los brazos: del hombro a las manos, con el codo para abajo; el palo va en la mano izquierda
+  _cd.set(0, 1, 0).applyQuaternion(P.Q)
+  for (const b of [R.brazos[1], R.brazos[0]]) {
+    const izq = b.s > 0
+    aLocal(R.pecho.localToWorld(_S.set(b.s * ANCHO, HOMBRO, 0.02)))
+    _T.copy(izq ? P.HL : P.HR)
+    _polo.set(-b.s * 0.25, -1, -0.35).normalize()
+    ik2(_S, _T, HUESO.brazo, HUESO.ante + 0.03, _polo, _K, _F)
+    // (la piel, desde adentro de la manga hasta el codo; el hombro, de tela)
+    const enManga = _lz.copy(_S).lerp(_K, 0.3)
+    b.brazo.scale.y = entre(b.brazo, enManga, _K)
+    b.hombro.position.copy(_S); b.hombro.quaternion.copy(b.brazo.quaternion)
+    entre(b.manga, _S, _K)
+    b.codo.position.copy(_K)
+    b.ante.scale.y = entre(b.ante, _K, _F)
+    // la mano: en el palo, a lo largo de la vara; suelta, sigue al antebrazo
+    b.mano.position.copy(_F)
+    _mano.copy(b.ante.quaternion)
+    b.mano.quaternion.copy(P.Q)
+    if (!izq) b.mano.quaternion.slerpQuaternions(_mano, P.Q, clamp(P.agR, 0, 1))
+    if (!izq && P.agR < 1) b.mano.position.addScaledVector(_v.subVectors(_F, _K).normalize(), 0.03 * (1 - P.agR))
+    if (b.reloj) { const r = _lz.copy(_K).lerp(_F, 0.84); entre(b.reloj, r, _F); b.reloj.scale.y = 0.03 }
+    // (el palo, donde llega la mano izquierda de verdad: si el brazo no alcanza, el palo no queda flotando)
+    if (izq) { R.palo.position.copy(_F).addScaledVector(_cd, 0.02); R.palo.quaternion.copy(P.Q) }
+  }
+  R.vara.scale.y = L
+  const lie = PALOS[club].lie
+  for (const [k, m] of Object.entries(R.cabezas)) {
+    m.visible = k === club
+    if (!m.visible) continue
+    // la cabeza, apoyada en la punta de la vara, con la cara al objetivo
+    m.position.set(0, L + 0.02, k === 'driver' ? 0.045 : k === 'putter' ? 0.04 : 0.03)
+    m.quaternion.setFromAxisAngle(_X, lie - Math.PI / 2) // la suela plana en el piso
+  }
+  // la cara: la boca (cerrada, una raya), los dientes al reírse, las cejas (para adentro: concentrado; para afuera:
+  // se lamenta) y el parpadeo
+  const boca = clamp(P.boca, 0, 1)
+  R.boca.scale.set(1 + 0.15 * boca, 0.16 + 0.84 * boca, 1)
+  R.dientes.visible = boca > 0.45
+  for (const c of R.cejas) { c.ceja.rotation.z = -c.s * (0.12 - 0.3 * P.ceja); c.ceja.position.y = 0.048 + 0.006 * Math.abs(P.ceja) * (P.ceja > 0 ? 1 : 1.6) }
+  const abre = cara ? cara.parpado : 1
+  for (const o of R.ojos) { o.ojo.scale.y = Math.max(0.08, abre); if (cara) o.pupila.position.set(cara.mx * 0.006, cara.my * 0.004, 0.0075) }
+}
+const _pose = poseNueva()
+/**
+ * La pose del swing sola, sin nada más (para medir y para probar): `sv`, `putt`, `tipo` de palo.
  * Devuelve dónde queda la pelota en el muñeco (para pararlo atrás de la pelota).
  */
 const CARA = {} // por palo: dónde va la pelota en el muñeco (en su espacio), adelante del centro de la cara
 let midiendoCara = false
 function poseRorro(sv, putt, tipo) {
   const club = tipo in PALOS ? tipo : 'hierro'
+  aplicarPose(poseSwing(_pose, sv, putt, club), club)
+  return bolaEnRorro(club, putt)
+}
+function bolaEnRorro(club, putt) {
   // la primera vez con cada palo: el muñeco en posición (sin swing) y la pelota justo adelante del centro de la cara
   if (!CARA[club] && !midiendoCara) {
     midiendoCara = true
-    poseRorro(0, putt, club)
+    aplicarPose(poseSwing(poseNueva(), 0, putt, club), club)
     midiendoCara = false
     rorro.g.updateMatrixWorld(true)
     const cab = rorro.cabezas[club]
@@ -971,70 +1357,104 @@ function poseRorro(sv, putt, tipo) {
     const l = rorro.g.worldToLocal(cab.localToWorld(V3(cab.geometry.boundingBox.max.x, 0, 0)))
     CARA[club] = V3(l.x + RADIO_BOLA / ESCALA_RORRO, 0, l.z)
   }
-  const P = PALOS[tipo] ?? PALOS.hierro
-  const { L, lie } = P
-  // la pelota y las manos en el piso de referencia (la cabeza del palo apoyada atrás de la pelota)
-  const c0 = V3(0, -Math.sin(lie), Math.cos(lie))
-  const H0 = V3(P.x * 0.6, L * Math.sin(lie) + 0.022 * CABEZA_PALO, 0.3) // (la suela del palo apoyada en el piso)
-  const pelotaLocal = H0.clone().addScaledVector(c0, L)
-  // el swing: las manos giran alrededor de los hombros en el plano del palo; la muñeca se quiebra
-  const phi = putt ? sv : sv >= 0 ? sv * 2.62 : sv * 2.97
-  const beta = putt ? 0 : phi >= 0 ? 1.45 * ss(0.25, 1.9, phi) : -1.25 * ss(0.4, 2.2, -phi)
-  const nrm = V3(1, 0, 0).cross(c0).normalize() // positivo: para atrás (lejos del objetivo)
-  const centro = V3(0, 1.42, 0.3)
-  const H = H0.clone().sub(centro).applyAxisAngle(nrm, phi * (putt ? 0.9 : 1)).add(centro)
-  const cdir = c0.clone().applyAxisAngle(nrm, phi + beta)
-  // el torso gira con el swing (los hombros, hasta 90°; la cadera, la mitad) y la cabeza sigue la pelota después
-  const giro = clamp(-phi * (putt ? 0.6 : 0.6), -1.75, 1.6)
-  rorro.torso.rotation.y = giro
-  rorro.pelvis.rotation.y = giro * 0.45
-  rorro.cabeza.rotation.set(0.24 + (phi < -0.6 ? -0.5 * ss(0.6, 2.2, -phi) : 0), -giro + (phi < -0.6 ? 0.9 * ss(0.6, 2.4, -phi) : 0), 0)
-  rorro.columna.rotation.x = rorro.INCLINA - (phi < -1 ? 0.35 * ss(1, 2.6, -phi) : 0) // en el final se para
-  rorro.g.updateMatrixWorld(true)
-  // el palo
-  _mb.makeBasis(V3(1, 0, 0), c0, V3(1, 0, 0).cross(c0))
-  _qa.setFromRotationMatrix(_mb)
-  _qb.setFromAxisAngle(nrm, phi + beta)
-  rorro.palo.position.copy(H)
-  rorro.palo.quaternion.copy(_qb).multiply(_qa)
-  rorro.vara.scale.y = L
-  for (const [k, m] of Object.entries(rorro.cabezas)) {
-    m.visible = k === (tipo in PALOS ? tipo : 'hierro')
-    if (!m.visible) continue
-    // la cabeza, apoyada en la punta de la vara, con la cara al objetivo
-    m.position.set(k === 'driver' ? 0.0 : 0.0, L + 0.02, k === 'driver' ? 0.045 : k === 'putter' ? 0.04 : 0.03)
-    m.rotation.set(0, 0, 0)
-    m.quaternion.setFromAxisAngle(V3(1, 0, 0), lie - Math.PI / 2) // la suela plana en el piso
+  return CARA[club].clone()
+}
+
+// ── la animación: qué pose toca en cada momento ──
+// `an.t` es el reloj del juego (se frena con el DEBUG). Apuntando sin el dedo, espera (respira, pasa el peso de un pie
+// al otro, cada tanto hace un waggle y mira al objetivo); con la goma, el swing del juego. Al pegar queda en el final
+// (no vuelve atrás a la pelota como un resorte) y después baja el palo y mira dónde va. Cuando aparece en la pelota
+// nueva, según dónde cayó: el puño si quedó en el green, la mano en la gorra si fue al bunker o a los pinos. Adentro,
+// festeja. Con el deploy pasándole por abajo, hace equilibrio.
+const an = {
+  t: 0, post: false, putt: false, tGolpe: -99, svFin: 0, lejos: false,
+  libre: 0, modo: 'mira', tModo: 0, hasta: -1, // la pose suelta: cuánto pesa, cuál, desde cuándo y hasta cuándo (las que duran)
+  suelta: poseNueva(), hay: false, final: poseNueva(), swing: poseNueva(),
+  ultima: null, aparece: -99, corre: V3(), lie: null, idx: -1,
+  waggle: 3, mirada: 5.5, parpadeo: 2, cara: { parpado: 1, mx: 0, my: 0 },
+}
+const DUR_POSE = { festeja: 2.6, bien: 1.05, lamenta: 1.7 }
+function ponerModo(modo, dur = DUR_POSE[modo] ?? -1) { an.modo = modo; an.tModo = an.t; an.hasta = dur > 0 ? an.t + dur : -1 }
+/** Pegó: de acá no vuelve a la pelota; queda en el final y después mira. */
+function rorroPega(ronda) {
+  an.post = true; an.tGolpe = an.t; an.svFin = 0
+  an.lejos = ronda?.lie === 'tee' || (pinActual && ronda ? dist(ronda.pelota, pinActual) > 150 : false)
+}
+/** Adentro: festeja (apenas la pelota toca el fondo). */
+function rorroFesteja() { ponerModo('festeja') }
+/**
+ * La pose de este cuadro (y la pone). `mundo`: dónde está parado (para saber si apareció en otro lado).
+ * Devuelve la pose que quedó.
+ */
+function animarRorro(dt, st, gs, r, mundo) {
+  const club = (gs.palo ?? 'hierro') in PALOS ? gs.palo ?? 'hierro' : 'hierro', putt = !!gs.putt, L = PALOS[club].L
+  an.t += dt
+  const t = an.t, sv = gs.sv ?? 0
+  const apuntando = st.estado === 'apuntar' && !st.tiro
+  // apareció en otro lado (la pelota nueva, el hoyo nuevo): entra con un rebote y reacciona a dónde quedó
+  if (an.ultima && Math.hypot(mundo[0] - an.ultima[0], mundo[1] - an.ultima[1]) > 1.2) {
+    const lejos = Math.hypot(mundo[0] - an.ultima[0], mundo[1] - an.ultima[1]) > 5
+    if (lejos) { an.aparece = t; an.chispa = true; an.corre.set(0, 0, 0) } else an.corre.set(an.ultima[0] - mundo[0], 0, an.ultima[1] - mundo[1])
+    if (r && r.idx === an.idx && an.modo !== 'festeja' && lejos) {
+      if (r.lie === 'bunker' || r.lie === 'bosque') ponerModo('lamenta')
+      else if (r.lie === 'green' && an.lie !== 'green') ponerModo('bien')
+    }
+    an.post = false
   }
-  // los brazos: del hombro a las manos (la izquierda arriba en el grip), con el codo para abajo
-  const hombroDe = (s) => rorro.torso.localToWorld(V3(s * rorro.ANCHO, rorro.HOMBRO, 0.02))
-  const aLocal = (v) => rorro.g.worldToLocal(v.clone())
-  for (const b of rorro.brazos) {
-    const S = aLocal(hombroDe(b.s))
-    const T = H.clone().addScaledVector(cdir, b.s > 0 ? -0.02 : 0.07)
-    const a = 0.3, f = 0.28 + 0.03
-    const d = Math.min(a + f - 1e-3, Math.max(0.12, S.distanceTo(T)))
-    const dir = T.clone().sub(S).normalize()
-    const polo = V3(-b.s * 0.25, -1, -0.35).normalize()
-    const perp = polo.sub(dir.clone().multiplyScalar(polo.dot(dir))).normalize()
-    const cosA = (a * a + d * d - f * f) / (2 * a * d)
-    const codo = S.clone().addScaledVector(dir, a * cosA).addScaledVector(perp, a * Math.sqrt(Math.max(0, 1 - cosA * cosA)))
-    const Tr = S.clone().addScaledVector(dir, d)
-    // (la piel, desde adentro de la manga hasta el codo; el hombro, de tela)
-    const enManga = S.clone().lerp(codo, 0.3)
-    entre(b.brazo, enManga, codo)
-    b.brazo.scale.y = enManga.distanceTo(codo) / 0.3
-    b.hombro.position.copy(S)
-    b.hombro.quaternion.copy(b.brazo.quaternion)
-    entre(b.manga, S, codo)
-    b.codo.position.copy(codo)
-    entre(b.ante, codo, Tr)
-    b.ante.scale.y = codo.distanceTo(Tr) / 0.28
-    b.mano.position.copy(Tr); b.mano.quaternion.copy(rorro.palo.quaternion)
-    if (b.reloj) { const r = codo.clone().lerp(Tr, 0.86); entre(b.reloj, r, Tr); b.reloj.scale.y = 0.03 }
+  an.ultima = [mundo[0], mundo[1]]
+  if (r) { if (apuntando) an.lie = r.lie; an.idx = r.idx }
+  if (apuntando && an.post && sv === 0) an.post = false
+  // el swing: el del juego; después de pegar, hasta donde llegó (el final se sostiene)
+  let svUso = sv, extra = 0
+  if (an.post) { an.svFin = Math.min(an.svFin, sv); svUso = an.svFin }
+  // la espera: el waggle (dos toques cortos del palo para atrás) y la mirada al objetivo
+  const espera = apuntando && !st.drag && Math.abs(sv) < 1e-3 && !an.post
+  if (!espera) { an.waggle = t + 2.2; an.mirada = t + 4 }
+  if (espera && !putt && t > an.waggle) { const u = (t - an.waggle) / 0.9; if (u >= 1) an.waggle = t + 3.5 + Math.random() * 3; else extra = 0.13 * Math.sin(Math.PI * u) * (0.5 - 0.5 * Math.cos(u * Math.PI * 4)) }
+  const S = poseSwing(an.swing, svUso, putt, club, extra)
+  let mirando = 0
+  if (espera) {
+    S.py += Math.sin(t * 1.7) * 0.004; S.px += Math.sin(t * 0.8) * 0.01; S.lado += Math.sin(t * 0.8) * 0.012
+    if (t > an.mirada) { const u = (t - an.mirada) / 1.5; if (u >= 1) an.mirada = t + 4 + Math.random() * 4; else { mirando = ss(0, 0.25, u) * (1 - ss(0.7, 1, u)); S.cabY += (putt ? 0.95 : 1.15) * mirando; S.cabX -= 0.3 * mirando } }
   }
-  // (la pelota grande va adelante del centro de la cara del palo, no adentro ni en la punta)
-  return CARA[club]?.clone() ?? pelotaLocal.add(V3(RADIO_BOLA / ESCALA_RORRO + 0.012 * CABEZA_PALO, 0, 0))
+  if (st.drag && apuntando) S.ceja = -0.7 // concentrado
+  // en el putt, después de pegar: sigue la pelota con la cabeza y se agacha cuando llega al hoyo
+  if (an.post && putt && bola.visible) {
+    const b = rorro.g.worldToLocal(_lz.copy(bola.position))
+    mirarA(S, b, ss(0.1, 0.5, t - an.tGolpe))
+    if (pinActual) { const cerca = 1 - ss(0.6, 4, Math.hypot(bola.position.x - pinActual[0], bola.position.z - pinActual[1])); S.py -= 0.05 * cerca; S.ceja = 0.5 * cerca }
+  }
+  // la pose suelta que toca (si toca)
+  let quiere = 0
+  if (an.hasta > 0 && t > an.hasta) { an.hasta = -1; if (an.modo !== 'mira') an.modo = 'mira' }
+  if (an.hasta > 0) quiere = st.drag && an.modo !== 'festeja' ? 0 : 1
+  else if (an.post && !putt && t - an.tGolpe > 0.85) { if (an.modo !== 'mira') ponerModo('mira'); quiere = 1 }
+  else if (barrido && !barrido.rebobina && !st.tiro && !st.drag && est.swVivo > 0.15 && (st.estado === 'apuntar' || st.estado === 'cambio')) { if (an.modo !== 'equilibrio') ponerModo('equilibrio', -1); quiere = 1 }
+  an.libre += (quiere - an.libre) * Math.min(1, dt * (quiere ? 6 : 9))
+  if (an.libre < 0.004 && !quiere) { an.libre = 0; an.hay = false }
+  let P = S
+  if (an.libre > 0 || quiere) {
+    const F = copiarPose(S, _pose)
+    POSES[an.modo](F, { u: t - an.tModo, t, L, lejos: an.lejos, bola: bola.visible ? rorro.g.worldToLocal(_lz.copy(bola.position)) : null })
+    // (entre una pose suelta y otra no salta: la suelta va persiguiendo a la que toca)
+    if (!an.hay) { copiarPose(F, an.suelta); an.hay = true } else mezclarPose(an.suelta, F, Math.min(1, dt * 14), an.suelta)
+    const w = an.libre * an.libre * (3 - 2 * an.libre)
+    P = mezclarPose(S, an.suelta, w, an.final)
+  }
+  // la cara: parpadea cada tanto; los ojos van un poco para donde gira la cabeza
+  if (t > an.parpadeo) { const u = (t - an.parpadeo) / 0.14; if (u >= 1) { an.parpadeo = t + 1.6 + Math.random() * 3.2; an.cara.parpado = 1 } else an.cara.parpado = Math.abs(1 - 2 * u) }
+  an.cara.mx = clamp(mirando * 1.2 + (P.cabY - S.cabY) * 0.3, -1, 1); an.cara.my = 0
+  aplicarPose(P, club, an.cara)
+  // el corrimiento corto (el putt que quedó al lado): no salta, se acomoda
+  an.corre.multiplyScalar(Math.exp(-dt / 0.09))
+  return P
+}
+/** El rebote de cuando aparece (alto y finito, y se asienta) y el salto del festejo. */
+function entradaRorro() {
+  const u = clamp((an.t - an.aparece) / 0.55, 0, 1)
+  if (u >= 1) return [1, 1]
+  const e = elastic(u)
+  return [lerp(0.55, 1, ss(0, 0.35, u)) * (1 + (1 - e) * 0.25), Math.max(0.05, e)]
 }
 
 // ── los monos (los del motor: patrullan, cazan la pelota quieta, se la roban) ──
@@ -1054,6 +1474,8 @@ function crearMono() {
   const cola = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V3(0, 0.36, -0.22), V3(0, 0.27, -0.5), V3(0, 0.54, -0.68), V3(0, 0.76, -0.54), V3(0, 0.72, -0.4)]), 16, 0.03, 5), piel)
   g.add(cuerpo, cabeza, frente, cola)
   g.traverse((o) => { if (o.isMesh) o.castShadow = true })
+  // (el trazo de tinta, como Rorro)
+  for (const o of [...g.children]) if (o.isMesh && o.geometry.type !== 'TubeGeometry') o.add(new THREE.Mesh(o.geometry, matTinta))
   g.visible = false
   escena.add(g)
   return { g, ultimo: null, dir: 0, salto: 0, partes: ['pata-1', 'pata1', 'brazo-1', 'brazo1'].map((n) => g.getObjectByName(n)) }
@@ -1094,13 +1516,13 @@ function moverMonos3d(dt, st) {
 
 // ── el clima, en 3D: la luz, el cielo, las nubes, los charcos, la lluvia, los rayos y la nieve ──
 const CLIMA_VIS = {
-  soleado: { sol: 3.0, solCol: '#fff1cc', cielo: 1.05, fondo: '#0a2117', exp: 1.1 },
-  nuboso: { sol: 1.0, solCol: '#e9eef2', cielo: 1.55, fondo: '#18261f', exp: 0.98, nubes: 0.9 },
-  seco: { sol: 3.1, solCol: '#ffe0aa', cielo: 1.0, fondo: '#1d1a0d', exp: 1.1, seco: 1 },
-  mojado: { sol: 1.5, solCol: '#e6eef0', cielo: 1.3, fondo: '#0d1f1a', exp: 1.0, mojado: 0.7, nubes: 0.3 },
-  lluvia: { sol: 0.8, solCol: '#cfd9e2', cielo: 1.15, fondo: '#0c1820', exp: 0.95, mojado: 1, nubes: 0.6, oscuro: 0.2, lluvia: 0.55 },
-  tormenta: { sol: 0.45, solCol: '#b8c6d6', cielo: 0.95, fondo: '#070d14', exp: 0.92, mojado: 1, nubes: 0.9, oscuro: 0.45, lluvia: 1, rayos: true },
-  nieve: { sol: 1.9, solCol: '#eaf3ff', cielo: 1.35, fondo: '#1b2833', exp: 1.02, nieve: 1, copos: true },
+  soleado: { sol: 3.0, solCol: '#fff1cc', cielo: 1.05, fondo: '#0a2117', exp: 1.1, horizonte: '#2f7550', resplandor: 1, nubes: 0.22 }, // (unas nubes sueltas que pasan)
+  nuboso: { sol: 1.0, solCol: '#e9eef2', cielo: 1.55, fondo: '#18261f', exp: 0.98, horizonte: '#55665e', resplandor: 0.25, nubes: 0.9 },
+  seco: { sol: 3.1, solCol: '#ffe0aa', cielo: 1.0, fondo: '#1d1a0d', exp: 1.1, horizonte: '#7a6a2c', resplandor: 1, seco: 1, nubes: 0.1 },
+  mojado: { sol: 1.5, solCol: '#e6eef0', cielo: 1.3, fondo: '#0d1f1a', exp: 1.0, horizonte: '#35544c', resplandor: 0.35, mojado: 0.7, nubes: 0.3 },
+  lluvia: { sol: 0.8, solCol: '#cfd9e2', cielo: 1.15, fondo: '#0c1820', exp: 0.95, horizonte: '#2d4050', resplandor: 0.1, mojado: 1, nubes: 0.6, oscuro: 0.2, lluvia: 0.55 },
+  tormenta: { sol: 0.45, solCol: '#b8c6d6', cielo: 0.95, fondo: '#070d14', exp: 0.92, horizonte: '#1c2a38', resplandor: 0, mojado: 1, nubes: 0.9, oscuro: 0.45, lluvia: 1, rayos: true },
+  nieve: { sol: 1.9, solCol: '#eaf3ff', cielo: 1.35, fondo: '#1b2833', exp: 1.02, horizonte: '#6c8294', resplandor: 0.5, nieve: 1, copos: true },
 }
 let climaId = 'soleado'
 const climaVis = () => CLIMA_VIS[climaId] ?? CLIMA_VIS.soleado
@@ -1110,6 +1532,7 @@ function aplicarClima(ronda) {
   sol.intensity = c.sol; sol.color.set(c.solCol)
   cielo.intensity = c.cielo
   escena.background.set(c.fondo); escena.fog.color.set(c.fondo)
+  boveda.material.uniforms.uFondo.value.set(c.fondo); boveda.material.uniforms.uHorizonte.value.set(c.horizonte); boveda.material.uniforms.uSol.value.set(c.solCol); boveda.material.uniforms.uFuerza.value = c.resplandor
   if (renderer) renderer.toneMappingExposure = c.exp
   U.uNubes.value = c.nubes ?? 0; U.uMojado.value = c.mojado ?? 0; U.uSeco.value = c.seco ?? 0; U.uOscuro.value = c.oscuro ?? 0; U.uNieve.value = c.nieve ?? 0
   matTerreno.roughness = 0.92 - 0.4 * (c.mojado ?? 0)
@@ -1140,6 +1563,7 @@ function moverClima(dt, st) {
   const v = r?.viento ?? { ang: 0, kmh: 0 }
   const wx = Math.cos(v.ang) * v.kmh * 0.35, wz = Math.sin(v.ang) * v.kmh * 0.35
   U.uNubeV.value.set(Math.cos(v.ang) * (2 + v.kmh * 0.4), Math.sin(v.ang) * (2 + v.kmh * 0.4))
+  U.uViento.value.set(Math.cos(v.ang), clamp(v.kmh / 28, 0, 1), Math.sin(v.ang))
   const foco = cam.foco
   // la lluvia y la nieve, en una caja entre la cámara y lo que mira (más chica de cerca: así siempre se ve)
   const caja = clamp(cam.D * 0.55, 6, 70), k = caja / 70
@@ -2185,12 +2609,21 @@ export function cuadro(dtR, st) {
     const donde = gs.desde && (st.estado === 'tiro' || st.estado === 'anim' || st.estado === 'swing' || st.estado === 'resultado' || st.estado === 'pausa') ? gs.desde : r.pelota
     const base = pelotaBase ?? (golfistaBase && (st.estado === 'tiro' || st.estado === 'anim' || st.estado === 'pausa') ? golfistaBase : inversa(donde))
     const pw = adelante(base)
-    const bl = poseRorro(gs.sv ?? 0, !!gs.putt, gs.palo ?? 'hierro')
+    const club = (gs.palo ?? 'hierro') in PALOS ? gs.palo ?? 'hierro' : 'hierro'
+    const bl = bolaEnRorro(club, !!gs.putt)
     const ang = gs.ang ?? 0
     rorro.g.rotation.y = -ang
     const off = V3(bl.x, 0, bl.z).applyAxisAngle(_Y, -ang).multiplyScalar(ESCALA_RORRO)
-    rorro.g.position.set(pw[0] - off.x, alturaEn(base), pw[1] - off.z)
-  }
+    const piso = alturaEn(base)
+    rorro.g.position.set(pw[0] - off.x, piso, pw[1] - off.z)
+    rorro.g.scale.setScalar(ESCALA_RORRO)
+    // la pose del momento (el swing del juego, la espera, mirar la pelota, el festejo…) y cómo entra cuando aparece
+    const P = animarRorro(dt, st, gs, r, pw)
+    const [ancho, alto] = entradaRorro()
+    rorro.g.scale.set(ESCALA_RORRO * ancho, ESCALA_RORRO * alto, ESCALA_RORRO * ancho)
+    rorro.g.position.set(pw[0] - off.x + an.corre.x, piso + P.salto * ESCALA_RORRO, pw[1] - off.z + an.corre.z)
+    if (an.chispa) { an.chispa = false; chispas([pw[0] - off.x, piso + 0.3, pw[1] - off.z], 26, ['#38f2c8', '#e8c34a', '#f4eeda'], 3.2, 6, 1.3) }
+  } else an.ultima = null
   moverArboles(dt)
   moverMonos3d(dt, st)
   moverBochas(r)
@@ -2207,6 +2640,7 @@ export function cuadro(dtR, st) {
   C.movimiento(dron && !congelado ? velCam : 0, (dron ? Math.min(0.6, energiaArboles * 0.35) + (intro ? 0.4 : 0) : 0) + est.swVivo * 0.25)
   C.zumbido(intro ? 0.8 : 0)
   subirUniforms()
+  boveda.position.copy(camara.position)
   renderer.render(escena, camara)
   ultimoEstado = st.estado
 }
@@ -2230,14 +2664,16 @@ export function embocada(ronda) {
 function festejar() {
   const { pin, idx } = festejo
   festejo = null
+  rorroFesteja()
   chispas([pin[0], alturaEn(pin) + 0.1, pin[1]], 60, ['#e8c34a', '#f4eeda', '#c8352e', '#2f5fd0'], 2.4, 5, 1.6)
   const g = banderas[idx]
   if (g) { g.userData.tiembla = 0.8; g.userData.boom = 1 }
   for (const m of monos3d) if (m.g.visible && Math.hypot(m.g.position.x - pin[0], m.g.position.z - pin[1]) < 25) m.salto = 1.2
 }
 export function golpe(ronda) {
+  rorroPega(ronda)
   const p = [bola.position.x, bola.position.y, bola.position.z]
   if (ronda?.lie !== 'green') chispas(p, ronda?.lie === 'bunker' ? 18 : 8, ronda?.lie === 'bunker' ? ['#f4e6c4', '#e9d7a9'] : ['#6f9636', '#a2bc43', '#5d432c'], 1.2, 1.6, 0.7)
 }
 // para probar (window.__r3d en la copia dev/)
-export const _prueba = { juego, est, cancha, camara, cam, rorro, poseRorro, ponerSkins, SKINS, arboles, bola, pose: null, V3, ren: () => renderer, escena, caida, lento: 0 }
+export const _prueba = { juego, est, cancha, camara, cam, rorro, poseRorro, an, POSES, ponerModo, ponerSkins, SKINS, arboles, bola, pose: null, V3, ren: () => renderer, escena, caida, lento: 0 }
