@@ -916,16 +916,16 @@ function telaTextura(base, hilo, paso = 4, tipo = 'pique') {
 function pielTextura() {
   const c = document.createElement('canvas'); c.width = c.height = 64
   const g = c.getContext('2d')
-  g.fillStyle = '#c98e6c'; g.fillRect(0, 0, 64, 64)
-  for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(${150 + Math.random() * 60},${90 + Math.random() * 40},${70 + Math.random() * 30},.08)`; g.fillRect(Math.random() * 64, Math.random() * 64, 2, 2) }
+  g.fillStyle = '#dba785'; g.fillRect(0, 0, 64, 64)
+  for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(${170 + Math.random() * 60},${105 + Math.random() * 40},${80 + Math.random() * 30},.07)`; g.fillRect(Math.random() * 64, Math.random() * 64, 2, 2) }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping
   return t
 }
 function barbaTextura() {
   const c = document.createElement('canvas'); c.width = c.height = 128
   const g = c.getContext('2d')
-  g.fillStyle = '#3a2a1f'; g.fillRect(0, 0, 128, 128)
-  for (let i = 0; i < 1600; i++) { const x = Math.random() * 128, y = Math.random() * 128; g.strokeStyle = `rgba(${20 + Math.random() * 40},${14 + Math.random() * 25},${10 + Math.random() * 15},.55)`; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (Math.random() - 0.5) * 2, y + 2 + Math.random() * 3); g.stroke() }
+  g.fillStyle = '#4b3a2e'; g.fillRect(0, 0, 128, 128)
+  for (let i = 0; i < 1600; i++) { const x = Math.random() * 128, y = Math.random() * 128, cana = Math.random() < 0.16; g.strokeStyle = cana ? `rgba(${150 + Math.random() * 50},${140 + Math.random() * 45},${128 + Math.random() * 40},.5)` : `rgba(${24 + Math.random() * 40},${16 + Math.random() * 25},${10 + Math.random() * 15},.55)`; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (Math.random() - 0.5) * 2, y + 2 + Math.random() * 3); g.stroke() }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 2)
   return t
 }
@@ -945,14 +945,17 @@ const MAT = {
   pantalon: new THREE.MeshStandardMaterial({ color: '#ffffff', map: telaTextura('#23252c', 'rgba(255,255,255,.04)', 3, 'sarga'), roughness: 0.82, emissive: '#23252c', emissiveIntensity: 0.25 }),
   cinto: new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.45, metalness: 0.1 }),
   hebilla: new THREE.MeshStandardMaterial({ color: '#c9ccd1', roughness: 0.25, metalness: 0.9 }),
-  piel: new THREE.MeshStandardMaterial({ color: '#ffffff', map: pielTextura(), roughness: 0.62, emissive: '#c98e6c', emissiveIntensity: 0.2 }), // (un poco de luz propia: de espaldas al sol no queda negro)
-  barba: new THREE.MeshStandardMaterial({ color: '#ffffff', map: barbaTextura(), roughness: 1, emissive: '#3a2a1f', emissiveIntensity: 0.25 }),
+  piel: new THREE.MeshStandardMaterial({ color: '#ffffff', map: pielTextura(), roughness: 0.62, emissive: '#dba785', emissiveIntensity: 0.22 }), // (un poco de luz propia: de espaldas al sol no queda negro)
+  barba: new THREE.MeshStandardMaterial({ color: '#ffffff', map: barbaTextura(), roughness: 1, emissive: '#4b3a2e', emissiveIntensity: 0.25 }),
   pelo: new THREE.MeshStandardMaterial({ color: '#2b1f17', roughness: 0.95 }),
   ojo: new THREE.MeshStandardMaterial({ color: '#160e09', roughness: 0.3 }),
   blanco: new THREE.MeshStandardMaterial({ color: '#f6f3ec', roughness: 0.4, emissive: '#f6f3ec', emissiveIntensity: 0.25 }),
   boca: new THREE.MeshStandardMaterial({ color: '#3a1512', roughness: 0.7 }),
-  gorra: new THREE.MeshStandardMaterial({ color: '#1d1f24', roughness: 0.7, side: THREE.DoubleSide, emissive: '#1d1f24', emissiveIntensity: 0.3 }),
+  labio: new THREE.MeshStandardMaterial({ color: '#c47a6a', roughness: 0.6, emissive: '#c47a6a', emissiveIntensity: 0.25 }),
+  iris: new THREE.MeshStandardMaterial({ color: '#4a2f1a', roughness: 0.35, emissive: '#4a2f1a', emissiveIntensity: 0.2 }),
+  gorra: new THREE.MeshStandardMaterial({ color: '#1d1f24', roughness: 0.96, side: THREE.DoubleSide, emissive: '#1d1f24', emissiveIntensity: 0.3 }), // (tela: sin brillo)
   logo: new THREE.MeshStandardMaterial({ color: '#e9e9e9', roughness: 0.6 }),
+  costura: new THREE.MeshStandardMaterial({ color: '#34373f', roughness: 0.8, emissive: '#34373f', emissiveIntensity: 0.3 }),
   bordado: new THREE.MeshStandardMaterial({ map: logoTextura(), transparent: true, alphaTest: 0.35, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -2 }),
   zapa: new THREE.MeshStandardMaterial({ color: '#17181c', roughness: 0.55 }),
   suela: new THREE.MeshStandardMaterial({ color: '#f1f1ee', roughness: 0.7 }),
@@ -1038,39 +1041,103 @@ const rorro = (() => {
   const bordado = add(new THREE.PlaneGeometry(0.075, 0.0375), MAT.bordado, pecho, false); bordado.position.set(0.1, 0.47, 0.142); bordado.rotation.set(-0.2, 0.55, 0); bordado.castShadow = false
   // el cuello y la cabeza (mira la pelota; después del impacto, la sigue)
   const nuca = add(capsula(0.052, 0.1), MAT.piel, pecho); nuca.position.set(0, 0.58, 0)
-  const cabeza = new THREE.Group(); cabeza.position.set(0, 0.752, 0.02); cabeza.scale.setScalar(1.14); pecho.add(cabeza)
-  add(new THREE.SphereGeometry(0.105, 24, 18).scale(0.93, 1.1, 1), MAT.piel, cabeza)
-  const quijada = add(new THREE.SphereGeometry(0.088, 20, 14).scale(0.98, 0.86, 1), MAT.piel, cabeza); quijada.position.set(0, -0.052, 0.016)
-  // la barba: de oreja a oreja por adelante, y la de la quijada (un poco más afuera que la piel)
-  const barba = add(new THREE.SphereGeometry(0.11, 24, 14, -0.15, Math.PI + 0.3, Math.PI * 0.52, Math.PI * 0.34).scale(0.95, 1.12, 1.04), MAT.barba, cabeza, false); barba.rotation.x = -0.18
-  const barbaQ = add(new THREE.SphereGeometry(0.093, 24, 12, -0.2, Math.PI + 0.4, Math.PI * 0.46, Math.PI * 0.54).scale(1.0, 0.88, 1.03), MAT.barba, cabeza); barbaQ.position.copy(quijada.position)
-  // atrás, el pelo hasta la nuca (abajo de la gorra)
-  add(new THREE.SphereGeometry(0.109, 24, 12, Math.PI - 0.25, Math.PI + 0.5, Math.PI * 0.4, Math.PI * 0.42).scale(0.95, 1.12, 1.03), MAT.pelo, cabeza, false)
-  for (const s of [-1, 1]) { const b = add(new THREE.CapsuleGeometry(0.011, 0.034, 3, 6).rotateZ(Math.PI / 2 - s * 0.38), MAT.barba, cabeza, false); b.position.set(s * 0.021, -0.04, 0.113) }
-  const nariz = add(new THREE.SphereGeometry(0.02, 12, 9).scale(0.85, 1.25, 1.05), MAT.piel, cabeza, false); nariz.position.set(0, -0.012, 0.106)
-  // la boca (se abre para festejar) y los dientes
-  const boca = add(new THREE.SphereGeometry(0.021, 14, 10).scale(1.15, 0.6, 0.45), MAT.boca, cabeza, false); boca.position.set(0, -0.064, 0.108)
-  const dientes = add(new THREE.BoxGeometry(0.03, 0.007, 0.006), MAT.blanco, cabeza, false); dientes.position.set(0, -0.058, 0.115)
-  // los ojos (el blanco y la pupila: parpadean) y las cejas
+  const cabeza = new THREE.Group(); cabeza.position.set(0, 0.758, 0.02); cabeza.scale.setScalar(1.2); pecho.add(cabeza)
+  // la cabeza: el cráneo y la quijada (la cara se arma sobre los dos). De arriba para abajo: la gorra hasta la frente,
+  // las cejas, los ojos, la nariz, el bigote, la boca y el mentón con la barba
+  add(new THREE.SphereGeometry(0.105, 28, 20).scale(0.95, 1.08, 1), MAT.piel, cabeza)
+  const quijada = add(new THREE.SphereGeometry(0.086, 24, 16).scale(0.98, 0.9, 1), MAT.piel, cabeza); quijada.position.set(0, -0.05, 0.014)
+  // la barba, corta y pareja como la de la foto (con alguna cana): de patilla a patilla, la mitad de abajo de la cara
+  // (los pómulos, de piel), con el borde de arriba que baja hacia la boca, y el bigote unido
+  const geoBarba = new THREE.SphereGeometry(0.0898, 32, 14, -0.42, Math.PI + 0.84, Math.PI * 0.44, Math.PI * 0.56)
+  { // (el borde de arriba: alto en la patilla, baja en el pómulo y vuelve a subir al bigote)
+    const q = geoBarba.attributes.position
+    for (let i = 0; i < q.count; i++) {
+      const x = q.getX(i), y = q.getY(i), z = q.getZ(i)
+      if (y < -0.012) continue
+      const lado = Math.abs(Math.atan2(x, z)) // 0 adelante, π/2 en la oreja
+      const tope = -0.02 + 0.03 * ss(1.1, 1.6, lado) + 0.012 * (1 - ss(0.15, 0.5, lado)) - 0.014 * Math.exp(-(((lado - 0.75) / 0.3) ** 2))
+      if (y > tope) { const k = Math.sqrt(Math.max(0, 0.0898 ** 2 - tope ** 2)) / Math.max(1e-6, Math.hypot(x, z)); q.setXYZ(i, x * k, tope, z * k) }
+    }
+    geoBarba.computeVertexNormals()
+  }
+  const barbaQ = add(geoBarba.scale(1.005, 0.92, 1.03), MAT.barba, cabeza, false); barbaQ.position.copy(quijada.position)
+  const tira = (a, b, r, mat = MAT.barba) => { const m = add(capsula(r, a.distanceTo(b), 6), mat, cabeza, false); entre(m, a, b); return m }
+  for (const s of [-1, 1]) {
+    tira(V3(s * 0.089, -0.04, 0.024), V3(s * 0.0965, 0.032, 0.01), 0.0075).scale.z = 1.4 // la patilla, hasta la gorra
+    tira(V3(s * 0.003, -0.049, 0.1045), V3(s * 0.036, -0.06, 0.094), 0.0098) // el bigote (dos mitades que caen)
+  }
+  // el pelo, corto: se ve a los costados y atrás, abajo de la gorra (la nuca queda de piel)
+  add(new THREE.SphereGeometry(0.1085, 28, 10, Math.PI - 0.12, Math.PI + 0.24, Math.PI * 0.3, Math.PI * 0.33).scale(0.96, 1.08, 1.01), MAT.pelo, cabeza, false)
+  // la nariz: el puente y la punta (chica: la cara se lee por los ojos y la barba)
+  const nariz = add(new THREE.SphereGeometry(0.0165, 14, 10).scale(1, 0.85, 1), MAT.piel, cabeza, false); nariz.position.set(0, -0.027, 0.106)
+  tira(V3(0, 0.012, 0.1), V3(0, -0.024, 0.107), 0.0095, MAT.piel)
+  // la boca: cerrada, una sonrisa (el labio, que se despega de la barba); abierta para festejar, con los dientes
+  const sonrisa = add(new THREE.TorusGeometry(0.028, 0.0042, 6, 14, Math.PI * 0.5).rotateZ(Math.PI * 1.25), MAT.labio, cabeza, false); sonrisa.position.set(0, -0.047, 0.0985)
+  const boca = add(new THREE.SphereGeometry(0.024, 16, 10).scale(1.15, 0.7, 0.4), MAT.boca, cabeza, false); boca.position.set(0, -0.074, 0.097)
+  const dientes = add(new THREE.BoxGeometry(0.034, 0.008, 0.006), MAT.blanco, cabeza, false); dientes.position.set(0, -0.067, 0.104)
+  // los ojos: almendrados (el blanco aplastado y el párpado de arriba que lo tapa un tercio: mirada tranquila, no de
+  // susto), el iris marrón con la pupila y el brillo; parpadean. Las cejas, gruesas
   const ojos = [], cejas = []
   for (const s of [-1, 1]) {
-    const ojo = new THREE.Group(); ojo.position.set(s * 0.038, 0.022, 0.09); cabeza.add(ojo)
-    add(new THREE.SphereGeometry(0.0165, 12, 10).scale(1.15, 1, 0.62), MAT.blanco, ojo, false)
-    const pupila = add(new THREE.SphereGeometry(0.0092, 10, 8).scale(1, 1, 0.6), MAT.ojo, ojo, false); pupila.position.z = 0.0075
+    const ojo = new THREE.Group(); ojo.position.set(s * 0.037, 0.007, 0.0925); cabeza.add(ojo)
+    add(new THREE.SphereGeometry(0.0185, 14, 12).scale(1.2, 0.74, 0.6), MAT.blanco, ojo, false)
+    const pupila = new THREE.Group(); pupila.position.z = 0.0085; ojo.add(pupila)
+    add(new THREE.SphereGeometry(0.0098, 12, 10).scale(1, 1, 0.55), MAT.iris, pupila, false)
+    const negro = add(new THREE.SphereGeometry(0.0052, 10, 8).scale(1, 1, 0.5), MAT.ojo, pupila, false); negro.position.z = 0.0036
+    const brillo = add(new THREE.SphereGeometry(0.0026, 6, 5), MAT.blanco, pupila, false); brillo.position.set(-0.0035, 0.0035, 0.0058)
+    const parpado = add(new THREE.SphereGeometry(0.0195, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.42).scale(1.22, 0.8, 0.66), MAT.piel, ojo, false); parpado.rotation.x = -0.25
     ojos.push({ s, ojo, pupila })
-    const ceja = add(new THREE.BoxGeometry(0.04, 0.0095, 0.012), MAT.pelo, cabeza, false); ceja.position.set(s * 0.039, 0.048, 0.097)
+    const ceja = add(new THREE.CapsuleGeometry(0.0072, 0.03, 3, 8).rotateZ(Math.PI / 2), MAT.pelo, cabeza, false); ceja.position.set(s * 0.038, 0.031, 0.0985)
     cejas.push({ s, ceja })
-    const oreja = add(new THREE.SphereGeometry(0.026, 10, 8).scale(0.5, 1, 0.8), MAT.piel, cabeza); oreja.position.set(s * 0.099, 0.0, 0.0)
+    const oreja = add(new THREE.SphereGeometry(0.027, 12, 10).scale(0.45, 1, 0.75), MAT.piel, cabeza); oreja.position.set(s * 0.1, -0.004, -0.004)
   }
-  add(new THREE.SphereGeometry(0.108, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(0.95, 1, 1).translate(0, 0.004, -0.008), MAT.pelo, cabeza, false)
-  // la gorra: la copa, la visera curva (baja a los costados) con su bordado y el botón
-  const gorra = new THREE.Group(); gorra.position.set(0, 0.035, 0); cabeza.add(gorra)
-  add(new THREE.SphereGeometry(0.114, 24, 12, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(0.97, 0.95, 1.03), MAT.gorra, gorra)
-  const geoVisera = new THREE.CylinderGeometry(0.11, 0.114, 0.012, 24, 3, false, -Math.PI * 0.42, Math.PI * 0.84).scale(1, 1, 1.3)
-  { const p = geoVisera.attributes.position; for (let i = 0; i < p.count; i++) p.setY(i, p.getY(i) - 2.6 * p.getX(i) ** 2); geoVisera.computeVertexNormals() }
-  const visera = add(geoVisera, MAT.gorra, gorra); visera.position.set(0, 0.004, 0.034); visera.rotation.x = 0.14
-  const boton = add(new THREE.SphereGeometry(0.012, 8, 6), MAT.gorra, gorra, false); boton.position.set(0, 0.109, 0)
-  const logo = add(new THREE.PlaneGeometry(0.07, 0.035), MAT.bordado, gorra, false); logo.position.set(0, 0.052, 0.1085); logo.rotation.x = -0.5; logo.castShadow = false
+  // la gorra, como la de la foto: negra y armada, echada apenas para atrás (se ve la frente). La copa baja hasta la
+  // frente (no hasta las orejas), con el panel de adelante más alto, las costuras, el botón, la vincha y atrás el
+  // hueco con la tira; la visera sale del borde de la copa, corta y un poco curva, y no le hace sombra a la cara
+  const gorra = new THREE.Group(); gorra.position.set(0, 0.043, -0.002); gorra.rotation.x = -0.09; cabeza.add(gorra)
+  add(new THREE.SphereGeometry(0.1135, 28, 12, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(0.985, 0.86, 1.04), MAT.gorra, gorra)
+  add(new THREE.SphereGeometry(0.115, 20, 10, Math.PI / 2 - 0.85, 1.7, 0, Math.PI * 0.5).scale(0.965, 0.93, 1.045), MAT.gorra, gorra, false) // el panel de adelante
+  const vincha = add(new THREE.TorusGeometry(0.1128, 0.003, 6, 28).rotateX(Math.PI / 2).scale(0.985, 1, 1.04), MAT.gorra, gorra, false); vincha.position.y = 0.003
+  for (const a of [0, Math.PI / 3, -Math.PI / 3]) { const c = add(new THREE.TorusGeometry(0.1142, 0.0016, 4, 24, Math.PI).scale(0.985, 0.865, 1.04), MAT.costura, gorra, false); c.rotation.y = a + Math.PI / 2 }
+  const boton = add(new THREE.SphereGeometry(0.0125, 10, 6).scale(1, 0.6, 1), MAT.gorra, gorra, false); boton.position.set(0, 0.098, 0)
+  const hueco = add(new THREE.SphereGeometry(0.03, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.15, 1, 0.22), MAT.pelo, gorra, false); hueco.position.set(0, 0.004, -0.116)
+  const correa = add(new THREE.BoxGeometry(0.066, 0.011, 0.005), MAT.costura, gorra, false); correa.position.set(0, 0.008, -0.1195)
+  // (la visera: una media luna que arranca en el arco de la copa. Es una malla cerrada, la cara de arriba y la de
+  // abajo comparten el borde: así el trazo de tinta le sale parejo, sin pinchos)
+  const R0 = 0.108, A = 1.05, LARGO = 0.074
+  const geoVisera = (() => {
+    const NT = 22, NR = 7, pos = [], idx = []
+    const punto = (i, j, abajo) => {
+      const t = lerp(-A, A, i / NT), r = j / NR
+      // del arco de la copa (r = 0) al borde de afuera (r = 1): más larga al medio, se cierra en las puntas
+      const sale = LARGO * Math.cos((t / A) * Math.PI / 2) ** 0.6 * r
+      const x = (R0 + sale * 0.25) * Math.sin(t), z = R0 * 1.04 * Math.cos(t) + sale
+      const borde = Math.sin(Math.PI * r) ** 0.5 * Math.cos((t / A) * Math.PI / 2) ** 0.35 // (el grosor: cero en todo el contorno)
+      // curva: baja a los costados y apenas hacia la punta
+      const y = -1.9 * x * x - 0.55 * sale * sale * 10 * 0.1 + (abajo ? -0.0085 * borde : 0.0015 * borde)
+      pos.push(x, y, z)
+    }
+    for (const abajo of [false, true]) for (let j = 0; j <= NR; j++) for (let i = 0; i <= NT; i++) punto(i, j, abajo)
+    const W1 = NT + 1, capa = W1 * (NR + 1)
+    for (let c = 0; c < 2; c++) for (let j = 0; j < NR; j++) for (let i = 0; i < NT; i++) {
+      const a = c * capa + j * W1 + i, b = a + 1, d = a + W1, e = d + 1
+      if (c === 0) idx.push(a, d, b, b, d, e); else idx.push(a, b, d, b, e, d)
+    }
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx)
+    g.computeVertexNormals()
+    // (en el contorno, la normal de arriba y la de abajo se promedian: el borde queda redondo)
+    const n = g.attributes.normal
+    for (let j = 0; j <= NR; j++) for (let i = 0; i <= NT; i++) {
+      if (j !== 0 && j !== NR && i !== 0 && i !== NT) continue
+      const a = j * W1 + i, b = a + capa
+      _v.set(n.getX(a) + n.getX(b), n.getY(a) + n.getY(b), n.getZ(a) + n.getZ(b)).normalize()
+      n.setXYZ(a, _v.x, _v.y, _v.z); n.setXYZ(b, _v.x, _v.y, _v.z)
+    }
+    return g
+  })()
+  const visera = add(geoVisera, MAT.gorra, gorra); visera.position.set(0, 0.014, 0); visera.rotation.x = 0.12; visera.castShadow = false
+  const logo = add(new THREE.PlaneGeometry(0.084, 0.042), MAT.bordado, gorra, false); logo.position.set(0, 0.05, 0.1095); logo.rotation.x = -0.48; logo.castShadow = false
   // los brazos (hombro → codo → mano, con IK) y las mangas cortas. El hombro es de la chomba (una bocha de tela en la
   // juntura) y la piel arranca adentro de la manga: si no, la punta del brazo asomaba arriba del hombro
   const brazos = [-1, 1].map((s) => {
@@ -1106,7 +1173,7 @@ const rorro = (() => {
   const lineaPutter = add(new THREE.BoxGeometry(0.026, 0.0012, 0.004), MAT.logo, cabezas.putter, false); lineaPutter.position.y = 0.0145 // (la línea de apuntar, a la pelota)
   for (const m of Object.values(cabezas)) m.scale.multiplyScalar(CABEZA_PALO) // arcade: los palos con cabezas grandes, para la pelota grande
   g.scale.setScalar(ESCALA_RORRO)
-  return { g, pelvis, columna, lumbar, pecho, torso: pecho, cabeza, piernas, brazos, palo, grip, vara, cabezas, ojos, cejas, boca, dientes, tinta, HOMBRO, ANCHO, INCLINA, cadera: CADERA }
+  return { g, pelvis, columna, lumbar, pecho, torso: pecho, cabeza, piernas, brazos, palo, grip, vara, cabezas, ojos, cejas, boca, dientes, sonrisa, tinta, HOMBRO, ANCHO, INCLINA, cadera: CADERA }
 })()
 
 // ── las poses ──
@@ -1182,11 +1249,11 @@ function poseSwing(P, sv, putt, tipo, extra = 0) {
 function enLaCabeza(P, adelante, arriba, alLado, out) {
   const y = P.py + 0.06, c = Math.cos(P.incl), s = Math.sin(P.incl)
   const yaw = P.giro + P.cabY
-  return out.set(P.px + Math.sin(yaw) * adelante - Math.cos(yaw) * alLado, y + 0.752 * c + arriba, P.pz + 0.752 * s + 0.02 + Math.cos(yaw) * adelante + Math.sin(yaw) * alLado)
+  return out.set(P.px + Math.sin(yaw) * adelante - Math.cos(yaw) * alLado, y + 0.758 * c + arriba, P.pz + 0.758 * s + 0.02 + Math.cos(yaw) * adelante + Math.sin(yaw) * alLado)
 }
 /** Para dónde tiene que girar la cabeza para mirar el punto `p` (en el espacio del muñeco). */
 function mirarA(P, p, k = 1) {
-  const cx = P.px, cy = P.py + 0.06 + 0.752 * Math.cos(P.incl), cz = P.pz + 0.752 * Math.sin(P.incl)
+  const cx = P.px, cy = P.py + 0.06 + 0.758 * Math.cos(P.incl), cz = P.pz + 0.758 * Math.sin(P.incl)
   const dx = p.x - cx, dy = p.y - cy, dz = p.z - cz
   const yaw = clamp(difAng(Math.atan2(dx, dz), P.giro), -1.35, 1.35), pitch = clamp(-Math.atan2(dy, Math.hypot(dx, dz)) - P.incl, -0.6, 0.7)
   P.cabY += (yaw - P.cabY) * k; P.cabX += (pitch - P.cabX) * k
@@ -1327,11 +1394,13 @@ function aplicarPose(P, tipo, cara = null) {
   // la cara: la boca (cerrada, una raya), los dientes al reírse, las cejas (para adentro: concentrado; para afuera:
   // se lamenta) y el parpadeo
   const boca = clamp(P.boca, 0, 1)
-  R.boca.scale.set(1 + 0.15 * boca, 0.16 + 0.84 * boca, 1)
+  R.sonrisa.visible = boca < 0.22
+  R.boca.visible = !R.sonrisa.visible
+  R.boca.scale.set(0.8 + 0.25 * boca, 0.35 + 0.65 * boca, 1)
   R.dientes.visible = boca > 0.45
-  for (const c of R.cejas) { c.ceja.rotation.z = -c.s * (0.12 - 0.3 * P.ceja); c.ceja.position.y = 0.048 + 0.006 * Math.abs(P.ceja) * (P.ceja > 0 ? 1 : 1.6) }
+  for (const c of R.cejas) { c.ceja.rotation.z = -c.s * (0.1 - 0.34 * P.ceja); c.ceja.position.y = 0.031 + 0.005 * Math.abs(P.ceja) * (P.ceja > 0 ? 1 : 1.4) }
   const abre = cara ? cara.parpado : 1
-  for (const o of R.ojos) { o.ojo.scale.y = Math.max(0.08, abre); if (cara) o.pupila.position.set(cara.mx * 0.006, cara.my * 0.004, 0.0075) }
+  for (const o of R.ojos) { o.ojo.scale.y = Math.max(0.08, abre); if (cara) o.pupila.position.set(cara.mx * 0.006, cara.my * 0.003, 0.0085) }
 }
 const _pose = poseNueva()
 /**
