@@ -1564,6 +1564,8 @@ const an = {
   libre: 0, modo: 'mira', tModo: 0, hasta: -1, // la pose suelta: cuánto pesa, cuál, desde cuándo y hasta cuándo (las que duran)
   suelta: poseNueva(), hay: false, final: poseNueva(), swing: poseNueva(),
   ultima: null, aparece: -99, corre: V3(), lie: null, idx: -1,
+  resto: false, // el swing de antes todavía no volvió a 0 en el juego: no se le hace caso (ya está en la pelota nueva)
+  previa: poseNueva(), hayPrevia: false, desde: poseNueva(), tPaso: -99, paso: poseNueva(), // el pasaje suave de una pose a otra
   waggle: 3, mirada: 5.5, parpadeo: 2, cara: { parpado: 1, mx: 0, my: 0 },
 }
 const DUR_POSE = { festeja: 2.6, bien: 1.05, lamenta: 1.7 }
@@ -1584,24 +1586,39 @@ function animarRorro(dt, st, gs, r, mundo) {
   an.t += dt
   const t = an.t, sv = gs.sv ?? 0
   const apuntando = st.estado === 'apuntar' && !st.tiro
-  // apareció en otro lado (la pelota nueva, el hoyo nuevo): entra con un rebote y reacciona a dónde quedó
-  if (an.ultima && Math.hypot(mundo[0] - an.ultima[0], mundo[1] - an.ultima[1]) > 1.2) {
-    const lejos = Math.hypot(mundo[0] - an.ultima[0], mundo[1] - an.ultima[1]) > 5
-    if (lejos) { an.aparece = t; an.chispa = true; an.corre.set(0, 0, 0) } else an.corre.set(an.ultima[0] - mundo[0], 0, an.ultima[1] - mundo[1])
-    if (r && r.idx === an.idx && an.modo !== 'festeja' && lejos) {
-      if (r.lie === 'bunker' || r.lie === 'bosque') ponerModo('lamenta')
-      else if (r.lie === 'green' && an.lie !== 'green') ponerModo('bien')
-    }
-    an.post = false
+  // (recién aparece en pantalla: sin nada del tiro o de la vuelta de antes)
+  if (!an.ultima) { an.post = false; an.resto = false; an.libre = 0; an.hay = false; an.hasta = -1; an.modo = 'mira'; an.hayPrevia = false; an.tPaso = -99; an.corre.set(0, 0, 0) }
+  // Apareció en otro lado (la pelota nueva, el hoyo nuevo). Lejos: entra con un rebote, ya parado a la pelota (o en la
+  // reacción a dónde quedó: no arrastra la pose de mirar la pelota ni el festejo del hoyo de antes). Cerca (el putt que
+  // quedó al lado): se acomoda, sin saltar
+  const salto = an.ultima ? Math.hypot(mundo[0] - an.ultima[0], mundo[1] - an.ultima[1]) : 0
+  const pasar = () => { if (an.hayPrevia) { copiarPose(an.previa, an.desde); an.tPaso = t } } // (de la pose que tenía a la que toca, suave)
+  if (salto > 1.2) {
+    const lejos = salto > 5
+    an.post = false; an.resto = true
+    if (lejos) {
+      an.aparece = t; an.chispa = true; an.corre.set(0, 0, 0)
+      const festejaba = an.modo === 'festeja' && an.hasta > 0 && r && r.idx === an.idx
+      if (!festejaba) { an.libre = 0; an.hay = false; an.hasta = -1; an.modo = 'mira' }
+      an.tPaso = -99
+      if (r && r.idx === an.idx && !festejaba) {
+        const reaccion = r.lie === 'bunker' || r.lie === 'bosque' ? 'lamenta' : r.lie === 'green' && an.lie !== 'green' ? 'bien' : null
+        if (reaccion) { ponerModo(reaccion); an.libre = 1 }
+      }
+    } else { an.corre.set(an.ultima[0] - mundo[0], 0, an.ultima[1] - mundo[1]); an.libre = 0; an.hay = false; pasar() }
   }
   an.ultima = [mundo[0], mundo[1]]
   if (r) { if (apuntando) an.lie = r.lie; an.idx = r.idx }
-  if (apuntando && an.post && sv === 0) an.post = false
-  // el swing: el del juego; después de pegar, hasta donde llegó (el final se sostiene)
+  // otra vez apuntando, en el mismo lugar (el putt cortito, el tiro que no salió): vuelve a la pelota, sin esperar al
+  // swing del juego ni saltar
+  if (apuntando && an.post) { an.post = false; an.resto = true; an.libre = 0; an.hay = false; pasar() }
+  // el swing: el del juego; después de pegar, hasta donde llegó (el final se sostiene). Ya en la pelota nueva, lo que
+  // le queda al swing de antes (el juego lo sostiene 0,6 s y lo vuelve a 0) no se muestra: arrancaba girado, en el final
   let svUso = sv, extra = 0
   if (an.post) { an.svFin = Math.min(an.svFin, sv); svUso = an.svFin }
+  else if (an.resto) { if (sv >= 0 || st.drag) an.resto = false; else svUso = 0 }
   // la espera: el waggle (dos toques cortos del palo para atrás) y la mirada al objetivo
-  const espera = apuntando && !st.drag && Math.abs(sv) < 1e-3 && !an.post
+  const espera = apuntando && !st.drag && Math.abs(svUso) < 1e-3 && !an.post
   if (!espera) { an.waggle = t + 2.2; an.mirada = t + 4 }
   if (espera && !putt && t > an.waggle) { const u = (t - an.waggle) / 0.9; if (u >= 1) an.waggle = t + 3.5 + Math.random() * 3; else extra = 0.13 * Math.sin(Math.PI * u) * (0.5 - 0.5 * Math.cos(u * Math.PI * 4)) }
   const S = poseSwing(an.swing, svUso, putt, club, extra)
@@ -1637,6 +1654,9 @@ function animarRorro(dt, st, gs, r, mundo) {
   // la cara: parpadea cada tanto; los ojos van un poco para donde gira la cabeza
   if (t > an.parpadeo) { const u = (t - an.parpadeo) / 0.14; if (u >= 1) { an.parpadeo = t + 1.6 + Math.random() * 3.2; an.cara.parpado = 1 } else an.cara.parpado = Math.abs(1 - 2 * u) }
   an.cara.mx = clamp(mirando * 1.2 + (P.cabY - S.cabY) * 0.3, -1, 1); an.cara.my = 0
+  // el pasaje: de la pose que tenía a esta, en un tercio de segundo
+  if (t - an.tPaso < 0.34) { const u = (t - an.tPaso) / 0.34; P = mezclarPose(an.desde, P, u * u * (3 - 2 * u), an.paso) }
+  copiarPose(P, an.previa); an.hayPrevia = true
   aplicarPose(P, club, an.cara)
   // el corrimiento corto (el putt que quedó al lado): no salta, se acomoda
   an.corre.multiplyScalar(Math.exp(-dt / 0.09))
