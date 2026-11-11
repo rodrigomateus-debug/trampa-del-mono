@@ -850,3 +850,14 @@ Solo cambia lo que se ve en la cancha 3D (`cancha3d.js`, `campo3d.js`): el motor
   - Va con el reloj del juego: con el ⏸ DEBUG queda congelado.
 - **El costo**: de 62 a ~110 dibujos por cuadro y de ~250 a ~325 mil triángulos (con la pasada de sombras). Si en algún teléfono se nota: la copa `redondo` (una bocha menos) y `GROSOR_TINTA` (sin trazo, la mitad de las piezas del muñeco).
 - Probado: `test-motor` verde; en el navegador (sin placa de video), la vuelta con Rorro desde el tee (subida, final, mirar, llegar, lamentarse), el putt, las skins `pastel` y `pinar`, y la nieve.
+
+## 🥃 Los palos y las zapatillas de Rorro, rehechos (2026-11-11, pedido de Rorro)
+Tercera pasada del muñeco, mirando de cerca lo que quedaba (`cancha3d.js`; nada del motor).
+- **Lo que estaba mal.** Los palos: las cabezas eran bloques negros (un material metálico sin entorno que reflejar sale negro), el hierro y el wedge la misma caja, el putter otra caja, el driver un medio huevo sin cara; la vara entraba por el medio de la cabeza, había un cilindro suelto de costado y el trazo de tinta se abría en pinchos en los cantos. Las zapatillas: una salchicha negra sobre una tabla blanca más ancha que el pie, la lengüeta flotando, sin cordones, y al levantar el talón giraba entera sobre la punta, como un esquí.
+- **Los palos** (cada cabeza en su espacio: la cara a +x, la suela en y = 0, el largo en z del talón a la punta; `HOSEL`: dónde entra la vara; la pelota sigue saliendo del x máximo de la malla principal, `CARA`):
+  - **Driver**: la pera grande, con la cara plana plateada y sus estrías, la corona negra con la marca de apuntar, la suela bordó y el cuello. Vara de grafito (negra).
+  - **Hierro y wedge** (`hoja`): la hoja más alta en la punta, con el loft (el wedge más abierto, más alto y satinado), las estrías, la cavidad de atrás con su barra bordó y el cuello en el talón. Vara de acero.
+  - **Putter**: un mallet (la barra de la cara con el inserto bordó, la media luna de atrás, la línea de apuntar blanca y dos guías).
+  - La virola negra donde la vara entra al cuello y la tapa bordó del grip. El acero va claro, poco metálico y con algo de luz propia. `normalesSuaves`: el trazo de tinta de las piezas de cantos vivos, sin pinchos.
+- **Las zapatillas de golf** (`tubo`: un cuerpo hecho de secciones): negras, con la forma del pie, la entresuela blanca, la suela de goma con **tapones** (se ven cuando levanta el talón), la puntera, el talón bordó, la boca, la lengüeta, cuatro pasadas de cordones y el moño. **Son dos piezas, como el pie**: la punta queda apoyada y el resto se levanta sobre la bola del pie (`PIE.bola`). La botamanga cae sobre la zapatilla.
+- Probado: `test-motor` verde; en el navegador, los cuatro palos de cerca desde tres lados, las zapatillas apoyadas y con el talón levantado en el final del swing, y un tiro real con Rorro.

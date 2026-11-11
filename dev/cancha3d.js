@@ -944,7 +944,7 @@ const MAT = {
   cuello: new THREE.MeshStandardMaterial({ color: '#661b29', roughness: 0.85, side: THREE.DoubleSide, emissive: '#661b29', emissiveIntensity: 0.2 }),
   pantalon: new THREE.MeshStandardMaterial({ color: '#ffffff', map: telaTextura('#23252c', 'rgba(255,255,255,.04)', 3, 'sarga'), roughness: 0.82, emissive: '#23252c', emissiveIntensity: 0.25 }),
   cinto: new THREE.MeshStandardMaterial({ color: '#111111', roughness: 0.45, metalness: 0.1 }),
-  hebilla: new THREE.MeshStandardMaterial({ color: '#c9ccd1', roughness: 0.25, metalness: 0.9 }),
+  hebilla: new THREE.MeshStandardMaterial({ color: '#c9ccd1', roughness: 0.3, metalness: 0.3, emissive: '#c9ccd1', emissiveIntensity: 0.2 }),
   piel: new THREE.MeshStandardMaterial({ color: '#ffffff', map: pielTextura(), roughness: 0.62, emissive: '#dba785', emissiveIntensity: 0.22 }), // (un poco de luz propia: de espaldas al sol no queda negro)
   barba: new THREE.MeshStandardMaterial({ color: '#ffffff', map: barbaTextura(), roughness: 1, emissive: '#4b3a2e', emissiveIntensity: 0.25 }),
   pelo: new THREE.MeshStandardMaterial({ color: '#2b1f17', roughness: 0.95 }),
@@ -957,16 +957,21 @@ const MAT = {
   logo: new THREE.MeshStandardMaterial({ color: '#e9e9e9', roughness: 0.6 }),
   costura: new THREE.MeshStandardMaterial({ color: '#34373f', roughness: 0.8, emissive: '#34373f', emissiveIntensity: 0.3 }),
   bordado: new THREE.MeshStandardMaterial({ map: logoTextura(), transparent: true, alphaTest: 0.35, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -2 }),
-  zapa: new THREE.MeshStandardMaterial({ color: '#17181c', roughness: 0.55 }),
-  suela: new THREE.MeshStandardMaterial({ color: '#f1f1ee', roughness: 0.7 }),
+  zapa: new THREE.MeshStandardMaterial({ color: '#202228', roughness: 0.5, emissive: '#202228', emissiveIntensity: 0.3 }),
+  suela: new THREE.MeshStandardMaterial({ color: '#f1f1ee', roughness: 0.7, emissive: '#f1f1ee', emissiveIntensity: 0.12 }),
+  goma: new THREE.MeshStandardMaterial({ color: '#3b3d44', roughness: 0.9 }), // la suela de abajo y los tapones
   media: new THREE.MeshStandardMaterial({ color: '#2a2b30', roughness: 0.9 }),
+  bordo: new THREE.MeshStandardMaterial({ color: '#8a2536', roughness: 0.6, emissive: '#8a2536', emissiveIntensity: 0.25 }), // el detalle de las zapatillas y los palos (como la chomba)
   guante: new THREE.MeshStandardMaterial({ color: '#f4f2ea', roughness: 0.75 }),
   reloj: new THREE.MeshStandardMaterial({ color: '#0e0e10', roughness: 0.4 }),
   grip: new THREE.MeshStandardMaterial({ color: '#1b1b1d', roughness: 0.8 }),
-  vara: new THREE.MeshStandardMaterial({ color: '#2a2c31', roughness: 0.3, metalness: 0.5 }),
-  varaAcero: new THREE.MeshStandardMaterial({ color: '#c8ccd2', roughness: 0.2, metalness: 0.95 }),
-  driver: new THREE.MeshStandardMaterial({ color: '#16171a', roughness: 0.18, metalness: 0.4 }),
-  hierro: new THREE.MeshStandardMaterial({ color: '#d6d9de', roughness: 0.18, metalness: 0.95 }),
+  // (sin entorno que reflejar, un material metálico sale negro: el acero va claro, poco metálico y con algo de luz propia)
+  vara: new THREE.MeshStandardMaterial({ color: '#2a2c31', roughness: 0.35, metalness: 0.2 }),
+  varaAcero: new THREE.MeshStandardMaterial({ color: '#d5d9de', roughness: 0.28, metalness: 0.3, emissive: '#d5d9de', emissiveIntensity: 0.2 }),
+  driver: new THREE.MeshStandardMaterial({ color: '#1c1e24', roughness: 0.22, metalness: 0.15, emissive: '#1c1e24', emissiveIntensity: 0.35 }),
+  hierro: new THREE.MeshStandardMaterial({ color: '#d3d7dc', roughness: 0.26, metalness: 0.3, emissive: '#d3d7dc', emissiveIntensity: 0.2 }),
+  satinado: new THREE.MeshStandardMaterial({ color: '#aeb3ba', roughness: 0.5, metalness: 0.25, emissive: '#aeb3ba', emissiveIntensity: 0.18 }), // el wedge y el putter
+  oscuro: new THREE.MeshStandardMaterial({ color: '#3d4048', roughness: 0.6 }), // las estrías, la cavidad
 }
 /**
  * El trazo de tinta, como los dibujos del juego: cada pieza del muñeco se dibuja otra vez, un poco inflada, del revés
@@ -975,6 +980,37 @@ const MAT = {
 const GROSOR_TINTA = 0.011
 const matTinta = new THREE.MeshBasicMaterial({ color: '#0c2016', side: THREE.BackSide })
 matTinta.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\n  transformed += normalize(normal) * ${GROSOR_TINTA};`) }
+/**
+ * Las normales de una malla de cantos vivos, promediadas en cada punto (para el trazo de tinta: con las normales de
+ * cada cara, al inflarla los cantos se abren y salen pinchos).
+ */
+function normalesSuaves(geo) {
+  const g = geo.clone(), p = g.attributes.position, n = g.attributes.normal, suma = new Map()
+  const clave = (i) => `${Math.round(p.getX(i) * 2e4)},${Math.round(p.getY(i) * 2e4)},${Math.round(p.getZ(i) * 2e4)}`
+  for (let i = 0; i < p.count; i++) { const k = clave(i), a = suma.get(k) ?? [0, 0, 0]; a[0] += n.getX(i); a[1] += n.getY(i); a[2] += n.getZ(i); suma.set(k, a) }
+  for (let i = 0; i < p.count; i++) { const a = suma.get(clave(i)), l = Math.hypot(a[0], a[1], a[2]) || 1; n.setXYZ(i, a[0] / l, a[1] / l, a[2] / l) }
+  return g
+}
+/**
+ * Un cuerpo a lo largo de z hecho de secciones: cada una, un óvalo de medio ancho `w` y alto `h` apoyado en `y`
+ * (`n`: 2 un óvalo, más alto más cuadrado). Cerrado en las dos puntas y con normales suaves. Para las zapatillas.
+ */
+function tubo(secs, n = 2.2, seg = 16) {
+  const pos = [], idx = [], sp = (v) => Math.sign(v) * Math.abs(v) ** (2 / n)
+  for (const c of secs) for (let i = 0; i < seg; i++) { const a = (i / seg) * Math.PI * 2; pos.push(c.w * sp(Math.cos(a)), c.y + c.h / 2 + (c.h / 2) * sp(Math.sin(a)), c.z) }
+  for (let j = 0; j < secs.length - 1; j++) for (let i = 0; i < seg; i++) {
+    const a = j * seg + i, b = j * seg + ((i + 1) % seg), c = a + seg, d = b + seg
+    idx.push(a, b, c, b, d, c)
+  }
+  // las tapas
+  const u = secs.length - 1, c0 = pos.length / 3
+  pos.push(0, secs[0].y + secs[0].h / 2, secs[0].z, 0, secs[u].y + secs[u].h / 2, secs[u].z)
+  for (let i = 0; i < seg; i++) { idx.push(c0, (i + 1) % seg, i); idx.push(c0 + 1, u * seg + i, u * seg + ((i + 1) % seg)) }
+  const g = new THREE.BufferGeometry()
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx)
+  g.computeVertexNormals()
+  return g
+}
 /** Una cápsula de `largo` entre 0 e y=largo (para ponerla entre dos puntos con `entre`). */
 const capsula = (r, largo, seg = 10) => new THREE.CapsuleGeometry(r, Math.max(0.001, largo), 4, seg).translate(0, largo / 2, 0)
 /** Un hueso: de radio `r0` en y = 0 a `r1` en y = 1 (se estira con `scale.y` al largo de cada cuadro). */
@@ -999,7 +1035,9 @@ const INCLINA = (34 * Math.PI) / 180 // parado a la pelota: la columna, hacia ad
 // los huesos (en metros) y dónde va cada cosa
 const HUESO = { muslo: 0.46, canilla: 0.45, brazo: 0.3, ante: 0.27 }
 const CADERA = V3(0, 0.93, -0.06), ANCA = 0.1, HOMBRO = 0.53, ANCHO = 0.2
-const PIE = { x: 0.17, z: -0.03, yaw: 0.14, punta: 0.19, tobillo: V3(0, 0.09, -0.21) } // (la punta: donde pivotea al levantar el talón)
+// (la zapatilla se dobla donde se dobla el pie: `punta` es la punta de la zapatilla y `bola` dónde pivotea al levantar
+// el talón, los dos desde el origen del pie; `tobillo`, desde ese pivote)
+const PIE = { x: 0.17, z: -0.03, yaw: 0.14, punta: 0.19, bola: 0.095, tobillo: V3(0, 0.09, -0.115) }
 const rorro = (() => {
   const g = new THREE.Group()
   g.visible = false
@@ -1007,20 +1045,51 @@ const rorro = (() => {
   const tinta = []
   const add = (geo, mat, padre = g, borde = true) => {
     const m = new THREE.Mesh(geo, mat); m.castShadow = true; padre.add(m)
-    if (borde) { const t = new THREE.Mesh(geo, matTinta); m.add(t); tinta.push(t) }
+    if (borde) { const t = new THREE.Mesh(borde === 'suave' ? normalesSuaves(geo) : geo, matTinta); m.add(t); tinta.push(t) } // ('suave': para las piezas de cantos vivos)
     return m
   }
   // las piernas (con IK: de la cadera al tobillo) y las zapatillas (cada una gira sobre la punta)
   const piernas = [-1, 1].map((s) => {
     const muslo = add(hueso(0.09, 0.068), MAT.pantalon), rodilla = add(new THREE.SphereGeometry(0.068, 14, 10), MAT.pantalon, g, false)
-    const canilla = add(hueso(0.066, 0.05), MAT.pantalon)
+    const canilla = add(hueso(0.066, 0.054), MAT.pantalon) // (la botamanga, sobre la zapatilla)
+    // la zapatilla de golf: negra, con la entresuela blanca, la suela de goma con tapones, los cordones, la lengüeta y
+    // el talón bordó. Son dos piezas, como el pie: la punta (queda apoyada) y el resto, que se levanta sobre la bola
+    // del pie (antes giraba entera sobre la punta, como una tabla). Las medidas, desde la punta (z = 0) para atrás
     const pie = new THREE.Group(); g.add(pie)
-    const talon = new THREE.Group(); talon.position.set(0, 0, PIE.punta); pie.add(talon)
-    const media = add(new THREE.CylinderGeometry(0.048, 0.05, 0.07, 12), MAT.media, talon); media.position.copy(PIE.tobillo).add(V3(0, 0.0, 0))
-    const capellada = add(new THREE.CapsuleGeometry(0.052, 0.2, 5, 12).rotateX(Math.PI / 2).scale(1.08, 0.9, 1), MAT.zapa, talon); capellada.position.set(0, 0.062, -0.135)
-    const lengua = add(new THREE.BoxGeometry(0.05, 0.02, 0.09), MAT.suela, talon, false); lengua.position.set(0, 0.108, -0.1); lengua.rotation.x = -0.35
-    const suela = add(new THREE.BoxGeometry(0.118, 0.03, 0.32), MAT.suela, talon); suela.position.set(0, 0.015, -0.15)
-    return { s, muslo, rodilla, canilla, pie, talon }
+    const punta = new THREE.Group(); punta.position.set(0, 0, PIE.punta); pie.add(punta)
+    const talon = new THREE.Group(); talon.position.set(0, 0, PIE.bola); pie.add(talon)
+    const atras = new THREE.Group(); atras.position.set(0, 0, PIE.punta - PIE.bola); talon.add(atras) // (en `atras`, también desde la punta)
+    const sube = (z) => 3.2 * Math.max(0, z + 0.075) ** 2 // la punta, un poco levantada
+    const forma = (z) => 0.056 * (z < -0.2 ? lerp(0.74, 0.86, ss(-0.31, -0.2, z)) : z < -0.09 ? lerp(0.86, 1, ss(-0.2, -0.09, z)) : lerp(1, 0.9, ss(-0.09, -0.02, z))) // el ancho del pie
+    // (`puntas`: cuál de las dos puntas de la pieza se redondea: −1 la de atrás, 1 la de adelante, 0 las dos. En la unión
+    // de las dos piezas no se redondea: apoyadas, la zapatilla se ve entera)
+    const corte = (zs, f, puntas = 0) => zs.map((z, i) => ({ z, ...f(z, i === 0 && puntas <= 0 ? -1 : i === zs.length - 1 && puntas >= 0 ? 1 : 0) }))
+    const cerrar = (k) => (k ? 0.55 : 1) // (en las puntas, la sección se achica: queda redondo)
+    // la entresuela (blanca) y la suela de goma, de las dos piezas
+    const zsA = [-0.312, -0.3, -0.27, -0.22, -0.17, -0.12, -0.088], zsP = [-0.1, -0.075, -0.05, -0.025, -0.006, 0.006]
+    const entresuela = (z, k) => ({ w: forma(z) * cerrar(k) * 1.03, h: lerp(0.03, 0.022, ss(-0.3, -0.06, z)), y: 0.006 + sube(z) })
+    const goma = (z, k) => ({ w: forma(z) * cerrar(k) * 0.97, h: 0.009, y: sube(z) })
+    add(tubo(corte(zsA, entresuela, -1), 3.2), MAT.suela, atras); add(tubo(corte(zsP, entresuela, 1), 3.2), MAT.suela, punta)
+    add(tubo(corte(zsA, goma, -1), 3.2), MAT.goma, atras, false); add(tubo(corte(zsP, goma, 1), 3.2), MAT.goma, punta, false)
+    // los tapones (se ven cuando levanta el talón)
+    for (const [x, z, donde] of [[-0.022, -0.27, atras], [0.022, -0.27, atras], [-0.028, -0.2, atras], [0.028, -0.2, atras], [-0.03, -0.12, atras], [0.03, -0.12, atras], [-0.026, -0.05, punta], [0.026, -0.05, punta], [0, -0.02, punta]]) {
+      const t = add(new THREE.CylinderGeometry(0.0075, 0.0055, 0.008, 8), MAT.bordo, donde, false); t.position.set(x, sube(z) - 0.003, z)
+    }
+    // la capellada: del talón (alto, con la boca de la zapatilla) al empeine y la punta redonda
+    const alto = (z) => (z < -0.23 ? lerp(0.07, 0.088, ss(-0.31, -0.25, z)) : lerp(0.088, 0.04, ss(-0.23, -0.02, z) ** 0.85))
+    const capellada = (z, k) => ({ w: forma(z) * cerrar(k) * 0.93, h: alto(z) * (k ? 0.7 : 1), y: 0.024 + sube(z) })
+    add(tubo(corte([-0.306, -0.295, -0.27, -0.23, -0.19, -0.15, -0.11, -0.082], capellada, -1), 2.4), MAT.zapa, atras)
+    add(tubo(corte([-0.105, -0.08, -0.055, -0.03, -0.01, 0.003], capellada, 1), 2.4), MAT.zapa, punta)
+    // la puntera (un refuerzo apenas más claro), el talón bordó y la boca con la media que asoma
+    const puntera = add(tubo(corte([-0.05, -0.03, -0.01, 0.0045], (z, k) => ({ w: forma(z) * cerrar(k) * 0.95, h: alto(z) * (k > 0 ? 0.7 : 1) * 0.8, y: 0.023 + sube(z) })), 2.4), MAT.goma, punta, false)
+    const contrafuerte = add(tubo(corte([-0.309, -0.298, -0.28, -0.262], (z, k) => ({ w: forma(z) * cerrar(k) * 0.955, h: 0.062, y: 0.026 })), 2.4), MAT.bordo, atras, false)
+    const boca = add(new THREE.TorusGeometry(0.041, 0.009, 8, 18).rotateX(Math.PI / 2).scale(1, 1, 1.25), MAT.zapa, atras, false); boca.position.set(0, 0.108, -0.212)
+    const media = add(new THREE.CylinderGeometry(0.036, 0.036, 0.05, 14), MAT.media, atras, false); media.position.set(0, 0.118, -0.212)
+    // la lengüeta y los cordones (cuatro pasadas y el moño)
+    const lengua = add(new THREE.BoxGeometry(0.044, 0.012, 0.075).translate(0, 0, 0.0375), MAT.zapa, atras, 'suave'); lengua.position.set(0, 0.118, -0.2); lengua.rotation.x = 0.27
+    for (let i = 0; i < 4; i++) { const z = -0.17 + i * 0.024, c = add(new THREE.CapsuleGeometry(0.0042, 0.05, 3, 6).rotateZ(Math.PI / 2), MAT.suela, atras, false); c.position.set(0, 0.024 + alto(z) + 0.001, z); c.rotation.y = (i % 2 ? 1 : -1) * 0.28 }
+    for (const d of [-1, 1]) { const m = add(new THREE.TorusGeometry(0.011, 0.003, 5, 10), MAT.suela, atras, false); m.position.set(d * 0.012, 0.118, -0.186); m.rotation.set(Math.PI / 2 - 0.3, 0, d * 0.5) }
+    return { s, muslo, rodilla, canilla, pie, talon, punta }
   })
   // la cadera y el cinto
   const pelvis = new THREE.Group(); pelvis.position.copy(CADERA); g.add(pelvis)
@@ -1112,9 +1181,9 @@ const rorro = (() => {
       // del arco de la copa (r = 0) al borde de afuera (r = 1): más larga al medio, se cierra en las puntas
       const sale = LARGO * Math.cos((t / A) * Math.PI / 2) ** 0.6 * r
       const x = (R0 + sale * 0.25) * Math.sin(t), z = R0 * 1.04 * Math.cos(t) + sale
-      const borde = Math.sin(Math.PI * r) ** 0.5 * Math.cos((t / A) * Math.PI / 2) ** 0.35 // (el grosor: cero en todo el contorno)
+      const grueso = Math.sin(Math.PI * r) ** 0.5 * Math.cos((t / A) * Math.PI / 2) ** 0.35 // (el grosor: cero en todo el contorno)
       // curva: baja a los costados y apenas hacia la punta
-      const y = -1.9 * x * x - 0.55 * sale * sale * 10 * 0.1 + (abajo ? -0.0085 * borde : 0.0015 * borde)
+      const y = -1.9 * x * x - 0.55 * sale * sale * 10 * 0.1 + (abajo ? -0.0085 * grueso : 0.0015 * grueso)
       pos.push(x, y, z)
     }
     for (const abajo of [false, true]) for (let j = 0; j <= NR; j++) for (let i = 0; i <= NT; i++) punto(i, j, abajo)
@@ -1154,24 +1223,85 @@ const rorro = (() => {
     const reloj = s > 0 ? add(new THREE.CylinderGeometry(0.041, 0.041, 0.03, 12), MAT.reloj, g, false) : null
     return { s, brazo, hombro, manga, codo, ante, mano, reloj }
   })
-  // el palo: el grip, la vara y la cabeza (driver, hierro, wedge o putter)
+  // el palo: el grip (con su tapa), la vara (de grafito en el driver, de acero en los demás) con la virola, y la cabeza
   const palo = new THREE.Group(); g.add(palo)
-  const grip = add(new THREE.CylinderGeometry(0.014, 0.012, 0.26, 10).translate(0, -0.03, 0), MAT.grip, palo, false)
-  const vara = add(new THREE.CylinderGeometry(0.0085, 0.006, 1, 8).translate(0, 0.5, 0), MAT.vara, palo, false)
-  const cabezas = {
-    driver: add(new THREE.SphereGeometry(0.06, 20, 14).scale(0.9, 0.55, 1.15), MAT.driver, palo),
-    // (la cara mira al objetivo, +x: lo largo de la cabeza va de talón a punta, cruzado a la línea; antes iba a lo
-    // largo de la línea y se le pegaba con la punta)
-    hierro: add(new THREE.BoxGeometry(0.02, 0.045, 0.075), MAT.hierro, palo),
-    wedge: add(new THREE.BoxGeometry(0.02, 0.055, 0.075), MAT.hierro, palo),
-    putter: add(new THREE.BoxGeometry(0.032, 0.028, 0.11), MAT.hierro, palo),
+  const grip = add(new THREE.CylinderGeometry(0.0145, 0.0115, 0.27, 12).translate(0, -0.025, 0), MAT.grip, palo, false)
+  const tapa = add(new THREE.CylinderGeometry(0.0125, 0.0148, 0.012, 12), MAT.bordo, palo, false); tapa.position.y = -0.166
+  const vara = add(new THREE.CylinderGeometry(0.0085, 0.0062, 1, 10).translate(0, 0.5, 0), MAT.vara, palo, false)
+  // Las cabezas, cada una en su espacio: la cara mira a +x (el objetivo), la suela apoya en y = 0 y el largo va en z,
+  // del talón (−z, del lado de Rorro) a la punta; z = 0 es el medio de la cara (ahí va la pelota). La malla principal
+  // termina en la cara (su x máximo: de ahí sale dónde va la pelota, `CARA`). `HOSEL`: dónde entra la vara, a 2,2 cm
+  // de la suela (con la suela apoyada, la punta de la vara queda a esa altura)
+  const HOSEL = { driver: V3(-0.03, 0.022, -0.04), hierro: V3(-0.009, 0.022, -0.041), wedge: V3(-0.012, 0.022, -0.042), putter: V3(-0.011, 0.022, -0.03) }
+  const cabezas = {}
+  // el cuello: sigue a la vara (que sube inclinada hacia Rorro según el lie de cada palo)
+  const cuelloDe = (k, largo, r, mat) => {
+    const lie = PALOS[k].lie, c = add(new THREE.CylinderGeometry(r * 0.82, r, largo, 10).translate(0, largo / 2, 0), mat, cabezas[k], false)
+    c.position.copy(HOSEL[k]); c.quaternion.setFromUnitVectors(_Y, V3(0, Math.sin(lie), -Math.cos(lie)))
+    const virola = add(new THREE.CylinderGeometry(r * 0.7, r * 0.86, 0.016, 10).translate(0, largo + 0.008, 0), MAT.grip, cabezas[k], false) // (la virola negra, donde la vara entra al cuello)
+    virola.position.copy(c.position); virola.quaternion.copy(c.quaternion)
   }
-  // (los detalles: la cara plateada y la marca del driver; el cuello de los hierros; la línea de apuntar del putter)
-  const caraDriver = add(new THREE.SphereGeometry(0.06, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.32).rotateZ(-Math.PI / 2).scale(0.905, 0.5, 1.08), MAT.hierro, cabezas.driver, false)
-  const marcaDriver = add(new THREE.BoxGeometry(0.03, 0.002, 0.006), MAT.logo, cabezas.driver, false); marcaDriver.position.set(0.012, 0.0325, 0)
-  for (const k of ['hierro', 'wedge', 'putter']) { const c = add(new THREE.CylinderGeometry(0.0075, 0.0075, 0.05, 8), MAT.hierro, cabezas[k], false); c.position.set(k === 'putter' ? 0 : -0.002, 0.04, k === 'putter' ? -0.04 : -0.03) }
-  const lineaPutter = add(new THREE.BoxGeometry(0.026, 0.0012, 0.004), MAT.logo, cabezas.putter, false); lineaPutter.position.y = 0.0145 // (la línea de apuntar, a la pelota)
+  { // el driver: la cabeza grande de pera, con la cara plana plateada, la corona negra con su marca y la suela bordó
+    const geo = new THREE.SphereGeometry(1, 28, 18).scale(0.052, 0.031, 0.059).translate(-0.043, 0.03, 0.004)
+    const q = geo.attributes.position
+    for (let i = 0; i < q.count; i++) {
+      let x = q.getX(i), y = q.getY(i), z = q.getZ(i)
+      const atras = ss(-0.02, -0.095, x) // para atrás se afina y baja (la pera)
+      z *= 1 - 0.22 * atras; y = Math.max(0.0015, y * (1 - 0.3 * atras))
+      q.setXYZ(i, Math.min(x, 0), y, z) // (la cara, plana)
+    }
+    geo.computeVertexNormals()
+    cabezas.driver = add(geo, MAT.driver, palo)
+    const cara = add(new THREE.CylinderGeometry(0.0225, 0.0225, 0.0016, 20).rotateZ(Math.PI / 2).scale(1, 1, 1.8), MAT.hierro, cabezas.driver, false); cara.position.set(-0.0002, 0.029, 0.004)
+    for (let i = -1; i <= 1; i++) { const e = add(new THREE.BoxGeometry(0.001, 0.002, 0.046), MAT.oscuro, cabezas.driver, false); e.position.set(0.0008, 0.029 + i * 0.008, 0.004) }
+    const suela = add(new THREE.SphereGeometry(1, 20, 8, 0, Math.PI * 2, Math.PI * 0.62, Math.PI * 0.38).scale(0.046, 0.03, 0.05), MAT.bordo, cabezas.driver, false); suela.position.set(-0.045, 0.0305, 0.004)
+    const marca = add(new THREE.BoxGeometry(0.014, 0.0016, 0.0045), MAT.logo, cabezas.driver, false); marca.position.set(-0.012, 0.0598, 0.004); marca.rotation.z = -0.12
+    cuelloDe('driver', 0.05, 0.0085, MAT.driver)
+  }
+  // los hierros: la hoja (más alta en la punta) con la cara inclinada para atrás (el loft), las estrías y la cavidad
+  const hoja = (k, { loft, largo, alto, grosor, mat }) => {
+    const f = new THREE.Shape(), L2 = largo / 2
+    // (visto de frente: z a lo largo, y para arriba)
+    f.moveTo(-L2, 0.006); f.quadraticCurveTo(-L2, 0, -L2 + 0.008, 0); f.lineTo(L2 - 0.014, 0); f.quadraticCurveTo(L2, 0.001, L2, 0.016)
+    f.lineTo(L2, alto - 0.01); f.quadraticCurveTo(L2, alto, L2 - 0.012, alto - 0.001); f.lineTo(-L2 + 0.004, alto * 0.62); f.quadraticCurveTo(-L2, alto * 0.6, -L2, alto * 0.5); f.closePath()
+    const geo = new THREE.ExtrudeGeometry(f, { depth: grosor, bevelEnabled: true, bevelSize: 0.0016, bevelThickness: 0.0016, bevelSegments: 1, curveSegments: 5 })
+    // (la forma está en x–y con el grosor en z: se pasa a z–y con el grosor en x, la cara en x = 0)
+    geo.rotateY(-Math.PI / 2).translate(0.0016, 0, 0).scale(1, 1, -1)
+    { const ix = geo.index ? geo.index.array : null; if (ix) for (let i = 0; i < ix.length; i += 3) { const t = ix[i + 1]; ix[i + 1] = ix[i + 2]; ix[i + 2] = t } else { const q = geo.attributes.position.array; for (let i = 0; i < q.length; i += 9) for (let j = 0; j < 3; j++) { const t = q[i + 3 + j]; q[i + 3 + j] = q[i + 6 + j]; q[i + 6 + j] = t } } }
+    const t = Math.tan(loft), q = geo.attributes.position
+    for (let i = 0; i < q.count; i++) q.setX(i, q.getX(i) - q.getY(i) * t) // el loft: arriba, para atrás
+    geo.computeVertexNormals()
+    cabezas[k] = add(geo, mat, palo, 'suave')
+    const inclinada = (m, x, y, z) => { m.position.set(x - y * t, y, z); m.rotation.z = Math.atan(t) }
+    for (let i = 0; i < 4; i++) { const y = alto * (0.2 + i * 0.13), e = add(new THREE.BoxGeometry(0.0012, 0.0026, largo * 0.56), MAT.oscuro, cabezas[k], false); inclinada(e, 0.0014, y, 0.002) }
+    const cavidad = add(new THREE.BoxGeometry(0.002, alto * 0.36, largo * 0.6), MAT.oscuro, cabezas[k], false); inclinada(cavidad, -grosor - 0.0014, alto * 0.42, 0.004)
+    const barra = add(new THREE.BoxGeometry(0.0022, alto * 0.1, largo * 0.6), MAT.bordo, cabezas[k], false); inclinada(barra, -grosor - 0.0016, alto * 0.16, 0.004)
+    cuelloDe(k, 0.055, 0.0078, mat)
+  }
+  hoja('hierro', { loft: 0.42, largo: 0.08, alto: 0.05, grosor: 0.011, mat: MAT.hierro })
+  hoja('wedge', { loft: 0.8, largo: 0.084, alto: 0.06, grosor: 0.012, mat: MAT.satinado }) // más abierto, más alto y satinado
+  { // el putter: un mallet. La barra de la cara con su inserto bordó, la media luna de atrás y la línea de apuntar
+    const f = new THREE.Shape()
+    f.moveTo(0, -0.054); f.lineTo(0, 0.054); f.lineTo(-0.016, 0.054); f.quadraticCurveTo(-0.022, 0.05, -0.03, 0.04)
+    f.quadraticCurveTo(-0.07, 0.03, -0.07, 0); f.quadraticCurveTo(-0.07, -0.03, -0.03, -0.04); f.quadraticCurveTo(-0.022, -0.05, -0.016, -0.054); f.closePath()
+    // (la forma está vista de arriba: x para atrás de la cara, el largo en "y" → se acuesta, el largo a z y el alto a y)
+    const geo = new THREE.ExtrudeGeometry(f, { depth: 0.022, bevelEnabled: true, bevelSize: 0.0016, bevelThickness: 0.0016, bevelSegments: 1, curveSegments: 6 }).rotateX(-Math.PI / 2).scale(1, 1, -1).translate(-0.0016, 0.0016, 0)
+    { const q = geo.attributes.position.array; if (!geo.index) for (let i = 0; i < q.length; i += 9) for (let j = 0; j < 3; j++) { const t = q[i + 3 + j]; q[i + 3 + j] = q[i + 6 + j]; q[i + 6 + j] = t } else { const ix = geo.index.array; for (let i = 0; i < ix.length; i += 3) { const t = ix[i + 1]; ix[i + 1] = ix[i + 2]; ix[i + 2] = t } } }
+    geo.computeVertexNormals()
+    cabezas.putter = add(geo, MAT.satinado, palo, 'suave')
+    const inserto = add(new THREE.BoxGeometry(0.0016, 0.014, 0.062), MAT.bordo, cabezas.putter, false); inserto.position.set(0.0004, 0.013, 0)
+    const linea = add(new THREE.BoxGeometry(0.058, 0.0014, 0.0045), MAT.logo, cabezas.putter, false); linea.position.set(-0.036, 0.0255, 0) // (la línea de apuntar, a la pelota)
+    for (const d of [-1, 1]) { const l = add(new THREE.BoxGeometry(0.03, 0.0014, 0.0022), MAT.oscuro, cabezas.putter, false); l.position.set(-0.03, 0.0255, d * 0.014) }
+    cuelloDe('putter', 0.06, 0.0068, MAT.satinado)
+  }
   for (const m of Object.values(cabezas)) m.scale.multiplyScalar(CABEZA_PALO) // arcade: los palos con cabezas grandes, para la pelota grande
+  // (cada cabeza, derecha: la suela plana en el piso y la cara al objetivo con el palo apoyado; y corrida para que la
+  // vara entre por el cuello)
+  for (const [k, m] of Object.entries(cabezas)) {
+    const { L, lie } = PALOS[k], c0 = V3(0, -Math.sin(lie), Math.cos(lie))
+    m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(V3(1, 0, 0), c0, V3(1, 0, 0).cross(c0))).invert()
+    m.position.set(0, L, 0).sub(HOSEL[k].clone().multiplyScalar(CABEZA_PALO).applyQuaternion(m.quaternion))
+  }
   g.scale.setScalar(ESCALA_RORRO)
   return { g, pelvis, columna, lumbar, pecho, torso: pecho, cabeza, piernas, brazos, palo, grip, vara, cabezas, ojos, cejas, boca, dientes, sonrisa, tinta, HOMBRO, ANCHO, INCLINA, cadera: CADERA }
 })()
@@ -1347,7 +1477,7 @@ function aplicarPose(P, tipo, cara = null) {
     const izq = p.s > 0, lift = izq ? P.liftL : P.liftR, yaw = p.s * PIE.yaw + (izq ? P.yawL : P.yawR)
     p.pie.position.set(p.s * PIE.x, 0, PIE.z); p.pie.rotation.y = yaw; p.talon.rotation.x = lift
     // el tobillo: sobre la punta, con el talón levantado
-    const ty = PIE.tobillo.y * Math.cos(lift) - PIE.tobillo.z * Math.sin(lift), tz = PIE.tobillo.y * Math.sin(lift) + PIE.tobillo.z * Math.cos(lift) + PIE.punta
+    const ty = PIE.tobillo.y * Math.cos(lift) - PIE.tobillo.z * Math.sin(lift), tz = PIE.tobillo.y * Math.sin(lift) + PIE.tobillo.z * Math.cos(lift) + PIE.bola
     _T.set(p.s * PIE.x + Math.sin(yaw) * tz, ty, PIE.z + Math.cos(yaw) * tz)
     aLocal(R.pelvis.localToWorld(_S.set(p.s * ANCA, -0.02, 0)))
     const a = P.hip * 0.8 + yaw * 0.5
@@ -1383,14 +1513,8 @@ function aplicarPose(P, tipo, cara = null) {
     if (izq) { R.palo.position.copy(_F).addScaledVector(_cd, 0.02); R.palo.quaternion.copy(P.Q) }
   }
   R.vara.scale.y = L
-  const lie = PALOS[club].lie
-  for (const [k, m] of Object.entries(R.cabezas)) {
-    m.visible = k === club
-    if (!m.visible) continue
-    // la cabeza, apoyada en la punta de la vara, con la cara al objetivo
-    m.position.set(0, L + 0.02, k === 'driver' ? 0.045 : k === 'putter' ? 0.04 : 0.03)
-    m.quaternion.setFromAxisAngle(_X, lie - Math.PI / 2) // la suela plana en el piso
-  }
+  for (const [k, m] of Object.entries(R.cabezas)) m.visible = k === club // (cada cabeza ya está en su lugar en la punta de la vara)
+  R.vara.material = club === 'driver' ? MAT.vara : MAT.varaAcero
   // la cara: la boca (cerrada, una raya), los dientes al reírse, las cejas (para adentro: concentrado; para afuera:
   // se lamenta) y el parpadeo
   const boca = clamp(P.boca, 0, 1)
