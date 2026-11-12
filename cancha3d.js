@@ -1085,6 +1085,57 @@ function entre(obj, a, b) {
   obj.quaternion.setFromUnitVectors(_Y, _v.normalize())
   return l
 }
+/**
+ * La mano: la palma, cuatro dedos de dos falanges y el pulgar, en una sola malla que se abre y se cierra (un morph:
+ * la base es la mano suelta, apenas curvada; el destino, el puño, que es también la mano agarrando el palo). En su
+ * espacio: de la muñeca (el origen) a los dedos va +y, el pulgar sale para +x y la palma mira a +z. `espejo`: la otra
+ * mano (la palma a −z). Así cada mano son dos dibujos (ella y su trazo), no una pieza por falange.
+ */
+const MANO = { escala: 1.28, nudillos: 0.086, palma: 0.019 } // (dónde cruza el palo: a la altura de los nudillos, del lado de la palma)
+function manoGeo(espejo) {
+  const M4 = () => new THREE.Matrix4(), Rx = (a) => M4().makeRotationX(a), Rz = (a) => M4().makeRotationZ(a), T = (x, y, z) => M4().makeTranslation(x, y, z)
+  const hacia = (x, y, z) => M4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(_Y, V3(x, y, z).normalize()))
+  const falange = (r, l) => new THREE.CapsuleGeometry(r, l, 3, 8).translate(0, l / 2, 0).toNonIndexed()
+  // la palma: un cuerpo de secciones (más ancha en los nudillos), acostado sobre y
+  const palma = tubo([{ z: -0.004, w: 0.026, h: 0.022, y: -0.011 }, { z: 0.012, w: 0.033, h: 0.027, y: -0.0135 }, { z: 0.05, w: 0.04, h: 0.028, y: -0.014 }, { z: 0.086, w: 0.039, h: 0.024, y: -0.012 }, { z: 0.094, w: 0.034, h: 0.018, y: -0.009 }], 3, 12).rotateX(-Math.PI / 2).scale(1, 1, -1).toNonIndexed()
+  { const q = palma.attributes.position.array; for (let i = 0; i < q.length; i += 9) for (let j = 0; j < 3; j++) { const t = q[i + 3 + j]; q[i + 3 + j] = q[i + 6 + j]; q[i + 6 + j] = t } palma.computeVertexNormals() }
+  const piezas = [{ geo: palma, suelta: M4(), puño: M4() }]
+  // los dedos: del índice (del lado del pulgar) al meñique. Sueltos, apenas curvados y un poco abiertos; en el puño,
+  // enrollados hasta la palma
+  const DEDOS = [{ x: 0.0285, y: 0.088, l: 0.07, r: 0.0108, abre: -0.1 }, { x: 0.0095, y: 0.092, l: 0.078, r: 0.0112, abre: -0.02 }, { x: -0.0095, y: 0.09, l: 0.072, r: 0.0106, abre: 0.05 }, { x: -0.0275, y: 0.083, l: 0.057, r: 0.0096, abre: 0.13 }]
+  DEDOS.forEach((d, i) => {
+    const l1 = d.l * 0.54, l2 = d.l * 0.46
+    const s1 = T(d.x, d.y, 0).multiply(Rz(d.abre)).multiply(Rx(0.22 + i * 0.05)), c1 = T(d.x, d.y, 0).multiply(Rx(1.42))
+    piezas.push({ geo: falange(d.r, l1), suelta: s1, puño: c1 })
+    piezas.push({ geo: falange(d.r * 0.93, l2), suelta: s1.clone().multiply(T(0, l1, 0)).multiply(Rx(0.3 + i * 0.05)), puño: c1.clone().multiply(T(0, l1, 0)).multiply(Rx(1.5)) })
+  })
+  // el pulgar: suelto, abierto para el costado; cerrado, acostado sobre los dedos (a lo largo del palo)
+  {
+    const b = T(0.034, 0.03, 0.008), l1 = 0.036, l2 = 0.03
+    const s1 = b.clone().multiply(hacia(0.72, 0.62, 0.3)), c1 = b.clone().multiply(hacia(0.5, 0.72, 0.5))
+    piezas.push({ geo: falange(0.0125, l1), suelta: s1, puño: c1 })
+    piezas.push({ geo: falange(0.0115, l2), suelta: s1.clone().multiply(T(0, l1, 0)).multiply(Rz(0.25)), puño: c1.clone().multiply(T(0, l1, 0)).multiply(hacia(-0.75, 0.55, 0.35)) })
+  }
+  const n = piezas.reduce((t, q) => t + q.geo.attributes.position.count, 0)
+  const arma = (cual) => {
+    const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3)
+    let o = 0
+    for (const q of piezas) {
+      const g = q.geo.clone().applyMatrix4(q[cual])
+      pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); o += g.attributes.position.count
+    }
+    if (espejo) {
+      for (let i = 2; i < pos.length; i += 3) { pos[i] = -pos[i]; nor[i] = -nor[i] }
+      for (const a of [pos, nor]) for (let i = 0; i < a.length; i += 9) for (let j = 0; j < 3; j++) { const t = a[i + 3 + j]; a[i + 3 + j] = a[i + 6 + j]; a[i + 6 + j] = t }
+    }
+    return [pos, nor]
+  }
+  const [p0, n0] = arma('suelta'), [p1, n1] = arma('puño')
+  const g = new THREE.BufferGeometry()
+  g.setAttribute('position', new THREE.BufferAttribute(p0, 3)); g.setAttribute('normal', new THREE.BufferAttribute(n0, 3))
+  g.morphAttributes.position = [new THREE.BufferAttribute(p1, 3)]; g.morphAttributes.normal = [new THREE.BufferAttribute(n1, 3)]
+  return g
+}
 const PALOS = {
   driver: { L: 1.0, lie: (48 * Math.PI) / 180, x: 0.13 },
   hierro: { L: 0.88, lie: (55 * Math.PI) / 180, x: 0.04 },
@@ -1277,13 +1328,23 @@ const rorro = (() => {
     const manga = add(new THREE.CylinderGeometry(0.076, 0.082, 0.19, 16).translate(0, 0.075, 0), MAT.polo)
     const codo = add(new THREE.SphereGeometry(0.047, 12, 10), MAT.piel, g, false)
     const ante = add(hueso(0.046, 0.036), MAT.piel)
-    // la mano: el puño y el pulgar (la izquierda, con guante)
-    const mano = new THREE.Group(); g.add(mano)
-    const mm = s > 0 ? MAT.guante : MAT.piel
-    add(new THREE.SphereGeometry(0.05, 14, 10).scale(0.86, 1.12, 0.74), mm, mano)
-    const pulgar = add(new THREE.CapsuleGeometry(0.014, 0.03, 3, 8), mm, mano, false); pulgar.position.set(0, 0.03, 0.036); pulgar.rotation.x = 0.5
-    const reloj = s > 0 ? add(new THREE.CylinderGeometry(0.041, 0.041, 0.03, 12), MAT.reloj, g, false) : null
-    return { s, brazo, hombro, manga, codo, ante, mano, reloj }
+    // la mano (`manoGeo`: se abre y se cierra). La izquierda, con el guante: el puño del guante en la muñeca y el
+    // cierre bordó en el dorso. Y el reloj, en la muñeca izquierda: la malla y la caja
+    const mano = new THREE.Group(); mano.scale.setScalar(MANO.escala); g.add(mano)
+    const malla = add(manoGeo(s > 0), s > 0 ? MAT.guante : MAT.piel, mano)
+    const trazo = malla.children[0]
+    if (s > 0) {
+      const puño = add(new THREE.CylinderGeometry(0.03, 0.0285, 0.024, 14).scale(1.12, 1, 0.82), MAT.guante, mano, false); puño.position.y = -0.004
+      const cierre = add(new THREE.BoxGeometry(0.03, 0.022, 0.006), MAT.bordo, mano, false); cierre.position.set(-0.004, 0.03, 0.0155)
+    }
+    let reloj = null
+    if (s > 0) {
+      reloj = new THREE.Group(); g.add(reloj)
+      add(new THREE.CylinderGeometry(0.0375, 0.0385, 0.022, 14), MAT.reloj, reloj, false)
+      const caja = add(new THREE.CylinderGeometry(0.02, 0.02, 0.009, 14).rotateX(Math.PI / 2), MAT.hebilla, reloj, false); caja.position.z = 0.037
+      const esfera = add(new THREE.CylinderGeometry(0.0155, 0.0155, 0.0095, 14).rotateX(Math.PI / 2), MAT.reloj, reloj, false); esfera.position.z = 0.0375
+    }
+    return { s, brazo, hombro, manga, codo, ante, mano, malla, trazo, reloj }
   })
   // el palo: el grip (con su tapa), la vara (de grafito en el driver, de acero en los demás) con la virola, y la cabeza
   const palo = new THREE.Group(); g.add(palo)
@@ -1373,8 +1434,8 @@ const rorro = (() => {
 // (`giro`, sobre la columna), la cabeza, los pies (cuánto se levanta el talón y cuánto gira sobre la punta: L el de
 // adelante, el izquierdo; R el de atrás), el salto, las dos manos (HL, HR, en el espacio del muñeco), el palo (Q: va
 // siempre en la mano izquierda; `agR`: cuánto lo agarra también la derecha) y la cara (`boca`, `ceja`).
-const NUMS = ['px', 'py', 'pz', 'hip', 'incl', 'lado', 'giro', 'cabX', 'cabY', 'cabZ', 'liftL', 'liftR', 'yawL', 'yawR', 'salto', 'agR', 'boca', 'ceja']
-const poseNueva = () => ({ px: 0, py: CADERA.y, pz: CADERA.z, hip: 0, incl: INCLINA, lado: 0, giro: 0, cabX: 0.24, cabY: 0, cabZ: 0, liftL: 0, liftR: 0, yawL: 0, yawR: 0, salto: 0, agR: 1, boca: 0, ceja: 0, HL: V3(), HR: V3(), Q: new THREE.Quaternion() })
+const NUMS = ['px', 'py', 'pz', 'hip', 'incl', 'lado', 'giro', 'cabX', 'cabY', 'cabZ', 'liftL', 'liftR', 'yawL', 'yawR', 'salto', 'agR', 'boca', 'ceja', 'manoR'] // (manoR: la derecha, cuando no está en el palo: 0 abierta, 1 el puño)
+const poseNueva = () => ({ px: 0, py: CADERA.y, pz: CADERA.z, hip: 0, incl: INCLINA, lado: 0, giro: 0, cabX: 0.24, cabY: 0, cabZ: 0, liftL: 0, liftR: 0, yawL: 0, yawR: 0, salto: 0, agR: 1, boca: 0, ceja: 0, manoR: 0.3, HL: V3(), HR: V3(), Q: new THREE.Quaternion() })
 function copiarPose(a, out) { for (const k of NUMS) out[k] = a[k]; out.HL.copy(a.HL); out.HR.copy(a.HR); out.Q.copy(a.Q); return out }
 function mezclarPose(a, b, w, out) {
   for (const k of NUMS) out[k] = a[k] + (b[k] - a[k]) * w
@@ -1434,7 +1495,7 @@ function poseSwing(P, sv, putt, tipo, extra = 0) {
   // los pies: en la subida, el talón de adelante se despega apenas; en el final, el de atrás queda en punta, girado
   P.liftL = 0.16 * b; P.yawL = 0.1 * f
   P.liftR = 1.2 * ss(0.25, 2.3, -phi); P.yawR = 1.05 * ss(0.4, 2.5, -phi)
-  P.salto = 0; P.boca = 0; P.ceja = 0
+  P.salto = 0; P.boca = 0; P.ceja = 0; P.manoR = 0.3
   return P
 }
 /** La mano en la frente, de visera (para mirar lejos), con la cabeza de esta pose. */
@@ -1469,7 +1530,7 @@ const POSES = {
     P.cabX = 0; P.cabY = 0.2; P.cabZ = 0
     if (bola) mirarA(P, bola)
     baston(P, L)
-    if (lejos) enLaCabeza(P, 0.15, 0.085, 0.075, P.HR); else P.HR.set(-0.21, 1.0, 0.03)
+    if (lejos) { enLaCabeza(P, 0.13, 0.075, 0.03, P.HR); P.manoR = 0 } else { P.HR.set(-0.235, 1.03, 0.02); P.manoR = 0.25 } // (de visera, la mano abierta; en la cintura, suelta)
   },
   // adentro: salta dos veces de frente a la cámara, el puño arriba y el palo en alto
   festeja(P, { u, t, L }) {
@@ -1478,7 +1539,7 @@ const POSES = {
     P.salto = 0.2 * salto; P.liftL = 0.7 * salto; P.liftR = 0.7 * salto; P.yawL = 0; P.yawR = -0.5
     P.cabX = -0.22; P.cabY = -0.1; P.cabZ = 0.08 * Math.sin(u * 9); P.boca = 1; P.ceja = -0.6
     const bombeo = u < 1.5 ? 0.5 + 0.5 * Math.sin(u * 14) : 1
-    P.HR.set(-0.34, 1.52 + 0.4 * bombeo, 0.16)
+    P.HR.set(-0.34, 1.52 + 0.4 * bombeo, 0.16); P.manoR = 1
     P.HL.set(0.3, 1.72, -0.02); paloHacia(V3(0.35, 0.9, -0.15), P.Q); P.agR = 0
   },
   // la dejó en el green: el puño corto, "¡vamos!"
@@ -1488,7 +1549,7 @@ const POSES = {
     P.liftL = 0; P.yawL = 0; P.liftR = 0.2; P.yawR = -0.2; P.salto = 0; P.boca = 0.75; P.ceja = -0.4
     P.cabX = 0.05; P.cabY = -0.25; P.cabZ = 0
     baston(P, L)
-    P.HR.set(-0.3, 1.36 - 0.22 * golpe, 0.24)
+    P.HR.set(-0.3, 1.36 - 0.22 * golpe, 0.24); P.manoR = 1
   },
   // al bunker o entre los pinos: se agarra la gorra y niega con la cabeza
   lamenta(P, { u, t, L }) {
@@ -1497,7 +1558,7 @@ const POSES = {
     P.liftL = 0; P.yawL = 0; P.liftR = 0; P.yawR = 0; P.salto = 0; P.boca = 0.35; P.ceja = 1
     P.cabX = 0.42 * cae; P.cabY = 0.3 * Math.sin(u * 8.5) * Math.exp(-u * 1.1); P.cabZ = 0
     baston(P, L, 0.34, 0.84, 0.2)
-    enLaCabeza(P, 0.04, 0.2, 0.06, P.HR)
+    enLaCabeza(P, 0.04, 0.2, 0.06, P.HR); P.manoR = 0.2
   },
   // el deploy con la pelota quieta: la cancha se le mueve abajo de los pies y hace equilibrio, el palo de balancín
   equilibrio(P, { u, t, L }) {
@@ -1506,7 +1567,7 @@ const POSES = {
     P.liftL = 0.25 * Math.max(0, v); P.yawL = 0.2; P.liftR = 0.25 * Math.max(0, -v); P.yawR = -0.2; P.salto = 0; P.boca = 0.6; P.ceja = 0.8
     P.cabX = 0.3; P.cabY = 0.5 * w; P.cabZ = -0.1 * v
     P.HL.set(0.52, 1.28 + 0.14 * v, 0.14); paloHacia(V3(0.75, 0.55 + 0.25 * v, 0.2), P.Q); P.agR = 0
-    P.HR.set(-0.56, 1.3 - 0.16 * v, 0.1)
+    P.HR.set(-0.56, 1.3 - 0.16 * v, 0.1); P.manoR = 0
   },
 }
 
@@ -1523,7 +1584,24 @@ function ik2(S, T, a, f, polo, codo, fin) {
   fin.copy(S).addScaledVector(dir, d)
 }
 const _ik1 = V3(), _ik2 = V3(), _S = V3(), _T = V3(), _K = V3(), _F = V3(), _polo = V3(), _cd = V3(), _lz = V3()
-const _mano = new THREE.Quaternion()
+const _mano = new THREE.Quaternion(), _mq = new THREE.Quaternion(), _muñeca = V3()
+/**
+ * Cómo agarra cada mano, en el espacio del palo (x: para donde mira la cara; y: del grip a la cabeza; z: abajo del
+ * palo, del lado de Rorro). `q`: cómo va la mano (el pulgar para la cabeza del palo; de la muñeca a los nudillos,
+ * envolviendo el grip por abajo; la palma de la izquierda mira para atrás y la de la derecha al objetivo); `d`: de dónde
+ * cruza el palo (los nudillos, del lado de la palma) a la muñeca.
+ */
+const AGARRE = (() => {
+  // Las dos manos van igual (la malla espejada de la izquierda le da vuelta la palma): la palma de costado (la derecha
+  // mira al objetivo, la izquierda para atrás), los dedos bajan envolviendo el grip y, como en el grip de verdad, la mano
+  // va cruzada (`CRUCE`): los dedos apuntan un poco hacia la cabeza del palo, así la muñeca queda arriba del grip, donde
+  // llega el brazo (derecha del todo, la muñeca quedaba del otro lado del palo y la mano flotaba al costado)
+  const CRUCE = 0.62
+  const y = V3(0, Math.sin(CRUCE), Math.cos(CRUCE)), z = V3(1, 0, 0), x = y.clone().cross(z)
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z))
+  const una = (lado) => ({ q, d: y.clone().multiplyScalar(-MANO.nudillos * MANO.escala).addScaledVector(z, -lado * MANO.palma * MANO.escala) }) // (lado: −1 la izquierda, 1 la derecha)
+  return { L: una(-1), R: una(1) }
+})()
 /** Pone el muñeco en la pose: la cadera, la columna, la cabeza, los pies y las piernas, el palo, los brazos y la cara. */
 function aplicarPose(P, tipo, cara = null) {
   const R = rorro, club = tipo in PALOS ? tipo : 'hierro', L = PALOS[club].L
@@ -1549,12 +1627,19 @@ function aplicarPose(P, tipo, cara = null) {
     p.rodilla.position.copy(_K)
     p.canilla.scale.y = entre(p.canilla, _K, _T) // (hasta el tobillo de verdad: la zapatilla no se despega)
   }
-  // los brazos: del hombro a las manos, con el codo para abajo; el palo va en la mano izquierda
+  // Los brazos: del hombro a la muñeca, con el codo para abajo; el palo va en la mano izquierda. Las manos agarran el
+  // palo de verdad: cada una tiene su lugar fijo en el grip (`AGARRE`: el pulgar para la cabeza del palo, las palmas
+  // enfrentadas, el palo cruzando los nudillos) y la muñeca queda al costado; el brazo llega a la muñeca. La derecha,
+  // cuando suelta el palo (`agR`), sigue al antebrazo con la palma hacia el cuerpo y se abre o se cierra (`manoR`)
   _cd.set(0, 1, 0).applyQuaternion(P.Q)
   for (const b of [R.brazos[1], R.brazos[0]]) {
-    const izq = b.s > 0
+    const izq = b.s > 0, ag = izq ? 1 : clamp(P.agR, 0, 1), A = AGARRE[izq ? 'L' : 'R']
     aLocal(R.pecho.localToWorld(_S.set(b.s * ANCHO, HOMBRO, 0.02)))
-    _T.copy(izq ? P.HL : P.HR)
+    // la muñeca: agarrando, corrida del punto del grip; suelta, donde dice la pose
+    const G = izq ? P.HL : P.HR
+    _mq.copy(P.Q).multiply(A.q)
+    _muñeca.copy(A.d).applyQuaternion(P.Q).add(G)
+    _T.copy(G).lerp(_muñeca, ag)
     _polo.set(-b.s * 0.25, -1, -0.35).normalize()
     ik2(_S, _T, HUESO.brazo, HUESO.ante + 0.03, _polo, _K, _F)
     // (la piel, desde adentro de la manga hasta el codo; el hombro, de tela)
@@ -1564,15 +1649,20 @@ function aplicarPose(P, tipo, cara = null) {
     entre(b.manga, _S, _K)
     b.codo.position.copy(_K)
     b.ante.scale.y = entre(b.ante, _K, _F)
-    // la mano: en el palo, a lo largo de la vara; suelta, sigue al antebrazo
     b.mano.position.copy(_F)
-    _mano.copy(b.ante.quaternion)
-    b.mano.quaternion.copy(P.Q)
-    if (!izq) b.mano.quaternion.slerpQuaternions(_mano, P.Q, clamp(P.agR, 0, 1))
-    if (!izq && P.agR < 1) b.mano.position.addScaledVector(_v.subVectors(_F, _K).normalize(), 0.03 * (1 - P.agR))
-    if (b.reloj) { const r = _lz.copy(_K).lerp(_F, 0.84); entre(b.reloj, r, _F); b.reloj.scale.y = 0.03 }
+    if (ag < 1) {
+      // suelta: los dedos siguen al antebrazo y la palma mira al cuerpo
+      const y = _v.subVectors(_F, _K).normalize(), n = _lz.set(1, 0.15, 0.25).addScaledVector(y, -(y.x + 0.15 * y.y + 0.25 * y.z))
+      if (n.lengthSq() < 1e-6) n.set(0, 0, 1)
+      n.normalize()
+      _mano.setFromRotationMatrix(_mb.makeBasis(_ik1.crossVectors(y, n), y, n))
+      b.mano.quaternion.slerpQuaternions(_mano, _mq, ag)
+    } else b.mano.quaternion.copy(_mq)
+    const cierra = izq ? 1 : lerp(clamp(P.manoR, 0, 1), 1, ag)
+    b.malla.morphTargetInfluences[0] = cierra; b.trazo.morphTargetInfluences[0] = cierra
+    if (b.reloj) { b.reloj.position.copy(_K).lerp(_F, 0.8); b.reloj.quaternion.copy(b.ante.quaternion) }
     // (el palo, donde llega la mano izquierda de verdad: si el brazo no alcanza, el palo no queda flotando)
-    if (izq) { R.palo.position.copy(_F).addScaledVector(_cd, 0.02); R.palo.quaternion.copy(P.Q) }
+    if (izq) { R.palo.position.copy(_F).sub(_muñeca).add(G).addScaledVector(_cd, 0.02); R.palo.quaternion.copy(P.Q) }
   }
   R.vara.scale.y = L
   for (const [k, m] of Object.entries(R.cabezas)) m.visible = k === club // (cada cabeza ya está en su lugar en la punta de la vara)
