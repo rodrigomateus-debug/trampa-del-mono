@@ -5088,7 +5088,7 @@ function empezar(jugador) {
   ronda.apuntadas = 0
   // ⛳ el sábado 9 AM (un easter egg): la lista sale antes del primer hoyo; pide ya las vueltas del ranking
   ronda.sabado = M.esSabado9(Date.now()) || (PRUEBA && PARAMS.has('sabado'))
-  sabadoMarcas = ronda.sabado ? R.leerMarcas().catch(() => null) : null
+  sabadoMarcas = ronda.sabado ? R.leerMarcas('recientes').catch(() => null) : null
   // para probar el secreto: la pelota en el green del 16, a 4 yd del hoyo
   if (PARAMS.has('probar-secreto')) {
     const h16 = ronda.hoyos[1]
@@ -10050,7 +10050,7 @@ async function anotarVuelta() {
   await R.anotar(sinTarjeta(marca))
   for (const m of otras) await R.anotar(sinTarjeta(m)).catch(() => {})
   if (bnAntes) premiosDeLaVuelta(bnAntes)
-  const { marcas: todas } = await R.leerMarcas()
+  const { marcas: todas } = await R.leerMarcas('mejores') // el puesto: con las mejores de cada uno alcanza
   const marcas = todas.filter((m) => M.esMarcaPro(m) === pro) // la vuelta PRO compite solo en el ranking PRO
   const general = M.armarRanking(marcas).find(esYo)
   const conEl = M.armarRanking(marcas, jugador.apodo).find(esYo)
@@ -13223,8 +13223,13 @@ function abrirBloqueado(m) {
   $('#rk-resumen').hidden = false
   $('#rk-resumen .hab-x').focus({ preventScroll: true })
 }
+// 14f: todas las vueltas de cada uno (para el promedio y el player del resumen), pedidas al abrir su resumen:
+// el ranking trae solo las mejores. Se vacía cada vez que se abre el ranking.
+const vueltasDe = new Map()
+let resumenAbierto = null
 function abrirResumen(m) {
   if (!m) return
+  resumenAbierto = m
   $('.rs-caja').classList.remove('bloqueado')
   if (publico(m).misterio) return abrirBloqueado(m)
   const app = rkApp
@@ -13243,7 +13248,8 @@ function abrirResumen(m) {
   const nombreJ = (j.apodo ?? '').replace(/ \(Đ\)$/, '')
   const cara = j.misterio ? '<div class="cara misterio" aria-hidden="true">?</div>' : j.foto ? `<div class="cara"><img src="${j.foto}" alt=""></div>` : `<div class="cara" aria-hidden="true">${j.emoji ?? m.emoji}</div>`
   // todas sus vueltas firmadas (del mismo usuario)
-  const suyas = rkMarcas.filter((x) => M.duenoDe(x) === M.duenoDe(m) && x.golpes > 0)
+  const dueno = M.duenoDe(m)
+  const suyas = (vueltasDe.get(dueno) ?? rkMarcas).filter((x) => M.duenoDe(x) === dueno && x.golpes > 0)
   const prom = suyas.length ? suyas.reduce((a, x) => a + x.golpes, 0) / suyas.length : null
   const mejor = suyas.length ? suyas.reduce((a, x) => (M.compararMarcas(x, a) < 0 ? x : a)) : null
   const usados = {}
@@ -13278,6 +13284,15 @@ function abrirResumen(m) {
     </dl>`
   $('#rk-resumen').hidden = false
   $('#rk-resumen .hab-x').focus({ preventScroll: true })
+  // sus vueltas de verdad (no solo las mejores): llegan y se rehace, si sigue abierto el mismo
+  if (rkApp && m.uid && !vueltasDe.has(dueno)) {
+    vueltasDe.set(dueno, null)
+    R.leerMarcas('jugador', m.uid).then((r) => {
+      if (!r || r.error) { vueltasDe.delete(dueno); return }
+      vueltasDe.set(dueno, r.marcas)
+      if (!$('#rk-resumen').hidden && resumenAbierto === m) abrirResumen(m)
+    }).catch(() => vueltasDe.delete(dueno))
+  }
 }
 const cerrarResumen = () => { $('#rk-resumen').hidden = true }
 $('#rk-resumen').addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) cerrarResumen() })
@@ -13479,7 +13494,7 @@ let clasicoMarcas = null, clasicoCargando = null, clasicoCargadoEn = 0
 function cargarClasicoMatch() {
   clasicoCargando ??= (async () => {
     if (await cargarClasicoBase()) return
-    const r = await R.leerMarcas().catch(() => null)
+    const r = await R.leerMarcas('recientes').catch(() => null) // la semana del Clásico entra en los últimos 8 días
     clasicoMarcas = r && !r.error ? r.marcas : false
   })().finally(() => {
     clasicoCargando = null
@@ -13494,7 +13509,8 @@ function cargarClasicoMatch() {
 // cómo se suma. En el Ranking arranca cerrado; en MATCH › Equipos (donde es lo único), abierto
 const clasicoAbierto = { 'rk-clasico': false, 'mt-clasico': true }
 const PTS_CLASICO = 3 // lo que vale cada match clásico ganado (lo suma la base: `trampa_clasico_puntos`)
-function pintarClasico(el = $('#rk-clasico'), marcas = rkMarcas ?? []) {
+// sin la vista de la base, se cuenta con las vueltas: las recientes si ya llegaron (el ranking trae solo las mejores, 14f)
+function pintarClasico(el = $('#rk-clasico'), marcas = clasicoMarcas || rkMarcas || []) {
   const ahora = Date.now()
   const base = clasicoBase
   const c = base?.ahora ?? M.clasico(marcas, M.lunesDe(ahora), equipoDe)
@@ -13599,7 +13615,9 @@ async function mostrarRanking(tab = 'general') {
   rkMarcas = null
   $('#ranking').hidden = false
   pintarRanking()
-  const [{ marcas, compartido, error, app }, conteo] = await Promise.all([R.leerMarcas(), R.leerConteo()])
+  // el ranking, los récords y el secreto: con las mejores de cada uno (una por player y MODO PRO) alcanza (14f)
+  const [{ marcas, compartido, error, app }, conteo] = await Promise.all([R.leerMarcas('mejores'), R.leerConteo()])
+  vueltasDe.clear()
   recuperarSecreto(marcas, conteo)
   recuperarRecords(marcas)
   rkConteo = conteo
@@ -14090,7 +14108,7 @@ R.alPlantel((hcps) => {
 R.alEntrar(async (yo) => {
   // ¿ya habías desbloqueado a Demetrio? (si borraste la app, se recupera de la base)
   // y tus récords firmados (el desbloqueo de Taiu sale de ahí)
-  Promise.all([R.leerMarcas(), R.leerConteo()]).then(([r, c]) => { recuperarSecreto(r?.marcas, c); recuperarRecords(r?.marcas) }).catch(() => {})
+  Promise.all([R.leerMarcas('mejores'), R.leerConteo()]).then(([r, c]) => { recuperarSecreto(r?.marcas, c); recuperarRecords(r?.marcas) }).catch(() => {})
   datos.usuario = yo.alias
   $('#usuario').value = yo.alias
   $('#quien-juega').hidden = true
@@ -14304,7 +14322,7 @@ async function cargarFinal(forzar = false) {
       else if (finalBase.mio && finalBase.mio !== datos.final) { datos.final = finalBase.mio; guardar(datos) }
     } catch {
       finalBase = null
-      try { finalMarcas = (await R.leerMarcas())?.marcas ?? finalMarcas } catch {}
+      try { finalMarcas = (await R.leerMarcas('recientes'))?.marcas ?? finalMarcas } catch {}
     }
   }
   pintarFinal()

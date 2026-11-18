@@ -244,20 +244,31 @@ const deVista = (f) => ({ uid: f.user_id, usuario: f.player_name ?? f.alias, apo
 // `id`: para no repetir vueltas al juntar las mejores con las recientes
 const COLS_MARCAS = 'id,user_id,alias,apodo,emoji,golpes,vs_par,ms,created_at,player_name,sdga'
 
-/** Todas las marcas: las de la SDGApp (por la app o directo); si no se puede, las de este teléfono. */
-export async function leerMarcas() {
+/**
+ * Las marcas: las de la SDGApp (por la app o directo); si no se puede, las de este teléfono. `que` parte el puente
+ * (PENDIENTES 14f de la SDGApp), para no bajar todo para todo:
+ *   · 'todo' (lo de siempre): las mejores + las de los últimos 8 días;
+ *   · 'mejores': una por usuario, player y MODO PRO, con el detalle (el ranking, los récords, el secreto);
+ *   · 'recientes': las de los últimos 8 días (el sábado 9 AM, el Clásico sin la vista, la Final);
+ *   · 'jugador' (+ `uid`): todas las de ese usuario (el promedio y el player del resumen).
+ * Una app vieja no conoce `que` y manda 'todo' (no devuelve `que`): es más de lo pedido, así que sirve igual; para
+ * 'jugador' se filtra acá. Devuelve también `que`: lo que de verdad llegó.
+ */
+export async function leerMarcas(que = 'todo', uid = null) {
+  const deEse = (marcas, llego) => (que === 'jugador' && llego !== 'jugador' ? marcas.filter((m) => m.uid === uid) : marcas)
   if (puente.enApp) {
-    const r = await pedirApp('trampa:leer')
+    const r = await pedirApp('trampa:leer', que === 'todo' ? {} : { que, ...(que === 'jugador' ? { uid } : {}) })
     if (!r || r.error || !Array.isArray(r.marcas)) return { marcas: locales(), compartido: false, error: true }
-    return { marcas: r.marcas, compartido: true, app: true }
+    const llego = r.que ?? 'todo'
+    return { marcas: deEse(r.marcas, llego), compartido: true, app: true, que: llego === 'todo' ? 'todo' : que }
   }
   if (!compartido()) return { marcas: locales(), compartido: false }
   try {
     const h = cabeceras(await token())
     // PostgREST corta en 1000 filas y NO avisa: el limit=5000 devolvía 1000 de 3602 y el ranking perdía a todo el
-    // que no jugaba hacía una semana. Como la app: las MEJORES (una por usuario, player y MODO PRO, con el detalle
-    // completo) + los últimos 8 días (los necesita listaSabado), de a páginas de 1000. PostgREST quiere UN solo
-    // `order` con comas. Si la base no tiene las vistas, el catch cae al ranking del teléfono.
+    // que no jugaba hacía una semana. Como la app: de las vistas `trampa_ranking_mejores` (con el detalle completo)
+    // y `trampa_ranking_liviano` (detalle reducido), de a páginas de 1000. PostgREST quiere UN solo `order` con comas.
+    // Si la base no tiene las vistas, el catch cae al ranking del teléfono.
     const paginar = async (vista, extra = '') => {
       const filas = []
       for (let pagina = 0; pagina < 50; pagina++) {
@@ -272,15 +283,16 @@ export async function leerMarcas() {
       return filas
     }
     const desde = new Date(Date.now() - 8 * 864e5).toISOString()
-    const [mejores, recientes] = await Promise.all([
-      paginar('trampa_ranking_mejores'),
-      paginar('trampa_ranking_liviano', `&created_at=gte.${encodeURIComponent(desde)}`),
-    ])
+    const mejores = () => paginar('trampa_ranking_mejores')
+    const recientes = () => paginar('trampa_ranking_liviano', `&created_at=gte.${encodeURIComponent(desde)}`)
+    const lecturas = que === 'mejores' ? [mejores()] : que === 'recientes' ? [recientes()]
+      : que === 'jugador' ? [paginar('trampa_ranking_liviano', `&user_id=eq.${encodeURIComponent(uid ?? '')}`)]
+      : [mejores(), recientes()]
     // las mejores primero: traen el detalle completo (el resumen al tocar una fila); de las recientes, lo que falte
     const porId = new Map()
-    for (const f of [...mejores, ...recientes]) if (!porId.has(f.id)) porId.set(f.id, f)
+    for (const lote of await Promise.all(lecturas)) for (const f of lote) if (!porId.has(f.id)) porId.set(f.id, f)
     const filas = [...porId.values()].sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)))
-    return { marcas: filas.map(deVista), compartido: true, app: true }
+    return { marcas: filas.map(deVista), compartido: true, app: true, que }
   } catch {
     return { marcas: locales(), compartido: false, error: true }
   }

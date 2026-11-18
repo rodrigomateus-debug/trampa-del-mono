@@ -898,3 +898,16 @@ Tres casos, reproducidos midiendo la pose cuadro por cuadro (`animarRorro`, en `
   `trampa_bananas_ranking`: `trampa-pozo-pro.sql` de la SDGApp). Si la base no los tiene, no se muestran; el % de
   ganados lo arma el juego solo.
 - El MATCH de prueba (`prueba.js`) cuenta los hoyos en uno de PRO, el último del pozo y el hoyo en uno con Demetrio.
+
+## 🔌 El puente partido: cada pantalla pide solo lo que usa (2026-11-18, PENDIENTES 14f de la SDGApp)
+
+`R.leerMarcas(que, uid)` le dice a la app (`trampa:leer {que, uid}`) qué vueltas necesita:
+- **`mejores`** (una por usuario, player y MODO PRO, con el detalle): el ranking, el puesto al firmar, los récords y el
+  secreto al entrar.
+- **`recientes`** (los últimos 8 días): la lista del sábado 9 AM, el Clásico cuando la base no tiene su vista, la Final.
+- **`jugador`** + uid (todas las de ese usuario): el resumen al tocar una fila pide las del dueño y rehace **el promedio,
+  las firmadas y su player** (antes salían de lo que había bajado el ranking: aproximados).
+- **`todo`** (las mejores + las recientes, lo de siempre): Stats, que necesita todas para los promedios de todos.
+
+Una app vieja no conoce `que` y manda `todo` sin devolver `que`: es más de lo pedido y sirve igual (para `jugador` se
+filtra acá), así que el juego se puede publicar antes que la app. Suelto, lo mismo directo contra las vistas.
