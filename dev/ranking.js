@@ -241,7 +241,8 @@ export const listo = arrancarSuelto().catch(() => {})
 const deVista = (f) => ({ uid: f.user_id, usuario: f.player_name ?? f.alias, apodo: f.apodo, emoji: f.emoji, golpes: f.golpes, vsPar: f.vs_par, ms: f.ms, fecha: f.created_at, sdga: f.sdga === true, detalle: f.detalle ?? null })
 // `detalle` (hoyo por hoyo y los monos) es una columna nueva de trampa_marcas: mientras la base no la tenga,
 // se lee y se anota sin ella (PostgREST da 400 por una columna que no existe). Ver PENDIENTES-TRAMPA.md en la SDGApp.
-const COLS_MARCAS = 'user_id,alias,apodo,emoji,golpes,vs_par,ms,created_at,player_name,sdga'
+// `id`: para no repetir vueltas al juntar las mejores con las recientes
+const COLS_MARCAS = 'id,user_id,alias,apodo,emoji,golpes,vs_par,ms,created_at,player_name,sdga'
 
 /** Todas las marcas: las de la SDGApp (por la app o directo); si no se puede, las de este teléfono. */
 export async function leerMarcas() {
@@ -252,12 +253,34 @@ export async function leerMarcas() {
   }
   if (!compartido()) return { marcas: locales(), compartido: false }
   try {
-    const h = { headers: cabeceras(await token()) }
-    const url = (cols) => `${SUPABASE.url}/rest/v1/trampa_ranking?select=${cols}&order=created_at.desc&limit=5000`
-    let res = await fetch(url(COLS_MARCAS + ',detalle'), h)
-    if (res.status === 400) res = await fetch(url(COLS_MARCAS), h) // la base todavía no tiene `detalle`
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    return { marcas: (await res.json()).map(deVista), compartido: true, app: true }
+    const h = cabeceras(await token())
+    // PostgREST corta en 1000 filas y NO avisa: el limit=5000 devolvía 1000 de 3602 y el ranking perdía a todo el
+    // que no jugaba hacía una semana. Como la app: las MEJORES (una por usuario, player y MODO PRO, con el detalle
+    // completo) + los últimos 8 días (los necesita listaSabado), de a páginas de 1000. PostgREST quiere UN solo
+    // `order` con comas. Si la base no tiene las vistas, el catch cae al ranking del teléfono.
+    const paginar = async (vista, extra = '') => {
+      const filas = []
+      for (let pagina = 0; pagina < 50; pagina++) {
+        const res = await fetch(`${SUPABASE.url}/rest/v1/${vista}?select=${COLS_MARCAS},detalle&order=created_at.desc,id${extra}`, {
+          headers: { ...h, 'Range-Unit': 'items', Range: `${filas.length}-${filas.length + 999}` },
+        })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const lote = await res.json()
+        filas.push(...lote)
+        if (lote.length < 1000) break
+      }
+      return filas
+    }
+    const desde = new Date(Date.now() - 8 * 864e5).toISOString()
+    const [mejores, recientes] = await Promise.all([
+      paginar('trampa_ranking_mejores'),
+      paginar('trampa_ranking_liviano', `&created_at=gte.${encodeURIComponent(desde)}`),
+    ])
+    // las mejores primero: traen el detalle completo (el resumen al tocar una fila); de las recientes, lo que falte
+    const porId = new Map()
+    for (const f of [...mejores, ...recientes]) if (!porId.has(f.id)) porId.set(f.id, f)
+    const filas = [...porId.values()].sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)))
+    return { marcas: filas.map(deVista), compartido: true, app: true }
   } catch {
     return { marcas: locales(), compartido: false, error: true }
   }
@@ -565,7 +588,9 @@ export async function leerClasicoSemana(atras = 0) {
 }
 /**
  * Tus bananas: { saldo, reservadas, pozo, premiosHoy, donadasHoy, donarTope, movimientos: [{ monto, motivo, desafio, detalle,
- * fecha }] }. `donarTope` es null si la base todavía no tiene donar (ahí no se muestra el botón).
+ * fecha }], proUnos, ultimoPozo }. `donarTope` es null si la base todavía no tiene donar (ahí no se muestra el botón).
+ * `proUnos` = tus hoyos en uno en MODO PRO y `ultimoPozo` = { uid, nombre, cantidad, fecha } del último que se llevó el
+ * pozo (o null): null los dos si la base todavía no los tiene (trampa-pozo-pro.sql de la SDGApp; ahí no se muestran).
  */
 export async function leerBananas() {
   const b = puente.enApp ? await porApp('bananas') : await rpc('trampa_bananas_estado')
@@ -575,12 +600,16 @@ export async function leerBananas() {
     saldo: n(b.saldo), reservadas: n(b.reservadas), pozo: n(b.pozo), premiosHoy: n(b.premiosHoy),
     donadasHoy: n(b.donadasHoy), donarTope: b.donarTope == null ? null : n(b.donarTope),
     movimientos: Array.isArray(b.movimientos) ? b.movimientos : [],
+    proUnos: b.proUnos == null ? null : n(b.proUnos),
+    ultimoPozo: b.ultimoPozo && typeof b.ultimoPozo === 'object' && b.ultimoPozo.nombre
+      ? { uid: b.ultimoPozo.uid ?? null, nombre: String(b.ultimoPozo.nombre), cantidad: n(b.ultimoPozo.cantidad), fecha: b.ultimoPozo.fecha ?? null }
+      : null,
   }
 }
-/** Las bananas de todos: [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio }]. */
+/** Las bananas de todos: [{ uid, nombre, sdga, saldo (para apostar), total (con las apostadas), abrio, proUnos }]. */
 export async function leerRankingBananas() {
   const filas = puente.enApp ? await porApp('bananasRanking') : await rpc('trampa_bananas_ranking')
-  return (Array.isArray(filas) ? filas : []).map((f) => ({ uid: f.user_id, nombre: f.nombre ?? '—', sdga: !!f.sdga, saldo: Math.floor(+f.saldo || 0), total: Math.floor(+f.total || 0), abrio: !!f.abrio })).filter((f) => f.uid)
+  return (Array.isArray(filas) ? filas : []).map((f) => ({ uid: f.user_id, nombre: f.nombre ?? '—', sdga: !!f.sdga, saldo: Math.floor(+f.saldo || 0), total: Math.floor(+f.total || 0), abrio: !!f.abrio, proUnos: Math.floor(+f.pro_unos || 0) })).filter((f) => f.uid)
 }
 /** Arranca un desafío con bananas (antes de jugar tu vuelta): quedan reservadas. Devuelve el id del desafío. */
 export async function empezarApuesta({ rival, semilla, apodo, emoji, apuesta }) {

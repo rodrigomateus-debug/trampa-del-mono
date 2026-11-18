@@ -1636,6 +1636,12 @@ input { -webkit-user-select: text; user-select: text; }
 #match .tarjeta { grid-template-columns: minmax(0, 1fr); }
 .bn-fila .rk-nombre .linea b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mtr-pct small.bn-disp.apostadas { color: var(--green-700); font-weight: 800; }
+.bn-pozo-card .bc-nota + .bc-nota { margin-top: -2px; }
+.bn-pro-chip { flex: none; padding: 1px 6px; border-radius: 999px; background: var(--green-900); color: var(--cream); font: 800 10px/1.5 var(--font-body); letter-spacing: .04em; white-space: nowrap; }
+.bn-pozo .bn-ultimo { display: block; margin-top: 4px; font-size: 12px; color: var(--text-muted); }
+.mtr-orden { padding-top: 0; }
+.mtr-orden button { height: 28px; font-size: 11px; }
+.rk-sep { list-style: none; margin: 10px 0 2px; font: 800 11px/1.2 var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
 .bn-pozo { list-style: none; margin: 4px 0 6px; padding: 10px 12px; border-radius: 14px; background: rgba(232, 195, 74, .24); font-size: 13px; line-height: 1.35; text-align: left; }
 /* 🏆 el puesto: tarjeta verde con el trofeo y dos cajas */
 .t-rank { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 16px; background: var(--green-900); color: var(--cream); border: var(--game-stroke) solid var(--game-ink); box-shadow: var(--game-shadow-sm); }
@@ -10473,7 +10479,7 @@ function comoBananas() {
     </div>
     <div class="bc-card bc-uno">
       <div class="bc-cab"><b>🕳️ Hoyo en uno</b><span class="bc-grande">+${BN_REGLAS.hoyoEnUno}${BN}</span></div>
-      <small class="bc-nota">Una vez por día, aparte del tope de 5. En <b>MODO PRO</b> te llevás <b>el pozo del mono</b>: hoy ${Math.max(BN_REGLAS.hoyoEnUno, b.pozo)}${BN}.</small>
+      <small class="bc-nota">Una vez por día, aparte del tope de 5 (también con Demetrio). En <b>MODO PRO</b> te llevás <b>el pozo del mono</b>: hoy ${Math.max(BN_REGLAS.hoyoEnUno, b.pozo)}${BN}.</small>
     </div>
     <div class="bc-fila">
       <div class="bc-card bc-mesada">
@@ -10490,6 +10496,23 @@ function comoBananas() {
     <div class="bc-card bc-match"><b>${gi('match')}Ganá un match con bananas</b><small class="bc-nota">Te llevás lo apostado por los dos, menos 1 para el mono.</small></div>
   </div>`
 }
+/** 🐒 El último que se llevó el pozo, en una línea (o '' si la base no lo dice). */
+function ultimoPozoTxt(b) {
+  const u = b?.ultimoPozo
+  if (!u) return b?.proUnos == null ? '' : 'Todavía nadie se lo llevó.'
+  const d = u.fecha ? new Date(u.fecha) : null
+  const cuando = d && !isNaN(d) ? ` el ${d.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}` : ''
+  return `El último que se lo llevó: <b>${esc(u.nombre)}</b>, ${u.cantidad}${BN}${cuando}.`
+}
+/** 🐒 La tarjeta del pozo en la hojita: cuánto hay, el último que se lo llevó y tus hoyos en uno en MODO PRO. */
+function tarjetaPozo(b) {
+  const ultimo = ultimoPozoTxt(b)
+  return `<div class="bc-card bn-pozo-card">
+    <div class="bc-cab"><b>🐒 El pozo del mono</b><span class="bc-grande">${b.pozo}${BN}</span></div>
+    <small class="bc-nota">Se lo lleva el próximo hoyo en uno en <b>MODO PRO</b>.${ultimo ? ` ${ultimo}` : ''}</small>
+    ${b.proUnos == null ? '' : `<small class="bc-nota">Tus hoyos en uno en PRO: <b>${b.proUnos}</b>${b.proUnos ? ' 🕳️' : ''}</small>`}
+  </div>`
+}
 function verBananas() {
   if (!bananas) return
   const linea = (m) => {
@@ -10503,6 +10526,7 @@ function verBananas() {
   hojaBananas(`
     <p class="bn-tit" id="bn-tit">${stickerBanana()}Tenés ${bananas.saldo}</p>
     ${bananas.reservadas ? `<p>Y ${bananas.reservadas} apostadas en desafíos abiertos.</p>` : ''}
+    ${tarjetaPozo(bananas)}
     ${puedeDonar() ? `<div class="bn-don"><span><b>🎁 Regalale bananas a otro</b><small class="bc-nota">${donarTxt()}</small></span><button class="mt-btn oro" type="button" data-bn="donar"${quedanHoy() && bananas.saldo ? '' : ' disabled'}>Donar</button></div>` : ''}
     ${comoBananas()}
     ${bananas.movimientos.length ? `<p class="bn-sub">Tus movimientos</p><ul class="bn-mov">${bananas.movimientos.map(linea).join('')}</ul>` : ''}
@@ -10702,6 +10726,11 @@ async function cargarRankingMatch() {
 // orden: más ganados; después menos perdidos; después más jugados
 const ordenMatch = (a, b) => b.ganados - a.ganados || a.perdidos - b.perdidos || b.jugados - a.jugados || a.nombre.localeCompare(b.nombre)
 const pctGanados = (x) => (x.jugados ? Math.round((100 * x.ganados) / x.jugados) : 0)
+// % GANADOS (27/10/2026, pedido de Rorro): solo entre los que jugaron MTR_MIN_PCT o más; a igual %, como siempre
+const MTR_MIN_PCT = 5
+const ratioGanados = (x) => (x.jugados ? x.ganados / x.jugados : 0)
+const ordenPct = (a, b) => ratioGanados(b) - ratioGanados(a) || ordenMatch(a, b)
+let mtRkOrden = 'ganados'
 // la pestaña Ranking: el de matches o, con bananas, el de los más ricos 🍌
 let mtRkVista = 'matches'
 function pintarRankingMatch(lista) {
@@ -10725,13 +10754,13 @@ function pintarRankingBananas(lista, vistas) {
   const yo = yoUid()
   const filas = (bananasRk ?? []).filter((f) => f.abrio).sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre))
   let pos = 0, prev = null
-  lista.innerHTML = `${vistas}<li class="bn-pozo">🐒 El pozo del mono: <b>${bananas?.pozo ?? 0}</b>${BN}. Se lo lleva el próximo hoyo en uno en MODO PRO.${bananas ? `<button class="bn-como-btn" type="button" data-bn-como>${stickerBanana()}¿Cómo conseguir más bananas?</button>` : ''}${puedeDonar() ? '<button class="bn-como-btn" type="button" data-bn-donar>🎁 Donar bananas</button>' : ''}</li>${filas.length ? filas.map((f, k) => {
+  lista.innerHTML = `${vistas}<li class="bn-pozo">🐒 El pozo del mono: <b>${bananas?.pozo ?? 0}</b>${BN}. Se lo lleva el próximo hoyo en uno en MODO PRO.${ultimoPozoTxt(bananas) && bananas?.ultimoPozo ? `<span class="bn-ultimo">${ultimoPozoTxt(bananas)}</span>` : ''}${bananas ? `<button class="bn-como-btn" type="button" data-bn-como>${stickerBanana()}¿Cómo conseguir más bananas?</button>` : ''}${puedeDonar() ? '<button class="bn-como-btn" type="button" data-bn-donar>🎁 Donar bananas</button>' : ''}</li>${filas.length ? filas.map((f, k) => {
     if (prev == null || f.total !== prev) pos = k + 1
     prev = f.total
     const donar = puedeDonar() && f.uid !== yo
     return `<li class="rk-fila bn-fila${f.uid === yo ? ' yo' : ''}"${donar ? ` data-bn-para="${esc(f.uid)}" role="button" tabindex="0" aria-label="Donarle bananas a ${esc(f.nombre)}"` : ''}>
       <span class="rk-pos">${pos}</span>
-      <span class="rk-nombre"><span class="linea"><b>${esc(f.nombre)}</b></span>${camisetaMini(f.uid) || f.sdga ? `<small class="rk-sellos">${camisetaMini(f.uid)}${f.sdga ? selloSdga() : ''}</small>` : ''}</span>
+      <span class="rk-nombre"><span class="linea"><b>${esc(f.nombre)}</b></span>${camisetaMini(f.uid) || f.sdga || f.proUnos ? `<small class="rk-sellos">${camisetaMini(f.uid)}${f.sdga ? selloSdga() : ''}${f.proUnos ? `<span class="bn-pro-chip" title="Hoyos en uno en MODO PRO">🕳️ ${f.proUnos} PRO</span>` : ''}</small>` : ''}</span>
       <span class="mtr-pct">${f.total}<small>bananas</small><small class="bn-disp${f.saldo < f.total ? ' apostadas' : ''}">(${f.saldo} disponible${f.saldo === 1 ? '' : 's'})</small></span>
     </li>`
   }).join('') : '<li class="rk-vacio">Todavía nadie abrió las bananas.</li>'}`
@@ -10745,22 +10774,30 @@ $('#mt-lista').addEventListener('click', (e) => {
   pintarMatch()
 })
 function pintarRankingMatchLista(lista) {
-  $('#mt-nota').textContent = 'Arriba el que más matches ganó; a igual, el que menos perdió. Tocá una fila para ver su récord y contra quiénes jugó.'
+  const pct = mtRkOrden === 'pct'
+  $('#mt-nota').textContent = pct
+    ? `Por % de matches ganados, entre los que jugaron ${MTR_MIN_PCT} o más; a igual %, el que más ganó. Tocá una fila para ver su récord y contra quiénes jugó.`
+    : 'Arriba el que más matches ganó; a igual, el que menos perdió. Tocá una fila para ver su récord y contra quiénes jugó.'
   if (!mtRanking) {
     if (!mtRankingError) { lista.innerHTML = '<li class="rk-vacio">Cargando…</li>'; cargarRankingMatch(); return }
     lista.innerHTML = `<li class="rk-vacio">${mtRankingError.pronto ? 'El ranking de matches llega con la próxima actualización de la SDGApp. 🏗️' : 'No se pudo cargar el ranking de matches. Probá de nuevo en un rato.'}</li>`
     return
   }
-  const filas = [...mtRanking].sort(ordenMatch)
+  const conPct = pct ? mtRanking.filter((x) => x.jugados >= MTR_MIN_PCT).sort(ordenPct) : [...mtRanking].sort(ordenMatch)
+  const pocos = pct ? mtRanking.filter((x) => x.jugados < MTR_MIN_PCT).sort(ordenMatch) : []
+  const filas = [...conPct, ...pocos]
   mtRankingVista = filas
   const yo = yoUid()
   const wdl = (x) => wdlMatch(x.ganados, x.empatados, x.perdidos)
+  const orden = `<li class="bn-vistas mtr-orden"><button type="button" data-mto="ganados" aria-pressed="${!pct}">Más ganados</button><button type="button" data-mto="pct" aria-pressed="${pct}">% ganados</button></li>`
   let pos = 0, prev = null
-  lista.innerHTML = filas.length ? filas.map((x, k) => {
-    if (!prev || ordenMatch(prev, x) !== 0 || prev.ganados !== x.ganados || prev.perdidos !== x.perdidos || prev.jugados !== x.jugados) pos = k + 1
+  lista.innerHTML = filas.length ? orden + filas.map((x, k) => {
+    const sinPos = k >= conPct.length
+    if (!prev || prev.ganados !== x.ganados || prev.perdidos !== x.perdidos || prev.jugados !== x.jugados) pos = k + 1
     prev = x
-    return `<li class="rk-fila mtr-fila tocable${x.uid === yo ? ' yo' : ''}" data-mtr="${k}" tabindex="0" role="button" aria-label="Ver el récord de ${esc(x.nombre)}">
-      <span class="rk-pos">${pos}</span>
+    const sep = sinPos && k === conPct.length ? `<li class="rk-sep">Con menos de ${MTR_MIN_PCT} matches</li>` : ''
+    return `${sep}<li class="rk-fila mtr-fila tocable${x.uid === yo ? ' yo' : ''}" data-mtr="${k}" tabindex="0" role="button" aria-label="Ver el récord de ${esc(x.nombre)}">
+      <span class="rk-pos">${sinPos ? '–' : pos}</span>
       <span class="rk-nombre"><span class="linea"><b>${esc(x.nombre)}</b></span><small class="rk-sellos">${camisetaMini(x.uid)}${x.sdga ? selloSdga() : ''}<span>${x.jugados} ${x.jugados === 1 ? 'match' : 'matches'}</span></small></span>
       ${wdl(x)}
       <span class="mtr-pct">${pctGanados(x)}%<small>ganados</small></span>
@@ -10798,6 +10835,7 @@ function abrirRecordMatch(x) {
   $('#rk-resumen .hab-x').focus({ preventScroll: true })
 }
 $('#mt-lista').addEventListener('click', (e) => { const li = e.target.closest('[data-mtr]'); if (li) abrirRecordMatch(mtRankingVista[+li.dataset.mtr]) })
+$('#mt-lista').addEventListener('click', (e) => { const b = e.target.closest('[data-mto]'); if (!b || b.dataset.mto === mtRkOrden) return; mtRkOrden = b.dataset.mto; pintarMatch() })
 // el detalle de un match del Historial (tocando la fila, no sus botones)
 $('#mt-lista').addEventListener('click', (e) => { if (e.target.closest('button')) return; const li = e.target.closest('[data-detalle]'); if (li) abrirDetalleMatch(li.dataset.detalle) })
 $('#mt-lista').addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const li = e.target.closest('[data-detalle]'); if (li && e.target === li) { e.preventDefault(); abrirDetalleMatch(li.dataset.detalle) } })

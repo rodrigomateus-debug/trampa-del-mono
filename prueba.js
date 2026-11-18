@@ -53,6 +53,9 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null, final = 
 
   const mover = (uid, monto, motivo, desafio = null, detalle = null) => { if (monto) st.movs.push({ uid, monto, motivo, desafio, detalle, fecha: iso(), dia: diaAR(), semana: motivo === 'mesada' ? lunesAR() : null }) }
   const saldo = (uid) => st.movs.filter((m) => m.uid === uid).reduce((a, m) => a + m.monto, 0)
+  // 🕳️ los hoyos en uno de MODO PRO de cada uno y el último que se llevó el pozo (como trampa_pro_unos / trampa_ultimo_pozo)
+  const proUnos = (uid) => st.movs.filter((m) => m.uid === uid && m.motivo === 'pozo' && m.monto > 0).reduce((a, m) => a + (m.detalle?.unos ?? 1), 0)
+  const ultimoPozo = () => { const m = st.movs.filter((x) => x.motivo === 'pozo' && x.monto > 0 && x.uid !== MONO).at(-1); return m ? { uid: m.uid, nombre: nombreDe(m.uid), cantidad: m.monto, fecha: m.fecha } : null }
   const donadasHoy = () => -st.movs.filter((m) => m.uid === yo.uid && m.motivo === 'donacion' && m.monto < 0 && m.dia === diaAR()).reduce((a, m) => a + m.monto, 0)
   const reservadas = (uid) => st.desafios.filter((d) => d.apuesta > 0 && ((d.retador_id === uid && ['jugando', 'pendiente', 'respondiendo'].includes(d.estado)) || (d.rival_id === uid && d.estado === 'respondiendo'))).reduce((a, d) => a + d.apuesta, 0)
   function alDia(uid) {
@@ -314,7 +317,7 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null, final = 
       }
       case 'bananas': {
         const movs = st.movs.filter((m) => m.uid === yo.uid).slice(-30).reverse()
-        return { saldo: saldo(yo.uid), reservadas: reservadas(yo.uid), pozo: saldo(MONO), premiosHoy: st.movs.filter((m) => m.uid === yo.uid && m.motivo === 'premio' && m.dia === diaAR()).reduce((a, m) => a + m.monto, 0), donadasHoy: donadasHoy(), donarTope: DONAR_TOPE, movimientos: movs.map(({ uid, dia, semana, ...m }) => m) }
+        return { saldo: saldo(yo.uid), reservadas: reservadas(yo.uid), pozo: saldo(MONO), premiosHoy: st.movs.filter((m) => m.uid === yo.uid && m.motivo === 'premio' && m.dia === diaAR()).reduce((a, m) => a + m.monto, 0), donadasHoy: donadasHoy(), donarTope: DONAR_TOPE, proUnos: proUnos(yo.uid), ultimoPozo: ultimoPozo(), movimientos: movs.map(({ uid, dia, semana, ...m }) => m) }
       }
       // ── 🎁 donar: hasta 10 por día en total, de las disponibles, enteras y al instante (como la base) ──
       case 'donar': {
@@ -330,7 +333,7 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null, final = 
         mover(para.user_id, d.cantidad, 'donacion', null, { de: yo.uid, nombre: yo.alias })
         return { cantidad: d.cantidad, para: para.user_id, nombre: para.nombre, saldo: saldo(yo.uid), donadasHoy: ya + d.cantidad, tope: DONAR_TOPE }
       }
-      case 'bananasRanking': return [{ user_id: yo.uid, nombre: yo.alias, sdga: true }, ...RIVALES].map((r) => { alDia(r.user_id); return { user_id: r.user_id, nombre: r.nombre, sdga: true, saldo: saldo(r.user_id), total: saldo(r.user_id) + reservadas(r.user_id), abrio: true } })
+      case 'bananasRanking': return [{ user_id: yo.uid, nombre: yo.alias, sdga: true }, ...RIVALES].map((r) => { alDia(r.user_id); return { user_id: r.user_id, nombre: r.nombre, sdga: true, saldo: saldo(r.user_id), total: saldo(r.user_id) + reservadas(r.user_id), abrio: true, pro_unos: proUnos(r.user_id) } })
       case 'apostar': {
         if (!(d.apuesta >= 2)) throw new No('la apuesta es de 2 bananas para arriba')
         alDia(d.rivalId)
@@ -544,10 +547,11 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null, final = 
       default: throw new No('acción desconocida')
     }
   }
-  // los premios de la vuelta firmada, como el trigger de la base (Demetrio no suma en el modo normal; en PRO, sí)
+  // los premios de la vuelta firmada, como el trigger de la base (Demetrio en el modo normal solo cobra el hoyo en uno,
+  // una vez por día — 27/10/2026; en PRO, todo)
   function premios(marca) {
     alDia(yo.uid)
-    if (marca?.apodo === 'Demetrio López' && !marca?.detalle?.pro) return
+    const demetrio = marca?.apodo === 'Demetrio López' && !marca?.detalle?.pro
     const hoyosV = marca?.detalle?.hoyos
     let premio = 0, unos = 0
     const por = []
@@ -560,11 +564,11 @@ export function crearPrueba({ yo, hoyos, muestraMs = 100, pines = null, final = 
     }
     if (marca?.vsPar < 0) { premio += 2; por.push('bajo_par') }
     const ya = st.movs.filter((m) => m.uid === yo.uid && m.motivo === 'premio' && m.dia === diaAR()).reduce((a, m) => a + m.monto, 0)
-    mover(yo.uid, Math.min(premio, Math.max(0, 5 - ya)), 'premio', null, { por })
+    if (!demetrio) mover(yo.uid, Math.min(premio, Math.max(0, 5 - ya)), 'premio', null, { por })
     if (unos && marca?.detalle?.pro) {
       const pozo = saldo(MONO)
       mover(MONO, -pozo, 'pozo')
-      mover(yo.uid, Math.max(pozo, 10) + 10 * (unos - 1), 'pozo', null, { pozo })
+      mover(yo.uid, Math.max(pozo, 10) + 10 * (unos - 1), 'pozo', null, { pozo, unos })
     } else if (unos && !st.movs.some((m) => m.uid === yo.uid && m.motivo === 'hoyo_en_uno' && m.dia === diaAR())) mover(yo.uid, 10, 'hoyo_en_uno') // una vez por día (19/10/2026)
   }
 

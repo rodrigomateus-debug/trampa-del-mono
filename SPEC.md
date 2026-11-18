@@ -491,7 +491,7 @@ Pedido de Rorro: en el modo normal (con la línea y la zona de pique) era muy f�
 ## 🍌 Las bananas: apostar en el MATCH (2026-10-09)
 
 Pedido de Rorro: poder apostar en los match con algo escaso y divertido. Son **bananas** (la moneda de los monos), solo del juego: no se compran ni se cambian por nada.
-- **Cómo se juntan** (pocas, a propósito): 10 la primera vez. **La mesada del mono**: una vez por semana, si tenés menos de 10 (contando las apostadas), te tira 3. **Jugando** (vuelta firmada): birdie +1, águila +3, vuelta bajo par +2, hasta **5 por día** (hora argentina). **Hoyo en uno**: +10, fuera del tope. **Hoyo en uno en MODO PRO**: se lleva **el pozo del mono** entero (como mínimo 10, para que nunca valga menos que el normal). **Demetrio** (el secreto, que pega perfecto) no suma bananas jugando en el modo normal; en MODO PRO, sí (2026-10-09, pedido de Rorro).
+- **Cómo se juntan** (pocas, a propósito): 10 la primera vez. **La mesada del mono**: una vez por semana, si tenés menos de 10 (contando las apostadas), te tira 3. **Jugando** (vuelta firmada): birdie +1, águila +3, vuelta bajo par +2, hasta **5 por día** (hora argentina). **Hoyo en uno**: +10, fuera del tope. **Hoyo en uno en MODO PRO**: se lleva **el pozo del mono** entero (como mínimo 10, para que nunca valga menos que el normal). **Demetrio** (el secreto, que pega perfecto) no suma bananas jugando en el modo normal; en MODO PRO, sí (2026-10-09, pedido de Rorro). **Desde el 27/10: el hoyo en uno con Demetrio en el modo normal sí paga sus +10, una vez por día** (el mismo cupo que con cualquier player); birdie, águila y bajo par siguen sin sumar con él (lo aplica la base: `trampa-demetrio-uno.sql` de la SDGApp).
 - **El match**: al tocar Desafiar, **antes de jugar tu vuelta**, elegís cuánto con un **−** y un **+** grandes (arranca en 2; manteniendo apretado, sube o baja solo y cada vez más rápido) y **TODO** (hasta lo que tengan los dos), viendo arriba cuántas tiene cada uno y abajo cuánto te llevás si ganás; o **Por el honor** (sin bananas, como siempre). Las tuyas quedan reservadas al arrancar. El otro ve "por N 🍌" en Pendientes y, al tocar Jugar, **acepta** (pone lo mismo, reservado) o **rechaza**. El que gana se lleva todo **menos 1, que se queda el mono** (por eso la apuesta mínima es 2: si no, el que gana no ganaba nada). Empate: cada uno recupera lo suyo.
 - **Rechazar** un desafío con bananas, o **dejarlo vencer** (48 h sin contestar), cuesta **1** (al mono; si no tenés ninguna, gratis). Rechazar uno por el honor, gratis. Un solo desafío con bananas abierto por pareja (para que nadie te llene de desafíos y te desangre con los rechazos).
 - **Abandonar**: si el que desafía o el que aceptó no termina su vuelta en 2 h, cuenta como LP (el del que desafía le llega igual al otro, como LP). Así nadie abandona cuando ve que va perdiendo contra el fantasma.
@@ -884,3 +884,17 @@ Tres casos, reproducidos midiendo la pose cuadro por cuadro (`animarRorro`, en `
 - **Agarran el palo de verdad** (`AGARRE`): cada mano tiene su lugar fijo en el grip (las palmas enfrentadas, los dedos envolviendo, el pulgar para la cabeza del palo, la mano cruzada como en el grip de verdad) y el brazo llega a la muñeca, no al medio del grip.
 - **La derecha, cuando suelta el palo** (`agR`), sigue al antebrazo con la palma hacia el cuerpo y se abre o se cierra según la pose (`manoR`): abierta de visera y en el equilibrio, suelta en la cintura, el puño en el festejo y en el "¡vamos!".
 - Probado: `test-motor` verde; las manos de cerca en el palo (parado y arriba del swing), de bastón, en la cintura, el puño y el equilibrio, y un tiro real con Rorro.
+
+## 🐒 Los hoyos en uno de PRO, el último que se llevó el pozo y el % de ganados (2026-10-27, pedido de Rorro; publicado el 2026-11-18)
+
+- **La hojita de las bananas** (tocar la barra) tiene arriba **la tarjeta del pozo**: cuánto hay, **el último que se lo
+  llevó** (nombre, cuántas y el día) y **tus hoyos en uno en MODO PRO**.
+- **MATCH → Ranking → 🍌 Bananas**: el chip **🕳️ N PRO** al lado de los que hicieron hoyos en uno en PRO, y en la
+  tarjeta del pozo, el último que se lo llevó.
+- **MATCH → Ranking → Matches**: **MÁS GANADOS | % GANADOS**. Con % ganados se ordena por porcentaje **solo entre los
+  que jugaron 5 matches o más** (`MTR_MIN_PCT`); a igual %, el que más ganó. Los de menos de 5 quedan abajo, sin
+  posición, bajo "Con menos de 5 matches" (nadie desaparece de la lista).
+- Los datos los da la base (`proUnos` y `ultimoPozo` en `trampa_bananas_estado`, `pro_unos` en
+  `trampa_bananas_ranking`: `trampa-pozo-pro.sql` de la SDGApp). Si la base no los tiene, no se muestran; el % de
+  ganados lo arma el juego solo.
+- El MATCH de prueba (`prueba.js`) cuenta los hoyos en uno de PRO, el último del pozo y el hoyo en uno con Demetrio.
